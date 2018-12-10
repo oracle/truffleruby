@@ -370,7 +370,7 @@ local part_definitions = {
   cap: {
     gate: {
       capabilities+: self["$.cap"].normal_machine,
-      targets+: ["gate", "post-push"],
+      targets+: ["gate"],
       environment+: {
         REPORT_GITHUB_STATUS: "true",
       },
