@@ -77,7 +77,7 @@ public class ObjectSpaceManager {
     }
 
     @TruffleBoundary
-    public synchronized FinalizerReference defineFinalizer(DynamicObject object, FinalizerReference ref, Object callable) {
+    public FinalizerReference defineFinalizer(DynamicObject object, FinalizerReference ref, Object callable) {
         final DynamicObject root;
         if (callable instanceof DynamicObject) {
             root = (DynamicObject) callable;
@@ -111,7 +111,7 @@ public class ObjectSpaceManager {
     }
 
     @TruffleBoundary
-    public synchronized FinalizerReference undefineFinalizer(DynamicObject object, FinalizerReference ref) {
+    public FinalizerReference undefineFinalizer(DynamicObject object, FinalizerReference ref) {
         return finalizationService.removeFinalizers(object, ref, ObjectSpaceManager.class);
     }
 
