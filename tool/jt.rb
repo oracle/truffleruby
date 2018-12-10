@@ -1793,15 +1793,7 @@ EOS
       svg_data, _err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
 
       Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
-      svg_file_base_path = "#{PROFILES_DIR}/flamegraph"
-      svg_filename = "#{svg_file_base_path}.svg"
-      unique_suffix = 2
-
-      while File.exist?(svg_filename)
-        svg_filename = "#{svg_file_base_path}_#{unique_suffix}.svg"
-        unique_suffix += 1
-      end
-
+      svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
       File.open(svg_filename, 'w') { |f| f.write(svg_data) }
       app_open svg_filename
     ensure

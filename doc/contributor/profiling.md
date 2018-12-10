@@ -36,9 +36,7 @@ not provide invocation counts.
 The easiest way to generate a flame graph from a profile is to accept the default profiling
 options configured in _jt_. In this case, simply run `jt profile` like you would `jt ruby`
 and your application or inline script will be profiled and an SVG written to your
-TruffleRuby source directory, named _profiles/flamegraph\_N.svg_. Successive executions of the command
-will not overwrite existing files; the output command will keep increasing a filename
-suffix until a name is found that's not already in use.
+TruffleRuby source directory, named _profiles/flamegraph\_\<timestamp\>.svg_.
 
 To make things even easier, `jt profile` will automatically open up the flame graph for
 you in whatever application you have configured as your default for SVG files. This is
