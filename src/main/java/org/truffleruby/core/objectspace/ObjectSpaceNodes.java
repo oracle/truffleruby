@@ -179,11 +179,13 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization
         public Object undefineFinalizer(VirtualFrame frame, DynamicObject object) {
-            FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
-            if (ref != null) {
-                FinalizerReference newRef = getContext().getObjectSpaceManager().undefineFinalizer(object, ref);
-                if (ref != newRef) {
-                    setFinalizerNode.write(object, newRef);
+            synchronized (getContext().getFinalizationService()) {
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+                if (ref != null) {
+                    FinalizerReference newRef = getContext().getObjectSpaceManager().undefineFinalizer(object, ref);
+                    if (ref != newRef) {
+                        setFinalizerNode.write(object, newRef);
+                    }
                 }
             }
             return object;
