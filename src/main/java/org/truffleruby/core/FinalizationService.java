@@ -55,6 +55,8 @@ public class FinalizationService {
 
     public static class FinalizerReference extends PhantomReference<Object> {
 
+        private static FinalizerReference first = null;
+
         /**
          * All accesses to this Deque must be synchronized by taking the
          * {@link FinalizationService} monitor, to avoid concurrent access.
@@ -62,8 +64,6 @@ public class FinalizationService {
         private final Deque<Finalizer> finalizers = new LinkedList<>();
         private FinalizerReference next = null;
         private FinalizerReference prev = null;
-
-        private static FinalizerReference first = null;
 
         private FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
             super(object, queue);
@@ -98,17 +98,11 @@ public class FinalizationService {
     }
 
     private final RubyContext context;
-
     private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
-
     private DynamicObject finalizerThread;
 
     public FinalizationService(RubyContext context) {
         this.context = context;
-    }
-
-    public FinalizerReference addFinalizer(Object object, FinalizerReference ref, Class<?> owner, Runnable action) {
-        return addFinalizer(object, ref, owner, action, null);
     }
 
     public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference, Class<?> owner, Runnable action, DynamicObject root) {
@@ -163,8 +157,8 @@ public class FinalizationService {
 
         threadManager.initialize(finalizerThread, null, "finalizer", () -> {
             while (true) {
-                final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
-                        finalizerQueue::remove);
+                final FinalizerReference finalizerReference =
+                        (FinalizerReference) threadManager.runUntilResult(null, finalizerQueue::remove);
 
                 runFinalizer(finalizerReference);
             }
@@ -172,8 +166,9 @@ public class FinalizationService {
     }
 
     private void runFinalizer(FinalizerReference finalizerReference) {
+        FinalizationService.remove(finalizerReference);
+
         try {
-            FinalizationService.remove(finalizerReference);
             while (!context.isFinalizing()) {
                 final Finalizer finalizer;
                 synchronized (this) {
@@ -213,7 +208,7 @@ public class FinalizationService {
         }
     }
 
-    static synchronized void remove(FinalizerReference ref) {
+    private static synchronized void remove(FinalizerReference ref) {
         if (ref.next == ref) {
             // Already removed.
             return;
@@ -223,7 +218,8 @@ public class FinalizationService {
             if (ref.next != null) {
                 FinalizerReference.first = ref.next;
             } else {
-                FinalizerReference.first = ref.prev;
+                // The list becomes empty
+                FinalizerReference.first = null;
             }
         }
 
@@ -239,7 +235,7 @@ public class FinalizationService {
         ref.prev = ref;
     }
 
-    static synchronized void add(FinalizerReference newRef) {
+    private static synchronized void add(FinalizerReference newRef) {
         if (FinalizerReference.first != null) {
             newRef.next = FinalizerReference.first;
             FinalizerReference.first.prev = newRef;
