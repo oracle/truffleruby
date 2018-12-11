@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.cext;
 
 import static org.truffleruby.cext.ValueWrapperManager.TAG_MASK;
@@ -76,9 +85,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     public abstract Object execute(Object value);
 
-    @Specialization(guards = "isWrapper(value)")
-    public Object unwrapValue(DynamicObject value) {
-        return Layouts.VALUE_WRAPPER.getObject(value);
+    @Specialization
+    public Object unwrapValue(ValueWrapper value) {
+        return value.getObject();
     }
 
     @Specialization(guards = "!isWrapper(value)")
@@ -104,6 +113,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     public static boolean isWrapper(TruffleObject value) {
-        return ValueWrapperObjectType.isInstance(value);
+        return value instanceof ValueWrapper;
     }
 }
