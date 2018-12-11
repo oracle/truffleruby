@@ -55,13 +55,13 @@ public class FinalizationService {
 
     public static class FinalizerReference extends PhantomReference<Object> {
 
-        private static FinalizerReference first = null;
-
         /**
          * All accesses to this Deque must be synchronized by taking the
          * {@link FinalizationService} monitor, to avoid concurrent access.
          */
         private final Deque<Finalizer> finalizers = new LinkedList<>();
+
+        /** The doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
         private FinalizerReference next = null;
         private FinalizerReference prev = null;
 
@@ -73,10 +73,11 @@ public class FinalizationService {
             finalizers.addLast(new Finalizer(owner, action, root));
         }
 
-        private FinalizerReference removeFinalizers(Class<?> owner) {
+        private FinalizerReference removeFinalizers(FinalizationService finalizationService, Class<?> owner) {
             finalizers.removeIf(f -> f.getOwner() == owner);
+
             if (finalizers.isEmpty()) {
-                remove(this);
+                finalizationService.remove(this);
                 return null;
             } else {
                 return this;
@@ -99,7 +100,10 @@ public class FinalizationService {
 
     private final RubyContext context;
     private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
+    /** The finalizer Ruby thread, spawned lazily. */
     private DynamicObject finalizerThread;
+    /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
+    private FinalizerReference first = null;
 
     public FinalizationService(RubyContext context) {
         this.context = context;
@@ -109,7 +113,7 @@ public class FinalizationService {
 
         if (finalizerReference == null) {
             finalizerReference = new FinalizerReference(object, finalizerQueue);
-            FinalizationService.add(finalizerReference);
+            add(finalizerReference);
         }
 
         finalizerReference.addFinalizer(owner, action, root);
@@ -166,7 +170,7 @@ public class FinalizationService {
     }
 
     private void runFinalizer(FinalizerReference finalizerReference) {
-        FinalizationService.remove(finalizerReference);
+        remove(finalizerReference);
 
         try {
             while (!context.isFinalizing()) {
@@ -193,7 +197,7 @@ public class FinalizationService {
     }
 
     public synchronized void collectRoots(Collection<DynamicObject> roots) {
-        FinalizerReference finalizerReference = FinalizerReference.first;
+        FinalizerReference finalizerReference = first;
         while (finalizerReference != null) {
             finalizerReference.collectRoots(roots);
             finalizerReference = finalizerReference.next;
@@ -202,24 +206,24 @@ public class FinalizationService {
 
     public synchronized FinalizerReference removeFinalizers(Object object, FinalizerReference ref, Class<?> owner) {
         if (ref != null) {
-            return ref.removeFinalizers(owner);
+            return ref.removeFinalizers(this, owner);
         } else {
             return null;
         }
     }
 
-    private static synchronized void remove(FinalizerReference ref) {
+    private synchronized void remove(FinalizerReference ref) {
         if (ref.next == ref) {
             // Already removed.
             return;
         }
 
-        if (FinalizerReference.first == ref) {
+        if (first == ref) {
             if (ref.next != null) {
-                FinalizerReference.first = ref.next;
+                first = ref.next;
             } else {
                 // The list becomes empty
-                FinalizerReference.first = null;
+                first = null;
             }
         }
 
@@ -235,12 +239,12 @@ public class FinalizationService {
         ref.prev = ref;
     }
 
-    private static synchronized void add(FinalizerReference newRef) {
-        if (FinalizerReference.first != null) {
-            newRef.next = FinalizerReference.first;
-            FinalizerReference.first.prev = newRef;
+    private synchronized void add(FinalizerReference newRef) {
+        if (first != null) {
+            newRef.next = first;
+            first.prev = newRef;
         }
-        FinalizerReference.first = newRef;
+        first = newRef;
     }
 
 }
