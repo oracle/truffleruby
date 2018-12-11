@@ -44,7 +44,10 @@ as their semantics fundamentally do not match the technology that we are using.
 
 You cannot `fork` the TruffleRuby interpreter. The feature is unlikely to ever
 be supported when running on the JVM, but could be supported in the future on
-the SVM.
+the SVM. The correct and portable way to test if `fork` is available is:
+```ruby
+Process.respond_to?(:fork)
+```
 
 #### Standard libraries
 
