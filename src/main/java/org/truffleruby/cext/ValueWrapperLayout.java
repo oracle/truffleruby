@@ -12,6 +12,11 @@ package org.truffleruby.cext;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.dsl.Layout;
 
+/**
+ * This layout represents a VALUE in C which wraps the raw Ruby object. This allows foreign access
+ * methods to be set up which convert these value wrappers to native pointers without affecting the
+ * semantics of the wrapped objects.
+ */
 @Layout(objectTypeSuperclass = ValueWrapperObjectType.class)
 public interface ValueWrapperLayout {
 

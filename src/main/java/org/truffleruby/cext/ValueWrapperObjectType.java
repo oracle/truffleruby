@@ -9,6 +9,7 @@
  */
 package org.truffleruby.cext;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.language.NotProvided;
 
@@ -19,8 +20,6 @@ import com.oracle.truffle.api.object.ObjectType;
 
 public class ValueWrapperObjectType extends ObjectType {
 
-    public static final ValueWrapperLayout VALUE_WRAPPER = ValueWrapperLayoutImpl.INSTANCE;
-
     private static DynamicObject UNDEF_WRAPPER = null;
 
     private static DynamicObject TRUE_WRAPPER = null;
@@ -29,24 +28,24 @@ public class ValueWrapperObjectType extends ObjectType {
     private static LongHashMap<DynamicObject> longMap = new LongHashMap<>(128);
 
     public static DynamicObject createValueWrapper(Object value) {
-        return VALUE_WRAPPER.createValueWrapper(value);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value);
     }
 
     public static synchronized DynamicObject createUndefWrapper(NotProvided value) {
-        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = VALUE_WRAPPER.createValueWrapper(value));
+        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(value));
     }
 
     public static synchronized DynamicObject createBooleanWrapper(boolean value) {
         if (value) {
-            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = VALUE_WRAPPER.createValueWrapper(true));
+            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(true));
         } else {
             return FALSE_WRAPPER != null ? FALSE_WRAPPER : (FALSE_WRAPPER = createFalseWrapper());
         }
     }
 
-    protected static DynamicObject createFalseWrapper() {
+    private static DynamicObject createFalseWrapper() {
         // Ensure that Qfalse will by falsy in C.
-        return VALUE_WRAPPER.createValueWrapper(false);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(false);
     }
 
     /*
@@ -57,7 +56,7 @@ public class ValueWrapperObjectType extends ObjectType {
     public static synchronized DynamicObject createLongWrapper(long value) {
         DynamicObject wrapper = longMap.get(value);
         if (wrapper == null) {
-            wrapper = VALUE_WRAPPER.createValueWrapper(value);
+            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value);
             longMap.put(value, wrapper);
         }
         return wrapper;
@@ -65,11 +64,11 @@ public class ValueWrapperObjectType extends ObjectType {
 
     @TruffleBoundary
     public static synchronized DynamicObject createDoubleWrapper(double value) {
-        return VALUE_WRAPPER.createValueWrapper(value);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value);
     }
 
     public static boolean isInstance(TruffleObject receiver) {
-        return VALUE_WRAPPER.isValueWrapper(receiver);
+        return Layouts.VALUE_WRAPPER.isValueWrapper(receiver);
     }
 
 }

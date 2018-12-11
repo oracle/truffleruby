@@ -1,5 +1,6 @@
 package org.truffleruby.cext;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -14,7 +15,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @Specialization(guards = "isWrapper(value)")
     public Object unwrapValue(DynamicObject value) {
-        return ValueWrapperObjectType.VALUE_WRAPPER.getObject(value);
+        return Layouts.VALUE_WRAPPER.getObject(value);
     }
 
     @Fallback
