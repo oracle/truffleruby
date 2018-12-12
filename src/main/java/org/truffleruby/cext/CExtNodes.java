@@ -1260,4 +1260,32 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_tr_wrap", onSingleton = true, required = 1)
+    public abstract static class WrapValueNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public TruffleObject wrapInt(Object value,
+                @Cached("createWrapNode()") WrapNode wrapNode) {
+            return wrapNode.execute(value);
+        }
+
+        protected WrapNode createWrapNode() {
+            return WrapNodeGen.create();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_unwrap", onSingleton = true, required = 1)
+    public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object unwrap(Object value,
+                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
+            return unwrapNode.execute(value);
+        }
+
+        protected UnwrapNode createUnwrapNode() {
+            return UnwrapNodeGen.create();
+        }
+    }
+
 }

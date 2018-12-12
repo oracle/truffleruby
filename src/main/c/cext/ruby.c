@@ -4608,3 +4608,11 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
 }
+
+VALUE rb_tr_wrap(VALUE object) {
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_wrap", object);
+}
+
+VALUE rb_tr_unwrap(VALUE object) {
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object);
+}
