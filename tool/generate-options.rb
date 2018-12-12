@@ -36,6 +36,9 @@ options = options_data.map do |constant, values|
   when 'boolean'
     type       = 'boolean'
     boxed_type = 'Boolean'
+    if default.is_a?(Array)
+      env_condition, default = default
+    end
     default    = default.to_s
   when 'integer'
     type       = 'int'
@@ -68,6 +71,7 @@ options = options_data.map do |constant, values|
       boxed_type:        boxed_type,
       default:           default,
       reference_default: parse_reference_defaults(default),
+      env_condition:     env_condition,
       description:       description + (mri_names.empty? ?
                                             '' : " (configured by #{mri_names.join(', ')} Ruby options)")
   )
@@ -96,13 +100,15 @@ import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
+import com.oracle.truffle.api.TruffleLanguage.Env;
+
 @Generated("tool/generate-options.rb")
 public class Options {
 
     <% options.each do |o| %>public final <%= o.type %> <%= o.constant %>;
     <% end %>
-    Options(OptionsBuilder builder) {
-    <% options.each do |o| %>    <%= o.constant %> = builder.getOrDefault(OptionsCatalog.<%= o.constant %><%= o.reference_default ? ', ' + o.default : '' %>);
+    Options(OptionsBuilder builder, Env env) {
+    <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %>builder.getOrDefault(OptionsCatalog.<%= o.constant %><%= o.reference_default ? ', ' + o.default : '' %>);
     <% end %>}
 
     public Object fromDescription(OptionDescription<?> description) {

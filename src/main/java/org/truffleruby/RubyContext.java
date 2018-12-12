@@ -391,7 +391,7 @@ public class RubyContext {
         optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
 
-        final Options options = optionsBuilder.build();
+        final Options options = optionsBuilder.build(env);
 
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {

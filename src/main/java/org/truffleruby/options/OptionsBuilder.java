@@ -14,6 +14,8 @@ import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 
+import com.oracle.truffle.api.TruffleLanguage.Env;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,8 +49,8 @@ public class OptionsBuilder {
         options.put(description, description.checkValue(value));
     }
 
-    public Options build() {
-        return new Options(this);
+    public Options build(Env env) {
+        return new Options(this, env);
     }
 
     <T> T getOrDefault(OptionDescription<T> description) {

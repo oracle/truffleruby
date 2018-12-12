@@ -20,6 +20,8 @@ import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
+import com.oracle.truffle.api.TruffleLanguage.Env;
+
 @Generated("tool/generate-options.rb")
 public class Options {
 
@@ -149,7 +151,7 @@ public class Options {
     public final boolean METRICS_TIME_PARSING_FILE;
     public final boolean METRICS_TIME_REQUIRE;
     
-    Options(OptionsBuilder builder) {
+    Options(OptionsBuilder builder, Env env) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
         NO_HOME_PROVIDED = builder.getOrDefault(OptionsCatalog.NO_HOME_PROVIDED);
         LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
@@ -181,10 +183,10 @@ public class Options {
         SOURCE_ENCODING = builder.getOrDefault(OptionsCatalog.SOURCE_ENCODING);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
-        NATIVE_PLATFORM = builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
+        NATIVE_PLATFORM = env.isNativeAccessAllowed() && builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
         NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT, NATIVE_PLATFORM);
         HANDLE_INTERRUPT = builder.getOrDefault(OptionsCatalog.HANDLE_INTERRUPT, !EMBEDDED);
-        SINGLE_THREADED = builder.getOrDefault(OptionsCatalog.SINGLE_THREADED, EMBEDDED);
+        SINGLE_THREADED = !env.isCreateThreadAllowed() || builder.getOrDefault(OptionsCatalog.SINGLE_THREADED, EMBEDDED);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO, EMBEDDED || !NATIVE_PLATFORM);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         PREINITIALIZATION = builder.getOrDefault(OptionsCatalog.PREINITIALIZATION);
