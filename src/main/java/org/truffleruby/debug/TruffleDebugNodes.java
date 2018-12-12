@@ -49,6 +49,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -88,7 +89,7 @@ public abstract class TruffleDebugNodes {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter.newBuilder()
-                    .mimeTypeIs(RubyLanguage.MIME_TYPE)
+                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
                     .sourceIs(source -> source != null && getContext().getPath(source).equals(fileString))
                     .lineIs(line)
                     .tagIs(StandardTags.StatementTag.class)

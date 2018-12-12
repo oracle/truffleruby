@@ -21,8 +21,8 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -87,7 +87,7 @@ public class CoverageManager {
         }
 
         binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                .mimeTypeIs(RubyLanguage.MIME_TYPE)
+                .mimeTypeIs(TruffleRuby.MIME_TYPE)
                 .sourceIs(coveredSources::contains)
                 .tagIs(LineTag.class)
                 .build(), eventContext -> new ExecutionEventNode() {

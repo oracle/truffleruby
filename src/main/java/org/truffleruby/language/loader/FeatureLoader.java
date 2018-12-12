@@ -33,6 +33,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -201,7 +202,7 @@ public class FeatureLoader {
             }
         }
 
-        final String withExtension = findFeatureWithExactPath(path + RubyLanguage.EXTENSION);
+        final String withExtension = findFeatureWithExactPath(path + TruffleRuby.EXTENSION);
 
         if (withExtension != null) {
             return withExtension;
