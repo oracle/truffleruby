@@ -10,8 +10,8 @@
 package org.truffleruby.services;
 
 import org.junit.Test;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyTest;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,14 +29,14 @@ public class RubyFileTypeDetectorTest extends RubyTest {
     public void testDirect() throws IOException {
         final RubyFileTypeDetector fileTypeDetector = new RubyFileTypeDetector();
         for (Path path : getTestPaths()) {
-            assertEquals(RubyLanguage.MIME_TYPE, fileTypeDetector.probeContentType(path));
+            assertEquals(TruffleRuby.MIME_TYPE, fileTypeDetector.probeContentType(path));
         }
     }
 
     @Test
     public void testIndirect() throws IOException {
         for (Path path : getTestPaths()) {
-            assertEquals(RubyLanguage.MIME_TYPE, Files.probeContentType(path));
+            assertEquals(TruffleRuby.MIME_TYPE, Files.probeContentType(path));
         }
     }
 

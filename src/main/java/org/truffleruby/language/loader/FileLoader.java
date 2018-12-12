@@ -86,7 +86,7 @@ public class FileLoader {
         } else {
             // We need to assume all other files are Ruby, so the file type detection isn't enough
             language = TruffleRuby.LANGUAGE_ID;
-            mimeType = RubyLanguage.MIME_TYPE;
+            mimeType = TruffleRuby.MIME_TYPE;
         }
 
         // We set an explicit MIME type because LLVM does not have a default one

@@ -12,7 +12,6 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -104,7 +103,7 @@ public class MainLoader {
          * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
          */
 
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).mimeType(TruffleRuby.MIME_TYPE).build();
 
         context.setMainSources(source, new File(path).getAbsolutePath());
 

@@ -19,7 +19,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -34,6 +33,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.shared.TruffleRuby;
 
 @CoreClass("TracePoint")
 public abstract class TracePointNodes {
@@ -102,7 +102,7 @@ public abstract class TracePointNodes {
         public static EventBinding<?> createEventBinding(RubyContext context, DynamicObject tracePoint) {
             return context.getInstrumenter().attachExecutionEventFactory(
                     SourceSectionFilter.newBuilder()
-                    .mimeTypeIs(RubyLanguage.MIME_TYPE)
+                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
                     .tagIs((Class<?>[]) Layouts.TRACE_POINT.getTags(tracePoint))
                     .includeInternal(false)
                     .build(), eventContext -> new TracePointEventNode(context, eventContext, tracePoint));

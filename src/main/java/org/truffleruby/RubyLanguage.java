@@ -37,8 +37,8 @@ import java.util.List;
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.ENGINE_ID,
         version = TruffleRuby.LANGUAGE_VERSION,
-        characterMimeTypes = RubyLanguage.MIME_TYPE,
-        defaultMimeType = RubyLanguage.MIME_TYPE,
+        characterMimeTypes = TruffleRuby.MIME_TYPE,
+        defaultMimeType = TruffleRuby.MIME_TYPE,
         dependentLanguages = TruffleRuby.LLVM_ID)
 @ProvidedTags({
         CoverageManager.LineTag.class,
@@ -52,9 +52,6 @@ import java.util.List;
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
-
-    public static final String MIME_TYPE = TruffleRuby.MIME_TYPE;
-    public static final String EXTENSION = TruffleRuby.EXTENSION;
 
     public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
