@@ -35,7 +35,7 @@ import java.util.List;
 @TruffleLanguage.Registration(
         name = "Ruby",
         id = TruffleRuby.LANGUAGE_ID,
-        implementationName = TruffleRuby.ENGINE_ID,
+        implementationName = "TruffleRuby",
         version = TruffleRuby.LANGUAGE_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
