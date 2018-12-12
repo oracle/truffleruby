@@ -2886,7 +2886,7 @@ public class BodyTranslator extends Translator {
         if (node.isFrozen() && !inCore()) {
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
-            ret = new DefinedWrapperNode(context.getCoreStrings().METHOD,
+            ret = new DefinedWrapperNode(context.getCoreStrings().EXPRESSION,
                     new ObjectLiteralNode(frozenString));
         } else {
             ret = new StringLiteralNode(rope);
