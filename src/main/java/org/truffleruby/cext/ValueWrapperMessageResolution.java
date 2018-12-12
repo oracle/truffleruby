@@ -48,7 +48,7 @@ public class ValueWrapperMessageResolution {
 
         protected long access(VirtualFrame frame, DynamicObject wrapper) {
             long handle = Layouts.VALUE_WRAPPER.getHandle(wrapper);
-            if (handle == ValueWrapperObjectType.NULL_HANDLE) {
+            if (handle == ValueWrapperObjectType.UNSET_HANDLE) {
                 handle = createHandle(wrapper);
             }
             return handle;
@@ -64,14 +64,18 @@ public class ValueWrapperMessageResolution {
                 // Add a finaliser to remove the map entry.
                 getContext().getFinalizationService().addFinalizer(
                         wrapper, null, ValueWrapperObjectType.class,
-                        () -> {
-                            ValueWrapperObjectType.removeFromHandleMap(handlePointer.getAddress());
-                            handlePointer.free();
-                        }, null);
+                        finalizer(handlePointer), null);
                 return handleAddress;
             }
         }
 
+        private static Runnable finalizer(Pointer handle) {
+            return () -> {
+                ValueWrapperObjectType.removeFromHandleMap(handle.getAddress());
+                handle.free();
+            };
+
+        }
         public RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

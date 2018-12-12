@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.ObjectType;
 
 public class ValueWrapperObjectType extends ObjectType {
 
-    static final int NULL_HANDLE = -1;
+    static final int UNSET_HANDLE = -1;
 
     private static DynamicObject UNDEF_WRAPPER = null;
 
@@ -35,16 +35,16 @@ public class ValueWrapperObjectType extends ObjectType {
     private static LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
 
     public static DynamicObject createValueWrapper(Object value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
     }
 
     public static synchronized DynamicObject createUndefWrapper(NotProvided value) {
-        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE));
+        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE));
     }
 
     public static synchronized DynamicObject createBooleanWrapper(boolean value) {
         if (value) {
-            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(true, NULL_HANDLE));
+            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(true, UNSET_HANDLE));
         } else {
             return FALSE_WRAPPER != null ? FALSE_WRAPPER : (FALSE_WRAPPER = createFalseWrapper());
         }
@@ -63,7 +63,7 @@ public class ValueWrapperObjectType extends ObjectType {
     public static synchronized DynamicObject createLongWrapper(long value) {
         DynamicObject wrapper = longMap.get(value);
         if (wrapper == null) {
-            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
+            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
             longMap.put(value, wrapper);
         }
         return wrapper;
@@ -71,7 +71,7 @@ public class ValueWrapperObjectType extends ObjectType {
 
     @TruffleBoundary
     public static synchronized DynamicObject createDoubleWrapper(double value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
     }
 
     public static synchronized void addToHandleMap(long handle, DynamicObject wrapper) {
@@ -83,7 +83,7 @@ public class ValueWrapperObjectType extends ObjectType {
         WeakReference<DynamicObject> ref = handleMap.get(handle);
         DynamicObject object;
         if (ref == null) {
-            throw new Error("Bad handle!");
+            return null;
         }
         if ((object = ref.get()) == null) {
             return null;
@@ -102,15 +102,16 @@ public class ValueWrapperObjectType extends ObjectType {
 
     @Override
     public boolean equals(DynamicObject object, Object other) {
-        if (!(other instanceof ValueWrapperLayout)) {
+        if (!(other instanceof DynamicObject) || Layouts.VALUE_WRAPPER.isValueWrapper(other)) {
             return false;
         }
         DynamicObject otherWrapper = (DynamicObject) other;
+
         final long objectHandle = Layouts.VALUE_WRAPPER.getHandle(object);
         final long otherHandle = Layouts.VALUE_WRAPPER.getHandle(otherWrapper);
-        if (objectHandle != NULL_HANDLE &&
-                objectHandle == otherHandle) {
-            return true;
+        if (objectHandle != UNSET_HANDLE &&
+            otherHandle != UNSET_HANDLE) {
+            return objectHandle == otherHandle;
         }
         return Layouts.VALUE_WRAPPER.getObject(object).equals(Layouts.VALUE_WRAPPER.getObject(otherWrapper));
     }
@@ -119,10 +120,4 @@ public class ValueWrapperObjectType extends ObjectType {
     public ForeignAccess getForeignAccessFactory(DynamicObject object) {
         return ValueWrapperMessageResolutionForeign.ACCESS;
     }
-
-    @SuppressWarnings("serial")
-    public static class HandleNotFoundException extends RuntimeException {
-
-    }
-
 }

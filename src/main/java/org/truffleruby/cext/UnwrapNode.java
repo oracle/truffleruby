@@ -13,6 +13,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ImportStatic(Message.class)
 public abstract class UnwrapNode extends RubyBaseNode {
@@ -26,25 +27,27 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @Specialization(guards = "!isWrapper(value)")
     public Object unwrapTypeCastObject(TruffleObject value,
-                                       @Cached("IS_POINTER.createNode()") Node isPOinterNode,
-                                       @Cached("AS_POINTER.createNode()") Node asPOinterNode) {
-        if (ForeignAccess.sendIsPointer(isPOinterNode, value)) {
+            @Cached("IS_POINTER.createNode()") Node isPointerNode,
+            @Cached("AS_POINTER.createNode()") Node asPointerNode,
+            @Cached("create()") BranchProfile unsupportedProfile,
+            @Cached("create()") BranchProfile nonPointerProfile) {
+        if (ForeignAccess.sendIsPointer(isPointerNode, value)) {
+            long handle = 0;
             try {
-                long handle = ForeignAccess.sendAsPointer(asPOinterNode, value);
-                return unwrapHandle(handle);
+                handle = ForeignAccess.sendAsPointer(asPointerNode, value);
             } catch (UnsupportedMessageException e) {
+                unsupportedProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
+            return unwrapHandle(handle);
+        } else {
+            nonPointerProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
         }
-        return value;
     }
 
-    public Object unwrapHandle(long handle) {
-        final Object value = ValueWrapperObjectType.getFromHandleMap(handle);
-        if (value == null) {
-            throw new ValueWrapperObjectType.HandleNotFoundException();
-        }
-        return value;
+    private Object unwrapHandle(long handle) {
+        return ValueWrapperObjectType.getFromHandleMap(handle);
     }
 
     public static boolean isWrapper(TruffleObject value) {

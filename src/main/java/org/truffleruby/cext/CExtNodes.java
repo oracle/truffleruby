@@ -37,7 +37,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
-import org.truffleruby.cext.ValueWrapperObjectType.HandleNotFoundException;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
@@ -1282,11 +1281,12 @@ public class CExtNodes {
         public Object unwrap(Object value,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
-            try {
-                return unwrapNode.execute(value);
-            } catch (HandleNotFoundException e) {
+            Object object = unwrapNode.execute(value);
+            if (object == null) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("Native handle not found", this));
+            } else {
+                return object;
             }
         }
 
