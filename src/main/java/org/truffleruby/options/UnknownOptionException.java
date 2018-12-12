@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.shared.options;
+package org.truffleruby.options;
 
 public class UnknownOptionException extends UnsupportedOperationException {
 
