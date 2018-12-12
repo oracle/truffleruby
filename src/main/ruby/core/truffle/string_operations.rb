@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -21,7 +23,7 @@ module Truffle
       gsub_internal_core(orig, pattern) do |_ret, m|
         val = yield m
         if duped != orig.dup
-          raise RuntimeError, 'string modified'
+          raise RuntimeError, +'string modified'
         end
         val
       end
@@ -128,16 +130,16 @@ module Truffle
         if downcasing
           1 << 19 # CASE_FOLD
         else
-          raise ArgumentError, 'option :fold only allowed for downcasing'
+          raise ArgumentError, +'option :fold only allowed for downcasing'
         end
       else
-        raise ArgumentError, 'invalid option'
+        raise ArgumentError, +'invalid option'
       end
     end
 
     def self.validate_case_mapping_options(options, downcasing)
       if options.size > 2
-        raise ArgumentError, 'too many options'
+        raise ArgumentError, +'too many options'
       end
 
       if options.size == 0
@@ -153,15 +155,15 @@ module Truffle
           if second == :lithuanian
             case_mapping_option_to_int(:turkic) | case_mapping_option_to_int(:lithuanian)
           else
-            raise ArgumentError, 'invalid second option'
+            raise ArgumentError, +'invalid second option'
           end
         when :lithuanian
           if second == :turkic
             case_mapping_option_to_int(:lithuanian) | case_mapping_option_to_int(:turkic)
           else
-            raise ArgumentError, 'invalid second option'
+            raise ArgumentError, +'invalid second option'
           end
-        else raise ArgumentError, 'too many options'
+        else raise ArgumentError, +'too many options'
         end
       end
     end

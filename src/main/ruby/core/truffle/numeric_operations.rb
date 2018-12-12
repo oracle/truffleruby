@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -85,7 +87,7 @@ module Truffle
     end
 
     def self.step_fetch_args(value, limit, step, by)
-      raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
+      raise ArgumentError, +'step cannot be 0' if undefined.equal?(by) && step == 0
 
       asc = step > 0
       if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float

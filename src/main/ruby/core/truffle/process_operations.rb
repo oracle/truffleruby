@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -141,7 +143,7 @@ module Truffle
 
         if env = Truffle::Type.try_convert(env_or_cmd, Hash, :to_hash)
           unless command = args.shift
-            raise ArgumentError, 'command argument expected'
+            raise ArgumentError, +'command argument expected'
           end
         else
           command = env_or_cmd
@@ -152,7 +154,7 @@ module Truffle
           @argv = []
         else
           if cmd = Truffle::Type.try_convert(command, Array, :to_ary)
-            raise ArgumentError, 'wrong first argument' unless cmd.size == 2
+            raise ArgumentError, +'wrong first argument' unless cmd.size == 2
             command = StringValue(cmd[0])
             name = StringValue(cmd[1])
           else
@@ -511,7 +513,7 @@ module Truffle
           end
         end
 
-        raise SystemCallError.new('execve() should not return', 0)
+        raise SystemCallError.new(+'execve() should not return', 0)
       end
 
       def should_use_shell?(command)
