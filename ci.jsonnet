@@ -335,7 +335,7 @@ local part_definitions = {
     linux: {
       before_build:: [],
       after_build:: [],
-      "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
+      "$.run.specs":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
@@ -357,7 +357,7 @@ local part_definitions = {
       after_build:: [
         ["set-export", "PATH", "$PATH_WITHOUT_LLVM"],
       ],
-      "$.run.deploy_and_spec":: { test_spec_options: ["-GdarwinCI"] },
+      "$.run.specs":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
         normal_machine: ["darwin_sierra", "amd64"],
       },
@@ -371,11 +371,11 @@ local part_definitions = {
     gate: {
       capabilities+: self["$.cap"].normal_machine,
       targets+: ["gate"],
-      environment+: {
-        REPORT_GITHUB_STATUS: "true",
-      },
     },
-    deploy: { targets+: ["deploy"] },
+    deploy: {
+      capabilities+: self["$.cap"].normal_machine,
+      targets+: ["deploy", "post-merge"],
+    },
     fast_cpu: { capabilities+: ["fast"] },
     bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
@@ -394,15 +394,15 @@ local part_definitions = {
   },
 
   run: {
-    deploy_and_spec: {
-      local deploy_binaries = [
-        ["mx", "deploy-binary-if-master-or-release"],
-      ],
+    deploy_truffleruby_binaries: {
+      run+: [["mx", "ruby_deploy_binaries"]],
+    },
 
-      run+: deploy_binaries + [
+    test_unit_tck_specs: {
+      run+: [
         ["mx", "unittest", "org.truffleruby"],
         ["mx", "tck"],
-      ] + jt(["test", "specs"] + self["$.run.deploy_and_spec"].test_spec_options) +
+      ] + jt(["test", "specs"] + self["$.run.specs"].test_spec_options) +
           jt(["test", "specs", ":ruby25"]),
     },
 
@@ -553,11 +553,11 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
-                                   $.cap.gate + $.run.deploy_and_spec + { timelimit: "35:00" },
+      local shared = $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.gate +
+                     $.run.test_unit_tck_specs + { timelimit: "35:00" },
 
-      "ruby-deploy-and-specs-linux": $.platform.linux + ruby_deploy_and_spec,
-      "ruby-deploy-and-specs-darwin": $.platform.darwin + ruby_deploy_and_spec,
+      "ruby-test-specs-linux": $.platform.linux + shared,
+      "ruby-test-specs-darwin": $.platform.darwin + shared,
     } +
 
     {
@@ -741,8 +741,17 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-standalone-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_standalone_distribution,
     },
 
+  deploy_builds:
+    {
+      local deploy = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
+                     $.run.deploy_truffleruby_binaries + { timelimit: "15:00" },
+
+      "ruby-deploy-linux": $.platform.linux + deploy,
+      "ruby-deploy-darwin": $.platform.darwin + deploy,
+    },
+
   builds:
-    local all_builds = $.test_builds + $.bench_builds + $.release_builds;
+    local all_builds = $.test_builds + $.bench_builds + $.release_builds + $.deploy_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
