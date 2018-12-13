@@ -89,14 +89,14 @@ class Exception
       if bt.all? { |s| s.kind_of? String }
         @custom_backtrace = bt
       else
-        raise TypeError, +'backtrace must be Array of String'
+        raise TypeError, 'backtrace must be Array of String'
       end
     when String
       @custom_backtrace = [bt]
     when nil
       @custom_backtrace = nil
     else
-      raise TypeError, +'backtrace must be Array of String'
+      raise TypeError, 'backtrace must be Array of String'
     end
   end
 
@@ -429,7 +429,7 @@ class SignalException < Exception
   def initialize(sig, message = undefined)
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if signo.nil?
-      raise ArgumentError, +'wrong number of arguments (given 2, expected 1)' unless undefined.equal?(message)
+      raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless undefined.equal?(message)
       if sig.is_a?(Symbol)
         sig = sig.to_s
       else

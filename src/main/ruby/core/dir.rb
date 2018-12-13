@@ -58,7 +58,7 @@ class Dir
   end
 
   private def ensure_open
-    raise IOError, +'closed directory' if closed?
+    raise IOError, 'closed directory' if closed?
   end
 
   def fileno

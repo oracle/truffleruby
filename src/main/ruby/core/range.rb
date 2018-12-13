@@ -32,13 +32,13 @@ class Range
   # Only used if called directly with allocate + #initialize.
   # Range.new is defined in Java.
   def initialize(first, last, exclude_end = false)
-    raise NameError, +"`initialize' called twice" if self.begin
+    raise NameError, "`initialize' called twice" if self.begin
 
     unless first.kind_of?(Integer) && last.kind_of?(Integer)
       begin
-        raise ArgumentError, +'bad value for range' unless first <=> last
+        raise ArgumentError, 'bad value for range' unless first <=> last
       rescue
-        raise ArgumentError, +'bad value for range'
+        raise ArgumentError, 'bad value for range'
       end
     end
 
@@ -99,7 +99,7 @@ class Range
       when false, nil
         min = current + 1
       else
-        raise TypeError, +'Range#bsearch block must return Numeric or boolean'
+        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
       end
     end
 
@@ -226,11 +226,11 @@ class Range
     return self.end unless exclude_end?
 
     unless self.end.kind_of?(Integer)
-      raise TypeError, +'cannot exclude non Integer end value'
+      raise TypeError, 'cannot exclude non Integer end value'
     end
 
     unless self.begin.kind_of?(Integer)
-      raise TypeError, +'cannot exclude end value with non Integer begin value'
+      raise TypeError, 'cannot exclude end value with non Integer begin value'
     end
 
     self.end - 1

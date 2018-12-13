@@ -85,7 +85,7 @@ class String
       Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
       return match_data.begin(0) if match_data
     when String
-      raise TypeError, +'type mismatch: String given'
+      raise TypeError, 'type mismatch: String given'
     else
       pattern =~ self
     end
@@ -736,7 +736,7 @@ class String
           val = hash[match.to_s]
         end
         if duped != self
-          raise RuntimeError, +'string modified'
+          raise RuntimeError, 'string modified'
         end
         untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
@@ -952,7 +952,7 @@ class String
 
         # detect mutation within the block
         if duped != self
-          raise RuntimeError, +'string modified while iterating'
+          raise RuntimeError, 'string modified while iterating'
         end
 
         pos = nxt
@@ -1065,11 +1065,11 @@ class String
     validate = -> str {
       str = StringValue(str)
       unless str.valid_encoding?
-        raise ArgumentError, +'replacement must be valid byte sequence'
+        raise ArgumentError, 'replacement must be valid byte sequence'
       end
       # Special encoding check for #scrub
       if str.ascii_only? ? !encoding.ascii_compatible? : encoding != str.encoding
-        raise Encoding::CompatibilityError, +'incompatible character encodings'
+        raise Encoding::CompatibilityError, 'incompatible character encodings'
       end
       # Modifies the outer taint variable
       taint = true if str.tainted?
@@ -1121,7 +1121,7 @@ class String
         count = Truffle::Type.coerce_to_int count
 
         if count < 0
-          raise IndexError, +'count is negative'
+          raise IndexError, 'count is negative'
         end
 
         total = index + count
@@ -1140,7 +1140,7 @@ class String
       Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     when String
       unless start = Truffle.invoke_primitive(:find_string, self, index, 0)
-        raise IndexError, +'string not matched'
+        raise IndexError, 'string not matched'
       end
 
       replacement = StringValue replacement
@@ -1186,7 +1186,7 @@ class String
       if match = Truffle::RegexpOperations.match(index, self)
         ms = match.size
       else
-        raise IndexError, +'regexp does not match'
+        raise IndexError, 'regexp does not match'
       end
 
       count += ms if count < 0 and -count < ms
@@ -1222,7 +1222,7 @@ class String
 
   def center(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, +'zero width padding' if padding.empty?
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1267,7 +1267,7 @@ class String
 
   def ljust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, +'zero width padding' if padding.empty?
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1311,7 +1311,7 @@ class String
 
   def rjust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, +'zero width padding' if padding.empty?
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1576,8 +1576,8 @@ class String
   
   def crypt(salt)
     salt = StringValue(salt)
-    raise ArgumentError, +'salt too short (need >= 2 bytes)' if salt.bytesize < 2 || salt[0] == "\0" || salt[1] == "\0"
-    raise ArgumentError, +'string contains null byte' if include?("\0")
+    raise ArgumentError, 'salt too short (need >= 2 bytes)' if salt.bytesize < 2 || salt[0] == "\0" || salt[1] == "\0"
+    raise ArgumentError, 'string contains null byte' if include?("\0")
     crypted = Truffle::POSIX.crypt(self, salt)
     Errno.handle unless crypted
     crypted.taint if tainted? || salt.tainted?

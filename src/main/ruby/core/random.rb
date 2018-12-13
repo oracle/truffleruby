@@ -39,7 +39,7 @@ class Truffle::Randomizer
 
   def set_seed(new_seed)
     Truffle.primitive :randomizer_seed
-    raise PrimitiveFailure, +'Randomizer#seed primitive failed'
+    raise PrimitiveFailure, 'Randomizer#seed primitive failed'
   end
 
   def swap_seed(new_seed)
@@ -59,11 +59,11 @@ class Truffle::Randomizer
           random_range(limit)
         end
       elsif limit.kind_of?(Float)
-        raise ArgumentError, +"invalid argument - #{limit}" if limit <= 0
+        raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
         random_float * limit
       else
         limit_int = Truffle::Type.coerce_to limit, Integer, :to_int
-        raise ArgumentError, +"invalid argument - #{limit}" if limit_int <= 0
+        raise ArgumentError, "invalid argument - #{limit}" if limit_int <= 0
 
         if limit.is_a?(Integer)
           random_integer(limit - 1)
@@ -79,13 +79,13 @@ class Truffle::Randomizer
   # Generate a random Float, in the range 0...1.0
   def random_float
     Truffle.primitive :randomizer_rand_float
-    raise PrimitiveFailure, +'Randomizer#rand_float primitive failed'
+    raise PrimitiveFailure, 'Randomizer#rand_float primitive failed'
   end
 
   # Generate a random Integer, in the range 0...limit
   def random_integer(limit)
     Truffle.primitive :randomizer_rand_int
-    raise PrimitiveFailure, +'Randomizer#rand_int primitive failed'
+    raise PrimitiveFailure, 'Randomizer#rand_int primitive failed'
   end
 
   def random_range(limit)
@@ -97,7 +97,7 @@ class Truffle::Randomizer
 
   def generate_seed
     Truffle.primitive :randomizer_gen_seed
-    raise PrimitiveFailure, +'Randomizer#gen_seed primitive failed'
+    raise PrimitiveFailure, 'Randomizer#gen_seed primitive failed'
   end
 
   ##
@@ -148,7 +148,7 @@ class Random
   end
 
   def self.raw_seed(size)
-    raise ArgumentError, +'negative string size (or size too big)' if size < 0
+    raise ArgumentError, 'negative string size (or size too big)' if size < 0
     self.new.bytes(size)
   end
 

@@ -94,17 +94,17 @@ class Regexp
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search
     Truffle.primitive :regexp_search_region
-    raise PrimitiveFailure, +'Regexp#search_region primitive failed'
+    raise PrimitiveFailure, 'Regexp#search_region primitive failed'
   end
 
   def options
     Truffle.primitive :regexp_options
-    raise PrimitiveFailure, +'Regexp#options primitive failed'
+    raise PrimitiveFailure, 'Regexp#options primitive failed'
   end
 
   def fixed_encoding?
     Truffle.primitive :regexp_fixed_encoding_p
-    raise PrimitiveFailure, +'Regexp.fixed_encoding? primitive failed'
+    raise PrimitiveFailure, 'Regexp.fixed_encoding? primitive failed'
   end
 
   class << self
@@ -434,26 +434,26 @@ Truffle::KernelOperations.define_hooked_variable(
   :'$`',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.pre_match if match },
-  -> { raise SyntaxError, +"Can't set variable $`"},
+  -> { raise SyntaxError, "Can't set variable $`"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :"$'",
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.post_match if match },
-  -> { raise SyntaxError, +"Can't set variable $'"},
+  -> { raise SyntaxError, "Can't set variable $'"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$&',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match[0] if match },
-  -> { raise SyntaxError, +"Can't set variable $&"},
+  -> { raise SyntaxError, "Can't set variable $&"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$+',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.captures.reverse.find { |m| !m.nil? } if match },
-  -> { raise SyntaxError, +"Can't set variable $+"},
+  -> { raise SyntaxError, "Can't set variable $+"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })

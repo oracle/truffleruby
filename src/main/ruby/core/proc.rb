@@ -76,7 +76,7 @@ class Proc
     f = Truffle::ProcOperations.curry self, [], arity
 
     def f.binding
-      raise ArgumentError, +'cannot create binding from curried proc'
+      raise ArgumentError, 'cannot create binding from curried proc'
     end
 
     # TODO: set the procs parameters to be :rest to match spec. DMM - 2017-01-19

@@ -187,7 +187,7 @@ module Truffle
         end
       when :to_str
         receiver = Truffle::Interop.unbox_if_needed(receiver)
-        raise NameError, +'no method to_str' unless receiver.is_a?(String)
+        raise NameError, 'no method to_str' unless receiver.is_a?(String)
         receiver
       when :is_a?, :kind_of?
         receiver = Truffle::Interop.unbox_if_needed(receiver)
@@ -198,7 +198,7 @@ module Truffle
             Truffle::Interop.java_instanceof?(receiver, check_class)
           elsif Truffle::Interop.foreign?(check_class)
             # Checking a foreign (not Java) object against a foreign (not Java) class
-            raise TypeError, +'cannot check if a foreign object is an instance of a foreign class'
+            raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
           else
             # Checking a foreign or Java object against a Ruby class
             false
@@ -268,7 +268,7 @@ module Truffle
     
     def self.to_array(object)
       unless Truffle::Interop.size?(object)
-        raise(+'foreign object does not have a size to turn it into an array')
+        raise 'foreign object does not have a size to turn it into an array'
       end
       
       Array.new(Truffle::Interop.size(object)) do |n|

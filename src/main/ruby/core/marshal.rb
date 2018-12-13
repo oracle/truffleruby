@@ -48,7 +48,7 @@ end
 class Class
   private def __marshal__(ms)
     if singleton_class?
-      raise TypeError, +"singleton class can't be dumped"
+      raise TypeError, "singleton class can't be dumped"
     elsif name.nil? || name.empty?
       raise TypeError, "can't dump anonymous module #{self}"
     end
@@ -364,7 +364,7 @@ end
 
 class Hash
   private def __marshal__(ms)
-    raise TypeError, +"can't dump hash with default proc" if default_proc
+    raise TypeError, "can't dump hash with default proc" if default_proc
 
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
@@ -589,14 +589,14 @@ module Marshal
                 obj = @objects.fetch(num)
                 return obj
               rescue IndexError
-                raise ArgumentError, +'dump format error (unlinked)'
+                raise ArgumentError, 'dump format error (unlinked)'
               end
 
             when 59   # ?;
               num = construct_integer
               sym = @symbols[num]
 
-              raise ArgumentError, +'bad symbol' unless sym
+              raise ArgumentError, 'bad symbol' unless sym
 
               return sym
             when 101  # ?e
@@ -1109,7 +1109,7 @@ module Marshal
       end
 
       unless Truffle::Type.object_kind_of? str, String
-        raise TypeError, +'_dump() must return string'
+        raise TypeError, '_dump() must return string'
       end
 
       out = serialize_instance_variables_prefix(str)
@@ -1167,7 +1167,7 @@ module Marshal
       else
         obj = klass.allocate
 
-        raise TypeError, +'dump format error' unless Object === obj
+        raise TypeError, 'dump format error' unless Object === obj
 
         store_unique_object obj
         if Truffle::Type.object_kind_of? obj, Exception
@@ -1239,14 +1239,14 @@ module Marshal
     end
 
     def consume(bytes)
-      raise ArgumentError, +'marshal data too short' if @consumed > @stream.bytesize
+      raise ArgumentError, 'marshal data too short' if @consumed > @stream.bytesize
       data = @stream.byteslice @consumed, bytes
       @consumed += bytes
       data
     end
 
     def consume_byte
-      raise ArgumentError, +'marshal data too short' if @consumed >= @stream.bytesize
+      raise ArgumentError, 'marshal data too short' if @consumed >= @stream.bytesize
       data = @byte_array[@consumed]
       @consumed += 1
       data
@@ -1268,7 +1268,7 @@ module Marshal
 
     if an_io
       if !Truffle::Type.object_respond_to? an_io, :write
-        raise TypeError, +'output must respond to write'
+        raise TypeError, 'output must respond to write'
       end
       if Truffle::Type.object_respond_to? an_io, :binmode
         an_io.binmode
@@ -1301,7 +1301,7 @@ module Marshal
       major = ms.consume_byte
       minor = ms.consume_byte
     else
-      raise TypeError, +'instance of IO needed'
+      raise TypeError, 'instance of IO needed'
     end
 
     if major != MAJOR_VERSION or minor > MINOR_VERSION

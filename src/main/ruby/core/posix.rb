@@ -23,7 +23,7 @@ module Truffle::POSIX
         if resolved = @resolved
           resolved
         else
-          raise(+'loading library while pre-initializing') if Truffle::Boot.preinitializing?
+          raise 'loading library while pre-initializing' if Truffle::Boot.preinitializing?
           Truffle::System.synchronized(self) do
             @resolved ||= @block.call
           end
@@ -276,7 +276,7 @@ module Truffle::POSIX
     elsif Truffle::Platform.solaris?
       attach_function :___errno, [], :pointer, LIBC, false, :errno_address
     else
-      raise(+'Unsupported platform')
+      raise 'Unsupported platform'
     end
 
     # Platform-specific

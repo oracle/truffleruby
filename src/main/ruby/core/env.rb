@@ -150,7 +150,7 @@ module Truffle
       if block_given?
         return yield(key)
       elsif undefined.equal?(absent)
-        raise KeyError, +'key not found'
+        raise KeyError, 'key not found'
       end
 
       absent

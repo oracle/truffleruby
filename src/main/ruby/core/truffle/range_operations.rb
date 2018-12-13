@@ -79,8 +79,8 @@ module Truffle
       end
 
       if step_size <= 0
-        raise ArgumentError, +"step can't be negative" if step_size < 0
-        raise ArgumentError, +"step can't be 0"
+        raise ArgumentError, "step can't be negative" if step_size < 0
+        raise ArgumentError, "step can't be 0"
       end
 
       [first, last, step_size]

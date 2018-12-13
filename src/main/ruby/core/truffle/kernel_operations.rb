@@ -50,7 +50,7 @@ module Truffle
       :$/,
       -> { global_variable_get(:$/) },
       -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-               raise TypeError, +'$/ must be a String'
+               raise TypeError, '$/ must be a String'
              end
              global_variable_set(:$/, v) })
 
@@ -62,7 +62,7 @@ module Truffle
       :'$,',
       -> { global_variable_get(:$,) },
       -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-               raise TypeError, +'$, must be a String'
+               raise TypeError, '$, must be a String'
              end
              global_variable_set(:$,, v) })
 
@@ -117,7 +117,7 @@ module Truffle
         if exc
           skip = true
         else
-          exc = RuntimeError.new(+'No current exception')
+          exc = RuntimeError.new 'No current exception'
         end
       elsif exc.respond_to? :exception
         if undefined.equal? msg
@@ -125,11 +125,11 @@ module Truffle
         else
           exc = exc.exception msg
         end
-        raise TypeError, +'exception class/object expected' unless exc.kind_of?(Exception)
+        raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
       elsif exc.kind_of? String
         exc = RuntimeError.exception exc
       else
-        raise TypeError, +'exception class/object expected'
+        raise TypeError, 'exception class/object expected'
       end
 
       unless skip

@@ -55,7 +55,7 @@ class Struct
       when String
         sym = a.to_sym
         unless sym.kind_of? Symbol
-          raise TypeError, +"#to_sym didn't return a symbol"
+          raise TypeError, "#to_sym didn't return a symbol"
         end
         sym
       else

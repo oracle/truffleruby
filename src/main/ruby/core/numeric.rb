@@ -61,7 +61,7 @@ class Numeric
 
   def step(limit = undefined, step = undefined, by: undefined, to: undefined)
     limit = if !undefined.equal?(limit) && !undefined.equal?(to)
-              raise ArgumentError, +'to is given twice'
+              raise ArgumentError, 'to is given twice'
             elsif !undefined.equal?(limit)
               limit
             elsif !undefined.equal?(to)
@@ -70,7 +70,7 @@ class Numeric
               nil
             end
     step = if !undefined.equal?(step) && !undefined.equal?(by)
-             raise ArgumentError, +'step is given twice'
+             raise ArgumentError, 'step is given twice'
            elsif !undefined.equal?(step)
              step
            elsif !undefined.equal?(by)
@@ -248,7 +248,7 @@ class Numeric
       if error == :no_error
         return nil
       else
-        raise TypeError, +'coerce must return [x, y]'
+        raise TypeError, 'coerce must return [x, y]'
       end
     end
 
@@ -290,7 +290,7 @@ class Numeric
   private :redo_bit_coerced
 
   def div(other)
-    raise ZeroDivisionError, +'divided by 0' if other == 0
+    raise ZeroDivisionError, 'divided by 0' if other == 0
     (self / other).floor
   end
 

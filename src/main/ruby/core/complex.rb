@@ -58,7 +58,7 @@ class Complex < Numeric
 
   def self.convert(real, imag = undefined)
     if nil.equal?(real) || nil.equal?(imag)
-      raise TypeError, +'cannot convert nil into Complex'
+      raise TypeError, 'cannot convert nil into Complex'
     end
     imag = nil if undefined.equal?(imag)
 
@@ -105,13 +105,13 @@ class Complex < Numeric
   end
 
   def Complex.rect(real, imag=0)
-    raise TypeError, +'not a real' unless check_real?(real) && check_real?(imag)
+    raise TypeError, 'not a real' unless check_real?(real) && check_real?(imag)
     new(real, imag)
   end
   class << self; alias_method :rectangular, :rect end
 
   def Complex.polar(r, theta=0)
-    raise TypeError, +'not a real' unless check_real?(r) && check_real?(theta)
+    raise TypeError, 'not a real' unless check_real?(r) && check_real?(theta)
 
     Complex(r*Math.cos(theta), r*Math.sin(theta))
   end

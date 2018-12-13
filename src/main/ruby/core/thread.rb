@@ -193,7 +193,7 @@ class Thread
 
   def self.handle_interrupt(config, &block)
     unless config.is_a?(Hash) and config.size == 1
-      raise ArgumentError, +'unknown mask signature'
+      raise ArgumentError, 'unknown mask signature'
     end
     exception, timing = config.first
     Truffle.privately do
@@ -217,7 +217,7 @@ class Thread
     end
 
     def start(*args, &block)
-      Kernel.raise ArgumentError, +'tried to create Proc object without a block' unless block
+      Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
 
       thread = Truffle.invoke_primitive(:thread_allocate, self)
       thread.send(:internal_thread_initialize)
@@ -233,9 +233,9 @@ class Thread
   attr_accessor :report_on_exception
 
   def initialize(*args, &block)
-    Kernel.raise ThreadError, +'must be called with a block' unless block
+    Kernel.raise ThreadError, 'must be called with a block' unless block
     if Truffle.invoke_primitive(:thread_initialized?, self)
-      Kernel.raise ThreadError, +'already initialized thread'
+      Kernel.raise ThreadError, 'already initialized thread'
     end
     internal_thread_initialize
     Truffle.invoke_primitive(:thread_initialize, self, args, block)
@@ -255,7 +255,7 @@ class Thread
 
   def name
     Truffle.primitive :thread_get_name
-    Kernel.raise ThreadError, +'Thread#name primitive failed'
+    Kernel.raise ThreadError, 'Thread#name primitive failed'
   end
 
   def name=(val)
@@ -281,7 +281,7 @@ class Thread
   end
 
   def priority=(priority)
-    Kernel.raise TypeError, +'priority must be an Integer' unless priority.kind_of? Integer
+    Kernel.raise TypeError, 'priority must be an Integer' unless priority.kind_of? Integer
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]
@@ -313,7 +313,7 @@ class Thread
     elsif exc.kind_of? String
       exc = RuntimeError.exception exc
     else
-      Kernel.raise TypeError, +'exception class/object expected'
+      Kernel.raise TypeError, 'exception class/object expected'
     end
 
     exc.set_context ctx if ctx
@@ -416,13 +416,13 @@ class ThreadGroup
   end
 
   def add(thread)
-    raise ThreadError, +"can't move to the frozen thread group" if self.frozen?
-    raise ThreadError, +"can't move to the enclosed thread group" if self.enclosed?
+    raise ThreadError, "can't move to the frozen thread group" if self.frozen?
+    raise ThreadError, "can't move to the enclosed thread group" if self.enclosed?
 
     from_tg = thread.group
     return nil unless from_tg
-    raise ThreadError, +"can't move from the frozen thread group" if from_tg.frozen?
-    raise ThreadError, +"can't move from the enclosed thread group" if from_tg.enclosed?
+    raise ThreadError, "can't move from the frozen thread group" if from_tg.frozen?
+    raise ThreadError, "can't move from the enclosed thread group" if from_tg.enclosed?
 
     Truffle.invoke_primitive :thread_set_group, thread, self
     self
@@ -447,7 +447,7 @@ class ConditionVariable
 
   def wait(mutex, timeout=nil)
     if timeout
-      raise ArgumentError, +'Timeout must be positive' if timeout < 0
+      raise ArgumentError, 'Timeout must be positive' if timeout < 0
       timeout = timeout * 1_000_000_000
       timeout = Truffle::Type.rb_num2long(timeout)
     end
@@ -489,7 +489,7 @@ Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
   -> { Thread.current.safe_level },
   -> level {
-    raise SecurityError, +'Setting $SAFE is no longer supported.' unless level == 0
+    raise SecurityError, 'Setting $SAFE is no longer supported.' unless level == 0
   }
 )
 
@@ -499,6 +499,6 @@ Truffle::KernelOperations.define_read_only_global(:$?, -> { Truffle.invoke_primi
 Truffle::KernelOperations.define_hooked_variable(
   :$@,
   -> { $!.backtrace if $! },
-  -> value { raise ArgumentError, +'$! not set' unless $!
+  -> value { raise ArgumentError, '$! not set' unless $!
              $!.set_backtrace value }
 )

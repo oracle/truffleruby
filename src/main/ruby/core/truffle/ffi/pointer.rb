@@ -95,7 +95,7 @@ module Truffle::FFI
     # Return the address pointed to as an Integer
     def address
       Truffle.primitive :pointer_address
-      raise PrimitiveFailure, +'FFI::Pointer#address primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#address primitive failed'
     end
 
     alias_method :to_i, :address
@@ -112,7 +112,7 @@ module Truffle::FFI
     # Set the address pointed to from an Integer
     def address=(address)
       Truffle.primitive :pointer_set_address
-      raise PrimitiveFailure, +'FFI::Pointer#address= primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#address= primitive failed'
     end
 
     def null?
@@ -122,7 +122,7 @@ module Truffle::FFI
     # Add +value+ to the address pointed to and return a new Pointer
     def +(value)
       Truffle.primitive :pointer_add
-      raise PrimitiveFailure, +'FFI::Pointer#+ primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#+ primitive failed'
     end
 
     # Indicates if +self+ and +other+ point to the same address
@@ -133,14 +133,14 @@ module Truffle::FFI
 
     def network_order(start, size)
       Truffle.primitive :pointer_network_order
-      raise PrimitiveFailure, +'FFI::Pointer#network_order primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#network_order primitive failed'
     end
 
     # Read +len+ bytes from the memory pointed to and return them as
     # a String
     def read_string_length(len)
       Truffle.primitive :pointer_read_string
-      raise PrimitiveFailure, +'FFI::Pointer#read_string_length primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#read_string_length primitive failed'
     end
     alias :read_bytes :read_string_length
 
@@ -148,7 +148,7 @@ module Truffle::FFI
     # the bytes as a String
     def read_string_to_null
       Truffle.primitive :pointer_read_string_to_null
-      raise PrimitiveFailure, +'FFI::Pointer#read_string_to_null primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#read_string_to_null primitive failed'
     end
 
     # Read bytes as a String from the memory pointed to
@@ -169,7 +169,7 @@ module Truffle::FFI
     # write up to +len+ bytes.
     def write_string_length(str, len)
       Truffle.primitive :pointer_write_string
-      raise PrimitiveFailure, +'FFI::Pointer#write_string_length primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#write_string_length primitive failed'
     end
 
     # Write a String +str+ as bytes to the memory pointed to.
@@ -182,13 +182,13 @@ module Truffle::FFI
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Truffle.primitive :pointer_get_at_offset
-      raise PrimitiveFailure, +'FFI::Pointer#get_at_offset primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#get_at_offset primitive failed'
     end
 
     # Write +val+ as type +type+ to bytes from +offset+
     def set_at_offset(offset, type, val)
       Truffle.primitive :pointer_set_at_offset
-      raise PrimitiveFailure, +'FFI::Pointer#set_at_offset primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#set_at_offset primitive failed'
     end
 
     # Number of bytes taken up by a pointer.
@@ -201,14 +201,14 @@ module Truffle::FFI
     # free() on it's address when it is garbage collected.
     def autorelease=(val)
       Truffle.primitive :pointer_set_autorelease
-      raise PrimitiveFailure, +'FFI::Pointer#autorelease= primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#autorelease= primitive failed'
     end
 
     ##
     # Returns true if autorelease is enabled, otherwise false.
     def autorelease?
       Truffle.primitive :pointer_autorelease_p
-      raise PrimitiveFailure, +'FFI::Pointer#pointer_autorelease_p primitive failed'
+      raise PrimitiveFailure, 'FFI::Pointer#pointer_autorelease_p primitive failed'
     end
 
     NULL = Pointer.new(0x0)
@@ -272,7 +272,7 @@ module Truffle::FFI
 
     def self.malloc(total)
       Truffle.primitive :pointer_malloc
-      raise PrimitiveFailure, +'FFI::MemoryPointer.malloc primitive failed'
+      raise PrimitiveFailure, 'FFI::MemoryPointer.malloc primitive failed'
     end
 
     def self.from_string(str)
@@ -316,14 +316,14 @@ module Truffle::FFI
     #   new_ptr = &ptr[9];
     #
     def [](which)
-      raise ArgumentError, +'unknown type size' unless @type_size
+      raise ArgumentError, 'unknown type size' unless @type_size
       self + (which * @type_size)
     end
 
     # Release the memory pointed to back to the OS.
     def free
       Truffle.primitive :pointer_free
-      raise PrimitiveFailure, +'FFI::MemoryPointer#free primitive failed'
+      raise PrimitiveFailure, 'FFI::MemoryPointer#free primitive failed'
     end
   end
 end

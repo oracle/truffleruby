@@ -41,7 +41,7 @@ module Truffle::Internal
       Truffle.primitive :vm_set_class
 
       if obj.kind_of? ImmediateValue
-        raise TypeError, +'Can not change the class of an immediate'
+        raise TypeError, 'Can not change the class of an immediate'
       end
 
       raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"

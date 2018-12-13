@@ -59,7 +59,7 @@ class Enumerator
       receiver = Generator.new(&block)
     else
       if undefined.equal? receiver_or_size
-        raise ArgumentError, +'Enumerator#initialize requires a block when called without arguments'
+        raise ArgumentError, 'Enumerator#initialize requires a block when called without arguments'
       end
 
       receiver = receiver_or_size
@@ -159,7 +159,7 @@ class Enumerator
       nil # the enumerator could change between next? and next leading to StopIteration
     end
 
-    exception = StopIteration.new(+'iteration reached end')
+    exception = StopIteration.new 'iteration reached end'
     Truffle.privately do
       exception.result = @generator.result
     end
@@ -212,14 +212,14 @@ class Enumerator
   end
 
   def feed(val)
-    raise TypeError, +'Feed value already set' unless @feedvalue.nil?
+    raise TypeError, 'Feed value already set' unless @feedvalue.nil?
     @feedvalue = val
     nil
   end
 
   class Yielder
     def initialize(&block)
-      raise LocalJumpError, +'Expected a block to be given' unless block_given?
+      raise LocalJumpError, 'Expected a block to be given' unless block_given?
 
       @proc = block
 
@@ -241,7 +241,7 @@ class Enumerator
   class Generator
     include Enumerable
     def initialize(&block)
-      raise LocalJumpError, +'Expected a block to be given' unless block_given?
+      raise LocalJumpError, 'Expected a block to be given' unless block_given?
 
       @proc = block
 
@@ -260,7 +260,7 @@ class Enumerator
     class StopLazyError < Exception; end # rubocop:disable Lint/InheritException
 
     def initialize(receiver, size=nil)
-      raise ArgumentError, +'Lazy#initialize requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
       Truffle.check_frozen
 
       super(size) do |yielder, *each_args|
@@ -297,7 +297,7 @@ class Enumerator
 
     def take(n)
       n = Truffle::Type.coerce_to n, Integer, :to_int
-      raise ArgumentError, +'attempt to take negative size' if n < 0
+      raise ArgumentError, 'attempt to take negative size' if n < 0
 
       current_size = enumerator_size
       if current_size.kind_of?(Numeric)
@@ -322,7 +322,7 @@ class Enumerator
 
     def drop(n)
       n = Truffle::Type.coerce_to n, Integer, :to_int
-      raise ArgumentError, +'attempt to drop negative size' if n < 0
+      raise ArgumentError, 'attempt to drop negative size' if n < 0
 
       current_size = enumerator_size
       if current_size.kind_of?(Integer)
@@ -342,7 +342,7 @@ class Enumerator
     end
 
     def take_while
-      raise ArgumentError, +'Lazy#take_while requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#take_while requires a block' unless block_given?
 
       Lazy.new(self, nil) do |yielder, *args|
         if yield(*args)
@@ -354,7 +354,7 @@ class Enumerator
     end
 
     def drop_while
-      raise ArgumentError, +'Lazy#drop_while requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#drop_while requires a block' unless block_given?
 
       succeeding = true
       Lazy.new(self, nil) do |yielder, *args|
@@ -370,7 +370,7 @@ class Enumerator
     end
 
     def select
-      raise ArgumentError, +'Lazy#{select,find_all} requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#{select,find_all} requires a block' unless block_given?
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -380,7 +380,7 @@ class Enumerator
     alias_method :find_all, :select
 
     def reject
-      raise ArgumentError, +'Lazy#reject requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#reject requires a block' unless block_given?
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -434,7 +434,7 @@ class Enumerator
     end
 
     def map
-      raise ArgumentError, +'Lazy#{map,collect} requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#{map,collect} requires a block' unless block_given?
 
       Lazy.new(self, enumerator_size) do |yielder, *args|
         yielder.yield yield(*args)
@@ -443,7 +443,7 @@ class Enumerator
     alias_method :collect, :map
 
     def collect_concat
-      raise ArgumentError, +'Lazy#{collect_concat,flat_map} requires a block' unless block_given?
+      raise ArgumentError, 'Lazy#{collect_concat,flat_map} requires a block' unless block_given?
 
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
@@ -521,7 +521,7 @@ class Enumerator
 
       val = @fiber.resume
 
-      raise StopIteration, +'iteration has ended' if @done
+      raise StopIteration, 'iteration has ended' if @done
 
       val
     end

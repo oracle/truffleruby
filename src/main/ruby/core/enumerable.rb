@@ -34,7 +34,7 @@
 module Enumerable
   def chunk(&original_block)
     initial_state = nil
-    raise ArgumentError, +'no block given' unless block_given?
+    raise ArgumentError, 'no block given' unless block_given?
     Enumerator.new do |yielder|
       previous = nil
       accumulate = []
@@ -55,7 +55,7 @@ module Enumerable
           when :_alone
             yielder.yield [key, [val]]
           else
-            raise RuntimeError, +'symbols beginning with an underscore are reserved'
+            raise RuntimeError, 'symbols beginning with an underscore are reserved'
           end
         else
           if previous.nil? || previous == key
@@ -192,9 +192,9 @@ module Enumerable
   def slice_after(arg = undefined, &block)
     has_arg = !(undefined.equal? arg)
     if block_given?
-      raise ArgumentError, +'both pattern and block are given' if has_arg
+      raise ArgumentError, 'both pattern and block are given' if has_arg
     else
-      raise ArgumentError, +'wrong number of arguments (0 for 1)' unless has_arg
+      raise ArgumentError, 'wrong number of arguments (0 for 1)' unless has_arg
       block = Proc.new{ |elem| arg === elem }
     end
     Enumerator.new do |yielder|
@@ -219,10 +219,10 @@ module Enumerable
     if block_given?
       has_init = !(undefined.equal? arg)
       if has_init
-        raise ArgumentError, +'both pattern and block are given'
+        raise ArgumentError, 'both pattern and block are given'
       end
     else
-      raise ArgumentError, +'wrong number of arguments (0 for 1)' if undefined.equal? arg
+      raise ArgumentError, 'wrong number of arguments (0 for 1)' if undefined.equal? arg
       block = Proc.new{ |elem| arg === elem }
     end
     Enumerator.new do |yielder|
@@ -544,7 +544,7 @@ module Enumerable
 
   def drop(n)
     n = Truffle::Type.coerce_to_collection_index n
-    raise ArgumentError, +'attempt to drop negative size' if n < 0
+    raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     ary = to_a
     return [] if n > ary.size
@@ -789,7 +789,7 @@ module Enumerable
   def self.sort_proc
     @sort_proc ||= Proc.new do |a, b|
       unless ret = a <=> b
-        raise ArgumentError, +'Improper spaceship value'
+        raise ArgumentError, 'Improper spaceship value'
       end
       ret
     end
@@ -807,12 +807,12 @@ module Enumerable
         first_time = false
       else
         unless min_cmp = block.call(min, object)
-          raise ArgumentError, +'comparison failed'
+          raise ArgumentError, 'comparison failed'
         end
         min = object if min_cmp > 0
 
         unless max_cmp = block.call(max, object)
-          raise ArgumentError, +'comparison failed'
+          raise ArgumentError, 'comparison failed'
         end
 
         max = object if max_cmp < 0

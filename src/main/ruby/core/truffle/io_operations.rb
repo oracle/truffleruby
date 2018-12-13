@@ -20,7 +20,7 @@ module Truffle
 
     def self.print(io, args, last_line_binding)
       if args.empty?
-        raise(+'last_line_binding is required') if last_line_binding.nil?
+        raise 'last_line_binding is required' if last_line_binding.nil?
         io.write Truffle::IOOperations.last_line(last_line_binding).to_s
       else
         args.each { |o| io.write o.to_s }

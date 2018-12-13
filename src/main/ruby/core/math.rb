@@ -33,7 +33,7 @@ module Math
 
   def ldexp(fraction, exponent)
     Truffle.primitive :math_ldexp
-    raise RangeError, +'float NaN out of range of integer' if Float === exponent and exponent.nan?
+    raise RangeError, 'float NaN out of range of integer' if Float === exponent and exponent.nan?
     ldexp(
       Truffle::Type.coerce_to_float(fraction),
       Truffle::Type.coerce_to_int(exponent))

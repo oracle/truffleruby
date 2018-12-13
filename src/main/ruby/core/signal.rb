@@ -79,7 +79,7 @@ module Signal
 
     if signame == 'VTALRM'
       # Used internally to unblock native calls, like MRI
-      raise ArgumentError, +"can't trap reserved signal: SIGVTALRM"
+      raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
     end
 
     handler ||= block

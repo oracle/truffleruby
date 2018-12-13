@@ -172,7 +172,7 @@ class Encoding
       end
 
       if status == :finished
-        raise ArgumentError, +'converter already finished'
+        raise ArgumentError, 'converter already finished'
       end
 
       if status != :source_buffer_empty
@@ -198,16 +198,16 @@ class Encoding
         size = Truffle::Type.coerce_to_int size
 
         if size < 0
-          raise ArgumentError, +'byte size is negative'
+          raise ArgumentError, 'byte size is negative'
         end
       end
 
       if offset < 0
-        raise ArgumentError, +'byte offset is negative'
+        raise ArgumentError, 'byte offset is negative'
       end
 
       if offset > target.bytesize
-        raise ArgumentError, +'byte offset is greater than destination buffer size'
+        raise ArgumentError, 'byte offset is greater than destination buffer size'
       end
 
       if !options.kind_of? Integer
@@ -322,7 +322,7 @@ class Encoding
 
     def primitive_errinfo
       Truffle.primitive :encoding_converter_primitive_errinfo
-      raise PrimitiveFailure, +'Encoding::Converter#primitive_errinfo primitive failed'
+      raise PrimitiveFailure, 'Encoding::Converter#primitive_errinfo primitive failed'
     end
 
     def convpath

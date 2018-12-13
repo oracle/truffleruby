@@ -239,7 +239,7 @@ class Integer < Numeric
   end
 
   def digits(base = 10)
-    raise Math::DomainError, +'out of domain' if negative?
+    raise Math::DomainError, 'out of domain' if negative?
     base = Truffle::Type.coerce_to_int(base)
 
     to_s(base).chars.map(&:to_i).reverse

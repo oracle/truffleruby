@@ -132,7 +132,7 @@ class Dir
 
     class StartRecursiveDirectories < Node
       def call(matches, start)
-        raise(+'invalid usage') if start
+        raise 'invalid usage' if start
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the

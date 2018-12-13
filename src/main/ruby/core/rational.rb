@@ -64,7 +64,7 @@ class Rational < Numeric
         if other > 0
           Rational(@numerator ** other, @denominator ** other)
         elsif other < 0
-          raise ZeroDivisionError, +'divided by 0' if self == 0
+          raise ZeroDivisionError, 'divided by 0' if self == 0
           Rational(@denominator ** -other, @numerator ** -other)
         elsif other == 0
           Rational.new(1, 1)
@@ -72,7 +72,7 @@ class Rational < Numeric
       else
         if self == 0
           if other < 0
-            raise ZeroDivisionError, +'divided by 0'
+            raise ZeroDivisionError, 'divided by 0'
           elsif other > 0
             Rational.new(0, 1)
           end
@@ -88,7 +88,7 @@ class Rational < Numeric
       to_f ** other
     when Rational
       if self == 0 && other < 0
-        raise ZeroDivisionError, +'divided by 0'
+        raise ZeroDivisionError, 'divided by 0'
       end
 
       to_f ** other
@@ -134,7 +134,7 @@ class Rational < Numeric
       den = @denominator * other.numerator
       Rational(num, den)
     when Integer
-      raise ZeroDivisionError, +'divided by 0' if other == 0
+      raise ZeroDivisionError, 'divided by 0' if other == 0
       Rational(@numerator, @denominator * other)
     when Float
       to_f / other
@@ -290,7 +290,7 @@ class Rational < Numeric
 
   def self.convert(num, den, mathn = true)
     if num.equal?(nil) || den.equal?(nil)
-      raise TypeError, +'cannot convert nil into Rational'
+      raise TypeError, 'cannot convert nil into Rational'
     end
 
     if Integer === num && Integer === den
@@ -329,13 +329,13 @@ class Rational < Numeric
     when Numeric
       num = num.to_i
     else
-      raise TypeError, +'numerator is not an Integer'
+      raise TypeError, 'numerator is not an Integer'
     end
 
     case den
     when Integer
       if den == 0
-        raise ZeroDivisionError, +'divided by 0'
+        raise ZeroDivisionError, 'divided by 0'
       elsif den < 0
         num = -num
         den = -den
@@ -347,7 +347,7 @@ class Rational < Numeric
     when Numeric
       den = den.to_i
     else
-      raise TypeError, +'denominator is not an Integer'
+      raise TypeError, 'denominator is not an Integer'
     end
 
     gcd = num.gcd(den)
@@ -389,7 +389,7 @@ class Rational < Numeric
   private :marshal_load
 
   def with_precision(method, n)
-    raise TypeError, +'not an Integer' unless n.kind_of?(Integer)
+    raise TypeError, 'not an Integer' unless n.kind_of?(Integer)
 
     p = 10 ** n
     s = self * p

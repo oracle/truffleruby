@@ -87,7 +87,7 @@ module Truffle
     end
 
     def self.step_fetch_args(value, limit, step, by)
-      raise ArgumentError, +'step cannot be 0' if undefined.equal?(by) && step == 0
+      raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
 
       asc = step > 0
       if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float

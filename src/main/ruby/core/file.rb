@@ -475,8 +475,8 @@ class File < IO
 
       if first_char == ?/ || first_char.nil?
         home = ENV['HOME']
-        raise ArgumentError, +"couldn't find HOME environment variable when expanding '~'" if home.nil?
-        raise ArgumentError, +'non-absolute home' unless home.start_with?('/')
+        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if home.nil?
+        raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
       end
 
       case path[1]
@@ -484,7 +484,7 @@ class File < IO
         path = home + path.byteslice(1, path.bytesize - 1)
       when nil
         if home.empty?
-          raise ArgumentError, +"HOME environment variable is empty expanding '~'"
+          raise ArgumentError, "HOME environment variable is empty expanding '~'"
         end
 
         return home.dup
@@ -815,7 +815,7 @@ class File < IO
         first = join(*first)
       end
 
-      raise ArgumentError, +'recursive array' if recursion
+      raise ArgumentError, 'recursive array' if recursion
     else
       # We need to use dup here, since it's possible that
       # StringValue gives us a direct object we shouldn't mutate
@@ -835,7 +835,7 @@ class File < IO
           value = join(*el)
         end
 
-        raise ArgumentError, +'recursive array' if recursion
+        raise ArgumentError, 'recursive array' if recursion
       else
         value = Truffle::Type.coerce_to_path(el)
       end
@@ -1319,7 +1319,7 @@ class File < IO
     length = Truffle::Type.coerce_to length, Integer, :to_int
 
     ensure_open_and_writable
-    raise Errno::EINVAL, +"Can't truncate a file to a negative length" if length < 0
+    raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
 
     flush
     reset_buffering
@@ -1336,7 +1336,7 @@ class File < IO
   end
 
   def size
-    raise IOError, +'closed stream' if closed?
+    raise IOError, 'closed stream' if closed?
     s = Truffle::POSIX.truffleposix_fstat_size(@descriptor)
 
     if s >= 0
