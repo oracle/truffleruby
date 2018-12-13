@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -259,7 +261,7 @@ class Array
       when false, nil
         min = i + 1
       else
-        raise TypeError, 'wrong argument type (must be numeric, true, false or nil)'
+        raise TypeError, +'wrong argument type (must be numeric, true, false or nil)'
       end
 
       i = min + (max - min) / 2
@@ -424,13 +426,13 @@ class Array
 
     if block_given?
       unless undefined.equal?(c)
-        raise ArgumentError, 'wrong number of arguments'
+        raise ArgumentError, +'wrong number of arguments'
       end
       one = a
       two = b
     else
       if undefined.equal?(a)
-        raise ArgumentError, 'wrong number of arguments'
+        raise ArgumentError, +'wrong number of arguments'
       end
       obj = a
       one = b
@@ -441,7 +443,7 @@ class Array
       left = 0
       right = size
     elsif one.kind_of? Range
-      raise TypeError, 'length invalid with range' unless undefined.equal?(two)
+      raise TypeError, +'length invalid with range' unless undefined.equal?(two)
 
       left = Truffle::Type.coerce_to_collection_length one.begin
       left += size if left < 0
@@ -461,9 +463,9 @@ class Array
         begin
           right = Truffle::Type.coerce_to_collection_length two
         rescue ArgumentError
-          raise RangeError, 'bignum too big to convert into `long'
+          raise RangeError, +'bignum too big to convert into `long'
         rescue TypeError
-          raise ArgumentError, 'second argument must be an Integer'
+          raise ArgumentError, +'second argument must be an Integer'
         end
 
         return self if right == 0
@@ -474,7 +476,7 @@ class Array
     end
 
     unless Truffle::Type.fits_into_long?(left) && Truffle::Type.fits_into_long?(right)
-      raise ArgumentError, 'argument too big'
+      raise ArgumentError, +'argument too big'
     end
 
     i = left
@@ -497,7 +499,7 @@ class Array
     return at(0) if undefined.equal?(n)
 
     n = Truffle::Type.coerce_to_collection_index(n)
-    raise ArgumentError, 'Size must be positive' if n < 0
+    raise ArgumentError, +'Size must be positive' if n < 0
 
     Array.new self[0, n]
   end
@@ -604,11 +606,11 @@ class Array
   Truffle::Graal.always_split instance_method(:insert)
 
   def inspect
-    return '[]'.force_encoding(Encoding::US_ASCII) if size == 0
+    return '[]'.encode(Encoding::US_ASCII) if size == 0
     comma = ', '
-    result = '['
+    result = +'['
 
-    return '[...]' if Thread.detect_recursion self do
+    return +'[...]' if Thread.detect_recursion self do
       each_with_index do |element, index|
         temp = Truffle::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
@@ -624,10 +626,10 @@ class Array
   alias_method :to_s, :inspect
 
   def join(sep=nil)
-    return ''.force_encoding(Encoding::US_ASCII) if size == 0
+    return ''.encode(Encoding::US_ASCII) if size == 0
 
-    out = ''
-    raise ArgumentError, 'recursive array join' if Thread.detect_recursion self do
+    out = +''
+    raise ArgumentError, +'recursive array join' if Thread.detect_recursion self do
       sep = sep.nil? ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
@@ -687,7 +689,7 @@ class Array
     n = Truffle::Type.coerce_to_collection_index n
     return [] if n == 0
 
-    raise ArgumentError, 'count must be positive' if n < 0
+    raise ArgumentError, +'count must be positive' if n < 0
 
     n = size if n > size
     Array.new self[-n..-1]
@@ -791,7 +793,7 @@ class Array
     sum = args.inject(size) { |n, x| n * x.size }
 
     unless Truffle.invoke_primitive(:integer_fits_into_long, sum)
-      raise RangeError, 'product result is too large'
+      raise RangeError, +'product result is too large'
     end
 
     # TODO rewrite this to not use a tree of Proc objects.
@@ -989,8 +991,8 @@ class Array
 
     def rand(size)
       random = Truffle::Type.coerce_to_collection_index @rng.rand(size)
-      raise RangeError, 'random value must be >= 0' if random < 0
-      raise RangeError, 'random value must be less than Array size' unless random < size
+      raise RangeError, +'random value must be >= 0' if random < 0
+      raise RangeError, +'random value must be less than Array size' unless random < size
 
       random
     end
@@ -1013,7 +1015,7 @@ class Array
     end
 
     if count and count < 0
-      raise ArgumentError, 'count must be greater than 0'
+      raise ArgumentError, +'count must be greater than 0'
     end
 
     rng = options[:random] if options
@@ -1138,7 +1140,7 @@ class Array
 
   def drop(n)
     n = Truffle::Type.coerce_to_collection_index n
-    raise ArgumentError, 'attempt to drop negative size' if n < 0
+    raise ArgumentError, +'attempt to drop negative size' if n < 0
 
     new_size = size - n
     return [] if new_size <= 0
@@ -1181,7 +1183,7 @@ class Array
       max ||= ary.size
 
       # Catches too-large as well as too-small (for which #fetch would suffice)
-      raise IndexError, 'All arrays must be same length' if ary.size != max
+      raise IndexError, +'All arrays must be same length' if ary.size != max
 
       ary.size.times do |i|
         entry = (out[i] ||= [])
@@ -1305,7 +1307,7 @@ class Array
       end
     end
 
-    raise ArgumentError, 'tried to flatten recursive array' if recursion
+    raise ArgumentError, +'tried to flatten recursive array' if recursion
     modified
   end
   private :recursively_flatten
@@ -1502,7 +1504,7 @@ class Array
         block_result = block.call(el1, el2)
 
         if block_result.nil?
-          raise ArgumentError, 'block returned nil'
+          raise ArgumentError, +'block returned nil'
         elsif block_result > 0
           self[j] = el1
           self[j - 1] = el2

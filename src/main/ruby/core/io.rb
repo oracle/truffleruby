@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -40,12 +42,12 @@ class IO
   module TransferIO
     def send_io
       Truffle.primitive :io_send_io
-      raise PrimitiveFailure, 'IO#send_io failed'
+      raise PrimitiveFailure, +'IO#send_io failed'
     end
 
     def recv_fd
       Truffle.primitive :io_recv_fd
-      raise PrimitiveFailure, 'IO#recv_fd failed'
+      raise PrimitiveFailure, +'IO#recv_fd failed'
     end
   end
 
@@ -189,7 +191,7 @@ class IO
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
         if bytes_read > unused
-          Truffle::KernelOperations.internal_raise RuntimeError, 'internal implementation error - IO buffer overrun', true
+          Truffle::KernelOperations.internal_raise RuntimeError, +'internal implementation error - IO buffer overrun', true
         end
         @storage.fill(@used, buffer, 0, bytes_read)
         @storage.length = @used + bytes_read
@@ -320,7 +322,7 @@ class IO
       return if size == 0 and fill_from(io) == 0
 
       Truffle::System.synchronized(self) do
-        char = ''
+        char = +''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT
           char << @storage[@start]
@@ -467,7 +469,7 @@ class IO
       bytes = 0
 
       begin
-        while data = @from.__send__(@method, size, '')
+        while data = @from.__send__(@method, size, +'')
           @to.write data
           bytes += data.bytesize
 
@@ -523,7 +525,7 @@ class IO
         options = limit
         limit = nil
       else
-        raise TypeError, "can't convert Hash into Integer"
+        raise TypeError, +"can't convert Hash into Integer"
       end
     else
       value = limit
@@ -629,11 +631,11 @@ class IO
         offset = 0
       else
         offset = Truffle::Type.coerce_to_int(offset || 0)
-        raise Errno::EINVAL, 'offset must not be negative' if offset < 0
+        raise Errno::EINVAL, +'offset must not be negative' if offset < 0
       end
 
       length = Truffle::Type.coerce_to_int(length_or_options)
-      raise ArgumentError, 'length must not be negative' if length < 0
+      raise ArgumentError, +'length must not be negative' if length < 0
     else
       length = undefined
     end
@@ -678,7 +680,7 @@ class IO
       mode = nil if options
     elsif !options.nil?
       options = Truffle::Type.try_convert(options, Hash, :to_hash)
-      raise ArgumentError, 'wrong number of arguments (3 for 1..2)' unless options
+      raise ArgumentError, +'wrong number of arguments (3 for 1..2)' unless options
     end
 
     if mode
@@ -693,7 +695,7 @@ class IO
       end
 
       if mode
-        raise ArgumentError, 'mode specified twice' if optmode
+        raise ArgumentError, +'mode specified twice' if optmode
       else
         mode = optmode
       end
@@ -703,7 +705,7 @@ class IO
 
     if mode.kind_of?(String)
       mode, external, internal = mode.split(':')
-      raise ArgumentError, 'invalid access mode' unless mode
+      raise ArgumentError, +'invalid access mode' unless mode
 
       binary = true  if mode[1] === ?b
       binary = false if mode[1] === ?t
@@ -713,20 +715,20 @@ class IO
 
     if options
       if options[:textmode] and options[:binmode]
-        raise ArgumentError, 'both textmode and binmode specified'
+        raise ArgumentError, +'both textmode and binmode specified'
       end
 
       if binary.nil?
         binary = options[:binmode]
       elsif options.key?(:textmode) or options.key?(:binmode)
-        raise ArgumentError, 'text/binary mode specified twice'
+        raise ArgumentError, +'text/binary mode specified twice'
       end
 
       if !external and !internal
         external = options[:external_encoding]
         internal = options[:internal_encoding]
       elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
-        raise ArgumentError, 'encoding specified twice'
+        raise ArgumentError, +'encoding specified twice'
       end
 
       if !external and !internal
@@ -908,7 +910,7 @@ class IO
     elsif writable
       pipe = pa_write
     else
-      raise ArgumentError, 'IO is neither readable nor writable'
+      raise ArgumentError, +'IO is neither readable nor writable'
     end
 
     pipe.binmode if binary
@@ -981,10 +983,10 @@ class IO
   def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
     if timeout
       unless Truffle::Type.object_kind_of? timeout, Numeric
-        raise TypeError, 'Timeout must be numeric'
+        raise TypeError, +'Timeout must be numeric'
       end
 
-      raise ArgumentError, 'timeout must be positive' if timeout < 0
+      raise ArgumentError, +'timeout must be positive' if timeout < 0
 
       # Microseconds, rounded down
       timeout_us = Integer(timeout * 1_000_000)
@@ -994,12 +996,12 @@ class IO
       readables =
         Truffle::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
+            raise IOError, +'closed stream' if obj.closed?
             return [[obj],[],[]] unless obj.buffer_empty?
             obj
           else
             io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
+            raise IOError, +'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1009,11 +1011,11 @@ class IO
       writables =
         Truffle::Type.coerce_to(writables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
+            raise IOError, +'closed stream' if obj.closed?
             obj
           else
             io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
+            raise IOError, +'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1023,11 +1025,11 @@ class IO
       errorables =
         Truffle::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
+            raise IOError, +'closed stream' if obj.closed?
             obj
           else
             io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
+            raise IOError, +'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1221,8 +1223,8 @@ class IO
   end
 
   def advise(advice, offset = 0, len = 0)
-    raise IOError, 'stream is closed' if closed?
-    raise TypeError, 'advice must be a Symbol' unless advice.kind_of?(Symbol)
+    raise IOError, +'stream is closed' if closed?
+    raise TypeError, +'advice must be a Symbol' unless advice.kind_of?(Symbol)
 
     Truffle::Type.check_long(offset)
     Truffle::Type.check_long(len)
@@ -1235,7 +1237,7 @@ class IO
     _len = Truffle::Type.coerce_to_int len
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
-    raise 'IO#advise not implemented'
+    raise(+'IO#advise not implemented')
   end
 
   # Autoclose really represents whether this IO object owns the
@@ -1303,7 +1305,7 @@ class IO
   #   from prog.rb:3
   def close_read
     if @mode == WRONLY || @mode == RDWR
-      raise IOError, 'closing non-duplex IO for reading'
+      raise IOError, +'closing non-duplex IO for reading'
     end
     close
   end
@@ -1323,7 +1325,7 @@ class IO
   #   from prog.rb:3
   def close_write
     if @mode == RDONLY || @mode == RDWR
-      raise IOError, 'closing non-duplex IO for writing'
+      raise IOError, +'closing non-duplex IO for writing'
     end
     close
   end
@@ -1392,7 +1394,7 @@ class IO
 
     # method A, D
     def read_to_separator
-      str = ''
+      str = +''
 
       until @buffer.exhausted?
         available = @buffer.fill_from @io, @skip
@@ -1429,7 +1431,7 @@ class IO
 
     # method B, E
     def read_to_separator_with_limit
-      str = ''
+      str = +''
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
@@ -1450,7 +1452,7 @@ class IO
 
           yield str
 
-          str = ''
+          str = +''
           wanted = limit
         else
           if wanted < available
@@ -1464,7 +1466,7 @@ class IO
 
             yield str
 
-            str = ''
+            str = +''
             wanted = limit
           else
             str << @buffer.shift
@@ -1483,7 +1485,7 @@ class IO
 
     # Method G
     def read_all
-      str = ''
+      str = +''
       until @buffer.exhausted?
         @buffer.fill_from @io
         str << @buffer.shift
@@ -1499,7 +1501,7 @@ class IO
 
     # Method H
     def read_to_limit
-      str = ''
+      str = +''
       wanted = limit = @limit.abs
 
       until @buffer.exhausted?
@@ -1513,7 +1515,7 @@ class IO
           $. = @io.increment_lineno
           yield str
 
-          str = ''
+          str = +''
           wanted = limit
         else
           str << @buffer.shift
@@ -1666,13 +1668,13 @@ class IO
   private def ensure_open_and_readable
     ensure_open
     write_only = @mode & ACCMODE == WRONLY
-    raise IOError, 'not opened for reading' if write_only
+    raise IOError, +'not opened for reading' if write_only
   end
 
   private def ensure_open_and_writable
     ensure_open
     read_only = @mode & ACCMODE == RDONLY
-    raise IOError, 'not opened for writing' if read_only
+    raise IOError, +'not opened for writing' if read_only
   end
 
   def external_encoding
@@ -1699,7 +1701,7 @@ class IO
     elsif arg == true
       arg = 1
     elsif arg.kind_of? String
-      raise NotImplementedError, 'cannot handle String'
+      raise NotImplementedError, +'cannot handle String'
     else
       arg = Truffle::Type.coerce_to_int arg
     end
@@ -1787,7 +1789,7 @@ class IO
   def fsync
     flush
     err = Truffle::POSIX.fsync @descriptor
-    Errno.handle 'fsync(2)' if err < 0
+    Errno.handle(+'fsync(2)') if err < 0
     err
   end
 
@@ -1895,7 +1897,7 @@ class IO
   #  In child, pid is 26209
   #  In parent, child pid is 26209
   def pid
-    raise IOError, 'closed stream' if closed?
+    raise IOError, +'closed stream' if closed?
     @pid
   end
 
@@ -1997,7 +1999,7 @@ class IO
       return nil
     end
 
-    str = ''
+    str = +''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
       available = @ibuffer.fill_from self
@@ -2025,7 +2027,7 @@ class IO
   # Reads all input until +#eof?+ is true. Returns the input read.
   # If the buffer is already exhausted, returns +""+.
   private def read_all
-    str = ''
+    str = +''
     until @ibuffer.exhausted?
       @ibuffer.fill_from self
       str << @ibuffer.shift
@@ -2049,7 +2051,7 @@ class IO
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
   def read_nonblock(size, buffer = nil, exception: true)
-    raise ArgumentError, 'illegal read size' if size < 0
+    raise ArgumentError, +'illegal read size' if size < 0
     ensure_open
     self.nonblock = true
 
@@ -2076,7 +2078,7 @@ class IO
       str
     else # EOF
       if exception
-        raise EOFError, 'end of file reached'
+        raise EOFError, +'end of file reached'
       else
         nil
       end
@@ -2087,14 +2089,14 @@ class IO
   # Reads a character as with IO#getc, but raises an EOFError on end of file.
   def readchar
     char = getc
-    raise EOFError, 'end of file reached' unless char
+    raise EOFError, +'end of file reached' unless char
     char
   end
 
   def readbyte
     byte = getbyte
-    raise EOFError, 'end of file reached' unless byte
-    raise EOFError, 'end of file' unless bytes
+    raise EOFError, +'end of file reached' unless byte
+    raise EOFError, +'end of file' unless bytes
     byte
   end
 
@@ -2102,7 +2104,7 @@ class IO
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
   def readline(sep=$/)
     out = gets(sep)
-    raise EOFError, 'end of file' unless out
+    raise EOFError, +'end of file' unless out
     out
   end
 
@@ -2172,7 +2174,7 @@ class IO
   # The later means that readpartial is nonblocking-flag insensitive. It
   # blocks on the situation IO#sysread causes Errno::EAGAIN as if the fd is blocking mode.
   def readpartial(size, buffer=nil)
-    raise ArgumentError, 'negative string size' unless size >= 0
+    raise ArgumentError, +'negative string size' unless size >= 0
     ensure_open
 
     if buffer
@@ -2192,7 +2194,7 @@ class IO
       buffer.replace(data)
       buffer
     else
-      return '' if size == 0
+      return +'' if size == 0
 
       if @ibuffer.size > 0
         return @ibuffer.shift(size)
@@ -2223,7 +2225,7 @@ class IO
       else
         io = other.to_io
         unless io.kind_of? IO
-          raise TypeError, '#to_io must return an instance of IO'
+          raise TypeError, +'#to_io must return an instance of IO'
         end
       end
 
@@ -2402,7 +2404,7 @@ class IO
         if b3 == 0xFE
           b4 = getbyte
           if b4 == 0xFF
-            return 'UTF-32BE'
+            return +'UTF-32BE'
           end
           ungetbyte b4
         end
@@ -2417,12 +2419,12 @@ class IO
         if b3 == 0x00
           b4 = getbyte
           if b4 == 0x00
-            return 'UTF-32LE'
+            return +'UTF-32LE'
           end
           ungetbyte b4
         else
           ungetbyte b3
-          return 'UTF-16LE'
+          return +'UTF-16LE'
         end
         ungetbyte b3
       end
@@ -2431,7 +2433,7 @@ class IO
     when 0xFE
       b2 = getbyte
       if b2 == 0xFF
-        return 'UTF-16BE'
+        return +'UTF-16BE'
       end
       ungetbyte b2
 
@@ -2440,7 +2442,7 @@ class IO
       if b2 == 0xBB
         b3 = getbyte
         if b3 == 0xBF
-          return 'UTF-8'
+          return +'UTF-8'
         end
         ungetbyte b3
       end
@@ -2706,12 +2708,12 @@ class IO::BidirectionalPipe < IO
   end
 
   def close_read
-    raise IOError, 'closed stream' if closed?
+    raise IOError, +'closed stream' if closed?
     close
   end
 
   def close_write
-    raise IOError, 'closed stream' if @write.closed?
+    raise IOError, +'closed stream' if @write.closed?
     @write.close
   end
 

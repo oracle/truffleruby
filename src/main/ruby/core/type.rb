@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -77,7 +79,7 @@ module Truffle
 
     def self.object_encoding(obj)
       Truffle.primitive :encoding_get_object_encoding
-      raise PrimitiveFailure, 'Truffle::Type.object_encoding primitive failed'
+      raise PrimitiveFailure, +'Truffle::Type.object_encoding primitive failed'
     end
 
     ##
@@ -164,7 +166,7 @@ module Truffle
     end
 
     def self.rb_num2long(val)
-      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
+      raise TypeError, +'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Integer)
         check_long(val)
@@ -179,7 +181,7 @@ module Truffle
     end
 
     def self.rb_num2ulong(val)
-      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
+      raise TypeError, +'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Integer)
         if Truffle.invoke_primitive(:integer_fits_into_long, val)
@@ -196,7 +198,7 @@ module Truffle
     end
 
     def self.rb_num2dbl(val)
-      raise TypeError, 'no implicit conversion from nil to float' if val.nil?
+      raise TypeError, +'no implicit conversion from nil to float' if val.nil?
 
       if object_kind_of?(val, Float)
         return val
@@ -205,7 +207,7 @@ module Truffle
       elsif object_kind_of?(val, Rational)
         return val.to_f
       elsif object_kind_of?(val, String)
-        raise TypeError, 'no implicit conversion from to float from string'
+        raise TypeError, +'no implicit conversion from to float from string'
       else
         rb_num2dbl(rb_to_f(val))
       end
@@ -519,7 +521,7 @@ module Truffle
       elsif obj.kind_of?(String)
         raise TypeError, "can't convert #{obj} into an exact number"
       elsif obj.nil?
-        raise TypeError, "can't convert nil into an exact number"
+        raise TypeError, +"can't convert nil into an exact number"
       else
         check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
       end
@@ -530,7 +532,7 @@ module Truffle
 
       if offset.kind_of?(String)
         unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
-          raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
+          raise ArgumentError, +'"+HH:MM" or "-HH:MM" expected for utc_offset'
         end
 
         offset = $2.to_i*60*60 + $3.to_i*60 + ( $4 || '0' ).to_i
@@ -544,7 +546,7 @@ module Truffle
       end
 
       if offset <= -86400 || offset >= 86400
-        raise ArgumentError, 'utc_offset out of range'
+        raise ArgumentError, +'utc_offset out of range'
       end
 
       offset
@@ -552,7 +554,7 @@ module Truffle
 
     def self.coerce_to_bitwise_operand(obj)
       if object_kind_of? obj, Float
-        raise TypeError, "can't convert Float into Integer for bitwise arithmetic"
+        raise TypeError, +"can't convert Float into Integer for bitwise arithmetic"
       end
       coerce_to obj, Integer, :to_int
     end
@@ -560,7 +562,7 @@ module Truffle
     # String helpers
 
     def self.check_null_safe(string)
-      raise ArgumentError, 'string contains null byte' if string.include? "\0"
+      raise ArgumentError, +'string contains null byte' if string.include? "\0"
       string
     end
 
@@ -586,7 +588,7 @@ module Truffle
       unless enc
         enc_a = object_encoding a
         enc_b = object_encoding b
-        message = 'undefined conversion '
+        message = +'undefined conversion '
         message << "for '#{a.inspect}' " if object_kind_of?(a, String)
         message << "from #{enc_a} to #{enc_b}"
 
@@ -649,7 +651,7 @@ module Truffle
     # Needs to be in core for assigning $!
     def self.set_last_exception(error)
       if !error.nil? && !error.is_a?(Exception)
-        raise TypeError, 'assigning non-exception to ?!'
+        raise TypeError, +'assigning non-exception to ?!'
       end
       Truffle.invoke_primitive(:thread_set_exception, error)
     end

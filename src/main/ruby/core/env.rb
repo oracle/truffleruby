@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -148,7 +150,7 @@ module Truffle
       if block_given?
         return yield(key)
       elsif undefined.equal?(absent)
-        raise KeyError, 'key not found'
+        raise KeyError, +'key not found'
       end
 
       absent

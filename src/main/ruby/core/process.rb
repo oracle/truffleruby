@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -105,7 +107,7 @@ module Process
 
   def self.time
     Truffle.primitive :vm_time
-    raise PrimitiveFailure, 'Process.time primitive failed'
+    raise PrimitiveFailure, +'Process.time primitive failed'
   end
 
   section = 'platform.clocks.'
@@ -224,7 +226,7 @@ module Process
         puts
         p haystack
         puts
-        raise 'argv[0] not found'
+        raise(+'argv[0] not found')
       end
       i += 1
 
@@ -241,7 +243,7 @@ module Process
     argv0_ptr.write_string(new_title)
 
     new_command = File.binread('/proc/self/cmdline')
-    raise 'failed' unless new_command.start_with?(new_title)
+    raise(+'failed') unless new_command.start_with?(new_title)
 
     title
   end
@@ -291,7 +293,7 @@ module Process
   end
 
   def self.fork
-    raise NotImplementedError, 'fork is not available'
+    raise NotImplementedError, +'fork is not available'
   end
   Truffle.invoke_primitive :method_unimplement, method(:fork)
 
@@ -304,7 +306,7 @@ module Process
   end
 
   def self.kill(signal, *pids)
-    raise ArgumentError, 'PID argument required' if pids.length == 0
+    raise ArgumentError, +'PID argument required' if pids.length == 0
 
     use_process_group = false
     signal = signal.to_s if signal.kind_of?(Symbol)
@@ -654,7 +656,7 @@ module Process
   #       and called periodically.
   #
   def self.detach(pid)
-    raise ArgumentError, 'Only positive pids may be detached' unless pid > 0
+    raise ArgumentError, +'Only positive pids may be detached' unless pid > 0
 
     thread = Thread.new { Process.wait pid; $? }
     thread[:pid] = pid
@@ -780,7 +782,7 @@ module Process
       end
 
       def issetugid
-        raise 'not implemented'
+        raise(+'not implemented')
       end
 
       def setgid(gid)

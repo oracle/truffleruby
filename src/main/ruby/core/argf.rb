@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -211,7 +213,7 @@ module Truffle
     #         multiple FDs and if so, is this correct? --rue
     #
     def fileno
-      raise ArgumentError, 'No stream' unless advance!
+      raise ArgumentError, +'No stream' unless advance!
       @stream.fileno
     end
     alias_method :to_i, :fileno
@@ -325,7 +327,7 @@ module Truffle
     # @see IO#pos.
     #
     def pos
-      raise ArgumentError, 'no stream' unless advance!
+      raise ArgumentError, +'no stream' unless advance!
       @stream.tell
     end
     alias_method :tell, :pos
@@ -336,7 +338,7 @@ module Truffle
     # @see IO#pos=
     #
     def pos=(position)
-      raise ArgumentError, 'no stream' unless advance!
+      raise ArgumentError, +'no stream' unless advance!
       @stream.pos = position
     end
 
@@ -355,7 +357,7 @@ module Truffle
         return val
       end
 
-      raise EOFError, 'ARGF at end'
+      raise EOFError, +'ARGF at end'
     end
     alias_method :readchar, :readbyte
 
@@ -467,13 +469,13 @@ module Truffle
     # @see  #gets
     #
     def readline(sep=$/)
-      raise EOFError, 'ARGF at end' unless advance!
+      raise EOFError, +'ARGF at end' unless advance!
 
       if line = gets(sep)
         return line
       end
 
-      raise EOFError, 'ARGF at end'
+      raise EOFError, +'ARGF at end'
     end
 
     #
@@ -505,7 +507,7 @@ module Truffle
     # @todo Is this correct, only current stream is rewound? --rue
     #
     def rewind
-      raise ArgumentError, 'no stream to rewind' unless advance!
+      raise ArgumentError, +'no stream to rewind' unless advance!
       @lineno -= @stream.lineno
       @stream.rewind
     end
@@ -516,7 +518,7 @@ module Truffle
     # @see IO#seek.
     #
     def seek(*args)
-      raise ArgumentError, 'no stream' unless advance!
+      raise ArgumentError, +'no stream' unless advance!
       @stream.seek(*args)
     end
 
@@ -568,7 +570,7 @@ module Truffle
     # Returns "ARGF" as the string representation of this object.
     #
     def to_s
-      'ARGF'
+      +'ARGF'
     end
 
 
@@ -592,7 +594,7 @@ module Truffle
         if @argv.empty?
           @advance = false
           @stream = $stdin
-          @filename = '-'
+          @filename = +'-'
           @use_stdin_only = true
           return true
         end

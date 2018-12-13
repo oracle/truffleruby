@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -77,7 +79,7 @@ module Signal
 
     if signame == 'VTALRM'
       # Used internally to unblock native calls, like MRI
-      raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
+      raise ArgumentError, +"can't trap reserved signal: SIGVTALRM"
     end
 
     handler ||= block
@@ -115,12 +117,12 @@ module Signal
       handler = handler == 'IGNORE' ? nil : handler
       ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
       if handler == 'DEFAULT' && !ret
-        return 'SYSTEM_DEFAULT'
+        return +'SYSTEM_DEFAULT'
       end
     end
 
     if !had_old && handler != 'SYSTEM_DEFAULT'
-      return 'DEFAULT'
+      return +'DEFAULT'
     else
       old ? old : nil
     end

@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -46,7 +48,7 @@ end
 class Class
   private def __marshal__(ms)
     if singleton_class?
-      raise TypeError, "singleton class can't be dumped"
+      raise TypeError, +"singleton class can't be dumped"
     elsif name.nil? || name.empty?
       raise TypeError, "can't dump anonymous module #{self}"
     end
@@ -80,7 +82,7 @@ class Float
         digits -= decimal
         str << ".#{s[decimal, digits]}" if digits > 0
       else
-        str = '0.'
+        str = +'0.'
         str << '0' * -decimal if decimal != 0
         str << s[0, digits]
       end
@@ -119,7 +121,7 @@ end
 
 class Time
   def __custom_marshal__(ms)
-    out = Truffle::Type.binary_string('')
+    out = ''.b
 
     # Order matters.
     extra_values = {}
@@ -136,7 +138,7 @@ class Time
     end
 
     ivars = ms.serializable_instance_variables(self, false)
-    out << Truffle::Type.binary_string('I')
+    out << 'I'.b
     out << Truffle::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
 
     str = _dump
@@ -260,19 +262,19 @@ end
 
 class NilClass
   private def __marshal__(ms)
-    Truffle::Type.binary_string('0')
+    '0'.b
   end
 end
 
 class TrueClass
   private def __marshal__(ms)
-    Truffle::Type.binary_string('T')
+    'T'.b
   end
 end
 
 class FalseClass
   private def __marshal__(ms)
-    Truffle::Type.binary_string('F')
+    'F'.b
   end
 end
 
@@ -362,7 +364,7 @@ end
 
 class Hash
   private def __marshal__(ms)
-    raise TypeError, "can't dump hash with default proc" if default_proc
+    raise TypeError, +"can't dump hash with default proc" if default_proc
 
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
@@ -430,7 +432,7 @@ module Marshal
   MAJOR_VERSION = 4
   MINOR_VERSION = 8
 
-  VERSION_STRING = "\x04\x08"
+  VERSION_STRING = "\x04\x08".b
 
   # Here only for reference
   TYPE_NIL = ?0
@@ -587,14 +589,14 @@ module Marshal
                 obj = @objects.fetch(num)
                 return obj
               rescue IndexError
-                raise ArgumentError, 'dump format error (unlinked)'
+                raise ArgumentError, +'dump format error (unlinked)'
               end
 
             when 59   # ?;
               num = construct_integer
               sym = @symbols[num]
 
-              raise ArgumentError, 'bad symbol' unless sym
+              raise ArgumentError, +'bad symbol' unless sym
 
               return sym
             when 101  # ?e
@@ -978,7 +980,7 @@ module Marshal
     end
 
     def serialize_extended_object(obj)
-      str = ''
+      str = +''
       Truffle.invoke_primitive :vm_extended_modules, obj, -> mod do
         str << "e#{serialize(mod.name.to_sym)}"
       end
@@ -993,14 +995,14 @@ module Marshal
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
-      Truffle::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? 'I' : '')
+      !ivars.empty? || serialize_encoding?(obj) ? 'I'.b : ''.b
     end
 
     def serialize_instance_variables_suffix(obj, force=false, exclude_ivars=false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
-        return Truffle::Type.binary_string('')
+        return ''.b
       end
 
       count = ivars.size
@@ -1037,7 +1039,7 @@ module Marshal
       elsif n < 0 and n > -124
         s = (256 + (n - 5)).chr
       else
-        s = "\0"
+        s = +"\0"
         cnt = 0
         4.times do
           s << (n & 0xff).chr
@@ -1051,7 +1053,7 @@ module Marshal
     end
 
     def serialize_bignum(n)
-      str = (n < 0 ? 'l-' : 'l+')
+      str = (n < 0 ? +'l-' : +'l+')
       cnt = 0
       num = n.abs
 
@@ -1093,7 +1095,7 @@ module Marshal
       if obj.class != cls
         Truffle::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
       else
-        Truffle::Type.binary_string('')
+        ''.b
       end
     end
 
@@ -1107,7 +1109,7 @@ module Marshal
       end
 
       unless Truffle::Type.object_kind_of? str, String
-        raise TypeError, '_dump() must return string'
+        raise TypeError, +'_dump() must return string'
       end
 
       out = serialize_instance_variables_prefix(str)
@@ -1165,7 +1167,7 @@ module Marshal
       else
         obj = klass.allocate
 
-        raise TypeError, 'dump format error' unless Object === obj
+        raise TypeError, +'dump format error' unless Object === obj
 
         store_unique_object obj
         if Truffle::Type.object_kind_of? obj, Exception
@@ -1237,14 +1239,14 @@ module Marshal
     end
 
     def consume(bytes)
-      raise ArgumentError, 'marshal data too short' if @consumed > @stream.bytesize
+      raise ArgumentError, +'marshal data too short' if @consumed > @stream.bytesize
       data = @stream.byteslice @consumed, bytes
       @consumed += bytes
       data
     end
 
     def consume_byte
-      raise ArgumentError, 'marshal data too short' if @consumed >= @stream.bytesize
+      raise ArgumentError, +'marshal data too short' if @consumed >= @stream.bytesize
       data = @byte_array[@consumed]
       @consumed += 1
       data
@@ -1266,14 +1268,14 @@ module Marshal
 
     if an_io
       if !Truffle::Type.object_respond_to? an_io, :write
-        raise TypeError, 'output must respond to write'
+        raise TypeError, +'output must respond to write'
       end
       if Truffle::Type.object_respond_to? an_io, :binmode
         an_io.binmode
       end
     end
 
-    str = Truffle::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
+    str = VERSION_STRING + ms.serialize(obj)
 
     if an_io
       an_io.write(str)
@@ -1299,7 +1301,7 @@ module Marshal
       major = ms.consume_byte
       minor = ms.consume_byte
     else
-      raise TypeError, 'instance of IO needed'
+      raise TypeError, +'instance of IO needed'
     end
 
     if major != MAJOR_VERSION or minor > MINOR_VERSION

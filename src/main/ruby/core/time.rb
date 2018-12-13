@@ -1,4 +1,6 @@
-# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -208,7 +210,7 @@ class Time
 
   def self._load(data)
     # TODO: doesn't load ivars
-    raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
+    raise TypeError, +'marshaled time format differ' unless data.bytesize == 8
 
     major, minor = data.unpack 'VV'
 
@@ -272,7 +274,7 @@ class Time
       end
 
       if sec.kind_of?(Time) && usec.kind_of?(Integer)
-        raise TypeError, "can't convert Time into an exact number"
+        raise TypeError, +"can't convert Time into an exact number"
       end
 
       usec = 0 if undefined.equal?(usec)
@@ -324,7 +326,7 @@ class Time
                 yday=undefined, is_dst=undefined, tz=undefined)
       if undefined.equal?(tz)
         unless undefined.equal?(is_dst)
-          raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
+          raise ArgumentError, +'wrong number of arguments (9 for 1..8)'
         end
 
         y = p1
@@ -350,7 +352,7 @@ class Time
         m = StringValue(m)
         m = MonthValue[m.upcase] || m.to_i
 
-        raise ArgumentError, 'month argument out of range' unless m
+        raise ArgumentError, +'month argument out of range' unless m
       else
         m = Truffle::Type.coerce_to(m || 1, Integer, :to_int)
       end
@@ -390,7 +392,7 @@ class Time
       elsif utc_offset == nil
         compose(:local, year, month, day, hour, minute, second)
       elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
-        raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
+        raise ArgumentError, +'"+HH:MM" or "-HH:MM" expected for utc_offset'
       elsif utc_offset == :std
         compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst

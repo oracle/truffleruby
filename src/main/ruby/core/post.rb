@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -68,7 +70,7 @@ end
 module Truffle
   module Type
     def self.const_get(mod, name, inherit=true, resolve=true)
-      raise 'unsupported' unless resolve
+      raise(+'unsupported') unless resolve
       mod.const_get name, inherit
     end
 

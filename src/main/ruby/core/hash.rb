@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -206,7 +208,7 @@ class Hash
       proc = Truffle::Type.coerce_to proc, Proc, :to_proc
 
       if proc.lambda? and proc.arity != 2
-        raise TypeError, 'default proc must have arity 2'
+        raise TypeError, +'default proc must have arity 2'
       end
     end
 
@@ -367,7 +369,7 @@ class Hash
 
   def inspect
     out = []
-    return '{...}' if Thread.detect_recursion self do
+    return +'{...}' if Thread.detect_recursion self do
       each_pair do |key,value|
         str =  Truffle::Type.rb_inspect(key)
         str << '=>'

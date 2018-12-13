@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -395,20 +397,20 @@ class File < IO
     path = Truffle::Type.coerce_to_path(path)
 
     # edge case
-    return '.' if path.empty?
+    return +'.' if path.empty?
 
     slash = '/'
 
     # pull off any /'s at the end to ignore
     chunk_size = last_nonslash(path)
-    return '/' unless chunk_size
+    return +'/' unless chunk_size
 
     if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, chunk_size)
-      return '/' if pos == 0
+      return +'/' if pos == 0
 
       path = path.byteslice(0, pos)
 
-      return '/' if path == '/'
+      return +'/' if path == '/'
 
       return path unless path.end_with? slash
 
@@ -416,12 +418,12 @@ class File < IO
       idx = last_nonslash(path, pos)
 
       # edge case, only /'s, return /
-      return '/' unless idx
+      return +'/' unless idx
 
       return path.byteslice(0, idx - 1)
     end
 
-    '.'
+    +'.'
   end
 
   ##
@@ -466,15 +468,15 @@ class File < IO
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
     path = Truffle::Type.coerce_to_path(path)
-    str = ''.force_encoding path.encoding
+    str = ''.encode path.encoding
     first = path[0]
     if first == ?~
       first_char = path[1]
 
       if first_char == ?/ || first_char.nil?
         home = ENV['HOME']
-        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if home.nil?
-        raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
+        raise ArgumentError, +"couldn't find HOME environment variable when expanding '~'" if home.nil?
+        raise ArgumentError, +'non-absolute home' unless home.start_with?('/')
       end
 
       case path[1]
@@ -482,7 +484,7 @@ class File < IO
         path = home + path.byteslice(1, path.bytesize - 1)
       when nil
         if home.empty?
-          raise ArgumentError, "HOME environment variable is empty expanding '~'"
+          raise ArgumentError, +"HOME environment variable is empty expanding '~'"
         end
 
         return home.dup
@@ -796,7 +798,7 @@ class File < IO
   #
   #  File.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
   def self.join(*args)
-    return '' if args.empty?
+    return +'' if args.empty?
 
     sep = SEPARATOR
 
@@ -813,7 +815,7 @@ class File < IO
         first = join(*first)
       end
 
-      raise ArgumentError, 'recursive array' if recursion
+      raise ArgumentError, +'recursive array' if recursion
     else
       # We need to use dup here, since it's possible that
       # StringValue gives us a direct object we shouldn't mutate
@@ -833,7 +835,7 @@ class File < IO
           value = join(*el)
         end
 
-        raise ArgumentError, 'recursive array' if recursion
+        raise ArgumentError, +'recursive array' if recursion
       else
         value = Truffle::Type.coerce_to_path(el)
       end
@@ -1317,7 +1319,7 @@ class File < IO
     length = Truffle::Type.coerce_to length, Integer, :to_int
 
     ensure_open_and_writable
-    raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
+    raise Errno::EINVAL, +"Can't truncate a file to a negative length" if length < 0
 
     flush
     reset_buffering
@@ -1334,7 +1336,7 @@ class File < IO
   end
 
   def size
-    raise IOError, 'closed stream' if closed?
+    raise IOError, +'closed stream' if closed?
     s = Truffle::POSIX.truffleposix_fstat_size(@descriptor)
 
     if s >= 0

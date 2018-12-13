@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -118,7 +120,7 @@ class Encoding
   end
 
   def self.default_external=(enc)
-    raise ArgumentError, 'default external encoding cannot be nil' if enc.nil?
+    raise ArgumentError, +'default external encoding cannot be nil' if enc.nil?
 
     enc = find(enc)
     set_alias_index 'external', enc

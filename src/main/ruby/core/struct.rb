@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -53,7 +55,7 @@ class Struct
       when String
         sym = a.to_sym
         unless sym.kind_of? Symbol
-          raise TypeError, "#to_sym didn't return a symbol"
+          raise TypeError, +"#to_sym didn't return a symbol"
         end
         sym
       else
@@ -105,7 +107,7 @@ class Struct
   end
 
   def to_s
-    return '[...]' if Thread.guarding? self
+    return +'[...]' if Thread.guarding? self
 
     Thread.recursion_guard self do
       values = []

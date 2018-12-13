@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -160,7 +162,7 @@ class Encoding
     def convert(str)
       str = StringValue(str)
 
-      dest = ''
+      dest = +''
       status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
@@ -170,7 +172,7 @@ class Encoding
       end
 
       if status == :finished
-        raise ArgumentError, 'converter already finished'
+        raise ArgumentError, +'converter already finished'
       end
 
       if status != :source_buffer_empty
@@ -196,16 +198,16 @@ class Encoding
         size = Truffle::Type.coerce_to_int size
 
         if size < 0
-          raise ArgumentError, 'byte size is negative'
+          raise ArgumentError, +'byte size is negative'
         end
       end
 
       if offset < 0
-        raise ArgumentError, 'byte offset is negative'
+        raise ArgumentError, +'byte offset is negative'
       end
 
       if offset > target.bytesize
-        raise ArgumentError, 'byte offset is greater than destination buffer size'
+        raise ArgumentError, +'byte offset is greater than destination buffer size'
       end
 
       if !options.kind_of? Integer
@@ -231,7 +233,7 @@ class Encoding
     end
 
     def finish
-      dest = ''
+      dest = +''
       status = primitive_convert nil, dest
 
       if status == :invalid_byte_sequence or
@@ -320,7 +322,7 @@ class Encoding
 
     def primitive_errinfo
       Truffle.primitive :encoding_converter_primitive_errinfo
-      raise PrimitiveFailure, 'Encoding::Converter#primitive_errinfo primitive failed'
+      raise PrimitiveFailure, +'Encoding::Converter#primitive_errinfo primitive failed'
     end
 
     def convpath

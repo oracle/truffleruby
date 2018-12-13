@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -27,7 +29,7 @@
 class TrueClass
 
   def to_s
-    'true'
+    +'true'
   end
 
   def inspect

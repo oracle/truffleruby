@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -92,7 +94,7 @@ class Symbol
       Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
       return match_data.byte_begin(0) if match_data
     when String
-      raise TypeError, 'type mismatch: String given'
+      raise TypeError, +'type mismatch: String given'
     else
       pattern =~ str
     end

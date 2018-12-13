@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -33,7 +35,7 @@ module Truffle
 
     def get_variable(name)
       Truffle.primitive :vm_get_config_item
-      raise PrimitiveFailure, 'Truffle::Configuration#get_variable primitive failed'
+      raise PrimitiveFailure, +'Truffle::Configuration#get_variable primitive failed'
     end
 
     def section(section, &block)

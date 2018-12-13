@@ -1,4 +1,6 @@
-# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 # 
@@ -31,7 +33,7 @@ module Math
 
   def ldexp(fraction, exponent)
     Truffle.primitive :math_ldexp
-    raise RangeError, 'float NaN out of range of integer' if Float === exponent and exponent.nan?
+    raise RangeError, +'float NaN out of range of integer' if Float === exponent and exponent.nan?
     ldexp(
       Truffle::Type.coerce_to_float(fraction),
       Truffle::Type.coerce_to_int(exponent))
