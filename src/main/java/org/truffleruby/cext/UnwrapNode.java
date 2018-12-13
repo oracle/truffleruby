@@ -47,7 +47,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     private Object unwrapHandle(long handle) {
-        return ValueWrapperObjectType.getFromHandleMap(handle);
+        return getContext().getValueWrapperManager().getFromHandleMap(handle);
     }
 
     public static boolean isWrapper(TruffleObject value) {

@@ -60,18 +60,18 @@ public class ValueWrapperMessageResolution {
                 Pointer handlePointer = Pointer.malloc(8);
                 long handleAddress = handlePointer.getAddress();
                 Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
-                ValueWrapperObjectType.addToHandleMap(handleAddress, wrapper);
+                getContext().getValueWrapperManager().addToHandleMap(handleAddress, wrapper);
                 // Add a finaliser to remove the map entry.
                 getContext().getFinalizationService().addFinalizer(
                         wrapper, null, ValueWrapperObjectType.class,
-                        finalizer(handlePointer), null);
+                        finalizer(getContext().getValueWrapperManager(), handlePointer), null);
                 return handleAddress;
             }
         }
 
-        private static Runnable finalizer(Pointer handle) {
+        private static Runnable finalizer(ValueWrapperManager manager, Pointer handle) {
             return () -> {
-                ValueWrapperObjectType.removeFromHandleMap(handle.getAddress());
+                manager.removeFromHandleMap(handle.getAddress());
                 handle.free();
             };
 
