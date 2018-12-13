@@ -14,6 +14,7 @@ import java.lang.ref.WeakReference;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -22,6 +23,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class ValueWrapperManager {
 
+    static final int UNSET_HANDLE = -1;
+
     @CompilationFinal private DynamicObject undefWrapper = null;
     @CompilationFinal private DynamicObject trueWrapper = null;
     @CompilationFinal private DynamicObject falseWrapper = null;
@@ -29,22 +32,30 @@ public class ValueWrapperManager {
     private final LongHashMap<DynamicObject> longMap = new LongHashMap<>(128);
     private final LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
 
-    RubyContext context;
+    private final RubyContext context;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
     }
 
     public DynamicObject undefWrapper() {
-        return undefWrapper != null ? undefWrapper : (undefWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(NotProvided.INSTANCE, ValueWrapperObjectType.UNSET_HANDLE));
-
+        if (undefWrapper == null) {
+            undefWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(NotProvided.INSTANCE, UNSET_HANDLE);
+        }
+        return undefWrapper;
     }
 
     public DynamicObject booleanWrapper(boolean value) {
         if (value) {
-            return trueWrapper != null ? trueWrapper : (trueWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(true, ValueWrapperObjectType.UNSET_HANDLE));
+            if (trueWrapper == null) {
+                trueWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(true, UNSET_HANDLE);
+            }
+            return trueWrapper;
         } else {
-            return falseWrapper != null ? falseWrapper : (falseWrapper = createFalseWrapper());
+            if (falseWrapper == null) {
+                falseWrapper = createFalseWrapper();
+            }
+            return falseWrapper;
         }
     }
 
@@ -61,14 +72,14 @@ public class ValueWrapperManager {
     public synchronized DynamicObject longWrapper(long value) {
         DynamicObject wrapper = longMap.get(value);
         if (wrapper == null) {
-            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperObjectType.UNSET_HANDLE);
+            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperManager.UNSET_HANDLE);
             longMap.put(value, wrapper);
         }
         return wrapper;
     }
 
     public DynamicObject doubleWrapper(double value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperObjectType.UNSET_HANDLE);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperManager.UNSET_HANDLE);
     }
 
     @TruffleBoundary
@@ -94,4 +105,27 @@ public class ValueWrapperManager {
         handleMap.remove(handle);
     }
 
+    @TruffleBoundary
+    public synchronized long createNativeHandle(DynamicObject wrapper) {
+        Pointer handlePointer = Pointer.malloc(8);
+        long handleAddress = handlePointer.getAddress();
+        Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
+        addToHandleMap(handleAddress, wrapper);
+        addFinalizer(wrapper, handlePointer);
+        return handleAddress;
+    }
+
+    public void addFinalizer(DynamicObject wrapper, Pointer handle) {
+        context.getFinalizationService().addFinalizer(
+                wrapper, null, ValueWrapperObjectType.class,
+                createFinalizer(handle), null);
+    }
+
+    private Runnable createFinalizer(Pointer handle) {
+        return () -> {
+            this.removeFromHandleMap(handle.getAddress());
+            handle.free();
+        };
+
+    }
 }

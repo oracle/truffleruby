@@ -18,10 +18,8 @@ import com.oracle.truffle.api.object.ObjectType;
 
 public class ValueWrapperObjectType extends ObjectType {
 
-    static final int UNSET_HANDLE = -1;
-
     public static DynamicObject createValueWrapper(Object value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperManager.UNSET_HANDLE);
     }
 
     public static boolean isInstance(TruffleObject receiver) {
@@ -37,8 +35,8 @@ public class ValueWrapperObjectType extends ObjectType {
 
         final long objectHandle = Layouts.VALUE_WRAPPER.getHandle(object);
         final long otherHandle = Layouts.VALUE_WRAPPER.getHandle(otherWrapper);
-        if (objectHandle != UNSET_HANDLE &&
-            otherHandle != UNSET_HANDLE) {
+        if (objectHandle != ValueWrapperManager.UNSET_HANDLE &&
+            otherHandle != ValueWrapperManager.UNSET_HANDLE) {
             return objectHandle == otherHandle;
         }
         return Layouts.VALUE_WRAPPER.getObject(object).equals(Layouts.VALUE_WRAPPER.getObject(otherWrapper));

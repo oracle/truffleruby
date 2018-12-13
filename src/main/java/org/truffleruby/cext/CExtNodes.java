@@ -1284,7 +1284,7 @@ public class CExtNodes {
             Object object = unwrapNode.execute(value);
             if (object == null) {
                 exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().runtimeError("Native handle not found", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("native handle not found", this));
             } else {
                 return object;
             }

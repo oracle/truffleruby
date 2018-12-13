@@ -12,16 +12,15 @@ package org.truffleruby.cext;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.extra.ffi.Pointer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @MessageResolution(receiverType = ValueWrapperObjectType.class)
 public class ValueWrapperMessageResolution {
@@ -45,37 +44,17 @@ public class ValueWrapperMessageResolution {
     public static abstract class ForeignAsPointerNode extends Node {
 
         @CompilationFinal private RubyContext context;
+        private final BranchProfile createHandleProfile = BranchProfile.create();
 
         protected long access(VirtualFrame frame, DynamicObject wrapper) {
             long handle = Layouts.VALUE_WRAPPER.getHandle(wrapper);
-            if (handle == ValueWrapperObjectType.UNSET_HANDLE) {
-                handle = createHandle(wrapper);
+            if (handle == ValueWrapperManager.UNSET_HANDLE) {
+                createHandleProfile.enter();
+                handle = getContext().getValueWrapperManager().createNativeHandle(wrapper);
             }
             return handle;
         }
 
-        @TruffleBoundary
-        protected long createHandle(DynamicObject wrapper) {
-            synchronized (wrapper) {
-                Pointer handlePointer = Pointer.malloc(8);
-                long handleAddress = handlePointer.getAddress();
-                Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
-                getContext().getValueWrapperManager().addToHandleMap(handleAddress, wrapper);
-                // Add a finaliser to remove the map entry.
-                getContext().getFinalizationService().addFinalizer(
-                        wrapper, null, ValueWrapperObjectType.class,
-                        finalizer(getContext().getValueWrapperManager(), handlePointer), null);
-                return handleAddress;
-            }
-        }
-
-        private static Runnable finalizer(ValueWrapperManager manager, Pointer handle) {
-            return () -> {
-                manager.removeFromHandleMap(handle.getAddress());
-                handle.free();
-            };
-
-        }
         public RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
