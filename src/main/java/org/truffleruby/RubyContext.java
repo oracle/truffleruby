@@ -358,13 +358,6 @@ public class RubyContext {
             return false;
         }
 
-        // The core library captures the value of these options (via Truffle::Boot.get_option).
-
-        if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
-            return false;
-        }
-
         // Libraries loaded during pre-initialization
 
         if (newOptions.PATCHING != oldOptions.PATCHING) {
