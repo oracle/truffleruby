@@ -28,6 +28,8 @@ Changes:
 Performance:
 
 * Sped up accesses to native memory through FFI::Pointer.
+* All core files now make use of frozen `String` literals, reducing the number
+  of `String` allocations for core methods.
 
 # 1.0 RC 10
 
