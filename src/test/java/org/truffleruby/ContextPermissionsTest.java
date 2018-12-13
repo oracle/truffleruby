@@ -44,6 +44,9 @@ public class ContextPermissionsTest {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
             Assert.assertEquals(7, context.eval("ruby", "Thread.new { 3 + 4 }.value").asInt());
+
+            String code = "begin; File.stat('.'); rescue SecurityError => e; e.message; end";
+            Assert.assertEquals("native access is not allowed", context.eval("ruby", code).asString());
         }
     }
 
