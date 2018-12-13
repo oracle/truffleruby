@@ -138,12 +138,6 @@ covered by the Ruby Specification suite or tests.
 
 ## Features with very low performance
 
-#### Keyword arguments
-
-Keyword arguments don't have *very* low performance, but they are not optimised
-as other language features are. You don't need to avoid keyword arguments, but
-performance with them may not be what you would hope for.
-
 #### `ObjectSpace`
 
 Using most methods on `ObjectSpace` will temporarily lower the performance of
