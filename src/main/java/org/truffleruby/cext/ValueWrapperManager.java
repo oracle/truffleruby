@@ -16,7 +16,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
-
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -107,8 +106,11 @@ public class ValueWrapperManager {
 
     @TruffleBoundary
     public synchronized long createNativeHandle(DynamicObject wrapper) {
-        Pointer handlePointer = Pointer.malloc(8);
+        Pointer handlePointer = Pointer.malloc(1);
         long handleAddress = handlePointer.getAddress();
+        if ((handleAddress & 0x7) != 0) {
+            throw new RuntimeException("unaligned malloc for native handle");
+        }
         Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
         addToHandleMap(handleAddress, wrapper);
         addFinalizer(wrapper, handlePointer);
