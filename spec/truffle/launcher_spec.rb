@@ -261,7 +261,7 @@ describe "The launcher" do
       out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
       $?.success?.should == true
       out.should =~ /language options/i
-      out.should include("llvm:")
+      out.should include("LLVM:")
       out.should include("--llvm.libraryPath=")
     end
   end
