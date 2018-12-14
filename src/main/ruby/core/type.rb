@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -586,7 +588,7 @@ module Truffle
       unless enc
         enc_a = object_encoding a
         enc_b = object_encoding b
-        message = 'undefined conversion '
+        message = +'undefined conversion '
         message << "for '#{a.inspect}' " if object_kind_of?(a, String)
         message << "from #{enc_a} to #{enc_b}"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -34,11 +36,11 @@ class NilClass
   end
 
   def to_s
-    ''
+    +''
   end
 
   def inspect
-    'nil'
+    +'nil'
   end
 
   def to_a

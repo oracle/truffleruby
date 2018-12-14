@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -95,21 +97,21 @@ module Truffle
 
     def self.ftype(mode)
       if file?(mode)
-        'file'
+        +'file'
       elsif directory?(mode)
-        'directory'
+        +'directory'
       elsif chardev?(mode)
-        'characterSpecial'
+        +'characterSpecial'
       elsif blockdev?(mode)
-        'blockSpecial'
+        +'blockSpecial'
       elsif pipe?(mode)
-        'fifo'
+        +'fifo'
       elsif socket?(mode)
-        'socket'
+        +'socket'
       elsif symlink?(mode)
-        'link'
+        +'link'
       else
-        'unknown'
+        +'unknown'
       end
     end
 

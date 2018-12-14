@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -287,7 +289,7 @@ class Regexp
   end
 
   def option_to_string(option)
-    string = ''
+    string = +''
     string << 'm' if (option & MULTILINE) > 0
     string << 'i' if (option & IGNORECASE) > 0
     string << 'x' if (option & EXTENDED) > 0

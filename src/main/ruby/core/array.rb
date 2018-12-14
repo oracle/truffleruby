@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -604,11 +606,11 @@ class Array
   Truffle::Graal.always_split instance_method(:insert)
 
   def inspect
-    return '[]'.force_encoding(Encoding::US_ASCII) if size == 0
+    return '[]'.encode(Encoding::US_ASCII) if size == 0
     comma = ', '
-    result = '['
+    result = +'['
 
-    return '[...]' if Thread.detect_recursion self do
+    return +'[...]' if Thread.detect_recursion self do
       each_with_index do |element, index|
         temp = Truffle::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
@@ -624,9 +626,9 @@ class Array
   alias_method :to_s, :inspect
 
   def join(sep=nil)
-    return ''.force_encoding(Encoding::US_ASCII) if size == 0
+    return ''.encode(Encoding::US_ASCII) if size == 0
 
-    out = ''
+    out = +''
     raise ArgumentError, 'recursive array join' if Thread.detect_recursion self do
       sep = sep.nil? ? $, : StringValue(sep)
 

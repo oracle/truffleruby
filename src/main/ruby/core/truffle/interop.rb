@@ -1,4 +1,6 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -216,7 +218,7 @@ module Truffle
       if object.is_a?(String)
         object.inspect
       elsif Truffle::Interop.java?(object) && object.nil?
-        '#<Java null>'
+        +'#<Java null>'
       elsif Truffle::Interop.java?(object) && object.respond_to?(:size)
         "#<Java:#{hash_code} #{to_array(object).inspect}>"
       elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
@@ -226,7 +228,7 @@ module Truffle
       elsif Truffle::Interop.java?(object)
         "#<Java:#{hash_code} object #{object.getClass.getName}>"
       elsif Truffle::Interop.null?(object)
-        '#<Foreign null>'
+        +'#<Foreign null>'
       elsif Truffle::Interop.pointer?(object)
         "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}>"
       elsif Truffle::Interop.size?(object)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -160,7 +162,7 @@ class Encoding
     def convert(str)
       str = StringValue(str)
 
-      dest = ''
+      dest = +''
       status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
@@ -231,7 +233,7 @@ class Encoding
     end
 
     def finish
-      dest = ''
+      dest = +''
       status = primitive_convert nil, dest
 
       if status == :invalid_byte_sequence or

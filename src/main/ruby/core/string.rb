@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -315,7 +317,7 @@ class String
                      '\\'
                    when 107 # \k named capture
                      if getbyte(index + 1) == 60
-                       name = ''
+                       name = +''
                        i = index + 2
                        data = bytes
                        while i < bytesize && data[i] != 62
@@ -323,7 +325,8 @@ class String
                          i += 1
                        end
                        if i >= bytesize
-                         '\\'.append(cap.chr)
+                         name << '\\'
+                         name << cap.chr
                          index += 1
                          next
                        end
@@ -331,10 +334,10 @@ class String
                        name.force_encoding result.encoding
                        match[name]
                      else
-                       '\\'.append(cap.chr)
+                       '\\' + cap.chr
                      end
                    else     # unknown escape
-                     '\\'.append(cap.chr)
+                     '\\' + cap.chr
                    end
       result.append(additional)
       index += 1
@@ -448,7 +451,7 @@ class String
     elsif to_enc
       if from_enc != to_enc
         ec = Encoding::Converter.new from_enc, to_enc, options
-        dest = ''
+        dest = +''
         status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
         raise ec.last_error unless status == :finished
         replace dest
@@ -1053,7 +1056,7 @@ class String
       begin
         replace = "\xEF\xBF\xBD".encode(self.encoding, :undef => :replace, :replace => '?')
       rescue Encoding::ConverterNotFoundError
-        replace = '?'.force_encoding(encoding)
+        replace = '?'.encode(encoding)
       end
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -320,7 +322,7 @@ class IO
       return if size == 0 and fill_from(io) == 0
 
       Truffle::System.synchronized(self) do
-        char = ''
+        char = +''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT
           char << @storage[@start]
@@ -467,7 +469,7 @@ class IO
       bytes = 0
 
       begin
-        while data = @from.__send__(@method, size, '')
+        while data = @from.__send__(@method, size, +'')
           @to.write data
           bytes += data.bytesize
 
@@ -1392,7 +1394,7 @@ class IO
 
     # method A, D
     def read_to_separator
-      str = ''
+      str = +''
 
       until @buffer.exhausted?
         available = @buffer.fill_from @io, @skip
@@ -1429,7 +1431,7 @@ class IO
 
     # method B, E
     def read_to_separator_with_limit
-      str = ''
+      str = +''
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
@@ -1450,7 +1452,7 @@ class IO
 
           yield str
 
-          str = ''
+          str = +''
           wanted = limit
         else
           if wanted < available
@@ -1464,7 +1466,7 @@ class IO
 
             yield str
 
-            str = ''
+            str = +''
             wanted = limit
           else
             str << @buffer.shift
@@ -1483,7 +1485,7 @@ class IO
 
     # Method G
     def read_all
-      str = ''
+      str = +''
       until @buffer.exhausted?
         @buffer.fill_from @io
         str << @buffer.shift
@@ -1499,7 +1501,7 @@ class IO
 
     # Method H
     def read_to_limit
-      str = ''
+      str = +''
       wanted = limit = @limit.abs
 
       until @buffer.exhausted?
@@ -1513,7 +1515,7 @@ class IO
           $. = @io.increment_lineno
           yield str
 
-          str = ''
+          str = +''
           wanted = limit
         else
           str << @buffer.shift
@@ -1787,7 +1789,7 @@ class IO
   def fsync
     flush
     err = Truffle::POSIX.fsync @descriptor
-    Errno.handle 'fsync(2)' if err < 0
+    Errno.handle(+'fsync(2)') if err < 0
     err
   end
 
@@ -1997,7 +1999,7 @@ class IO
       return nil
     end
 
-    str = ''
+    str = +''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
       available = @ibuffer.fill_from self
@@ -2025,7 +2027,7 @@ class IO
   # Reads all input until +#eof?+ is true. Returns the input read.
   # If the buffer is already exhausted, returns +""+.
   private def read_all
-    str = ''
+    str = +''
     until @ibuffer.exhausted?
       @ibuffer.fill_from self
       str << @ibuffer.shift
@@ -2192,7 +2194,7 @@ class IO
       buffer.replace(data)
       buffer
     else
-      return '' if size == 0
+      return +'' if size == 0
 
       if @ibuffer.size > 0
         return @ibuffer.shift(size)
@@ -2402,7 +2404,7 @@ class IO
         if b3 == 0xFE
           b4 = getbyte
           if b4 == 0xFF
-            return 'UTF-32BE'
+            return +'UTF-32BE'
           end
           ungetbyte b4
         end
@@ -2417,12 +2419,12 @@ class IO
         if b3 == 0x00
           b4 = getbyte
           if b4 == 0x00
-            return 'UTF-32LE'
+            return +'UTF-32LE'
           end
           ungetbyte b4
         else
           ungetbyte b3
-          return 'UTF-16LE'
+          return +'UTF-16LE'
         end
         ungetbyte b3
       end
@@ -2431,7 +2433,7 @@ class IO
     when 0xFE
       b2 = getbyte
       if b2 == 0xFF
-        return 'UTF-16BE'
+        return +'UTF-16BE'
       end
       ungetbyte b2
 
@@ -2440,7 +2442,7 @@ class IO
       if b2 == 0xBB
         b3 = getbyte
         if b3 == 0xBF
-          return 'UTF-8'
+          return +'UTF-8'
         end
         ungetbyte b3
       end

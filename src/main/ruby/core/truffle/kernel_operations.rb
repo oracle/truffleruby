@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -115,7 +117,7 @@ module Truffle
         if exc
           skip = true
         else
-          exc = RuntimeError.new('No current exception')
+          exc = RuntimeError.new 'No current exception'
         end
       elsif exc.respond_to? :exception
         if undefined.equal? msg

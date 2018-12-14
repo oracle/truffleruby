@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -329,7 +331,7 @@ end
 class SystemCallError < StandardError
 
   def self.errno_error(message, errno, location)
-    message = message ? " - #{message}" : ''
+    message = message ? " - #{message}" : +''
     message = " @ #{location}#{message}" if location
     Truffle.invoke_primitive :exception_errno_error, message, errno
   end
@@ -409,7 +411,7 @@ class SystemCallError < StandardError
     message, errno, location = args
     Truffle.invoke_primitive :exception_set_errno, self, errno
 
-    msg = 'unknown error'
+    msg = +'unknown error'
     msg << " @ #{StringValue(location)}" if location
     msg << " - #{StringValue(message)}" if message
     super(msg)

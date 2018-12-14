@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -395,20 +397,20 @@ class File < IO
     path = Truffle::Type.coerce_to_path(path)
 
     # edge case
-    return '.' if path.empty?
+    return +'.' if path.empty?
 
     slash = '/'
 
     # pull off any /'s at the end to ignore
     chunk_size = last_nonslash(path)
-    return '/' unless chunk_size
+    return +'/' unless chunk_size
 
     if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, chunk_size)
-      return '/' if pos == 0
+      return +'/' if pos == 0
 
       path = path.byteslice(0, pos)
 
-      return '/' if path == '/'
+      return +'/' if path == '/'
 
       return path unless path.end_with? slash
 
@@ -416,12 +418,12 @@ class File < IO
       idx = last_nonslash(path, pos)
 
       # edge case, only /'s, return /
-      return '/' unless idx
+      return +'/' unless idx
 
       return path.byteslice(0, idx - 1)
     end
 
-    '.'
+    +'.'
   end
 
   ##
@@ -466,7 +468,7 @@ class File < IO
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
     path = Truffle::Type.coerce_to_path(path)
-    str = ''.force_encoding path.encoding
+    str = ''.encode path.encoding
     first = path[0]
     if first == ?~
       first_char = path[1]
@@ -796,7 +798,7 @@ class File < IO
   #
   #  File.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
   def self.join(*args)
-    return '' if args.empty?
+    return +'' if args.empty?
 
     sep = SEPARATOR
 

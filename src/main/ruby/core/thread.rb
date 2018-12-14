@@ -1,4 +1,6 @@
-# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -445,7 +447,7 @@ class ConditionVariable
 
   def wait(mutex, timeout=nil)
     if timeout
-      raise ArgumentError 'Timeout must be positive' if timeout < 0
+      raise ArgumentError, 'Timeout must be positive' if timeout < 0
       timeout = timeout * 1_000_000_000
       timeout = Truffle::Type.rb_num2long(timeout)
     end

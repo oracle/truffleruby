@@ -1,4 +1,6 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# frozen_string_literal: true
+
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -568,7 +570,7 @@ module Truffle
     # Returns "ARGF" as the string representation of this object.
     #
     def to_s
-      'ARGF'
+      +'ARGF'
     end
 
 
@@ -592,7 +594,7 @@ module Truffle
         if @argv.empty?
           @advance = false
           @stream = $stdin
-          @filename = '-'
+          @filename = +'-'
           @use_stdin_only = true
           return true
         end

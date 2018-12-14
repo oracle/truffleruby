@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -115,12 +117,12 @@ module Signal
       handler = handler == 'IGNORE' ? nil : handler
       ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
       if handler == 'DEFAULT' && !ret
-        return 'SYSTEM_DEFAULT'
+        return +'SYSTEM_DEFAULT'
       end
     end
 
     if !had_old && handler != 'SYSTEM_DEFAULT'
-      return 'DEFAULT'
+      return +'DEFAULT'
     else
       old ? old : nil
     end
