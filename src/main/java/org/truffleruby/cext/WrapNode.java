@@ -22,27 +22,27 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     public DynamicObject wrapInt(int value) {
-        return ValueWrapperObjectType.createLongWrapper(value);
+        return getContext().getValueWrapperManager().longWrapper(value);
     }
 
     @Specialization
     public DynamicObject wrapLong(long value) {
-        return ValueWrapperObjectType.createLongWrapper(value);
+        return getContext().getValueWrapperManager().longWrapper(value);
     }
 
     @Specialization
     public DynamicObject wrapDouble(double value) {
-        return ValueWrapperObjectType.createDoubleWrapper(value);
+        return getContext().getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
     public DynamicObject wrapBoolean(boolean value) {
-        return ValueWrapperObjectType.createBooleanWrapper(value);
+        return getContext().getValueWrapperManager().booleanWrapper(value);
     }
 
     @Specialization
     public DynamicObject wrapUndef(NotProvided value) {
-        return ValueWrapperObjectType.createUndefWrapper(value);
+        return getContext().getValueWrapperManager().undefWrapper();
     }
 
     @Specialization(guards = "isWrapped(value)")

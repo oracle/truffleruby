@@ -23,6 +23,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
@@ -117,6 +118,7 @@ public class RubyContext {
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
+    private final ValueWrapperManager valueWrapperManager = new ValueWrapperManager(this);
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -776,6 +778,10 @@ public class RubyContext {
 
     public NativeConfiguration getNativeConfiguration() {
         return nativeConfiguration;
+    }
+
+    public ValueWrapperManager getValueWrapperManager() {
+        return valueWrapperManager;
     }
 
     private static SecureRandom createRandomInstance() {

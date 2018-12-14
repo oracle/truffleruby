@@ -1279,8 +1279,15 @@ public class CExtNodes {
 
         @Specialization
         public Object unwrap(Object value,
+                @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
-            return unwrapNode.execute(value);
+            Object object = unwrapNode.execute(value);
+            if (object == null) {
+                exceptionProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("native handle not found", this));
+            } else {
+                return object;
+            }
         }
 
         protected UnwrapNode createUnwrapNode() {

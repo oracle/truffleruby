@@ -20,11 +20,16 @@ import com.oracle.truffle.api.object.dsl.Layout;
 @Layout(objectTypeSuperclass = ValueWrapperObjectType.class)
 public interface ValueWrapperLayout {
 
-    DynamicObject createValueWrapper(Object object);
+    DynamicObject createValueWrapper(Object object,
+            long handle);
 
     boolean isValueWrapper(Object object);
 
     boolean isValueWrapper(DynamicObject object);
 
     Object getObject(DynamicObject object);
+
+    long getHandle(DynamicObject object);
+
+    void setHandle(DynamicObject object, long value);
 }
