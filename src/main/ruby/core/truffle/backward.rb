@@ -30,5 +30,3 @@ module Truffle
   end
 
 end
-
-

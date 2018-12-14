@@ -51,6 +51,6 @@ module Truffle
         end
       end
     end
-    
+
   end
 end

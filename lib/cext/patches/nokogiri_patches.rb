@@ -11,7 +11,7 @@
 require_relative 'common_patches'
 
 class NokogiriPatches < CommonPatches
-  
+
   XML_NODE_SET_PATCH = <<-EOF
   switch (rb_tr_to_int_const(rb_range_beg_len(arg, &beg, &len, (long)node_set->nodeNr, 0))) {
   case Qfalse_int_const:
@@ -217,7 +217,7 @@ EOF
       ],
       'xml_syntax_error.c' => [
         cast_native_for_value('ctx'),
-        { # rb_class_new_instance takes a pointer to an array of arguments, and forcing it to inlined simply pushes the issue to 
+        { # rb_class_new_instance takes a pointer to an array of arguments, and forcing it to inlined simply pushes the issue to
           match: 'VALUE msg',
           replacement: 'VALUE msg[1]'
         },

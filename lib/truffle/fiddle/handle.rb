@@ -8,16 +8,16 @@
 
 module Fiddle
   class Handle
-    
+
     def initialize(library=nil)
       @handle = Truffle::Interop.eval('application/x-native', library ? "load #{library}" : 'default')
     end
-    
+
     def sym(symbol)
       @handle[symbol]
     end
-    
+
     alias_method :[], :sym
-  
+
   end
 end

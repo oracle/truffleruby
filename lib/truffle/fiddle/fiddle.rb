@@ -7,11 +7,11 @@
 # GNU Lesser General Public License version 2.1.
 
 module Fiddle
-  
+
   TYPE_DOUBLE = 'DOUBLE'
-  
+
   def self.dlopen(name=nil)
     Handle.new(name)
   end
-  
+
 end

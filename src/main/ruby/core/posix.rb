@@ -12,7 +12,7 @@ module Truffle::POSIX
   NATIVE = Truffle::Boot.get_option 'platform.native'
 
   if NATIVE
-    
+
     class LazyLibrary
       def initialize(&block)
         @block = block
@@ -287,7 +287,7 @@ module Truffle::POSIX
     unless Truffle::Platform.darwin?
       attach_function :dup3, [:int, :int, :int], :int
     end
-    
+
   end
 
   def self.with_array_of_ints(ints)
@@ -317,7 +317,7 @@ module Truffle::POSIX
   # Used in IO#readpartial and IO::InternalBuffer#fill_read. Reads at least
   # one byte, blocking if it cannot read anything, but returning whatever it
   # gets as soon as it gets something.
-  
+
   def self.read_string_at_least_one_byte(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
       # must call #read_string in order to properly support polyglot STDIO
@@ -344,7 +344,7 @@ module Truffle::POSIX
       Errno.handle
     end
   end
-  
+
   # #read_string (either #read_string_native or #read_string_polyglot) is called
   # by IO#sysread
 
@@ -368,7 +368,7 @@ module Truffle::POSIX
       [buffer.read_string(bytes_read), 0]
     end
   end
-  
+
   def self.read_string_polyglot(io, length)
     fd = io.descriptor
     if fd == 0
@@ -378,7 +378,7 @@ module Truffle::POSIX
       read_string_native(io, length)
     end
   end
-  
+
   # #write_string (either #write_string_native or #write_string_polyglot) is
   # called by IO#syswrite, IO#write, and IO::InternalBuffer#empty_to
 
@@ -411,18 +411,18 @@ module Truffle::POSIX
   def self.write_string_polyglot(io, string, continue_on_eagain)
     fd = io.descriptor
     if fd == 1 || fd == 2
-      
+
       # continue_on_eagain is set for IO::InternalBuffer#empty_to, for IO#write
       # if @sync, but not for IO#syswrite. What happens in a polyglot stream
       # if we get EAGAIN and EWOULDBLOCK? We should try again if we do and
       # continue_on_eagain.
-      
+
       Truffle.invoke_primitive :io_write_polyglot, fd, string
     else
       write_string_native(io, string, continue_on_eagain)
     end
   end
-  
+
   # #write_string_nonblock (either #write_string_nonblock_native or
   # #write_string_nonblock_polylgot) is called by IO#write_nonblock
 
@@ -447,17 +447,17 @@ module Truffle::POSIX
   def self.write_string_nonblock_polyglot(io, string)
     fd = io.descriptor
     if fd == 1 || fd == 2
-      
+
       # We only come here from IO#write_nonblock. What happens in a polyglot
       # stream if we get EAGAIN and EWOULDBLOCK? We should try again if we
       # we get them.
-      
+
       Truffle.invoke_primitive :io_write_polyglot, fd, string
     else
       write_string_nonblock_native(io, string)
     end
   end
-  
+
   # Select between native and polyglot variants
 
   Truffle::Boot.delay do
@@ -475,5 +475,5 @@ module Truffle::POSIX
       end
     end
   end
-  
+
 end

@@ -106,7 +106,7 @@ module Digest
       reset
       digested
     end
-    
+
     def finish
       Truffle::Digest.digest @digest
     end
@@ -120,7 +120,7 @@ module Digest
     def digest_length
       Truffle::Digest.digest_length @digest
     end
-    
+
     def size
       digest_length
     end

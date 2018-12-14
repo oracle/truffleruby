@@ -97,6 +97,6 @@ module Truffle
         [value, limit, step, asc, false]
       end
     end
-    
+
   end
 end

@@ -25,7 +25,7 @@
 ###### END LICENSE BLOCK ######
 
 class Object
-  
+
   # Import one or many Java classes as follows:
   #
   #   java_import java.lang.System
@@ -35,7 +35,7 @@ class Object
   # @!visibility public
   def java_import(*import_classes)
     import_classes = import_classes.flatten
-    
+
     import_classes.map do |import_class|
       case import_class
       when String
@@ -111,7 +111,7 @@ class Object
       other_import(*args, &block)
     end
   end
-  
+
   unless respond_to?(:import)
     alias :import :java_import
   end

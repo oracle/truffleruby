@@ -92,7 +92,7 @@ module Truffle
         pattern = StringValue(pattern) unless pattern.kind_of?(String)
 
         valid_encoding?(string)
-        valid_encoding?(pattern) 
+        valid_encoding?(pattern)
 
         trim_end = !tail_empty || limit == 0
 
