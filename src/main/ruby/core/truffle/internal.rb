@@ -47,7 +47,7 @@ module Truffle::Internal
       raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"
     end
   end
-  
+
   def self.get_data(path, offset)
     file = File.open(path)
     file.seek(offset)
@@ -66,7 +66,7 @@ module Truffle::Internal
 
     file
   end
-  
+
   def self.load_arguments_from_array_kw_helper(array, kwrest_name, binding)
     array = array.dup
 

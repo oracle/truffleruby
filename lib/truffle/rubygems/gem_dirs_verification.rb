@@ -13,11 +13,11 @@ module Gem
         bad_install_dir = bad_dirs.include? install_dir
         unless bad_dirs.empty?
           unless tool.ask_yes_no <<-TXT.gsub(/^ +/, '').chomp, true
-          
-            The gem directories are not configured properly. 
-            The gem install directory #{install_dir} #{bad_install_dir ? 'is not' : 'might not be'} correct. 
-            It has to be marked with the #{MARKER_NAME} file as belonging to TruffleRuby. 
-            The gem might be installed into a gem directory belonging to another Ruby implementation. 
+
+            The gem directories are not configured properly.
+            The gem install directory #{install_dir} #{bad_install_dir ? 'is not' : 'might not be'} correct.
+            It has to be marked with the #{MARKER_NAME} file as belonging to TruffleRuby.
+            The gem might be installed into a gem directory belonging to another Ruby implementation.
             Continue installing?
           TXT
             raise Gem::InstallError,
@@ -31,7 +31,7 @@ module Gem
           # If the directory is empty then the very first gem is being installed in it.
           # Therefore mark (claim) it as TruffleRuby's gem directory.
           File.write marker_path(install_dir), <<-TXT.gsub(/^ */, '')
-            DO NOT DELETE: This file is used by TruffleRuby to distinguish its 
+            DO NOT DELETE: This file is used by TruffleRuby to distinguish its
             gem installation directory from that of other Ruby installations.
           TXT
         end

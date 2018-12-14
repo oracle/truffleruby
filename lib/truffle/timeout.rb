@@ -137,14 +137,14 @@ module Timeout
 
 
   if Truffle::Boot.single_threaded?
-  
+
     def timeout(sec, exception=Error)
       Truffle::Debug.log_warning 'threads are disabled, so timeout is being ignored'
       yield sec
     end
-  
+
   else
-    
+
     ##
     # Executes the method's block. If the block execution terminates before +sec+
     # seconds has passed, it returns true. If not, it terminates the execution
@@ -166,7 +166,7 @@ module Timeout
         req.abort
       end
     end
-    
+
   end
 
   module_function :timeout

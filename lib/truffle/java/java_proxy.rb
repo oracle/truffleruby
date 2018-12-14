@@ -21,7 +21,7 @@ class JavaProxy
   def self.const_missing(name)
     JavaUtilities.get_inner_class(java_class, name)
   end
-  
+
   def to_java_object
     java_object
   end

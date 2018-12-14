@@ -277,43 +277,43 @@ class File
     def ctime
       Time.at @buffer[2]
     end
-    
+
     def nlink
       @buffer[3]
     end
-    
+
     def rdev
       @buffer[4]
     end
-    
+
     def blksize
       @buffer[5]
     end
-    
+
     def blocks
       @buffer[6]
     end
-    
+
     def dev
       @buffer[7]
     end
-    
+
     def ino
       @buffer[8]
     end
-    
+
     def size
       @buffer[9]
     end
-    
+
     def mode
       @buffer[10]
     end
-    
+
     def gid
       @buffer[11]
     end
-    
+
     def uid
       @buffer[12]
     end

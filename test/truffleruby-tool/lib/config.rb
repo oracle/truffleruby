@@ -49,11 +49,11 @@ stubs = {
 
     bcrypt: dedent(<<-RUBY),
       module BCrypt
-        class Engine  
+        class Engine
           def self.__bc_salt
-          end 
+          end
           def self.__bc_crypt
-          end 
+          end
         end
       end
       require 'bcrypt'
@@ -144,9 +144,9 @@ stubs = {
           module TruffleAttrVolatile
             def full_memory_barrier
               Truffle::System.full_memory_barrier
-            end     
-          end     
-        end     
+            end
+          end
+        end
       end
     RUBY
 

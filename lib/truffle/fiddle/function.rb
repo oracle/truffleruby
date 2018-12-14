@@ -8,16 +8,16 @@
 
 module Fiddle
   class Function
-    
+
     DEFAULT = :default
-  
+
     def initialize(ptr, args, ret_type, abi=DEFAULT)
       @function = ptr.bind(Truffle::Interop.to_java_string("(#{args.join(',')}):#{ret_type}"))
     end
-    
+
     def call(*args)
       @function.call(*args)
     end
-  
+
   end
 end

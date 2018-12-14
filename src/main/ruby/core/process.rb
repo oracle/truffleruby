@@ -142,7 +142,7 @@ module Process
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
       Errno.handle if time == 0
     end
-    
+
     case unit
     when :nanosecond
       time

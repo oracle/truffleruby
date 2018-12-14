@@ -272,7 +272,7 @@ module Truffle::FFI
     def members
       self.class.members
     end
-    
+
     def to_h
       members.map do |member|
         [member, self[member]]
