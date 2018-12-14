@@ -4,6 +4,8 @@ New features:
 
 * macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
   `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
+* TruffleRuby now automatically detects native access and threading permissions
+  from the `Context` API, and can run code with no permissions given (`Context.create()`).
 
 Bug fixes:
 

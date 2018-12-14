@@ -343,6 +343,9 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public boolean resilientGemHome() {
+            if (!getContext().getOptions().NATIVE_PLATFORM) {
+                return false; // Cannot remove environment variables
+            }
             if (RESILIENT_GEM_HOME) {
                 return true;
             }

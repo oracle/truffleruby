@@ -61,10 +61,10 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.options.Options;
+import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionDescription;
-import org.truffleruby.shared.options.Options;
-import org.truffleruby.shared.options.OptionsBuilder;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.Platform;
@@ -358,13 +358,6 @@ public class RubyContext {
             return false;
         }
 
-        // The core library captures the value of these options (via Truffle::Boot.get_option).
-
-        if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
-            return false;
-        }
-
         // Libraries loaded during pre-initialization
 
         if (newOptions.PATCHING != oldOptions.PATCHING) {
@@ -391,7 +384,7 @@ public class RubyContext {
         optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
 
-        final Options options = optionsBuilder.build();
+        final Options options = optionsBuilder.build(env);
 
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
