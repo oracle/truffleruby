@@ -121,7 +121,7 @@ module EnvUtil
       stderr = stderr_filter.call(stderr) if stderr_filter
       if timeout_error
         bt = caller_locations
-        msg = "execution of #{bt.shift.label} expired"
+        msg = "execution of #{bt.shift.label} expired (took longer than #{timeout} seconds)"
         msg = Test::Unit::Assertions::FailDesc[status, msg, [stdout, stderr].join("\n")].()
         raise timeout_error, msg, bt.map(&:to_s)
       end
