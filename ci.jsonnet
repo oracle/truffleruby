@@ -569,9 +569,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
 
       "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
-      "ruby-test-mri": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri,
+      "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri + { timelimit: "25:00" },
       "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
-      "ruby-test-cexts": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-cexts-linux": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-ecosystem": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
 
