@@ -1374,7 +1374,7 @@ module Truffle::CExt
   end
 
   def rb_tr_error(message)
-    Truffle::KernelOperations.internal_raise RuntimeError, message, true
+    Truffle::KernelOperations.internal_raise RuntimeError, message, nil, true
   end
 
   def test_kwargs(kwargs, raise_error)

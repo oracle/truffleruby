@@ -2832,6 +2832,8 @@ void rb_tr_load_library(VALUE library) {
   truffle_load_library(RSTRING_PTR(library));
 }
 
+// Remaining functions
+
 void rb_big_2comp(VALUE x) {
   rb_tr_error("rb_big_2comp not implemented");
 }
