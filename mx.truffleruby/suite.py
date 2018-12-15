@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "c0a043d9b388d0f62eff1e07922731bd8ec8ab54",
+                "version": "aacc6652e247841b2bfa9bdba308021049c2e215",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "c0a043d9b388d0f62eff1e07922731bd8ec8ab54",
+                "version": "aacc6652e247841b2bfa9bdba308021049c2e215",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -376,7 +376,7 @@ suite = {
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
-        
+
         "TRUFFLERUBY-SERVICES": {
             "dependencies": [
                 "org.truffleruby.services"
