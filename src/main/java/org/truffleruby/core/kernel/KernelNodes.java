@@ -1698,6 +1698,7 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1, taintFrom = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode;
