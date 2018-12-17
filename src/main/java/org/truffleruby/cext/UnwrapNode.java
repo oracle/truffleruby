@@ -1,7 +1,9 @@
 package org.truffleruby.cext;
 
+import static org.truffleruby.cext.ValueWrapperManager.TAG_MASK;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.OBJECT_TAG;
+import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
 
 import org.truffleruby.Layouts;
 
@@ -51,7 +53,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedLong(handle)")
         public Object unwrapTaggedLong(long handle) {
-            return handle >> 3;
+            return handle >> 1;
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
@@ -60,11 +62,11 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         public boolean isTaggedLong(long handle) {
-            return (handle & 0x7L) == LONG_TAG;
+            return (handle & LONG_TAG) == LONG_TAG;
         }
 
         public boolean isTaggedObject(long handle) {
-            return (handle & 0x7L) == OBJECT_TAG;
+            return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
         }
 
         public static UnwrapNativeNode create() {

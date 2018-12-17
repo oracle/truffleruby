@@ -31,13 +31,10 @@ public abstract class WrapNode extends RubyBaseNode {
         return wrapLong(value);
     }
 
-    private final long MIN_VALUE = 0xf000_0000_0000_0000L;
-    private final long MAX_VALUE = 0x0fff_ffff_ffff_ffffL;
-
     @Specialization
     public DynamicObject wrapLong(long value) {
-        if (value >= MIN_VALUE && value <= MAX_VALUE) {
-            long val = (value << 3) | LONG_TAG;
+        if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
+            long val = (value << 1) | LONG_TAG;
             return Layouts.VALUE_WRAPPER.createValueWrapper(value, val);
         } else {
             return getContext().getValueWrapperManager().longWrapper(value);

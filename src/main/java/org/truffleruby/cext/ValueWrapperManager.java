@@ -15,21 +15,30 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.NotProvided;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class ValueWrapperManager {
 
     static final int UNSET_HANDLE = -1;
-    public static final int FALSE_HANDLE = 0;
-    public static final int TRUE_HANDLE = 1;
-    public static final int UNDEF_HANDLE = 2;
-    public static final int NIL_HANDLE = 3;
 
-    public static final int LONG_TAG = 4;
-    public static final int OBJECT_TAG = 7;
+    /*
+     * These constants are taken from ruby.h, and are based on us not tagging doubles.
+     */
+
+    public static final int FALSE_HANDLE = 0x0;
+    public static final int TRUE_HANDLE = 0x2;
+    public static final int NIL_HANDLE = 0x04;
+    public static final int UNDEF_HANDLE = 0x6;
+
+    public static final long LONG_TAG = 1;
+    public static final long OBJECT_TAG = 0;
+
+    public static final long MIN_FIXNUM_VALUE = -(1L << 62);
+    public static final long MAX_FIXNUM_VALUE = (1L << 62) - 1;
+
+    public static final int TAG_BITS = 3;
+    public static final long TAG_MASK = 0x7;
 
     private final LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
 
@@ -79,7 +88,7 @@ public class ValueWrapperManager {
     public synchronized long createNativeHandle(DynamicObject wrapper) {
         Pointer handlePointer = Pointer.malloc(1);
         long handleAddress = handlePointer.getAddress();
-        if ((handleAddress & 0x7) != 0) {
+        if ((handleAddress & TAG_MASK) != 0) {
             throw new RuntimeException("unaligned malloc for native handle");
         }
         Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
