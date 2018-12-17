@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * Finalizers are implemented with phantom references and reference queues, and are run in a
  * dedicated Ruby thread.
  */
-public class FinalizationService {
+public class FinalizationService extends ReferenceProcessingService<FinalizationService.FinalizerReference> {
 
     private static class Finalizer {
 
@@ -53,7 +53,7 @@ public class FinalizationService {
         }
     }
 
-    public static class FinalizerReference extends PhantomReference<Object> {
+    public static class FinalizerReference extends PhantomReference<Object> implements ReferenceProcessingService.ProcessingReference<FinalizerReference> {
 
         /**
          * All accesses to this Deque must be synchronized by taking the
@@ -62,11 +62,27 @@ public class FinalizationService {
         private final Deque<Finalizer> finalizers = new LinkedList<>();
 
         /** The doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
-        private FinalizerReference next = null;
-        private FinalizerReference prev = null;
+        FinalizerReference next = null;
+        FinalizerReference prev = null;
 
         private FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
             super(object, queue);
+        }
+
+        public FinalizerReference getPrevious() {
+            return prev;
+        }
+
+        public void setPrevious(FinalizerReference previous) {
+            prev = previous;
+        }
+
+        public FinalizerReference getNext() {
+            return next;
+        }
+
+        public void setNext(FinalizerReference next) {
+            this.next = next;
         }
 
         private void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
@@ -102,9 +118,6 @@ public class FinalizationService {
     private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
     /** The finalizer Ruby thread, spawned lazily. */
     private DynamicObject finalizerThread;
-    /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
-    private FinalizerReference first = null;
-
     public FinalizationService(RubyContext context) {
         this.context = context;
     }
@@ -197,7 +210,7 @@ public class FinalizationService {
     }
 
     public synchronized void collectRoots(Collection<DynamicObject> roots) {
-        FinalizerReference finalizerReference = first;
+        FinalizerReference finalizerReference = getFirst();
         while (finalizerReference != null) {
             finalizerReference.collectRoots(roots);
             finalizerReference = finalizerReference.next;
@@ -210,41 +223,6 @@ public class FinalizationService {
         } else {
             return null;
         }
-    }
-
-    private synchronized void remove(FinalizerReference ref) {
-        if (ref.next == ref) {
-            // Already removed.
-            return;
-        }
-
-        if (first == ref) {
-            if (ref.next != null) {
-                first = ref.next;
-            } else {
-                // The list becomes empty
-                first = null;
-            }
-        }
-
-        if (ref.next != null) {
-            ref.next.prev = ref.prev;
-        }
-        if (ref.prev != null) {
-            ref.prev.next = ref.next;
-        }
-
-        // Mark that this ref has been removed.
-        ref.next = ref;
-        ref.prev = ref;
-    }
-
-    private synchronized void add(FinalizerReference newRef) {
-        if (first != null) {
-            newRef.next = first;
-            first.prev = newRef;
-        }
-        first = newRef;
     }
 
 }

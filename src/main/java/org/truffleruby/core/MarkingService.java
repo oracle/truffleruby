@@ -23,13 +23,13 @@ import org.truffleruby.language.control.TerminationException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class MarkingService {
+public class MarkingService extends ReferenceProcessingService<MarkingService.MarkerReference> {
 
     public static interface MarkerAction {
         public abstract void mark(DynamicObject owner);
     }
 
-    public static class MarkerReference extends WeakReference<DynamicObject> {
+    public static class MarkerReference extends WeakReference<DynamicObject> implements ReferenceProcessingService.ProcessingReference<MarkerReference> {
 
         /**
          * All accesses to this Deque must be synchronized by taking the {@link FinalizationService}
@@ -42,6 +42,22 @@ public class MarkingService {
         private MarkerReference(DynamicObject object, ReferenceQueue<? super Object> queue, MarkerAction action) {
             super(object, queue);
             this.action = action;
+        }
+
+        public MarkerReference getPrevious() {
+            return prev;
+        }
+
+        public void setPrevious(MarkerReference previous) {
+            prev = previous;
+        }
+
+        public MarkerReference getNext() {
+            return next;
+        }
+
+        public void setNext(MarkerReference next) {
+            this.next = next;
         }
     }
 
@@ -58,8 +74,6 @@ public class MarkingService {
     private Object[] keptObjects = new Object[KEPT_COUNT_SIZE];
 
     private int counter = 0;
-
-    private MarkerReference first = null;
 
     public MarkingService(RubyContext context) {
         this.context = context;
@@ -98,7 +112,7 @@ public class MarkingService {
     }
 
     private synchronized void runAllMarkers() {
-        MarkerReference currentMarker = first;
+        MarkerReference currentMarker = getFirst();
         MarkerReference nextMarker;
         while (currentMarker != null) {
             nextMarker = currentMarker.next;
@@ -181,39 +195,4 @@ public class MarkingService {
             }
         }
     }
-
-    synchronized void remove(MarkerReference ref) {
-        if (ref.next == ref) {
-            // Already removed.
-            return;
-        }
-
-        if (first == ref) {
-            if (ref.next != null) {
-                first = ref.next;
-            } else {
-                first = ref.prev;
-            }
-        }
-
-        if (ref.next != null) {
-            ref.next.prev = ref.prev;
-        }
-        if (ref.prev != null) {
-            ref.prev.next = ref.next;
-        }
-
-        // Mark that this ref has been removed.
-        ref.next = ref;
-        ref.prev = ref;
-    }
-
-    synchronized void add(MarkerReference newRef) {
-        if (first != null) {
-            newRef.next = first;
-            first.prev = newRef;
-        }
-        first = newRef;
-    }
-
 }
