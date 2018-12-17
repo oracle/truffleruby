@@ -29,7 +29,6 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.MarkingService;
-import org.truffleruby.core.ReferenceProcessingService;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
