@@ -44,7 +44,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.cext.ValueWrapperManager;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -63,7 +63,7 @@ public class ObjectSpaceManager {
     private int tracingAssumptionActivations = 0;
     private boolean tracingPaused = false;
 
-    private final AtomicLong nextObjectID = new AtomicLong(ObjectIDOperations.FIRST_OBJECT_ID);
+    private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
 
     public ObjectSpaceManager(RubyContext context) {
         this.context = context;
@@ -110,9 +110,9 @@ public class ObjectSpaceManager {
     }
 
     public long getNextObjectID() {
-        final long id = nextObjectID.getAndAdd(2);
+        final long id = nextObjectID.getAndAdd(ValueWrapperManager.TAG_MASK + 1);
 
-        if (id < 0) {
+        if (id == 0) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new RuntimeException("Object IDs exhausted");
         }

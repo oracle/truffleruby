@@ -14,8 +14,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.language.objects.shared.SharedObjects;
+
+import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.MAX_FIXNUM_VALUE;
+import static org.truffleruby.cext.ValueWrapperManager.MIN_FIXNUM_VALUE;
+import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 
 import java.math.BigInteger;
 
@@ -41,22 +48,18 @@ import java.math.BigInteger;
  */
 public abstract class ObjectIDOperations {
 
-    public static final long FALSE = 0;
-    public static final long TRUE = 2;
-    public static final long NIL = 4;
-    public static final long FIRST_OBJECT_ID = 6;
+    public static final long FALSE = FALSE_HANDLE;
+    public static final long TRUE = TRUE_HANDLE;
+    public static final long NIL = NIL_HANDLE;
 
     private static final BigInteger LARGE_FIXNUM_FLAG = BigInteger.ONE.shiftLeft(64);
     private static final BigInteger FLOAT_FLAG = BigInteger.ONE.shiftLeft(65);
-
-    private static final long SMALL_FIXNUM_MIN = -(1L << 62);
-    private static final long SMALL_FIXNUM_MAX = (1L << 62) - 1;
 
     // primitive => ID
 
     public static boolean isSmallFixnum(long fixnum) {
         // TODO: optimize
-        return SMALL_FIXNUM_MIN <= fixnum && fixnum <= SMALL_FIXNUM_MAX;
+        return MIN_FIXNUM_VALUE <= fixnum && fixnum <= MAX_FIXNUM_VALUE;
     }
 
     public static long smallFixnumToIDOverflow(long fixnum) throws ArithmeticException {
@@ -99,7 +102,7 @@ public abstract class ObjectIDOperations {
     }
 
     public static boolean isBasicObjectID(long id) {
-        return id >= FIRST_OBJECT_ID && id % 2 == 0;
+        return id != 0 && (id & ValueWrapperManager.TAG_MASK) == 0;
     }
 
     private static BigInteger unsignedBigInteger(long value) {
