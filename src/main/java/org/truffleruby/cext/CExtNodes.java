@@ -1375,6 +1375,13 @@ public class CExtNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 RubyContext aContext = getContext();
+                /*
+                 * The code here has to be a little subtle. The marker must be associated with the
+                 * object it will act on, but the lambda must not capture the object (and prevent
+                 * garbage collection). So the marking function is a lambda that will take the
+                 * object as an argument 'o' which will be provided when the marking function is
+                 * called by the marking service.
+                 */
                 getContext().getMarkingService().addMarker(object, (o) -> aContext.send(marker, "call", o));
                 return nil();
             } else {

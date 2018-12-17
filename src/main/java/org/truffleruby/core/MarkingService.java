@@ -23,6 +23,24 @@ import org.truffleruby.language.control.TerminationException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
+/**
+ * Class to provide GC marking and other facilities to keep objects alive for native extensions.
+ *
+ * Native extensions expect object on the stack to be kept alive even when they have been stored in
+ * native structures on the stack. They also expect structs in objects with custom mark functions
+ * keep marked objects alive.
+ *
+ * Since we are not running on a VM that allows us to add custom ark functions to our garbage
+ * collector we keep objects alive in 2 ways. Any object converted to a native handle can be kept
+ * alive by calling keepAlive(). This will add the object to two lists, a list of all objects
+ * converted to native during in this call to a C extension which will be popped when the we return
+ * to Ruby code, and a fixed sized list of objects converted to native handles. When the latter of
+ * these two lists is full all mark functions will be run.
+ *
+ * Markers only keep a week reference to their owning object to ensure they don't themselves stop
+ * the object from being garbage collected.
+ *
+ */
 public class MarkingService extends ReferenceProcessingService<MarkingService.MarkerReference> {
 
     public static interface MarkerAction {
@@ -31,10 +49,6 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     public static class MarkerReference extends WeakReference<DynamicObject> implements ReferenceProcessingService.ProcessingReference<MarkerReference> {
 
-        /**
-         * All accesses to this Deque must be synchronized by taking the {@link FinalizationService}
-         * monitor, to avoid concurrent access.
-         */
         private final MarkerAction action;
         private MarkerReference next = null;
         private MarkerReference prev = null;
