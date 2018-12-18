@@ -9,6 +9,10 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -37,18 +41,21 @@ public abstract class ArrayDupNode extends RubyBaseNode {
     public DynamicObject dupProfiledSize(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached("strategy.getSize(from)") int cachedSize) {
-        return copyArraySmall(from, strategy, mutableStrategy, cachedSize);
+            @Cached("strategy.getSize(from)") int cachedSize,
+            @Cached("strategy.getNode()") ArrayGetNode getNode,
+            @Cached("mutableStrategy.setNode()") ArraySetNode setNode,
+            @Cached("mutableStrategy.newStoreNode()") ArrayNewStoreNode newStoreNode) {
+        return copyArraySmall(newStoreNode, getNode, setNode, from, cachedSize);
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(DynamicObject from, ArrayStrategy strategy, ArrayStrategy mutableStrategy, int cachedSize) {
-        final ArrayMirror mirror = strategy.newMirror(from);
-        final ArrayMirror copy = mutableStrategy.newArray(cachedSize);
+    private DynamicObject copyArraySmall(ArrayNewStoreNode newStoreNode, ArrayGetNode getNode, ArraySetNode setNode, DynamicObject from, int cachedSize) {
+        final Object original = Layouts.ARRAY.getStore(from);
+        final Object copy = newStoreNode.execute(cachedSize);
         for (int i = 0; i < cachedSize; i++) {
-            copy.set(i, mirror.get(i));
+            setNode.execute(copy, i, getNode.execute(original, i));
         }
-        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
+        return allocateArray(coreLibrary().getArrayClass(), copy, cachedSize);
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")

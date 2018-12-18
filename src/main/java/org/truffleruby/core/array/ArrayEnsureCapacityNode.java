@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(ArrayGuards.class)
@@ -30,10 +31,13 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     public boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutationStrategy,
+            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @Cached("mutationStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final ArrayMirror mirror = strategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
 
-        final int currentCapacity = mirror.getLength();
+        final int currentCapacity = lengthNode.execute(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
             capacity = ArrayUtils.capacity(getContext(), currentCapacity, requiredCapacity);
@@ -41,21 +45,24 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
             capacity = currentCapacity;
         }
 
-        final ArrayMirror newMirror = mutationStrategy.newArray(capacity);
-        mirror.copyTo(newMirror, 0, 0, currentCapacity);
-        mutationStrategy.setStore(array, newMirror.getArray());
+        final Object newStore = newStoreNode.execute(capacity);
+        copyToNode.execute(store, newStore, 0, 0, currentCapacity);
+        mutationStrategy.setStore(array, newStore);
         return true;
     }
 
     @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public boolean ensureCapacity(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final ArrayMirror mirror = strategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
 
-        if (extendProfile.profile(mirror.getLength() < requiredCapacity)) {
-            final int capacity = ArrayUtils.capacity(getContext(), mirror.getLength(), requiredCapacity);
-            strategy.setStore(array, mirror.copyArrayAndMirror(capacity).getArray());
+        final int length = lengthNode.execute(store);
+        if (extendProfile.profile(length < requiredCapacity)) {
+            final int capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
+            strategy.setStore(array, copyStoreNode.execute(store, capacity));
             return true;
         } else {
             return false;

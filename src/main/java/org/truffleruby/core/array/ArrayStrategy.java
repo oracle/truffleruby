@@ -9,10 +9,18 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayLengthNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
+import org.truffleruby.language.RubyGuards;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyGuards;
 
 public abstract class ArrayStrategy {
 
@@ -36,6 +44,19 @@ public abstract class ArrayStrategy {
 
     public abstract boolean isStorageMutable();
 
+    public abstract ArrayGetNode getNode();
+
+    public abstract ArraySetNode setNode();
+
+    public abstract ArrayNewStoreNode newStoreNode();
+
+    public abstract ArrayCopyStoreNode copyStoreNode();
+
+    public abstract ArrayCopyToNode copyToNode();
+
+    public abstract ArraySortNode sortNode();
+
+    public abstract ArrayLengthNode lengthNode();
     /**
      * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
      * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
@@ -253,6 +274,40 @@ public abstract class ArrayStrategy {
             return "int[]";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return IntegerArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return IntegerArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return IntegerArrayNodes.ArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return IntegerArrayNodes.ArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return IntegerArrayNodes.ArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return IntegerArrayNodes.ArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return IntegerArrayNodes.ArraySortNode.create();
+        }
     }
 
     private static class LongArrayStrategy extends ArrayStrategy {
@@ -315,6 +370,40 @@ public abstract class ArrayStrategy {
             return "long[]";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return LongArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return LongArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return LongArrayNodes.ArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return LongArrayNodes.ArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return LongArrayNodes.ArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return LongArrayNodes.ArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return LongArrayNodes.ArraySortNode.create();
+        }
     }
 
     private static class DoubleArrayStrategy extends ArrayStrategy {
@@ -377,6 +466,40 @@ public abstract class ArrayStrategy {
             return "double[]";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return DoubleArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return DoubleArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return DoubleArrayNodes.ArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return DoubleArrayNodes.ArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return DoubleArrayNodes.ArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return DoubleArrayNodes.ArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return DoubleArrayNodes.ArraySortNode.create();
+        }
     }
 
     private static class ObjectArrayStrategy extends ArrayStrategy {
@@ -439,6 +562,40 @@ public abstract class ArrayStrategy {
             return "Object[]";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return ObjectArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return ObjectArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return ObjectArrayNodes.ArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return ObjectArrayNodes.ArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return ObjectArrayNodes.ArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return ObjectArrayNodes.ArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return ObjectArrayNodes.ArraySortNode.create();
+        }
     }
 
     // Null/empty strategy
@@ -509,6 +666,40 @@ public abstract class ArrayStrategy {
             return "null";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return EmptyArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return EmptyArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return EmptyArrayNodes.ArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return EmptyArrayNodes.ArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return EmptyArrayNodes.ArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return EmptyArrayNodes.ArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return EmptyArrayNodes.ArraySortNode.create();
+        }
     }
 
     private static class DelegatedArrayStrategy extends ArrayStrategy {
@@ -585,6 +776,40 @@ public abstract class ArrayStrategy {
             return String.format("Delegate of (%s)", typeStrategy);
         }
 
+        @Override
+        public ArrayGetNode getNode() {
+            return DelegateArrayNodes.ArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayLengthNode lengthNode() {
+            return DelegateArrayNodes.ArrayLengthNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return DelegateArrayNodes.ArrayNewStoreNode.create(typeStrategy);
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return DelegateArrayNodes.ArrayCopyStoreNode.create(typeStrategy);
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return DelegateArrayNodes.ArrayCopyToNode.create(typeStrategy);
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return DelegateArrayNodes.ArraySortNode.create();
+        }
     }
 
     // Fallback strategy
@@ -633,5 +858,39 @@ public abstract class ArrayStrategy {
             return "fallback";
         }
 
+        @Override
+        public ArrayLengthNode lengthNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            throw unsupported();
+        }
     }
 }

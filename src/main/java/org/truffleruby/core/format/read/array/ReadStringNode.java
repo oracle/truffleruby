@@ -19,6 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayMirror;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
@@ -72,9 +73,9 @@ public abstract class ReadStringNode extends FormatNode {
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
     public Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy) {
-        ArrayMirror mirror = strategy.newMirrorFromStore(source);
-        return readAndConvert(frame, mirror.get(advanceSourcePosition(frame)));
+            @Cached("ofStore(source)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+        return readAndConvert(frame, getNode.execute(source, advanceSourcePosition(frame)));
     }
 
     private Object readAndConvert(VirtualFrame frame, Object value) {

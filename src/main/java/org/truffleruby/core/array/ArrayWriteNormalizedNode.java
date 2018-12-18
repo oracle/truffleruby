@@ -20,6 +20,8 @@ import org.truffleruby.language.RubyBaseNode;
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
+import org.truffleruby.Layouts;
+
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
@@ -46,13 +48,17 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy currentStrategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
-            @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy) {
+            @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
+            @Cached("currentStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("currentStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+            @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
         final int size = getSize(array);
-        final ArrayMirror currentMirror = currentStrategy.newMirror(array);
-        final ArrayMirror storeMirror = generalizedStrategy.newArray(currentMirror.getLength());
-        currentMirror.copyTo(storeMirror, 0, 0, size);
-        storeMirror.set(index, value);
-        generalizedStrategy.setStore(array, storeMirror.getArray());
+        final Object store = Layouts.ARRAY.getStore(array);
+        final Object newStore = newStoreNode.execute(lengthNode.execute(store));
+        copyToNode.execute(store, newStore, 0, 0, size);
+        setNode.execute(newStore, index, value);
+        generalizedStrategy.setStore(array, newStore);
         return value;
     }
 

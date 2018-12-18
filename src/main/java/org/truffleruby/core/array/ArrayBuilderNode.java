@@ -130,15 +130,17 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     public static class StartNode extends ArrayBuilderBaseNode {
 
         private final ArrayStrategy strategy;
+        private final ArrayOperationNodes.ArrayNewStoreNode newStoreNode;
         private final int expectedLength;
 
         public StartNode(ArrayStrategy strategy, int expectedLength) {
             this.strategy = strategy;
+            newStoreNode = strategy.newStoreNode();
             this.expectedLength = expectedLength;
         }
 
         public Object start() {
-            return strategy.newArray(expectedLength).getArray();
+            return newStoreNode.execute(expectedLength);
         }
 
         public Object start(int length) {
@@ -146,7 +148,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(strategy, length);
             }
-            return strategy.newArray(length).getArray();
+            return newStoreNode.execute(length);
         }
 
     }
@@ -169,16 +171,19 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public abstract Object executeAppend(Object array, int index, Object value);
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "arrayStrategy.accepts(value)" })
-        public Object appendCompatibleType(Object array, int index, Object value) {
-            ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            if (index >= mirror.getLength()) {
+        public Object appendCompatibleType(Object array, int index, Object value,
+                @Cached("arrayStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+                @Cached("arrayStrategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
+                @Cached("arrayStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+            final int length = lengthNode.execute(array);
+            if (index >= length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                final int capacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
+                final int capacity = ArrayUtils.capacityForOneMore(context, length);
                 replaceNodes(arrayStrategy, capacity);
-                mirror = mirror.copyArrayAndMirror(capacity);
+                array = copyStoreNode.execute(array, capacity);
             }
-            mirror.set(index, value);
-            return mirror.getArray();
+            setNode.execute(array, index, value);
+            return array;
         }
 
         @Fallback
@@ -223,21 +228,24 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                         limit = "STORAGE_STRATEGIES")
         public Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
-            ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
+                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
+                @Cached("arrayStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+                @Cached("arrayStrategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
+                @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
-            if (neededSize > mirror.getLength()) {
+            int length = lengthNode.execute(array);
+            if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(arrayStrategy, neededSize);
-                final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
-                mirror = mirror.copyArrayAndMirror(capacity);
+                final int capacity = ArrayUtils.capacity(context, length, neededSize);
+                array = copyStoreNode.execute(array, capacity);
             }
 
-            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
-            otherMirror.copyTo(mirror, 0, index, otherSize);
-            return mirror.getArray();
+            final Object otherStore = Layouts.ARRAY.getStore(other);
+            copyToNode.execute(otherStore, array, 0, index, otherSize);
+            return array;
         }
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",

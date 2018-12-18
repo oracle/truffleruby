@@ -34,9 +34,10 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
 
     @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
     public Object popOne(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy) {
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         final int size = Layouts.ARRAY.getSize(array);
-        final Object value = strategy.newMirror(array).get(size - 1);
+        final Object value = getNode.execute(Layouts.ARRAY.getStore(array), size - 1);
         setSize(array, size - 1);
         return value;
     }
