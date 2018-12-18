@@ -35,7 +35,7 @@ public class ReferenceProcessingService<T extends ReferenceProcessingService.Pro
         }
     
         if (ref.getNext() != null) {
-            ref.setNext(ref.getPrevious());
+            ref.getNext().setPrevious(ref.getPrevious());
         }
         if (ref.getPrevious() != null) {
             ref.getPrevious().setNext(ref.getNext());
