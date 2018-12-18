@@ -114,76 +114,48 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
         }
     }
 
-    private final RubyContext context;
-    private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
     /** The finalizer Ruby thread, spawned lazily. */
-    private DynamicObject finalizerThread;
     public FinalizationService(RubyContext context) {
-        this.context = context;
+        super(context);
     }
 
     public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference, Class<?> owner, Runnable action, DynamicObject root) {
 
         if (finalizerReference == null) {
-            finalizerReference = new FinalizerReference(object, finalizerQueue);
+            finalizerReference = new FinalizerReference(object, processingQueue);
             add(finalizerReference);
         }
 
         finalizerReference.addFinalizer(owner, action, root);
 
-        if (context.getOptions().SINGLE_THREADED) {
-
-            drainFinalizationQueue();
-
-        } else {
-
-            /*
-             * We can't create a new thread while the context is initializing or finalizing, as the
-             * polyglot API locks on creating new threads, and some core loading does things such as
-             * stat files which could allocate memory that is marked to be automatically freed and so
-             * would want to start the finalization thread. So don't start the finalization thread if we
-             * are initializing. We will rely on some other finalizer to be created to ever free this
-             * memory allocated during startup, but that's a reasonable assumption and a low risk of
-             * leaking a tiny number of bytes if it doesn't hold.
-             */
-
-            if (finalizerThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
-                createFinalizationThread();
-            }
-
-        }
+        processReferenceQueue();
         return finalizerReference;
     }
 
-    private final void drainFinalizationQueue() {
-        while (true) {
-            final FinalizerReference finalizerReference = (FinalizerReference) finalizerQueue.poll();
-
-            if (finalizerReference == null) {
-                break;
-            }
-
-            runFinalizer(finalizerReference);
-        }
-    }
-
-    private void createFinalizationThread() {
+    @Override
+    protected void createProcessingThread() {
         final ThreadManager threadManager = context.getThreadManager();
-        finalizerThread = threadManager.createBootThread("finalizer");
-        context.send(finalizerThread, "internal_thread_initialize");
+        processingThread = threadManager.createBootThread(getThreadName());
+        context.send(processingThread, "internal_thread_initialize");
 
-        threadManager.initialize(finalizerThread, null, "finalizer", () -> {
+        threadManager.initialize(processingThread, null, getThreadName(), () -> {
             while (true) {
                 final FinalizerReference finalizerReference =
-                        (FinalizerReference) threadManager.runUntilResult(null, finalizerQueue::remove);
+                        (FinalizerReference) threadManager.runUntilResult(null, processingQueue::remove);
 
-                runFinalizer(finalizerReference);
+                processReference(finalizerReference);
             }
         });
     }
 
-    private void runFinalizer(FinalizerReference finalizerReference) {
-        remove(finalizerReference);
+    @Override
+    protected String getThreadName() {
+        return "finalizer";
+    }
+
+    @Override
+    protected void processReference(FinalizerReference finalizerReference) {
+        super.processReference(finalizerReference);
 
         try {
             while (!context.isFinalizing()) {

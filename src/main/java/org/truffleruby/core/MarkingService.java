@@ -79,18 +79,12 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
-    private final RubyContext context;
-
-    private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
-
-    private DynamicObject finalizerThread;
-
     private Object[] keptObjects = new Object[KEPT_COUNT_SIZE];
 
     private int counter = 0;
 
     public MarkingService(RubyContext context) {
-        this.context = context;
+        super(context);
     }
 
     public void keepObject(Object object) {
@@ -139,54 +133,8 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
-        add(new MarkerReference(object, finalizerQueue, action));
-        if (context.getOptions().SINGLE_THREADED) {
-
-            drainFinalizationQueue();
-
-        } else {
-
-            /*
-             * We can't create a new thread while the context is initializing or finalizing, as the
-             * polyglot API locks on creating new threads, and some core loading does things such as
-             * stat files which could allocate memory that is marked to be automatically freed and
-             * so would want to start the finalization thread. So don't start the finalization
-             * thread if we are initializing. We will rely on some other finalizer to be created to
-             * ever free this memory allocated during startup, but that's a reasonable assumption
-             * and a low risk of leaking a tiny number of bytes if it doesn't hold.
-             */
-
-            if (finalizerThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
-                createFinalizationThread();
-            }
-
-        }
-    }
-
-    private void createFinalizationThread() {
-        final ThreadManager threadManager = context.getThreadManager();
-        finalizerThread = threadManager.createBootThread("marker-finalizer");
-        context.send(finalizerThread, "internal_thread_initialize");
-
-        threadManager.initialize(finalizerThread, null, "marker-finalizer", () -> {
-            while (true) {
-                final MarkerReference markerReference = (MarkerReference) threadManager.runUntilResult(null,
-                        finalizerQueue::remove);
-                remove(markerReference);
-            }
-        });
-    }
-
-    private void drainFinalizationQueue() {
-        while (true) {
-            final MarkerReference markerReference = (MarkerReference) finalizerQueue.poll();
-
-            if (markerReference == null) {
-                break;
-            }
-
-            remove(markerReference);
-        }
+        add(new MarkerReference(object, processingQueue, action));
+        processReferenceQueue();
     }
 
     private void runMarker(MarkerReference markerReference) {
@@ -208,5 +156,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected String getThreadName() {
+        return "marker-finalizer";
     }
 }
