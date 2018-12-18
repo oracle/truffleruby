@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
 
