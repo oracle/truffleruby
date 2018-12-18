@@ -99,6 +99,7 @@ public abstract class ArrayNodes {
         @NodeChild(type = RubyNode.class, value = "b")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
         @CreateCast("b")
@@ -139,6 +140,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_mul", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
@@ -551,6 +553,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "compact")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class CompactNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -587,6 +590,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "compact!", raiseIfFrozenSelf = true)
+    @ReportPolymorphism
     public abstract static class CompactBangNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -653,6 +657,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
@@ -751,6 +756,7 @@ public abstract class ArrayNodes {
             @NodeChild(type = RubyNode.class, value = "index")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
         @CreateCast("index")
@@ -1685,6 +1691,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject!", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1769,6 +1776,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1797,6 +1805,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -2004,6 +2013,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "sort", needsBlock = true)
+    @ReportPolymorphism
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "isEmptyArray(array)")
