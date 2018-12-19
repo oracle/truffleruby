@@ -15,6 +15,7 @@ Bug fixes:
 * `IO#reopen` now properly resets the receiver to be close-on-exec.
 * `StringIO#set_encoding` no longer raises an exception if the underlying
   `String` is frozen (#1473).
+* Fix handling of `Symbol` encodings in `Marshal#dump` and `Marshal#load` (#1530).
 
 Compatibility:
 
