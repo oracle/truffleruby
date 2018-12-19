@@ -354,7 +354,9 @@ describe :marshal_load, shared: true do
 
   describe "for a Symbol" do
     it "loads a Symbol" do
-      Marshal.send(@method, "\004\b:\vsymbol").should == :symbol
+      sym = Marshal.send(@method, "\004\b:\vsymbol")
+      sym.should == :symbol
+      sym.encoding.should == Encoding::US_ASCII
     end
 
     it "loads a big Symbol" do
