@@ -190,7 +190,7 @@ module Marshal
       when Regexp
         obj.source.force_encoding enc
       when Symbol
-        # TODO
+        raise ArgumentError, 'The encoding of a Symbol should be processed before building the Symbol'
       end
     end
 
@@ -535,10 +535,6 @@ module Marshal
       @symlinks[obj.__id__] = sz
     end
 
-    def call(obj)
-      @proc.call obj if @proc and @call
-    end
-
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
@@ -561,7 +557,7 @@ module Marshal
             when 102  # ?f
               construct_float
             when 58   # ?:
-              construct_symbol
+              construct_symbol(ivar_index)
             when 34   # ?"
               construct_string
             when 47   # ?/
@@ -577,7 +573,7 @@ module Marshal
             when 111  # ?o
               construct_object
             when 117  # ?u
-              construct_user_defined ivar_index
+              construct_user_defined(ivar_index)
             when 85   # ?U
               construct_user_marshal
             when 100  # ?d
@@ -629,7 +625,7 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      call obj if @proc and call_proc
+      @proc.call(obj) if call_proc and @proc and @call
 
       @stream.tainted? && !obj.frozen? ? obj.taint : obj
     end
@@ -847,8 +843,18 @@ module Marshal
       obj
     end
 
-    def construct_symbol
-      obj = get_byte_sequence.to_sym
+    def construct_symbol(ivar_index)
+      data = get_byte_sequence
+
+      # A Symbol has no instance variables (it's frozen),
+      # but we need to know the encoding before building the Symbol
+      if ivar_index and @has_ivar[ivar_index]
+        # This sets the encoding of the String
+        set_instance_variables data
+        @has_ivar[ivar_index] = false
+      end
+
+      obj = data.to_sym
       store_unique_object obj
 
       obj
@@ -931,20 +937,18 @@ module Marshal
     end
 
     def get_symbol
-      type = consume_byte()
-
-      case type
-      when 58 # TYPE_SYMBOL
-        @call = false
-        obj = construct_symbol
+      @call = false
+      begin
+        sym = construct(nil, false)
+      ensure
         @call = true
-        obj
-      when 59 # TYPE_SYMLINK
-        num = construct_integer
-        @symbols[num]
-      else
-        raise ArgumentError, "expected TYPE_SYMBOL or TYPE_SYMLINK, got #{type.inspect}"
       end
+
+      unless Symbol === sym
+        raise ArgumentError, "expected Symbol, got #{sym.inspect}"
+      end
+
+      sym
     end
 
     def prepare_ivar(ivar)
@@ -1073,17 +1077,12 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      mf = 'I' unless str.ascii_only?
+      mf = 'I' unless str.ascii_only? or str.encoding == Encoding::BINARY
       if mf
-        if Truffle::Type.object_encoding(obj).equal? Encoding::BINARY
-          me = serialize_integer(0)
-        elsif serialize_encoding?(obj)
-          me = serialize_integer(1) + serialize_encoding(obj.encoding)
-        end
+        me = serialize_integer(1) + serialize_encoding(obj.encoding)
       end
       mi = serialize_integer(str.bytesize)
-      s = Truffle::Type.binary_string str
-      Truffle::Type.binary_string("#{mf}:#{mi}#{s}#{me}")
+      Truffle::Type.binary_string("#{mf}:#{mi}#{str.b}#{me}")
     end
 
     def serialize_string(str)
