@@ -945,7 +945,7 @@ module Marshal
       end
 
       unless Symbol === sym
-        raise ArgumentError, "expected Symbol, got #{type.inspect}"
+        raise ArgumentError, "expected Symbol, got #{sym.inspect}"
       end
 
       sym
