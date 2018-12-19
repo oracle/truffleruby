@@ -1285,8 +1285,7 @@ public abstract class RopeNodes {
     }
 
     // This node type checks for the equality of the bytes owned by a rope but does not pay
-    // attention to the encoding. It matches the behaviour of the equals method on the rope class
-    // itself.
+    // attention to the encoding.
     public abstract static class BytesEqualNode extends RubyBaseNode {
 
         public static BytesEqualNode create() {
