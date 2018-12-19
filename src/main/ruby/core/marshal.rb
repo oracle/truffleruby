@@ -535,10 +535,6 @@ module Marshal
       @symlinks[obj.__id__] = sz
     end
 
-    def call(obj)
-      @proc.call obj if @proc and @call
-    end
-
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
@@ -629,7 +625,7 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      call obj if @proc and call_proc
+      @proc.call(obj) if call_proc and @proc and @call
 
       @stream.tainted? && !obj.frozen? ? obj.taint : obj
     end
