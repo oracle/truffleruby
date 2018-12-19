@@ -927,20 +927,17 @@ module Marshal
     end
 
     def get_symbol
-      type = consume_byte()
-
-      case type
-      when 58 # TYPE_SYMBOL
-        @call = false
-        obj = construct_symbol
+      @call = false
+      begin
+        sym = construct(nil, false)
+      ensure
         @call = true
-        obj
-      when 59 # TYPE_SYMLINK
-        num = construct_integer
-        @symbols[num]
-      else
-        raise ArgumentError, "expected TYPE_SYMBOL or TYPE_SYMLINK, got #{type.inspect}"
       end
+
+      unless Symbol === sym
+        raise ArgumentError, "expected Symbol, got #{type.inspect}"
+      end
+      sym
     end
 
     def prepare_ivar(ivar)
