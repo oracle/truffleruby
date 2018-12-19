@@ -24,6 +24,7 @@ Changes:
 Performance:
 
 * Sped up accesses to native memory through FFI::Pointer.
+* New -Xclone.disable option to disable all manual cloning.
 
 # 1.0 RC 10
 
