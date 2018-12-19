@@ -21,19 +21,17 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class WrapNode extends RubyBaseNode {
 
     public abstract TruffleObject execute(Object value);
 
     @Specialization
-    public DynamicObject wrapInt(int value) {
-        return wrapLong(value);
-    }
-
-    @Specialization
-    public DynamicObject wrapLong(long value) {
+    public DynamicObject wrapLong(long value,
+            @Cached("create()") BranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
+            smallFixnumProfile.enter();
             long val = (value << 1) | LONG_TAG;
             return Layouts.VALUE_WRAPPER.createValueWrapper(value, val);
         } else {
@@ -69,9 +67,11 @@ public abstract class WrapNode extends RubyBaseNode {
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
     public DynamicObject wrapValue(DynamicObject value,
             @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
-            @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode) {
+            @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode,
+            @Cached("create()") BranchProfile noHandleProfile) {
         DynamicObject wrapper = (DynamicObject) readWrapperNode.execute(value);
         if (wrapper == null) {
+            noHandleProfile.enter();
             synchronized (value) {
                 wrapper = (DynamicObject) readWrapperNode.execute(value);
                 if (wrapper == null) {

@@ -26,10 +26,10 @@ public class ValueWrapperManager {
      * These constants are taken from ruby.h, and are based on us not tagging doubles.
      */
 
-    public static final int FALSE_HANDLE = 0x0;
-    public static final int TRUE_HANDLE = 0x2;
-    public static final int NIL_HANDLE = 0x04;
-    public static final int UNDEF_HANDLE = 0x6;
+    public static final int FALSE_HANDLE = 0b000;
+    public static final int TRUE_HANDLE = 0b010;
+    public static final int NIL_HANDLE = 0b100;
+    public static final int UNDEF_HANDLE = 0b110;
 
     public static final long LONG_TAG = 1;
     public static final long OBJECT_TAG = 0;
@@ -37,8 +37,7 @@ public class ValueWrapperManager {
     public static final long MIN_FIXNUM_VALUE = -(1L << 62);
     public static final long MAX_FIXNUM_VALUE = (1L << 62) - 1;
 
-    public static final int TAG_BITS = 3;
-    public static final long TAG_MASK = 0x7;
+    public static final long TAG_MASK = 0b111;
 
     private final LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
 

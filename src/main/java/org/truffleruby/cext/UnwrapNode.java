@@ -32,27 +32,27 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract Object execute(long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        public Object unwrapFalse(long handle) {
+        public boolean unwrapFalse(long handle) {
             return false;
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        public Object unwrapTrue(long handle) {
+        public boolean unwrapTrue(long handle) {
             return true;
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        public Object unwrapUndef(long handle) {
+        public NotProvided unwrapUndef(long handle) {
             return NotProvided.INSTANCE;
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        public Object unwrapNil(long handle) {
+        public DynamicObject unwrapNil(long handle) {
             return nil();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        public Object unwrapTaggedLong(long handle) {
+        public long unwrapTaggedLong(long handle) {
             return handle >> 1;
         }
 
