@@ -74,20 +74,6 @@ describe "Marshal.dump" do
       s = "\u2192".force_encoding("binary").to_sym
       Marshal.dump(s).should == "\x04\b:\b\xE2\x86\x92"
     end
-
-  end
-
-  it "dumps an extended_object" do
-    Marshal.dump(Object.new.extend(Meths)).should == "\x04\be:\nMethso:\vObject\x00"
-  end
-
-  it "dumps an object that has had an ivar added and removed as though the ivar never was set" do
-    obj = Object.new
-    initial = Marshal.dump(obj)
-    obj.instance_variable_set(:@ivar, 1)
-    Marshal.dump(obj).should == "\004\bo:\vObject\006:\n@ivari\006"
-    obj.send :remove_instance_variable, :@ivar
-    Marshal.dump(obj).should == initial
   end
 
   describe "with an object responding to #marshal_dump" do
