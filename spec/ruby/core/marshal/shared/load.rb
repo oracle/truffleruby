@@ -352,6 +352,44 @@ describe :marshal_load, shared: true do
     end
   end
 
+  describe "for a Symbol" do
+    it "loads a Symbol" do
+      Marshal.send(@method, "\004\b:\vsymbol").should == :symbol
+    end
+
+    it "loads a big Symbol" do
+      sym = ('big' * 100).to_sym
+      Marshal.send(@method, "\004\b:\002,\001#{'big' * 100}").should == sym
+    end
+
+    it "loads an encoded Symbol" do
+      s = "\u2192"
+
+      sym = Marshal.send(@method, "\x04\bI:\b\xE2\x86\x92\x06:\x06ET")
+      sym.should == s.encode("utf-8").to_sym
+      sym.encoding.should == Encoding::UTF_8
+
+      sym = Marshal.send(@method, "\x04\bI:\t\xFE\xFF!\x92\x06:\rencoding\"\vUTF-16")
+      sym.should == s.encode("utf-16").to_sym
+      sym.encoding.should == Encoding::UTF_16
+
+      sym = Marshal.send(@method, "\x04\bI:\a\xA2\xAA\x06:\rencoding\"\vEUC-JP")
+      sym.should == s.encode("euc-jp").to_sym
+      sym.encoding.should == Encoding::EUC_JP
+
+      sym = Marshal.send(@method, "\x04\bI:\a\x81\xA8\x06:\rencoding\"\x10Windows-31J")
+      sym.should == s.encode("sjis").to_sym
+      sym.encoding.should == Encoding::SJIS
+    end
+
+    it "loads a binary encoded Symbol" do
+      s = "\u2192".force_encoding("binary").to_sym
+      sym = Marshal.send(@method, "\x04\b:\b\xE2\x86\x92")
+      sym.should == s
+      sym.encoding.should == Encoding::BINARY
+    end
+  end
+
   describe "for a String" do
     it "loads a string having ivar with ref to self" do
       obj = 'hi'
@@ -510,6 +548,14 @@ describe :marshal_load, shared: true do
       new_str = new_obj.instance_variable_get :@str
 
       new_str.should == arr
+    end
+
+    it "loads an Object with a non-US-ASCII instance variable" do
+      ivar = "@é".force_encoding(Encoding::UTF_8).to_sym
+      obj = Marshal.send(@method, "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06")
+      obj.instance_variables.should == [ivar]
+      obj.instance_variables[0].encoding.should == Encoding::UTF_8
+      obj.instance_variable_get(ivar).should == 1
     end
 
     it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do

@@ -362,6 +362,13 @@ describe "Marshal.dump" do
       Marshal.dump(obj).should == "\004\bo:\vObject\006:\n@ivari\006"
     end
 
+    it "dumps an Object with a non-US-ASCII instance variable" do
+      obj = Object.new
+      ivar = "@é".force_encoding(Encoding::UTF_8).to_sym
+      obj.instance_variable_set(ivar, 1)
+      Marshal.dump(obj).should == "\x04\bo:\vObject\x06I:\b@\xC3\xA9\x06:\x06ETi\x06"
+    end
+
     it "dumps an Object that has had an instance variable added and removed as though it was never set" do
       obj = Object.new
       obj.instance_variable_set(:@ivar, 1)
