@@ -190,7 +190,7 @@ module Marshal
       when Regexp
         obj.source.force_encoding enc
       when Symbol
-        # TODO
+        raise ArgumentError, 'The encoding of a Symbol should be processed before building the Symbol'
       end
     end
 
@@ -557,7 +557,7 @@ module Marshal
             when 102  # ?f
               construct_float
             when 58   # ?:
-              construct_symbol
+              construct_symbol(ivar_index)
             when 34   # ?"
               construct_string
             when 47   # ?/
@@ -573,7 +573,7 @@ module Marshal
             when 111  # ?o
               construct_object
             when 117  # ?u
-              construct_user_defined ivar_index
+              construct_user_defined(ivar_index)
             when 85   # ?U
               construct_user_marshal
             when 100  # ?d
@@ -843,8 +843,18 @@ module Marshal
       obj
     end
 
-    def construct_symbol
-      obj = get_byte_sequence.to_sym
+    def construct_symbol(ivar_index)
+      data = get_byte_sequence
+
+      # A Symbol has no instance variables (it's frozen),
+      # but we need to know the encoding before building the Symbol
+      if ivar_index and @has_ivar[ivar_index]
+        # This sets the encoding of the String
+        set_instance_variables data
+        @has_ivar[ivar_index] = false
+      end
+
+      obj = data.to_sym
       store_unique_object obj
 
       obj
