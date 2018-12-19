@@ -1073,17 +1073,12 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      mf = 'I' unless str.ascii_only?
+      mf = 'I' unless str.ascii_only? or str.encoding == Encoding::BINARY
       if mf
-        if Truffle::Type.object_encoding(obj).equal? Encoding::BINARY
-          me = serialize_integer(0)
-        elsif serialize_encoding?(obj)
-          me = serialize_integer(1) + serialize_encoding(obj.encoding)
-        end
+        me = serialize_integer(1) + serialize_encoding(obj.encoding)
       end
       mi = serialize_integer(str.bytesize)
-      s = Truffle::Type.binary_string str
-      Truffle::Type.binary_string("#{mf}:#{mi}#{s}#{me}")
+      Truffle::Type.binary_string("#{mf}:#{mi}#{str.b}#{me}")
     end
 
     def serialize_string(str)
