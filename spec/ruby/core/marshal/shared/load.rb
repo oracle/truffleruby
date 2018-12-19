@@ -485,30 +485,9 @@ describe :marshal_load, shared: true do
     end
   end
 
-  describe "for a user Class" do
-    it "loads a user-marshaled extended object" do
-      obj = UserMarshal.new.extend(Meths)
-
-      new_obj = Marshal.send(@method, "\004\bU:\020UserMarshal\"\nstuff")
-
-      new_obj.should == obj
-      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors[@num_self_class].should == UserMarshal
-    end
-
-    it "loads a user_object" do
-      UserObject.new
-      Marshal.send(@method, "\004\bo:\017UserObject\000").should be_kind_of(UserObject)
-    end
-
+  describe "for an Object" do
     it "loads an object" do
       Marshal.send(@method, "\004\bo:\vObject\000").should be_kind_of(Object)
-    end
-
-    it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do
-      lambda do
-        Marshal.send(@method, "\x04\bo:\tFile\001\001:\001\005@path\"\x10/etc/passwd")
-      end.should raise_error(ArgumentError)
     end
 
     it "loads an extended Object" do
@@ -519,6 +498,40 @@ describe :marshal_load, shared: true do
       new_obj.class.should == obj.class
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
       new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
+    end
+
+    it "loads an object having ivar" do
+      s = 'hi'
+      arr = [:so, :so, s, s]
+      obj = Object.new
+      obj.instance_variable_set :@str, arr
+
+      new_obj = Marshal.send(@method, "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a")
+      new_str = new_obj.instance_variable_get :@str
+
+      new_str.should == arr
+    end
+
+    it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do
+      lambda do
+        Marshal.send(@method, "\x04\bo:\tFile\001\001:\001\005@path\"\x10/etc/passwd")
+      end.should raise_error(ArgumentError)
+    end
+  end
+
+  describe "for a user object" do
+    it "loads a user-marshaled extended object" do
+      obj = UserMarshal.new.extend(Meths)
+
+      new_obj = Marshal.send(@method, "\004\bU:\020UserMarshal\"\nstuff")
+
+      new_obj.should == obj
+      new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+      new_obj_metaclass_ancestors[@num_self_class].should == UserMarshal
+    end
+
+    it "loads a UserObject" do
+      Marshal.send(@method, "\004\bo:\017UserObject\000").should be_kind_of(UserObject)
     end
 
     describe "that extends a core type other than Object or BasicObject" do
@@ -536,18 +549,6 @@ describe :marshal_load, shared: true do
         MarshalSpec.set_swapped_class(Class.new)
         lambda { Marshal.send(@method, data) }.should raise_error(ArgumentError)
       end
-    end
-
-    it "loads an object having ivar" do
-      s = 'hi'
-      arr = [:so, :so, s, s]
-      obj = Object.new
-      obj.instance_variable_set :@str, arr
-
-      new_obj = Marshal.send(@method, "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a")
-      new_str = new_obj.instance_variable_get :@str
-
-      new_str.should == arr
     end
   end
 
