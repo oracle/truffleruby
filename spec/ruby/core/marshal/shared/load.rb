@@ -375,6 +375,14 @@ describe :marshal_load, shared: true do
       sym.should == s.encode("utf-16").to_sym
       sym.encoding.should == Encoding::UTF_16
 
+      sym = Marshal.send(@method, "\x04\bI:\a\x92!\x06:\rencoding\"\rUTF-16LE")
+      sym.should == s.encode("utf-16le").to_sym
+      sym.encoding.should == Encoding::UTF_16LE
+
+      sym = Marshal.send(@method, "\x04\bI:\a!\x92\x06:\rencoding\"\rUTF-16BE")
+      sym.should == s.encode("utf-16be").to_sym
+      sym.encoding.should == Encoding::UTF_16BE
+
       sym = Marshal.send(@method, "\x04\bI:\a\xA2\xAA\x06:\rencoding\"\vEUC-JP")
       sym.should == s.encode("euc-jp").to_sym
       sym.encoding.should == Encoding::EUC_JP
