@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.FinalLocationException;
@@ -30,6 +31,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
+@ReportPolymorphism
 public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     private final Object name;

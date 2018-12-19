@@ -85,6 +85,9 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 newDispatchNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
             } else {
                 depth++;
+                if (depth >= 2) {
+                    this.reportPolymorphicSpecialize();
+                }
                 final String methodNameString = methodNameToString(methodName);
                 if (RubyGuards.isForeignObject(receiverObject)) {
                     switch (getDispatchAction()) {

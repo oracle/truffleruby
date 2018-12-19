@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -98,6 +99,7 @@ public abstract class ArrayNodes {
         @NodeChild(type = RubyNode.class, value = "b")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
 
         @CreateCast("b")
@@ -138,6 +140,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_mul", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
@@ -271,6 +274,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_aset", lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class IndexSetNode extends PrimitiveArrayArgumentsNode {
 
         @Child private ArrayReadNormalizedNode readNode;
@@ -285,6 +289,7 @@ public abstract class ArrayNodes {
         // array[index] = object
 
         @Specialization
+        @ReportPolymorphism.Exclude
         public Object set(DynamicObject array, int index, Object value, NotProvided unused,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
             final int normalizedIndex = ArrayOperations.normalizeIndex(getSize(array), index, negativeIndexProfile);
@@ -295,6 +300,7 @@ public abstract class ArrayNodes {
         // array[index] = object with non-int index
 
         @Specialization(guards = { "!isInteger(indexObject)", "!isRubyRange(indexObject)" })
+        @ReportPolymorphism.Exclude
         public Object set(DynamicObject array, Object indexObject, Object value, NotProvided unused) {
             return FAILURE;
         }
@@ -302,6 +308,7 @@ public abstract class ArrayNodes {
         // array[start, length] = object
 
         @Specialization(guards = { "!isRubyArray(value)", "wasProvided(value)" })
+        @ReportPolymorphism.Exclude
         public Object setObject(DynamicObject array, int start, int length, Object value) {
             return FAILURE;
         }
@@ -312,6 +319,7 @@ public abstract class ArrayNodes {
                 "isRubyArray(replacement)",
                 "length == getArraySize(replacement)"
         })
+        @ReportPolymorphism.Exclude
         public Object setOtherArraySameLength(DynamicObject array, int start, int length, DynamicObject replacement,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
             final int normalizedIndex = ArrayOperations.normalizeIndex(getSize(array), start, negativeIndexProfile);
@@ -537,6 +545,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)
+    @ReportPolymorphism
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -550,6 +559,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "compact")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class CompactNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -586,9 +596,11 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "compact!", raiseIfFrozenSelf = true)
+    @ReportPolymorphism
     public abstract static class CompactBangNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
+        @ReportPolymorphism.Exclude
         public DynamicObject compactNotObjects(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
             return nil();
@@ -652,6 +664,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
@@ -750,6 +763,7 @@ public abstract class ArrayNodes {
             @NodeChild(type = RubyNode.class, value = "index")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
         @CreateCast("index")
@@ -802,6 +816,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1" }, limit = "STORAGE_STRATEGIES")
@@ -837,6 +852,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_each_with_index")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class EachWithIndexNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -985,6 +1001,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
+    @ReportPolymorphism
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
@@ -1018,6 +1035,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
+    @ReportPolymorphism
     public abstract static class HashNode extends ArrayCoreMethodNode {
 
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
@@ -1058,6 +1076,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "include?", required = 1)
+    @ReportPolymorphism
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
@@ -1258,6 +1277,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_inject")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
         @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createPublic();
@@ -1265,11 +1285,13 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial)", "block != nil()" })
+        @ReportPolymorphism.Exclude
         public Object injectEmptyArray(DynamicObject array, Object initial, NotProvided unused, DynamicObject block) {
             return initial;
         }
 
         @Specialization(guards = { "isEmptyArray(array)", "block != nil()" })
+        @ReportPolymorphism.Exclude
         public Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block) {
             return nil();
         }
@@ -1350,6 +1372,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -1413,6 +1436,7 @@ public abstract class ArrayNodes {
     @NodeChild(value = "format", type = RubyNode.class)
     @CoreMethod(names = "pack", required = 1, taintFrom = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
     public abstract static class PackNode extends CoreMethodNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
@@ -1523,6 +1547,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "pop", raiseIfFrozenSelf = true, optional = 1, lowerFixnum = 1)
+    @ReportPolymorphism
     public abstract static class PopNode extends ArrayCoreMethodNode {
 
         @Child private ToIntNode toIntNode;
@@ -1531,6 +1556,7 @@ public abstract class ArrayNodes {
         public abstract Object executePop(DynamicObject array, Object n);
 
         @Specialization
+        @ReportPolymorphism.Exclude
         public Object pop(DynamicObject array, NotProvided n) {
             if (popOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -1541,16 +1567,19 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "n < 0")
+        @ReportPolymorphism.Exclude
         public Object popNNegative(DynamicObject array, int n) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
+        @ReportPolymorphism.Exclude
         public Object popEmpty(DynamicObject array, int n) {
             return createArray(null, 0);
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
+        @ReportPolymorphism.Exclude
         public Object popZeroNotEmpty(DynamicObject array, int n) {
             return createArray(null, 0);
         }
@@ -1649,6 +1678,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RejectNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -1683,6 +1713,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "reject!", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1743,6 +1774,7 @@ public abstract class ArrayNodes {
             @NodeChild(type = RubyNode.class, value = "other")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         public abstract DynamicObject executeReplace(DynamicObject array, DynamicObject other);
@@ -1767,6 +1799,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1795,6 +1828,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1878,6 +1912,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "select", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class SelectNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -1916,6 +1951,7 @@ public abstract class ArrayNodes {
             @NodeChild(type = RubyNode.class, value = "n")
     })
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class ShiftNode extends CoreMethodNode {
 
         @Child private ToIntNode toIntNode;
@@ -1925,6 +1961,7 @@ public abstract class ArrayNodes {
         // No n, just shift 1 element and return it
 
         @Specialization(guards = "isEmptyArray(array)")
+        @ReportPolymorphism.Exclude
         public Object shiftEmpty(DynamicObject array, NotProvided n) {
             return nil();
         }
@@ -2002,9 +2039,11 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "sort", needsBlock = true)
+    @ReportPolymorphism
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "isEmptyArray(array)")
+        @ReportPolymorphism.Exclude
         public DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
             return createArray(null, 0);
         }
@@ -2106,6 +2145,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_zip")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {

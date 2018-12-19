@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
@@ -20,6 +21,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
+@ReportPolymorphism
 public abstract class ReadObjectFieldNode extends RubyBaseNode {
 
     private final Object defaultValue;

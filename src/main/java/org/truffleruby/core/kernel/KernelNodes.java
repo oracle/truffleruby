@@ -18,6 +18,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -544,6 +545,7 @@ public abstract class KernelNodes {
 
     @Primitive(name = "kernel_eval", needsSelf = false, lowerFixnum = 5)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
@@ -1696,6 +1698,7 @@ public abstract class KernelNodes {
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1, taintFrom = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode;

@@ -70,6 +70,10 @@ public abstract class RubyGuards {
         return isBoolean(object) || isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
     }
 
+    public static boolean isPrimitiveClass(Class<?> clazz) {
+        return clazz == Boolean.class || clazz == Byte.class || clazz == Short.class || clazz == Integer.class
+                || clazz == Long.class || clazz == Float.class || clazz == Double.class;
+    }
     // Ruby types
 
     public static boolean isRubyBasicObject(Object object) {

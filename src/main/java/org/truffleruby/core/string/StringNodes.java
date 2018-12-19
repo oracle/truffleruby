@@ -76,6 +76,7 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -2446,6 +2447,7 @@ public abstract class StringNodes {
     @NodeChild(value = "format", type = RubyNode.class)
     @CoreMethod(names = "unpack", required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
     public abstract static class UnpackNode extends CoreMethodNode {
 
         @Child private TaintNode taintNode;

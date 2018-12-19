@@ -189,6 +189,14 @@ local part_definitions = {
           ["-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"],
       },
     },
+    experimental_splitting: {
+      is_after+:: ["$.graal.enterprise", "$.use.common"],
+      environment+: {
+        HOST_VM_CONFIG+: "-exp-split",
+        java_opts+::
+          ["-Dgraal.TruffleExperimentalSplitting=true", "-Dgraal.TruffleExperimentalSplittingAllowForcedSplits=false"],
+      },
+    },
   },
 
   svm: {
@@ -617,6 +625,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     "graal-core": shared + $.graal.core,
     "graal-enterprise": shared + $.graal.enterprise,
     "graal-enterprise-no-om": shared + $.graal.enterprise + $.graal.without_om,
+    "graal-enterprise-exp-split": shared + $.graal.enterprise + $.graal.experimental_splitting,
   },
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build + $.use.svm,
@@ -662,6 +671,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-classic-graal-core": shared + graal_configurations["graal-core"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"] + { timelimit: "00:35:00" },
+      "ruby-benchmarks-classic-graal-enterprise-exp-split": shared + graal_configurations["graal-enterprise-exp-split"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:10:00" },
       "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:10:00" },
     } +
@@ -675,12 +685,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"],
       "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-chunky-graal-enterprise-exp-split": shared + chunky + graal_configurations["graal-enterprise-exp-split"],
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
       "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"],
       "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-psd-graal-enterprise-no-om": shared + psd + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-psd-graal-enterprise-exp-split": shared + psd + graal_configurations["graal-enterprise-exp-split"],
       "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"],
       local asciidoctor = $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "00:55:00" },
@@ -689,6 +701,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-asciidoctor-graal-core": shared + asciidoctor + graal_configurations["graal-core"],
       "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-asciidoctor-graal-enterprise-no-om": shared + asciidoctor + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-asciidoctor-graal-enterprise-exp-split": shared + asciidoctor + graal_configurations["graal-enterprise-exp-split"],
       "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
@@ -698,6 +711,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-other-graal-core": shared + other + graal_configurations["graal-core"],
       "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-other-graal-enterprise-no-om": shared + other + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-other-graal-enterprise-exp-split": shared + other + graal_configurations["graal-enterprise-exp-split"],
       "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"],
     } +
@@ -712,6 +726,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-server-graal-core": shared + graal_configurations["graal-core"],
       "ruby-benchmarks-server-graal-enterprise": shared + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-server-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-server-graal-enterprise-exp-split": shared + graal_configurations["graal-enterprise-exp-split"],
     } +
 
     {

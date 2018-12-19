@@ -11,12 +11,14 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 import org.truffleruby.language.RubyBaseNode;
 
+@ReportPolymorphism
 public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     public static CallInternalMethodNode create() {

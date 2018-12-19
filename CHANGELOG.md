@@ -32,6 +32,7 @@ Performance:
 * Sped up accesses to native memory through FFI::Pointer.
 * All core files now make use of frozen `String` literals, reducing the number
   of `String` allocations for core methods.
+* New -Xclone.disable option to disable all manual cloning.
 
 # 1.0 RC 10
 

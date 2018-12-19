@@ -9,18 +9,21 @@
  */
 package org.truffleruby.language.yield;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+
+@ReportPolymorphism
 public abstract class CallBlockNode extends RubyBaseNode {
 
     public static CallBlockNode create() {
@@ -78,7 +81,9 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
         final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || getContext().getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
-            callNode.cloneCallTarget();
+            if (!getContext().getOptions().CLONE_DISABLED) {
+                callNode.cloneCallTarget();
+            }
         }
 
         if (getContext().getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
