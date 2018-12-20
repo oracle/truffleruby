@@ -7,7 +7,7 @@ AllCops:
     - 'lib/truffle/date/format.rb' # crashes Rubocop in VariableForce
     - 'lib/truffle/date/delta/parser.rb' # generated code
     - 'lib/truffle/socket/mri.rb' # taken from MRI
-    - 'lib/truffle/ffi/library.rb' # taken from FFI gem
+    - 'lib/truffle/ffi/**/*.rb' # taken from FFI gem
     - 'src/test/ruby/types.rb' # deliberately strange code for debugging purposes
 
 # Type 'Layout' (166):
