@@ -28,6 +28,8 @@ public interface BigDecimalLayout extends BasicObjectLayout {
             BigDecimal value,
             BigDecimalType type);
 
+    boolean isBigDecimal(Object object);
+
     boolean isBigDecimal(DynamicObject object);
 
     BigDecimal getValue(DynamicObject object);
