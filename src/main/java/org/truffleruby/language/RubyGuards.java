@@ -88,6 +88,10 @@ public abstract class RubyGuards {
         return Layouts.BIGNUM.isBignum(value);
     }
 
+    public static boolean isRubyBigDecimal(Object value) {
+        return Layouts.BIG_DECIMAL.isBigDecimal(value);
+    }
+
     public static boolean isRubyBigDecimal(DynamicObject value) {
         return Layouts.BIG_DECIMAL.isBigDecimal(value);
     }
