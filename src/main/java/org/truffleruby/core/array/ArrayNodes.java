@@ -584,27 +584,23 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         public Object compactObjectsNonMutable(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
-            // TODO CS 9-Feb-15 by removing nil we could make this array suitable for a primitive array storage
-            // class
-
+                @Cached("create()") ArrayBuilderNode arrayBuilder) {
             final int size = strategy.getSize(array);
             final Object store = Layouts.ARRAY.getStore(array);
-            final Object newStore = mutableStrategy.newArray(size).getArray();
+            final Object newStore = arrayBuilder.start(size);
 
             int m = 0;
 
             for (int n = 0; n < size; n++) {
                 Object v = getNode.execute(store, n);
                 if (v != nil()) {
-                    setNode.execute(newStore, m, v);
+                    arrayBuilder.appendValue(newStore, m, v);
                     m++;
                 }
             }
 
-            return createArray(newStore, m);
+            return createArray(arrayBuilder.finish(newStore, m), m);
         }
 
     }
