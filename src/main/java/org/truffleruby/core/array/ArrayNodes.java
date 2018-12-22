@@ -689,15 +689,17 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object delete(VirtualFrame frame, DynamicObject array, Object value, Object maybeBlock,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
 
             Object found = nil();
 
             int i = 0;
             int n = 0;
             while (n < strategy.getSize(array)) {
-                final Object stored = store.get(n);
+                final Object stored = getNode.execute(store, n);
 
                 if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     checkFrozen(array);
@@ -705,7 +707,7 @@ public abstract class ArrayNodes {
                     n++;
                 } else {
                     if (i != n) {
-                        store.set(i, store.get(n));
+                        setNode.execute(store, i, getNode.execute(store, n));
                     }
 
                     i++;
@@ -714,7 +716,7 @@ public abstract class ArrayNodes {
             }
 
             if (i != n) {
-                strategy.setStoreAndSize(array, store.getArray(), i);
+                strategy.setStoreAndSize(array, store, i);
                 return found;
             } else {
                 if (maybeBlock == NotProvided.INSTANCE) {
@@ -728,24 +730,27 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object delete(VirtualFrame frame, DynamicObject array, Object value, Object maybeBlock,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+                @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
             final int size = strategy.getSize(array);
-            final ArrayMirror oldStore = strategy.newMirror(array);
-            final ArrayMirror newStore = mutableStrategy.newArray(size);
+            final Object oldStore = Layouts.ARRAY.getStore(array);
+            final Object newStore = newStoreNode.execute(size);
 
             Object found = nil();
 
             int i = 0;
             int n = 0;
             while (n < size) {
-                final Object stored = oldStore.get(n);
+                final Object stored = getNode.execute(oldStore, n);
 
                 if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
                 } else {
-                    newStore.set(i, oldStore.get(n));
+                    setNode.execute(newStore, i, getNode.execute(oldStore, n));
 
                     i++;
                     n++;
@@ -753,7 +758,7 @@ public abstract class ArrayNodes {
             }
 
             if (i != n) {
-                strategy.setStoreAndSize(array, newStore.getArray(), i);
+                strategy.setStoreAndSize(array, newStore, i);
                 return found;
             } else {
                 if (maybeBlock == NotProvided.INSTANCE) {
@@ -843,23 +848,25 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1" }, limit = "STORAGE_STRATEGIES")
         public Object eachOne(DynamicObject array, DynamicObject block,
-                              @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
 
-            yield(block, store.get(0));
+            yield(block, getNode.execute(store, 0));
 
             return array;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
         public Object eachOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
 
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    yield(block, store.get(n));
+                    yield(block, getNode.execute(store, n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -879,13 +886,14 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public Object eachWithIndexOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
 
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    yield(block, store.get(n), n);
+                    yield(block, getNode.execute(store, n), n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -908,6 +916,7 @@ public abstract class ArrayNodes {
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         protected boolean equalSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
@@ -925,11 +934,11 @@ public abstract class ArrayNodes {
                 return false;
             }
 
-            final ArrayMirror aMirror = strategy.newMirror(a);
-            final ArrayMirror bMirror = strategy.newMirror(b);
+            final Object aStore = Layouts.ARRAY.getStore(a);
+            final Object bStore = Layouts.ARRAY.getStore(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!sameOrEqualNode.executeSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
+                if (!sameOrEqualNode.executeSameOrEqual(frame, getNode.execute(aStore, i), getNode.execute(bStore, i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -970,6 +979,7 @@ public abstract class ArrayNodes {
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         protected boolean eqlSamePrimitiveType(DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
@@ -987,11 +997,11 @@ public abstract class ArrayNodes {
                 return false;
             }
 
-            final ArrayMirror aMirror = strategy.newMirror(a);
-            final ArrayMirror bMirror = strategy.newMirror(b);
+            final Object aStore = Layouts.ARRAY.getStore(a);
+            final Object bStore = Layouts.ARRAY.getStore(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!eqlNode.executeSameOrEql(aMirror.get(i), bMirror.get(i))) {
+                if (!eqlNode.executeSameOrEql(getNode.execute(aStore, i), getNode.execute(bStore, i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -1067,14 +1077,15 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public long hash(VirtualFrame frame, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createPrivate()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             for (int n = 0; n < size; n++) {
-                final Object value = store.get(n);
+                final Object value = getNode.execute(store, n);
                 final long valueHash = toLong(toHashNode.call(value, "hash"));
                 h = Hashing.update(h, valueHash);
             }
@@ -1105,11 +1116,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public boolean include(VirtualFrame frame, DynamicObject array, Object value,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
 
             for (int n = 0; n < strategy.getSize(array); n++) {
-                final Object stored = store.get(n);
+                final Object stored = getNode.execute(store, n);
 
                 if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     return true;
@@ -1320,24 +1332,26 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)", "block != nil()" }, limit = "STORAGE_STRATEGIES")
         public Object injectWithInitial(DynamicObject array, Object initial, NotProvided unused, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
-            return injectBlockHelper(array, block, store, initial, 0);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
+            return injectBlockHelper(getNode, array, block, store, initial, 0);
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "block != nil()" }, limit = "STORAGE_STRATEGIES")
         public Object injectNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
-            return injectBlockHelper(array, block, store, store.get(0), 1);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
+            return injectBlockHelper(getNode, array, block, store, getNode.execute(store, 0), 1);
         }
 
-        public Object injectBlockHelper(DynamicObject array, DynamicObject block, ArrayMirror store, Object initial, int start) {
+        public Object injectBlockHelper(ArrayOperationNodes.ArrayGetNode getNode, DynamicObject array, DynamicObject block, Object store, Object initial, int start) {
             Object accumulator = initial;
             int n = start;
             try {
                 for (; n < getSize(array); n++) {
-                    accumulator = yield(block, accumulator, store.get(n));
+                    accumulator = yield(block, accumulator, getNode.execute(store, n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -1362,25 +1376,27 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)", "block == nil()" }, limit = "STORAGE_STRATEGIES")
         public Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial, DynamicObject symbol, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
-            return injectSymbolHelper(frame, array, symbol, store, initial, 0);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
+            return injectSymbolHelper(frame, array, symbol, getNode, store, initial, 0);
         }
 
         @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)", "block == nil()" }, limit = "STORAGE_STRATEGIES")
         public Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject symbol, NotProvided unused, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
-            return injectSymbolHelper(frame, array, symbol, store, store.get(0), 1);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
+            return injectSymbolHelper(frame, array, symbol, getNode, store, getNode.execute(store, 0), 1);
         }
 
-        public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, DynamicObject symbol, ArrayMirror store, Object initial, int start) {
+        public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, DynamicObject symbol, ArrayOperationNodes.ArrayGetNode getNode, Object store, Object initial, int start) {
             Object accumulator = initial;
             int n = start;
 
             try {
                 for (; n < getSize(array); n++) {
-                    accumulator = dispatch.dispatch(frame, accumulator, symbol, null, new Object[]{ store.get(n) });
+                    accumulator = dispatch.dispatch(frame, accumulator, symbol, null, new Object[]{ getNode.execute(store, n) });
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -1400,15 +1416,16 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public Object map(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
             Object mappedStore = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    final Object mappedValue = yield(block, store.get(n));
+                    final Object mappedValue = yield(block, getNode.execute(store, n));
                     mappedStore = arrayBuilder.appendValue(mappedStore, n, mappedValue);
                 }
             } finally {
@@ -1431,13 +1448,14 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public Object map(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createWriteNode()") ArrayWriteNormalizedNode writeNode) {
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    writeNode.executeWrite(array, n, yield(block, store.get(n)));
+                    writeNode.executeWrite(array, n, yield(block, getNode.execute(store, n)));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -1706,8 +1724,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public Object rejectOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             Object selectedStore = arrayBuilder.start(strategy.getSize(array));
             int selectedSize = 0;
@@ -1715,7 +1734,7 @@ public abstract class ArrayNodes {
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    final Object value = store.get(n);
+                    final Object value = getNode.execute(store, n);
 
                     if (!yieldIsTruthy(block, value)) {
                         selectedStore = arrayBuilder.appendValue(selectedStore, selectedSize, value);
@@ -1741,39 +1760,44 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object rejectInPlace(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
-            final ArrayMirror mutableStore = strategy.makeStorageUnshared(array);
-            return rejectInPlaceInternal(array, block, mutableStrategy, mutableStore);
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+                @Cached("mutableStrategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+                @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+                @Cached("mutableStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
+            final Object mutableStore = strategy.makeStorageUnshared(array).getArray();
+            return rejectInPlaceInternal(array, block, getNode, setNode, newStoreNode, copyToNode, mutableStore);
         }
 
-        private Object rejectInPlaceInternal(DynamicObject array, DynamicObject block, ArrayStrategy strategy, ArrayMirror store) {
+        private Object rejectInPlaceInternal(DynamicObject array, DynamicObject block, ArrayOperationNodes.ArrayGetNode getNode, ArrayOperationNodes.ArraySetNode setNode,
+                ArrayOperationNodes.ArrayNewStoreNode newStoreNode, ArrayOperationNodes.ArrayCopyToNode copyToNode, Object store) {
             int i = 0;
             int n = 0;
             try {
-                for (; n < strategy.getSize(array); n++) {
-                    final Object value = store.get(n);
+                for (; n < Layouts.ARRAY.getSize(array); n++) {
+                    final Object value = getNode.execute(store, n);
                     if (yieldIsTruthy(block, value)) {
                         continue;
                     }
 
                     if (i != n) {
-                        store.set(i, store.get(n));
+                        setNode.execute(store, i, getNode.execute(store, n));
                     }
 
                     i++;
                 }
             } finally {
                 // Ensure we've iterated to the end of the array.
-                for (; n < strategy.getSize(array); n++) {
+                for (; n < Layouts.ARRAY.getSize(array); n++) {
                     if (i != n) {
-                        store.set(i, store.get(n));
+                        setNode.execute(store, i, getNode.execute(store, n));
                     }
                     i++;
                 }
 
                 // Null out the elements behind the size
-                final ArrayMirror filler = strategy.newArray(n - i);
-                filler.copyTo(store, 0, i, n - i);
+                final Object filler = newStoreNode.execute(n - i);
+                copyToNode.execute(filler, store, 0, i, n - i);
                 setSize(array, i);
 
                 if (CompilerDirectives.inInterpreter()) {
@@ -1857,19 +1881,21 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject rotate(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
             final int size = sizeProfile.profile(strategy.getSize(array));
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
-            final ArrayMirror mirror = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             if (CompilerDirectives.isPartialEvaluationConstant(size) &&
                     CompilerDirectives.isPartialEvaluationConstant(rotation) &&
                     size <= ArrayGuards.ARRAY_MAX_EXPLODE_SIZE) {
-                rotateSmallExplode(rotation, size, mirror);
+                rotateSmallExplode(getNode, setNode, rotation, size, store);
             } else {
-                rotateReverse(rotation, size, mirror);
+                rotateReverse(getNode, setNode, rotation, size, store);
             }
 
             return array;
@@ -1895,21 +1921,21 @@ public abstract class ArrayNodes {
         }
 
         @ExplodeLoop
-        protected void rotateSmallExplode(int rotation, int size, ArrayMirror mirror) {
+        protected void rotateSmallExplode(ArrayOperationNodes.ArrayGetNode getNode, ArrayOperationNodes.ArraySetNode setNode, int rotation, int size, Object store) {
             Object[] copy = new Object[size];
             for (int i = 0; i < size; i++) {
-                copy[i] = mirror.get(i);
+                copy[i] = getNode.execute(store, i);
             }
             for (int i = 0; i < size; i++) {
                 int j = i + rotation;
                 if (j >= size) {
                     j -= size;
                 }
-                mirror.set(i, copy[j]);
+                setNode.execute(store, i, copy[j]);
             }
         }
 
-        protected void rotateReverse(int rotation, int size, ArrayMirror mirror) {
+        protected void rotateReverse(ArrayOperationNodes.ArrayGetNode getNode, ArrayOperationNodes.ArraySetNode setNode, int rotation, int size, Object store) {
             // Rotating by rotation in-place is equivalent to
             // replace([rotation..-1] + [0...rotation])
             // which is the same as reversing the whole array and
@@ -1917,17 +1943,17 @@ public abstract class ArrayNodes {
             // This trick avoids constantly checking if indices are within array bounds
             // and accesses memory sequentially, even though it does perform 2*size reads and writes.
             // This is also what MRI and JRuby do.
-            reverse(mirror, rotation, size);
-            reverse(mirror, 0, rotation);
-            reverse(mirror, 0, size);
+            reverse(getNode, setNode, store, rotation, size);
+            reverse(getNode, setNode, store, 0, rotation);
+            reverse(getNode, setNode, store, 0, size);
         }
 
-        private void reverse(ArrayMirror mirror, int from, int until) {
+        private void reverse(ArrayOperationNodes.ArrayGetNode getNode, ArrayOperationNodes.ArraySetNode setNode, Object store, int from, int until) {
             int to = until - 1;
             while (from < to) {
-                final Object tmp = mirror.get(from);
-                mirror.set(from, mirror.get(to));
-                mirror.set(to, tmp);
+                final Object tmp = getNode.execute(store, from);
+                setNode.execute(store, from, getNode.execute(store, to));
+                setNode.execute(store, to, tmp);
                 from++;
                 to--;
             }
@@ -1943,8 +1969,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public Object selectOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             Object selectedStore = arrayBuilder.start(strategy.getSize(array));
             int selectedSize = 0;
@@ -1952,7 +1979,7 @@ public abstract class ArrayNodes {
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
-                    final Object value = store.get(n);
+                    final Object value = getNode.execute(store, n);
 
                     if (yieldIsTruthy(block, value)) {
                         selectedStore = arrayBuilder.appendValue(selectedStore, selectedSize, value);
@@ -1993,11 +2020,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftOther(DynamicObject array, NotProvided n,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.makeStorageShared(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
-            final Object value = store.get(0);
-            strategy.setStore(array, store.extractRange(1, size).getArray());
+            final Object value = getNode.execute(store, 0);
+            strategy.setStore(array, strategy.newMirrorFromStore(store).extractRange(1, size).getArray());
             setSize(array, size - 1);
 
             return value;
@@ -2077,18 +2105,22 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isEmptyArray(array)", "isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode originalGetNode,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+                @Cached("mutableStrategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+                @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
                 @Cached("create()") CmpIntNode cmpIntNode) {
-            final ArrayMirror originalStore = strategy.newMirror(array);
-            final ArrayMirror store = mutableStrategy.newArray(getContext().getOptions().ARRAY_SMALL);
+            final Object originalStore = Layouts.ARRAY.getStore(array);
+            final Object store = newStoreNode.execute(getContext().getOptions().ARRAY_SMALL);
             final int size = strategy.getSize(array);
 
             // Copy with a exploded loop for PE
 
             for (int i = 0; i < getContext().getOptions().ARRAY_SMALL; i++) {
                 if (i < size) {
-                    store.set(i, originalStore.get(i));
+                    setNode.execute(store, i, originalGetNode.execute(originalStore, i));
                 }
             }
 
@@ -2098,19 +2130,19 @@ public abstract class ArrayNodes {
                 if (i < size) {
                     for (int j = i + 1; j < getContext().getOptions().ARRAY_SMALL; j++) {
                         if (j < size) {
-                            final Object a = store.get(i);
-                            final Object b = store.get(j);
+                            final Object a = getNode.execute(store, i);
+                            final Object b = getNode.execute(store, j);
                             final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
                             if (cmpIntNode.executeCmpInt(comparisonResult, b, a) < 0) {
-                                store.set(j, a);
-                                store.set(i, b);
+                                setNode.execute(store, j, a);
+                                setNode.execute(store, i, b);
                             }
                         }
                     }
                 }
             }
 
-            return createArray(store.getArray(), size);
+            return createArray(store, size);
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
@@ -2182,10 +2214,14 @@ public abstract class ArrayNodes {
         public DynamicObject zipToPairs(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy aStrategy,
                 @Cached("of(other)") ArrayStrategy bStrategy,
+                @Cached("aStrategy.getNode()") ArrayOperationNodes.ArrayGetNode aGetNode,
+                @Cached("bStrategy.getNode()") ArrayOperationNodes.ArrayGetNode bGetNode,
                 @Cached("aStrategy.generalize(bStrategy)") ArrayStrategy generalized,
+                @Cached("generalized.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+                @Cached("generalized.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("createBinaryProfile()") ConditionProfile bNotSmallerProfile) {
-            final ArrayMirror a = aStrategy.newMirror(array);
-            final ArrayMirror b = bStrategy.newMirror(other);
+            final Object a = Layouts.ARRAY.getStore(array);
+            final Object b = Layouts.ARRAY.getStore(other);
 
             final int bSize = bStrategy.getSize(other);
             final int zippedLength = aStrategy.getSize(array);
@@ -2193,12 +2229,12 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < zippedLength; n++) {
                 if (bNotSmallerProfile.profile(n < bSize)) {
-                    final ArrayMirror pair = generalized.newArray(2);
-                    pair.set(0, a.get(n));
-                    pair.set(1, b.get(n));
-                    zipped[n] = createArray(pair.getArray(), 2);
+                    final Object pair = newStoreNode.execute(2);
+                    setNode.execute(pair, 0, aGetNode.execute(a, n));
+                    setNode.execute(pair, 1, bGetNode.execute(b, n));
+                    zipped[n] = createArray(pair, 2);
                 } else {
-                    zipped[n] = createArray(new Object[] { a.get(n), nil() }, 2);
+                    zipped[n] = createArray(new Object[]{ aGetNode.execute(a, n), nil() }, 2);
                 }
             }
 
