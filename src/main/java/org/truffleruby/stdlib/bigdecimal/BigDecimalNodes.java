@@ -135,6 +135,15 @@ public abstract class BigDecimalNodes {
         public Object subSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b) {
             return subSpecial(frame, a, b, 0);
         }
+
+        @Specialization(guards = {
+                "isRubyBigDecimal(a)",
+                "!isRubyBigDecimal(b)"
+        })
+        public Object subCoerced(DynamicObject a, Object b,
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
+        }
     }
 
     @CoreMethod(names = "sub", required = 2, lowerFixnum = 2)
