@@ -62,6 +62,7 @@ Bug fixes:
 * `StringIO#set_encoding` no longer raises an exception if the underlying
   `String` is frozen (#1473).
 * Fix handling of `Symbol` encodings in `Marshal#dump` and `Marshal#load` (#1530).
+* Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
 
 Compatibility:
 
