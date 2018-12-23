@@ -60,6 +60,11 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
         return value;
     }
 
-    // TODO (pitr 22-Jun-2015): deal with not-coerce-able values
+    @Specialization(guards = {
+            "!isRubyBigDecimal(value)",
+    })
+    public Object notBigDecimal(Object value, RoundingMode roundingMode, DynamicObject cast) {
+        return value;
+    }
 
 }
