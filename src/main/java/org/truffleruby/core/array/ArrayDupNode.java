@@ -60,10 +60,11 @@ public abstract class ArrayDupNode extends RubyBaseNode {
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
     public DynamicObject dup(DynamicObject from,
-            @Cached("of(from)") ArrayStrategy strategy) {
+            @Cached("of(from)") ArrayStrategy strategy,
+            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
         final int size = strategy.getSize(from);
-        final ArrayMirror copy = strategy.makeStorageShared(from).extractRange(0, size);
-        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), size);
+        final Object copy = extractRangeNode.execute(strategy.makeStorageShared(from).getArray(), 0, size);
+        return allocateArray(coreLibrary().getArrayClass(), copy, size);
     }
 
     private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {

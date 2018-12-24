@@ -575,10 +575,11 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject compactPrimitive(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
             final int size = strategy.getSize(array);
-            ArrayMirror compactMirror = strategy.makeStorageShared(array).extractRange(0, size);
-            return createArray(compactMirror.getArray(), size);
+            Object compactMirror = extractRangeNode.execute(strategy.makeStorageShared(array).getArray(), 0, size);
+            return createArray(compactMirror, size);
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -1623,18 +1624,19 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object popNotEmptySharedStorage(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             // Extract values in a new array
-            final ArrayMirror popped = store.extractRange(size - numPop, size);
+            final Object popped = extractRangeNode.execute(store, size - numPop, size);
 
             // Remove the end from the original array.
-            setStoreAndSize(array, store.extractRange(0, size - numPop).getArray(), size - numPop);
+            setStoreAndSize(array, extractRangeNode.execute(store, 0, size - numPop), size - numPop);
 
-            return createArray(popped.getArray(), numPop);
+            return createArray(popped, numPop);
         }
 
         @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -1829,11 +1831,12 @@ public abstract class ArrayNodes {
         @Specialization(guards = {"arrayStrategy.matches(array)", "otherStrategy.matches(other)"}, limit = "ARRAY_STRATEGIES")
         public DynamicObject replace(DynamicObject array, DynamicObject other,
                         @Cached("of(array)") ArrayStrategy arrayStrategy,
-                        @Cached("of(other)") ArrayStrategy otherStrategy) {
+                @Cached("of(other)") ArrayStrategy otherStrategy,
+                @Cached("otherStrategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
             final int size = getSize(other);
-            final ArrayMirror otherMirror = otherStrategy.makeStorageShared(other);
-            final ArrayMirror copy = otherMirror.extractRange(0, size);
-            arrayStrategy.setStoreAndSize(array, copy.getArray(), size);
+            final Object otherStore = Layouts.ARRAY.getStore(other);
+            final Object copy = extractRangeNode.execute(otherStore, 0, size);
+            arrayStrategy.setStoreAndSize(array, copy, size);
             return array;
         }
 

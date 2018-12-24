@@ -3,6 +3,7 @@ package org.truffleruby.core.array;
 import java.util.Arrays;
 
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayCopyToNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayExtractRangeNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayGetNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayNewStoreNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArraySetNodeGen;
@@ -106,6 +107,10 @@ public class IntegerArrayNodes {
             int[] newStore = new int[end - start];
             System.arraycopy(store, start, newStore, 0, end - start);
             return newStore;
+        }
+
+        public static ArrayExtractRangeNode create() {
+            return IntegerArrayNodesFactory.ArrayExtractRangeNodeGen.create();
         }
     }
 

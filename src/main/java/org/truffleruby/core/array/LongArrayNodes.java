@@ -98,6 +98,10 @@ public class LongArrayNodes {
             System.arraycopy(store, start, newStore, 0, end - start);
             return newStore;
         }
+
+        public static ArrayExtractRangeNode create() {
+            return LongArrayNodesFactory.ArrayExtractRangeNodeGen.create();
+        }
     }
 
     public static abstract class ArraySortNode extends ArrayOperationNodes.ArraySortNode {

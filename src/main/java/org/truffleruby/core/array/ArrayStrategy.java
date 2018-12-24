@@ -16,6 +16,7 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
 import org.truffleruby.language.RubyGuards;
 
@@ -57,6 +58,9 @@ public abstract class ArrayStrategy {
     public abstract ArraySortNode sortNode();
 
     public abstract ArrayLengthNode lengthNode();
+
+    public abstract ArrayExtractRangeNode extractRangeNode();
+
     /**
      * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
      * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
@@ -83,6 +87,8 @@ public abstract class ArrayStrategy {
     public ArrayMirror makeStorageUnshared(DynamicObject array) {
         return newMirror(array);
     }
+
+    public abstract ArrayStrategy sharedStorageStrategy();
 
     public ArrayMirror makeStorageShared(DynamicObject array) {
         final ArrayMirror currentMirror = newMirror(array);
@@ -305,8 +311,18 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return IntegerArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
             return IntegerArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return DELEGATED_INSTANCE;
         }
     }
 
@@ -396,6 +412,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return LongArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArrayCopyToNode copyToNode() {
             return LongArrayNodes.ArrayCopyToNode.create();
         }
@@ -403,6 +424,11 @@ public abstract class ArrayStrategy {
         @Override
         public ArraySortNode sortNode() {
             return LongArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return DELEGATED_INSTANCE;
         }
     }
 
@@ -497,8 +523,18 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return DoubleArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
             return DoubleArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return DELEGATED_INSTANCE;
         }
     }
 
@@ -593,8 +629,18 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return ObjectArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
             return ObjectArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return DELEGATED_INSTANCE;
         }
     }
 
@@ -697,8 +743,18 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return EmptyArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
             return EmptyArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return this;
         }
     }
 
@@ -807,8 +863,18 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return DelegateArrayNodes.ArrayExtractRangeNode.create();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
             return DelegateArrayNodes.ArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return this;
         }
     }
 
@@ -889,7 +955,17 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            throw unsupported();
+        }
+
+        @Override
         public ArraySortNode sortNode() {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
             throw unsupported();
         }
     }

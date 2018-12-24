@@ -98,6 +98,10 @@ public class ObjectArrayNodes {
             System.arraycopy(store, start, newStore, 0, end - start);
             return newStore;
         }
+
+        public static ArrayExtractRangeNode create() {
+            return ObjectArrayNodesFactory.ArrayExtractRangeNodeGen.create();
+        }
     }
 
     public static abstract class ArraySortNode extends ArrayOperationNodes.ArraySortNode {

@@ -97,10 +97,12 @@ public class DelegateArrayNodes {
     public static abstract class ArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
-        public Object[] extractRange(Object[] store, int start, int end) {
-            Object[] newStore = new Object[end - start];
-            System.arraycopy(store, start, newStore, 0, end - start);
-            return newStore;
+        public Object extractRange(DelegatedArrayStorage store, int start, int end) {
+            return new DelegatedArrayStorage(store.storage, store.offset + start, end - start);
+        }
+
+        public static ArrayExtractRangeNode create() {
+            return DelegateArrayNodesFactory.ArrayExtractRangeNodeGen.create();
         }
     }
 

@@ -3,6 +3,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.ArrayGetNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.ArraySetNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodes.ArrayLengthNode;
+import org.truffleruby.core.array.ObjectArrayNodes.ArrayExtractRangeNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -77,6 +78,19 @@ public class EmptyArrayNodes {
 
         public static ArrayCopyToNode create() {
             return EmptyArrayNodesFactory.ArrayCopyToNodeGen.create();
+        }
+    }
+
+    public static abstract class ArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
+
+        @Specialization
+        public Object[] extractRange(Object store, int start, int end) {
+            assert start == 0 && end == 0;
+            return null;
+        }
+
+        public static ArrayExtractRangeNode create() {
+            return EmptyArrayNodesFactory.ArrayExtractRangeNodeGen.create();
         }
     }
 
