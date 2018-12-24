@@ -588,14 +588,14 @@ public abstract class ArrayNodes {
                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
             final int size = strategy.getSize(array);
             final Object store = Layouts.ARRAY.getStore(array);
-            final Object newStore = arrayBuilder.start(size);
+            Object newStore = arrayBuilder.start(size);
 
             int m = 0;
 
             for (int n = 0; n < size; n++) {
                 Object v = getNode.execute(store, n);
                 if (v != nil()) {
-                    arrayBuilder.appendValue(newStore, m, v);
+                    newStore = arrayBuilder.appendValue(newStore, m, v);
                     m++;
                 }
             }
