@@ -34,7 +34,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.core.array.ArrayReflector;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -719,11 +719,22 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        public Object foreignArrayFromJava(TruffleObject array) {
-            return new ForeignArrayFromJava(ArrayReflector.reflect(getContext().getEnv().asHostObject(array)).getBoxedCopy());
+        @Specialization(guards = "strategyMatches(strategy, array)")
+        public Object foreignArrayFromJava(TruffleObject array,
+                @Cached("strategy(array)") ArrayStrategy strategy,
+                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
+                @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode) {
+            Object hostObject = getContext().getEnv().asHostObject(array);
+            return new ForeignArrayFromJava(boxedCopyNode.execute(hostObject, lengthNode.execute(hostObject)));
         }
 
+        protected ArrayStrategy strategy(TruffleObject array) {
+            return ArrayStrategy.ofStore(getContext().getEnv().asHostObject(array));
+        }
+
+        protected boolean strategyMatches(ArrayStrategy strategy, TruffleObject array) {
+            return strategy.matchesStore(getContext().getEnv().asHostObject(array));
+        }
     }
 
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)

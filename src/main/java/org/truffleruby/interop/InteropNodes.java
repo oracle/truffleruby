@@ -787,8 +787,10 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object toJavaList(DynamicObject interopModule, DynamicObject array,
-                                  @Cached("of(array)") ArrayStrategy strategy) {
-            return getContext().getEnv().asGuestValue(Arrays.asList(strategy.newMirror(array).getBoxedCopy()));
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
+                @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode) {
+            return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(array, lengthNode.execute(array))));
         }
 
         @Specialization(guards = "!isRubyArray(object)")

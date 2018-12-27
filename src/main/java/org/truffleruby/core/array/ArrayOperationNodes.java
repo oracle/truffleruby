@@ -60,9 +60,10 @@ public class ArrayOperationNodes {
 
         @Specialization
         public Object[] boxedCopy(Object store, int size,
-                @Cached("strategy.copyToNode()") ArrayCopyToNode copyToNode) {
+                @Cached("strategy.copyToNode()") ArrayCopyToNode copyToNode,
+                @Cached("strategy.lengthNode()") ArrayLengthNode lengthNode) {
             final Object[] newStore = new Object[size];
-            copyToNode.execute(store, newStore, 0, 0, size);
+            copyToNode.execute(store, newStore, 0, 0, Math.min(lengthNode.execute(store), size));
             return newStore;
         }
 

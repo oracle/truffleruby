@@ -31,9 +31,9 @@ public abstract class ArrayGeneralizeNode extends RubyBaseNode {
     public Object[] generalize(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         assert !ArrayGuards.isObjectArray(array);
-        final ArrayMirror mirror = strategy.newMirror(array);
         final Object store = Layouts.ARRAY.getStore(array);
         final int capacity;
         final int length = lengthNode.execute(store);
@@ -42,7 +42,7 @@ public abstract class ArrayGeneralizeNode extends RubyBaseNode {
         } else {
             capacity = length;
         }
-        final Object[] newStore = mirror.getBoxedCopy(capacity);
+        final Object[] newStore = boxedCopyNode.execute(store, capacity);
         strategy.setStore(array, newStore);
         return newStore;
     }
