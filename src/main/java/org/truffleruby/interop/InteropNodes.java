@@ -44,6 +44,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -768,8 +769,9 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object toJavaArray(DynamicObject interopModule, DynamicObject array,
-                                  @Cached("of(array)") ArrayStrategy strategy) {
-            return getContext().getEnv().asGuestValue(strategy.newMirror(array).copyArrayAndMirror().getArray());
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
+            return getContext().getEnv().asGuestValue(copyStoreNode.execute(Layouts.ARRAY.getStore(array), Layouts.ARRAY.getSize(array)));
         }
 
         @Specialization(guards = "!isRubyArray(object)")

@@ -1,6 +1,10 @@
 package org.truffleruby.core.array;
 
+import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
 import org.truffleruby.language.RubyBaseNode;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 
 public class ArrayOperationNodes {
 
@@ -42,5 +46,28 @@ public class ArrayOperationNodes {
     public static abstract class ArraySortNode extends RubyBaseNode {
 
         public abstract void execute(Object store, int size);
+    }
+
+    public static abstract class ArrayBoxedCopyNode extends RubyBaseNode {
+
+        protected ArrayStrategy strategy;
+
+        public ArrayBoxedCopyNode(ArrayStrategy strategy) {
+            this.strategy = strategy;
+        }
+
+        public abstract Object[] execute(Object store, int size);
+
+        @Specialization
+        public Object[] boxedCopy(Object store, int size,
+                @Cached("strategy.copyToNode()") ArrayCopyToNode copyToNode) {
+            final Object[] newStore = new Object[size];
+            copyToNode.execute(store, newStore, 0, 0, size);
+            return newStore;
+        }
+
+        public static ArrayBoxedCopyNode create(ArrayStrategy strategy) {
+            return ArrayBoxedCopyNodeGen.create(strategy);
+        }
     }
 }

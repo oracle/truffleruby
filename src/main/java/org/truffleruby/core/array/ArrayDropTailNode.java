@@ -38,7 +38,7 @@ public abstract class ArrayDropTailNode extends RubyNode {
             return createArray(null, 0);
         } else {
             final int newSize = size - index;
-            final Object withoutTail = extractRangeNode.execute(strategy.makeStorageShared(array).getArray(), 0, newSize);
+            final Object withoutTail = extractRangeNode.execute(strategy.makeStorageShared(array), 0, newSize);
             return createArray(withoutTail, newSize);
         }
     }

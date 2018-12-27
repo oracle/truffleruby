@@ -14,6 +14,7 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayLengthNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayBoxedCopyNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeNode;
@@ -61,6 +62,10 @@ public abstract class ArrayStrategy {
 
     public abstract ArrayExtractRangeNode extractRangeNode();
 
+    public ArrayBoxedCopyNode boxedCopyNode() {
+        return ArrayBoxedCopyNode.create(this);
+    }
+
     /**
      * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
      * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
@@ -90,11 +95,11 @@ public abstract class ArrayStrategy {
 
     public abstract ArrayStrategy sharedStorageStrategy();
 
-    public ArrayMirror makeStorageShared(DynamicObject array) {
-        final ArrayMirror currentMirror = newMirror(array);
-        DelegatedArrayStorage newStore = new DelegatedArrayStorage(currentMirror.getArray(), 0, getSize(array));
+    public Object makeStorageShared(DynamicObject array) {
+        final Object currentMirror = Layouts.ARRAY.getStore(array);
+        DelegatedArrayStorage newStore = new DelegatedArrayStorage(currentMirror, 0, getSize(array));
         setStore(array, newStore);
-        return new DelegatedArrayMirror(newStore, this);
+        return newStore;
     }
 
     public abstract ArrayMirror newArray(int size);
@@ -683,7 +688,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public ArrayMirror makeStorageShared(DynamicObject array) {
-            return EmptyArrayMirror.INSTANCE;
+            return null;
         }
 
         @Override
@@ -810,8 +815,8 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayMirror makeStorageShared(DynamicObject array) {
-            return newMirror(array);
+        public Object makeStorageShared(DynamicObject array) {
+            return Layouts.ARRAY.getStore(array);
         }
 
         @Override

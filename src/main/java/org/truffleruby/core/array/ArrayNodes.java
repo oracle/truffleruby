@@ -190,10 +190,11 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)", "strategy.matches(array)" })
         public DynamicObject mulEmpty(DynamicObject array, long count,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror newStore = strategy.newArray(0);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
+            final Object newStore = newStoreNode.execute(0);
 
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), newStore.getArray(), 0);
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), newStore, 0);
             propagateTaintNode.propagate(array, result);
             return result;
         }
@@ -387,7 +388,7 @@ public abstract class ArrayNodes {
                     // Move tail
                     final int tailSize = arraySize - (start + length);
                     if (tailProfile.profile(tailSize > 0)) {
-                        final Object store = mutableStrategy.newMirror(array).getArray();
+                        final Object store = Layouts.ARRAY.getStore(array);
 
                         if (moveLeftProfile.profile(replacementSize < length)) {
                             // Moving elements left
@@ -578,7 +579,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
             final int size = strategy.getSize(array);
-            Object compactMirror = extractRangeNode.execute(strategy.makeStorageShared(array).getArray(), 0, size);
+            Object compactMirror = extractRangeNode.execute(strategy.makeStorageShared(array), 0, size);
             return createArray(compactMirror, size);
         }
 
@@ -622,12 +623,13 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+                @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+                @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNOde) {
             final int size = strategy.getSize(array);
             final Object oldStore = Layouts.ARRAY.getStore(array);
             final Object newStore;
             if (strategy != mutableStrategy) {
-                newStore = mutableStrategy.newArray(size).getArray();
+                newStore = newStoreNOde.execute(size);
             } else {
                 newStore = oldStore;
             }
@@ -2060,7 +2062,7 @@ public abstract class ArrayNodes {
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final Object store = strategy.makeStorageShared(array).getArray();
+            final Object store = strategy.makeStorageShared(array);
 
             // Extract values in a new array
             final Object result = extractRangeNode.execute(store, 0, numShift);

@@ -63,7 +63,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
         final int size = strategy.getSize(from);
-        final Object copy = extractRangeNode.execute(strategy.makeStorageShared(from).getArray(), 0, size);
+        final Object copy = extractRangeNode.execute(strategy.makeStorageShared(from), 0, size);
         return allocateArray(coreLibrary().getArrayClass(), copy, size);
     }
 
