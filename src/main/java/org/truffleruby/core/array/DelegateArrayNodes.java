@@ -1,7 +1,6 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.DelegateArrayNodesFactory.ArrayCopyToNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodes.ArrayLengthNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;

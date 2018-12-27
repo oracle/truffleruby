@@ -2,8 +2,6 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.EmptyArrayNodesFactory.ArrayGetNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.ArraySetNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodes.ArrayLengthNode;
-import org.truffleruby.core.array.ObjectArrayNodes.ArrayExtractRangeNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Specialization;

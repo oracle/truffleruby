@@ -3,7 +3,6 @@ package org.truffleruby.core.array;
 import java.util.Arrays;
 
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayCopyToNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayExtractRangeNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayGetNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayNewStoreNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.ArraySetNodeGen;

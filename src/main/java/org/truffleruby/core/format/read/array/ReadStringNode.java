@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayMirror;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatNode;
