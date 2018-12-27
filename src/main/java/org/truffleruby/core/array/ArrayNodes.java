@@ -2025,11 +2025,12 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftOther(DynamicObject array, NotProvided n,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
             final Object value = getNode.execute(store, 0);
-            strategy.setStore(array, strategy.newMirrorFromStore(store).extractRange(1, size).getArray());
+            strategy.setStore(array, extractRangeNode.execute(store, 1, size));
             setSize(array, size - 1);
 
             return value;
@@ -2055,18 +2056,19 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n > 0", "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftMany(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.makeStorageShared(array);
+            final Object store = strategy.makeStorageShared(array).getArray();
 
             // Extract values in a new array
-            final ArrayMirror result = store.extractRange(0, numShift);
+            final Object result = extractRangeNode.execute(store, 0, numShift);
 
-            strategy.setStore(array, store.extractRange(numShift, size).getArray());
+            strategy.setStore(array, extractRangeNode.execute(store, numShift, size));
             setSize(array, size - numShift);
 
-            return createArray(result.getArray(), numShift);
+            return createArray(result, numShift);
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
