@@ -1035,12 +1035,13 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
             final Object value = args[0];
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
             for (int i = 0; i < size; i++) {
-                store.set(i, value);
+                setNode.execute(store, i, value);
             }
             return array;
         }
@@ -1183,14 +1184,16 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "size >= 0", "wasProvided(value)", "strategy.specializesFor(value)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject initializeWithSizeAndValue(DynamicObject array, int size, Object value, NotProvided block,
                 @Cached("forValue(value)") ArrayStrategy strategy,
+                @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("createBinaryProfile()") ConditionProfile needsFill) {
-            final ArrayMirror store = strategy.newArray(size);
+            final Object store = newStoreNode.execute(size);
             if (needsFill.profile(!strategy.isDefaultValue(value))) {
                 for (int i = 0; i < size; i++) {
-                    store.set(i, value);
+                    setNode.execute(store, i, value);
                 }
             }
-            setStoreAndSize(array, store.getArray(), size);
+            setStoreAndSize(array, store, size);
             return array;
         }
 

@@ -34,8 +34,9 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             "isInBounds(array, index)", "strategy.matches(array)", "strategy.accepts(value)"
     }, limit = "STORAGE_STRATEGIES")
     public Object writeWithin(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy strategy) {
-        strategy.newMirror(array).set(index, value);
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+        setNode.execute(Layouts.ARRAY.getStore(array), index, value);
         return value;
     }
 
@@ -95,13 +96,14 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeBeyondObject(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+            @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
             @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final ArrayMirror store = mutableStrategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
         for (int n = strategy.getSize(array); n < index; n++) {
-            store.set(n, nil());
+            setNode.execute(store, n, nil());
         }
-        store.set(index, value);
+        setNode.execute(store, index, value);
         setSize(array, index + 1);
         return value;
     }
