@@ -1645,21 +1645,23 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object popNotEmptyUnsharedStorage(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+                @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.newMirror(array);
+            final Object store = Layouts.ARRAY.getStore(array);
 
             // Extract values in a new array
-            final ArrayMirror popped = strategy.newArray(numPop);
-            store.copyTo(popped, size - numPop, 0, numPop);
+            final Object popped = newStoreNode.execute(numPop);
+            copyToNode.execute(store, popped, size - numPop, 0, numPop);
 
             // Remove the end from the original array.
-            final ArrayMirror filler = strategy.newArray(numPop);
-            filler.copyTo(store, 0, size - numPop, numPop);
+            final Object filler = newStoreNode.execute(numPop);
+            copyToNode.execute(filler, store, 0, size - numPop, numPop);
             setSize(array, size - numPop);
 
-            return createArray(popped.getArray(), numPop);
+            return createArray(popped, numPop);
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
