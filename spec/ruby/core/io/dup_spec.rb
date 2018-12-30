@@ -3,7 +3,7 @@ require_relative 'fixtures/classes'
 
 describe "IO#dup" do
   before :each do
-    @file = tmp("rubinius_spec_io_dup_#{$$}_#{Time.now.to_f}")
+    @file = tmp("spec_io_dup")
     @f = File.open @file, 'w+'
     @i = @f.dup
 
@@ -69,9 +69,19 @@ end
 
   it "always sets the close-on-exec flag for the new IO object" do
     @f.close_on_exec = true
-    @f.dup.close_on_exec?.should == true
+    dup = @f.dup
+    begin
+      dup.close_on_exec?.should == true
+    ensure
+      dup.close
+    end
 
     @f.close_on_exec = false
-    @f.dup.close_on_exec?.should == true
+    dup = @f.dup
+    begin
+      dup.close_on_exec?.should == true
+    ensure
+      dup.close
+    end
   end
 end
