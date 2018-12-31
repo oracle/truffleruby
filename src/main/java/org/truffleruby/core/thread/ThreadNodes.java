@@ -59,7 +59,6 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
