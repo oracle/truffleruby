@@ -1,10 +1,12 @@
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayOperationNodes {
 
@@ -69,6 +71,19 @@ public class ArrayOperationNodes {
 
         public static ArrayBoxedCopyNode create(ArrayStrategy strategy) {
             return ArrayBoxedCopyNodeGen.create(strategy);
+        }
+    }
+
+    public static abstract class ArrayUnshareStorageNode extends RubyBaseNode {
+
+        public abstract Object execute(Object store);
+    }
+
+    public static abstract class ArrayCOmmonUnshareStorageNode extends ArrayUnshareStorageNode {
+
+        @Specialization
+        public Object unshareStoreNode(DynamicObject array) {
+            return Layouts.ARRAY.getStore(array);
         }
     }
 }
