@@ -1764,9 +1764,9 @@ EOS
     run_args.push *args
 
     if benchmark_ruby
-      sh benchmark_ruby, *run_args
+      sh benchmark_ruby, *run_args, use_exec: true
     else
-      run_ruby *run_args
+      run_ruby *run_args, use_exec: true
     end
   end
 
