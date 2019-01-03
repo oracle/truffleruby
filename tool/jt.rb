@@ -974,11 +974,11 @@ module Commands
       end
     end.sort - excluded_files
 
-    run_mri_tests(mri_args, files_to_run, runner_args)
+    run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
   private :test_mri
 
-  def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
+  def run_mri_tests(extra_args, test_files, runner_args, run_options)
     prefix = "test/mri/tests/"
     abs_prefix = "#{TRUFFLERUBY_DIR}/#{prefix}"
     test_files = test_files.map { |file|
@@ -1063,7 +1063,7 @@ module Commands
     sh "ruby", "tool/parse_mri_errors.rb", output_file
 
     puts "3. Verifying tests pass"
-    run_mri_tests(options, test_files, [])
+    run_mri_tests(options, test_files, [], use_exec: true)
   end
 
   def test_compiler(*args)
