@@ -468,14 +468,14 @@ module Commands
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
           native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
-                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java) 
+                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
-      jt ruby [jt options] [--] [ruby options] args...  
+      jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
@@ -489,7 +489,7 @@ module Commands
           --jdebug        run a JDWP debug server on #{JDEBUG_PORT}
           --jexception[s] print java exceptions
           --exec          use exec rather than system
-          --no-print-cmd  don\'t print the command          
+          --no-print-cmd  don\'t print the command
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
