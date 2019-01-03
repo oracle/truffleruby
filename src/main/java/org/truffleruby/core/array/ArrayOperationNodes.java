@@ -2,6 +2,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
+import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCOmmonUnshareStorageNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -84,6 +85,10 @@ public class ArrayOperationNodes {
         @Specialization
         public Object unshareStoreNode(DynamicObject array) {
             return Layouts.ARRAY.getStore(array);
+        }
+
+        public static ArrayUnshareStorageNode create() {
+            return ArrayCOmmonUnshareStorageNodeGen.create();
         }
     }
 }

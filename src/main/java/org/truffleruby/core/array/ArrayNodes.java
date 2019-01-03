@@ -1769,8 +1769,9 @@ public abstract class ArrayNodes {
                 @Cached("mutableStrategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
-                @Cached("mutableStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
-            final Object mutableStore = strategy.makeStorageUnshared(array).getArray();
+                @Cached("mutableStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+                @Cached("strategy.unshareNode()") ArrayOperationNodes.ArrayUnshareStorageNode unshareNode) {
+            final Object mutableStore = unshareNode.execute(array);
             return rejectInPlaceInternal(array, block, getNode, setNode, newStoreNode, copyToNode, mutableStore);
         }
 

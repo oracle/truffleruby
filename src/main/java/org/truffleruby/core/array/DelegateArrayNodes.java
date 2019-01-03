@@ -1,7 +1,9 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.ArrayCopyToNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.ArrayUnshareStoreNodeGen;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -136,6 +138,10 @@ public class DelegateArrayNodes {
             copyToNode.execute(store, newStore, 0, 0, store.length);
             Layouts.ARRAY.setStore(array, newStore);
             return newStore;
+        }
+
+        public static ArrayUnshareStorageNode create(ArrayStrategy strategy) {
+            return ArrayUnshareStoreNodeGen.create(strategy);
         }
     }
 }

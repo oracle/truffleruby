@@ -15,10 +15,12 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayBoxedCopyNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCOmmonUnshareStorageNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -66,6 +68,9 @@ public abstract class ArrayStrategy {
         return ArrayBoxedCopyNode.create(this);
     }
 
+    public ArrayUnshareStorageNode unshareNode() {
+        return ArrayCOmmonUnshareStorageNode.create();
+    }
     /**
      * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
      * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
@@ -880,6 +885,11 @@ public abstract class ArrayStrategy {
         @Override
         public ArrayStrategy sharedStorageStrategy() {
             return this;
+        }
+
+        @Override
+        public ArrayUnshareStorageNode unshareNode() {
+            return DelegateArrayNodes.ArrayUnshareStoreNode.create(typeStrategy);
         }
     }
 
