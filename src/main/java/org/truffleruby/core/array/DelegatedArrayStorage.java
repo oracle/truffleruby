@@ -15,7 +15,6 @@ public class DelegatedArrayStorage {
     public final int length;
 
     public DelegatedArrayStorage(Object storage, int offset, int length) {
-        assert !(storage instanceof ArrayMirror);
         assert offset >= 0;
         assert length >= 0;
         this.storage = storage;

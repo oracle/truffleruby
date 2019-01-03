@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.array;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayLengthNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
@@ -71,6 +74,13 @@ public abstract class ArrayStrategy {
     public ArrayUnshareStorageNode unshareNode() {
         return ArrayCOmmonUnshareStorageNode.create();
     }
+
+    public Iterable<Object> getIterable(DynamicObject array, int length) {
+        return getIterableFrom(Layouts.ARRAY.getStore(array), 0, length);
+    }
+
+    protected abstract Iterable<Object> getIterableFrom(Object array, int from, int length);
+
     /**
      * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
      * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
@@ -94,10 +104,6 @@ public abstract class ArrayStrategy {
         return Layouts.ARRAY.getSize(array);
     }
 
-    public ArrayMirror makeStorageUnshared(DynamicObject array) {
-        return newMirror(array);
-    }
-
     public abstract ArrayStrategy sharedStorageStrategy();
 
     public Object makeStorageShared(DynamicObject array) {
@@ -107,18 +113,7 @@ public abstract class ArrayStrategy {
         return newStore;
     }
 
-    public abstract ArrayMirror newArray(int size);
-
-    public final ArrayMirror newMirror(DynamicObject array) {
-        return newMirrorFromStore(Layouts.ARRAY.getStore(array));
-    }
-
-    public ArrayMirror newMirrorFromStore(Object store) {
-        throw unsupported();
-    }
-
     public void setStore(DynamicObject array, Object store) {
-        assert !(store instanceof ArrayMirror);
         Layouts.ARRAY.setStore(array, store);
     }
 
@@ -276,16 +271,6 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayMirror newArray(int size) {
-            return new IntegerArrayMirror(new int[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new IntegerArrayMirror((int[]) store);
-        }
-
-        @Override
         public String toString() {
             return "int[]";
         }
@@ -334,6 +319,37 @@ public abstract class ArrayStrategy {
         public ArrayStrategy sharedStorageStrategy() {
             return DELEGATED_INSTANCE;
         }
+
+        @Override
+        protected Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            int[] store = (int[]) array;
+            return () -> new Iterator<Object>() {
+
+                private int n = from;
+
+                @Override
+                public boolean hasNext() {
+                    return n < from + length;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    if (n >= from + length) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Object object = store[n];
+                    n++;
+                    return object;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
     }
 
     private static class LongArrayStrategy extends ArrayStrategy {
@@ -379,16 +395,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof long[];
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            return new LongArrayMirror(new long[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new LongArrayMirror((long[]) store);
         }
 
         @Override
@@ -440,6 +446,37 @@ public abstract class ArrayStrategy {
         public ArrayStrategy sharedStorageStrategy() {
             return DELEGATED_INSTANCE;
         }
+
+        @Override
+        protected Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            long[] store = (long[]) array;
+            return () -> new Iterator<Object>() {
+
+                private int n = from;
+
+                @Override
+                public boolean hasNext() {
+                    return n < from + length;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    if (n >= from + length) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Object object = store[n];
+                    n++;
+                    return object;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
     }
 
     private static class DoubleArrayStrategy extends ArrayStrategy {
@@ -485,16 +522,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof double[];
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            return new DoubleArrayMirror(new double[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new DoubleArrayMirror((double[]) store);
         }
 
         @Override
@@ -546,6 +573,37 @@ public abstract class ArrayStrategy {
         public ArrayStrategy sharedStorageStrategy() {
             return DELEGATED_INSTANCE;
         }
+
+        @Override
+        protected Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            double[] store = (double[]) array;
+            return () -> new Iterator<Object>() {
+
+                private int n = from;
+
+                @Override
+                public boolean hasNext() {
+                    return n < from + length;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    if (n >= from + length) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Object object = store[n];
+                    n++;
+                    return object;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
     }
 
     private static class ObjectArrayStrategy extends ArrayStrategy {
@@ -591,16 +649,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store != null && store.getClass() == Object[].class;
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            return new ObjectArrayMirror(new Object[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new ObjectArrayMirror((Object[]) store);
         }
 
         @Override
@@ -652,6 +700,37 @@ public abstract class ArrayStrategy {
         public ArrayStrategy sharedStorageStrategy() {
             return DELEGATED_INSTANCE;
         }
+
+        @Override
+        protected Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            Object[] store = (Object[]) array;
+            return () -> new Iterator<Object>() {
+
+                private int n = from;
+
+                @Override
+                public boolean hasNext() {
+                    return n < from + length;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    if (n >= from + length) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Object object = store[n];
+                    n++;
+                    return object;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
     }
 
     // Null/empty strategy
@@ -692,7 +771,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayMirror makeStorageShared(DynamicObject array) {
+        public Object makeStorageShared(DynamicObject array) {
             return null;
         }
 
@@ -704,17 +783,6 @@ public abstract class ArrayStrategy {
         @Override
         public int getSize(DynamicObject array) {
             return 0;
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            assert size == 0;
-            return EmptyArrayMirror.INSTANCE;
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return EmptyArrayMirror.INSTANCE;
         }
 
         @Override
@@ -766,6 +834,28 @@ public abstract class ArrayStrategy {
         public ArrayStrategy sharedStorageStrategy() {
             return this;
         }
+
+        @Override
+        public Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            return () -> new Iterator<Object>() {
+
+                @Override
+                public boolean hasNext() {
+                    return false;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    throw new NoSuchElementException();
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
     }
 
     private static class DelegatedArrayStrategy extends ArrayStrategy {
@@ -812,28 +902,8 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayMirror makeStorageUnshared(DynamicObject array) {
-            ArrayMirror oldMirror = newMirror(array);
-            ArrayMirror newMirror = oldMirror.copyArrayAndMirror(oldMirror.getLength());
-            setStore(array, newMirror.getArray());
-            return newMirror;
-        }
-
-        @Override
         public Object makeStorageShared(DynamicObject array) {
             return Layouts.ARRAY.getStore(array);
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            Object rawStorage = typeStrategy.newArray(size).getArray();
-            DelegatedArrayStorage storage = new DelegatedArrayStorage(rawStorage, 0, size);
-            return new DelegatedArrayMirror(storage, typeStrategy);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new DelegatedArrayMirror((DelegatedArrayStorage) store, typeStrategy);
         }
 
         @TruffleBoundary
@@ -891,6 +961,12 @@ public abstract class ArrayStrategy {
         public ArrayUnshareStorageNode unshareNode() {
             return DelegateArrayNodes.ArrayUnshareStoreNode.create(typeStrategy);
         }
+
+        @Override
+        public Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            DelegatedArrayStorage store = (DelegatedArrayStorage) array;
+            return typeStrategy.getIterableFrom(store.storage, from + store.offset, length);
+        }
     }
 
     // Fallback strategy
@@ -922,16 +998,6 @@ public abstract class ArrayStrategy {
         @Override
         public ArrayStrategy generalize(ArrayStrategy other) {
             return other;
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            throw unsupported();
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            throw unsupported();
         }
 
         @Override
@@ -981,6 +1047,11 @@ public abstract class ArrayStrategy {
 
         @Override
         public ArrayStrategy sharedStorageStrategy() {
+            throw unsupported();
+        }
+
+        @Override
+        public Iterable<Object> getIterableFrom(Object array, int from, int length) {
             throw unsupported();
         }
     }
