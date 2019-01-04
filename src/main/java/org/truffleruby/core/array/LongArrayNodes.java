@@ -11,74 +11,80 @@ package org.truffleruby.core.array;
 
 import java.util.Arrays;
 
-import org.truffleruby.core.array.LongArrayNodesFactory.ArrayCopyToNodeGen;
-import org.truffleruby.core.array.LongArrayNodesFactory.ArrayNewStoreNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayCapacityNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayCopyStoreNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayCopyToNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayExtractRangeNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayGetNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayNewStoreNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArraySetNodeGen;
+import org.truffleruby.core.array.LongArrayNodesFactory.LongArraySortNodeGen;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public class LongArrayNodes {
-    public static abstract class ArrayLengthNode extends ArrayOperationNodes.ArrayLengthNode {
+    public static abstract class LongArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
         public int length(long[] store) {
             return store.length;
         }
 
-        public static ArrayLengthNode create() {
-            return LongArrayNodesFactory.ArrayLengthNodeGen.create();
+        public static LongArrayCapacityNode create() {
+            return LongArrayCapacityNodeGen.create();
         }
     }
 
-    public static abstract class ArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
+    public static abstract class LongArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization
         public long get(long[] store, int index) {
             return store[index];
         }
 
-        public static ArrayGetNode create() {
-            return LongArrayNodesFactory.ArrayGetNodeGen.create();
+        public static LongArrayGetNode create() {
+            return LongArrayGetNodeGen.create();
         }
     }
 
-    public static abstract class ArraySetNode extends ArrayOperationNodes.ArraySetNode {
+    public static abstract class LongArraySetNode extends ArrayOperationNodes.ArraySetNode {
 
         @Specialization
         public void set(long[] store, int index, long value) {
             store[index] = value;
         }
 
-        public static ArraySetNode create() {
-            return LongArrayNodesFactory.ArraySetNodeGen.create();
+        public static LongArraySetNode create() {
+            return LongArraySetNodeGen.create();
         }
     }
 
-    public static abstract class ArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
+    public static abstract class LongArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
 
         @Specialization
         public long[] newStore(int size) {
             return new long[size];
         }
 
-        public static ArrayNewStoreNode create() {
-            return ArrayNewStoreNodeGen.create();
+        public static LongArrayNewStoreNode create() {
+            return LongArrayNewStoreNodeGen.create();
         }
     }
 
-    public static abstract class ArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
+    public static abstract class LongArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
 
         @Specialization
         public long[] newStoreCopying(long[] store, int size) {
             return ArrayUtils.grow(store, size);
         }
 
-        public static ArrayCopyStoreNode create() {
-            return LongArrayNodesFactory.ArrayCopyStoreNodeGen.create();
+        public static LongArrayCopyStoreNode create() {
+            return LongArrayCopyStoreNodeGen.create();
         }
     }
 
-    public static abstract class ArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
+    public static abstract class LongArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         @Specialization
         public void copyIntToInt(long[] from, long[] to, int sourceStart, int destinationStart, int length) {
@@ -94,12 +100,12 @@ public class LongArrayNodes {
             }
         }
 
-        public static ArrayCopyToNode create() {
-            return ArrayCopyToNodeGen.create();
+        public static LongArrayCopyToNode create() {
+            return LongArrayCopyToNodeGen.create();
         }
     }
 
-    public static abstract class ArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
+    public static abstract class LongArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
         public long[] extractRange(long[] store, int start, int end) {
@@ -108,20 +114,20 @@ public class LongArrayNodes {
             return newStore;
         }
 
-        public static ArrayExtractRangeNode create() {
-            return LongArrayNodesFactory.ArrayExtractRangeNodeGen.create();
+        public static LongArrayExtractRangeNode create() {
+            return LongArrayExtractRangeNodeGen.create();
         }
     }
 
-    public static abstract class ArraySortNode extends ArrayOperationNodes.ArraySortNode {
+    public static abstract class LongArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
         @Specialization
         public void sort(long[] store, int size) {
             Arrays.sort(store, 0, size);
         }
 
-        public static ArraySortNode create() {
-            return LongArrayNodesFactory.ArraySortNodeGen.create();
+        public static LongArraySortNode create() {
+            return LongArraySortNodeGen.create();
         }
     }
 

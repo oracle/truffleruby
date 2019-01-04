@@ -723,9 +723,9 @@ public abstract class TruffleDebugNodes {
         public Object foreignArrayFromJava(TruffleObject array,
                 @Cached("strategy(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
-                @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode) {
+                @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode) {
             Object hostObject = getContext().getEnv().asHostObject(array);
-            return new ForeignArrayFromJava(boxedCopyNode.execute(hostObject, lengthNode.execute(hostObject)));
+            return new ForeignArrayFromJava(boxedCopyNode.execute(hostObject, capacityNode.execute(hostObject)));
         }
 
         protected ArrayStrategy strategy(TruffleObject array) {

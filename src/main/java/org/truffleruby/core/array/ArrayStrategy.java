@@ -13,12 +13,12 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayLengthNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayBoxedCopyNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCOmmonUnshareStorageNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCommonUnshareStorageNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeNode;
@@ -63,7 +63,7 @@ public abstract class ArrayStrategy {
 
     public abstract ArraySortNode sortNode();
 
-    public abstract ArrayLengthNode lengthNode();
+    public abstract ArrayCapacityNode capacityNode();
 
     public abstract ArrayExtractRangeNode extractRangeNode();
 
@@ -72,7 +72,7 @@ public abstract class ArrayStrategy {
     }
 
     public ArrayUnshareStorageNode unshareNode() {
-        return ArrayCOmmonUnshareStorageNode.create();
+        return ArrayCommonUnshareStorageNode.create();
     }
 
     public Iterable<Object> getIterable(DynamicObject array, int length) {
@@ -276,38 +276,38 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return IntegerArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return IntegerArrayNodes.IntArrayCapacityNode.create();
         }
 
         @Override
         public ArrayGetNode getNode() {
-            return IntegerArrayNodes.ArrayGetNode.create();
+            return IntegerArrayNodes.IntArrayGetNode.create();
         }
 
         @Override
         public ArraySetNode setNode() {
-            return IntegerArrayNodes.ArraySetNode.create();
+            return IntegerArrayNodes.IntArraySetNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return IntegerArrayNodes.ArrayNewStoreNode.create();
+            return IntegerArrayNodes.IntArrayNewStoreNode.create();
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return IntegerArrayNodes.ArrayCopyStoreNode.create();
+            return IntegerArrayNodes.IntArrayCopyStoreNode.create();
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return IntegerArrayNodes.ArrayCopyToNode.create();
+            return IntegerArrayNodes.IntArrayCopyToNode.create();
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return IntegerArrayNodes.ArrayExtractRangeNode.create();
+            return IntegerArrayNodes.IntArrayExtractRangeNode.create();
         }
 
         @Override
@@ -403,43 +403,43 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return LongArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return LongArrayNodes.LongArrayCapacityNode.create();
         }
 
         @Override
         public ArrayGetNode getNode() {
-            return LongArrayNodes.ArrayGetNode.create();
+            return LongArrayNodes.LongArrayGetNode.create();
         }
 
         @Override
         public ArraySetNode setNode() {
-            return LongArrayNodes.ArraySetNode.create();
+            return LongArrayNodes.LongArraySetNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return LongArrayNodes.ArrayNewStoreNode.create();
+            return LongArrayNodes.LongArrayNewStoreNode.create();
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return LongArrayNodes.ArrayCopyStoreNode.create();
+            return LongArrayNodes.LongArrayCopyStoreNode.create();
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return LongArrayNodes.ArrayExtractRangeNode.create();
+            return LongArrayNodes.LongArrayExtractRangeNode.create();
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return LongArrayNodes.ArrayCopyToNode.create();
+            return LongArrayNodes.LongArrayCopyToNode.create();
         }
 
         @Override
         public ArraySortNode sortNode() {
-            return LongArrayNodes.ArraySortNode.create();
+            return LongArrayNodes.LongArraySortNode.create();
         }
 
         @Override
@@ -530,43 +530,43 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return DoubleArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return DoubleArrayNodes.DoubleArrayCapacityNode.create();
         }
 
         @Override
         public ArrayGetNode getNode() {
-            return DoubleArrayNodes.ArrayGetNode.create();
+            return DoubleArrayNodes.DoubleArrayGetNode.create();
         }
 
         @Override
         public ArraySetNode setNode() {
-            return DoubleArrayNodes.ArraySetNode.create();
+            return DoubleArrayNodes.DoubleArraySetNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return DoubleArrayNodes.ArrayNewStoreNode.create();
+            return DoubleArrayNodes.DoubleArrayNewStoreNode.create();
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return DoubleArrayNodes.ArrayCopyStoreNode.create();
+            return DoubleArrayNodes.DoubleArrayCopyStoreNode.create();
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return DoubleArrayNodes.ArrayCopyToNode.create();
+            return DoubleArrayNodes.DoubleArrayCopyToNode.create();
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return DoubleArrayNodes.ArrayExtractRangeNode.create();
+            return DoubleArrayNodes.DoubleArrayExtractRangeNode.create();
         }
 
         @Override
         public ArraySortNode sortNode() {
-            return DoubleArrayNodes.ArraySortNode.create();
+            return DoubleArrayNodes.DoubleArraySortNode.create();
         }
 
         @Override
@@ -657,43 +657,43 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return ObjectArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return ObjectArrayNodes.ObjectArrayCapacityNode.create();
         }
 
         @Override
         public ArrayGetNode getNode() {
-            return ObjectArrayNodes.ArrayGetNode.create();
+            return ObjectArrayNodes.ObjectArrayGetNode.create();
         }
 
         @Override
         public ArraySetNode setNode() {
-            return ObjectArrayNodes.ArraySetNode.create();
+            return ObjectArrayNodes.ObjectArraySetNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return ObjectArrayNodes.ArrayNewStoreNode.create();
+            return ObjectArrayNodes.ObjectArrayNewStoreNode.create();
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return ObjectArrayNodes.ArrayCopyStoreNode.create();
+            return ObjectArrayNodes.ObjectArrayCopyStoreNode.create();
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return ObjectArrayNodes.ArrayCopyToNode.create();
+            return ObjectArrayNodes.ObjectArrayCopyToNode.create();
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return ObjectArrayNodes.ArrayExtractRangeNode.create();
+            return ObjectArrayNodes.ObjectArrayExtractRangeNode.create();
         }
 
         @Override
         public ArraySortNode sortNode() {
-            return ObjectArrayNodes.ArraySortNode.create();
+            return ObjectArrayNodes.ObjectArraySortNode.create();
         }
 
         @Override
@@ -791,43 +791,43 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return EmptyArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return EmptyArrayNodes.EmptyArrayCapacityNode.create();
         }
 
         @Override
         public ArrayGetNode getNode() {
-            return EmptyArrayNodes.ArrayGetNode.create();
+            return EmptyArrayNodes.EmptyArrayGetNode.create();
         }
 
         @Override
         public ArraySetNode setNode() {
-            return EmptyArrayNodes.ArraySetNode.create();
+            return EmptyArrayNodes.EmptyArraySetNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return EmptyArrayNodes.ArrayNewStoreNode.create();
+            return EmptyArrayNodes.EmptyArrayNewStoreNode.create();
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return EmptyArrayNodes.ArrayCopyStoreNode.create();
+            return EmptyArrayNodes.EmptyArrayCopyStoreNode.create();
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return EmptyArrayNodes.ArrayCopyToNode.create();
+            return EmptyArrayNodes.EmptyArrayCopyToNode.create();
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return EmptyArrayNodes.ArrayExtractRangeNode.create();
+            return EmptyArrayNodes.EmptyArrayExtractRangeNode.create();
         }
 
         @Override
         public ArraySortNode sortNode() {
-            return EmptyArrayNodes.ArraySortNode.create();
+            return EmptyArrayNodes.EmptyArraySortNode.create();
         }
 
         @Override
@@ -914,7 +914,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public ArrayGetNode getNode() {
-            return DelegateArrayNodes.ArrayGetNode.create();
+            return DelegateArrayNodes.DelegateArrayGetNode.create();
         }
 
         @Override
@@ -923,33 +923,33 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
-            return DelegateArrayNodes.ArrayLengthNode.create();
+        public ArrayCapacityNode capacityNode() {
+            return DelegateArrayNodes.DelegateArrayCapacityNode.create();
         }
 
         @Override
         public ArrayNewStoreNode newStoreNode() {
-            return DelegateArrayNodes.ArrayNewStoreNode.create(typeStrategy);
+            return DelegateArrayNodes.DelegateArrayNewStoreNode.create(typeStrategy);
         }
 
         @Override
         public ArrayCopyStoreNode copyStoreNode() {
-            return DelegateArrayNodes.ArrayCopyStoreNode.create(typeStrategy);
+            return DelegateArrayNodes.DelegateArrayCopyStoreNode.create(typeStrategy);
         }
 
         @Override
         public ArrayCopyToNode copyToNode() {
-            return DelegateArrayNodes.ArrayCopyToNode.create(typeStrategy);
+            return DelegateArrayNodes.DelegateArrayCopyToNode.create(typeStrategy);
         }
 
         @Override
         public ArrayExtractRangeNode extractRangeNode() {
-            return DelegateArrayNodes.ArrayExtractRangeNode.create();
+            return DelegateArrayNodes.DelegateArrayExtractRangeNode.create();
         }
 
         @Override
         public ArraySortNode sortNode() {
-            return DelegateArrayNodes.ArraySortNode.create();
+            throw unsupported();
         }
 
         @Override
@@ -959,7 +959,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public ArrayUnshareStorageNode unshareNode() {
-            return DelegateArrayNodes.ArrayUnshareStoreNode.create(typeStrategy);
+            return DelegateArrayNodes.DelegateArrayUnshareStoreNode.create(typeStrategy);
         }
 
         @Override
@@ -1006,7 +1006,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public ArrayLengthNode lengthNode() {
+        public ArrayCapacityNode capacityNode() {
             throw unsupported();
         }
 

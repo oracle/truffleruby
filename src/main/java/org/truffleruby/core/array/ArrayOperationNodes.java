@@ -11,7 +11,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
-import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCOmmonUnshareStorageNodeGen;
+import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonUnshareStorageNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayOperationNodes {
 
-    public static abstract class ArrayLengthNode extends RubyBaseNode {
+    public static abstract class ArrayCapacityNode extends RubyBaseNode {
 
         public abstract int execute(Object store);
     }
@@ -73,9 +73,9 @@ public class ArrayOperationNodes {
         @Specialization
         public Object[] boxedCopy(Object store, int size,
                 @Cached("strategy.copyToNode()") ArrayCopyToNode copyToNode,
-                @Cached("strategy.lengthNode()") ArrayLengthNode lengthNode) {
+                @Cached("strategy.capacityNode()") ArrayCapacityNode capacityNode) {
             final Object[] newStore = new Object[size];
-            copyToNode.execute(store, newStore, 0, 0, Math.min(lengthNode.execute(store), size));
+            copyToNode.execute(store, newStore, 0, 0, Math.min(capacityNode.execute(store), size));
             return newStore;
         }
 
@@ -89,7 +89,7 @@ public class ArrayOperationNodes {
         public abstract Object execute(Object store);
     }
 
-    public static abstract class ArrayCOmmonUnshareStorageNode extends ArrayUnshareStorageNode {
+    public static abstract class ArrayCommonUnshareStorageNode extends ArrayUnshareStorageNode {
 
         @Specialization
         public Object unshareStoreNode(DynamicObject array) {
@@ -97,7 +97,7 @@ public class ArrayOperationNodes {
         }
 
         public static ArrayUnshareStorageNode create() {
-            return ArrayCOmmonUnshareStorageNodeGen.create();
+            return ArrayCommonUnshareStorageNodeGen.create();
         }
     }
 }

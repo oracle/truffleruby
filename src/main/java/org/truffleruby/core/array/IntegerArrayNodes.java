@@ -11,76 +11,79 @@ package org.truffleruby.core.array;
 
 import java.util.Arrays;
 
-import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayCopyToNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayGetNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodesFactory.ArrayNewStoreNodeGen;
-import org.truffleruby.core.array.IntegerArrayNodesFactory.ArraySetNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayCapacityNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayCopyStoreNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayCopyToNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayExtractRangeNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayGetNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayNewStoreNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArraySetNodeGen;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public class IntegerArrayNodes {
-    public static abstract class ArrayLengthNode extends ArrayOperationNodes.ArrayLengthNode {
+    public static abstract class IntArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
         public int length(int[] store) {
             return store.length;
         }
 
-        public static ArrayLengthNode create() {
-            return IntegerArrayNodesFactory.ArrayLengthNodeGen.create();
+        public static IntArrayCapacityNode create() {
+            return IntArrayCapacityNodeGen.create();
         }
     }
 
-    public static abstract class ArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
+    public static abstract class IntArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization
         public int get(int[] store, int index) {
             return store[index];
         }
 
-        public static ArrayGetNode create() {
-            return ArrayGetNodeGen.create();
+        public static IntArrayGetNode create() {
+            return IntArrayGetNodeGen.create();
         }
     }
 
-    public static abstract class ArraySetNode extends ArrayOperationNodes.ArraySetNode {
+    public static abstract class IntArraySetNode extends ArrayOperationNodes.ArraySetNode {
 
         @Specialization
         public void set(int[] store, int index, int value) {
             store[index] = value;
         }
 
-        public static ArraySetNode create() {
-            return ArraySetNodeGen.create();
+        public static IntArraySetNode create() {
+            return IntArraySetNodeGen.create();
         }
     }
 
-    public static abstract class ArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
+    public static abstract class IntArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
 
         @Specialization
         public int[] newStore(int size) {
             return new int[size];
         }
 
-        public static ArrayNewStoreNode create() {
-            return ArrayNewStoreNodeGen.create();
+        public static IntArrayNewStoreNode create() {
+            return IntArrayNewStoreNodeGen.create();
         }
     }
 
-    public static abstract class ArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
+    public static abstract class IntArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
 
         @Specialization
         public int[] newStoreCopying(int[] store, int size) {
             return ArrayUtils.grow(store, size);
         }
 
-        public static ArrayCopyStoreNode create() {
-            return IntegerArrayNodesFactory.ArrayCopyStoreNodeGen.create();
+        public static IntArrayCopyStoreNode create() {
+            return IntArrayCopyStoreNodeGen.create();
         }
     }
 
-    public static abstract class ArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
+    public static abstract class IntArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         @Specialization
         public void copyIntToInt(int[] from, int[] to, int sourceStart, int destinationStart, int length) {
@@ -103,12 +106,12 @@ public class IntegerArrayNodes {
             }
         }
 
-        public static ArrayCopyToNode create() {
-            return ArrayCopyToNodeGen.create();
+        public static IntArrayCopyToNode create() {
+            return IntArrayCopyToNodeGen.create();
         }
     }
 
-    public static abstract class ArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
+    public static abstract class IntArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
         public int[] extractRange(int[] store, int start, int end) {
@@ -117,8 +120,8 @@ public class IntegerArrayNodes {
             return newStore;
         }
 
-        public static ArrayExtractRangeNode create() {
-            return IntegerArrayNodesFactory.ArrayExtractRangeNodeGen.create();
+        public static IntArrayExtractRangeNode create() {
+            return IntArrayExtractRangeNodeGen.create();
         }
     }
 

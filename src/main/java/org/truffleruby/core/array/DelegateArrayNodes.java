@@ -11,27 +11,32 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
-import org.truffleruby.core.array.DelegateArrayNodesFactory.ArrayCopyToNodeGen;
-import org.truffleruby.core.array.DelegateArrayNodesFactory.ArrayUnshareStoreNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCapacityNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCopyStoreNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCopyToNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayExtractRangeNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayGetNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayNewStoreNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayUnshareStoreNodeGen;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class DelegateArrayNodes {
-    public static abstract class ArrayLengthNode extends ArrayOperationNodes.ArrayLengthNode {
+    public static abstract class DelegateArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
         public int length(DelegatedArrayStorage store) {
             return store.length;
         }
 
-        public static ArrayLengthNode create() {
-            return DelegateArrayNodesFactory.ArrayLengthNodeGen.create();
+        public static DelegateArrayCapacityNode create() {
+            return DelegateArrayCapacityNodeGen.create();
         }
     }
 
-    public static abstract class ArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
+    public static abstract class DelegateArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization(guards = "strategy.matchesStore(store.storage)")
         public Object get(DelegatedArrayStorage store, int index,
@@ -40,16 +45,16 @@ public class DelegateArrayNodes {
             return getNode.execute(store.storage, index + store.offset);
         }
 
-        public static ArrayGetNode create() {
-            return DelegateArrayNodesFactory.ArrayGetNodeGen.create();
+        public static DelegateArrayGetNode create() {
+            return DelegateArrayGetNodeGen.create();
         }
     }
 
-    public static abstract class ArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
+    public static abstract class DelegateArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
 
         protected final ArrayStrategy strategy;
 
-        public ArrayNewStoreNode(ArrayStrategy strategy) {
+        public DelegateArrayNewStoreNode(ArrayStrategy strategy) {
             this.strategy = strategy;
         }
 
@@ -60,16 +65,16 @@ public class DelegateArrayNodes {
             return new DelegatedArrayStorage(rawStorage, 0, size);
         }
 
-        public static ArrayNewStoreNode create(ArrayStrategy strategy) {
-            return DelegateArrayNodesFactory.ArrayNewStoreNodeGen.create(strategy);
+        public static DelegateArrayNewStoreNode create(ArrayStrategy strategy) {
+            return DelegateArrayNewStoreNodeGen.create(strategy);
         }
     }
 
-    public static abstract class ArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
+    public static abstract class DelegateArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
 
         protected final ArrayStrategy strategy;
 
-        public ArrayCopyStoreNode(ArrayStrategy strategy) {
+        public DelegateArrayCopyStoreNode(ArrayStrategy strategy) {
             this.strategy = strategy;
         }
 
@@ -82,16 +87,16 @@ public class DelegateArrayNodes {
             return newStore;
         }
 
-        public static ArrayCopyStoreNode create(ArrayStrategy strategy) {
-            return DelegateArrayNodesFactory.ArrayCopyStoreNodeGen.create(strategy);
+        public static DelegateArrayCopyStoreNode create(ArrayStrategy strategy) {
+            return DelegateArrayCopyStoreNodeGen.create(strategy);
         }
     }
 
-    public static abstract class ArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
+    public static abstract class DelegateArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         protected final ArrayStrategy strategy;
 
-        public ArrayCopyToNode(ArrayStrategy strategy) {
+        public DelegateArrayCopyToNode(ArrayStrategy strategy) {
             this.strategy = strategy;
         }
 
@@ -101,47 +106,35 @@ public class DelegateArrayNodes {
             copyToNode.execute(from.storage, to, sourceStart + from.offset, destinationStart, length);
         }
 
-        public static ArrayCopyToNode create(ArrayStrategy strategy) {
-            return ArrayCopyToNodeGen.create(strategy);
+        public static DelegateArrayCopyToNode create(ArrayStrategy strategy) {
+            return DelegateArrayCopyToNodeGen.create(strategy);
         }
     }
 
-    public static abstract class ArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
+    public static abstract class DelegateArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
         public Object extractRange(DelegatedArrayStorage store, int start, int end) {
             return new DelegatedArrayStorage(store.storage, store.offset + start, end - start);
         }
 
-        public static ArrayExtractRangeNode create() {
-            return DelegateArrayNodesFactory.ArrayExtractRangeNodeGen.create();
+        public static DelegateArrayExtractRangeNode create() {
+            return DelegateArrayExtractRangeNodeGen.create();
         }
     }
 
-    public static abstract class ArraySortNode extends ArrayOperationNodes.ArraySortNode {
-
-        @Specialization
-        public void sort(DelegatedArrayStorage store, int size) {
-            throw new UnsupportedOperationException();
-        }
-
-        public static ArraySortNode create() {
-            return DelegateArrayNodesFactory.ArraySortNodeGen.create();
-        }
-    }
-
-    public static abstract class ArrayUnshareStoreNode extends ArrayOperationNodes.ArrayUnshareStorageNode {
+    public static abstract class DelegateArrayUnshareStoreNode extends ArrayOperationNodes.ArrayUnshareStorageNode {
 
         protected final ArrayStrategy strategy;
 
-        public ArrayUnshareStoreNode(ArrayStrategy strategy) {
+        public DelegateArrayUnshareStoreNode(ArrayStrategy strategy) {
             this.strategy = strategy;
         }
 
         @Specialization
         public Object unshareStore(DynamicObject array,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
-                @Cached("create(strategy)") ArrayCopyToNode copyToNode) {
+                @Cached("create(strategy)") DelegateArrayCopyToNode copyToNode) {
             DelegatedArrayStorage store = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
             Object newStore = newStoreNode.execute(store.length);
             copyToNode.execute(store, newStore, 0, 0, store.length);
@@ -150,7 +143,7 @@ public class DelegateArrayNodes {
         }
 
         public static ArrayUnshareStorageNode create(ArrayStrategy strategy) {
-            return ArrayUnshareStoreNodeGen.create(strategy);
+            return DelegateArrayUnshareStoreNodeGen.create(strategy);
         }
     }
 }

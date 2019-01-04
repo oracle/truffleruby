@@ -31,13 +31,13 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     public boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutationStrategy,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
             @Cached("mutationStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final Object store = Layouts.ARRAY.getStore(array);
 
-        final int currentCapacity = lengthNode.execute(store);
+        final int currentCapacity = capacityNode.execute(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
             capacity = ArrayUtils.capacity(getContext(), currentCapacity, requiredCapacity);
@@ -54,12 +54,12 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public boolean ensureCapacity(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final Object store = Layouts.ARRAY.getStore(array);
 
-        final int length = lengthNode.execute(store);
+        final int length = capacityNode.execute(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
             strategy.setStore(array, copyStoreNode.execute(store, capacity));

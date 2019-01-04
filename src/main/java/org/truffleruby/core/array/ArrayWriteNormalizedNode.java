@@ -50,13 +50,13 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy currentStrategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
             @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
-            @Cached("currentStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("currentStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("currentStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
             @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
             @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
         final int size = getSize(array);
         final Object store = Layouts.ARRAY.getStore(array);
-        final Object newStore = newStoreNode.execute(lengthNode.execute(store));
+        final Object newStore = newStoreNode.execute(capacityNode.execute(store));
         copyToNode.execute(store, newStore, 0, 0, size);
         setNode.execute(newStore, index, value);
         generalizedStrategy.setStore(array, newStore);

@@ -15,7 +15,7 @@ import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayLengthNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -177,10 +177,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "arrayStrategy.accepts(value)" })
         public Object appendCompatibleType(Object array, int index, Object value,
-                @Cached("arrayStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+                @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
                 @Cached("arrayStrategy.copyStoreNode()") ArrayCopyStoreNode copyStoreNode,
                 @Cached("arrayStrategy.setNode()") ArraySetNode setNode) {
-            final int length = lengthNode.execute(array);
+            final int length = capacityNode.execute(array);
             if (index >= length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 final int capacity = ArrayUtils.capacityForOneMore(context, length);
@@ -198,7 +198,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
             final ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
 
-            final int neededCapacity = ArrayUtils.capacityForOneMore(context, currentStrategy.lengthNode().execute(store));
+            final int neededCapacity = ArrayUtils.capacityForOneMore(context, currentStrategy.capacityNode().execute(store));
 
             replaceNodes(generalized, neededCapacity);
 
@@ -233,13 +233,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
-                @Cached("arrayStrategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+                @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
                 @Cached("arrayStrategy.copyStoreNode()") ArrayCopyStoreNode copyStoreNode,
                 @Cached("otherStrategy.copyToNode()") ArrayCopyToNode copyToNode) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
-            int length = lengthNode.execute(array);
+            int length = capacityNode.execute(array);
             if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(arrayStrategy, neededSize);
@@ -258,12 +258,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
-                @Cached("arrayStrategy.lengthNode()") ArrayLengthNode lengthNode,
+                @Cached("arrayStrategy.capacityNode()") ArrayCapacityNode capacityNode,
                 @Cached("arrayStrategy.copyToNode()") ArrayCopyToNode copyToNode,
                 @Cached("otherStrategy.copyToNode()") ArrayCopyToNode otherCopyToNode,
                 @Cached("generalized.newStoreNode()") ArrayNewStoreNode newStoreNode) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            return fallback(array, index, other, lengthNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
+            return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
         }
 
         @Specialization(guards = "!arrayStrategy.matchesStore(array)")
@@ -273,22 +273,22 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayStrategy otherStrategy = ArrayStrategy.of(other);
             final ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
 
-            final ArrayLengthNode lengthNode = currentStrategy.lengthNode();
+            final ArrayCapacityNode capacityNode = currentStrategy.capacityNode();
             final ArrayCopyToNode copyToNode = currentStrategy.copyToNode();
             final ArrayCopyToNode otherCopyToNode = otherStrategy.copyToNode();
             final ArrayNewStoreNode newStoreNode = generalized.newStoreNode();
 
-            return fallback(array, index, other, lengthNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
+            return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
         }
 
-        private Object fallback(Object store, int index, DynamicObject other, ArrayLengthNode lengthNode, ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode, ArrayNewStoreNode newStoreNode,
+        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode, ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode, ArrayNewStoreNode newStoreNode,
                 ArrayStrategy generalized) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
             final Object newStore;
 
-            final int length = lengthNode.execute(store);
+            final int length = capacityNode.execute(store);
             if (neededSize > length) {
                 replaceNodes(generalized, neededSize);
                 final int capacity = ArrayUtils.capacity(context, length, neededSize);

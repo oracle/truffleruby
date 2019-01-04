@@ -34,7 +34,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("of(other)") ArrayStrategy otherStrategy,
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("generalized.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
             @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
             @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
@@ -44,7 +44,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
 
-        final int length = lengthNode.execute(store);
+        final int length = capacityNode.execute(store);
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
             Object newStore = copyStoreNode.execute(store, capacity);

@@ -1840,9 +1840,9 @@ public abstract class ArrayNodes {
         public DynamicObject replace(DynamicObject array, DynamicObject other,
                         @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("otherStrategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
+                @Cached("otherStrategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
             final int size = getSize(other);
-            final Object otherStore = Layouts.ARRAY.getStore(other);
+            final Object otherStore = otherStrategy.makeStorageShared(other);
             final Object copy = extractRangeNode.execute(otherStore, 0, size);
             arrayStrategy.setStoreAndSize(array, copy, size);
             return array;
@@ -2028,10 +2028,10 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftOther(DynamicObject array, NotProvided n,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
+                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
+                @Cached("strategy.sharedStorageStrategy().getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final int size = strategy.getSize(array);
+            final Object store = strategy.makeStorageShared(array);
             final Object value = getNode.execute(store, 0);
             strategy.setStore(array, extractRangeNode.execute(store, 1, size));
             setSize(array, size - 1);

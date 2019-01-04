@@ -39,14 +39,14 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject appendOneSameType(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
             @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final Object store = Layouts.ARRAY.getStore(array);
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
-        final int length = lengthNode.execute(store);
+        final int length = capacityNode.execute(store);
 
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
@@ -70,7 +70,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
             @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
             @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
             @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
@@ -78,7 +78,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
         final int oldSize = strategy.getSize(array);
         final int newSize = oldSize + 1;
         final Object currentStore = Layouts.ARRAY.getStore(array);
-        final int oldCapacity = lengthNode.execute(currentStore);
+        final int oldCapacity = capacityNode.execute(currentStore);
         final int newCapacity = newSize > oldCapacity ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity) : oldCapacity;
         final Object newStore = newStoreNode.execute(newCapacity);
         copyToNode.execute(currentStore, newStore, 0, 0, oldSize);

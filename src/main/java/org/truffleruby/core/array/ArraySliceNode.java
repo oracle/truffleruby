@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
 @NodeChildren({@NodeChild(value = "array", type = RubyNode.class)})
@@ -37,14 +36,14 @@ public abstract class ArraySliceNode extends RubyNode {
     @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readInBounds(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
+            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
             @Cached("createBinaryProfile()") ConditionProfile emptyArray) {
         final int to = strategy.getSize(array) + this.to;
 
         if (emptyArray.profile(from >= to)) {
             return createArray(null, 0);
         } else {
-            final Object slice = extractRangeNode.execute(Layouts.ARRAY.getStore(array), from, to);
+            final Object slice = extractRangeNode.execute(strategy.makeStorageShared(array), from, to);
             return createArray(slice, to - from);
         }
 

@@ -30,13 +30,13 @@ public abstract class ArrayGeneralizeNode extends RubyBaseNode {
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public Object[] generalize(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.lengthNode()") ArrayOperationNodes.ArrayLengthNode lengthNode,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         assert !ArrayGuards.isObjectArray(array);
         final Object store = Layouts.ARRAY.getStore(array);
         final int capacity;
-        final int length = lengthNode.execute(store);
+        final int length = capacityNode.execute(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
         } else {
