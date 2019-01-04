@@ -28,6 +28,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -364,7 +365,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         checkFrozen(context, currentNode);
 
         if (SharedObjects.isShared(context, rubyModuleObject)) {
-            Set<DynamicObject> adjacent = new HashSet<>();
+            Set<DynamicObject> adjacent = ObjectGraph.newRubyObjectSet();
             method.getAdjacentObjects(adjacent);
             for (DynamicObject object : adjacent) {
                 SharedObjects.writeBarrier(context, object);
