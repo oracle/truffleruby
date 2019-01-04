@@ -26,15 +26,20 @@ import org.truffleruby.language.arguments.RubyArguments;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Set;
 
 public abstract class ObjectGraph {
 
+    public static Set<DynamicObject> newRubyObjectSet() {
+        return Collections.newSetFromMap(new IdentityHashMap<>());
+    }
+
     @TruffleBoundary
     public static Set<DynamicObject> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
-        final Set<DynamicObject> visited = new HashSet<>();
+        final Set<DynamicObject> visited = newRubyObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
@@ -71,7 +76,7 @@ public abstract class ObjectGraph {
 
     @TruffleBoundary
     public static Set<DynamicObject> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
-        final Set<DynamicObject> visited = new HashSet<>();
+        final Set<DynamicObject> visited = newRubyObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
@@ -96,7 +101,7 @@ public abstract class ObjectGraph {
     }
 
     public static Set<DynamicObject> getAdjacentObjects(DynamicObject object) {
-        final Set<DynamicObject> reachable = new HashSet<>();
+        final Set<DynamicObject> reachable = newRubyObjectSet();
 
         if (Layouts.BASIC_OBJECT.isBasicObject(object)) {
             reachable.add(Layouts.BASIC_OBJECT.getLogicalClass(object));
@@ -157,7 +162,7 @@ public abstract class ObjectGraph {
     }
 
     public static Set<DynamicObject> getObjectsInFrame(Frame frame) {
-        final Set<DynamicObject> objects = new HashSet<>();
+        final Set<DynamicObject> objects = newRubyObjectSet();
 
         final Frame lexicalParentFrame = RubyArguments.tryGetDeclarationFrame(frame);
         if (lexicalParentFrame != null) {
