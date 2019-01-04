@@ -11,12 +11,10 @@ package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.extra.ffi.Pointer;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ValueWrapperManager {
 

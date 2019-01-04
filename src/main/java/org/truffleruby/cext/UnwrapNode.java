@@ -14,8 +14,6 @@ import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.OBJECT_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
 
-import org.truffleruby.Layouts;
-
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
