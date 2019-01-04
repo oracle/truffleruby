@@ -22,6 +22,8 @@ Compatibility:
 * Implemented `Dir.each_child`.
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
 * Implemented the missing `MatchData#named_captures` method (#1512).
+* Change to a new system for handling Ruby objects in C extensions which
+  greatly increases compatibility with MRI.
 
 Changes:
 
