@@ -1394,7 +1394,7 @@ module Truffle::CExt
   end
 
   NATIVETHREAD_LOCKS = {}
-  
+
   def rb_nativethread_lock_initialize
     lock = Mutex.new
     NATIVETHREAD_LOCKS[lock] = nil
