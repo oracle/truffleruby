@@ -1349,9 +1349,9 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject setMarkList(VirtualFrame frame, DynamicObject structOnwer,
+        public DynamicObject setMarkList(VirtualFrame frame, DynamicObject structOwwer,
                 @Cached("createWriter()") WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOnwer, getArray());
+            writeMarkedNode.write(structOwwer, getArray());
             return nil();
         }
 

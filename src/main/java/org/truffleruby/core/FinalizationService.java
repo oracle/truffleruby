@@ -157,27 +157,20 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
     protected void processReference(FinalizerReference finalizerReference) {
         super.processReference(finalizerReference);
 
-        try {
-            while (!context.isFinalizing()) {
-                final Finalizer finalizer;
-                synchronized (this) {
-                    finalizer = finalizerReference.getFirstFinalizer();
-                }
-                if (finalizer == null) {
-                    break;
-                }
-                final Runnable action = finalizer.getAction();
-                action.run();
+        runCatchingErrors(this::processReferenceInternal, finalizerReference);
+    }
+
+    protected void processReferenceInternal(FinalizerReference finalizerReference) {
+        while (!context.isFinalizing()) {
+            final Finalizer finalizer;
+            synchronized (this) {
+                finalizer = finalizerReference.getFirstFinalizer();
             }
-        } catch (TerminationException e) {
-            throw e;
-        } catch (RaiseException e) {
-            context.getCoreExceptions().showExceptionIfDebug(e.getException());
-        } catch (Exception e) {
-            // Do nothing, the finalizer thread must continue to process objects.
-            if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-                e.printStackTrace();
+            if (finalizer == null) {
+                break;
             }
+            final Runnable action = finalizer.getAction();
+            action.run();
         }
     }
 

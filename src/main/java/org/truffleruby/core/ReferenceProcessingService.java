@@ -1,26 +1,29 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
+import java.util.function.Consumer;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class ReferenceProcessingService<T extends ReferenceProcessingService.ProcessingReference<T>> {
+public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.ProcessingReference<R>> {
 
-    public static interface ProcessingReference<U extends ProcessingReference<U>> {
-        public U getPrevious();
+    public static interface ProcessingReference<R extends ProcessingReference<R>> {
+        public R getPrevious();
 
-        public void setPrevious(U previous);
+        public void setPrevious(R previous);
 
-        public U getNext();
+        public R getNext();
 
-        public void setNext(U next);
+        public void setNext(R next);
     }
 
     /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
-    private T first = null;
+    private R first = null;
 
     protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
@@ -34,7 +37,7 @@ public abstract class ReferenceProcessingService<T extends ReferenceProcessingSe
     protected final void drainReferenceQueue() {
         while (true) {
             @SuppressWarnings("unchecked")
-            final T reference = (T) processingQueue.poll();
+            final R reference = (R) processingQueue.poll();
 
             if (reference == null) {
                 break;
@@ -52,15 +55,30 @@ public abstract class ReferenceProcessingService<T extends ReferenceProcessingSe
         threadManager.initialize(processingThread, null, getThreadName(), () -> {
             while (true) {
                 @SuppressWarnings("unchecked")
-                final T reference = (T) threadManager.runUntilResult(null, processingQueue::remove);
+                final R reference = (R) threadManager.runUntilResult(null, processingQueue::remove);
 
                 processReference(reference);
             }
         });
     }
 
-    protected void processReference(T reference) {
+    protected void processReference(R reference) {
         remove(reference);
+    }
+
+    protected void runCatchingErrors(Consumer<R> action, R reference) {
+        try {
+            action.accept(reference);
+        } catch (TerminationException e) {
+            throw e;
+        } catch (RaiseException e) {
+            context.getCoreExceptions().showExceptionIfDebug(e.getException());
+        } catch (Exception e) {
+            // Do nothing, the finalizer thread must continue to process objects.
+            if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
+                e.printStackTrace();
+            }
+        }
     }
 
     protected abstract String getThreadName();
@@ -89,7 +107,7 @@ public abstract class ReferenceProcessingService<T extends ReferenceProcessingSe
         }
     }
 
-    protected synchronized void remove(T ref) {
+    protected synchronized void remove(R ref) {
         if (ref.getNext() == ref) {
             // Already removed.
             return;
@@ -116,7 +134,7 @@ public abstract class ReferenceProcessingService<T extends ReferenceProcessingSe
         ref.setPrevious(ref);
     }
 
-    protected synchronized void add(T newRef) {
+    protected synchronized void add(R newRef) {
         if (first != null) {
             newRef.setNext(first);
             first.setPrevious(newRef);
@@ -124,7 +142,7 @@ public abstract class ReferenceProcessingService<T extends ReferenceProcessingSe
         first = newRef;
     }
 
-    protected T getFirst() {
+    protected R getFirst() {
         return first;
     }
 }

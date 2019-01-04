@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -25,19 +23,20 @@ import com.oracle.truffle.api.object.DynamicObject;
 /**
  * Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
- * Native extensions expect object on the stack to be kept alive even when they have been stored in
- * native structures on the stack. They also expect structs in objects with custom mark functions
- * keep marked objects alive.
+ * Native extensions expect objects on the stack to be kept alive even when they have been stored in
+ * native structures on the stack (e.g. pg keeps the VALUE of a ruby array in a structure on the
+ * stack, and places other objects in that array to keep them alive). They also expect structs in
+ * objects with custom mark functions to keep marked objects alive.
  *
- * Since we are not running on a VM that allows us to add custom ark functions to our garbage
+ * Since we are not running on a VM that allows us to add custom mark functions to our garbage
  * collector we keep objects alive in 2 ways. Any object converted to a native handle can be kept
- * alive by calling keepAlive(). This will add the object to two lists, a list of all objects
- * converted to native during in this call to a C extension which will be popped when the we return
- * to Ruby code, and a fixed sized list of objects converted to native handles. When the latter of
- * these two lists is full all mark functions will be run.
+ * alive by calling {@link #keepObject(Object)}. This will add the object to two lists, a list of
+ * all objects converted to native during this call to a C extension function which will be popped
+ * when the we return to Ruby code, and a fixed sized list of objects converted to native handles.
+ * When the latter of these two lists is full all mark functions will be run.
  *
- * Markers only keep a week reference to their owning object to ensure they don't themselves stop
- * the object from being garbage collected.
+ * Marker references only keep a week reference to their owning object to ensure they don't
+ * themselves stop the object from being garbage collected.
  *
  */
 public class MarkingService extends ReferenceProcessingService<MarkingService.MarkerReference> {
@@ -125,7 +124,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             nextMarker = currentMarker.next;
             runMarker(currentMarker);
             if (nextMarker == currentMarker) {
-                throw new Error("Something went badly wrong.");
+                throw new Error("The MarkerReference linked list structure has become broken.");
             }
             currentMarker = nextMarker;
         }
@@ -137,22 +136,15 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     private void runMarker(MarkerReference markerReference) {
-        try {
-            if (!context.isFinalizing()) {
-                DynamicObject owner = markerReference.get();
-                if (owner != null) {
-                    final MarkerAction action = markerReference.action;
-                    action.mark(owner);
-                }
-            }
-        } catch (TerminationException e) {
-            throw e;
-        } catch (RaiseException e) {
-            context.getCoreExceptions().showExceptionIfDebug(e.getException());
-        } catch (Exception e) {
-            // Do nothing, the finalizer thread must continue to process objects.
-            if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-                e.printStackTrace();
+        runCatchingErrors(this::runMarkerInternal, markerReference);
+    }
+
+    private void runMarkerInternal(MarkerReference markerReference) {
+        if (!context.isFinalizing()) {
+            DynamicObject owner = markerReference.get();
+            if (owner != null) {
+                final MarkerAction action = markerReference.action;
+                action.mark(owner);
             }
         }
     }

@@ -1368,6 +1368,7 @@ module Truffle::CExt
   end
 
   def data_marker(mark, data_holder)
+    # In a separate method to avoid capturing the object
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list
