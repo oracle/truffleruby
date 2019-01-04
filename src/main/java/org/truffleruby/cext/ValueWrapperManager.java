@@ -92,6 +92,7 @@ public class ValueWrapperManager {
         }
         Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
         addToHandleMap(handleAddress, wrapper);
+        context.getMarkingService().keepObject(wrapper);
         addFinalizer(wrapper, handlePointer);
         return handleAddress;
     }
