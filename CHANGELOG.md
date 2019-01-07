@@ -1,4 +1,4 @@
-# 1.0
+# 1.0 RC 11
 
 New features:
 
@@ -35,7 +35,7 @@ Performance:
   of `String` allocations for core methods.
 * New -Xclone.disable option to disable all manual cloning.
 
-# 1.0 RC 10
+# 1.0 RC 10, 5 December 2018
 
 New features:
 
