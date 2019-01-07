@@ -1114,7 +1114,7 @@ public class CExtNodes {
     public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)" })
+        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)", "libraryStrategy.matches(libraries)", "fileStrategy.matches(bitcodeFiles)" })
         public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
                 @Cached("of(libraries)") ArrayStrategy libraryStrategy,
                 @Cached("of(bitcodeFiles)") ArrayStrategy fileStrategy,
