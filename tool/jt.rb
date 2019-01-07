@@ -17,7 +17,6 @@ require 'fileutils'
 require 'json'
 require 'timeout'
 require 'yaml'
-require 'open3'
 require 'rbconfig'
 require 'pathname'
 
@@ -288,22 +287,24 @@ module Utilities
     `diff -u #{expected} #{actual}`
   end
 
-  def system_timeout(timeout, *args)
-    begin
-      pid = Process.spawn(*args)
-    rescue SystemCallError
-      return nil
-    end
+  def raw_sh_failed_status
+    `false`
+    $?
+  end
 
-    begin
-      Timeout.timeout timeout do
-        Process.waitpid pid
-        $?.success?
+  def raw_sh_with_timeout(timeout, pid)
+    if !timeout
+      yield
+    else
+      begin
+        Timeout.timeout(timeout) do
+          yield
+        end
+      rescue Timeout::Error
+        Process.kill('TERM', pid)
+        yield # Wait and read the pipe if capture: true
+        :timeout
       end
-    rescue Timeout::Error
-      Process.kill('TERM', pid)
-      Process.waitpid pid
-      nil
     end
   end
 
@@ -318,43 +319,49 @@ module Utilities
       STDERR.puts "$ #{printable_cmd(args)}"
     end
 
-    if use_exec
-      result = exec(*args)
-    elsif timeout
-      result = system_timeout(timeout, *args)
-    elsif capture
-      if options.delete(:err) == :out
-        out, status = Open3.capture2e(*args)
-      else
-        out = IO.popen(args) { |io| io.read }
-        status = $?
-      end
-      result = status.success?
-    else
-      result = system(*args)
+    exec(*args) if use_exec
+
+    if capture
+      raise ":capture can only be combined with :err => :out" if options.include?(:out)
+      pipe_r, pipe_w = IO.pipe
+      options[:out] = pipe_w
+      options[:err] = pipe_w if options[:err] == :out
     end
 
-    if result
+    status = nil
+    out = nil
+    begin
+      pid = Process.spawn(*args)
+    rescue Errno::ENOENT # No such executable
+      status = raw_sh_failed_status
+    else
+      pipe_w.close if capture
+
+      result = raw_sh_with_timeout(timeout, pid) do
+        out = pipe_r.read if capture
+        _, status = Process.waitpid2(pid)
+      end
+      if result == :timeout
+        status = raw_sh_failed_status
+      end
+    end
+
+    result = status.success?
+
+    if capture
+      pipe_r.close
+    end
+
+    if status.success? || continue_on_failure
       if capture
         out
       else
-        true
+        status.success?
       end
-    elsif continue_on_failure
-      false
     else
-      status = $? unless capture
       $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
-
-      if capture
-        $stderr.puts out
-      end
-
-      if status && status.exitstatus
-        exit status.exitstatus
-      else
-        exit 1
-      end
+      $stderr.puts out if capture
+      exit status.to_i
     end
   end
 
