@@ -16,7 +16,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.thread.ThreadManager;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -58,13 +57,15 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
          * {@link FinalizationService} monitor, to avoid concurrent access.
          */
         private final Deque<Finalizer> finalizers = new LinkedList<>();
+        private final FinalizationService service;
 
         /** The doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
         FinalizerReference next = null;
         FinalizerReference prev = null;
 
-        private FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
+        private FinalizerReference(Object object, ReferenceQueue<? super Object> queue, FinalizationService service) {
             super(object, queue);
+            this.service = service;
         }
 
         public FinalizerReference getPrevious() {
@@ -110,52 +111,35 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
                 }
             }
         }
+
+        public ReferenceProcessingService<FinalizerReference> service() {
+            return service;
+        }
     }
 
     /** The finalizer Ruby thread, spawned lazily. */
-    public FinalizationService(RubyContext context) {
-        super(context);
+    public FinalizationService(RubyContext context, ReferenceProcessor referenceProcessor) {
+        super(context, referenceProcessor);
     }
 
     public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference, Class<?> owner, Runnable action, DynamicObject root) {
 
         if (finalizerReference == null) {
-            finalizerReference = new FinalizerReference(object, processingQueue);
+            finalizerReference = new FinalizerReference(object, referenceProcessor.processingQueue, this);
             add(finalizerReference);
         }
 
         finalizerReference.addFinalizer(owner, action, root);
 
-        processReferenceQueue();
+        referenceProcessor.processReferenceQueue();
         return finalizerReference;
     }
 
     @Override
-    protected void createProcessingThread() {
-        final ThreadManager threadManager = context.getThreadManager();
-        processingThread = threadManager.createBootThread(getThreadName());
-        context.send(processingThread, "internal_thread_initialize");
-
-        threadManager.initialize(processingThread, null, getThreadName(), () -> {
-            while (true) {
-                final FinalizerReference finalizerReference =
-                        (FinalizerReference) threadManager.runUntilResult(null, processingQueue::remove);
-
-                processReference(finalizerReference);
-            }
-        });
-    }
-
-    @Override
-    protected String getThreadName() {
-        return "finalizer";
-    }
-
-    @Override
-    protected void processReference(FinalizerReference finalizerReference) {
+    protected void processReference(ProcessingReference<?> finalizerReference) {
         super.processReference(finalizerReference);
 
-        runCatchingErrors(this::processReferenceInternal, finalizerReference);
+        runCatchingErrors(this::processReferenceInternal, (FinalizerReference) finalizerReference);
     }
 
     protected void processReferenceInternal(FinalizerReference finalizerReference) {
