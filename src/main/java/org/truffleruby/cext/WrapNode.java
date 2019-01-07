@@ -38,7 +38,7 @@ public abstract class WrapNode extends RubyBaseNode {
     public abstract TruffleObject execute(Object value);
 
     @Specialization
-    public TruffleObject wrapLong(long value,
+    public ValueWrapper wrapLong(long value,
             @Cached("create()") BranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
@@ -50,40 +50,40 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization
-    public TruffleObject wrapDouble(double value) {
+    public ValueWrapper wrapDouble(double value) {
         return getContext().getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
-    public TruffleObject wrapBoolean(boolean value) {
+    public ValueWrapper wrapBoolean(boolean value) {
         return new ValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
     }
 
     @Specialization
-    public TruffleObject wrapUndef(NotProvided value) {
+    public ValueWrapper wrapUndef(NotProvided value) {
         return new ValueWrapper(value, UNDEF_HANDLE);
     }
 
     @Specialization
-    public TruffleObject wrapWrappedValue(ValueWrapper value) {
+    public ValueWrapper wrapWrappedValue(ValueWrapper value) {
         throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
     @Specialization(guards = "isNil(value)")
-    public TruffleObject wrapNil(DynamicObject value) {
+    public ValueWrapper wrapNil(DynamicObject value) {
         return new ValueWrapper(nil(), NIL_HANDLE);
     }
 
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
-    public TruffleObject wrapValue(DynamicObject value,
+    public ValueWrapper wrapValue(DynamicObject value,
             @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
             @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode,
             @Cached("create()") BranchProfile noHandleProfile) {
-        TruffleObject wrapper = (TruffleObject) readWrapperNode.execute(value);
+        ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value);
         if (wrapper == null) {
             noHandleProfile.enter();
             synchronized (value) {
-                wrapper = (DynamicObject) readWrapperNode.execute(value);
+                wrapper = (ValueWrapper) readWrapperNode.execute(value);
                 if (wrapper == null) {
                     wrapper = new ValueWrapper(value, UNSET_HANDLE);
                     writeWrapperNode.write(value, wrapper);
@@ -104,10 +104,6 @@ public abstract class WrapNode extends RubyBaseNode {
 
     public WriteObjectFieldNode createWriter() {
         return WriteObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER);
-    }
-
-    public boolean isWrapped(TruffleObject value) {
-        return value instanceof ValueWrapper;
     }
 
 }
