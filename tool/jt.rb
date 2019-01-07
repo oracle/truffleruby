@@ -131,7 +131,7 @@ module Utilities
       options = ['--no-bootclasspath']
     elsif graal_home
       graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      output, _ = mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
+      output = mx('-v', '-p', graal_home, 'vm', '-version', capture: true, :err => :out)
       command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
         command_line = command_line[0]
@@ -323,11 +323,11 @@ module Utilities
     elsif timeout
       result = system_timeout(timeout, *args)
     elsif capture
-      if options.delete(:out) == :err
-        err, status = Open3.capture2e(*args)
-        out = ""
+      if options.delete(:err) == :out
+        out, status = Open3.capture2e(*args)
       else
-        out, err, status = Open3.capture3(*args)
+        out = IO.popen(args) { |io| io.read }
+        status = $?
       end
       result = status.success?
     else
@@ -336,7 +336,7 @@ module Utilities
 
     if result
       if capture
-        [out, err]
+        out
       else
         true
       end
@@ -348,7 +348,6 @@ module Utilities
 
       if capture
         $stderr.puts out
-        $stderr.puts err
       end
 
       if status && status.exitstatus
@@ -794,7 +793,7 @@ module Commands
       puts "Open PRs: #{open_prs}"
 
       sh 'git', 'fetch', Remotes.bitbucket, '--prune' # ensure we have locally only existing remote branches
-      branches, _        = sh 'git', 'branch', '--remote', '--list', capture: true
+      branches = sh 'git', 'branch', '--remote', '--list', capture: true
       branches_to_delete = branches.
           scan(/^ *#{Remotes.bitbucket}\/(github\/pr\/(\d+))$/).
           reject { |_, number| open_prs.include? Integer(number) }
@@ -814,7 +813,7 @@ module Commands
     def pr_push(*args)
       # Fetch PRs on GitHub
       fetch     = "+refs/pull/*/head:refs/remotes/#{Remotes.github}/pr/*"
-      out, _err = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
+      out = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
       sh 'git', 'config', '--add', "remote.#{Remotes.github}.fetch", fetch unless out.include? fetch
       sh 'git', 'fetch', Remotes.github
 
@@ -823,7 +822,7 @@ module Commands
         github_pr_branch = "#{Remotes.github}/pr/#{pr_number}"
       else
         github_pr_branch = begin
-          out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
+          out = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
           candidate = out.lines.find { |l| l.strip.start_with? "#{Remotes.github}/pr/" }
           candidate && candidate.strip.chomp
         end
@@ -868,9 +867,9 @@ module Commands
     def remote_urls(dir = TRUFFLERUBY_DIR)
       @remote_urls ||= Hash.new
       @remote_urls[dir] ||= begin
-        out, _err = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
+        out = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
         out.split.map do |remote|
-          url, _err = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
+          url = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
           [remote, url.chomp]
         end
       end
@@ -1112,7 +1111,7 @@ module Commands
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
         mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
-        out, _ = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
+        out = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
         raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
@@ -1481,8 +1480,8 @@ EOS
     samples = []
     METRICS_REPS.times do
       log '.', "sampling\n"
-      out, err = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
-      samples.push memory_allocated(out+err)
+      out = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, :err => :out, no_print_cmd: true
+      samples.push memory_allocated(out)
     end
     log "\n", nil
     range = samples.max - samples.min
@@ -1568,12 +1567,12 @@ EOS
       log '.', "sampling\n"
 
       max_rss_in_mb = if LINUX
-                        out, err = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
-                        err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
+                        out = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+                        out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif MAC
-                        out, err = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
-                        err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
+                        out = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+                        out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
                         raise "Can't measure RSS on this platform."
@@ -1610,9 +1609,9 @@ EOS
 
     use_json = args.delete '--json'
 
-    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
+    out = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
 
-    err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
+    out =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
 
     log "\n", nil
@@ -1639,9 +1638,9 @@ EOS
     samples = METRICS_REPS.times.map do
       log '.', "sampling\n"
       start = Time.now
-      _, err = run_ruby(*args, capture: true, no_print_cmd: true, :out => :err)
+      out = run_ruby(*args, capture: true, no_print_cmd: true, :err => :out)
       finish = Time.now
-      get_times(err, (finish - start) * 1000.0)
+      get_times(out, (finish - start) * 1000.0)
     end
     log "\n", nil
 
@@ -1780,22 +1779,19 @@ EOS
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
     begin
-      profile_data, err = run_ruby(env, *run_args, capture: true)
-      $stderr.puts(err) unless err.empty?
+      profile_data = run_ruby(env, *run_args, capture: true)
 
       profile_data_file = Tempfile.new %w[truffleruby-profile .json]
       profile_data_file.write(profile_data)
       profile_data_file.close
 
-      flamegraph_data, err = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
-      $stderr.puts(err) unless err.empty?
+      flamegraph_data = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
 
       flamegraph_data_file = Tempfile.new 'truffleruby-flamegraph-data'
       flamegraph_data_file.write(flamegraph_data)
       flamegraph_data_file.close
 
-      svg_data, err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
-      $stderr.puts(err) unless err.empty?
+      svg_data = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
 
       Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
       svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
@@ -1954,7 +1950,7 @@ EOS
 
   def check_parser
     build('parser')
-    diff, _err = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', :err => :out, capture: true
+    diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: true
     unless diff.empty?
       STDERR.puts "DIFF:"
       STDERR.puts diff
