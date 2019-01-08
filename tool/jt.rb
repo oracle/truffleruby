@@ -52,9 +52,6 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
-# wait for sub-processes to handle the interrupt
-trap(:INT) {}
-
 MRI_TEST_MODULES = {
     '--no-sulong' => {
         help: 'exclude all tests requiring Sulong',
@@ -79,6 +76,23 @@ MRI_TEST_MODULES = {
         ]
     }
 }
+
+SUBPROCESSES = []
+
+# Forward signals to sub-processes, so they get notified when sending a signal to jt
+[:SIGINT, :SIGTERM].each do |signal|
+  trap(signal) do
+    SUBPROCESSES.each do |pid|
+      puts "\nSending #{signal} to process #{pid}"
+      begin
+        Process.kill(signal, pid)
+      rescue Errno::ESRCH
+        # Already killed
+      end
+    end
+    # Keep running jt which will wait for the subprocesses termination
+  end
+end
 
 module Utilities
   private
@@ -308,6 +322,13 @@ module Utilities
     end
   end
 
+  def raw_sh_track_subprocess(pid)
+    SUBPROCESSES << pid
+    yield
+  ensure
+    SUBPROCESSES.delete(pid)
+  end
+
   def raw_sh(*args)
     options = args.last.is_a?(Hash) ? args.last : {}
     continue_on_failure = options.delete :continue_on_failure
@@ -335,14 +356,16 @@ module Utilities
     rescue Errno::ENOENT # No such executable
       status = raw_sh_failed_status
     else
-      pipe_w.close if capture
+      raw_sh_track_subprocess(pid) do
+        pipe_w.close if capture
 
-      result = raw_sh_with_timeout(timeout, pid) do
-        out = pipe_r.read if capture
-        _, status = Process.waitpid2(pid)
-      end
-      if result == :timeout
-        status = raw_sh_failed_status
+        result = raw_sh_with_timeout(timeout, pid) do
+          out = pipe_r.read if capture
+          _, status = Process.waitpid2(pid)
+        end
+        if result == :timeout
+          status = raw_sh_failed_status
+        end
       end
     end
 
@@ -1464,7 +1487,6 @@ EOS
   end
 
   def metrics(command, *args)
-    trap(:INT) { puts; exit }
     args = args.dup
     case command
     when 'alloc'
