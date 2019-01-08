@@ -78,15 +78,6 @@ void *alloca();
 # endif	/* HAVE_ALLOCA_H */
 #endif /* __GNUC__ */
 
-typedef void *VALUE;
-typedef long SIGNED_VALUE;
-typedef VALUE ID;
-
-// Wrapping and unwrapping values - declared here so they can be used in this header.
-
-VALUE rb_tr_wrap(VALUE);
-VALUE rb_tr_unwrap(VALUE);
-
 typedef char ruby_check_sizeof_int[SIZEOF_INT == sizeof(int) ? 1 : -1];
 typedef char ruby_check_sizeof_long[SIZEOF_LONG == sizeof(long) ? 1 : -1];
 #ifdef HAVE_LONG_LONG

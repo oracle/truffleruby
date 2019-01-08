@@ -120,40 +120,51 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
 #define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_tr_scan_args_10, rb_tr_scan_args_9, rb_tr_scan_args_8, rb_tr_scan_args_7, rb_tr_scan_args_6, rb_tr_scan_args_5, rb_tr_scan_args_4, rb_tr_scan_args_3, rb_tr_scan_args_2, rb_tr_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
 
-#define RUBY_INT_INVOKE_0(recv, name) polyglot_invoke(recv, name)
-#define RUBY_INT_INVOKE_1(recv, name, V1) polyglot_invoke(recv, name, rb_tr_unwrap(V1))
-#define RUBY_INT_INVOKE_2(recv, name, V1, V2) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2))
-#define RUBY_INT_INVOKE_3(recv, name, V1, V2, V3) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3))
-#define RUBY_INT_INVOKE_4(recv, name, V1, V2, V3, V4) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4))
-#define RUBY_INT_INVOKE_5(recv, name, V1, V2, V3, V4, V5) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5))
-#define RUBY_INT_INVOKE_6(recv, name, V1, V2, V3, V4, V5, V6) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6))
-#define RUBY_INT_INVOKE_7(recv, name, V1, V2, V3, V4, V5, V6, V7) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7))
-#define RUBY_INT_INVOKE_8(recv, name, V1, V2, V3, V4, V5, V6, V7, V8) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8))
-#define RUBY_INT_INVOKE_9(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9))
-#define RUBY_INT_INVOKE_10(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10))
+// Invoking ruby methods.
+
+// These macros implement ways to call the methods on Truffle::CExt
+// (RUBY_CEXT_INVOKE) and other ruby objects (RUBY_INVOKE) and handle
+// all the unwrapping of arguments. They also come in _NO_WRAP
+// variants which will not attempt to wrap the result. This is
+// important if it is not an actual ruby object being returned as an
+// error will be raised when attempting to wrap such objects.
+
+// Internal macros for the implementation
+#define RUBY_INVOKE_IMPL_0(recv, name) polyglot_invoke(recv, name)
+#define RUBY_INVOKE_IMPL_1(recv, name, V1) polyglot_invoke(recv, name, rb_tr_unwrap(V1))
+#define RUBY_INVOKE_IMPL_2(recv, name, V1, V2) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2))
+#define RUBY_INVOKE_IMPL_3(recv, name, V1, V2, V3) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3))
+#define RUBY_INVOKE_IMPL_4(recv, name, V1, V2, V3, V4) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4))
+#define RUBY_INVOKE_IMPL_5(recv, name, V1, V2, V3, V4, V5) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5))
+#define RUBY_INVOKE_IMPL_6(recv, name, V1, V2, V3, V4, V5, V6) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6))
+#define RUBY_INVOKE_IMPL_7(recv, name, V1, V2, V3, V4, V5, V6, V7) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7))
+#define RUBY_INVOKE_IMPL_8(recv, name, V1, V2, V3, V4, V5, V6, V7, V8) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8))
+#define RUBY_INVOKE_IMPL_9(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9))
+#define RUBY_INVOKE_IMPL_10(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10))
 #define INVOKE_IMPL(RECV, MESG, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
-#define RUBY_INT_INVOKE_NO_WRAP(RECV, NAME, ...) INVOKE_IMPL(RECV, NAME, ##__VA_ARGS__, RUBY_INT_INVOKE_10, RUBY_INT_INVOKE_9, RUBY_INT_INVOKE_8, RUBY_INT_INVOKE_7, RUBY_INT_INVOKE_6, RUBY_INT_INVOKE_5, RUBY_INT_INVOKE_4, RUBY_INT_INVOKE_3, RUBY_INT_INVOKE_2, RUBY_INT_INVOKE_1, RUBY_INT_INVOKE_0)(RECV, NAME, ##__VA_ARGS__)
-#define RUBY_INT_INVOKE(RECV, NAME, ...) rb_tr_wrap(RUBY_INT_INVOKE_NO_WRAP(RECV, NAME, ##__VA_ARGS__))
+#define RUBY_INVOKE_IMPL_NO_WRAP(RECV, NAME, ...) INVOKE_IMPL(RECV, NAME, ##__VA_ARGS__, RUBY_INVOKE_IMPL_10, RUBY_INVOKE_IMPL_9, RUBY_INVOKE_IMPL_8, RUBY_INVOKE_IMPL_7, RUBY_INVOKE_IMPL_6, RUBY_INVOKE_IMPL_5, RUBY_INVOKE_IMPL_4, RUBY_INVOKE_IMPL_3, RUBY_INVOKE_IMPL_2, RUBY_INVOKE_IMPL_1, RUBY_INVOKE_IMPL_0)(RECV, NAME, ##__VA_ARGS__)
+#define RUBY_INVOKE_IMPL(RECV, NAME, ...) rb_tr_wrap(RUBY_INVOKE_IMPL_NO_WRAP(RECV, NAME, ##__VA_ARGS__))
 
-#define RUBY_INVOKE(RECV, NAME, ...) RUBY_INT_INVOKE(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
-#define RUBY_INVOKE_NO_WRAP(RECV, NAME, ...) RUBY_INT_INVOKE_NO_WRAP(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
+// Public macros used in this header and ruby.c
+#define RUBY_INVOKE(RECV, NAME, ...) RUBY_INVOKE_IMPL(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
+#define RUBY_INVOKE_NO_WRAP(RECV, NAME, ...) RUBY_INVOKE_IMPL_NO_WRAP(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
 
-#define RUBY_CEXT_INVOKE(NAME, ...) RUBY_INT_INVOKE(RUBY_CEXT, NAME, ##__VA_ARGS__)
-#define RUBY_CEXT_INVOKE_NO_WRAP(NAME, ...) RUBY_INT_INVOKE_NO_WRAP(RUBY_CEXT, NAME, ##__VA_ARGS__)
-
-// Exceptions
-
-#define rb_raise(EXCEPTION, FORMAT, ...) \
-  rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(FORMAT)), ##__VA_ARGS__))))
+#define RUBY_CEXT_INVOKE(NAME, ...) RUBY_INVOKE_IMPL(RUBY_CEXT, NAME, ##__VA_ARGS__)
+#define RUBY_CEXT_INVOKE_NO_WRAP(NAME, ...) RUBY_INVOKE_IMPL_NO_WRAP(RUBY_CEXT, NAME, ##__VA_ARGS__)
 
 // Calls
 
-// We use this pair of macros because ##__VAR_ARGS__ args will not
+// We use this pair of macros because ##__VA_ARGS__ args will not
 // have macro substitution done on them at the right point in
 // preprocessing and will prevent rb_funcall(..., rb_funcall(...))
 // from being expanded correctly.
 #define rb_tr_funcall(object, method, n,...) RUBY_CEXT_INVOKE("rb_funcall", object, method, INT2FIX(n), ##__VA_ARGS__)
 #define rb_funcall(object, method, ...) rb_tr_funcall(object, method, __VA_ARGS__)
+
+// Exceptions
+
+#define rb_raise(EXCEPTION, FORMAT, ...) \
+  rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(FORMAT)), ##__VA_ARGS__))))
 
 // Additional non-standard
 VALUE rb_java_class_of(VALUE val);
@@ -175,28 +186,28 @@ MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
 }
 
 MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
-  polyglot_invoke(rb_tr_unwrap(*lock), "lock");
+  RUBY_INVOKE_NO_WRAP(*lock, "lock");
   return 0;
 }
 
 MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
-  polyglot_invoke(rb_tr_unwrap(*lock), "unlock");
+  RUBY_INVOKE_NO_WRAP(*lock, "unlock");
   return 0;
 }
 
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (rb_obj_is_kind_of(range, rb_cRange)) {
-    *begp = (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(range), "begin"));
-    *endp = (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(range), "end"));
-    *exclp = (int) polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(range), "exclude_end?"));
+    *begp = (VALUE) RUBY_INVOKE(range, "begin");
+    *endp = (VALUE) RUBY_INVOKE(range, "end");
+    *exclp = (int) polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "exclude_end?"));
   }
   else {
-    if (!polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(range), "respond_to?", rb_tr_unwrap(rb_intern("begin"))))) return Qfalse_int_const;
-    if (!polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(range), "respond_to?", rb_tr_unwrap(rb_intern("end"))))) return Qfalse_int_const;
+    if (!polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
+    if (!polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
 
-    *begp = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(range), "begin"));
-    *endp = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(range), "end"));
-    *exclp = (int) RTEST(rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(range), "exclude_end?")));
+    *begp = RUBY_INVOKE(range, "begin");
+    *endp = RUBY_INVOKE(range, "end");
+    *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
   }
   return Qtrue_int_const;
 }

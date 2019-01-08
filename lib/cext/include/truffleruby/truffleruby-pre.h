@@ -25,6 +25,17 @@ extern "C" {
 
 #include <ctype.h> // isdigit
 
+// Value types
+
+typedef void *VALUE;
+typedef long SIGNED_VALUE;
+typedef VALUE ID;
+
+// Wrapping and unwrapping of values.
+
+VALUE rb_tr_wrap(VALUE);
+VALUE rb_tr_unwrap(VALUE);
+
 // Support
 
 extern void* rb_tr_cext;

@@ -180,7 +180,7 @@ module Truffle::CExt
     end
 
     def address
-      raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers.'
+      raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet.'
     end
 
     def [](index)
