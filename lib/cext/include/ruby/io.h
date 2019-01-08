@@ -86,7 +86,7 @@ POLYGLOT_DECLARE_STRUCT(rb_io_t)
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#define GetOpenFile(file, pointer) rb_io_check_closed((pointer) = polyglot_as_rb_io_t(polyglot_invoke(RUBY_CEXT, "GetOpenFile", file)))
+#define GetOpenFile(file, pointer) rb_io_check_closed((pointer) = polyglot_as_rb_io_t(RUBY_CEXT_INVOKE_NO_WRAP("GetOpenFile", file)))
 
 
 #define MakeOpenFile(obj, fp) do {\

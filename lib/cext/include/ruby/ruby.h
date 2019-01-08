@@ -78,11 +78,6 @@ void *alloca();
 # endif	/* HAVE_ALLOCA_H */
 #endif /* __GNUC__ */
 
-typedef void *VALUE;
-typedef long SIGNED_VALUE;
-typedef VALUE ID;
-
-
 typedef char ruby_check_sizeof_int[SIZEOF_INT == sizeof(int) ? 1 : -1];
 typedef char ruby_check_sizeof_long[SIZEOF_LONG == sizeof(long) ? 1 : -1];
 #ifdef HAVE_LONG_LONG
@@ -310,7 +305,7 @@ int rb_long2int(long value);
 #define MODET2NUM(v) INT2NUM(v)
 #endif
 
-#define RB_FIX2LONG(x) ((long)(x))
+#define RB_FIX2LONG(x) ((long)(rb_tr_unwrap(x)))
 static inline long
 rb_fix2long(VALUE x)
 {
@@ -339,7 +334,7 @@ int RB_FIXNUM_P(VALUE value);
 static inline VALUE
 rb_symbol_p_inline(VALUE v)
 {
-    return polyglot_invoke(RUBY_CEXT, "SYMBOL_P", v);
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", rb_tr_unwrap(v)));
 }
 
 ID rb_sym2id(VALUE);
@@ -998,7 +993,8 @@ VALUE RARRAY_AREF(VALUE array, long index);
     RARRAY_PTR_USE_END(_ary); \
 } while (0)
 
-#define RARRAY_PTR(array) ((VALUE *)array)
+#define RARRAY_PTR(array) RARRAY_PTR_IMPL(array)
+VALUE *RARRAY_PTR_IMPL(VALUE array);
 
 struct RRegexp {
     struct RBasic basic;
@@ -1480,7 +1476,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
 	return RB_LONG2FIX(v);
     else
-	return polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v);
+      return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
 }
 #define RB_ULONG2NUM(x) rb_ulong2num_inline(x)
 

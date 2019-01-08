@@ -142,7 +142,7 @@ File.open("src/main/c/cext/cext_constants.c", "w") do |f|
   constants.each do |macro_name, name, _|
     f.puts
     f.puts "VALUE rb_tr_get_#{name}(void) {"
-    f.puts "  return (VALUE) polyglot_invoke(RUBY_CEXT, \"#{macro_name}\");"
+    f.puts "  return RUBY_CEXT_INVOKE(\"#{macro_name}\");"
     f.puts "}"
   end
 end
