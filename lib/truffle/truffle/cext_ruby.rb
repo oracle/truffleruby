@@ -30,8 +30,8 @@ module Truffle::CExt
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
+      Truffle::CExt.push_preserving_frame
       begin
-        Truffle::CExt.push_preserving_frame
         if block
           Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, *args, &block))
         else
