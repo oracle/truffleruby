@@ -19,6 +19,8 @@ import org.truffleruby.language.RubyBaseNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
+import org.truffleruby.Layouts;
+
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendManyNode extends RubyBaseNode {
 
@@ -32,20 +34,24 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("of(other)") ArrayStrategy otherStrategy,
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
+            @Cached("generalized.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
+            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
             @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
         final int oldSize = strategy.getSize(array);
         final int otherSize = otherStrategy.getSize(other);
         final int newSize = oldSize + otherSize;
-        final ArrayMirror storeMirror = strategy.newMirror(array);
-        final ArrayMirror otherStoreMirror = otherStrategy.newMirror(other);
+        final Object store = Layouts.ARRAY.getStore(array);
+        final Object otherStore = Layouts.ARRAY.getStore(other);
 
-        if (extendProfile.profile(newSize > storeMirror.getLength())) {
-            final int capacity = ArrayUtils.capacity(getContext(), storeMirror.getLength(), newSize);
-            final ArrayMirror newStoreMirror = storeMirror.copyArrayAndMirror(capacity);
-            otherStoreMirror.copyTo(newStoreMirror, 0, oldSize, otherSize);
-            strategy.setStoreAndSize(array, newStoreMirror.getArray(), newSize);
+        final int length = capacityNode.execute(store);
+        if (extendProfile.profile(newSize > length)) {
+            final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
+            Object newStore = copyStoreNode.execute(store, capacity);
+            copyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
+            strategy.setStoreAndSize(array, newStore, newSize);
         } else {
-            otherStoreMirror.copyTo(storeMirror, 0, oldSize, otherSize);
+            copyToNode.execute(otherStore, store, 0, oldSize, otherSize);
             setSize(array, newSize);
         }
         return array;
@@ -59,14 +65,19 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("of(other)") ArrayStrategy otherStrategy,
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
+            @Cached("generalized.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+            @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode otherCopyToNode,
             @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
         final int oldSize = strategy.getSize(array);
         final int otherSize = otherStrategy.getSize(other);
         final int newSize = oldSize + otherSize;
-        final ArrayMirror newStoreMirror = generalized.newArray(newSize);
-        strategy.newMirror(array).copyTo(newStoreMirror, 0, 0, oldSize);
-        otherStrategy.newMirror(other).copyTo(newStoreMirror, 0, oldSize, otherSize);
-        generalized.setStoreAndSize(array, newStoreMirror.getArray(), newSize);
+        final Object store = Layouts.ARRAY.getStore(array);
+        final Object otherStore = Layouts.ARRAY.getStore(other);
+        final Object newStore = newStoreNode.execute(newSize);
+        copyToNode.execute(store, newStore, 0, 0, oldSize);
+        otherCopyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
+        generalized.setStoreAndSize(array, newStore, newSize);
         return array;
     }
 

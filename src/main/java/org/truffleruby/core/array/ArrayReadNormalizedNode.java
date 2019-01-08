@@ -16,6 +16,8 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
 @NodeChildren({
@@ -32,8 +34,9 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
 
     @Specialization(guards = { "strategy.matches(array)", "isInBounds(array, index, strategy)" }, limit = "STORAGE_STRATEGIES")
     public Object readInBounds(DynamicObject array, int index,
-            @Cached("of(array)") ArrayStrategy strategy) {
-        return strategy.newMirror(array).get(index);
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+        return getNode.execute(Layouts.ARRAY.getStore(array), index);
     }
 
     // Reading out of bounds is nil for any array

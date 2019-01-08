@@ -24,7 +24,6 @@ public abstract class ArrayHelpers {
     }
 
     public static void setStoreAndSize(DynamicObject array, Object store, int size) {
-        assert !(store instanceof ArrayMirror);
         Layouts.ARRAY.setStore(array, store);
         setSize(array, size);
     }
@@ -44,7 +43,6 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createArray(RubyContext context, Object store, int size) {
-        assert !(store instanceof ArrayMirror);
         return Layouts.ARRAY.createArray(context.getCoreLibrary().getArrayFactory(), store, size);
     }
 

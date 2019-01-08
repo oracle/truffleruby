@@ -19,6 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToIntegerNode;
@@ -58,13 +59,14 @@ public abstract class ReadIntegerNode extends FormatNode {
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
     public Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy) {
+            @Cached("ofStore(source)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         if (toIntegerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toIntegerNode = insert(ToIntegerNodeGen.create(null));
         }
 
-        final Object value = toIntegerNode.executeToInteger(frame, strategy.newMirrorFromStore(source).get(advanceSourcePosition(frame)));
+        final Object value = toIntegerNode.executeToInteger(frame, getNode.execute(source, advanceSourcePosition(frame)));
 
         if (convertedTypeProfile.profile(value instanceof Long)) {
             return (int) (long) value;

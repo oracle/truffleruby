@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
@@ -50,8 +51,9 @@ public abstract class ReadValueNode extends FormatNode {
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
     public Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy) {
-        return strategy.newMirrorFromStore(source).get(advanceSourcePosition(frame));
+            @Cached("ofStore(source)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+        return getNode.execute(source, advanceSourcePosition(frame));
     }
 
 }

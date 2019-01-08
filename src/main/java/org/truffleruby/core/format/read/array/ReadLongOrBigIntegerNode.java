@@ -19,6 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
@@ -54,8 +55,9 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
     public Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy) {
-        final Object value = strategy.newMirrorFromStore(source).get(advanceSourcePosition(frame));
+            @Cached("ofStore(source)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+        final Object value = getNode.execute(source, advanceSourcePosition(frame));
 
         if (bignumProfile.profile(FormatGuards.isRubyBignum(value))) {
             return value;

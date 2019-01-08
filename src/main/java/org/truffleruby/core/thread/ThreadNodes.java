@@ -58,7 +58,8 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
-import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayOperationNodes;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -261,13 +262,15 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block) {
+        public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
+                @Cached("of(arguments)") ArrayStrategy strategy,
+                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
                 getContext().getThreadManager().startSharing(thread);
                 SharedObjects.shareDeclarationFrame(getContext(), block);
             }
 
-            final Object[] args = ArrayOperations.toObjectArray(arguments);
+            final Object[] args = boxedCopyNode.execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = getContext().fileLine(sourceSection);
             getContext().getThreadManager().initialize(thread, this, info,
