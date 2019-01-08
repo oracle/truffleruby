@@ -31,13 +31,13 @@ public abstract class ArrayGetTailNode extends RubyNode {
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public DynamicObject getTail(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
+            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
         final int size = strategy.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
             return createArray(null, 0);
         } else {
-            final Object newStore = extractRangeNode.execute(strategy.makeStorageShared(array), index, size);
+            final Object newStore = extractRangeCopyOnWriteNode.execute(array, index, size);
             return createArray(newStore, size - index);
         }
     }

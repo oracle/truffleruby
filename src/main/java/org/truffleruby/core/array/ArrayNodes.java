@@ -577,9 +577,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject compactPrimitive(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
             final int size = strategy.getSize(array);
-            Object compactMirror = extractRangeNode.execute(strategy.makeStorageShared(array), 0, size);
+            Object compactMirror = extractRangeCopyOnWriteNode.execute(array, 0, size);
             return createArray(compactMirror, size);
         }
 
@@ -1840,10 +1840,9 @@ public abstract class ArrayNodes {
         public DynamicObject replace(DynamicObject array, DynamicObject other,
                         @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("otherStrategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
+                @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
             final int size = getSize(other);
-            final Object otherStore = otherStrategy.makeStorageShared(other);
-            final Object copy = extractRangeNode.execute(otherStore, 0, size);
+            final Object copy = extractRangeCopyOnWriteNode.execute(other, 0, size);
             arrayStrategy.setStoreAndSize(array, copy, size);
             return array;
         }
@@ -2028,12 +2027,11 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftOther(DynamicObject array, NotProvided n,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
-                @Cached("strategy.sharedStorageStrategy().getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final int size = strategy.getSize(array);
-            final Object store = strategy.makeStorageShared(array);
-            final Object value = getNode.execute(store, 0);
-            strategy.setStore(array, extractRangeNode.execute(store, 1, size));
+            final Object value = getNode.execute(Layouts.ARRAY.getStore(array), 0);
+            strategy.setStore(array, extractRangeCopyOnWriteNode.execute(array, 1, size));
             setSize(array, size - 1);
 
             return value;
@@ -2059,17 +2057,15 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n > 0", "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftMany(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode1,
+                @Cached("strategy.sharedStorageStrategy().extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode2,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final Object store = strategy.makeStorageShared(array);
-
             // Extract values in a new array
-            final Object result = extractRangeNode.execute(store, 0, numShift);
+            final Object result = extractRangeCopyOnWriteNode1.execute(array, 0, numShift);
 
-            strategy.setStore(array, extractRangeNode.execute(store, numShift, size));
-            setSize(array, size - numShift);
+            setStoreAndSize(array, extractRangeCopyOnWriteNode2.execute(array, numShift, size), size - numShift);
 
             return createArray(result, numShift);
         }

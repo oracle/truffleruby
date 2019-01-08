@@ -36,14 +36,14 @@ public abstract class ArraySliceNode extends RubyNode {
     @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readInBounds(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode,
+            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
             @Cached("createBinaryProfile()") ConditionProfile emptyArray) {
         final int to = strategy.getSize(array) + this.to;
 
         if (emptyArray.profile(from >= to)) {
             return createArray(null, 0);
         } else {
-            final Object slice = extractRangeNode.execute(strategy.makeStorageShared(array), from, to);
+            final Object slice = extractRangeCopyOnWriteNode.execute(array, from, to);
             return createArray(slice, to - from);
         }
 

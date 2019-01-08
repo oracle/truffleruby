@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
+import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonExtractRangeCopyOnWriteNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonUnshareStorageNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -86,7 +87,7 @@ public class ArrayOperationNodes {
 
     public static abstract class ArrayUnshareStorageNode extends RubyBaseNode {
 
-        public abstract Object execute(Object store);
+        public abstract Object execute(DynamicObject array);
     }
 
     public static abstract class ArrayCommonUnshareStorageNode extends ArrayUnshareStorageNode {
@@ -98,6 +99,26 @@ public class ArrayOperationNodes {
 
         public static ArrayUnshareStorageNode create() {
             return ArrayCommonUnshareStorageNodeGen.create();
+        }
+    }
+
+    public static abstract class ArrayExtractRangeCopyOnWriteNode extends RubyBaseNode {
+
+        public abstract Object execute(DynamicObject array, int start, int end);
+    }
+
+    public static abstract class ArrayCommonExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
+
+        @Specialization
+        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+            final Object oldStore = Layouts.ARRAY.getStore(array);
+            DelegatedArrayStorage newStore = new DelegatedArrayStorage(oldStore, 0, Layouts.ARRAY.getSize(array));
+            Layouts.ARRAY.setStore(array, newStore);
+            return new DelegatedArrayStorage(oldStore, start, end - start);
+        }
+
+        public static ArrayExtractRangeCopyOnWriteNode create() {
+            return ArrayCommonExtractRangeCopyOnWriteNodeGen.create();
         }
     }
 }

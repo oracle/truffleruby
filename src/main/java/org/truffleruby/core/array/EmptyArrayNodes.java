@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayCapacityNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayCopyStoreNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayCopyToNodeGen;
+import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayExtractRangeCopyOnWriteNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayExtractRangeNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayGetNodeGen;
 import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArrayNewStoreNodeGen;
@@ -20,6 +22,7 @@ import org.truffleruby.core.array.EmptyArrayNodesFactory.EmptyArraySortNodeGen;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class EmptyArrayNodes {
     public static abstract class EmptyArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
@@ -118,4 +121,18 @@ public class EmptyArrayNodes {
             return EmptyArraySortNodeGen.create();
         }
     }
+
+    public static abstract class EmptyArrayExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
+
+        @Specialization
+        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+            assert start == 0 && end == 0;
+            return null;
+        }
+
+        public static ArrayExtractRangeCopyOnWriteNode create() {
+            return EmptyArrayExtractRangeCopyOnWriteNodeGen.create();
+        }
+    }
+
 }

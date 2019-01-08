@@ -14,6 +14,7 @@ import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCommonExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
@@ -21,9 +22,11 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayBoxedCopyNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCommonUnshareStorageNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
+import org.truffleruby.core.array.DelegateArrayNodes.DelegateArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -75,6 +78,10 @@ public abstract class ArrayStrategy {
         return ArrayCommonUnshareStorageNode.create();
     }
 
+    public ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode() {
+        return ArrayCommonExtractRangeCopyOnWriteNode.create();
+    }
+
     public Iterable<Object> getIterable(DynamicObject array, int length) {
         return getIterableFrom(Layouts.ARRAY.getStore(array), 0, length);
     }
@@ -105,13 +112,6 @@ public abstract class ArrayStrategy {
     }
 
     public abstract ArrayStrategy sharedStorageStrategy();
-
-    public Object makeStorageShared(DynamicObject array) {
-        final Object currentMirror = Layouts.ARRAY.getStore(array);
-        DelegatedArrayStorage newStore = new DelegatedArrayStorage(currentMirror, 0, getSize(array));
-        setStore(array, newStore);
-        return newStore;
-    }
 
     public void setStore(DynamicObject array, Object store) {
         Layouts.ARRAY.setStore(array, store);
@@ -771,11 +771,6 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public Object makeStorageShared(DynamicObject array) {
-            return null;
-        }
-
-        @Override
         public boolean matchesStore(Object store) {
             return store == null;
         }
@@ -856,6 +851,11 @@ public abstract class ArrayStrategy {
 
             };
         }
+
+        @Override
+        public ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode() {
+            return EmptyArrayNodes.EmptyArrayExtractRangeCopyOnWriteNode.create();
+        }
     }
 
     private static class DelegatedArrayStrategy extends ArrayStrategy {
@@ -899,11 +899,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof DelegatedArrayStorage && typeStrategy.matchesStore(((DelegatedArrayStorage) store).storage);
-        }
-
-        @Override
-        public Object makeStorageShared(DynamicObject array) {
-            return Layouts.ARRAY.getStore(array);
         }
 
         @TruffleBoundary
@@ -966,6 +961,11 @@ public abstract class ArrayStrategy {
         public Iterable<Object> getIterableFrom(Object array, int from, int length) {
             DelegatedArrayStorage store = (DelegatedArrayStorage) array;
             return typeStrategy.getIterableFrom(store.storage, from + store.offset, length);
+        }
+
+        @Override
+        public ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode() {
+            return DelegateArrayExtractRangeCopyOnWriteNode.create();
         }
     }
 

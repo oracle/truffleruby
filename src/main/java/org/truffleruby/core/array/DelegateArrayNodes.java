@@ -10,10 +10,12 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCapacityNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCopyStoreNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayCopyToNodeGen;
+import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayExtractRangeCopyOnWriteNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayExtractRangeNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayGetNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayNewStoreNodeGen;
@@ -146,4 +148,18 @@ public class DelegateArrayNodes {
             return DelegateArrayUnshareStoreNodeGen.create(strategy);
         }
     }
+
+    public static abstract class DelegateArrayExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
+
+        @Specialization
+        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+            DelegatedArrayStorage oldStore = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
+            return new DelegatedArrayStorage(oldStore.storage, start + oldStore.offset, end - start);
+        }
+
+        public static ArrayExtractRangeCopyOnWriteNode create() {
+            return DelegateArrayExtractRangeCopyOnWriteNodeGen.create();
+        }
+    }
+
 }

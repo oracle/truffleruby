@@ -46,8 +46,8 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
     }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readInBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
-        final Object store = extractRangeNode.execute(strategy.makeStorageShared(array), index, index + length);
+            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
+        final Object store = extractRangeCopyOnWriteNode.execute(array, index, index + length);
         return createArrayOfSameClass(array, store, length);
     }
 
@@ -59,9 +59,9 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
     }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.sharedStorageStrategy().extractRangeNode()") ArrayOperationNodes.ArrayExtractRangeNode extractRangeNode) {
+            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
         final int end = strategy.getSize(array);
-        final Object store = extractRangeNode.execute(strategy.makeStorageShared(array), index, end);
+        final Object store = extractRangeCopyOnWriteNode.execute(array, index, end);
         return createArrayOfSameClass(array, store, end - index);
     }
 
