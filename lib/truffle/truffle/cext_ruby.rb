@@ -48,7 +48,7 @@ module Truffle::CExt
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    rb_tr_unwrap(execute_with_mutex callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg))
+    rb_tr_unwrap(execute_with_mutex(callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)))
   end
 
   def call_with_thread_locally_stored_block(function, *arg, &block)
