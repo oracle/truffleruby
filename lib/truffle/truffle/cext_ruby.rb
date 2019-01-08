@@ -26,7 +26,7 @@ module Truffle::CExt
         if args.size != argc
           raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
         end
-        args = [Truffle::CExt.rb_tr_wrap(self), *(args.map! {|x| Truffle::CExt.rb_tr_wrap(x) })]
+        args = [Truffle::CExt.rb_tr_wrap(self), *args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }]
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
