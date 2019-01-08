@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 #define rb_sprintf(format, ...) \
-  (VALUE) rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(format)), ##__VA_ARGS__))
+  rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(format)), ##__VA_ARGS__))
 
 NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
 
