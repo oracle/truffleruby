@@ -63,9 +63,9 @@ module Truffle::CExt
       end
     end
 
-    def self.get_encoding_from_native(encoding)
+    def self.get_encoding_from_native(rbencoding_ptr)
       ENCODING_CACHE_MUTEX.synchronize do
-        NATIVE_CACHE[encoding].encoding
+        NATIVE_CACHE[rbencoding_ptr].encoding
       end
     end
 
