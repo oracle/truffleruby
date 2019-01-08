@@ -181,7 +181,7 @@ MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
 }
 
 MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
-  *lock = RUBY_CEXT_INVOKE( "rb_nativethread_lock_destroy", *lock);
+  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_destroy", *lock);
   return 0;
 }
 
