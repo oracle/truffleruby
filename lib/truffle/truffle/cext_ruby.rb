@@ -51,14 +51,14 @@ module Truffle::CExt
     rb_tr_unwrap(execute_with_mutex(callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)))
   end
 
-  def call_with_thread_locally_stored_block(function, *arg, &block)
+  def call_with_thread_locally_stored_block(function, *args, &block)
     # MRI puts the block to a thread local th->passed_block and later rb_funcall reads it,
     # we have to do the same
     # TODO (pitr-ch 14-Dec-2017): This is fixed just for rb_iterate with a rb_funcall in it combination
     previous_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      rb_tr_unwrap(execute_with_mutex( function, *(arg.map! {|x| Truffle::CExt.rb_tr_wrap(x) }), &block))
+      rb_tr_unwrap(execute_with_mutex(function, *args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }, &block))
     ensure
       Thread.current[:__C_BLOCK__] = previous_block
     end
