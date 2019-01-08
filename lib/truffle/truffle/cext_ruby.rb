@@ -32,6 +32,9 @@ module Truffle::CExt
       # Using raw execute instead of #call here to avoid argument conversion
       Truffle::CExt.push_preserving_frame
       begin
+        # We must call explicitly with the block argument if given
+        # here so that the `rb_block_*` functions will be able to find
+        # it by walking the stack.
         if block
           Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, *args, &block))
         else
