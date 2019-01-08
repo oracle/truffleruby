@@ -388,7 +388,7 @@ void rb_iter_break_value(VALUE value) {
 }
 
 const char *rb_sourcefile(void) {
-  return RSTRING_PTR(rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sourcefile")));
+  return RSTRING_PTR(RUBY_CEXT_INVOKE("rb_sourcefile"));
 }
 
 int rb_sourceline(void) {
@@ -965,7 +965,7 @@ VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
 }
 
 rb_encoding *rb_default_external_encoding(void) {
-  VALUE result = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_default_external_encoding"));
+  VALUE result = RUBY_CEXT_INVOKE("rb_default_external_encoding");
   if (NIL_P(result)) {
     return NULL;
   }
