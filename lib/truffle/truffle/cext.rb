@@ -64,7 +64,9 @@ module Truffle::CExt
     end
 
     def self.get_encoding_from_native(encoding)
-      NATIVE_CACHE[encoding].encoding
+      ENCODING_CACHE_MUTEX.synchronize do
+        NATIVE_CACHE[encoding].encoding
+      end
     end
 
     attr_reader :encoding
@@ -102,7 +104,9 @@ module Truffle::CExt
     def cache_address
       name.act_like_pointer = true
       addr = name.address
-      NATIVE_CACHE[addr] = self
+      ENCODING_CACHE_MUTEX.synchronize do
+        NATIVE_CACHE[addr] = self
+      end
       addr
     end
   end
