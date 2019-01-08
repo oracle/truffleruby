@@ -3480,6 +3480,7 @@ void rb_error_untrusted(VALUE obj) {
 }
 
 void rb_check_trusted(VALUE obj) {
+  // This function intentionally does nothing to match MRI.
 }
 
 void rb_check_copyable(VALUE obj, VALUE orig) {
