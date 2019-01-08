@@ -51,8 +51,8 @@ module Truffle::CExt
   end
 
   class RbEncoding
-    ENCODING_CACHE = {}
-    NATIVE_CACHE = {}
+    ENCODING_CACHE = {} # Encoding => RbEncoding
+    NATIVE_CACHE = {} # RbEncoding => Encoding
     ENCODING_CACHE_MUTEX = Mutex.new
 
     private_class_method :new
