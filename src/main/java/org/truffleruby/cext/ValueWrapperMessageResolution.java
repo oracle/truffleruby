@@ -9,33 +9,41 @@
  */
 package org.truffleruby.cext;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@MessageResolution(receiverType = ValueWrapperObjectType.class)
+@MessageResolution(receiverType = ValueWrapper.class)
 public class ValueWrapperMessageResolution {
+
+    @CanResolve
+    public abstract static class IsInstance extends Node {
+
+        protected boolean test(TruffleObject receiver) {
+            return receiver instanceof ValueWrapper;
+        }
+    }
 
     @Resolve(message = "IS_POINTER")
     public static abstract class ForeignIsPointerNode extends Node {
 
-        protected boolean access(VirtualFrame frame, DynamicObject wrapper) {
+        protected boolean access(VirtualFrame frame, ValueWrapper wrapper) {
             return true;
         }
     }
 
     @Resolve(message = "TO_NATIVE")
     public static abstract class ForeignToNativeNode extends Node {
-        protected Object access(VirtualFrame frame, DynamicObject receiver) {
+        protected Object access(VirtualFrame frame, ValueWrapper receiver) {
             return receiver;
         }
     }
@@ -46,8 +54,8 @@ public class ValueWrapperMessageResolution {
         @CompilationFinal private RubyContext context;
         private final BranchProfile createHandleProfile = BranchProfile.create();
 
-        protected long access(VirtualFrame frame, DynamicObject wrapper) {
-            long handle = Layouts.VALUE_WRAPPER.getHandle(wrapper);
+        protected long access(VirtualFrame frame, ValueWrapper wrapper) {
+            long handle = wrapper.getHandle();
             if (handle == ValueWrapperManager.UNSET_HANDLE) {
                 createHandleProfile.enter();
                 handle = getContext().getValueWrapperManager().createNativeHandle(wrapper);
