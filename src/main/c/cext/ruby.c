@@ -777,8 +777,8 @@ VALUE rb_str_new_shared(VALUE string) {
   return RUBY_INVOKE(string, "dup");
 }
 
-VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
-  return RUBY_INVOKE(RUBY_INVOKE(klass, "class"), "new", rb_str_new(string, len));
+VALUE rb_str_new_with_class(VALUE str, const char *string, long len) {
+  return RUBY_INVOKE(RUBY_INVOKE(str, "class"), "new", rb_str_new(string, len));
 }
 
 VALUE rb_tainted_str_new_cstr(const char *ptr) {
