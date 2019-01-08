@@ -48,12 +48,14 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     public static class MarkerReference extends WeakReference<DynamicObject> implements ReferenceProcessingService.ProcessingReference<MarkerReference> {
 
         private final MarkerAction action;
+        private final MarkingService service;
         private MarkerReference next = null;
         private MarkerReference prev = null;
 
-        private MarkerReference(DynamicObject object, ReferenceQueue<? super Object> queue, MarkerAction action) {
+        private MarkerReference(DynamicObject object, ReferenceQueue<? super Object> queue, MarkerAction action, MarkingService service) {
             super(object, queue);
             this.action = action;
+            this.service = service;
         }
 
         public MarkerReference getPrevious() {
@@ -71,6 +73,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         public void setNext(MarkerReference next) {
             this.next = next;
         }
+
+        public ReferenceProcessingService<MarkerReference> service() {
+            return service;
+        }
     }
 
     private static final int KEPT_COUNT_SIZE = 10_000;
@@ -81,8 +87,8 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     private int counter = 0;
 
-    public MarkingService(RubyContext context) {
-        super(context);
+    public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
+        super(context, referenceProcessor);
     }
 
     public void keepObject(Object object) {
@@ -131,8 +137,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
-        add(new MarkerReference(object, processingQueue, action));
-        processReferenceQueue();
+        add(new MarkerReference(object, referenceProcessor.processingQueue, action, this));
     }
 
     private void runMarker(MarkerReference markerReference) {
@@ -147,10 +152,5 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
                 action.mark(owner);
             }
         }
-    }
-
-    @Override
-    protected String getThreadName() {
-        return "marker-finalizer";
     }
 }
