@@ -1042,7 +1042,8 @@ module Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      rb_tr_unwrap(execute_with_mutex(function, *(args.map! {|x| Truffle::CExt.rb_tr_wrap(x) })))
+      Truffle::CExt.rb_tr_unwrap(
+        execute_with_mutex(function, *args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }))
     end
   end
 
