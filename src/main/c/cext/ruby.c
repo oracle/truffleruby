@@ -140,7 +140,7 @@ void rb_insecure_operation(void) {
 }
 
 int rb_safe_level(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_safe_level"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_safe_level"));
 }
 
 void rb_set_safe_level_force(int level) {
@@ -392,7 +392,7 @@ const char *rb_sourcefile(void) {
 }
 
 int rb_sourceline(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_sourceline"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_sourceline"));
 }
 
 int rb_method_boundp(VALUE klass, ID id, int ex) {
@@ -987,7 +987,7 @@ rb_encoding *rb_locale_encoding(void) {
 }
 
 int rb_locale_encindex(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_locale_encindex"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_locale_encindex"));
 }
 
 rb_encoding *rb_filesystem_encoding(void) {
@@ -999,7 +999,7 @@ rb_encoding *rb_filesystem_encoding(void) {
 }
 
 int rb_filesystem_encindex(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_filesystem_encindex"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_filesystem_encindex"));
 }
 
 rb_encoding *get_encoding(VALUE string) {
@@ -1069,7 +1069,7 @@ rb_encoding *rb_ascii8bit_encoding(void) {
 }
 
 int rb_ascii8bit_encindex(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_ascii8bit_encindex"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_ascii8bit_encindex"));
 }
 
 rb_encoding *rb_usascii_encoding(void) {
@@ -1088,7 +1088,7 @@ void rb_must_asciicompat(VALUE str) {
 }
 
 int rb_usascii_encindex(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_usascii_encindex"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_usascii_encindex"));
 }
 
 rb_encoding *rb_utf8_encoding(void) {
@@ -1096,7 +1096,7 @@ rb_encoding *rb_utf8_encoding(void) {
 }
 
 int rb_utf8_encindex(void) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_utf8_encindex"));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_utf8_encindex"));
 }
 
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
