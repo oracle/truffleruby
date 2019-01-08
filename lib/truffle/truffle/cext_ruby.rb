@@ -21,7 +21,7 @@ module Truffle::CExt
       if argc == -1 # (int argc, VALUE *argv, VALUE obj)
         args = [args.size, Truffle::CExt.RARRAY_PTR(args), Truffle::CExt.rb_tr_wrap(self)]
       elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
-        args = [Truffle::CExt.rb_tr_wrap(self), Truffle::CExt.RARRAY_PTR(args)]
+        args = [Truffle::CExt.rb_tr_wrap(self), Truffle::CExt.rb_tr_wrap(args)]
       elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
         if args.size != argc
           raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
