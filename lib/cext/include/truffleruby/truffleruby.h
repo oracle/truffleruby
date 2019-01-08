@@ -196,19 +196,14 @@ MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
 }
 
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
-  if (rb_obj_is_kind_of(range, rb_cRange)) {
-    *begp = (VALUE) RUBY_INVOKE(range, "begin");
-    *endp = (VALUE) RUBY_INVOKE(range, "end");
-    *exclp = (int) polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "exclude_end?"));
+  if (!rb_obj_is_kind_of(range, rb_cRange)) {
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
   }
-  else {
-    if (!polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
-    if (!polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
 
-    *begp = RUBY_INVOKE(range, "begin");
-    *endp = RUBY_INVOKE(range, "end");
-    *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
-  }
+  *begp = RUBY_INVOKE(range, "begin");
+  *endp = RUBY_INVOKE(range, "end");
+  *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
   return Qtrue_int_const;
 }
 
