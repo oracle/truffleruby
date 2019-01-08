@@ -51,6 +51,7 @@ if Truffle::Boot.ruby_home
       Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
     else
       if Truffle::Boot.get_option 'did_you_mean'
+        # Load DidYouMean here manually, to avoid loading RubyGems eagerly
         Truffle::Boot.print_time_metric :'before-did-you-mean'
         begin
           $LOAD_PATH << "#{Truffle::Boot.ruby_home}/lib/ruby/gems/#{Truffle::RUBY_BASE_VERSION}/gems/did_you_mean-1.1.0/lib"
