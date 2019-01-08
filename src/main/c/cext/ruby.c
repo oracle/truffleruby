@@ -947,9 +947,7 @@ VALUE rb_filesystem_str_new(const char *string, long len) {
 }
 
 VALUE rb_filesystem_str_new_cstr(const char *string) {
-  VALUE ret;
-  ret = rb_external_str_new_with_enc(string, strlen(string), rb_filesystem_encoding());
-  return ret;
+  return rb_external_str_new_with_enc(string, strlen(string), rb_filesystem_encoding());
 }
 
 VALUE rb_str_export(VALUE string) {
@@ -1184,9 +1182,7 @@ void rb_tr_add_flags(VALUE value, int flags) {
 // Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
-  VALUE ret;
-  ret = RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
-  return ret;
+  return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
 
 void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
