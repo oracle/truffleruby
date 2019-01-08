@@ -227,7 +227,7 @@ LONG_LONG rb_num2ll(VALUE val) {
   } else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
     rb_raise(rb_eTypeError, "no implicit conversion from boolean");
   }
-  
+
   val = rb_to_int(val);
   return NUM2LL(val);
 }
@@ -261,7 +261,7 @@ unsigned long rb_fix2uint(VALUE value) {
 }
 
 int rb_long2int(long value) {
-  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT,  "rb_long2int", value));
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_long2int", value));
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
@@ -555,7 +555,7 @@ static void validate_integer_pack_format(size_t numwords, size_t wordsize, size_
       wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
     rb_raise(rb_eArgError, "unexpected word order");
   }
-  
+
   if (byteorder_bits == 0) {
     rb_raise(rb_eArgError, "byte order not specified");
   } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
@@ -563,19 +563,19 @@ static void validate_integer_pack_format(size_t numwords, size_t wordsize, size_
     byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
       rb_raise(rb_eArgError, "unexpected byte order");
   }
-  
+
   if (wordsize == 0) {
     rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
   }
-  
+
   if (8 < wordsize) {
     rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
   }
-  
+
   if (wordsize <= nails / CHAR_BIT) {
     rb_raise(rb_eArgError, "too big nails: %lu", nails);
   }
-  
+
   if (INT_MAX / wordsize < numwords) {
     rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
   }
@@ -2194,7 +2194,7 @@ VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
   if (!rb_range_values(range, &b, &e, &excl)) {
     return Qfalse;
   }
-  
+
   beg = NUM2LONG(b);
   end = NUM2LONG(e);
   origbeg = beg;
