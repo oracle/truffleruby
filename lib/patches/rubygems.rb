@@ -12,12 +12,21 @@ require 'rubygems/gem_dirs_verification'
 Gem::GemDirsVerification.verify(Gem.path)
 Gem::GemDirsVerification.install_hook
 
-# Because did_you_mean was required directly without RubyGems.
-# did_you_mean is only required if --disable-gems was not passed.
+# We register did_you_mean only here because it was required directly
+# without RubyGems in post-boot.rb.
+
+# did_you_mean is only registered as a gem if --disable-gems was not passed, as
+# --disable-gems implies --disable-did-you-mean on MRI, i.e.,
+# MRI raises NameError for `ruby --disable-gems -e DidYouMean.formatter`.
 if Truffle::Boot.get_option 'did_you_mean' and Truffle::Boot.get_option 'rubygems'
   begin
     gem 'did_you_mean'
-  rescue LoadError => e
-    Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
+  rescue LoadError
+    # Ignore, this happens when GEM_HOME and GEM_PATH are set and do not include
+    # the default gem home. In such a case, despite did_you_mean having been
+    # loaded already during post-boot.rb, it is no longer possible to register
+    # the gem with RubyGems. This happens for instance with 'bundle exec' after
+    # `bundle install --deployment`.
+    nil
   end
 end
