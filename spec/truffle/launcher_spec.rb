@@ -287,7 +287,7 @@ describe "The launcher" do
         "#{prefix}Dgraal.TraceTruffleCompilation=true",
         "#{prefix}Dgraal.TruffleBackgroundCompilation=false",
       ].join(" ")
-      out = ruby_exe("2000.times {}", options: options)
+      out = ruby_exe("2000.times {}", options: options, args: "2>&1")
       out.should include("[truffle] opt done")
     end
   end
