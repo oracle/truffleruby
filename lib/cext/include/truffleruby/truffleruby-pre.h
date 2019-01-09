@@ -31,17 +31,22 @@ typedef void *VALUE;
 typedef long SIGNED_VALUE;
 typedef VALUE ID;
 
-// Wrapping and unwrapping of values.
-
-VALUE rb_tr_wrap(VALUE);
-VALUE rb_tr_unwrap(VALUE);
-
 // Support
 
 extern void* rb_tr_cext;
 #define RUBY_CEXT ((void *)(&rb_tr_cext))
 
 #define MUST_INLINE __attribute__((always_inline)) inline
+
+// Wrapping and unwrapping of values.
+
+MUST_INLINE VALUE rb_tr_wrap(VALUE object) {
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_wrap", object);
+}
+
+MUST_INLINE VALUE rb_tr_unwrap(VALUE object) {
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object);
+}
 
 #include <ruby/thread_native.h>
 
