@@ -7,13 +7,13 @@ Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
 will have very low performance whenever they are used and we advise against
 using them on TruffleRuby if you can. Some features are missing entirely and may
-never be implemented. In a few limited cases we are deliberately incompatible
+never be implemented. In a few limited cases, we are deliberately incompatible
 with MRI in order to provide a greater capability.
 
 In general, we are not looking to debate whether Ruby features are good, bad, or
 if we could design the language better. If we can support a feature, we will do.
 
-In the future we aim to provide compatibility with extra functionality provided
+In the future, we aim to provide compatibility with extra functionality provided
 by JRuby, but at the moment we do not.
 
 ## Identification
@@ -27,11 +27,11 @@ TruffleReport defines these constants for identification:
 - `RUBY_RELEASE_DATE` is the Git commit date
 - `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0-` and the Git commit hash if your build is not part of a GraalVM release.
 
-Additionally, TruffleRuby defines
+Additionally, TruffleRuby defines:
 
 - `TruffleRuby.revision` which is the Git commit hash
 
-In the C API we define a preprocessor macro `TRUFFLERUBY`.
+In the C API, we define a preprocessor macro `TRUFFLERUBY`.
 
 ## Features entirely missing
 
@@ -43,7 +43,7 @@ as their semantics fundamentally do not match the technology that we are using.
 #### Fork
 
 You cannot `fork` the TruffleRuby interpreter. The feature is unlikely to ever
-be supported when running on the JVM, but could be supported in the future on
+be supported when running on the JVM but could be supported in the future on
 the SVM. The correct and portable way to test if `fork` is available is:
 ```ruby
 Process.respond_to?(:fork)
@@ -51,7 +51,7 @@ Process.respond_to?(:fork)
 
 #### Standard libraries
 
-Quite a few of the less commonly used  standard libraries are currently not
+Quite a few of the less commonly used standard libraries are currently not
 supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
 hard to give a definitive list of those that are missing.
@@ -98,7 +98,7 @@ development tools.
 
 `-X` is an undocumented synonym for `-C` and we (and other alternative
 implementations of Ruby) have repurposed it for extended options. We warn if
-your `-X` options looks like it was actually intended to be as in MRI.
+your `-X` options look like they are actually intended to be as in MRI.
 
 Programs passed in `-e` arguments with magic-comments must have an encoding that
 is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
@@ -124,7 +124,7 @@ If you use standard IO streams provided by the Polyglot engine, via the
 be redirected to these streams. That means that other IO operations on these
 file descriptors, such as `isatty` may not be relevant for where these streams
 actually end up, and operations like `dup` may lose the connection to the
-polyglot stream. For example if you `$stdout.reopen`, as some logging frameworks
+polyglot stream. For example, if you `$stdout.reopen`, as some logging frameworks
 do, you will get the native standard-out, not the polyglot out.
 
 Also, IO buffer drains, writes on IO objects with `sync` set, and
@@ -168,7 +168,7 @@ disabled where we dynamically detect that they probably won't be used. See the
 #### Storing Ruby objects in native structures and arrays
 
 You cannot store a Ruby object in a structure or array that has been natively
-allocated, such as on the stack, or in a heap allocated structure or array.
+allocated, such as on the stack, or in a heap-allocated structure or array.
 
 Simple local variables of type `VALUE`, and locals arrays that are defined such
 as `VALUE array[n]` are an exception and are supported, provided their address
@@ -207,7 +207,7 @@ cannot be accessed with `va_start` etc. You can use
 
 Pointers to local variables that have the type `VALUE` and hold Ruby objects can
 only be passed as function arguments if the function is inlined. LLVM will never
-inline variadic functions, so pointers to local variables that hold Ruby objects
+inline variadic functions so pointers to local variables that hold Ruby objects
 cannot be passed as variadic arguments.
 
 `rb_scan_args` is an exception and is supported.
