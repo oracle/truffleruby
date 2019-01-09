@@ -110,7 +110,7 @@ $(CEXTS_DIR)/openssl.su: openssl/openssl.su
 	cp $< $@
 
 # zlib.su
-zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS) $(ROOT)/lib/cext/patches/zlib_patches.rb
+zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
 	cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c

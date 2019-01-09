@@ -126,11 +126,11 @@ ossl_pkcs12_s_create(int argc, VALUE *argv, VALUE self)
 /* TODO: make a VALUE to nid function */
     if (!NIL_P(key_nid)) {
         if ((nkey = OBJ_txt2nid(StringValueCStr(key_nid))) == NID_undef)
-	    ossl_raise(rb_eArgError, "Unknown PBE algorithm %s", StringValueCStr(key_nid)); // TruffleRuby: avoid passing managed to var-args
+	    ossl_raise(rb_eArgError, "Unknown PBE algorithm %"PRIsVALUE, key_nid);
     }
     if (!NIL_P(cert_nid)) {
         if ((ncert = OBJ_txt2nid(StringValueCStr(cert_nid))) == NID_undef)
-	    ossl_raise(rb_eArgError, "Unknown PBE algorithm %s", StringValueCStr(cert_nid)); // TruffleRuby: avoid passing managed to var-args
+	    ossl_raise(rb_eArgError, "Unknown PBE algorithm %"PRIsVALUE, cert_nid);
     }
     if (!NIL_P(key_iter))
         kiter = NUM2INT(key_iter);

@@ -55,15 +55,15 @@ static VALUE ossl_x509stctx_new(X509_STORE_CTX *);
 
 struct ossl_verify_cb_args {
     VALUE proc;
-    int preverify_ok; // TruffleRuby instead of VALUE
+    VALUE preverify_ok;
     VALUE store_ctx;
 };
 
 static VALUE
 call_verify_cb_proc(struct ossl_verify_cb_args *args)
 {
-    return rb_funcall(rb_tr_managed_from_handle(args->proc), rb_intern("call"), 2,
-		      args->preverify_ok ? Qtrue : Qfalse, args->store_ctx);
+    return rb_funcall(args->proc, rb_intern("call"), 2,
+		      args->preverify_ok, args->store_ctx);
 }
 
 int
@@ -83,9 +83,9 @@ ossl_verify_cb_call(VALUE proc, int ok, X509_STORE_CTX *ctx)
 	rb_warn("StoreContext initialization failure");
     }
     else {
-	args.proc = rb_tr_handle_for_managed_leaking(proc);
-	args.preverify_ok = ok; // TruffleRuby
-	args.store_ctx = rb_tr_handle_for_managed_leaking(rctx);
+	args.proc = proc;
+	args.preverify_ok = ok ? Qtrue : Qfalse;
+	args.store_ctx = rctx;
 	ret = rb_protect((VALUE(*)(VALUE))call_verify_cb_proc, (VALUE)&args, &state);
 	if (state) {
 	    rb_set_errinfo(Qnil);
@@ -170,10 +170,10 @@ x509store_verify_cb(int ok, X509_STORE_CTX *ctx)
 {
     VALUE proc;
 
-    proc = rb_tr_managed_from_handle_or_null(X509_STORE_CTX_get_ex_data(ctx, stctx_ex_verify_cb_idx));
+    proc = (VALUE)X509_STORE_CTX_get_ex_data(ctx, stctx_ex_verify_cb_idx);
     if (!proc)
-	proc = rb_tr_managed_from_handle_or_null(X509_STORE_get_ex_data(X509_STORE_CTX_get0_store(ctx),
-					     store_ex_verify_cb_idx));
+	proc = (VALUE)X509_STORE_get_ex_data(X509_STORE_CTX_get0_store(ctx),
+					     store_ex_verify_cb_idx);
     if (!proc)
 	return ok;
 
@@ -204,7 +204,7 @@ ossl_x509store_set_vfy_cb(VALUE self, VALUE cb)
     X509_STORE *store;
 
     GetX509Store(self, store);
-    X509_STORE_set_ex_data(store, store_ex_verify_cb_idx, rb_tr_handle_for_managed_leaking(cb));
+    X509_STORE_set_ex_data(store, store_ex_verify_cb_idx, (void *)cb);
     rb_iv_set(self, "@verify_callback", cb);
 
     return cb;
@@ -587,7 +587,7 @@ ossl_x509stctx_verify(VALUE self)
 
     GetX509StCtx(self, ctx);
     X509_STORE_CTX_set_ex_data(ctx, stctx_ex_verify_cb_idx,
-			       rb_tr_handle_for_managed_leaking(rb_iv_get(self, "@verify_callback")));
+			       (void *)rb_iv_get(self, "@verify_callback"));
 
     switch (X509_verify_cert(ctx)) {
       case 1:
