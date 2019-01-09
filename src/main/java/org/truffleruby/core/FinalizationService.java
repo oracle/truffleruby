@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -14,10 +14,12 @@ import java.lang.ref.ReferenceQueue;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
 /**
  * Finalizers are implemented with phantom references and reference queues, and are run in a
@@ -50,7 +52,7 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
         }
     }
 
-    public static class FinalizerReference extends PhantomReference<Object> implements ReferenceProcessingService.ProcessingReference<FinalizerReference> {
+    public static class FinalizerReference extends PhantomReference<Object> implements ReferenceProcessingService.ProcessingReference<FinalizerReference>, ObjectGraphNode {
 
         /**
          * All accesses to this Deque must be synchronized by taking the
@@ -115,6 +117,11 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
         public ReferenceProcessingService<FinalizerReference> service() {
             return service;
         }
+
+        @Override
+        public void getAdjacentObjects(Set<DynamicObject> reachable) {
+            collectRoots(reachable);
+        }
     }
 
     /** The finalizer Ruby thread, spawned lazily. */
@@ -133,6 +140,10 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
 
         referenceProcessor.processReferenceQueue();
         return finalizerReference;
+    }
+
+    public final void drainFinalizationQueue() {
+        referenceProcessor.drainReferenceQueue();
     }
 
     @Override

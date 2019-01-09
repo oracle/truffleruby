@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -958,6 +958,18 @@ public abstract class TruffleDebugNodes {
 
         protected ReadObjectFieldNode createReadAssociatedNode() {
             return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
+        }
+
+    }
+
+    @CoreMethod(names = "drain_finalization_queue", onSingleton = true)
+    public abstract static class DrainFinalizationQueueNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject drainFinalizationQueue() {
+            getContext().getFinalizationService().drainFinalizationQueue();
+            return nil();
         }
 
     }
