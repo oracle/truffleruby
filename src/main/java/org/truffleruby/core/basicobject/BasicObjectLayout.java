@@ -14,7 +14,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.language.RubyObjectType;
+import org.truffleruby.interop.RubyObjectType;
 
 @Layout(objectTypeSuperclass = RubyObjectType.class, implicitCastIntToLong = true)
 public interface BasicObjectLayout {
