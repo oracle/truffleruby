@@ -280,4 +280,15 @@ describe "The launcher" do
     out.should include(':b')
   end
 
+  guard -> { TruffleRuby.graal? } do
+    it "applies Truffle options" do
+      prefix = TruffleRuby.native? ? '--native.' : '--jvm.'
+      options = [
+        "#{prefix}Dgraal.TraceTruffleCompilation=true",
+        "#{prefix}Dgraal.TruffleBackgroundCompilation=false",
+      ].join(" ")
+      out = ruby_exe("2000.times {}", options: options, args: "2>&1")
+      out.should include("[truffle] opt done")
+    end
+  end
 end
