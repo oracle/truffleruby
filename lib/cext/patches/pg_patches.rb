@@ -6,10 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative 'common_patches'
-
 # Tested with pg version 0.21.0
-class PgPatches < CommonPatches
+class PgPatches
 
   PG_BINARY_ENCODER_PATCH = <<-EOF
     switch(rb_tr_to_int_const(value)){

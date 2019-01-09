@@ -6,9 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative 'common_patches'
-
-class JsonPatches < CommonPatches
+class JsonPatches
   PATCHES = {
     gem: 'json',
     patches: {

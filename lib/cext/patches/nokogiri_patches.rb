@@ -8,9 +8,7 @@
 
 # Patches nokogiri 1.8.1
 
-require_relative 'common_patches'
-
-class NokogiriPatches < CommonPatches
+class NokogiriPatches
 
   XML_NODE_SET_PATCH = <<-EOF
   switch (rb_tr_to_int_const(rb_range_beg_len(arg, &beg, &len, (long)node_set->nodeNr, 0))) {

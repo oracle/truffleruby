@@ -6,8 +6,6 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative 'patches/common_patches'
-
 require_relative 'patches/json_patches'
 require_relative 'patches/nokogiri_patches'
 require_relative 'patches/pg_patches'
@@ -49,7 +47,7 @@ class Preprocessor
                   directory.end_with?(File.join(patched_file[:gem], 'ext', patched_file[:ext_dir]))
                 else
                   regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
-                  directory.split('/').last(7).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
+                  directory.split('/').last(3).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
                 end
       if matched
         patched_file[:patches].each do |patch|
