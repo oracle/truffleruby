@@ -43,7 +43,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "IS_NULL")
-    public static abstract class ForeignIsNullNode extends Node {
+    public static abstract class IsNullNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -54,7 +54,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "HAS_SIZE")
-    public static abstract class ForeignHasSizeNode extends Node {
+    public static abstract class HasSizeNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -65,7 +65,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "GET_SIZE")
-    public static abstract class ForeignGetSizeNode extends Node {
+    public static abstract class GetSizeNode extends Node {
 
         @TruffleBoundary
         protected int access(LoggingForeignObject log) {
@@ -76,7 +76,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "IS_BOXED")
-    public static abstract class ForeignIsBoxedNode extends Node {
+    public static abstract class IsBoxedNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -87,7 +87,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "UNBOX")
-    public static abstract class ForeignUnboxNode extends Node {
+    public static abstract class UnboxNode extends Node {
 
         @TruffleBoundary
         protected int access(LoggingForeignObject log) {
@@ -98,7 +98,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "IS_POINTER")
-    public static abstract class ForeignIsPointerNode extends Node {
+    public static abstract class IsPointerNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -109,7 +109,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "AS_POINTER")
-    public static abstract class ForeignAsPointerNode extends Node {
+    public static abstract class AsPointerNode extends Node {
 
         @TruffleBoundary
         protected int access(LoggingForeignObject log) {
@@ -120,7 +120,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "TO_NATIVE")
-    public static abstract class ForeignToNativeNode extends Node {
+    public static abstract class ToNativeNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log) {
@@ -131,7 +131,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "READ")
-    public static abstract class ForeignReadNode extends Node {
+    public static abstract class ReadNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, Object name) {
@@ -142,7 +142,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "WRITE")
-    public static abstract class ForeignWriteNode extends Node {
+    public static abstract class WriteNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, Object name, Object value) {
@@ -153,7 +153,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "REMOVE")
-    public static abstract class ForeignRemoveNode extends Node {
+    public static abstract class RemoveNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log, Object name) {
@@ -164,7 +164,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "HAS_KEYS")
-    public static abstract class ForeignHasKeysNode extends Node {
+    public static abstract class HasKeysNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -175,7 +175,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "KEYS")
-    public static abstract class ForeignKeysNode extends Node {
+    public static abstract class KeysNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, boolean internal) {
@@ -186,7 +186,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "KEY_INFO")
-    public static abstract class ForeignKeyInfoNode extends Node {
+    public static abstract class KeyInfoNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, Object name) {
@@ -197,7 +197,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class ForeignIsExecutableNode extends Node {
+    public static abstract class IsExecutableNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -208,7 +208,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "EXECUTE")
-    public static abstract class ForeignExecuteNode extends Node {
+    public static abstract class ExecuteNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, Object[] arguments) {
@@ -219,7 +219,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "INVOKE")
-    public static abstract class ForeignInvokeNode extends Node {
+    public static abstract class InvokeNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, String name, Object[] arguments) {
@@ -234,7 +234,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "IS_INSTANTIABLE")
-    public static abstract class ForeignIsInstantiableNode extends Node {
+    public static abstract class IsInstantiableNode extends Node {
 
         @TruffleBoundary
         protected boolean access(LoggingForeignObject log) {
@@ -245,7 +245,7 @@ public class LoggingForeignObject implements TruffleObject {
     }
 
     @Resolve(message = "NEW")
-    public static abstract class ForeignNewNode extends Node {
+    public static abstract class NewNode extends Node {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, Object[] arguments) {

@@ -58,7 +58,7 @@ public class ManagedStructObjectType extends ObjectType {
 
 
     @Resolve(message = "READ")
-    public static abstract class ForeignReadNode extends Node {
+    public static abstract class ReadNode extends Node {
 
         @Child
         ObjectIVarGetNode readObjectFieldNode = ObjectIVarGetNode.create();
@@ -78,7 +78,7 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @Resolve(message = "WRITE")
-    public static abstract class ForeignWriteNode extends Node {
+    public static abstract class WriteNode extends Node {
 
         @Child
         ObjectIVarSetNode writeObjectFieldNode = ObjectIVarSetNodeGen.create(false);
@@ -97,7 +97,7 @@ public class ManagedStructObjectType extends ObjectType {
 
     @SuppressWarnings("unknown-message")
     @Resolve(message = "com.oracle.truffle.llvm.spi.GetDynamicType")
-    public abstract static class GetDynamicType extends Node {
+    public abstract static class GetDynamicTypeNode extends Node {
 
         protected Object access(DynamicObject object) {
             return ManagedStructObjectType.MANAGED_STRUCT.getType(object);

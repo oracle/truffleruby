@@ -40,7 +40,7 @@ public class BoxedValue implements TruffleObject {
     }
 
     @Resolve(message = "IS_BOXED")
-    public static abstract class ForeignIsBoxedNode extends Node {
+    public static abstract class IsBoxedNode extends Node {
 
         protected Object access(VirtualFrame frame, BoxedValue number) {
             return true;
@@ -49,7 +49,7 @@ public class BoxedValue implements TruffleObject {
     }
 
     @Resolve(message = "UNBOX")
-    public static abstract class ForeignUnboxNode extends Node {
+    public static abstract class UnboxNode extends Node {
 
         protected Object access(VirtualFrame frame, BoxedValue number) {
             return number.getNumber();

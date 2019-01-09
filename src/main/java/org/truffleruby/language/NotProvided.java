@@ -32,7 +32,7 @@ public final class NotProvided implements TruffleObject {
     }
 
     @Resolve(message = "IS_NULL")
-    public static abstract class NotProvidedIsNullNode extends Node {
+    public static abstract class IsNullNode extends Node {
 
         protected boolean access(NotProvided object) {
             return false;
@@ -41,7 +41,7 @@ public final class NotProvided implements TruffleObject {
     }
 
     @Resolve(message = "HAS_SIZE")
-    public static abstract class NotProvidedHasSizeNode extends Node {
+    public static abstract class HasSizeNode extends Node {
 
         protected boolean access(NotProvided object) {
             return false;
@@ -50,7 +50,7 @@ public final class NotProvided implements TruffleObject {
     }
 
     @Resolve(message = "IS_BOXED")
-    public static abstract class NotProvidedIsBoxedNode extends Node {
+    public static abstract class IsBoxedNode extends Node {
 
         protected boolean access(NotProvided object) {
             return false;
@@ -59,7 +59,7 @@ public final class NotProvided implements TruffleObject {
     }
 
     @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class NotProvidedIsExecutableNode extends Node {
+    public static abstract class IsExecutableNode extends Node {
 
         protected boolean access(NotProvided object) {
             return false;

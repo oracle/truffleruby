@@ -456,7 +456,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_NULL")
-            public static abstract class ForeignIsNullNode extends Node {
+            public static abstract class IsNullNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignNull noll) {
                     return true;
@@ -505,7 +505,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_POINTER")
-            public static abstract class ForeignIsPointerNode extends Node {
+            public static abstract class IsPointerNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignPointer pointer) {
                     return true;
@@ -514,7 +514,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "AS_POINTER")
-            public static abstract class ForeignAsPointerNode extends Node {
+            public static abstract class AsPointerNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignPointer pointer) {
                     return pointer.getAddress();
@@ -553,7 +553,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_BOXED")
-            public static abstract class ForeignIsBoxedNode extends Node {
+            public static abstract class IsBoxedNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignObject number) {
                     return false;
@@ -603,7 +603,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "KEYS")
-            public static abstract class ForeignKeysNode extends Node {
+            public static abstract class KeysNode extends Node {
 
                 @CompilationFinal private ContextReference<RubyContext> contextReference;
 
@@ -624,7 +624,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "READ")
-            public static abstract class ForeignReadNode extends Node {
+            public static abstract class ReadNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignObjectFromMap object, Object key) {
                     final Map map = object.getMap();
@@ -674,7 +674,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "HAS_SIZE")
-            public static abstract class ForeignHasSizeNode extends Node {
+            public static abstract class HasSizeNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
                     return true;
@@ -683,7 +683,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "GET_SIZE")
-            public static abstract class ForeignSizeNode extends Node {
+            public static abstract class SizeNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
                     final Object[] array = object.getArray();
@@ -693,7 +693,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "READ")
-            public static abstract class ForeignReadNode extends Node {
+            public static abstract class ReadNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object, Object key) {
                     final Object[] array = object.getArray();
@@ -754,7 +754,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_EXECUTABLE")
-            public static abstract class ForeignIsExecutableNode extends Node {
+            public static abstract class IsExecutableNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignExecutable executable) {
                     return true;
@@ -763,7 +763,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "EXECUTE")
-            public static abstract class ForeignExecuteNode extends Node {
+            public static abstract class ExecuteNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignExecutable executable, Object... arguments) {
                     return executable.getValue();
@@ -812,7 +812,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_BOXED")
-            public static abstract class ForeignIsBoxedNode extends Node {
+            public static abstract class IsBoxedNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignString string) {
                     return true;
@@ -821,7 +821,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "UNBOX")
-            public static abstract class ForeignUnboxNode extends Node {
+            public static abstract class UnboxNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignString string) {
                     return string.getString();

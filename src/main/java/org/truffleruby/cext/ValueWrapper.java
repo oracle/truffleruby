@@ -77,7 +77,7 @@ public class ValueWrapper implements TruffleObject {
     }
 
     @Resolve(message = "IS_POINTER")
-    public static abstract class ForeignIsPointerNode extends Node {
+    public static abstract class IsPointerNode extends Node {
 
         protected boolean access(VirtualFrame frame, ValueWrapper wrapper) {
             return true;
@@ -85,14 +85,14 @@ public class ValueWrapper implements TruffleObject {
     }
 
     @Resolve(message = "TO_NATIVE")
-    public static abstract class ForeignToNativeNode extends Node {
+    public static abstract class ToNativeNode extends Node {
         protected Object access(VirtualFrame frame, ValueWrapper receiver) {
             return receiver;
         }
     }
 
     @Resolve(message = "AS_POINTER")
-    public static abstract class ForeignAsPointerNode extends Node {
+    public static abstract class AsPointerNode extends Node {
 
         @CompilationFinal private RubyContext context;
         private final BranchProfile createHandleProfile = BranchProfile.create();

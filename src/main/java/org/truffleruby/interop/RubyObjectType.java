@@ -66,7 +66,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "IS_NULL")
-    public static abstract class ForeignIsNullNode extends Node {
+    public static abstract class IsNullNode extends Node {
 
         @CompilationFinal private ContextReference<RubyContext> contextReference;
 
@@ -86,7 +86,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "HAS_SIZE")
-    public static abstract class ForeignHasSizeNode extends Node {
+    public static abstract class HasSizeNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
@@ -97,7 +97,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "GET_SIZE")
-    public static abstract class ForeignGetSizeNode extends Node {
+    public static abstract class GetSizeNode extends Node {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
@@ -108,7 +108,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "IS_BOXED")
-    public static abstract class ForeignIsBoxedNode extends Node {
+    public static abstract class IsBoxedNode extends Node {
 
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile symbolProfile = ConditionProfile.createBinaryProfile();
@@ -131,7 +131,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "UNBOX")
-    public static abstract class ForeignUnboxNode extends Node {
+    public static abstract class UnboxNode extends Node {
 
         private final ConditionProfile stringSymbolProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
@@ -160,7 +160,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "IS_POINTER")
-    public static abstract class ForeignIsPointerNode extends Node {
+    public static abstract class IsPointerNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
@@ -176,7 +176,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "AS_POINTER")
-    public static abstract class ForeignAsPointerNode extends Node {
+    public static abstract class AsPointerNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
@@ -200,7 +200,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "TO_NATIVE")
-    public static abstract class ForeignToNativeNode extends Node {
+    public static abstract class ToNativeNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
@@ -216,7 +216,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "READ")
-    public static abstract class ForeignReadNode extends Node {
+    public static abstract class ReadNode extends Node {
 
         @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create();
 
@@ -227,7 +227,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "WRITE")
-    public static abstract class ForeignWriteNode extends Node {
+    public static abstract class WriteNode extends Node {
 
         @Child private ForeignWriteStringCachingHelperNode helperNode = ForeignWriteStringCachingHelperNodeGen.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
@@ -243,7 +243,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "REMOVE")
-    public static abstract class ForeignRemoveNode extends Node {
+    public static abstract class RemoveNode extends Node {
 
         private final ConditionProfile arrayReceiverProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile hashReceiverProfile = ConditionProfile.createBinaryProfile();
@@ -285,7 +285,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "HAS_KEYS")
-    public static abstract class ForeignHasKeysNode extends Node {
+    public static abstract class HasKeysNode extends Node {
 
         private final ConditionProfile hasKeysProfile = ConditionProfile.createBinaryProfile();
 
@@ -296,7 +296,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "KEYS")
-    public static abstract class ForeignKeysNode extends Node {
+    public static abstract class KeysNode extends Node {
 
         @CompilationFinal private RubyContext context;
 
@@ -318,7 +318,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "KEY_INFO")
-    public static abstract class ForeignKeyInfoNode extends Node {
+    public static abstract class KeyInfoNode extends Node {
 
         @CompilationFinal private RubyContext context;
 
@@ -342,7 +342,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class ForeignIsExecutableNode extends Node {
+    public static abstract class IsExecutableNode extends Node {
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             return RubyGuards.isRubyMethod(object) || RubyGuards.isRubyProc(object);
@@ -351,7 +351,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "EXECUTE")
-    public static abstract class ForeignExecuteNode extends Node {
+    public static abstract class ExecuteNode extends Node {
 
         @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
@@ -365,7 +365,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "INVOKE")
-    public static abstract class ForeignInvokeNode extends Node {
+    public static abstract class InvokeNode extends Node {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
@@ -377,7 +377,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "IS_INSTANTIABLE")
-    public static abstract class ForeignIsInstantiableNode extends Node {
+    public static abstract class IsInstantiableNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
@@ -388,7 +388,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @Resolve(message = "NEW")
-    public static abstract class ForeignNewNode extends Node {
+    public static abstract class NewNode extends Node {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
