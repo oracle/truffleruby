@@ -9,9 +9,15 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.MessageResolution;
+import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.Node;
 
+@MessageResolution(receiverType = BoxedValue.class)
 public class BoxedValue implements TruffleObject {
 
     private final Object value;
@@ -24,9 +30,36 @@ public class BoxedValue implements TruffleObject {
         return value;
     }
 
+    @CanResolve
+    public abstract static class Check extends Node {
+
+        protected static boolean test(TruffleObject receiver) {
+            return receiver instanceof BoxedValue;
+        }
+
+    }
+
+    @Resolve(message = "IS_BOXED")
+    public static abstract class ForeignIsBoxedNode extends Node {
+
+        protected Object access(VirtualFrame frame, BoxedValue number) {
+            return true;
+        }
+
+    }
+
+    @Resolve(message = "UNBOX")
+    public static abstract class ForeignUnboxNode extends Node {
+
+        protected Object access(VirtualFrame frame, BoxedValue number) {
+            return number.getNumber();
+        }
+
+    }
+
     @Override
     public ForeignAccess getForeignAccess() {
-        return BoxedValueMessageResolutionForeign.ACCESS;
+        return BoxedValueForeign.ACCESS;
     }
 
 }

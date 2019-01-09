@@ -21,7 +21,7 @@ public abstract class ForeignToRubyNode extends RubyBaseNode {
         return ForeignToRubyNodeGen.create();
     }
 
-    protected abstract Object executeConvert(Object value);
+    public abstract Object executeConvert(Object value);
 
     @Specialization
     public DynamicObject convertCharacterCached(char value,

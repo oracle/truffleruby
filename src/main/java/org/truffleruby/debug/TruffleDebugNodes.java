@@ -443,17 +443,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_null", onSingleton = true)
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignNull implements TruffleObject {
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignNullMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
         @MessageResolution(receiverType = ForeignNull.class)
-        public static class ForeignNullMessageResolution {
+        public static class ForeignNull implements TruffleObject {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -473,6 +464,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignNullForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -486,6 +482,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_pointer", required = 1, onSingleton = true)
     public abstract static class ForeignPointerNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignPointer.class)
         public static class ForeignPointer implements TruffleObject {
 
             private final long address;
@@ -497,16 +494,6 @@ public abstract class TruffleDebugNodes {
             public long getAddress() {
                 return address;
             }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignPointerMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignPointer.class)
-        public static class ForeignPointerMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -535,6 +522,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignPointerForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -548,17 +540,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object",  onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignObject implements TruffleObject {
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
         @MessageResolution(receiverType = ForeignObject.class)
-        public static class ForeignObjectMessageResolution {
+        public static class ForeignObject implements TruffleObject {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -578,6 +561,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignObjectForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -592,6 +580,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
     public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignObjectFromMap.class)
         public static class ForeignObjectFromMap implements TruffleObject {
 
             private final Map map;
@@ -600,19 +589,9 @@ public abstract class TruffleDebugNodes {
                 this.map = map;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectFromMapMessageResolutionForeign.ACCESS;
-            }
-
             public Map getMap() {
                 return map;
             }
-        }
-
-
-        @MessageResolution(receiverType = ForeignObjectFromMap.class)
-        public static class ForeignObjectFromMapMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -654,6 +633,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignObjectFromMapForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -667,6 +651,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_array_from_java", required = 1, onSingleton = true)
     public abstract static class ForeignArrayFromJavaNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignArrayFromJava.class)
         public static class ForeignArrayFromJava implements TruffleObject {
 
             private final Object[] array;
@@ -675,19 +660,9 @@ public abstract class TruffleDebugNodes {
                 this.array = array;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignForeignArrayFromJavaMessageResolutionForeign.ACCESS;
-            }
-
             public Object[] getArray() {
                 return array;
             }
-        }
-
-
-        @MessageResolution(receiverType = ForeignArrayFromJava.class)
-        public static class ForeignForeignArrayFromJavaMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -727,6 +702,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignArrayFromJavaForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -751,6 +731,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)
     public abstract static class ForeignExecutableNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignExecutable.class)
         public static class ForeignExecutable implements TruffleObject {
 
             private final Object value;
@@ -762,16 +743,6 @@ public abstract class TruffleDebugNodes {
             public Object getValue() {
                 return value;
             }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignExecutableMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignExecutable.class)
-        public static class ForeignExecutableMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -800,6 +771,11 @@ public abstract class TruffleDebugNodes {
 
             }
 
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignExecutableForeign.ACCESS;
+            }
+
         }
 
         @TruffleBoundary
@@ -813,6 +789,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignString.class)
         public static class ForeignString implements TruffleObject {
 
             private final String string;
@@ -824,16 +801,6 @@ public abstract class TruffleDebugNodes {
             public String getString() {
                 return string;
             }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignStringMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignString.class)
-        public static class ForeignStringMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -860,6 +827,11 @@ public abstract class TruffleDebugNodes {
                     return string.getString();
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignStringForeign.ACCESS;
             }
 
         }
