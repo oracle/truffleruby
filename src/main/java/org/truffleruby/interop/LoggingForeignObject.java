@@ -223,7 +223,7 @@ public class LoggingForeignObject implements TruffleObject {
 
         @TruffleBoundary
         protected Object access(LoggingForeignObject log, String name, Object[] arguments) {
-            if (name.toString().equals("log")) {
+            if (name.equals("log")) {
                 return log.getLog();
             } else {
                 log.log("INVOKE(%s, ...)", name);
