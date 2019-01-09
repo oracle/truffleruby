@@ -13,7 +13,6 @@ import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
@@ -42,12 +41,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
-    }
-
-    static boolean isSulongAvailable() {
-        try (Engine engine = Engine.create()) {
-            return engine.getLanguages().containsKey(TruffleRuby.LLVM_ID);
-        }
     }
 
     @Override
@@ -121,7 +114,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 }
 
                 // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
-                if (!isGraalVMAvailable() && isSulongAvailable()) {
+                if (!isGraalVMAvailable()) { // TODO (eregon, 9 Jan 2019): This should check if Sulong is available.
                     final String rubyHome = new File(launcher).getParentFile().getParent();
                     final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
 
