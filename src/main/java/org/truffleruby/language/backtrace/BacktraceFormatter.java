@@ -132,7 +132,7 @@ public class BacktraceFormatter {
                     StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
         }
 
-        return ArrayHelpers.createArray(context, array, array.length);
+        return ArrayHelpers.createArray(context, array);
     }
 
     @TruffleBoundary
