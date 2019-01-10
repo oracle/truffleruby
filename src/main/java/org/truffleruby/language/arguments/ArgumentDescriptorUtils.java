@@ -28,7 +28,7 @@ public class ArgumentDescriptorUtils {
             params[i] = toArray(context, argsDesc[i], isLambda);
         }
 
-        return ArrayHelpers.createArray(context, params, params.length);
+        return ArrayHelpers.createArray(context, params);
     }
 
     public static DynamicObject toArray(RubyContext context,
@@ -57,6 +57,6 @@ public class ArgumentDescriptorUtils {
             };
         }
 
-        return ArrayHelpers.createArray(context, store, store.length);
+        return ArrayHelpers.createArray(context, store);
     }
 }

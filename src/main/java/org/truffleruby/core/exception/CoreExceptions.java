@@ -604,7 +604,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        final DynamicObject argsArray =  createArray(context, args, args.length);
+        final DynamicObject argsArray =  createArray(context, args);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
@@ -620,7 +620,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
-        final DynamicObject argsArray = createArray(context, args, args.length);
+        final DynamicObject argsArray = createArray(context, args);
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
