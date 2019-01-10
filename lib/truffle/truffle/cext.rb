@@ -102,7 +102,6 @@ module Truffle::CExt
     end
 
     def cache_address
-      name.act_like_pointer = true
       addr = name.address
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
@@ -138,19 +137,26 @@ module Truffle::CExt
 
   class RStringPtr
     attr_reader :string
-    attr_accessor :act_like_pointer
 
     def initialize(string)
       @string = string
-      @act_like_pointer = false
     end
 
     def size
       Truffle::CExt.string_pointer_size(@string)
     end
 
+    def pointer?
+      true
+    end
+
     def address
       @address ||= Truffle::CExt.string_pointer_to_native(@string)
+    end
+
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
     end
 
     def [](index)
@@ -167,24 +173,30 @@ module Truffle::CExt
 
     alias_method :to_str, :string
     alias_method :to_s, :string
-    alias_method :pointer?, :act_like_pointer
   end
 
   class RArrayPtr
     attr_reader :array
-    attr_accessor :act_like_pointer
 
     def initialize(array)
       @array = array
-      @act_like_pointer = false
     end
 
     def size
       @array.size
     end
 
+    def pointer?
+      true
+    end
+
     def address
       raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet'
+    end
+
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
     end
 
     def [](index)
@@ -198,27 +210,29 @@ module Truffle::CExt
     def native?
       false
     end
-
-    alias_method :pointer?, :act_like_pointer
   end
 
   class RStringEndPtr
-    attr_accessor :act_like_pointer
-
     def initialize(string)
       @string = string
-      @act_like_pointer = false
     end
 
     def size
       0
     end
 
+    def pointer?
+      true
+    end
+
     def address
       @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
 
-    alias_method :pointer?, :act_like_pointer
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
+    end
   end
 
   T_NONE     = 0x00
