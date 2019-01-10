@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -6,11 +6,14 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative '../../ruby/spec_helper'
 require 'objspace'
 
-# Truffle-specific behavior
+require_relative '../../ruby/spec_helper'
+
 describe "ObjectSpace.reachable_objects_from" do
+
+  # This is a standard method, but our implementation returns more objects so we keep this spec here
+
   it "enumerates objects directly reachable from a given object" do
     ObjectSpace.reachable_objects_from(nil).should == [NilClass]
     ObjectSpace.reachable_objects_from(['a', 'b', 'c']).should include(Array, 'a', 'b', 'c')
@@ -62,4 +65,13 @@ describe "ObjectSpace.reachable_objects_from" do
     reachable = ObjectSpace.reachable_objects_from(q)
     reachable.should include(o)
   end
+
+  it "finds finalizers" do
+    object = Object.new
+    finalizer = proc { }
+    ObjectSpace.define_finalizer object, finalizer
+    reachable = ObjectSpace.reachable_objects_from(object)
+    reachable.should include(finalizer)
+  end
+  
 end
