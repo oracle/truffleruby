@@ -697,25 +697,11 @@ double rb_float_value(VALUE value) {
 // String
 
 char *RSTRING_PTR_IMPL(VALUE string) {
-  char* ret = RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string);
-
-  // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
-  // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
-  // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_invoke(ret, "act_like_pointer=", rb_tr_unwrap(Qtrue));
-
-  return ret;
+  return RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string);
 }
 
 char *RSTRING_END(VALUE string) {
-  char* ret = RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_END", string);
-
-  // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
-  // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
-  // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_invoke(ret, "act_like_pointer=", rb_tr_unwrap(Qtrue));
-
-  return ret;
+  return RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_END", string);
 }
 
 int MBCLEN_NEEDMORE_P(int r) {
