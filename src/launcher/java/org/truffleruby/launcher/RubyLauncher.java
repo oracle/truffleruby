@@ -24,7 +24,6 @@ import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -111,20 +110,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 final String launcher = setRubyLauncher();
                 if (launcher != null) {
                     polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
-                }
-
-                // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
-                if (!isGraalVMAvailable()) { // TODO (eregon, 9 Jan 2019): This should check if Sulong is available.
-                    final String rubyHome = new File(launcher).getParentFile().getParent();
-                    final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
-
-                    String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
-                    if (libraryPath == null || libraryPath.isEmpty()) {
-                        libraryPath = libSulongPath;
-                    } else {
-                        libraryPath = libraryPath + ":" + libSulongPath;
-                    }
-                    polyglotOptions.put("llvm.libraryPath", libraryPath);
                 }
             }
 
