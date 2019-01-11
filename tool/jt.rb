@@ -723,7 +723,7 @@ module Commands
         vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
         graal = true
-        vm_args << (arg == '--igv-full') ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
+        vm_args << (arg == '--igv-full' ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2")
         vm_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "-J-Dgraal.PrintBackendCFG=false"
       when '--no-print-cmd'
