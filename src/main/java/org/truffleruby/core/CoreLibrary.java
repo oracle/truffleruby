@@ -335,6 +335,9 @@ public class CoreLibrary {
         exceptionClass = defineClass("Exception");
         Layouts.CLASS.setInstanceFactoryUnsafe(exceptionClass, Layouts.EXCEPTION.createExceptionShape(exceptionClass, exceptionClass));
 
+        // fatal
+        defineClass(exceptionClass, "fatal");
+
         // NoMemoryError
         noMemoryErrorClass = defineClass(exceptionClass, "NoMemoryError");
 

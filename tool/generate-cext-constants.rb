@@ -76,6 +76,7 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
+    ['Truffle::CExt.rb_const_get(Object, "fatal")', 'eFatal'],
     ['$stdin', 'stdin'],
     ['$stdout', 'stdout'],
     ['$stderr', 'stderr'],
@@ -88,7 +89,7 @@ constants = [
     value, name = const
   else
     value = const
-    
+
     if value.nil?
       name = 'nil'
     elsif value.is_a?(Module)
@@ -97,13 +98,13 @@ constants = [
       name = value.to_s
     end
   end
-  
+
   if value.nil?
     expr = 'nil'
   else
     expr = value.to_s
   end
-  
+
   if [true, false, nil].include?(value) or name == 'undef'
     tag = 'Q'
   elsif value.is_a?(Class) && (value < Exception || value == Exception)
@@ -115,9 +116,9 @@ constants = [
   else
     tag = 'rb_'
   end
-  
+
   macro_name = "#{tag}#{name}"
-  
+
   [macro_name, name, expr]
 end
 
