@@ -160,8 +160,8 @@ module Utilities
     elsif graal_home = find_auto_graal_home
       javacmd = "#{find_graal_java_home(graal_home)}/bin/java"
       graal_jars = [
-        "#{graal_home}/mxbuild/dists/graal.jar",
-        "#{graal_home}/mxbuild/dists/graal-management.jar"
+        "#{graal_home}/mxbuild/dists/jdk1.8/graal.jar",
+        "#{graal_home}/mxbuild/dists/jdk1.8/graal-management.jar"
       ]
       vm_args = [
         '-XX:+UnlockExperimentalVMOptions',
@@ -179,7 +179,7 @@ module Utilities
   def find_auto_graal_home
     sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
     return nil unless Dir.exist?(sibling_compiler)
-    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
+    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/jdk1.8/graal-compiler.jar")
     sibling_compiler
   end
 
@@ -723,7 +723,7 @@ module Commands
         vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
         graal = true
-        vm_args << (arg == '--igv-full') ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
+        vm_args << (arg == '--igv-full' ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2")
         vm_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "-J-Dgraal.PrintBackendCFG=false"
       when '--no-print-cmd'

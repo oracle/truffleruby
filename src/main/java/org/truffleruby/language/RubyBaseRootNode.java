@@ -28,6 +28,15 @@ public abstract class RubyBaseRootNode extends RootNode {
         return sourceSection;
     }
 
+    // NOTE (eregon, 11 Jan 2019): TruffleStackTrace calls this on the fast path, so it should constant-fold.
+    @Override
+    public boolean isInternal() {
+        if (sourceSection != null) {
+            return sourceSection.getSource().isInternal();
+        }
+        return false;
+    }
+
     @Override
     public boolean isCaptureFramesForTrace() {
         return true;
