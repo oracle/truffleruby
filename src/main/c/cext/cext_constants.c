@@ -268,6 +268,10 @@ VALUE rb_tr_get_ZeroDivError(void) {
   return RUBY_CEXT_INVOKE("rb_eZeroDivError");
 }
 
+VALUE rb_tr_get_eFatal(void) {
+  return RUBY_CEXT_INVOKE("rb_eFatal");
+}
+
 VALUE rb_tr_get_stdin(void) {
   return RUBY_CEXT_INVOKE("rb_stdin");
 }

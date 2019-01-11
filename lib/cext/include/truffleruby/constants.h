@@ -1,4 +1,4 @@
-// From tool/generate-cext-constants.rb
+// From ./tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_undef(void);
 VALUE rb_tr_get_true(void);
@@ -67,6 +67,7 @@ VALUE rb_tr_get_ThreadError(void);
 VALUE rb_tr_get_WaitReadable(void);
 VALUE rb_tr_get_WaitWritable(void);
 VALUE rb_tr_get_ZeroDivError(void);
+VALUE rb_tr_get_eFatal(void);
 VALUE rb_tr_get_stdin(void);
 VALUE rb_tr_get_stdout(void);
 VALUE rb_tr_get_stderr(void);
@@ -138,6 +139,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_mWaitReadable rb_tr_get_WaitReadable()
 #define rb_mWaitWritable rb_tr_get_WaitWritable()
 #define rb_eZeroDivError rb_tr_get_ZeroDivError()
+#define rb_eFatal rb_tr_get_eFatal()
 #define rb_stdin rb_tr_get_stdin()
 #define rb_stdout rb_tr_get_stdout()
 #define rb_stderr rb_tr_get_stderr()
