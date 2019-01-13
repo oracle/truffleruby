@@ -539,12 +539,26 @@ class Truffle::FFI::Pointer
 
   # pointer
 
+  private def get_pointer_value(value)
+    if Truffle::FFI::Pointer === value
+      value.address
+    elsif nil.equal?(value)
+      0
+    elsif Integer === value
+      value
+    elsif value.respond_to?(:to_ptr)
+      value.to_ptr.address
+    else
+      raise ArgumentError, "#{value} is not a pointer"
+    end
+  end
+
   def read_pointer
     Truffle.invoke_primitive :pointer_read_pointer, address
   end
 
   def write_pointer(value)
-    Truffle.invoke_primitive :pointer_write_pointer, address, value
+    Truffle.invoke_primitive :pointer_write_pointer, address, get_pointer_value(value)
     self
   end
 
@@ -553,7 +567,7 @@ class Truffle::FFI::Pointer
   end
 
   def put_pointer(offset, value)
-    Truffle.invoke_primitive :pointer_write_pointer, address + offset, value
+    Truffle.invoke_primitive :pointer_write_pointer, address + offset, get_pointer_value(value)
     self
   end
 
@@ -565,7 +579,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_pointer(ary)
     ary.each_with_index do |value, i|
-      Truffle.invoke_primitive :pointer_write_pointer, address + (i * 8), value
+      Truffle.invoke_primitive :pointer_write_pointer, address + (i * 8), get_pointer_value(value)
     end
     self
   end

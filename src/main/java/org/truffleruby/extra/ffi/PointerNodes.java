@@ -454,7 +454,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_pointer")
-    public static abstract class PointerReadPointerPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    public static abstract class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
@@ -680,7 +680,7 @@ public abstract class PointerNodes {
         public DynamicObject setAtOffsetPtr(DynamicObject pointer, int offset, int type, DynamicObject value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            ptr.writePointer(offset, Layouts.POINTER.getPointer(value));
+            ptr.writePointer(offset, Layouts.POINTER.getPointer(value).getAddress());
             return value;
         }
 
@@ -882,13 +882,13 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_pointer", lowerFixnum = 2)
-    public static abstract class PointerWritePointerPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    public static abstract class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyPointer(value)")
-        public DynamicObject address(long address, DynamicObject value) {
+        @Specialization
+        public DynamicObject writePointer(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            ptr.writePointer(0, Layouts.POINTER.getPointer(value));
+            ptr.writePointer(0, value);
             return nil();
         }
 

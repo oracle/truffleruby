@@ -90,8 +90,8 @@ public class Pointer implements AutoCloseable {
         UNSAFE.putDouble(address + offset, value);
     }
 
-    public void writePointer(long offset, Pointer value) {
-        writeLong(offset, value.getAddress());
+    public void writePointer(long offset, long address) {
+        writeLong(offset, address);
     }
 
     public void writeZeroTerminatedBytes(long offset, byte[] bytes, int start, int length) {
