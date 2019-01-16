@@ -297,7 +297,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "8u192-jvmci-0.52",
+          version: "8u192-jvmci-0.54",
           platformspecific: true,
         },
       },
@@ -311,7 +311,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "openjdk",
-          version: "8u192-jvmci-0.52",
+          version: "8u192-jvmci-0.54",
           platformspecific: true,
         },
       },
