@@ -793,7 +793,7 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_str_buf_new(long capacity) {
-  VALUE str = rb_str_new(0, capacity);
+  VALUE str = rb_str_new(NULL, capacity);
   rb_str_set_len(str, 0);
   return str;
 }
