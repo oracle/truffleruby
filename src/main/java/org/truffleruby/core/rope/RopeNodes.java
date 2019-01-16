@@ -432,26 +432,12 @@ public abstract class RopeNodes {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
             }
 
-            if (shouldRebalanceProfile.profile(left.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD)) {
-                if (flattenNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    flattenNode = insert(FlattenNode.create());
-                }
-
-                if (left instanceof ConcatRope) {
-                    left = rebalance((ConcatRope) left, getContext().getOptions().ROPE_DEPTH_THRESHOLD, flattenNode);
-                }
+            if (shouldRebalanceProfile.profile(left.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD && left instanceof ConcatRope)) {
+                left = rebalance((ConcatRope) left, getContext().getOptions().ROPE_DEPTH_THRESHOLD, getFlattenNode());
             }
 
-            if (shouldRebalanceProfile.profile(right.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD)) {
-                if (flattenNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    flattenNode = insert(FlattenNode.create());
-                }
-
-                if (right instanceof ConcatRope) {
-                    right = rebalance((ConcatRope) right, getContext().getOptions().ROPE_DEPTH_THRESHOLD, flattenNode);
-                }
+            if (shouldRebalanceProfile.profile(right.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD && right instanceof ConcatRope)) {
+                right = rebalance((ConcatRope) right, getContext().getOptions().ROPE_DEPTH_THRESHOLD, getFlattenNode());
             }
 
             int depth = depth(left, right);
@@ -463,6 +449,14 @@ public abstract class RopeNodes {
                     commonCodeRange(left.getCodeRange(), right.getCodeRange(), sameCodeRangeProfile, brokenCodeRangeProfile),
                     isSingleByteOptimizable(left, right, isLeftSingleByteOptimizableProfile),
                     depth, isBalanced(left, right));
+        }
+
+        private FlattenNode getFlattenNode() {
+            if (flattenNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                flattenNode = insert(FlattenNode.create());
+            }
+            return flattenNode;
         }
 
         private boolean isBalanced(Rope left, Rope right) {
