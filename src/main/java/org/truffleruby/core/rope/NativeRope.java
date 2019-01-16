@@ -21,10 +21,10 @@ public class NativeRope extends Rope {
     private final Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
-        this(createNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
+        this(allocateNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
     }
 
-    private static Pointer createNativePointer(FinalizationService finalizationService, byte[] bytes) {
+    private static Pointer allocateNativePointer(FinalizationService finalizationService, byte[] bytes) {
         final Pointer pointer = Pointer.malloc(bytes.length + 1);
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, bytes, 0, bytes.length);
@@ -32,7 +32,7 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
-    private static Pointer createNativePointer(FinalizationService finalizationService, Pointer existing) {
+    private static Pointer copyNativePointer(FinalizationService finalizationService, Pointer existing) {
         final Pointer pointer = Pointer.malloc(existing.getSize());
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, existing, 0, existing.getSize());
@@ -59,7 +59,7 @@ public class NativeRope extends Rope {
     }
 
     public NativeRope makeCopy(FinalizationService finalizationService) {
-        final Pointer newPointer = createNativePointer(finalizationService, pointer);
+        final Pointer newPointer = copyNativePointer(finalizationService, pointer);
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
