@@ -11,7 +11,6 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.string.StringSupport;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.extra.ffi.Pointer;
@@ -44,18 +43,9 @@ public class NativeRope extends Rope {
         this.pointer = pointer;
     }
 
-    @TruffleBoundary
-    public NativeRope withByteLength(int newByteLength) {
-        final byte[] bytes = new byte[newByteLength];
-        pointer.readBytes(0, bytes, 0, newByteLength);
-
-        final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), bytes, 0, newByteLength);
-        final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-        final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
-
-        getNativePointer().writeByte(newByteLength, (byte) 0); // Like MRI
-
-        return new NativeRope(getNativePointer(), newByteLength, getEncoding(), characterLength, codeRange);
+    public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
+        pointer.writeByte(newByteLength, (byte) 0); // Like MRI
+        return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
     }
 
     public NativeRope makeCopy(FinalizationService finalizationService) {
