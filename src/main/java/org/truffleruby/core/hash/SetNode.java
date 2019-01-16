@@ -15,7 +15,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
@@ -27,6 +26,7 @@ public abstract class SetNode extends RubyBaseNode {
     @Child private LookupEntryNode lookupEntryNode;
     @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
+    private final ConditionProfile byIdentityProfile = ConditionProfile.createBinaryProfile();
 
     public static SetNode create() {
         return SetNodeGen.create();
@@ -35,8 +35,7 @@ public abstract class SetNode extends RubyBaseNode {
     public abstract Object executeSet(DynamicObject hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    public Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-                    @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+    public Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -57,9 +56,7 @@ public abstract class SetNode extends RubyBaseNode {
     @ExplodeLoop
     @Specialization(guards = "isPackedHash(hash)")
     public Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-                    @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile strategyProfile,
-                    @Cached("create()") BranchProfile extendProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -69,6 +66,7 @@ public abstract class SetNode extends RubyBaseNode {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         final int size = Layouts.HASH.getSize(hash);
 
+        // written very carefully to allow PE
         for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
@@ -81,9 +79,7 @@ public abstract class SetNode extends RubyBaseNode {
             }
         }
 
-        extendProfile.enter();
-
-        if (strategyProfile.profile(size + 1 <= getContext().getOptions().HASH_PACKED_ARRAY_MAX)) {
+        if (strategyProfile.profile(size < getContext().getOptions().HASH_PACKED_ARRAY_MAX)) {
             PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
             Layouts.HASH.setSize(hash, size + 1);
             return value;
@@ -99,7 +95,6 @@ public abstract class SetNode extends RubyBaseNode {
 
     @Specialization(guards = "isBucketHash(hash)")
     public Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-                    @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
                     @Cached("createBinaryProfile()") ConditionProfile foundProfile,
                     @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
                     @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
