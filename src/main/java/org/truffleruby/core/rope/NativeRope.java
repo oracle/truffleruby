@@ -18,7 +18,7 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
 
-    private Pointer pointer;
+    private final Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
         this(createNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
