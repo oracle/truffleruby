@@ -36,7 +36,7 @@ describe "C-API String function" do
     before :each do
       # Make a completely new copy of the string
       # for every example (#dup doesn't cut it).
-      @str = "abcdefghij"[0..-1]
+      @str = "abcdefghij".b[0..-1]
     end
 
     it "reduces the size of the string" do
@@ -63,7 +63,6 @@ describe "C-API String function" do
       @s.rb_str_set_len(@str, 1)
       @str.should == "a"
 
-      @str.force_encoding(Encoding::UTF_8)
       @s.RSTRING_PTR_set(@str, 1, 'B'.ord)
       @s.RSTRING_PTR_set(@str, 2, 'C'.ord)
       @s.rb_str_set_len(@str, 3)
