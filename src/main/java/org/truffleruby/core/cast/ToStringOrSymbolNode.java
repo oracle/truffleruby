@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -27,7 +28,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStringOrSymbolNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.createPrivate();
+    @Child private CallDispatchHeadNode toStr;
 
     @Specialization(guards = "isRubySymbol(symbol)")
     public DynamicObject coerceRubySymbol(DynamicObject symbol) {
@@ -44,7 +45,7 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         final Object coerced;
         try {
-            coerced = toStr.call(object, "to_str");
+            coerced = callToStr(object);
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
@@ -60,5 +61,13 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
+    }
+
+    private Object callToStr(Object object) {
+        if (toStr == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toStr = insert(CallDispatchHeadNode.createPrivate());
+        }
+        return toStr.call(object, "to_str");
     }
 }
