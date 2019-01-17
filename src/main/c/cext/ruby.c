@@ -793,7 +793,7 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_str_buf_new(long capacity) {
-  VALUE str = rb_str_new(0, capacity);
+  VALUE str = rb_str_new(NULL, capacity);
   rb_str_set_len(str, 0);
   return str;
 }
@@ -812,7 +812,7 @@ VALUE rb_str_concat(VALUE string, VALUE to_concat) {
 
 void rb_str_set_len(VALUE string, long length) {
   long capacity = rb_str_capacity(string);
-  if (length > capacity) {
+  if (length > capacity || length < 0) {
     rb_raise(rb_eRuntimeError, "probable buffer overflow: %ld for %ld", length, capacity);
   }
   rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_set_len", rb_tr_unwrap(string), length));
