@@ -5,7 +5,7 @@ GraalVM, which is the only supported way to use TruffleRuby.
 
 ## TruffleRuby
 
-TruffleRuby is copyright (c) 2013-2018 Oracle and/or its
+TruffleRuby is copyright (c) 2013-2019 Oracle and/or its
 affiliates, and is made available to you under the terms of any one of the
 following three licenses:
 
