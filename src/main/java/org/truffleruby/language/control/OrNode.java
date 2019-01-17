@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -27,19 +28,25 @@ public class OrNode extends RubyNode {
     public OrNode(RubyNode left, RubyNode right) {
         this.left = left;
         this.right = right;
-        leftCast = BooleanCastNodeGen.create(null);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final Object leftValue = left.execute(frame);
-        final boolean leftBoolean = leftCast.executeToBoolean(leftValue);
 
-        if (conditionProfile.profile(leftBoolean)) {
+        if (conditionProfile.profile(castToBoolean(leftValue))) {
             return leftValue;
         } else {
             return right.execute(frame);
         }
+    }
+
+    private boolean castToBoolean(final Object value) {
+        if (leftCast == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            leftCast = insert(BooleanCastNodeGen.create(null));
+        }
+        return leftCast.executeToBoolean(value);
     }
 
 }
