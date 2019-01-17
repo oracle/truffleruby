@@ -49,11 +49,22 @@ describe "C-API String function" do
         @s.rb_str_set_len(@str, 8).should == "abcde\x00gh"
       end
 
-      it "updates the byte size and character size" do
+      it "updates the byte size" do
         @s.rb_str_set_len(@str, 4)
         @str.bytesize.should == 4
+        @str.should == "abcd"
+      end
+
+      it "invalidates the character size" do
+        @str.size.should == 10
+        @s.rb_str_set_len(@str, 4)
         @str.size.should == 4
         @str.should == "abcd"
+      end
+
+      it "invalidates the code range" do
+        @s.rb_str_set_len(@str, 4)
+        @str.ascii_only?.should == true
       end
 
       it "updates the string's attributes visible in C code" do
