@@ -103,18 +103,14 @@ class StringIO
     self
   end
 
-  def check_readable
+  private def check_readable
     raise IOError, 'not opened for reading' unless @readable
   end
 
-  private :check_readable
-
-  def check_writable
+  private def check_writable
     raise IOError, 'not opened for writing' unless @writable
     raise IOError, 'unable to modify data' if @__data__.string.frozen?
   end
-
-  private :check_writable
 
   def set_encoding(external, internal=nil, options=nil)
     encoding = external || Encoding.default_external
@@ -147,7 +143,6 @@ class StringIO
 
     self
   end
-
   alias_method :bytes, :each_byte
 
   def each_char
@@ -158,7 +153,6 @@ class StringIO
 
     self
   end
-
   alias_method :chars, :each_char
 
   def each_codepoint(&block)
@@ -181,7 +175,6 @@ class StringIO
 
     self
   end
-
   alias_method :codepoints, :each_codepoint
 
   def each(sep=$/, limit=Undefined)
@@ -662,9 +655,7 @@ class StringIO
     @__data__ = Data.new('')
   end
 
-  protected
-
-  def mode_from_string(mode)
+  private def mode_from_string(mode)
     @append = truncate = false
 
     if mode[0] == ?r
@@ -687,7 +678,7 @@ class StringIO
     d.string.replace('') if truncate
   end
 
-  def mode_from_integer(mode)
+  private def mode_from_integer(mode)
     @readable = @writable = @append = false
     d = @__data__
 
@@ -704,7 +695,7 @@ class StringIO
     d.string.replace('') if (mode & IO::TRUNC) != 0
   end
 
-  def getline(arg_error, sep, limit)
+  private def getline(arg_error, sep, limit)
     if limit != Undefined
       limit = Truffle::Type.coerce_to_int limit if limit
       sep = Truffle::Type.coerce_to sep, String, :to_str if sep
