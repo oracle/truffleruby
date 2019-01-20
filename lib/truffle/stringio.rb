@@ -69,8 +69,7 @@ class StringIO
 
   def initialize(string=nil, mode=nil)
     if string.nil?
-      @__data__ = Data.new ''
-      set_encoding(nil)
+      @__data__ = Data.new ''.force_encoding(Encoding.default_external)
       mode = IO::RDWR
     else
       string = Truffle::Type.coerce_to string, String, :to_str
