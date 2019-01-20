@@ -671,6 +671,10 @@ unsigned long rb_big2ulong(VALUE x) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_num2ulong", x));
 }
 
+int rb_big_sign(VALUE x) {
+  return RTEST(RUBY_INVOKE(x, ">=", INT2FIX(0))) ? 1 : 0;
+}
+
 VALUE rb_big_cmp(VALUE x, VALUE y) {
   return RUBY_INVOKE(x, "<=>", y);
 }
