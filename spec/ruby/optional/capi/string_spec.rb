@@ -35,9 +35,9 @@ describe "C-API String function" do
   [Encoding::BINARY, Encoding::UTF_8].each do |enc|
     describe "rb_str_set_len on a #{enc.name} String" do
       before :each do
-        # Make a completely new copy of the string
-        # for every example (#dup doesn't cut it).
-        @str = "abcdefghij".force_encoding(enc)[0..-1]
+        @str = "abcdefghij".force_encoding(enc)
+        # Make sure to unshare the string
+        @s.rb_str_modify(@str)
       end
 
       it "reduces the size of the string" do
