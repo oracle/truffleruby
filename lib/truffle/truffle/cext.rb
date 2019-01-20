@@ -362,7 +362,7 @@ module Truffle::CExt
       T_DATA
     when Data
       T_DATA
-    when Object
+    when BasicObject
       if hidden_variable_get(value, :data_holder)
         T_DATA
       else
