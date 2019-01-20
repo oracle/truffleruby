@@ -76,7 +76,7 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
-    ['Truffle::CExt.rb_const_get(Object, "fatal")', 'eFatal'],
+    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'eFatal'],
     ['$stdin', 'stdin'],
     ['$stdout', 'stdout'],
     ['$stderr', 'stderr'],

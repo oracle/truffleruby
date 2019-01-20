@@ -270,7 +270,7 @@ module Truffle::CExt
   end
 
   def rb_eFatal
-    Truffle::CExt.rb_const_get(Object, "fatal")
+    Truffle::CExt.rb_const_get(Object, 'fatal')
   end
 
   def rb_stdin
