@@ -1759,7 +1759,7 @@ VALUE rb_block_proc(void) {
 }
 
 VALUE rb_block_lambda(void) {
-  return RUBY_CEXT_INVOKE("rb_block_lambda");
+  return rb_block_proc();
 }
 
 VALUE rb_yield(VALUE value) {
