@@ -44,6 +44,10 @@ VALUE rb_tr_get_Enumerable(void) {
   return RUBY_CEXT_INVOKE("rb_mEnumerable");
 }
 
+VALUE rb_tr_get_Enumerator(void) {
+  return RUBY_CEXT_INVOKE("rb_cEnumerator");
+}
+
 VALUE rb_tr_get_FalseClass(void) {
   return RUBY_CEXT_INVOKE("rb_cFalseClass");
 }

@@ -20,6 +20,7 @@ constants = [
     Encoding,
     EncodingError,
     Enumerable,
+    Enumerator,
     FalseClass,
     File,
     Float,

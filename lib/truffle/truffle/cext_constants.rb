@@ -45,6 +45,10 @@ module Truffle::CExt
     Enumerable
   end
 
+  def rb_cEnumerator
+    Enumerator
+  end
+
   def rb_cFalseClass
     FalseClass
   end
