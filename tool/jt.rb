@@ -25,7 +25,7 @@ MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f23314cbf560d8578b0c2cbd972b83575ba93cd5"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "af03b9fbb684624095de928f2b6238db26544052"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1205,7 +1205,6 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/msgpack/msgpack.sh"
           sh "test/truffle/cexts/puma/puma.sh"
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
@@ -1213,6 +1212,9 @@ EOS
 
           # Test a gem dynamically compiling a C extension
           sh "test/truffle/cexts/RubyInline/RubyInline.sh"
+
+          # Test cexts used by many projects
+          sh "test/truffle/cexts/msgpack/msgpack.sh"
       else
         raise "unknown test: #{test_name}"
       end
