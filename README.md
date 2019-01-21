@@ -36,6 +36,8 @@ You can also build TruffleRuby from source, see the
 [building instructions](doc/contributor/workflow.md), and using
 [Docker](doc/contributor/docker.md).
 
+Please report any issue you might find on [GitHub](https://github.com/oracle/truffleruby/issues).
+
 ## Aim
 
 TruffleRuby aims to:
