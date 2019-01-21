@@ -21,8 +21,14 @@ There are three ways to install TruffleRuby:
   using a Ruby manager.
 
 * Using the [standalone distribution](doc/user/standalone-distribution.md)
-  as a simple binary tarball. This distribution can also be used for
+  as a simple binary tarball. This distribution is also useful for
   [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
+  On [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can simply use:
+  ```yaml
+  language: ruby
+  rvm:
+    - truffleruby
+  ```
 
 You can use `gem` to install Gems as normal.
 
