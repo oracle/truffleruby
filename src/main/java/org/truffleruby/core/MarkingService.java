@@ -79,16 +79,18 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         }
     }
 
-    private final int cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
+    private final int cacheSize;
 
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
-    private Object[] keptObjects = new Object[cacheSize];
+    private Object[] keptObjects;
 
     private int counter = 0;
 
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
+        cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
+        keptObjects = new Object[cacheSize];
     }
 
     public void keepObject(Object object) {

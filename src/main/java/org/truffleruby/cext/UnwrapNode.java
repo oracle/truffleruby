@@ -14,6 +14,7 @@ import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.OBJECT_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
 
+import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -78,6 +79,53 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         public static UnwrapNativeNode create() {
             return UnwrapNativeNodeGen.create();
+        }
+    }
+
+    @ImportStatic(Message.class)
+    public static abstract class ToWrapperNode extends RubyBaseNode {
+
+        public abstract ValueWrapper execute(Object value);
+
+        @Specialization
+        public ValueWrapper wrappedValueWrapper(ValueWrapper value) {
+            return value;
+        }
+
+        @Specialization(guards = "!isWrapper(value)")
+        public ValueWrapper unwrapTypeCastObject(TruffleObject value,
+                @Cached("IS_POINTER.createNode()") Node isPointerNode,
+                @Cached("AS_POINTER.createNode()") Node asPointerNode,
+                @Cached("create()") UnwrapNativeNode unwrapNativeNode,
+                @Cached("create()") WrapNode wrapNode,
+                @Cached("create()") BranchProfile unsupportedProfile,
+                @Cached("create()") BranchProfile nonPointerProfile) {
+            if (ForeignAccess.sendIsPointer(isPointerNode, value)) {
+                long handle = 0;
+                try {
+                    handle = ForeignAccess.sendAsPointer(asPointerNode, value);
+                } catch (UnsupportedMessageException e) {
+                    unsupportedProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                }
+                Object obj = unwrapNativeNode.execute(handle);
+                if (obj != null) {
+                    return wrapNode.execute(obj);
+                } else {
+                    return null;
+                }
+            } else {
+                nonPointerProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
+            }
+        }
+
+        public static boolean isWrapper(TruffleObject value) {
+            return value instanceof ValueWrapper;
+        }
+
+        public static ToWrapperNode create() {
+            return ToWrapperNodeGen.create();
         }
     }
 

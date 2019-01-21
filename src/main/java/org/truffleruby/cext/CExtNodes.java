@@ -1357,11 +1357,11 @@ public class CExtNodes {
         public DynamicObject addToMarkList(VirtualFrame frmae, Object markedObject,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") BranchProfile noExceptionProfile,
-                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
-            Object unwrappedValue = unwrapNode.execute(markedObject);
-            if (unwrappedValue != null) {
+                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+            ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
+            if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getList().add(unwrappedValue);
+                getList().add(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
