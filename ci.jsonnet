@@ -367,7 +367,7 @@ local part_definitions = {
       ],
       "$.run.specs":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
-        normal_machine: ["darwin_sierra", "amd64"],
+        normal_machine: ["darwin_mojave", "amd64"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
