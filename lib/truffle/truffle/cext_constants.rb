@@ -45,6 +45,10 @@ module Truffle::CExt
     Enumerable
   end
 
+  def rb_cEnumerator
+    Enumerator
+  end
+
   def rb_cFalseClass
     FalseClass
   end
@@ -270,7 +274,7 @@ module Truffle::CExt
   end
 
   def rb_eFatal
-    Truffle::CExt.rb_const_get(Object, "fatal")
+    Truffle::CExt.rb_const_get(Object, 'fatal')
   end
 
   def rb_stdin

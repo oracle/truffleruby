@@ -11,6 +11,7 @@ VALUE rb_tr_get_Data(void);
 VALUE rb_tr_get_Encoding(void);
 VALUE rb_tr_get_EncodingError(void);
 VALUE rb_tr_get_Enumerable(void);
+VALUE rb_tr_get_Enumerator(void);
 VALUE rb_tr_get_FalseClass(void);
 VALUE rb_tr_get_File(void);
 VALUE rb_tr_get_Float(void);
@@ -83,6 +84,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_cEncoding rb_tr_get_Encoding()
 #define rb_eEncodingError rb_tr_get_EncodingError()
 #define rb_mEnumerable rb_tr_get_Enumerable()
+#define rb_cEnumerator rb_tr_get_Enumerator()
 #define rb_cFalseClass rb_tr_get_FalseClass()
 #define rb_cFile rb_tr_get_File()
 #define rb_cFloat rb_tr_get_Float()
