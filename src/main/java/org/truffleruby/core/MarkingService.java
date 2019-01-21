@@ -79,11 +79,11 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         }
     }
 
-    private static final int KEPT_COUNT_SIZE = 10_000;
+    private final int cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
 
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
-    private Object[] keptObjects = new Object[KEPT_COUNT_SIZE];
+    private Object[] keptObjects = new Object[cacheSize];
 
     private int counter = 0;
 
@@ -104,10 +104,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             keepList.add(object);
         }
         keptObjects[counter++] = object;
-        if (counter == KEPT_COUNT_SIZE) {
+        if (counter == cacheSize) {
             counter = 0;
             Object[] tmp = keptObjects;
-            keptObjects = new Object[KEPT_COUNT_SIZE];
+            keptObjects = new Object[cacheSize];
             return tmp;
         }
         return null;
@@ -121,6 +121,12 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     @TruffleBoundary
     public void popStackPreservationFrame() {
         stackPreservation.get().pop();
+    }
+
+    public synchronized void runMarkersAndDropKeptList() {
+        Object[] tmp = keptObjects;
+        keptObjects = new Object[cacheSize];
+        runAllMarkers();
     }
 
     private synchronized void runAllMarkers() {
