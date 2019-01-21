@@ -103,47 +103,34 @@ module Truffle::FFI
       raise 'FFI::Pointer#network_order not yet implemented'
     end
 
-    # Read +len+ bytes from the memory pointed to and return them as
-    # a String
-    def read_string_length(len)
-      Truffle.primitive :pointer_read_string
-      raise PrimitiveFailure, 'FFI::Pointer#read_string_length primitive failed'
-    end
-    alias :read_bytes :read_string_length
-
-    # Read bytes from the memory pointed to until a NULL is seen, return
-    # the bytes as a String
-    def read_string_to_null
-      Truffle.primitive :pointer_read_string_to_null
-      raise PrimitiveFailure, 'FFI::Pointer#read_string_to_null primitive failed'
-    end
-
-    # Read bytes as a String from the memory pointed to
-    def read_string(len=nil)
-      if len
-        read_string_length(len)
+    def get_string(offset, length = nil)
+      if length
+        get_bytes(offset, length)
       else
-        read_string_to_null
+        Truffle.invoke_primitive :pointer_read_string_to_null, address + offset
       end
     end
 
-    # FFI compat methods
+    def put_string(offset, str)
+      put_bytes(offset, str)
+      put_char(offset + str.bytesize, 0)
+    end
+
     def get_bytes(offset, length)
-      (self + offset).read_string_length(length)
+      Truffle.invoke_primitive :pointer_read_bytes, address + offset, length
     end
 
-    # Write String +str+ as bytes into the memory pointed to. Only
-    # write up to +len+ bytes.
-    def write_string_length(str, len)
-      Truffle.primitive :pointer_write_string
-      raise PrimitiveFailure, 'FFI::Pointer#write_string_length primitive failed'
-    end
-
-    # Write a String +str+ as bytes to the memory pointed to.
-    def write_string(str, len=nil)
-      len = str.bytesize unless len
-
-      write_string_length(str, len)
+    def put_bytes(offset, str, index = 0, length = nil)
+      raise RangeError, 'index cannot be less than zero' if index < 0
+      if length
+        if index + length > str.bytesize
+          raise RangeError, 'index+length is greater than size of string'
+        end
+      else
+        length = str.bytesize - index
+      end
+      Truffle.invoke_primitive :pointer_write_bytes, address + offset, str, index, length
+      self
     end
 
     def __copy_from__(pointer, size)
@@ -167,6 +154,7 @@ module Truffle::FFI
       8
     end
 
+    SIZE = 8
     NULL = Pointer.new(0x0)
   end
 

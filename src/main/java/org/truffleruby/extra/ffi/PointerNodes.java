@@ -259,14 +259,34 @@ public abstract class PointerNodes {
 
     // Special reads and writes
 
-    @Primitive(name = "pointer_read_string", lowerFixnum = 1)
-    public static abstract class PointerReadStringPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    @Primitive(name = "pointer_read_string_to_null")
+    public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "address == 0")
+        public DynamicObject readNullPointer(long address,
+                                             @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+        }
+
+        @Specialization(guards = "address != 0")
+        public DynamicObject readStringToNull(long address,
+                                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+    }
+
+    @Primitive(name = "pointer_read_bytes", lowerFixnum = 1)
+    public static abstract class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject readString(DynamicObject pointer, int length,
+        public DynamicObject readBytes(long address, int length,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+            final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return makeStringNode.fromRope(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
@@ -280,41 +300,21 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_read_string_to_null")
-    public static abstract class PointerReadStringToNullPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isNullPointer(pointer)")
-        public DynamicObject readNullPointer(DynamicObject pointer,
-                                             @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
-        }
-
-        @Specialization(guards = "!isNullPointer(pointer)")
-        public DynamicObject readStringToNull(DynamicObject pointer,
-                                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
-    @Primitive(name = "pointer_write_string", lowerFixnum = 2)
-    public static abstract class PointerWriteStringPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
+    public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+        public DynamicObject writeBytes(long address, DynamicObject string, int index, int length) {
+            final Pointer ptr = new Pointer(address);
             final Rope rope = StringOperations.rope(string);
-            final int length = Math.min(rope.byteLength(), maxLength);
+            assert index + length <= rope.byteLength();
             if (length != 0) {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
             }
 
-            ptr.writeBytes(0, rope.getBytes(), 0, length);
-            return pointer;
+            ptr.writeBytes(0, rope.getBytes(), index, length);
+            return string;
         }
 
     }
