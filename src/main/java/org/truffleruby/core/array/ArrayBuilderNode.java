@@ -198,7 +198,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
             final ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
 
-            final int neededCapacity = ArrayUtils.capacityForOneMore(context, currentStrategy.capacityNode().execute(store));
+            int currentCapacity = currentStrategy.capacityNode().execute(store);
+            final int neededCapacity;
+            if (index >= currentCapacity) {
+                neededCapacity = ArrayUtils.capacityForOneMore(context, currentCapacity);
+            } else {
+                neededCapacity = currentCapacity;
+            }
 
             replaceNodes(generalized, neededCapacity);
 

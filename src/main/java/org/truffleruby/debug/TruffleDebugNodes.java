@@ -295,6 +295,17 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "array_capacity", onSingleton = true, required = 1)
+    public abstract static class ArrayCapacityNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyArray(array)")
+        public int arrayStorage(DynamicObject array) {
+            return ArrayStrategy.of(array).capacityNode().execute(Layouts.ARRAY.getStore(array));
+        }
+
+    }
+
     @CoreMethod(names = "hash_storage", onSingleton = true, required = 1)
     public abstract static class HashStorageNode extends CoreMethodArrayArgumentsNode {
 
