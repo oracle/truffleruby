@@ -1,3 +1,10 @@
+# 1.0 RC 12
+
+Bug fixes:
+
+* Fixed a bug with `String#lines` and similar methods with multibyte
+  characters (#1543).
+
 # 1.0 RC 11
 
 New features:
