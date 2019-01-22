@@ -81,12 +81,15 @@ describe "The launcher" do
   end
 
   it "does not create context on --version and -v" do
-    short = Benchmark.realtime { ruby_exe(nil, options: "--help:languages") }
-    version = Benchmark.realtime { ruby_exe(nil, options: "--version") }
-    v = Benchmark.realtime { ruby_exe(nil, options: "-v") }
+    v = ruby_exe(nil, options: "-Xlog=FINE -v", args: "2>&1")
+    v.should_not include("createContext()")
+    v.should_not include("patchContext()")
+    v.should include("truffleruby ")
 
-    version.should <= short + 0.5
-    v.should <= short + 0.5
+    version = ruby_exe(nil, options: "-Xlog=FINE --version", args: "2>&1")
+    version.should_not include("createContext()")
+    version.should_not include("patchContext()")
+    version.should include("truffleruby ")
   end
 
   it "preserve spaces in options" do
