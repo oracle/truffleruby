@@ -35,13 +35,24 @@
 # GNU Lesser General Public License version 2.1.
 
 
-class ScanError < StandardError; end
+class ScanError < StandardError
+end
 
 class StringScanner
-  Id = 'None$Id'.freeze
-  Version = '1.0.0'.freeze
 
   attr_reader :pos, :match, :prev_pos
+
+  def initialize(string, dup=false)
+    if string.instance_of? String
+      @original = string
+      @string = string
+    else
+      @original = StringValue(string)
+      @string = String.new @original
+    end
+
+    reset_state
+  end
 
   def pos=(n)
     n = Integer(n)
@@ -78,11 +89,11 @@ class StringScanner
   end
 
   def check(pattern)
-    _scan pattern, false, true, true
+    scan_internal pattern, false, true, true
   end
 
   def check_until(pattern)
-    _scan pattern, false, true, false
+    scan_internal pattern, false, true, false
   end
 
   def clear
@@ -107,11 +118,22 @@ class StringScanner
   end
 
   def exist?(pattern)
-    _scan pattern, false, false, false
+    scan_internal pattern, false, false, false
   end
 
   def get_byte
-    _get_byte
+    if eos?
+      @match = nil
+      return nil
+    end
+
+    # We need to match one byte, regardless of the string encoding
+    @match = Truffle.invoke_primitive :regexp_search_from_binary, /./mn, @string, pos
+
+    @prev_pos = @pos
+    @pos += 1
+
+    @string.byteslice(@prev_pos, 1)
   end
 
   def getbyte
@@ -121,18 +143,6 @@ class StringScanner
 
   def getch
     scan(/./m)
-  end
-
-  def initialize(string, dup=false)
-    if string.instance_of? String
-      @original = string
-      @string = string
-    else
-      @original = StringValue(string)
-      @string = String.new @original
-    end
-
-    reset_state
   end
 
   def inspect
@@ -167,7 +177,7 @@ class StringScanner
   end
 
   def match?(pattern)
-    _scan pattern, false, false, true
+    scan_internal pattern, false, false, true
   end
 
   def matched
@@ -228,19 +238,19 @@ class StringScanner
   end
 
   def scan(pattern)
-    _scan pattern, true, true, true
+    scan_internal pattern, true, true, true
   end
 
   def scan_until(pattern)
-    _scan pattern, true, true, false
+    scan_internal pattern, true, true, false
   end
 
   def scan_full(pattern, advance_pos, getstr)
-    _scan pattern, advance_pos, getstr, true
+    scan_internal pattern, advance_pos, getstr, true
   end
 
   def search_full(pattern, advance_pos, getstr)
-    _scan pattern, advance_pos, getstr, false
+    scan_internal pattern, advance_pos, getstr, false
   end
 
   def self.must_C_version
@@ -248,11 +258,11 @@ class StringScanner
   end
 
   def skip(pattern)
-    _scan pattern, true, false, true
+    scan_internal pattern, true, false, true
   end
 
   def skip_until(pattern)
-    _scan pattern, true, false, false
+    scan_internal pattern, true, false, false
   end
 
   def string
@@ -296,7 +306,7 @@ class StringScanner
     peek len
   end
 
-  def _scan(pattern, advance_pos, getstr, headonly)
+  def scan_internal(pattern, advance_pos, getstr, headonly)
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
@@ -319,30 +329,13 @@ class StringScanner
     fin = @match.byte_end(0)
 
     @prev_pos = @pos
-
     @pos = fin if advance_pos
 
     width = fin - @prev_pos
-
     return width unless getstr
 
     @string.byteslice(@prev_pos, width)
   end
-  private :_scan
+  private :scan_internal
 
-  def _get_byte
-    if eos?
-      @match = nil
-      return nil
-    end
-
-    # We need to match one byte, regardless of the string encoding
-    @match = Truffle.invoke_primitive :regexp_search_from_binary, /./mn, @string, pos
-
-    @prev_pos = @pos
-    @pos += 1
-
-    @string.byteslice(@prev_pos, 1)
-  end
-  private :_get_byte
 end
