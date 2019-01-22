@@ -934,7 +934,7 @@ class String
       sep = "\n\n"
       data = bytes
 
-      while pos < size
+      while pos < bytesize
         nxt = Truffle.invoke_primitive(:find_string, self, sep, pos)
         break unless nxt
 
@@ -964,10 +964,10 @@ class String
     else
 
       # This is the normal case.
-      pat_size = sep.size
+      pat_size = sep.bytesize
       unmodified_self = clone
 
-      while pos < size
+      while pos < bytesize
         nxt = Truffle.invoke_primitive(:find_string, unmodified_self, sep, pos)
         break unless nxt
 
