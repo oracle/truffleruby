@@ -1,0 +1,1 @@
+fails:String#lines splits strings containing multibyte characters

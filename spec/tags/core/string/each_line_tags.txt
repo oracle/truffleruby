@@ -1,0 +1,1 @@
+fails:String#each_line splits strings containing multibyte characters
