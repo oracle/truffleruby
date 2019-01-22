@@ -167,9 +167,11 @@ disabled where we dynamically detect that they probably won't be used. See the
 
 #### `VALUE` is a pointer
 
-In TruffleRuby `VALUE` is a pointer rather than a 64 bit integer
-type. This means that `switch` statements cannot be done using a raw
-`VALUE` as they can with MRI
+In TruffleRuby `VALUE` is a pointer type (`void *`) rather than a
+integer type (`long`). This means that `switch` statements cannot be
+done using a raw `VALUE` as they can with MRI. You can normally
+replace any `switch` statement with `if` statements with little
+difficulty if required.
 
 #### Identifiers may be macros or functions
 
@@ -188,10 +190,10 @@ fixed, please report these cases.
 
 The `mark` function of `RDATA` and `RTYPEDDATA` is not called during
 garbage collection. Instead we simulate this by caching information
-about objects as they are assigned to structs, and periodically
-running all mark functions when the cache has become full to represent
-those object relationships in a way that the our garbage collector
-will understand.
+about objects as they are assigned to structs, and periodically run
+all mark functions when the cache has become full to represent those
+object relationships in a way that the our garbage collector will
+understand. The process should behave identically to MRI.
 
 ## Compatibility with JRuby
 
