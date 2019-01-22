@@ -26,7 +26,7 @@
 
 # Modifications made by the Truffle team are:
 #
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -59,12 +59,10 @@ class StringScanner
   alias_method :pointer=, :pos=
 
   def [](n)
-    # Truffle: no eager check
     if @match
-      # Truffle: follow MRI
       raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
       str = @match[n]
-      str.taint if @string.tainted? # Truffle: propagate taint
+      str.taint if @string.tainted?
       str
     end
   end
@@ -75,7 +73,6 @@ class StringScanner
 
   alias_method :beginning_of_line?, :bol?
 
-  # Truffle: added
   def charpos
     @string.byteslice(0, @pos).length
   end
@@ -105,7 +102,7 @@ class StringScanner
   end
 
   def eos?
-    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string
     @pos >= @string.bytesize
   end
 
@@ -114,7 +111,6 @@ class StringScanner
   end
 
   def get_byte
-    # Truffle: correct get_byte with non-ascii strings
     _get_byte
   end
 
@@ -139,7 +135,6 @@ class StringScanner
     reset_state
   end
 
-  # Truffle: fix to use self.class instead of hard-coded StringScanner
   def inspect
     if defined? @string
       if eos?
@@ -178,7 +173,7 @@ class StringScanner
   def matched
     if @match
       matched = @match.to_s
-      matched.taint if @string.tainted? # Truffle: propagate taint
+      matched.taint if @string.tainted?
       matched
     end
   end
@@ -293,8 +288,6 @@ class StringScanner
   def peek(len)
     raise ArgumentError if len < 0
     return '' if len.zero?
-
-    # Truffle: correctly use byte offsets and no rescue
     @string.byteslice(pos, len)
   end
 
@@ -307,7 +300,7 @@ class StringScanner
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
-    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string
 
     @match = nil
 
@@ -337,7 +330,6 @@ class StringScanner
   end
   private :_scan
 
-  # Truffle: correct get_byte with non-ascii strings
   def _get_byte
     if eos?
       @match = nil
