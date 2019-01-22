@@ -57,13 +57,13 @@ SIZEOF = {
   short: ['int16'],
   int: ['int32'],
   long: ['int64', 'long_long'],
-  float: [],
-  double: [],
+  float: ['float32'],
+  double: ['float64'],
   pointer: [],
 }.each_pair do |base_type, aliases|
   [
       '',
-      *('u' if !aliases.empty?)
+      *('u' if aliases.any? { |as| as.start_with?('int') })
   ].each do |prefix|
     type = "#{prefix}#{base_type}"
     aliases = aliases.map { |as| "#{prefix}#{as}" }
