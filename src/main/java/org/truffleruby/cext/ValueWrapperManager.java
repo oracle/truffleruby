@@ -77,6 +77,19 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
+    public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
+        WeakReference<ValueWrapper> ref = handleMap.get(handle);
+        ValueWrapper wrapper;
+        if (ref == null) {
+            return null;
+        }
+        if ((wrapper = ref.get()) == null) {
+            return null;
+        }
+        return wrapper;
+    }
+
+    @TruffleBoundary
     public synchronized void removeFromHandleMap(long handle) {
         handleMap.remove(handle);
     }
