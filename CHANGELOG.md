@@ -5,7 +5,12 @@ Bug fixes:
 * Fixed a bug with `String#lines` and similar methods with multibyte
   characters (#1543).
 
-# 1.0 RC 11
+Compatibility:
+
+* Change to a new system for handling Ruby objects in C extensions which
+  greatly increases compatibility with MRI.
+
+# 1.0 RC 11, 15 January 2019
 
 New features:
 
@@ -26,8 +31,6 @@ Bug fixes:
 
 Compatibility:
 
-* Change to a new system for handling Ruby objects in C extensions which
-  greatly increases compatibility with MRI.
 * Implemented `Dir.each_child`.
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
 * Implemented the missing `MatchData#named_captures` method (#1512).
