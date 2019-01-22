@@ -126,6 +126,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     public synchronized void runMarkersAndDropKeptList() {
+        @SuppressWarnings("unused")
         Object[] tmp = keptObjects;
         keptObjects = new Object[cacheSize];
         runAllMarkers();
