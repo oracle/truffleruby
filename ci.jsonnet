@@ -175,7 +175,7 @@ local part_definitions = {
       ],
 
       environment+: {
-        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
+        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
       },
@@ -214,8 +214,8 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-core",
-        GRAAL_HOME: "$PWD/../graal/compiler",
-        VM_SUITE_HOME: "$PWD/../graal/vm",
+        GRAAL_HOME: "$BUILD_DIR/graal/compiler",
+        VM_SUITE_HOME: "$BUILD_DIR/graal/vm",
       },
     },
 
@@ -240,8 +240,8 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
-        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
-        VM_SUITE_HOME: "$PWD/../graal-enterprise/vm-enterprise",
+        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
+        VM_SUITE_HOME: "$BUILD_DIR/graal-enterprise/vm-enterprise",
       },
     },
 
