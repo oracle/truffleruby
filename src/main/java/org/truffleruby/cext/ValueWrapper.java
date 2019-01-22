@@ -21,6 +21,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
 
 /**
  * This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access
@@ -95,6 +96,8 @@ public class ValueWrapper implements TruffleObject {
     public static abstract class AsPointerNode extends Node {
 
         @CompilationFinal private RubyContext context;
+        @Child private KeepAliveNode keepAliveNode = KeepAliveNode.create();
+
         private final BranchProfile createHandleProfile = BranchProfile.create();
         private final BranchProfile taggedObjBranchProfile = BranchProfile.create();
 
@@ -106,7 +109,7 @@ public class ValueWrapper implements TruffleObject {
             }
             if (ValueWrapperManager.isTaggedObject(handle)) {
                 taggedObjBranchProfile.enter();
-                getContext().getMarkingService().keepObject(wrapper);
+                keepAliveNode.execute(frame, wrapper);
             }
             return handle;
         }
