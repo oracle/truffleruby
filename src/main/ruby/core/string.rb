@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -454,7 +454,7 @@ class String
         dest = +''
         status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
         raise ec.last_error unless status == :finished
-        replace dest
+        return replace(dest)
       elsif options == 0
         force_encoding to_enc
       end

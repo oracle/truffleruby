@@ -4,6 +4,8 @@ Bug fixes:
 
 * Fixed a bug with `String#lines` and similar methods with multibyte
   characters (#1543).
+* Fixed an issue with `String#{encode,encode!}` double-processing strings
+  using XML conversion options and a new destination encoding (#1545).
 
 Compatibility:
 
