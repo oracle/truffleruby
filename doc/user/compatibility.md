@@ -1,7 +1,10 @@
 # Compatibility
 
-TruffleRuby aims to be highly compatible with the standard implementation of
+TruffleRuby aims to be fully compatible with the standard implementation of
 Ruby, MRI, version 2.4.4, revision 63013.
+
+Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
+If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it to us.
 
 Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
