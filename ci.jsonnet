@@ -40,6 +40,10 @@ local part_definitions = {
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
+      packages+: {
+        "pip:ninja_syntax": "==1.7.2", # Required by NFI and mx
+      },
+
       setup+: [
         # We don't want to proxy any internet access
         ["unset", "ANT_OPTS", "FTP_PROXY", "ftp_proxy", "GRADLE_OPTS",
