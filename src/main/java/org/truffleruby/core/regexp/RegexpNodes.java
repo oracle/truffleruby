@@ -105,41 +105,18 @@ public abstract class RegexpNodes {
         return checkEncoding(regexp, str.getEncoding(), str.getCodeRange(), warn);
     }
 
-    // TODO (nirvdrum 03-June-15) Unify with JRuby in RegexpSupport.
     public static Encoding checkEncoding(DynamicObject regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
         assert RubyGuards.isRubyRegexp(regexp);
 
         final Encoding regexEnc = Layouts.REGEXP.getRegex(regexp).getEncoding();
 
-        /*
-        if (str.scanForCodeRange() == StringSupport.CR_BROKEN) {
-            throw getRuntime().newArgumentError("invalid byte sequence in " + str.getEncoding());
-        }
-        */
-        //check();
         if (strEnc == regexEnc) {
             return regexEnc;
         } else if (regexEnc == USASCIIEncoding.INSTANCE && codeRange == CodeRange.CR_7BIT) {
             return regexEnc;
-        } else if (!strEnc.isAsciiCompatible()) {
-            if (strEnc != regexEnc) {
-                //encodingMatchError(getRuntime(), pattern, enc);
-            }
-        } else if (Layouts.REGEXP.getOptions(regexp).isFixed()) {
-            /*
-            if (enc != pattern.getEncoding() &&
-                    (!pattern.getEncoding().isAsciiCompatible() ||
-                            str.scanForCodeRange() != StringSupport.CR_7BIT)) {
-                encodingMatchError(getRuntime(), pattern, enc);
-            }
-            */
+        } else if (strEnc.isAsciiCompatible() && Layouts.REGEXP.getOptions(regexp).isFixed()) {
             return regexEnc;
         }
-        /*
-        if (warn && this.options.isEncodingNone() && enc != ASCIIEncoding.INSTANCE && str.scanForCodeRange() != StringSupport.CR_7BIT) {
-            getRuntime().getWarnings().warn(ID.REGEXP_MATCH_AGAINST_STRING, "regexp match /.../n against to " + enc + " string");
-        }
-        */
         return strEnc;
     }
 
@@ -191,18 +168,18 @@ public abstract class RegexpNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "match_start", required = 2, lowerFixnum = 2)
-    public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "match_onwards", required = 3, lowerFixnum = 2)
+    public abstract static class MatchOnwardsNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public Object matchStart(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
+        public Object matchOnwards(DynamicObject regexp, DynamicObject string, int startPos, boolean atStart) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
             int range = rope.byteLength();
-            return matchNode.execute(regexp, string, matcher, startPos, range, true);
+            return matchNode.execute(regexp, string, matcher, startPos, range, atStart);
         }
     }
 
@@ -247,23 +224,6 @@ public abstract class RegexpNodes {
         }
     }
 
-    @NonStandard
-    @CoreMethod(names = "search_from", required = 2, lowerFixnum = 2)
-    public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
-        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
-
-        @Specialization(guards = "isRubyString(string)")
-        public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
-            final Rope rope = StringOperations.rope(string);
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
-            int range = StringOperations.rope(string).byteLength();
-
-            return matchNode.execute(regexp, string, matcher, startPos, range, false);
-        }
-    }
-
     @Primitive(name = "regexp_search_from_binary", lowerFixnum = 2)
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
@@ -271,7 +231,7 @@ public abstract class RegexpNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
+        public Object searchFrom(DynamicObject regexp, DynamicObject string, int startPos) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false);
             final int endPos = rope.byteLength();
