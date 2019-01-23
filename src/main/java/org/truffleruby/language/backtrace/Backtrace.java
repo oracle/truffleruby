@@ -21,6 +21,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class Backtrace {
 
     private final Node location;
     private SourceSection sourceLocation;
-    private TruffleException truffleException;
+    private RaiseException raiseException;
     private Activation[] activations;
     private final int omitted;
     private final Throwable javaThrowable;
@@ -43,6 +44,20 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    public Backtrace copy(RubyContext context, DynamicObject exception) {
+        Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
+        // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
+        RaiseException newRaiseException = new RaiseException(context, exception, this.raiseException.isInternalError());
+        // Copy the TruffleStackTrace
+        TruffleStackTraceElement.fillIn(this.raiseException);
+        assert this.raiseException.getCause() != null;
+        newRaiseException.initCause(this.raiseException.getCause());
+        // Another way would be to copy the activations (copy.activations = getActivations()), but
+        // then the TruffleStrackTrace would be inconsistent.
+        copy.setRaiseException(newRaiseException);
+        return copy;
+    }
+
     public Node getLocation() {
         return location;
     }
@@ -51,22 +66,23 @@ public class Backtrace {
         return sourceLocation;
     }
 
-    public TruffleException getTruffleException() {
-        return truffleException;
+    public RaiseException getRaiseException() {
+        return raiseException;
     }
 
-    public void setTruffleException(TruffleException truffleException) {
-        assert this.truffleException == null : "the TruffleException of a Backtrace must not be set again, otherwise the original backtrace is lost";
-        this.truffleException = truffleException;
+    public void setRaiseException(RaiseException raiseException) {
+        assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
+        this.raiseException = raiseException;
+    }
+
+    public Activation[] getActivations() {
+        return getActivations(this.raiseException);
     }
 
     @TruffleBoundary
-    public Activation[] getActivations() {
+    public Activation[] getActivations(TruffleException truffleException) {
         if (this.activations == null) {
-            final TruffleException truffleException;
-            if (this.truffleException != null) {
-                truffleException = this.truffleException;
-            } else {
+            if (truffleException == null) {
                 truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
             }
 

@@ -280,7 +280,7 @@ public class ThreadManager {
 
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
-        final TruffleException truffleException = Layouts.EXCEPTION.getBacktrace(exception).getTruffleException();
+        final TruffleException truffleException = Layouts.EXCEPTION.getBacktrace(exception).getRaiseException();
         if (truffleException != null) {
             TruffleStackTraceElement.fillIn((Throwable) truffleException);
         }

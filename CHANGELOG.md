@@ -6,6 +6,8 @@ Bug fixes:
   characters (#1543).
 * Fixed an issue with `String#{encode,encode!}` double-processing strings
   using XML conversion options and a new destination encoding (#1545).
+* Fixed a bug where a raised cloned exception would be caught as the
+  original exception (#1542).
 
 Compatibility:
 
