@@ -221,6 +221,7 @@ public abstract class VMPrimitiveNodes {
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
+                assert backtrace.getRaiseException().getException() == exception;
                 throw backtrace.getRaiseException();
             } else {
                 throw new RaiseException(getContext(), exception, internal);
