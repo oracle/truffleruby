@@ -66,6 +66,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public RubyContext createContext(Env env) {
+        // We need to initialize the Metrics class of the language classloader
+        Metrics.begin();
+
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
@@ -84,6 +87,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
+        // We need to initialize the Metrics class of the language classloader
+        Metrics.begin();
+
         LOGGER.fine("patchContext()");
         Metrics.printTime("before-patch-context");
         boolean patched = context.patchContext(newEnv);
