@@ -618,7 +618,7 @@ public class OptionsCatalog {
             new String[]{});
     public static final IntegerOptionDescription CEXTS_MARKING_CACHE = new IntegerOptionDescription(
             "ruby.cexts.marking.cache",
-            "Number of objects converted to native handles before the marker is run",
+            "Number of objects converted to native handles before the marking service is run",
             null,
             100);
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription(

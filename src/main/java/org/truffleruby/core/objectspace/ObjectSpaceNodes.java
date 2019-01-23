@@ -110,7 +110,6 @@ public abstract class ObjectSpaceNodes {
         public int eachObject(NotProvided ofClass, DynamicObject block) {
             int count = 0;
 
-            getContext().getMarkingService().runMarkersAndDropKeptList();
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 if (!isHidden(object)) {
                     yield(block, object);
@@ -127,7 +126,6 @@ public abstract class ObjectSpaceNodes {
                 @Cached("create()") IsANode isANode) {
             int count = 0;
 
-            getContext().getMarkingService().runMarkersAndDropKeptList();
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
                     yield(block, object);
