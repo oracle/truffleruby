@@ -44,6 +44,20 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    public Backtrace copy(RubyContext context, DynamicObject exception) {
+        Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
+        // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
+        RaiseException newRaiseException = new RaiseException(context, exception, this.raiseException.isInternalError());
+        // Copy the TruffleStackTrace
+        TruffleStackTraceElement.fillIn(this.raiseException);
+        assert this.raiseException.getCause() != null;
+        newRaiseException.initCause(this.raiseException.getCause());
+        // Another way would be to copy the activations (copy.activations = getActivations()), but
+        // then the TruffleStrackTrace would be inconsistent.
+        copy.setRaiseException(newRaiseException);
+        return copy;
+    }
+
     public Node getLocation() {
         return location;
     }

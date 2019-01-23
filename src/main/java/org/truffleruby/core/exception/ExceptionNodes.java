@@ -77,7 +77,12 @@ public abstract class ExceptionNodes {
 
         @Specialization(guards = { "self != from", "isRubyException(from)" })
         public Object initializeCopy(DynamicObject self, DynamicObject from) {
-            Layouts.EXCEPTION.setBacktrace(self, Layouts.EXCEPTION.getBacktrace(from));
+            Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(from);
+            if (backtrace != null) {
+                Layouts.EXCEPTION.setBacktrace(self, backtrace.copy(getContext(), self));
+            } else {
+                Layouts.EXCEPTION.setBacktrace(self, backtrace);
+            }
             Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
             Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
 
