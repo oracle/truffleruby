@@ -1333,7 +1333,7 @@ public class CExtNodes {
         }
     }
 
-    private static ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
+    private static final ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
 
     @CoreMethod(names = "create_mark_list", onSingleton = true, required = 0)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {

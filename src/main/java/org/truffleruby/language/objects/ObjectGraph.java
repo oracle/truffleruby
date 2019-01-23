@@ -131,6 +131,7 @@ public abstract class ObjectGraph {
                 }
             } else if (propertyValue instanceof Object[]) {
                 for (Object element : (Object[]) propertyValue) {
+                    // Needed to get wrappers set by Truffle::Cext.set_mark_list_on_object.
                     if (element instanceof ValueWrapper) {
                         element = ((ValueWrapper) element).getObject();
                     }
