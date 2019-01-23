@@ -39,6 +39,9 @@ class ScanError < StandardError
 end
 
 class StringScanner
+  
+  Id = 'None$Id'.freeze
+  Version = '1.0.0'.freeze
 
   attr_reader :pos, :match, :prev_pos
 
