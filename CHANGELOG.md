@@ -14,6 +14,7 @@ Compatibility:
 
 * Change to a new system for handling Ruby objects in C extensions which
   greatly increases compatibility with MRI.
+* Implemented `BigDecimal#to_r` (#1521).
 
 # 1.0 RC 11, 15 January 2019
 

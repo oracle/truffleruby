@@ -1,2 +1,0 @@
-fails:BigDecimal#to_r returns a Rational
-fails:BigDecimal#to_r returns a Rational with bignum values
