@@ -21,6 +21,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class Backtrace {
 
     private final Node location;
     private SourceSection sourceLocation;
-    private TruffleException truffleException;
+    private RaiseException raiseException;
     private Activation[] activations;
     private final int omitted;
     private final Throwable javaThrowable;
@@ -51,22 +52,23 @@ public class Backtrace {
         return sourceLocation;
     }
 
-    public TruffleException getTruffleException() {
-        return truffleException;
+    public RaiseException getRaiseException() {
+        return raiseException;
     }
 
-    public void setTruffleException(TruffleException truffleException) {
-        assert this.truffleException == null : "the TruffleException of a Backtrace must not be set again, otherwise the original backtrace is lost";
-        this.truffleException = truffleException;
+    public void setRaiseException(RaiseException raiseException) {
+        assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
+        this.raiseException = raiseException;
+    }
+
+    public Activation[] getActivations() {
+        return getActivations(this.raiseException);
     }
 
     @TruffleBoundary
-    public Activation[] getActivations() {
+    public Activation[] getActivations(TruffleException truffleException) {
         if (this.activations == null) {
-            final TruffleException truffleException;
-            if (this.truffleException != null) {
-                truffleException = this.truffleException;
-            } else {
+            if (truffleException == null) {
                 truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
             }
 
