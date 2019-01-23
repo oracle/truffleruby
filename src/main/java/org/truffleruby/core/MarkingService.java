@@ -84,6 +84,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
     private Object[] keptObjects;
+    private Object[] oldKeptObjects = null;
 
     private int counter = 0;
 
@@ -94,13 +95,12 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     public void keepObject(Object object) {
-        Object[] oldKeptObjects = addToKeptObjects(object);
-        if (oldKeptObjects != null) {
+        if (addToKeptObjects(object)) {
             runAllMarkers();
         }
     }
 
-    private synchronized Object[] addToKeptObjects(Object object) {
+    private synchronized boolean addToKeptObjects(Object object) {
         final ArrayList<Object> keepList = stackPreservation.get().peekFirst();
         if (keepList != null) {
             keepList.add(object);
@@ -108,11 +108,11 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         keptObjects[counter++] = object;
         if (counter == cacheSize) {
             counter = 0;
-            Object[] tmp = keptObjects;
+            oldKeptObjects = keptObjects;
             keptObjects = new Object[cacheSize];
-            return tmp;
+            return true;
         }
-        return null;
+        return false;
     }
 
     @TruffleBoundary
@@ -126,8 +126,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     }
 
     public synchronized void runMarkersAndDropKeptList() {
-        @SuppressWarnings("unused")
-        Object[] tmp = keptObjects;
+        oldKeptObjects = keptObjects;
         keptObjects = new Object[cacheSize];
         runAllMarkers();
     }
@@ -143,6 +142,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             }
             currentMarker = nextMarker;
         }
+        oldKeptObjects = null;
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
