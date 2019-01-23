@@ -312,18 +312,19 @@ class StringScanner
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
 
-    @match = nil
-
-    if headonly
-      # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
-      # We use it here to avoid creating a new Regexp with '^' prepended.
-      @match = pattern.match_start @string, @pos
-    else
-      # NOTE - search_from is an Oniguruma feature that Rubinius exposes.
-      # We use it so we can begin the search in the middle of the string
-      @match = pattern.search_from @string, @pos
+    # If the pattern already starts with a ^, and we're not at the start of
+    # the string, then we can't match as normal because match_from still tries
+    # to match the ^ at position 0 even though it's looking from point pos
+    # onwards, even if headonly is set. Instead, remove the ^. This could
+    # possibly be fixed in Joni instead, or maybe there is already some option
+    # we're not using.
+    
+    if pattern.source[0] == '^' && pos > 0
+      pattern = Regexp.new(pattern.source[1..-1])
+      headonly = true
     end
 
+    @match = pattern.match_onwards @string, pos, headonly
     return nil unless @match
 
     fin = @match.byte_end(0)

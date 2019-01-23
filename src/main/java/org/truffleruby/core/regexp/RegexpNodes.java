@@ -168,18 +168,18 @@ public abstract class RegexpNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "match_start", required = 2, lowerFixnum = 2)
-    public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "match_onwards", required = 3, lowerFixnum = 2)
+    public abstract static class MatchOnwardsNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public Object matchStart(DynamicObject regexp, DynamicObject string, int startPos) {
+        public Object matchOnwards(DynamicObject regexp, DynamicObject string, int startPos, boolean atStart) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
             int range = rope.byteLength();
-            return matchNode.execute(regexp, string, matcher, startPos, range, true);
+            return matchNode.execute(regexp, string, matcher, startPos, range, atStart);
         }
     }
 
@@ -221,23 +221,6 @@ public abstract class RegexpNodes {
             }
 
             return makeStringNode;
-        }
-    }
-
-    @NonStandard
-    @CoreMethod(names = "search_from", required = 2, lowerFixnum = 2)
-    public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
-        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
-
-        @Specialization(guards = "isRubyString(string)")
-        public Object searchFrom(DynamicObject regexp, DynamicObject string, int startPos) {
-            final Rope rope = StringOperations.rope(string);
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
-            int range = StringOperations.rope(string).byteLength();
-
-            return matchNode.execute(regexp, string, matcher, startPos, range, false);
         }
     }
 

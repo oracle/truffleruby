@@ -8,6 +8,7 @@ Bug fixes:
   using XML conversion options and a new destination encoding (#1545).
 * Fixed a bug where a raised cloned exception would be caught as the
   original exception (#1542).
+* Fixed a bug with `StringScanner` and patterns starting with `^` (#1544).
 
 Compatibility:
 
