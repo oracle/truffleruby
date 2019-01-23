@@ -40,7 +40,7 @@ public abstract class ObjectGraph {
 
     @TruffleBoundary
     public static Set<DynamicObject> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
-        context.getMarkingService().runMarkersAndDropKeptList();
+        context.getMarkingService().runAllMarkers();
         final Set<DynamicObject> visited = newRubyObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
@@ -131,7 +131,7 @@ public abstract class ObjectGraph {
                 }
             } else if (propertyValue instanceof Object[]) {
                 for (Object element : (Object[]) propertyValue) {
-                    // Needed to get wrappers set by Truffle::Cext.set_mark_list_on_object.
+                    // Needed to get wrappers set by Truffle::CExt.set_mark_list_on_object.
                     if (element instanceof ValueWrapper) {
                         element = ((ValueWrapper) element).getObject();
                     }
