@@ -84,7 +84,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
     private Object[] keptObjects;
-    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<Object[]>();
+    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<>();
 
     private int counter = 0;
 
