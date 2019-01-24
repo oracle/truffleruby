@@ -125,6 +125,10 @@ module Truffle::FFI
       raise PrimitiveFailure, 'FFI::Pointer#+ primitive failed'
     end
 
+    def slice(offset, length)
+      Pointer.new(address + offset) # TODO: track length in Pointer
+    end
+
     # Indicates if +self+ and +other+ point to the same address
     def ==(other)
       return false unless other.kind_of? Pointer
@@ -177,6 +181,10 @@ module Truffle::FFI
       len = str.bytesize unless len
 
       write_string_length(str, len)
+    end
+
+    def __copy_from__(pointer, size)
+      put_bytes(0, pointer.get_bytes(0, size))
     end
 
     # Read bytes from +offset+ from the memory pointed to as type +type+
