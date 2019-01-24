@@ -384,7 +384,7 @@ module Utilities
     else
       $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
       $stderr.puts out if capture
-      exit status.to_i
+      exit(status.exitstatus || status.termsig || status.stopsig || 1)
     end
   end
 
