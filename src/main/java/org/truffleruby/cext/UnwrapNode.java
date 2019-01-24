@@ -143,7 +143,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 return nativeToWrapperNode.execute(handle);
             } else {
                 nonPointerProfile.enter();
-                throw null;
+                return null;
             }
         }
 
