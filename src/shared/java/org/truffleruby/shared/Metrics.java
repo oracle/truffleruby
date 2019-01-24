@@ -43,19 +43,26 @@ public class Metrics {
         }
     }
 
-    public static void end(boolean isAOT) {
-        printTime("after-main");
-        printMemory(isAOT);
-    }
-
-    public static void begin() {
-        // Assigned here so the property is read after processing the --native.D... options
+    /**
+     * Assigned here so the property is read after processing the --native.D... options. It needs to
+     * be called in each classloader using the Metrics class.
+     */
+    public static void initializeOption() {
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
-
-        printTime("before-main");
     }
 
     public static boolean getMetricsTime() {
         return METRICS_TIME;
     }
+
+    public static void begin() {
+        initializeOption();
+        printTime("before-main");
+    }
+
+    public static void end(boolean isAOT) {
+        printTime("after-main");
+        printMemory(isAOT);
+    }
+
 }

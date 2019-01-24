@@ -67,7 +67,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     public RubyContext createContext(Env env) {
         // We need to initialize the Metrics class of the language classloader
-        Metrics.begin();
+        Metrics.initializeOption();
 
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
@@ -88,7 +88,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
         // We need to initialize the Metrics class of the language classloader
-        Metrics.begin();
+        Metrics.initializeOption();
 
         LOGGER.fine("patchContext()");
         Metrics.printTime("before-patch-context");
