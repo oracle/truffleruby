@@ -48,6 +48,14 @@ MUST_INLINE VALUE rb_tr_unwrap(VALUE object) {
   return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object);
 }
 
+// Needed for GC guarding
+
+MUST_INLINE VALUE *rb_tr_gc_guard(VALUE v) {
+  VALUE *ptr = &v;
+  polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v);
+  return ptr;
+}
+
 #include <ruby/thread_native.h>
 
 // Helpers

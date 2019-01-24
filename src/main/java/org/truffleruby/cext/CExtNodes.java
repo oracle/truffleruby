@@ -1384,6 +1384,32 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_tr_gc_guard", onSingleton = true, required = 1)
+    public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+            ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
+            if (wrappedValue == null) {
+                exceptionProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(guardedObject), this));
+            }
+            getContext().getMarkingService().keepObject(guardedObject);
+            return nil();
+        }
+
+        @TruffleBoundary
+        private String exceptionMessage(Object value) {
+            return String.format("native handle not found (%s) to guard it", value);
+        }
+
+        protected UnwrapNode createUnwrapNode() {
+            return UnwrapNodeGen.create();
+        }
+    }
+
     @CoreMethod(names = "set_mark_list_on_object", onSingleton = true, required = 1)
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
