@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -1316,7 +1317,7 @@ public class CExtNodes {
     public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object unwrap(Object value,
+        public Object unwrap(TruffleObject value,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
@@ -1359,7 +1360,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frmae, Object markedObject,
+        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") BranchProfile noExceptionProfile,
                 @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1388,21 +1389,21 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject,
-                @Cached("create()") BranchProfile exceptionProfile,
+        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject guardedObject,
+                @Cached("create()") BranchProfile noExceptionProfile,
                 @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
-            if (wrappedValue == null) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(guardedObject), this));
+            if (wrappedValue != null) {
+                noExceptionProfile.enter();
+                getContext().getMarkingService().keepObject(guardedObject);
             }
-            getContext().getMarkingService().keepObject(guardedObject);
             return nil();
         }
 
-        @TruffleBoundary
-        private String exceptionMessage(Object value) {
-            return String.format("native handle not found (%s) to guard it", value);
+        @Fallback
+        public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject) {
+            // Do nothing for unexpected objects, no matter how unexpected.
+            return nil();
         }
 
         protected UnwrapNode createUnwrapNode() {

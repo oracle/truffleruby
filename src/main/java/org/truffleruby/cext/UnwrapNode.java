@@ -118,7 +118,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     @ImportStatic({ Message.class, ValueWrapperManager.class })
     public static abstract class ToWrapperNode extends RubyBaseNode {
 
-        public abstract ValueWrapper execute(Object value);
+        public abstract ValueWrapper execute(TruffleObject value);
 
         @Specialization
         public ValueWrapper wrappedValueWrapper(ValueWrapper value) {
@@ -143,7 +143,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 return nativeToWrapperNode.execute(handle);
             } else {
                 nonPointerProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
+                throw null;
             }
         }
 
@@ -152,7 +152,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
-    public abstract Object execute(Object value);
+    public abstract Object execute(TruffleObject value);
 
     @Specialization
     public Object unwrapValue(ValueWrapper value) {

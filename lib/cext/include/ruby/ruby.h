@@ -500,7 +500,7 @@ bool RB_TYPE_P(VALUE value, int type);
 
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
-        VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(v);   \
+        volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
         rb_gc_guarded_ptr;                              \
     }))
 
