@@ -22,6 +22,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ForeignAccess;
@@ -70,6 +71,11 @@ public abstract class UnwrapNode extends RubyBaseNode {
             return getContext().getValueWrapperManager().getFromHandleMap(handle);
         }
 
+        @Fallback
+        public ValueWrapper unWrapUnexpectedHandle(long handle) {
+            return null;
+        }
+
         public static UnwrapNativeNode create() {
             return UnwrapNativeNodeGen.create();
         }
@@ -108,6 +114,11 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @Specialization(guards = "isTaggedObject(handle)")
         public ValueWrapper unwrapTaggedObject(long handle) {
             return getContext().getValueWrapperManager().getWrapperFromHandleMap(handle);
+        }
+
+        @Fallback
+        public ValueWrapper unWrapUnexpectedHandle(long handle) {
+            return null;
         }
 
         public static NativeToWrapperNode create() {
