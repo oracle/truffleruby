@@ -85,7 +85,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     private Object[] keptObjects;
     @SuppressWarnings("unused")
-    private Object[] oldKeptObjects = null;
+    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<Object[]>();
 
     private int counter = 0;
 
@@ -118,7 +118,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     public synchronized void runAllMarkers() {
         counter = 0;
-        oldKeptObjects = keptObjects;
+        oldKeptObjects.push(keptObjects);
         keptObjects = new Object[cacheSize];
         MarkerReference currentMarker = getFirst();
         MarkerReference nextMarker;
@@ -130,7 +130,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             }
             currentMarker = nextMarker;
         }
-        oldKeptObjects = null;
+        oldKeptObjects.pop();
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
