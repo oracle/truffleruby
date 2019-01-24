@@ -7,7 +7,7 @@ jt gem-test-pack
 ruby_home="$PWD"
 export PATH="$ruby_home/bin:$PATH"
 
-# gem install "$(jt gem-test-pack)/gem-cache/bundler-1.16.5.gem" --local
+gem install "$(jt gem-test-pack)/gem-cache/bundler-1.16.5.gem" --local
 
 cd "$(jt gem-test-pack)/gem-testing/msgpack-ruby"
 
