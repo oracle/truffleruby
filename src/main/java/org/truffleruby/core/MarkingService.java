@@ -84,7 +84,6 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
     private Object[] keptObjects;
-    @SuppressWarnings("unused")
     private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<Object[]>();
 
     private int counter = 0;
@@ -119,18 +118,21 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     public synchronized void runAllMarkers() {
         counter = 0;
         oldKeptObjects.push(keptObjects);
-        keptObjects = new Object[cacheSize];
-        MarkerReference currentMarker = getFirst();
-        MarkerReference nextMarker;
-        while (currentMarker != null) {
-            nextMarker = currentMarker.next;
-            runMarker(currentMarker);
-            if (nextMarker == currentMarker) {
-                throw new Error("The MarkerReference linked list structure has become broken.");
+        try {
+            keptObjects = new Object[cacheSize];
+            MarkerReference currentMarker = getFirst();
+            MarkerReference nextMarker;
+            while (currentMarker != null) {
+                nextMarker = currentMarker.next;
+                runMarker(currentMarker);
+                if (nextMarker == currentMarker) {
+                    throw new Error("The MarkerReference linked list structure has become broken.");
+                }
+                currentMarker = nextMarker;
             }
-            currentMarker = nextMarker;
+        } finally {
+            oldKeptObjects.pop();
         }
-        oldKeptObjects.pop();
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
