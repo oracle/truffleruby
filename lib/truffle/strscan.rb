@@ -39,7 +39,7 @@ class ScanError < StandardError
 end
 
 class StringScanner
-  
+
   Id = 'None$Id'.freeze
   Version = '1.0.0'.freeze
 
@@ -321,7 +321,7 @@ class StringScanner
     # onwards, even if headonly is set. Instead, remove the ^. This could
     # possibly be fixed in Joni instead, or maybe there is already some option
     # we're not using.
-    
+
     if pattern.source[0] == '^' && pos > 0
       pattern = Regexp.new(pattern.source[1..-1])
       headonly = true

@@ -25,7 +25,7 @@ MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "af03b9fbb684624095de928f2b6238db26544052"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -384,7 +384,7 @@ module Utilities
     else
       $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
       $stderr.puts out if capture
-      exit status.to_i
+      exit(status.exitstatus || status.termsig || status.stopsig || 1)
     end
   end
 
