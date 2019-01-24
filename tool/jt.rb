@@ -1657,13 +1657,10 @@ EOS
     end
   end
 
-  def metrics_time(*args)
-    use_json = args.delete '--json'
-    flamegraph = args.delete '--flamegraph'
+  def metrics_time_measure(use_json, *args)
     native = args.include? '--native'
     metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
     verbose_gc_flag = native ? '--native.XX:+PrintGC' : '-J-verbose:gc' unless use_json
-    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
     args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
 
     samples = METRICS_REPS.times.map do
@@ -1674,6 +1671,32 @@ EOS
       get_times(out, (finish - start) * 1000.0)
     end
     log "\n", nil
+    samples
+  end
+  private :metrics_time_measure
+
+  def metrics_time(*args)
+    use_json = args.delete '--json'
+    flamegraph = args.delete '--flamegraph'
+
+    samples = metrics_time_measure(use_json, *args)
+    metrics_time_format_results(samples, use_json, flamegraph)
+  end
+
+  def format_time_metrics(*args)
+    use_json = args.delete '--json'
+    flamegraph = args.delete '--flamegraph'
+
+    data = STDIN.read
+    times = data.lines.grep(/^(before|after)\b/)
+    total = times.last.split.last.to_f - times.first.split.last.to_f
+    samples = [get_times(data, total)]
+
+    metrics_time_format_results(samples, use_json, flamegraph)
+  end
+
+  def metrics_time_format_results(samples, use_json, flamegraph)
+    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
 
     results = {}
     mean_by_stack = {}
@@ -1716,6 +1739,7 @@ EOS
       sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
+  private :metrics_time_format_results
 
   def get_times(trace, total)
     result = Hash.new(0)
@@ -1724,7 +1748,7 @@ EOS
     result[stack.map(&:first)] = total
     result[%w[total jvm]] = 0
 
-    trace.lines do |line|
+    trace.each_line do |line|
       if line =~ /^(.+) (\d+)$/
         region = $1
         time = Float($2)
