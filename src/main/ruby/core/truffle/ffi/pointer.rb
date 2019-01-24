@@ -92,14 +92,6 @@ module Truffle::FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
-    # Return the address pointed to as an Integer
-    def address
-      Truffle.primitive :pointer_address
-      raise PrimitiveFailure, 'FFI::Pointer#address primitive failed'
-    end
-
-    alias_method :to_i, :address
-
     def pointer?
       true
     end
@@ -109,35 +101,25 @@ module Truffle::FFI
       self
     end
 
-    # Set the address pointed to from an Integer
-    def address=(address)
-      Truffle.primitive :pointer_set_address
-      raise PrimitiveFailure, 'FFI::Pointer#address= primitive failed'
-    end
-
     def null?
       address == 0x0
     end
 
-    # Add +value+ to the address pointed to and return a new Pointer
-    def +(value)
-      Truffle.primitive :pointer_add
-      raise PrimitiveFailure, 'FFI::Pointer#+ primitive failed'
+    def +(offset)
+      Pointer.new(address + offset)
     end
 
     def slice(offset, length)
       Pointer.new(address + offset) # TODO: track length in Pointer
     end
 
-    # Indicates if +self+ and +other+ point to the same address
     def ==(other)
       return false unless other.kind_of? Pointer
       address == other.address
     end
 
     def network_order(start, size)
-      Truffle.primitive :pointer_network_order
-      raise PrimitiveFailure, 'FFI::Pointer#network_order primitive failed'
+      raise 'FFI::Pointer#network_order not yet implemented'
     end
 
     # Read +len+ bytes from the memory pointed to and return them as
@@ -204,25 +186,16 @@ module Truffle::FFI
       8
     end
 
-    ##
-    # If +val+ is true, this Pointer object will call
-    # free() on it's address when it is garbage collected.
-    def autorelease=(val)
-      Truffle.primitive :pointer_set_autorelease
-      raise PrimitiveFailure, 'FFI::Pointer#autorelease= primitive failed'
-    end
-
-    ##
-    # Returns true if autorelease is enabled, otherwise false.
-    def autorelease?
-      Truffle.primitive :pointer_autorelease_p
-      raise PrimitiveFailure, 'FFI::Pointer#pointer_autorelease_p primitive failed'
-    end
-
     NULL = Pointer.new(0x0)
   end
 
   class MemoryPointer < Pointer
+
+    # Indicates how many bytes the chunk of memory that is pointed to takes up.
+    attr_accessor :total
+
+    # Indicates how many bytes the type that the pointer is cast as uses.
+    attr_accessor :type_size
 
     # call-seq:
     #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
@@ -261,7 +234,7 @@ module Truffle::FFI
         total = size
       end
 
-      ptr = malloc total
+      ptr = Truffle.invoke_primitive :pointer_malloc, self, total
       ptr.total = total
       ptr.type_size = size
       Truffle.invoke_primitive :pointer_clear, ptr, total if clear
@@ -278,11 +251,6 @@ module Truffle::FFI
       end
     end
 
-    def self.malloc(total)
-      Truffle.primitive :pointer_malloc
-      raise PrimitiveFailure, 'FFI::MemoryPointer.malloc primitive failed'
-    end
-
     def self.from_string(str)
       ptr = new str.bytesize + 1
       ptr.write_string str + "\0"
@@ -291,7 +259,7 @@ module Truffle::FFI
     end
 
     def copy
-      other = malloc total
+      other = Truffle.invoke_primitive :pointer_malloc, self, total
       other.total = total
       other.type_size = type_size
       Truffle::POSIX.memcpy other, self, total
@@ -302,12 +270,6 @@ module Truffle::FFI
 
       other
     end
-
-    # Indicates how many bytes the chunk of memory that is pointed to takes up.
-    attr_accessor :total
-
-    # Indicates how many bytes the type that the pointer is cast as uses.
-    attr_accessor :type_size
 
     # Access the MemoryPointer like a C array, accessing the +which+ number
     # element in memory. The position of the element is calculate from
@@ -326,12 +288,6 @@ module Truffle::FFI
     def [](which)
       raise ArgumentError, 'unknown type size' unless @type_size
       self + (which * @type_size)
-    end
-
-    # Release the memory pointed to back to the OS.
-    def free
-      Truffle.primitive :pointer_free
-      raise PrimitiveFailure, 'FFI::MemoryPointer#free primitive failed'
     end
   end
 end

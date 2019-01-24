@@ -240,6 +240,10 @@ public class Pointer implements AutoCloseable {
         return size;
     }
 
+    public synchronized boolean isAutorelease() {
+        return autorelease;
+    }
+
     @TruffleBoundary
     public synchronized void enableAutorelease(FinalizationService finalizationService) {
         if (autorelease) {

@@ -24,6 +24,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -174,8 +175,8 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_address")
-    public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "address=", required = 1)
+    public static abstract class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public long setAddress(DynamicObject pointer, long address) {
@@ -185,8 +186,8 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_address")
-    public static abstract class PointerAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = { "address", "to_i" })
+    public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public long address(DynamicObject pointer) {
@@ -195,8 +196,18 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_autorelease")
-    public static abstract class PointerSetAutoreleasePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "autorelease?")
+    public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isAutorelease(DynamicObject pointer) {
+            return Layouts.POINTER.getPointer(pointer).isAutorelease();
+        }
+
+    }
+
+    @CoreMethod(names = "autorelease=", required = 1)
+    public static abstract class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "autorelease")
         public boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
@@ -219,14 +230,13 @@ public abstract class PointerNodes {
 
         @Specialization
         public DynamicObject malloc(DynamicObject pointerClass, long size) {
-            // TODO CS 15-Nov-17 I think this should possibly also set @total to size
             return allocateObjectNode.allocate(pointerClass, Pointer.malloc(size));
         }
 
     }
 
-    @Primitive(name = "pointer_free")
-    public static abstract class PointerFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "free")
+    public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
@@ -243,19 +253,6 @@ public abstract class PointerNodes {
         public DynamicObject clear(DynamicObject pointer, long length) {
             Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) 0);
             return pointer;
-        }
-
-    }
-
-    @Primitive(name = "pointer_add")
-    public static abstract class PointerAddPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject add(DynamicObject a, long b) {
-            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(a),
-                    new Pointer(Layouts.POINTER.getPointer(a).getAddress() + b));
         }
 
     }
