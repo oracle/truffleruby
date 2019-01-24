@@ -91,10 +91,10 @@ module Truffle
 
       asc = step > 0
       if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
-        [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit),
+        [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || Float::INFINITY),
          Truffle::Type.rb_num2dbl(step), asc, true]
       else
-        [value, limit, step, asc, false]
+        [value, limit || Float::INFINITY, step, asc, false]
       end
     end
 

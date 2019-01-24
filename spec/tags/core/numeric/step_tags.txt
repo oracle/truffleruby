@@ -25,4 +25,3 @@ fails:Numeric#step with mixed arguments when no block is given returned Enumerat
 fails:Numeric#step with mixed arguments when no block is given returned Enumerator size when step is a String with self and stop as Floats raises an TypeError when step is a numeric representation
 fails:Numeric#step with mixed arguments when no block is given returned Enumerator size when step is a String with self and stop as Floats raises an TypeError with step as an alphanumeric string
 fails:Numeric#step with positional args when no block is given defaults to an infinite limit with a step size of 1.0 for Floats
-fails:Numeric#step with positional args when no block is given defaults to an infinite limit with a step size of 1 for Integers

@@ -86,6 +86,7 @@ class Numeric
     end
 
     values = Truffle::NumericOperations.step_fetch_args(self, limit, step, by)
+
     value = values[0]
     limit = values[1]
     step = values[2]
