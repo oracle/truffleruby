@@ -94,6 +94,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         keptObjects = new Object[cacheSize];
     }
 
+    @TruffleBoundary
     public synchronized void keepObject(Object object) {
         final ArrayList<Object> keepList = stackPreservation.get().peekFirst();
         if (keepList != null) {
