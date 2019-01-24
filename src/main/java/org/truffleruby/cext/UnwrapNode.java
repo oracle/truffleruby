@@ -73,6 +73,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Fallback
         public ValueWrapper unWrapUnexpectedHandle(long handle) {
+            // Avoid throwing a specialization exception when given an uninitialized or corrupt
+            // handle.
             return null;
         }
 
@@ -118,6 +120,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Fallback
         public ValueWrapper unWrapUnexpectedHandle(long handle) {
+            // Avoid throwing a specialization exception when given an uninitialized or corrupt
+            // handle.
             return null;
         }
 

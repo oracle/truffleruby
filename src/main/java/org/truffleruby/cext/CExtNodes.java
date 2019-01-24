@@ -1402,7 +1402,8 @@ public class CExtNodes {
 
         @Fallback
         public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject) {
-            // Do nothing for unexpected objects, no matter how unexpected.
+            // Do nothing for unexpected objects, no matter how unexpected. This can occur inside
+            // macros that guard a variable which may not have been initialized.
             return nil();
         }
 
