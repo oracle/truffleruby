@@ -28,7 +28,7 @@ function truffleruby {
 set -xe
 
 jt gem-test-pack
-truffleruby gem install truffleruby-gem-test-pack/gem-cache/bundler-1.16.5.gem --local
+truffleruby gem install truffleruby-gem-test-pack/gem-cache/bundler-1.16.5.gem --local --no-document
 
 # backup bin/rake, which gets overwritten
 cp bin/rake bin/rake-original
