@@ -90,7 +90,11 @@ class Proc
     file, line = source_location
 
     suffix = "".b
-    suffix << "@#{file}:#{line}" if file and line
+    if sym = Truffle.invoke_primitive(:proc_symbol_to_proc_symbol, self)
+      suffix << "(&#{sym.inspect})"
+    elsif file and line
+      suffix << "@#{file}:#{line}"
+    end
     suffix << ' (lambda)' if lambda?
     base.b.insert -2, suffix
   end

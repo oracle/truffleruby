@@ -95,6 +95,8 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
+        public static final Arity ARITY = new Arity(0, 0, true);
+
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
@@ -120,7 +122,7 @@ public abstract class SymbolNodes {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
-                    Arity.REST,
+                    ARITY,
                     null,
                     Layouts.SYMBOL.getString(symbol),
                     0,
