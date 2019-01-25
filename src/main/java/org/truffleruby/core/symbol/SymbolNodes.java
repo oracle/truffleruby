@@ -18,7 +18,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -28,9 +27,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -41,9 +38,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.SymbolProcNode;
 import org.truffleruby.parser.ArgumentDescriptor;
-import org.truffleruby.parser.Translator;
-
-import java.util.Arrays;
 
 @CoreClass("Symbol")
 public abstract class SymbolNodes {
@@ -122,7 +116,6 @@ public abstract class SymbolNodes {
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
             final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getCallNode().getEncapsulatingSourceSection();
-            final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -140,7 +133,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
-                    Translator.sequence(sourceIndexLength, Arrays.asList(new CheckReceiverArgumentNode(), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
+                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)));
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -148,7 +141,9 @@ public abstract class SymbolNodes {
                     coreLibrary().getProcFactory(),
                     ProcType.PROC,
                     sharedMethodInfo,
-                    callTarget, callTarget, declarationFrame,
+                    callTarget,
+                    callTarget,
+                    declarationFrame,
                     method,
                     null,
                     null,
@@ -169,29 +164,6 @@ public abstract class SymbolNodes {
 
         protected FrameDescriptor getDescriptor(VirtualFrame frame) {
             return frame.getFrameDescriptor();
-        }
-
-        /** Not using CheckArityNode as the message is different and arity is reported as -1. */
-        private static class CheckReceiverArgumentNode extends RubyNode {
-
-            private final BranchProfile noReceiverProfile = BranchProfile.create();
-
-            @Override
-            public void doExecuteVoid(VirtualFrame frame) {
-                final int given = RubyArguments.getArgumentsCount(frame);
-
-                if (given == 0) {
-                    noReceiverProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentError("no receiver given", this));
-                }
-            }
-
-            @Override
-            public Object execute(VirtualFrame frame) {
-                doExecuteVoid(frame);
-                return nil();
-            }
-
         }
 
     }
