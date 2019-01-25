@@ -145,7 +145,6 @@ public class Options {
     public final boolean CEXTS_LOG_LOAD;
     public final boolean CEXTS_LOG_WARNINGS;
     public final String[] CEXTS_LIBRARY_REMAP;
-    public final int CEXTS_MARKING_CACHE;
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
@@ -274,7 +273,6 @@ public class Options {
         CEXTS_LOG_LOAD = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_LOAD);
         CEXTS_LOG_WARNINGS = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_WARNINGS);
         CEXTS_LIBRARY_REMAP = builder.getOrDefault(OptionsCatalog.CEXTS_LIBRARY_REMAP);
-        CEXTS_MARKING_CACHE = builder.getOrDefault(OptionsCatalog.CEXTS_MARKING_CACHE);
         LOG_DYNAMIC_CONSTANT_LOOKUP = builder.getOrDefault(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP);
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
@@ -525,8 +523,6 @@ public class Options {
                 return CEXTS_LOG_WARNINGS;
             case "ruby.cexts.remap":
                 return CEXTS_LIBRARY_REMAP;
-            case "ruby.cexts.marking.cache":
-                return CEXTS_MARKING_CACHE;
             case "ruby.constant.dynamic_lookup.log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.options.log":

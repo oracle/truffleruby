@@ -14,9 +14,7 @@ import java.lang.ref.WeakReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.extra.ffi.Pointer;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.TruffleObject;
 
 public class ValueWrapperManager {
 
@@ -51,7 +49,8 @@ public class ValueWrapperManager {
      * We keep a map of long wrappers that have been generated because various C extensions assume
      * that any given fixnum will translate to a given VALUE.
      */
-    public ValueWrapper longWrapper(long value) {
+    @TruffleBoundary
+    public synchronized ValueWrapper longWrapper(long value) {
         return new ValueWrapper(value, UNSET_HANDLE);
     }
 
@@ -78,19 +77,6 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
-        WeakReference<ValueWrapper> ref = handleMap.get(handle);
-        ValueWrapper wrapper;
-        if (ref == null) {
-            return null;
-        }
-        if ((wrapper = ref.get()) == null) {
-            return null;
-        }
-        return wrapper;
-    }
-
-    @TruffleBoundary
     public synchronized void removeFromHandleMap(long handle) {
         handleMap.remove(handle);
     }
@@ -104,6 +90,7 @@ public class ValueWrapperManager {
         }
         wrapper.setHandle(handleAddress);
         addToHandleMap(handleAddress, wrapper);
+        context.getMarkingService().keepObject(wrapper);
         addFinalizer(wrapper, handlePointer);
         return handleAddress;
     }
@@ -120,17 +107,5 @@ public class ValueWrapperManager {
             handle.free();
         };
 
-    }
-
-    public static boolean isTaggedLong(long handle) {
-        return (handle & LONG_TAG) == LONG_TAG;
-    }
-
-    public static boolean isTaggedObject(long handle) {
-        return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
-    }
-
-    public static boolean isWrapper(TruffleObject value) {
-        return value instanceof ValueWrapper;
     }
 }

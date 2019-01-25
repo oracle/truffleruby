@@ -136,7 +136,6 @@ CEXTS: [cexts, boolean, true, Enable use of C extensions]
 CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
 CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
 CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
-CEXTS_MARKING_CACHE: [cexts.marking.cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
 
 LOG_DYNAMIC_CONSTANT_LOOKUP: [constant.dynamic_lookup.log, boolean, false, Log source code positions where dynamic constant lookup is performed]
 

@@ -19,7 +19,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.queue.SizedQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
@@ -40,7 +39,6 @@ public abstract class ObjectGraph {
 
     @TruffleBoundary
     public static Set<DynamicObject> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
-        context.getMarkingService().runAllMarkers();
         final Set<DynamicObject> visited = newRubyObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
@@ -131,10 +129,6 @@ public abstract class ObjectGraph {
                 }
             } else if (propertyValue instanceof Object[]) {
                 for (Object element : (Object[]) propertyValue) {
-                    // Needed to get wrappers set by Truffle::CExt.set_mark_list_on_object.
-                    if (element instanceof ValueWrapper) {
-                        element = ((ValueWrapper) element).getObject();
-                    }
                     if (element instanceof DynamicObject) {
                         reachable.add((DynamicObject) element);
                     }

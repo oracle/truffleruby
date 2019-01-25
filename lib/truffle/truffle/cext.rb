@@ -1451,7 +1451,7 @@ module Truffle::CExt
     # In a separate method to avoid capturing the object
     raise unless free.respond_to?(:call)
     proc {
-      execute_with_mutex(free, data_holder.data) unless data_holder.data.nil?
+      execute_with_mutex(free, data_holder.data)
     }
   end
 
@@ -1460,7 +1460,7 @@ module Truffle::CExt
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list
-      execute_with_mutex(mark, data_holder.data) unless data_holder.data.nil?
+      execute_with_mutex(mark, data_holder.data)
       set_mark_list_on_object(obj)
     }
   end
