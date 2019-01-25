@@ -89,14 +89,14 @@ class Proc
     base = super()
     file, line = source_location
 
-    suffix = "".b
+    suffix = ''.b
     if sym = Truffle.invoke_primitive(:proc_symbol_to_proc_symbol, self)
       suffix << "(&#{sym.inspect})"
     elsif file and line
       suffix << "@#{file}:#{line}"
     end
     suffix << ' (lambda)' if lambda?
-    base.b.insert -2, suffix
+    base.b.insert(-2, suffix)
   end
   alias_method :inspect, :to_s
 
