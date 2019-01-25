@@ -14,7 +14,6 @@ import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.NotProvidedForeign;
 
 /**
  * Represents a value that was not provided by the user, such as optional arguments to a core library node.
