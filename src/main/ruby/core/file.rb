@@ -207,7 +207,6 @@ class File < IO
     path = Truffle::Type.coerce_to_path(path)
     Truffle::POSIX.truffleposix_stat_mode(path)
   end
-
   private_class_method :query_stat_mode
 
   ##

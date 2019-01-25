@@ -1121,7 +1121,6 @@ class IO
       end
     end
   end
-
   private_class_method :do_select
 
   ##

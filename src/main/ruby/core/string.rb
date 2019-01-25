@@ -639,7 +639,6 @@ class String
 
     consumed
   end
-
   private :inspect_char
 
   def prepend(*others)

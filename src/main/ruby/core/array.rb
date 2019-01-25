@@ -1109,7 +1109,6 @@ class Array
 
     count == size ? result : result[0, count]
   end
-
   private :sample_many
 
   def select!(&block)

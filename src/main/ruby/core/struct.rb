@@ -203,7 +203,6 @@ class Struct
     end
     _attrs[var]
   end
-
   private :check_index_var
 
   def dig(key, *more)
