@@ -858,31 +858,8 @@ module Process
     end
   end
 
-  module XID
-    def re_exchangeable?
-      true
-    end
-
-    def sid_available?
-      true
-    end
-
-    def switch
-      eff = re_exchange
-      if block_given?
-        ret = yield
-        re_exchange
-        ret
-      else
-        eff
-      end
-    end
-  end
-
   module UID
     class << self
-      include XID
-
       def change_privilege(uid)
         uid = Truffle::Type.coerce_to uid, Integer, :to_int
 
@@ -920,8 +897,6 @@ module Process
 
   module GID
     class << self
-      include XID
-
       def change_privilege(gid)
         gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
@@ -956,6 +931,30 @@ module Process
       end
     end
   end
+
+  xid = Module.new do
+    def re_exchangeable?
+      true
+    end
+
+    def sid_available?
+      true
+    end
+
+    def switch
+      eff = re_exchange
+      if block_given?
+        ret = yield
+        re_exchange
+        ret
+      else
+        eff
+      end
+    end
+  end
+
+  UID.extend xid
+  GID.extend xid
 end
 
 Truffle::KernelOperations.define_hooked_variable(
