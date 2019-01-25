@@ -297,21 +297,17 @@ class Addrinfo
 
   def ipv4_loopback?
     return false unless ipv4?
-
     Truffle::Socket::Foreign.inet_network(ip_address) & 0xff000000 == 0x7f000000
   end
 
   def ipv4_multicast?
     return false unless ipv4?
-
     Truffle::Socket::Foreign.inet_network(ip_address) & 0xf0000000 == 0xe0000000
   end
 
   def ipv4_private?
     return false unless ipv4?
-
     num = Truffle::Socket::Foreign.inet_network(ip_address)
-
     num & 0xff000000 == 0x0a000000 ||
       num & 0xfff00000 == 0xac100000 ||
       num & 0xffff0000 == 0xc0a80000
@@ -319,72 +315,55 @@ class Addrinfo
 
   def ipv6_loopback?
     return false unless ipv6?
-
     Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address) ==
       Truffle::Socket::IPv6::LOOPBACK
   end
 
   def ipv6_linklocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xfe && bytes[1] >= 0x80
   end
 
   def ipv6_multicast?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff
   end
 
   def ipv6_sitelocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xfe && bytes[1] >= 0xe0
   end
 
   def ipv6_mc_global?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff && bytes[1] & 0xf == 0xe
   end
 
   def ipv6_mc_linklocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff && bytes[1] & 0xf == 0x2
   end
 
   def ipv6_mc_nodelocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff && bytes[1] & 0xf == 0x1
   end
 
   def ipv6_mc_orglocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff && bytes[1] & 0xf == 0x8
   end
 
   def ipv6_mc_sitelocal?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xff && bytes[1] & 0xf == 0x5
   end
 
@@ -402,33 +381,25 @@ class Addrinfo
 
   def ipv6_unspecified?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes == Truffle::Socket::IPv6::UNSPECIFIED
   end
 
   def ipv6_v4compat?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     Truffle::Socket::IPv6.ipv4_compatible?(bytes)
   end
 
   def ipv6_v4mapped?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     Truffle::Socket::IPv6.ipv4_mapped?(bytes)
   end
 
   def ipv6_unique_local?
     return false unless ipv6?
-
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-
     bytes[0] == 0xfc || bytes[0] == 0xfd
   end
 
