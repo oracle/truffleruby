@@ -707,7 +707,7 @@ module Enumerable
         unless comp
           raise ArgumentError, "comparison of #{o.class} with #{chosen} failed"
         end
-        
+
         if (Comparable.compare_int(comp) <=> 0) == relative
           chosen = o
         end

@@ -1435,7 +1435,7 @@ class IO
       end
 
       str << @buffer.shift
-      yield_string(str) { |s| yield s }
+      yield_string(str) { |y| yield y }
     end
 
     # method B, E

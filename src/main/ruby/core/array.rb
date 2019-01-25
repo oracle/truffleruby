@@ -1107,7 +1107,7 @@ class Array
       result.swap c, rng.rand(size)
     end
 
-    return count == size ? result : result[0, count]
+    count == size ? result : result[0, count]
   end
 
   private :sample_many

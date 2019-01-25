@@ -201,7 +201,7 @@ class Struct
     if var < -a_len
       raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
     end
-    var = _attrs[var]
+    _attrs[var]
   end
 
   private :check_index_var

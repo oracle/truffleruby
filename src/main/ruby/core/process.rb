@@ -862,7 +862,7 @@ module Process
     def re_exchangeable?
       true
     end
-    
+
     def sid_available?
       true
     end
@@ -921,7 +921,7 @@ module Process
   module GID
     class << self
       extend XID
-      
+
       def change_privilege(gid)
         gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
