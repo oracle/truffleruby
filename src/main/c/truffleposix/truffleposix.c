@@ -202,6 +202,7 @@ retry:
     return NULL;
   } else {
     /* ret == 0 && result == NULL means not found */
+    free(buffer);
     return strdup("");
   }
 }
