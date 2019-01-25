@@ -12,14 +12,18 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class SymbolProcNode extends RubyNode {
 
     private final String symbol;
+    private final BranchProfile noReceiverProfile = BranchProfile.create();
 
     @Child private CallDispatchHeadNode callNode;
 
@@ -29,14 +33,16 @@ public class SymbolProcNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        // Not using CheckArityNode as the message is different and arity is reported as -1
+        final int given = RubyArguments.getArgumentsCount(frame);
+        if (given == 0) {
+            noReceiverProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().argumentError("no receiver given", this));
+        }
+
         final Object receiver = RubyArguments.getArgument(frame, 0);
-
+        final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);
         final DynamicObject block = RubyArguments.getBlock(frame);
-
-        final Object[] arguments = ArrayUtils.extractRange(
-                RubyArguments.getArguments(frame),
-                1,
-                RubyArguments.getArgumentsCount(frame));
 
         return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
     }
