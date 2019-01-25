@@ -171,6 +171,7 @@ The main authors of TruffleRuby in order of joining the project are:
 * Petr Chalupa
 * Brandon Fish
 * Duncan MacGregor
+* Christian Wirth
 
 Additionally:
 
