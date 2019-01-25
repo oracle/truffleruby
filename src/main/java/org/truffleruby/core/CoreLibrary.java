@@ -545,7 +545,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
-        truffleFFIPointerClass = defineClass(truffleFFIModule, objectClass, "Pointer");
+        DynamicObject truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
+        truffleFFIPointerClass = defineClass(truffleFFIModule, truffleFFIAbstractMemoryClass, "Pointer");
         Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 

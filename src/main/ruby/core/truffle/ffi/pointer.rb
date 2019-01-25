@@ -35,7 +35,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle::FFI
-  class Pointer
+  class AbstractMemory
+  end
+
+  class Pointer < AbstractMemory
     def self.find_type_size(type)
       if defined?(::FFI) # Full FFI loaded
         ::FFI.type_size(::FFI.find_type(type))
