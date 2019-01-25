@@ -872,16 +872,16 @@ module Process
       if block_given?
         ret = yield
         re_exchange
-        return ret
+        ret
       else
-        return eff
+        eff
       end
     end
   end
 
   module UID
     class << self
-      extend XID
+      include XID
 
       def change_privilege(uid)
         uid = Truffle::Type.coerce_to uid, Integer, :to_int
@@ -920,7 +920,7 @@ module Process
 
   module GID
     class << self
-      extend XID
+      include XID
 
       def change_privilege(gid)
         gid = Truffle::Type.coerce_to gid, Integer, :to_int
