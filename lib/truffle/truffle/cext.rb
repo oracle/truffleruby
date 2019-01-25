@@ -913,7 +913,7 @@ module Truffle::CExt
 
     # TODO BJF 8-Mar-2017 Handle more ecflags
     if ecflags & Encoding::Converter::INVALID_REPLACE != 0
-      opts.merge!({:invalid => :replace})
+      opts[:invalid] = :replace
     end
 
     if opts.empty?

@@ -109,5 +109,5 @@ cflags_for_try_link = "#{debugflags} #{warnflags}"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags_for_try_link} #{cext_dir}/ruby.o #{cext_dir}/sulongmock.o $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK].each do |key|
-  expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1, $&) }
+  expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
 end

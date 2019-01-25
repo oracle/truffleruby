@@ -258,8 +258,7 @@ class Date
 
     def initialize(d=1) @d = d <=> 0 end
 
-    def d() @d end
-
+    attr_reader :d
     protected :d
 
     def zero? () false end
@@ -1144,7 +1143,7 @@ class Date
   end
 
   # Get the date as an Astronomical Julian Day Number.
-  def ajd() @ajd end
+  attr_reader :ajd
 
   # Get the date as an Astronomical Modified Julian Day Number.
   def amjd() ajd_to_amjd(@ajd) end

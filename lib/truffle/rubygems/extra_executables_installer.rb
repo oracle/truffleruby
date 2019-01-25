@@ -18,11 +18,11 @@ module Gem
 
     private
 
-    def with_bin_dir(obj, new_bin_dir, &block)
+    def with_bin_dir(obj, new_bin_dir)
       old_bin_dir = obj.instance_variable_get :@bin_dir
       obj.instance_variable_set :@bin_dir, new_bin_dir
       begin
-        block.call
+        yield
       ensure
         obj.instance_variable_set :@bin_dir, old_bin_dir
       end
