@@ -86,18 +86,14 @@ class Proc
   end
 
   def to_s
-    sl = source_location
-    return super if sl.nil?
-    file, line = sl
+    base = super()
+    file, line = source_location
 
-    l = ' (lambda)' if lambda?
-    if file and line
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>".force_encoding('ASCII-8BIT')
-    else
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>".force_encoding('ASCII-8BIT')
-    end
+    suffix = "".b
+    suffix << "@#{file}:#{line}" if file and line
+    suffix << ' (lambda)' if lambda?
+    base.b.insert -2, suffix
   end
-
   alias_method :inspect, :to_s
 
   def to_proc
