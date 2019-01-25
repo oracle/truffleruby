@@ -104,7 +104,6 @@ public class ValueWrapperManager {
         }
         wrapper.setHandle(handleAddress);
         addToHandleMap(handleAddress, wrapper);
-        context.getMarkingService().keepObject(wrapper);
         addFinalizer(wrapper, handlePointer);
         return handleAddress;
     }
