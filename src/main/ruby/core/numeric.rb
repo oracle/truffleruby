@@ -218,30 +218,14 @@ class Numeric
 
   def math_coerce(other, error=:coerce_error)
     other = Truffle::Interop.unbox_if_needed(other)
-
-    unless other.respond_to? :coerce
-      if error == :coerce_error
-        raise TypeError, "#{other.class} can't be coerced into #{self.class}"
-      elsif error == :compare_error
-        raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
-      elsif error == :no_error
-        return nil
-      end
-    end
+    return math_coerce_error(other, error) unless other.respond_to? :coerce
 
     begin
       values = other.coerce(self)
     rescue
       Truffle::Warnings.warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
       Truffle::Warnings.warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
-
-      if error == :coerce_error
-        raise TypeError, "#{other.class} can't be coerced into #{self.class}"
-      elsif error == :compare_error
-        raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
-      elsif error == :no_error
-        return nil
-      end
+      return math_coerce_error(other, error)
     end
 
     unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
@@ -255,6 +239,17 @@ class Numeric
     [values[1], values[0]]
   end
   private :math_coerce
+
+  def math_coerce_error(other, error)
+    if error == :coerce_error
+      raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+    elsif error == :compare_error
+      raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+    elsif error == :no_error
+      nil
+    end
+  end
+  private :math_coerce_error
 
   def bit_coerce(other)
     values = math_coerce(other)

@@ -115,39 +115,19 @@ class Hash
     self.class.contains_all_internal(self, other)
   end
 
-
   def ==(other)
-    return true if self.equal? other
-    unless other.kind_of? Hash
-      return false unless other.respond_to? :to_hash
-      return other == self
-    end
-
-    return false unless other.size == size
-
-    Thread.detect_recursion self, other do
-      each_pair do |key, value|
-        other_value = other._get_or_undefined(key)
-
-        # Other doesn't even have this key
-        return false if undefined.equal?(other_value)
-
-        # Order of the comparison matters! We must compare our value with
-        # the other Hash's value and not the other way around.
-        unless Truffle::Type.object_equal(value, other_value) or value == other_value
-          return false
-        end
-      end
-    end
-    true
+    eql_op(:==, other)
   end
 
   def eql?(other)
-    # Just like ==, but uses eql? to compare values.
+    eql_op(:eql?, other)
+  end
+
+  def eql_op(op, other)
     return true if self.equal? other
     unless other.kind_of? Hash
       return false unless other.respond_to? :to_hash
-      return other.eql?(self)
+      return other.send(op, self)
     end
 
     return false unless other.size == size
@@ -161,13 +141,14 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Truffle::Type.object_equal(value, other_value) or value.eql?(other_value)
+        unless Truffle::Type.object_equal(value, other_value) or value.send(op, other_value)
           return false
         end
       end
     end
     true
   end
+  private :eql_op
 
   def >(other)
     other = Truffle::Type.coerce_to(other, Hash, :to_hash)

@@ -672,24 +672,7 @@ module Enumerable
 
   def min(n = undefined, &block)
     return min_n(n, &block) if !undefined.equal?(n) && !n.nil?
-    min = undefined
-    each do
-      o = Truffle.single_block_arg
-      if undefined.equal? min
-        min = o
-      else
-        comp = block_given? ? yield(o, min) : o <=> min
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{min} failed"
-        end
-
-        if Comparable.compare_int(comp) < 0
-          min = o
-        end
-      end
-    end
-
-    undefined.equal?(min) ? nil : min
+    min_max(-1, &block)
   end
 
   def min_n(n, &block)
@@ -702,24 +685,7 @@ module Enumerable
 
   def max(n = undefined, &block)
     return max_n(n, &block) if !undefined.equal?(n) && !n.nil?
-    max = undefined
-    each do
-      o = Truffle.single_block_arg
-      if undefined.equal? max
-        max = o
-      else
-        comp = block_given? ? yield(o, max) : o <=> max
-        unless comp
-          raise ArgumentError, "comparison of #{o.class} with #{max} failed"
-        end
-
-        if Comparable.compare_int(comp) > 0
-          max = o
-        end
-      end
-    end
-
-    undefined.equal?(max) ? nil : max
+    min_max(+1, &block)
   end
 
   def max_n(n, &block)
@@ -729,6 +695,28 @@ module Enumerable
     self.sort(&block).last(n).reverse
   end
   private :max_n
+
+  def min_max(relative)
+    chosen = undefined
+    each do
+      o = Truffle.single_block_arg
+      if undefined.equal? chosen
+        chosen = o
+      else
+        comp = block_given? ? yield(o, chosen) : o <=> chosen
+        unless comp
+          raise ArgumentError, "comparison of #{o.class} with #{chosen} failed"
+        end
+
+        if (Comparable.compare_int(comp) <=> 0) == relative
+          chosen = o
+        end
+      end
+    end
+
+    undefined.equal?(chosen) ? nil : chosen
+  end
+  private :min_max
 
   private def max_by_n(n, &block)
     n = Truffle::Type.rb_num2long(n)

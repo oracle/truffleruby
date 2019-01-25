@@ -101,42 +101,36 @@ class Truffle::BigDecimal < Numeric
     [BigDecimal(other, 20), self]
   end
 
-  # TODO (pitr 28-may-2015): compare with pure Java versions
   def >(other)
-    unless comp = (self <=> other)
-      return false if nan? || (BigDecimal === other && other.nan?)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
-    end
-
-    comp > 0
+    comp_helper(other, :>)
   end
 
   def >=(other)
-    unless comp = (self <=> other)
-      return false if nan? || (BigDecimal === other && other.nan?)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
-    end
-
-    comp >= 0
+    comp_helper(other, :>=)
   end
 
   def <(other)
-    unless comp = (self <=> other)
-      return false if nan? || (BigDecimal === other && other.nan?)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
-    end
-
-    comp < 0
+    comp_helper(other, :<)
   end
 
   def <=(other)
-    unless comp = (self <=> other)
-      return false if nan? || (BigDecimal === other && other.nan?)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
-    end
-
-    comp <= 0
+    comp_helper(other, :<=)
   end
+
+  def comp_helper(other, op)
+    comp = (self <=> other)
+    if comp
+      # cmp >= 0, comp < 0, etc
+      comp.send(op, 0)
+    else
+      if nan? || (BigDecimal === other && other.nan?)
+        return false
+      else
+        raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+      end
+    end
+  end
+  private :comp_helper
 
   def nonzero?
     zero? ? nil : self

@@ -1065,6 +1065,18 @@ class IO
       end
     }
 
+    do_select(
+      readables, writables, errorables,
+      mark_ready, to_fds,
+      original_timeout, timeout_us,
+      readables_ready, writables_ready, errorables_ready)
+  end
+
+  def self.do_select(
+        readables, writables, errorables,
+        mark_ready, to_fds,
+        original_timeout, timeout_us,
+        readables_ready, writables_ready, errorables_ready)
     Truffle::POSIX.with_array_of_ints(to_fds.call(readables)) do |readables_ptr|
       Truffle::POSIX.with_array_of_ints(to_fds.call(writables)) do |writables_ptr|
         Truffle::POSIX.with_array_of_ints(to_fds.call(errorables)) do |errorables_ptr|
@@ -1109,6 +1121,7 @@ class IO
       end
     end
   end
+  private_class_method :do_select
 
   ##
   # Opens the given path, returning the underlying file descriptor as an Integer.
@@ -1421,12 +1434,7 @@ class IO
       end
 
       str << @buffer.shift
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |y| yield y }
     end
 
     # method B, E
@@ -1475,12 +1483,7 @@ class IO
         end
       end
 
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |s| yield s }
     end
 
     # Method G
@@ -1491,12 +1494,7 @@ class IO
         str << @buffer.shift
       end
 
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |s| yield s }
     end
 
     # Method H
@@ -1523,6 +1521,10 @@ class IO
         end
       end
 
+      yield_string(str) { |s| yield s }
+    end
+
+    def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint

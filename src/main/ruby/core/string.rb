@@ -544,79 +544,7 @@ class String
       char = chr_at index
 
       if char
-        bs = char.bytesize
-
-        if (ascii or unicode) and bs == 1
-          escaped = nil
-
-          byte = getbyte(index)
-          if byte >= 7 and byte <= 92
-            case byte
-            when 7  # \a
-              escaped = '\a'
-            when 8  # \b
-              escaped = '\b'
-            when 9  # \t
-              escaped = '\t'
-            when 10 # \n
-              escaped = '\n'
-            when 11 # \v
-              escaped = '\v'
-            when 12 # \f
-              escaped = '\f'
-            when 13 # \r
-              escaped = '\r'
-            when 27 # \e
-              escaped = '\e'
-            when 34 # \"
-              escaped = '\"'
-            when 35 # #
-              case getbyte(index += 1)
-              when 36   # $
-                escaped = '\#$'
-              when 64   # @
-                escaped = '\#@'
-              when 123  # {
-                escaped = '\#{'
-              else
-                index -= 1
-              end
-            when 92 # \\
-              escaped = '\\\\'
-            end
-
-            if escaped
-              array << escaped
-              index += 1
-              next
-            end
-          end
-        end
-
-        if Truffle.invoke_primitive(:character_printable_p, char)
-          array << char
-        else
-          code = char.ord
-          escaped = code.to_s(16).upcase
-
-          if unicode
-            if code < 0x10000
-              pad = '0' * (4 - escaped.bytesize)
-              array << "\\u#{pad}#{escaped}"
-            else
-              array << "\\u{#{escaped}}"
-            end
-          else
-            if code < 0x100
-              pad = '0' * (2 - escaped.bytesize)
-              array << "\\x#{pad}#{escaped}"
-            else
-              array << "\\x{#{escaped}}"
-            end
-          end
-        end
-
-        index += bs
+        index += inspect_char(ascii, unicode, index, char, array)
       else
         array << "\\x#{getbyte(index).to_s(16)}"
         index += 1
@@ -635,6 +563,83 @@ class String
     Truffle::Type.infect result, self
     result.force_encoding result_encoding
   end
+
+  def inspect_char(ascii, unicode, index, char, array)
+    consumed = char.bytesize
+
+    if (ascii or unicode) and consumed == 1
+      escaped = nil
+
+      byte = getbyte(index)
+      if byte >= 7 and byte <= 92
+        case byte
+        when 7  # \a
+          escaped = '\a'
+        when 8  # \b
+          escaped = '\b'
+        when 9  # \t
+          escaped = '\t'
+        when 10 # \n
+          escaped = '\n'
+        when 11 # \v
+          escaped = '\v'
+        when 12 # \f
+          escaped = '\f'
+        when 13 # \r
+          escaped = '\r'
+        when 27 # \e
+          escaped = '\e'
+        when 34 # \"
+          escaped = '\"'
+        when 35 # #
+          case getbyte(index + 1)
+          when 36   # $
+            escaped = '\#$'
+            consumed += 1
+          when 64   # @
+            escaped = '\#@'
+            consumed += 1
+          when 123  # {
+            escaped = '\#{'
+            consumed += 1
+          end
+        when 92 # \\
+          escaped = '\\\\'
+        end
+
+        if escaped
+          array << escaped
+          return consumed
+        end
+      end
+    end
+
+    if Truffle.invoke_primitive(:character_printable_p, char)
+      array << char
+    else
+      code = char.ord
+      escaped = code.to_s(16).upcase
+
+      if unicode
+        if code < 0x10000
+          pad = '0' * (4 - escaped.bytesize)
+          array << "\\u#{pad}#{escaped}"
+        else
+          array << "\\u{#{escaped}}"
+        end
+      else
+        if code < 0x100
+          pad = '0' * (2 - escaped.bytesize)
+          array << "\\x#{pad}#{escaped}"
+        else
+          array << "\\x{#{escaped}}"
+        end
+      end
+    end
+
+    consumed
+  end
+  private :inspect_char
 
   def prepend(*others)
     if others.size == 1
@@ -1107,104 +1112,13 @@ class String
 
     case index
     when Integer
-      index += size if index < 0
-
-      if index < 0 or index > size
-        raise IndexError, "index #{index} out of string"
-      end
-
-      unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index)
-        raise IndexError, "unable to find character at: #{index}"
-      end
-
-      if count
-        count = Truffle::Type.coerce_to_int count
-
-        if count < 0
-          raise IndexError, 'count is negative'
-        end
-
-        total = index + count
-        if total >= size
-          bs = bytesize - bi
-        else
-          bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, total) - bi
-        end
-      else
-        bs = index == size ? 0 : Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index + 1) - bi
-      end
-
-      replacement = StringValue replacement
-      enc = Truffle::Type.compatible_encoding self, replacement
-
-      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+      assign_index(index, count, replacement)
     when String
-      unless start = Truffle.invoke_primitive(:find_string, self, index, 0)
-        raise IndexError, 'string not matched'
-      end
-
-      replacement = StringValue replacement
-      enc = Truffle::Type.compatible_encoding self, replacement
-
-      Truffle.invoke_primitive(:string_splice, self, replacement, start, index.bytesize, enc)
+      assign_string(index, replacement)
     when Range
-      start = Truffle::Type.coerce_to_int index.first
-
-      start += size if start < 0
-
-      if start < 0 or start > size
-        raise RangeError, "#{index.first} is out of range"
-      end
-
-      unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, start)
-        raise IndexError, "unable to find character at: #{start}"
-      end
-
-      stop = Truffle::Type.coerce_to_int index.last
-      stop += size if stop < 0
-      stop -= 1 if index.exclude_end?
-
-      if stop < start
-        bs = 0
-      elsif stop >= size
-        bs = bytesize - bi
-      else
-        bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, stop + 1) - bi
-      end
-
-      replacement = StringValue replacement
-      enc = Truffle::Type.compatible_encoding self, replacement
-
-      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+      assign_range(index, replacement)
     when Regexp
-      if count
-        count = Truffle::Type.coerce_to_int count
-      else
-        count = 0
-      end
-
-      if match = Truffle::RegexpOperations.match(index, self)
-        ms = match.size
-      else
-        raise IndexError, 'regexp does not match'
-      end
-
-      count += ms if count < 0 and -count < ms
-      unless count < ms and count >= 0
-        raise IndexError, "index #{count} out of match bounds"
-      end
-
-      unless match[count]
-        raise IndexError, "regexp group #{count} not matched"
-      end
-
-      replacement = StringValue replacement
-      enc = Truffle::Type.compatible_encoding self, replacement
-
-      bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.begin(count))
-      bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.end(count)) - bi
-
-      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+      assign_regexp(index, count, replacement)
     else
       index = Truffle::Type.coerce_to_int index
 
@@ -1219,6 +1133,115 @@ class String
 
     replacement
   end
+
+  def assign_index(index, count, replacement)
+    index += size if index < 0
+
+    if index < 0 or index > size
+      raise IndexError, "index #{index} out of string"
+    end
+
+    unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index)
+      raise IndexError, "unable to find character at: #{index}"
+    end
+
+    if count
+      count = Truffle::Type.coerce_to_int count
+
+      if count < 0
+        raise IndexError, 'count is negative'
+      end
+
+      total = index + count
+      if total >= size
+        bs = bytesize - bi
+      else
+        bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, total) - bi
+      end
+    else
+      bs = index == size ? 0 : Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index + 1) - bi
+    end
+
+    replacement = StringValue replacement
+    enc = Truffle::Type.compatible_encoding self, replacement
+
+    Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+  end
+
+  def assign_string(index, replacement)
+    unless start = Truffle.invoke_primitive(:find_string, self, index, 0)
+      raise IndexError, 'string not matched'
+    end
+
+    replacement = StringValue replacement
+    enc = Truffle::Type.compatible_encoding self, replacement
+
+    Truffle.invoke_primitive(:string_splice, self, replacement, start, index.bytesize, enc)
+  end
+
+  def assign_range(index, replacement)
+    start = Truffle::Type.coerce_to_int index.first
+
+    start += size if start < 0
+
+    if start < 0 or start > size
+      raise RangeError, "#{index.first} is out of range"
+    end
+
+    unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, start)
+      raise IndexError, "unable to find character at: #{start}"
+    end
+
+    stop = Truffle::Type.coerce_to_int index.last
+    stop += size if stop < 0
+    stop -= 1 if index.exclude_end?
+
+    if stop < start
+      bs = 0
+    elsif stop >= size
+      bs = bytesize - bi
+    else
+      bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, stop + 1) - bi
+    end
+
+    replacement = StringValue replacement
+    enc = Truffle::Type.compatible_encoding self, replacement
+
+    Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+  end
+
+  def assign_regexp(index, count, replacement)
+    if count
+      count = Truffle::Type.coerce_to_int count
+    else
+      count = 0
+    end
+
+    if match = Truffle::RegexpOperations.match(index, self)
+      ms = match.size
+    else
+      raise IndexError, 'regexp does not match'
+    end
+
+    count += ms if count < 0 and -count < ms
+    unless count < ms and count >= 0
+      raise IndexError, "index #{count} out of match bounds"
+    end
+
+    unless match[count]
+      raise IndexError, "regexp group #{count} not matched"
+    end
+
+    replacement = StringValue replacement
+    enc = Truffle::Type.compatible_encoding self, replacement
+
+    bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.begin(count))
+    bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.end(count)) - bi
+
+    Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
+  end
+
+  private :assign_index, :assign_string, :assign_range, :assign_regexp
 
   def center(width, padding=' ')
     padding = StringValue(padding)

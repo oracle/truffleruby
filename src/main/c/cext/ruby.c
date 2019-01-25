@@ -72,7 +72,11 @@ void *ruby_xmalloc(size_t size) {
 }
 
 void *ruby_xmalloc2(size_t n, size_t size) {
-  return malloc(xmalloc2_size(n, size));
+  size_t total_size = xmalloc2_size(n, size);
+  if (total_size == 0) {
+    total_size = 1;
+  }
+  return malloc(xmalloc2_size(n, total_size));
 }
 
 void *ruby_xcalloc(size_t n, size_t size) {
@@ -96,6 +100,9 @@ void ruby_xfree(void *address) {
 }
 
 void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) {
+  if (len == 0) {
+    len = 1;
+  }
   void *ptr = malloc(len);
   *((void**)store) = ptr;
   return ptr;

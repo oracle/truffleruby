@@ -164,15 +164,7 @@ class Struct
     when Symbol, String
       # ok
     else
-      var = Integer(var)
-      a_len = _attrs.length
-      if var > a_len - 1
-        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
-      end
-      if var < -a_len
-        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
-      end
-      var = _attrs[var]
+      var = check_index_var(var)
     end
 
     unless _attrs.include? var.to_sym
@@ -194,20 +186,24 @@ class Struct
         raise NameError, "no member '#{var}' in struct"
       end
     else
-      var = Integer(var)
-      a_len = _attrs.length
-      if var > a_len - 1
-        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
-      end
-      if var < -a_len
-        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
-      end
-
-      var = _attrs[var]
+      var = check_index_var(var)
     end
 
     instance_variable_set(:"@#{var}", obj)
   end
+
+  def check_index_var(var)
+    var = Integer(var)
+    a_len = _attrs.length
+    if var > a_len - 1
+      raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
+    end
+    if var < -a_len
+      raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
+    end
+    _attrs[var]
+  end
+  private :check_index_var
 
   def dig(key, *more)
     result = nil

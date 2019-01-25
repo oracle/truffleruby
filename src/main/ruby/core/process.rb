@@ -220,14 +220,7 @@ module Process
       haystack = base_ptr.read_string(size)
 
       i = haystack.index("\x00#{command}")
-      unless i
-        puts
-        p command
-        puts
-        p haystack
-        puts
-        raise 'argv[0] not found'
-      end
+      raise 'argv[0] not found' unless i
       i += 1
 
       @_argv0_max_length = command.bytesize
@@ -896,29 +889,9 @@ module Process
         eff
       end
 
-      def re_exchangeable?
-        true
-      end
-
       def rid
         Truffle::POSIX.getuid
       end
-
-      def sid_available?
-        true
-      end
-
-      def switch
-        eff = re_exchange
-        if block_given?
-          ret = yield
-          re_exchange
-          return ret
-        else
-          return eff
-        end
-      end
-
     end
   end
 
@@ -953,31 +926,35 @@ module Process
         eff
       end
 
-      def re_exchangeable?
-        true
-      end
-
       def rid
         Truffle::POSIX.getgid
       end
-
-      def sid_available?
-        true
-      end
-
-      def switch
-        eff = re_exchange
-        if block_given?
-          ret = yield
-          re_exchange
-          return ret
-        else
-          return eff
-        end
-      end
-
     end
   end
+
+  xid = Module.new do
+    def re_exchangeable?
+      true
+    end
+
+    def sid_available?
+      true
+    end
+
+    def switch
+      eff = re_exchange
+      if block_given?
+        ret = yield
+        re_exchange
+        ret
+      else
+        eff
+      end
+    end
+  end
+
+  UID.extend xid
+  GID.extend xid
 end
 
 Truffle::KernelOperations.define_hooked_variable(

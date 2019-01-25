@@ -39,10 +39,8 @@ public class SingleBlockArgNode extends RubyNode {
         } else {
             if (singleArgProfile.profile(userArgumentCount == 1)) {
                 return RubyArguments.getArgument(frame, 0);
-
             } else {
                 Object[] extractedArguments = RubyArguments.getArguments(frame);
-
                 return createArray(extractedArguments, userArgumentCount);
             }
         }

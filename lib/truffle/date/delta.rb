@@ -175,7 +175,7 @@ class Date
     class << self; alias_method :secs, :seconds end
 
     def self.parse(str)
-      d = begin (@@pa ||= Parser.new).parse(str)
+      d = begin (@pa ||= Parser.new).parse(str)
           rescue Racc::ParseError
             raise ArgumentError, 'syntax error'
           end
@@ -187,7 +187,7 @@ class Date
     class << self
 
       def once(*ids) # :nodoc: -- restricted
-        for id in ids
+        ids.each do |id|
           module_eval <<-"end;"
             alias_method :__#{id.object_id}__, :#{id}
             private :__#{id.object_id}__
@@ -206,8 +206,7 @@ class Date
 
     once :dhms
 
-    def delta() @delta end
-
+    attr_reader :delta
     protected :delta
 
     def years() dhms[0] end
