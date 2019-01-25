@@ -109,11 +109,7 @@ module Truffle::FFI
     end
 
     def get_string(offset, length = nil)
-      if length
-        get_bytes(offset, length)
-      else
-        Truffle.invoke_primitive :pointer_read_string_to_null, address + offset
-      end
+      Truffle.invoke_primitive :pointer_read_string_to_null, address + offset, length
     end
 
     def put_string(offset, str)
@@ -132,10 +128,17 @@ module Truffle::FFI
           raise RangeError, 'index+length is greater than size of string'
         end
       else
+        if index > str.bytesize
+          raise IndexError, 'index is greater than size of string'
+        end
         length = str.bytesize - index
       end
       Truffle.invoke_primitive :pointer_write_bytes, address + offset, str, index, length
       self
+    end
+
+    def write_bytes(str, index = 0, length = nil)
+      put_bytes(0, str, index, length)
     end
 
     def __copy_from__(pointer, size)

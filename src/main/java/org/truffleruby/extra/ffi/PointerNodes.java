@@ -262,14 +262,23 @@ public abstract class PointerNodes {
     public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "address == 0")
-        public DynamicObject readNullPointer(long address,
+        public DynamicObject readNullPointer(long address, long length,
                                              @Cached("create()") AllocateObjectNode allocateObjectNode) {
             return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
         @Specialization(guards = "address != 0")
-        public DynamicObject readStringToNull(long address,
+        public DynamicObject readStringToNull(long address, long length,
                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, length);
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        @Specialization(guards = { "address != 0", "isNil(noLength)" })
+        public DynamicObject readStringToNull(long address, DynamicObject noLength,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
