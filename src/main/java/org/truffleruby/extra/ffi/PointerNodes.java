@@ -226,11 +226,10 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_malloc")
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
         @Specialization
-        public DynamicObject malloc(DynamicObject pointerClass, long size) {
-            return allocateObjectNode.allocate(pointerClass, Pointer.malloc(size));
+        public DynamicObject malloc(DynamicObject pointer, long size) {
+            Layouts.POINTER.setPointer(pointer, Pointer.malloc(size));
+            return pointer;
         }
 
     }

@@ -39,20 +39,28 @@ module Truffle::FFI
   end
 
   class Pointer < AbstractMemory
+    # Indicates how many bytes the chunk of memory that is pointed to takes up.
+    attr_accessor :total
+    alias_method :size, :total
+
+    # Indicates how many bytes the type that the pointer is cast as uses.
+    attr_accessor :type_size
+
     # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
       Truffle.invoke_primitive :pointer_find_type_size, type
     end
 
-    def initialize(a1, a2=undefined)
-      if undefined.equal? a2
-        if Truffle::Interop.pointer?(a1)
-          a1 = Truffle::Interop.as_pointer(a1)
+    def initialize(type, address = undefined)
+      if undefined.equal? address
+        address = type
+        if Truffle::Interop.pointer?(address)
+          address = Truffle::Interop.as_pointer(address)
         end
-        self.address = a1
+        self.address = address
       else
-        @type = a1
-        self.address = a2
+        self.address = address
+        @type = type
       end
     end
 
@@ -156,54 +164,23 @@ module Truffle::FFI
   end
 
   class MemoryPointer < Pointer
-
-    # Indicates how many bytes the chunk of memory that is pointed to takes up.
-    attr_accessor :total
-
-    # Indicates how many bytes the type that the pointer is cast as uses.
-    attr_accessor :type_size
-
-    # call-seq:
-    #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
-    #   MemoryPointer.new(sym) => MemoryPointer instance with number
-    #                             of bytes need by FFI type <i>sym</i>
-    #   MemoryPointer.new(obj) => MemoryPointer instance with number
-    #                             of <i>obj.size</i> bytes
-    #   MemoryPointer.new(sym, count) => MemoryPointer instance with number
-    #                             of bytes need by length-<i>count</i> array
-    #                             of FFI type <i>sym</i>
-    #   MemoryPointer.new(obj, count) => MemoryPointer instance with number
-    #                             of bytes need by length-<i>count</i> array
-    #                             of <i>obj.size</i> bytes
-    #   MemoryPointer.new(arg) { |p| ... }
-    #
-    # Both forms create a MemoryPointer instance. The number of bytes to
-    # allocate is either specified directly or by passing an FFI type, which
-    # specifies the number of bytes needed for that type.
-    #
-    # The form without a block returns the MemoryPointer instance. The form
-    # with a block yields the MemoryPointer instance and frees the memory
-    # when the block returns. The value returned is the value of the block.
-    #
-    def self.new(type, count=nil, clear=true)
+    def initialize(type, count = 1, clear = true)
       if type.kind_of? Integer
-        size = type
+        @type_size = type
       elsif type.kind_of? Symbol
-        size = Pointer.find_type_size(type)
+        @type_size = Pointer.find_type_size(type)
       else
-        size = type.size
+        @type_size = type.size
       end
 
-      if count
-        total = size * count
-      else
-        total = size
-      end
+      @total = @type_size * (count || 1)
 
-      ptr = Truffle.invoke_primitive :pointer_malloc, self, total
-      ptr.total = total
-      ptr.type_size = size
-      Truffle.invoke_primitive :pointer_clear, ptr, total if clear
+      Truffle.invoke_primitive :pointer_malloc, self, @total
+      Truffle.invoke_primitive :pointer_clear, self, @total if clear
+    end
+
+    def self.new(type, count = 1, clear = true)
+      ptr = super(type, count, clear)
 
       if block_given?
         begin
@@ -225,7 +202,8 @@ module Truffle::FFI
     end
 
     def copy
-      other = Truffle.invoke_primitive :pointer_malloc, self, total
+      other = dup
+      Truffle.invoke_primitive :pointer_malloc, other, total
       other.total = total
       other.type_size = type_size
       Truffle::POSIX.memcpy other, self, total
