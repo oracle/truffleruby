@@ -1042,69 +1042,75 @@ class Array
       end
       return [at(i), at(j)]
     else
-      if size / count > 3
-        abandon = false
+      sample_many(count, rng)
+    end
+  end
 
-        result = Array.new count
-        i = 1
+  def sample_many(count, rng)
+    if size / count > 3
+      abandon = false
 
-        result[0] = rng.rand(size)
-        while i < count
-          k = rng.rand(size)
+      result = Array.new count
+      i = 1
 
-          spin = false
-          spin_count = 0
+      result[0] = rng.rand(size)
+      while i < count
+        k = rng.rand(size)
 
-          while true # rubocop:disable Lint/LiteralInCondition
-            j = 0
-            while j < i
-              if k == result[j]
-                spin = true
-                break
-              end
+        spin = false
+        spin_count = 0
 
-              j += 1
-            end
-
-            if spin
-              if (spin_count += 1) > 100
-                abandon = true
-                break
-              end
-
-              k = rng.rand(size)
-            else
+        while true # rubocop:disable Lint/LiteralInCondition
+          j = 0
+          while j < i
+            if k == result[j]
+              spin = true
               break
             end
+
+            j += 1
           end
 
-          break if abandon
+          if spin
+            if (spin_count += 1) > 100
+              abandon = true
+              break
+            end
 
-          result[i] = k
+            k = rng.rand(size)
+          else
+            break
+          end
+        end
 
+        break if abandon
+
+        result[i] = k
+
+        i += 1
+      end
+
+      unless abandon
+        i = 0
+        while i < count
+          result[i] = at result[i]
           i += 1
         end
 
-        unless abandon
-          i = 0
-          while i < count
-            result[i] = at result[i]
-            i += 1
-          end
-
-          return result
-        end
+        return result
       end
-
-      result = Array.new(self)
-
-      count.times do |c|
-        result.swap c, rng.rand(size)
-      end
-
-      return count == size ? result : result[0, count]
     end
+
+    result = Array.new(self)
+
+    count.times do |c|
+      result.swap c, rng.rand(size)
+    end
+
+    return count == size ? result : result[0, count]
   end
+
+  private :sample_many
 
   def select!(&block)
     return to_enum(:select!) { size } unless block_given?

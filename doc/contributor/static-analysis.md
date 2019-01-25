@@ -91,7 +91,7 @@ occasionally run this tool locally but only take its output as a suggestion.
 
 ```
 $ gem install flog
-$ flog lib/truffle lib/cext src/main
+$ flog -m -t 10 lib/truffle lib/cext src/main
 ```
 
 ### Flay
