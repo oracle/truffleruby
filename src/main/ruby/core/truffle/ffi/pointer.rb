@@ -39,12 +39,9 @@ module Truffle::FFI
   end
 
   class Pointer < AbstractMemory
+    # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
-      if defined?(::FFI) # Full FFI loaded
-        ::FFI.type_size(::FFI.find_type(type))
-      else
-        Truffle.invoke_primitive :pointer_find_type_size, type
-      end
+      Truffle.invoke_primitive :pointer_find_type_size, type
     end
 
     def initialize(a1, a2=undefined)
