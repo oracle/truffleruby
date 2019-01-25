@@ -220,14 +220,7 @@ module Process
       haystack = base_ptr.read_string(size)
 
       i = haystack.index("\x00#{command}")
-      unless i
-        puts
-        p command
-        puts
-        p haystack
-        puts
-        raise 'argv[0] not found'
-      end
+      raise 'argv[0] not found' unless i
       i += 1
 
       @_argv0_max_length = command.bytesize
