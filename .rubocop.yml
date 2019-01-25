@@ -11,7 +11,7 @@ AllCops:
 
 # Type 'Style' (166):
 # Supports --auto-correct
-Layout/TrailingBlankLines:
+Style/TrailingBlankLines:
   Description: Checks trailing blank lines and final newline.
   StyleGuide: "#newline-eof"
   Enabled: true
@@ -21,7 +21,7 @@ Layout/TrailingBlankLines:
   - final_blank_line
 
 # Supports --auto-correct
-Layout/TrailingWhitespace:
+Style/TrailingWhitespace:
   Description: Avoid trailing whitespace.
   StyleGuide: "#no-trailing-whitespace"
   Enabled: true
