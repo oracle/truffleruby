@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -27,6 +28,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
@@ -125,7 +127,7 @@ public abstract class SymbolNodes {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
-                    Arity.AT_LEAST_ONE,
+                    Arity.REST,
                     null,
                     Layouts.SYMBOL.getString(symbol),
                     0,
@@ -138,7 +140,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
-                    Translator.sequence(sourceIndexLength, Arrays.asList(Translator.createCheckArityNode(Arity.AT_LEAST_ONE), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
+                    Translator.sequence(sourceIndexLength, Arrays.asList(new CheckReceiverArgumentNode(), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -168,6 +170,30 @@ public abstract class SymbolNodes {
         protected FrameDescriptor getDescriptor(VirtualFrame frame) {
             return frame.getFrameDescriptor();
         }
+
+        /** Not using CheckArityNode as the message is different and arity is reported as -1. */
+        private static class CheckReceiverArgumentNode extends RubyNode {
+
+            private final BranchProfile noReceiverProfile = BranchProfile.create();
+
+            @Override
+            public void doExecuteVoid(VirtualFrame frame) {
+                final int given = RubyArguments.getArgumentsCount(frame);
+
+                if (given == 0) {
+                    noReceiverProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().argumentError("no receiver given", this));
+                }
+            }
+
+            @Override
+            public Object execute(VirtualFrame frame) {
+                doExecuteVoid(frame);
+                return nil();
+            }
+
+        }
+
     }
 
     @CoreMethod(names = "to_s")
