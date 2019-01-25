@@ -497,11 +497,8 @@ class File < IO
 
         if ptr = Truffle::POSIX.truffleposix_get_user_home(name)
           dir = ptr.read_string
-          if dir.empty?
-            raise ArgumentError, "user #{name} does not exist"
-          else
-            Truffle.invoke_primitive :pointer_free, ptr
-          end
+          Truffle.invoke_primitive :pointer_free, ptr
+          raise ArgumentError, "user #{name} does not exist" if dir.empty?
         else
           Errno.handle
         end
