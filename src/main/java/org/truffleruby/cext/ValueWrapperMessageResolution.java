@@ -53,17 +53,12 @@ public class ValueWrapperMessageResolution {
 
         @CompilationFinal private RubyContext context;
         private final BranchProfile createHandleProfile = BranchProfile.create();
-        private final BranchProfile taggedObjectProfile = BranchProfile.create();
 
         protected long access(VirtualFrame frame, ValueWrapper wrapper) {
             long handle = wrapper.getHandle();
             if (handle == ValueWrapperManager.UNSET_HANDLE) {
                 createHandleProfile.enter();
                 handle = getContext().getValueWrapperManager().createNativeHandle(wrapper);
-            }
-            if (ValueWrapperManager.isTaggedObject(handle)) {
-                taggedObjectProfile.enter();
-                getContext().getMarkingService().keepObject(wrapper);
             }
             return handle;
         }
