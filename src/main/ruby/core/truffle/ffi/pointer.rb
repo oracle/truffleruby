@@ -35,28 +35,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle::FFI
-
-  ##
-  # Pointer is Rubinius's "fat" pointer class. It represents an actual
-  # pointer, in C language terms, to an address in memory. They're called
-  # fat pointers because the Pointer object is an wrapper around
-  # the actual pointer, the Rubinius runtime doesn't have direct access
-  # to the raw address.
-  #
-  # This class is used extensively in FFI usage to interface with various
-  # parts of the underlying system. It provides a number of operations
-  # for operating on the memory that is pointed to. These operations effectively
-  # give Rubinius the cast/read capabilities available in C, but using
-  # high level methods.
-  #
-  # MemoryPointer objects can be put in autorelease mode. In this mode,
-  # when the GC cleans up a MemoryPointer object, the memory it points
-  # to is passed to free(3), releasing the memory back to the OS.
-  #
-  # NOTE: MemoryPointer exposes direct, unmanaged operations on any
-  # memory. It therefore MUST be used carefully. Reading or writing to
-  # invalid address will cause bus errors and segmentation faults.
-  #
   class Pointer
     def self.find_type_size(type)
       if defined?(::FFI) # Full FFI loaded
