@@ -338,34 +338,31 @@ class Addrinfo
   end
 
   def ipv6_mc_global?
-    return false unless ipv6?
-    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-    bytes[0] == 0xff && bytes[1] & 0xf == 0xe
+    ipv6_mc_flag?(0xe)
   end
 
   def ipv6_mc_linklocal?
-    return false unless ipv6?
-    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-    bytes[0] == 0xff && bytes[1] & 0xf == 0x2
+    ipv6_mc_flag?(0x2)
   end
 
   def ipv6_mc_nodelocal?
-    return false unless ipv6?
-    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-    bytes[0] == 0xff && bytes[1] & 0xf == 0x1
+    ipv6_mc_flag?(0x1)
   end
 
   def ipv6_mc_orglocal?
-    return false unless ipv6?
-    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-    bytes[0] == 0xff && bytes[1] & 0xf == 0x8
+    ipv6_mc_flag?(0x8)
   end
 
   def ipv6_mc_sitelocal?
+    ipv6_mc_flag?(0x5)
+  end
+
+  def ipv6_mc_flag?(value)
     return false unless ipv6?
     bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
-    bytes[0] == 0xff && bytes[1] & 0xf == 0x5
+    bytes[0] == 0xff && bytes[1] & 0xf == value
   end
+  private :ipv6_mc_flag?
 
   def ipv6_to_ipv4
     return unless ipv6?

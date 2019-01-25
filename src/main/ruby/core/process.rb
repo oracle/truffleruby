@@ -858,8 +858,31 @@ module Process
     end
   end
 
+  module XID
+    def re_exchangeable?
+      true
+    end
+    
+    def sid_available?
+      true
+    end
+
+    def switch
+      eff = re_exchange
+      if block_given?
+        ret = yield
+        re_exchange
+        return ret
+      else
+        return eff
+      end
+    end
+  end
+
   module UID
     class << self
+      extend XID
+
       def change_privilege(uid)
         uid = Truffle::Type.coerce_to uid, Integer, :to_int
 
@@ -889,34 +912,16 @@ module Process
         eff
       end
 
-      def re_exchangeable?
-        true
-      end
-
       def rid
         Truffle::POSIX.getuid
       end
-
-      def sid_available?
-        true
-      end
-
-      def switch
-        eff = re_exchange
-        if block_given?
-          ret = yield
-          re_exchange
-          return ret
-        else
-          return eff
-        end
-      end
-
     end
   end
 
   module GID
     class << self
+      extend XID
+      
       def change_privilege(gid)
         gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
@@ -946,29 +951,9 @@ module Process
         eff
       end
 
-      def re_exchangeable?
-        true
-      end
-
       def rid
         Truffle::POSIX.getgid
       end
-
-      def sid_available?
-        true
-      end
-
-      def switch
-        eff = re_exchange
-        if block_given?
-          ret = yield
-          re_exchange
-          return ret
-        else
-          return eff
-        end
-      end
-
     end
   end
 end

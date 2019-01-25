@@ -1435,12 +1435,7 @@ class IO
       end
 
       str << @buffer.shift
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |s| yield s }
     end
 
     # method B, E
@@ -1489,12 +1484,7 @@ class IO
         end
       end
 
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |s| yield s }
     end
 
     # Method G
@@ -1505,12 +1495,7 @@ class IO
         str << @buffer.shift
       end
 
-      unless str.empty?
-        str = IO.read_encode(@io, str)
-        str.taint
-        $. = @io.increment_lineno
-        yield str
-      end
+      yield_string(str) { |s| yield s }
     end
 
     # Method H
@@ -1537,6 +1522,10 @@ class IO
         end
       end
 
+      yield_string(str) { |s| yield s }
+    end
+
+    def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint

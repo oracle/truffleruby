@@ -203,20 +203,23 @@ class File < IO
     path
   end
 
+  def self.query_stat_mode(path)
+    path = Truffle::Type.coerce_to_path(path)
+    Truffle::POSIX.truffleposix_stat_mode(path)
+  end
+
+  private_class_method :query_stat_mode
+
   ##
   # Returns true if the named file is a block device.
   def self.blockdev?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.blockdev?(mode)
+    Truffle::StatOperations.blockdev?(query_stat_mode(path))
   end
 
   ##
   # Returns true if the named file is a character device.
   def self.chardev?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.chardev?(mode)
+    Truffle::StatOperations.chardev?(query_stat_mode(path))
   end
 
   ##
@@ -581,9 +584,7 @@ class File < IO
   ##
   # Returns true if the named file exists and is a regular file.
   def self.file?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.file?(mode)
+    Truffle::StatOperations.file?(query_stat_mode(path))
   end
 
   def self.braces(pattern, flags=0, patterns=[])
@@ -890,9 +891,7 @@ class File < IO
   ##
   # Returns true if the named file is a pipe.
   def self.pipe?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.pipe?(mode)
+    Truffle::StatOperations.pipe?(query_stat_mode(path))
   end
 
   ##
@@ -1033,9 +1032,7 @@ class File < IO
   ##
   # Returns true if the named file is a socket.
   def self.socket?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.socket?(mode)
+    Truffle::StatOperations.socket?(query_stat_mode(path))
   end
 
   ##
@@ -1155,17 +1152,11 @@ class File < IO
   end
 
   def self.world_readable?(path)
-    path = Truffle::Type.coerce_to_path path
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-
-    Truffle::StatOperations.world_readable?(mode)
+    Truffle::StatOperations.world_readable?(query_stat_mode(path))
   end
 
   def self.world_writable?(path)
-    path = Truffle::Type.coerce_to_path path
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-
-    Truffle::StatOperations.world_writable?(mode)
+    Truffle::StatOperations.world_writable?(query_stat_mode(path))
   end
 
   ##
@@ -1208,25 +1199,19 @@ class File < IO
   ##
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.setgid?(mode)
+    Truffle::StatOperations.setgid?(query_stat_mode(path))
   end
 
   ##
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.setuid?(mode)
+    Truffle::StatOperations.setuid?(query_stat_mode(path))
   end
 
   ##
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    Truffle::StatOperations.sticky?(mode)
+    Truffle::StatOperations.sticky?(query_stat_mode(path))
   end
 
   class << self
