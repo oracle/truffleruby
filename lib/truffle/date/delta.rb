@@ -175,7 +175,7 @@ class Date
     class << self; alias_method :secs, :seconds end
 
     def self.parse(str)
-      d = begin (@@pa ||= Parser.new).parse(str)
+      d = begin (@pa ||= Parser.new).parse(str)
           rescue Racc::ParseError
             raise ArgumentError, 'syntax error'
           end
