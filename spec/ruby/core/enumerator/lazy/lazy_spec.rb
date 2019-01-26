@@ -9,11 +9,11 @@ describe "Enumerator::Lazy" do
 
   it "defines lazy versions of a whitelist of Enumerator methods" do
     Enumerator::Lazy.instance_methods(false).should include(
-      :grep, :grep_v, :find_all, :select, :reject, :collect,
-      :map, :flat_map, :collect_concat, :zip, :take, :take_while,
-      :drop, :drop_while, :chunk, :slice_before, :slice_after,
-      :slice_when, :chunk_while, :uniq, :lazy, :force, :to_enum,
-      :enum_for)
+      :chunk, :chunk_while, :collect, :collect_concat, :drop,
+      :drop_while, :enum_for, :find_all, :flat_map, :force,
+      :grep, :grep_v, :lazy, :map, :reject, :select, :slice_after,
+      :slice_before, :slice_when, :take, :take_while, :to_enum,
+      :uniq, :zip)
   end
 end
 

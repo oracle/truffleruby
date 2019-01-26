@@ -6,3 +6,4 @@ fails:Enumerator::Lazy#uniq when yielded with an argument return same value afte
 fails:Enumerator::Lazy#uniq when yielded with an argument sets the size to nil
 fails:Enumerator::Lazy#uniq when yielded with multiple arguments return same value after rewind
 fails:Enumerator::Lazy#uniq when yielded with multiple arguments returns all yield arguments as an array
+fails:Enumerator::Lazy#uniq works with an infinite enumerable
