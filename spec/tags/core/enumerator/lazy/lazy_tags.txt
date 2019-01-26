@@ -1,1 +1,0 @@
-fails:Enumerator::Lazy defines lazy versions of a whitelist of Enumerator methods
