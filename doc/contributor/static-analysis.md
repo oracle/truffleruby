@@ -107,5 +107,12 @@ $ flay lib/truffle lib/cext src/main
 
 ### Tools we don't use
 
-* [Brakeman](https://github.com/presidentbeef/brakeman) appears to only be
-  applicable to Rails applications.
+[Brakeman](https://github.com/presidentbeef/brakeman) looks for security
+vulnerabilities. It's really designed for Rails, and many of the rules are
+specific to Rails, but we do run it ocassionally anyway and take its output as
+a suggestion.
+
+```
+$ gem install brakeman
+$ brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/core/
+```
