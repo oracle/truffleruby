@@ -70,7 +70,6 @@ class MSpecScript
 
     # Not yet explored
     "^spec/ruby/library/mathn",
-    "^spec/ruby/library/readline",
 
     # Doesn't exist as Ruby code - basically need to write from scratch
     "^spec/ruby/library/win32ole",

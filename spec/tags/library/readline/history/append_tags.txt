@@ -1,0 +1,1 @@
+fails:Readline::HISTORY.<< tries to convert the passed Object to a String using #to_str
