@@ -77,7 +77,7 @@ describe "Exception#exception" do
       end
     rescue => caught_second
     end
-    
+
     raised_first.should == caught_first
     raised_second.should == caught_second
   end
