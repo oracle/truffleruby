@@ -87,10 +87,6 @@ class MSpecScript
     "^spec/ruby/library/rbconfig/sizeof",
   ]
 
-  set :capi, [
-    "spec/ruby/optional/capi"
-  ]
-
   set :library_cext, [
     "spec/ruby/library/openssl",
     "spec/ruby/library/yaml",
@@ -98,6 +94,10 @@ class MSpecScript
     "spec/ruby/library/etc",
     "spec/ruby/library/rbconfig/sizeof",
     "spec/ruby/security/cve_2017_17742_spec.rb",
+  ]
+
+  set :capi, [
+    "spec/ruby/optional/capi"
   ]
 
   set :truffle, [
