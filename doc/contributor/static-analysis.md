@@ -18,7 +18,7 @@ $ scan-view ...as instructed by scan-build...
 
 ## Java
 
-### DSL usage
+### DSL usage
 
 We have a tool to check that some use of our internal annotations and the
 Truffle DSL are correct. Passing this is enforced in our CI gate.
@@ -105,7 +105,7 @@ $ gem install flay
 $ flay lib/truffle lib/cext src/main
 ```
 
-### Tools we don't use
+### Brakeman
 
 [Brakeman](https://github.com/presidentbeef/brakeman) looks for security
 vulnerabilities. It's really designed for Rails, and many of the rules are
