@@ -71,7 +71,6 @@ class MSpecScript
     # Not yet explored
     "^spec/ruby/library/mathn",
     "^spec/ruby/library/readline",
-    "^spec/ruby/library/syslog",
 
     # Doesn't exist as Ruby code - basically need to write from scratch
     "^spec/ruby/library/win32ole",
@@ -91,6 +90,7 @@ class MSpecScript
     "spec/ruby/library/etc",
     "spec/ruby/library/openssl",
     "spec/ruby/library/rbconfig/sizeof",
+    "spec/ruby/library/syslog",
     "spec/ruby/library/yaml",
     "spec/ruby/library/zlib",
     "spec/ruby/security/cve_2017_17742_spec.rb",
