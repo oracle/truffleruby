@@ -80,19 +80,19 @@ class MSpecScript
     "^spec/ruby/library/net",
 
     # Tested separately as they need Sulong
+    "^spec/ruby/library/etc",
     "^spec/ruby/library/openssl",
+    "^spec/ruby/library/rbconfig/sizeof",
     "^spec/ruby/library/yaml",
     "^spec/ruby/library/zlib",
-    "^spec/ruby/library/etc",
-    "^spec/ruby/library/rbconfig/sizeof",
   ]
 
   set :library_cext, [
+    "spec/ruby/library/etc",
     "spec/ruby/library/openssl",
+    "spec/ruby/library/rbconfig/sizeof",
     "spec/ruby/library/yaml",
     "spec/ruby/library/zlib",
-    "spec/ruby/library/etc",
-    "spec/ruby/library/rbconfig/sizeof",
     "spec/ruby/security/cve_2017_17742_spec.rb",
   ]
 
