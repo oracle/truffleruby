@@ -36,7 +36,7 @@ describe :string_each_line, shared: true do
     EOS
 
     b = []
-    s.send(@method) { |s| b << s }
+    s.send(@method) { |part| b << part }
     b.should == ["foo\n", "🤡🤡🤡🤡🤡🤡🤡\n", "bar\n", "baz\n"]
   end
 
