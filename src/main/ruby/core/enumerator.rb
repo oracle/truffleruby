@@ -503,25 +503,11 @@ class Enumerator
       end
     end
 
-    def chunk
-      super
-    end
-
-    def chunk_while
-      super
-    end
-
-    def slice_after
-      super
-    end
-
-    def slice_before
-      super
-    end
-
-    def slice_when
-      super
-    end
+    public :chunk
+    public :chunk_while
+    public :slice_after
+    public :slice_before
+    public :slice_when
 
     def uniq
       if block_given?
