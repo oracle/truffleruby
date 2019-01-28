@@ -11,12 +11,10 @@ package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.extra.ffi.Pointer;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ValueWrapperManager {
 
@@ -39,7 +37,7 @@ public class ValueWrapperManager {
 
     public static final long TAG_MASK = 0b111;
 
-    private final LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
+    private final LongHashMap<WeakReference<ValueWrapper>> handleMap = new LongHashMap<>(1024);
 
     private final RubyContext context;
 
@@ -52,30 +50,30 @@ public class ValueWrapperManager {
      * that any given fixnum will translate to a given VALUE.
      */
     @TruffleBoundary
-    public synchronized DynamicObject longWrapper(long value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
+    public synchronized ValueWrapper longWrapper(long value) {
+        return new ValueWrapper(value, UNSET_HANDLE);
     }
 
-    public DynamicObject doubleWrapper(double value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
+    public ValueWrapper doubleWrapper(double value) {
+        return new ValueWrapper(value, UNSET_HANDLE);
     }
 
     @TruffleBoundary
-    public synchronized void addToHandleMap(long handle, DynamicObject wrapper) {
+    public synchronized void addToHandleMap(long handle, ValueWrapper wrapper) {
         handleMap.put(handle, new WeakReference<>(wrapper));
     }
 
     @TruffleBoundary
     public synchronized Object getFromHandleMap(long handle) {
-        WeakReference<DynamicObject> ref = handleMap.get(handle);
-        DynamicObject object;
+        WeakReference<ValueWrapper> ref = handleMap.get(handle);
+        ValueWrapper wrapper;
         if (ref == null) {
             return null;
         }
-        if ((object = ref.get()) == null) {
+        if ((wrapper = ref.get()) == null) {
             return null;
         }
-        return Layouts.VALUE_WRAPPER.getObject(object);
+        return wrapper.getObject();
     }
 
     @TruffleBoundary
@@ -84,22 +82,22 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public synchronized long createNativeHandle(DynamicObject wrapper) {
+    public synchronized long createNativeHandle(ValueWrapper wrapper) {
         Pointer handlePointer = Pointer.malloc(1);
         long handleAddress = handlePointer.getAddress();
         if ((handleAddress & TAG_MASK) != 0) {
             throw new RuntimeException("unaligned malloc for native handle");
         }
-        Layouts.VALUE_WRAPPER.setHandle(wrapper, handleAddress);
+        wrapper.setHandle(handleAddress);
         addToHandleMap(handleAddress, wrapper);
         context.getMarkingService().keepObject(wrapper);
         addFinalizer(wrapper, handlePointer);
         return handleAddress;
     }
 
-    public void addFinalizer(DynamicObject wrapper, Pointer handle) {
+    public void addFinalizer(ValueWrapper wrapper, Pointer handle) {
         context.getFinalizationService().addFinalizer(
-                wrapper, null, ValueWrapperObjectType.class,
+                wrapper, null, ValueWrapper.class,
                 createFinalizer(handle), null);
     }
 

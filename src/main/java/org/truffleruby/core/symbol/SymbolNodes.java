@@ -28,7 +28,6 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -39,9 +38,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.SymbolProcNode;
 import org.truffleruby.parser.ArgumentDescriptor;
-import org.truffleruby.parser.Translator;
-
-import java.util.Arrays;
 
 @CoreClass("Symbol")
 public abstract class SymbolNodes {
@@ -99,6 +95,8 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
+        public static final Arity ARITY = new Arity(0, 0, true);
+
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
@@ -120,12 +118,11 @@ public abstract class SymbolNodes {
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
             final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getCallNode().getEncapsulatingSourceSection();
-            final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
-                    Arity.AT_LEAST_ONE,
+                    ARITY,
                     null,
                     Layouts.SYMBOL.getString(symbol),
                     0,
@@ -138,7 +135,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
-                    Translator.sequence(sourceIndexLength, Arrays.asList(Translator.createCheckArityNode(Arity.AT_LEAST_ONE), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
+                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)));
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -146,7 +143,9 @@ public abstract class SymbolNodes {
                     coreLibrary().getProcFactory(),
                     ProcType.PROC,
                     sharedMethodInfo,
-                    callTarget, callTarget, declarationFrame,
+                    callTarget,
+                    callTarget,
+                    declarationFrame,
                     method,
                     null,
                     null,
@@ -168,6 +167,7 @@ public abstract class SymbolNodes {
         protected FrameDescriptor getDescriptor(VirtualFrame frame) {
             return frame.getFrameDescriptor();
         }
+
     }
 
     @CoreMethod(names = "to_s")

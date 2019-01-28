@@ -93,3 +93,4 @@ fails(spurious failure):Process.spawn when passed close_others: false closes fil
 fails(spurious failure):Process.spawn when passed close_others: true closes file descriptors >= 3 in the child process even if fds are set close_on_exec=false
 slow:Process.spawn inside Dir.chdir does not create extra process without chdir
 slow:Process.spawn inside Dir.chdir kills extra chdir processes
+slow:Process.spawn defaults :close_others to true

@@ -502,6 +502,35 @@ class Enumerator
         index += 1
       end
     end
+
+    public :chunk
+    public :chunk_while
+    public :slice_after
+    public :slice_before
+    public :slice_when
+
+    def uniq
+      if block_given?
+        Lazy.new(self, nil) do |yielder, *args|
+          h = {}
+          val = args.length >= 2 ? args : args.first
+          comp = yield(val)
+          unless h.key?(comp)
+            h[comp] = true
+            yielder.yield(*args)
+          end
+        end
+      else
+        Lazy.new(self, nil) do |yielder, *args|
+          h = {}
+          val = args.length >= 2 ? args : args.first
+          unless h.key?(val)
+            h[val] = true
+            yielder.yield(*args)
+          end
+        end
+      end
+    end
   end
 
   class FiberGenerator

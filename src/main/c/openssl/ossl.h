@@ -49,19 +49,17 @@ extern VALUE eOSSLError;
 /*
  * CheckTypes
  */
-// TruffleRuby: avoid passing managed to var-args
 #define OSSL_Check_Kind(obj, klass) do {\
   if (!rb_obj_is_kind_of((obj), (klass))) {\
-    ossl_raise(rb_eTypeError, "wrong argument (%s)! (Expected kind of %s)",\
-               RSTRING_PTR(rb_class_name(rb_obj_class(obj))), RSTRING_PTR(rb_class_name(klass)));\
+    ossl_raise(rb_eTypeError, "wrong argument (%"PRIsVALUE")! (Expected kind of %"PRIsVALUE")",\
+               rb_obj_class(obj), (klass));\
   }\
 } while (0)
 
-// TruffleRuby: avoid passing managed to var-args
 #define OSSL_Check_Instance(obj, klass) do {\
   if (!rb_obj_is_instance_of((obj), (klass))) {\
-    ossl_raise(rb_eTypeError, "wrong argument (%s)! (Expected instance of %s)",\
-               RSTRING_PTR(rb_class_name(rb_obj_class(obj))), RSTRING_PTR(rb_class_name(klass)));\
+    ossl_raise(rb_eTypeError, "wrong argument (%"PRIsVALUE")! (Expected instance of %"PRIsVALUE")",\
+               rb_obj_class(obj), (klass));\
   }\
 } while (0)
 

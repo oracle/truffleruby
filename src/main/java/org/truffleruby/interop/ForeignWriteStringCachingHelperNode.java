@@ -19,7 +19,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(StringCachingGuards.class)
-abstract class ForeignWriteStringCachingHelperNode extends RubyBaseNode {
+public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseNode {
 
     @Child private IsStringLikeNode isStringLikeNode;
 

@@ -537,8 +537,6 @@ struct zstream {
     } *func;
 };
 
-POLYGLOT_DECLARE_STRUCT(zstream);
-
 #define ZSTREAM_FLAG_READY      0x1
 #define ZSTREAM_FLAG_IN_STREAM  0x2
 #define ZSTREAM_FLAG_FINISHED   0x4
@@ -597,15 +595,12 @@ zlib_mem_free(voidpf opaque, voidpf address)
     xfree(address);
 }
 
-POLYGLOT_DECLARE_TYPE(z_stream);
-
 static void
 zstream_init(struct zstream *z, const struct zstream_funcs *func)
 {
     z->flags = 0;
     z->buf = Qnil;
     z->input = Qnil;
-    polyglot_put_member(z, "stream", polyglot_from_z_stream(malloc(sizeof(z_stream))));
     z->stream.zalloc = zlib_mem_alloc;
     z->stream.zfree = zlib_mem_free;
     z->stream.opaque = Z_NULL;
@@ -632,7 +627,7 @@ zstream_expand_buffer(struct zstream *z)
 	long buf_filled = ZSTREAM_BUF_FILLED(z);
 	if (buf_filled >= ZSTREAM_AVAIL_OUT_STEP_MAX) {
 	    int state = 0;
-	    VALUE self = (VALUE)rb_tr_managed_from_handle_or_null(z->stream.opaque);
+	    VALUE self = (VALUE)z->stream.opaque;
 
 	    rb_obj_reveal(z->buf, rb_cString);
 	    OBJ_INFECT(z->buf, self);
@@ -743,7 +738,7 @@ zstream_append_buffer(struct zstream *z, const Bytef *src, long len)
 static VALUE
 zstream_detach_buffer(struct zstream *z)
 {
-    VALUE dst, self = (VALUE)rb_tr_managed_from_handle_or_null(z->stream.opaque);
+    VALUE dst, self = (VALUE)z->stream.opaque;
 
     if (!ZSTREAM_IS_FINISHED(z) && !ZSTREAM_IS_GZFILE(z) &&
 	    rb_block_given_p()) {
@@ -935,7 +930,7 @@ zstream_run_func(void *ptr)
 {
     struct zstream_run_args *args = (struct zstream_run_args *)ptr;
     int err, state, flush = args->flush;
-    struct zstream *z = polyglot_as_zstream(rb_tr_managed_from_handle(args->z));
+    struct zstream *z = args->z;
     uInt n;
 
     err = Z_OK;
@@ -1002,7 +997,7 @@ zstream_run(struct zstream *z, Bytef *src, long len, int flush)
     int err;
     VALUE guard = Qnil;
 
-    args.z = rb_tr_handle_for_managed(z);
+    args.z = z;
     args.flush = flush;
     args.interrupt = 0;
     args.jump_state = 0;
@@ -1042,7 +1037,7 @@ loop:
 	    zstream_append_input(z, z->stream.next_in, z->stream.avail_in);
 	}
 	if (err == Z_NEED_DICT) {
-	    VALUE self = (VALUE)rb_tr_managed_from_handle_or_null(z->stream.opaque);
+	    VALUE self = (VALUE)z->stream.opaque;
 	    if (self) {
 		VALUE dicts = rb_ivar_get(self, id_dictionaries);
 		VALUE dict = rb_hash_aref(dicts, rb_uint2inum(z->stream.adler));
@@ -1052,7 +1047,6 @@ loop:
 		}
 	    }
 	}
-        rb_tr_release_handle(args.z);
 	raise_zlib_error(err, z->stream.msg);
     }
 
@@ -1060,8 +1054,6 @@ loop:
 	zstream_append_input(z, z->stream.next_in, z->stream.avail_in);
 	RB_GC_GUARD(guard); /* prevent tail call to make guard effective */
     }
-
-    rb_tr_release_handle(args.z);
 
     if (args.jump_state)
 	rb_jump_tag(args.jump_state);
@@ -1154,9 +1146,9 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
     VALUE obj;
     struct zstream *z;
 
-    obj = TypedData_Make_Managed_Struct(klass, struct zstream, &zstream_data_type, z, zstream);
+    obj = TypedData_Make_Struct(klass, struct zstream, &zstream_data_type, z);
     zstream_init(z, funcs);
-    z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
+    z->stream.opaque = (voidpf)obj;
     return obj;
 }
 
@@ -1595,25 +1587,24 @@ deflate_run(VALUE args)
 static VALUE
 rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 {
-    struct zstream *z;
+    struct zstream z;
     VALUE src, level, dst, args[2];
     int err, lev;
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
-    z = rb_tr_new_managed_struct(zstream);
     lev = ARG_LEVEL(level);
     StringValue(src);
-    zstream_init_deflate(z);
-    err = deflateInit(&z->stream, lev);
+    zstream_init_deflate(&z);
+    err = deflateInit(&z.stream, lev);
     if (err != Z_OK) {
-	raise_zlib_error(err, z->stream.msg);
+	raise_zlib_error(err, z.stream.msg);
     }
-    ZSTREAM_READY(z);
+    ZSTREAM_READY(&z);
 
-    args[0] = (VALUE)z;
+    args[0] = (VALUE)&z;
     args[1] = src;
-    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)z);
+    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)&z);
 
     OBJ_INFECT(dst, src);
     return dst;
@@ -1914,22 +1905,21 @@ inflate_run(VALUE args)
 static VALUE
 rb_inflate_s_inflate(VALUE obj, VALUE src)
 {
-    struct zstream *z;
+    struct zstream z;
     VALUE dst, args[2];
     int err;
 
     StringValue(src);
-    z = rb_tr_new_managed_struct(zstream);
-    zstream_init_inflate(z);
-    err = inflateInit(&z->stream);
+    zstream_init_inflate(&z);
+    err = inflateInit(&z.stream);
     if (err != Z_OK) {
-	raise_zlib_error(err, z->stream.msg);
+	raise_zlib_error(err, z.stream.msg);
     }
-    ZSTREAM_READY(z);
+    ZSTREAM_READY(&z);
 
-    args[0] = (VALUE)z;
+    args[0] = (VALUE)&z;
     args[1] = src;
-    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)z);
+    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)&z);
 
     OBJ_INFECT(dst, src);
     return dst;
@@ -1961,9 +1951,7 @@ static VALUE
 rb_inflate_add_dictionary(VALUE obj, VALUE dictionary)
 {
     VALUE dictionaries = rb_ivar_get(obj, id_dictionaries);
-    VALUE argv[1];
-    argv[0] = dictionary;
-    VALUE checksum = do_checksum(1, argv, adler32);
+    VALUE checksum = do_checksum(1, &dictionary, adler32);
 
     rb_hash_aset(dictionaries, checksum, dictionary);
 
@@ -2217,7 +2205,6 @@ struct gzfile {
 
 #define GZFILE_READ_SIZE  2048
 
-POLYGLOT_DECLARE_STRUCT(gzfile);
 
 static void
 gzfile_mark(void *p)
@@ -2247,7 +2234,7 @@ gzfile_free(void *p)
     if (gz->cbuf) {
 	xfree(gz->cbuf);
     }
-    // xfree(gz);
+    xfree(gz);
 }
 
 static size_t
@@ -2271,7 +2258,6 @@ static const rb_data_type_t gzfile_data_type = {
 static void
 gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc)(struct gzfile *))
 {
-    polyglot_put_member(gz, "z", rb_tr_new_managed_struct(zstream));
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
     gz->io = Qnil;
@@ -2299,7 +2285,7 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
     VALUE obj;
     struct gzfile *gz;
 
-    obj = TypedData_Make_Managed_Struct(klass, struct gzfile, &gzfile_data_type, gz, gzfile);
+    obj = TypedData_Make_Struct(klass, struct gzfile, &gzfile_data_type, gz);
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
@@ -3442,15 +3428,10 @@ rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
 	rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
-        // TODO TruffleRuby: not supported, when uncommented the method fails to
-        // execute as it tries to convert opts to native because of &opts
-        // gz->ecflags = rb_econv_prepare_opts(opts, &opts);
-        // rb_encoding *enc = gz->enc;
-        // rb_encoding *enc2 = gz->enc2;
-        // gz->ec = rb_econv_open_opts(enc2->name, enc->name,
-        //                             gz->ecflags, opts);
-        // gz->ecopts = opts;
-        rb_tr_error("external encoding not supported");
+	gz->ecflags = rb_econv_prepare_opts(opts, &opts);
+	gz->ec = rb_econv_open_opts(gz->enc2->name, gz->enc->name,
+				    gz->ecflags, opts);
+	gz->ecopts = opts;
     }
 }
 
@@ -4860,3 +4841,5 @@ Init_zlib(void)
  * Raised when the data length recorded in the gzip file footer is not equivalent
  * to the length of the actual uncompressed data.
  */
+
+

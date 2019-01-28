@@ -100,7 +100,7 @@ public class FiberManager {
         assert RubyGuards.isRubyThread(thread);
         CompilerAsserts.partialEvaluationConstant(context);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
-        final DynamicObject catchTags = ArrayHelpers.createArray(context, null, 0);
+        final DynamicObject catchTags = ArrayHelpers.createEmptyArray(context);
 
         return Layouts.FIBER.createFiber(
                 factory,

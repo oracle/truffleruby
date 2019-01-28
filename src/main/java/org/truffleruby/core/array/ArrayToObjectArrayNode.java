@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
@@ -30,9 +31,10 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
 
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public Object[] toObjectArrayOther(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy) {
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
         final int size = strategy.getSize(array);
-        return strategy.newMirror(array).getBoxedCopy(size);
+        return boxedCopyNode.execute(Layouts.ARRAY.getStore(array), size);
     }
 
 }

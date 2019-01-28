@@ -28,6 +28,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -40,7 +41,8 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayOperationNodes;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -62,6 +64,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -442,13 +445,41 @@ public class CExtNodes {
     @CoreMethod(names = "rb_str_set_len", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
 
+        @Child NotOptimizedWarningNode notOptimizedWarningNode;
+
         @Specialization
-        public DynamicObject strSetLen(DynamicObject string, int len,
-                @Cached("create()") StringToNativeNode stringToNativeNode) {
+        public DynamicObject strSetLen(DynamicObject string, int newByteLength,
+                @Cached("create()") StringToNativeNode stringToNativeNode,
+                @Cached("createBinaryProfile()") ConditionProfile binaryProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            final NativeRope newNativeRope = nativeRope.withByteLength(len);
+            final NativeRope newNativeRope;
+
+            if (binaryProfile.profile(nativeRope.getEncoding() == ASCIIEncoding.INSTANCE)) {
+                // TODO (eregon, 17 Jan 2019): We use CR_VALID here as zlib relies on it. Computing
+                // the coderange here on every call is too slow. A proper fix is to compute the
+                // CodeRange lazily on NativeRope.
+                newNativeRope = nativeRope.withByteLength(newByteLength, newByteLength, CodeRange.CR_VALID);
+            } else {
+                performanceWarn("calling rb_str_set_len() on non-binary string is not yet optimized");
+
+                final byte[] bytes = new byte[newByteLength];
+                nativeRope.getNativePointer().readBytes(0, bytes, 0, newByteLength);
+                final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(nativeRope.getEncoding(), bytes, 0, newByteLength);
+                final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+                final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+                newNativeRope = nativeRope.withByteLength(newByteLength, characterLength, codeRange);
+            }
+
             StringOperations.setRope(string, newNativeRope);
             return string;
+        }
+
+        private void performanceWarn(String message) {
+            if (notOptimizedWarningNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                notOptimizedWarningNode = insert(new NotOptimizedWarningNode());
+            }
+            notOptimizedWarningNode.warn(message);
         }
 
     }
@@ -1117,21 +1148,24 @@ public class CExtNodes {
     public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)" })
-        public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles) {
+        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)", "libraryStrategy.matches(libraries)", "fileStrategy.matches(bitcodeFiles)" })
+        public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
+                @Cached("of(libraries)") ArrayStrategy libraryStrategy,
+                @Cached("of(bitcodeFiles)") ArrayStrategy fileStrategy,
+                @Cached("libraryStrategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode libBoxCopyNode,
+                @Cached("fileStrategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode fileBoxCopyNode) {
             try {
                 Linker.link(
                         StringOperations.getString(outputFileName),
-                        array2StringList(libraries),
-                        array2StringList(bitcodeFiles));
+                        array2StringList(libBoxCopyNode.execute(Layouts.ARRAY.getStore(libraries), Layouts.ARRAY.getSize(libraries))),
+                        array2StringList(fileBoxCopyNode.execute(Layouts.ARRAY.getStore(bitcodeFiles), Layouts.ARRAY.getSize(bitcodeFiles))));
             } catch (IOException e) {
                 throw new JavaException(e);
             }
             return outputFileName;
         }
 
-        private static List<String> array2StringList(DynamicObject array) {
-            Object[] objectArray = ArrayOperations.toObjectArray(array);
+        private static List<String> array2StringList(Object[] objectArray) {
             List<String> list = new ArrayList<>(objectArray.length);
             for (int i = 0; i < objectArray.length; i++) {
                 list.add(StringOperations.getString((DynamicObject) objectArray[i]));

@@ -10,12 +10,15 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.MessageResolution;
+import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
-import org.truffleruby.interop.NotProvidedMessageResolutionForeign;
+import com.oracle.truffle.api.nodes.Node;
 
 /**
  * Represents a value that was not provided by the user, such as optional arguments to a core library node.
  */
+@MessageResolution(receiverType = NotProvided.class)
 public final class NotProvided implements TruffleObject {
 
     public static final NotProvided INSTANCE = new NotProvided();
@@ -27,9 +30,45 @@ public final class NotProvided implements TruffleObject {
         return obj instanceof NotProvided;
     }
 
+    @Resolve(message = "IS_NULL")
+    public static abstract class IsNullNode extends Node {
+
+        protected boolean access(NotProvided object) {
+            return false;
+        }
+
+    }
+
+    @Resolve(message = "HAS_SIZE")
+    public static abstract class HasSizeNode extends Node {
+
+        protected boolean access(NotProvided object) {
+            return false;
+        }
+
+    }
+
+    @Resolve(message = "IS_BOXED")
+    public static abstract class IsBoxedNode extends Node {
+
+        protected boolean access(NotProvided object) {
+            return false;
+        }
+
+    }
+
+    @Resolve(message = "IS_EXECUTABLE")
+    public static abstract class IsExecutableNode extends Node {
+
+        protected boolean access(NotProvided object) {
+            return false;
+        }
+
+    }
+
     @Override
     public ForeignAccess getForeignAccess() {
-        return NotProvidedMessageResolutionForeign.ACCESS;
+        return NotProvidedForeign.ACCESS;
     }
 
 }

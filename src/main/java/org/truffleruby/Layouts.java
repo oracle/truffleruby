@@ -11,8 +11,6 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
-import org.truffleruby.cext.ValueWrapperLayout;
-import org.truffleruby.cext.ValueWrapperLayoutImpl;
 import org.truffleruby.core.HandleLayout;
 import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
@@ -150,6 +148,5 @@ public abstract class Layouts {
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
     public static final SystemCallErrorLayout SYSTEM_CALL_ERROR = SystemCallErrorLayoutImpl.INSTANCE;
-    public static final ValueWrapperLayout VALUE_WRAPPER = ValueWrapperLayoutImpl.INSTANCE;
 
 }

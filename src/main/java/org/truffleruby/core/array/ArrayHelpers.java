@@ -13,6 +13,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
+import java.util.Collection;
+
 public abstract class ArrayHelpers {
 
     public static Object getStore(DynamicObject array) {
@@ -24,7 +26,6 @@ public abstract class ArrayHelpers {
     }
 
     public static void setStoreAndSize(DynamicObject array, Object store, int size) {
-        assert !(store instanceof ArrayMirror);
         Layouts.ARRAY.setStore(array, store);
         setSize(array, size);
     }
@@ -44,8 +45,19 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createArray(RubyContext context, Object store, int size) {
-        assert !(store instanceof ArrayMirror);
         return Layouts.ARRAY.createArray(context.getCoreLibrary().getArrayFactory(), store, size);
+    }
+
+    public static DynamicObject createArray(RubyContext context, Object[] store) {
+        return createArray(context, store, store.length);
+    }
+
+    public static DynamicObject createArray(RubyContext context, Collection<Object> store) {
+        return createArray(context, store.toArray());
+    }
+
+    public static DynamicObject createEmptyArray(RubyContext context) {
+        return Layouts.ARRAY.createArray(context.getCoreLibrary().getArrayFactory(), null, 0);
     }
 
 }

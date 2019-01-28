@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
@@ -20,50 +29,95 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         public R getNext();
 
         public void setNext(R next);
+
+        public ReferenceProcessingService<R> service();
     }
 
-    /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
-    private R first = null;
+    public static class ReferenceProcessor {
+        protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
-    protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
+        protected DynamicObject processingThread;
+        protected final RubyContext context;
 
-    protected DynamicObject processingThread;
-    protected final RubyContext context;
-
-    public ReferenceProcessingService(RubyContext context) {
-        this.context = context;
-    }
-
-    protected final void drainReferenceQueue() {
-        while (true) {
-            @SuppressWarnings("unchecked")
-            final R reference = (R) processingQueue.poll();
-
-            if (reference == null) {
-                break;
-            }
-
-            processReference(reference);
+        public ReferenceProcessor(RubyContext context) {
+            this.context = context;
         }
-    }
 
-    protected void createProcessingThread() {
-        final ThreadManager threadManager = context.getThreadManager();
-        processingThread = threadManager.createBootThread(getThreadName());
-        context.send(processingThread, "internal_thread_initialize");
+        protected void processReferenceQueue() {
+            if (context.getOptions().SINGLE_THREADED) {
 
-        threadManager.initialize(processingThread, null, getThreadName(), () -> {
+                drainReferenceQueue();
+
+            } else {
+
+                /*
+                 * We can't create a new thread while the context is initializing or finalizing, as
+                 * the polyglot API locks on creating new threads, and some core loading does things
+                 * such as stat files which could allocate memory that is marked to be automatically
+                 * freed and so would want to start the finalization thread. So don't start the
+                 * finalization thread if we are initializing. We will rely on some other finalizer
+                 * to be created to ever free this memory allocated during startup, but that's a
+                 * reasonable assumption and a low risk of leaking a tiny number of bytes if it
+                 * doesn't hold.
+                 */
+
+                if (processingThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
+                    createProcessingThread();
+                }
+
+            }
+        }
+
+        protected void createProcessingThread() {
+            final ThreadManager threadManager = context.getThreadManager();
+            processingThread = threadManager.createBootThread(threadName());
+            context.send(processingThread, "internal_thread_initialize");
+
+            threadManager.initialize(processingThread, null, threadName(), () -> {
+                while (true) {
+                    final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager.runUntilResult(null, processingQueue::remove);
+
+                    reference.service().processReference(reference);
+                }
+            });
+        }
+
+        protected final String threadName() {
+            return "Ruby-reference-processor";
+        }
+
+        protected final void drainReferenceQueue() {
             while (true) {
                 @SuppressWarnings("unchecked")
-                final R reference = (R) threadManager.runUntilResult(null, processingQueue::remove);
+                final ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
 
-                processReference(reference);
+                if (reference == null) {
+                    break;
+                }
+
+                reference.service().processReference(reference);
             }
-        });
+        }
+
     }
 
-    protected void processReference(R reference) {
-        remove(reference);
+    /**
+     * The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for
+     * ObjectSpace.
+     */
+    private R first = null;
+
+    protected final ReferenceProcessor referenceProcessor;
+    protected final RubyContext context;
+
+    public ReferenceProcessingService(RubyContext context, ReferenceProcessor referenceProcessor) {
+        this.context = context;
+        this.referenceProcessor = referenceProcessor;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void processReference(ProcessingReference<?> reference) {
+        remove((R) reference);
     }
 
     protected void runCatchingErrors(Consumer<R> action, R reference) {
@@ -78,32 +132,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    protected abstract String getThreadName();
-
-    protected void processReferenceQueue() {
-        if (context.getOptions().SINGLE_THREADED) {
-
-            drainReferenceQueue();
-
-        } else {
-
-            /*
-             * We can't create a new thread while the context is initializing or finalizing, as the
-             * polyglot API locks on creating new threads, and some core loading does things such as
-             * stat files which could allocate memory that is marked to be automatically freed and
-             * so would want to start the finalization thread. So don't start the finalization
-             * thread if we are initializing. We will rely on some other finalizer to be created to
-             * ever free this memory allocated during startup, but that's a reasonable assumption
-             * and a low risk of leaking a tiny number of bytes if it doesn't hold.
-             */
-
-            if (processingThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
-                createProcessingThread();
-            }
-
         }
     }
 

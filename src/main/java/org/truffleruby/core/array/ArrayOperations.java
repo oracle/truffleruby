@@ -46,13 +46,8 @@ public abstract class ArrayOperations {
     }
 
     @TruffleBoundary
-    public static Object[] toObjectArray(DynamicObject array) {
-        return ArrayReflector.reflect(getBackingStore(array)).getBoxedCopy(Layouts.ARRAY.getSize(array));
-    }
-
-    @TruffleBoundary
     public static Iterable<Object> toIterable(DynamicObject array) {
-        return ArrayReflector.reflect(getBackingStore(array)).iterableUntil(Layouts.ARRAY.getSize(array));
+        return ArrayStrategy.of(array).getIterable(array, Layouts.ARRAY.getSize(array));
     }
 
     @TruffleBoundary

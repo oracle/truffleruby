@@ -26,7 +26,7 @@
 
 # Modifications made by the Truffle team are:
 #
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -35,13 +35,27 @@
 # GNU Lesser General Public License version 2.1.
 
 
-class ScanError < StandardError; end
+class ScanError < StandardError
+end
 
 class StringScanner
+
   Id = 'None$Id'.freeze
   Version = '1.0.0'.freeze
 
   attr_reader :pos, :match, :prev_pos
+
+  def initialize(string, dup=false)
+    if string.instance_of? String
+      @original = string
+      @string = string
+    else
+      @original = StringValue(string)
+      @string = String.new @original
+    end
+
+    reset_state
+  end
 
   def pos=(n)
     n = Integer(n)
@@ -59,12 +73,10 @@ class StringScanner
   alias_method :pointer=, :pos=
 
   def [](n)
-    # Truffle: no eager check
     if @match
-      # Truffle: follow MRI
       raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
       str = @match[n]
-      str.taint if @string.tainted? # Truffle: propagate taint
+      str.taint if @string.tainted?
       str
     end
   end
@@ -75,17 +87,16 @@ class StringScanner
 
   alias_method :beginning_of_line?, :bol?
 
-  # Truffle: added
   def charpos
     @string.byteslice(0, @pos).length
   end
 
   def check(pattern)
-    _scan pattern, false, true, true
+    scan_internal pattern, false, true, true
   end
 
   def check_until(pattern)
-    _scan pattern, false, true, false
+    scan_internal pattern, false, true, false
   end
 
   def clear
@@ -105,17 +116,27 @@ class StringScanner
   end
 
   def eos?
-    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string
     @pos >= @string.bytesize
   end
 
   def exist?(pattern)
-    _scan pattern, false, false, false
+    scan_internal pattern, false, false, false
   end
 
   def get_byte
-    # Truffle: correct get_byte with non-ascii strings
-    _get_byte
+    if eos?
+      @match = nil
+      return nil
+    end
+
+    # We need to match one byte, regardless of the string encoding
+    @match = Truffle.invoke_primitive :regexp_search_from_binary, /./mn, @string, pos
+
+    @prev_pos = @pos
+    @pos += 1
+
+    @string.byteslice(@prev_pos, 1)
   end
 
   def getbyte
@@ -127,19 +148,6 @@ class StringScanner
     scan(/./m)
   end
 
-  def initialize(string, dup=false)
-    if string.instance_of? String
-      @original = string
-      @string = string
-    else
-      @original = StringValue(string)
-      @string = String.new @original
-    end
-
-    reset_state
-  end
-
-  # Truffle: fix to use self.class instead of hard-coded StringScanner
   def inspect
     if defined? @string
       if eos?
@@ -172,13 +180,13 @@ class StringScanner
   end
 
   def match?(pattern)
-    _scan pattern, false, false, true
+    scan_internal pattern, false, false, true
   end
 
   def matched
     if @match
       matched = @match.to_s
-      matched.taint if @string.tainted? # Truffle: propagate taint
+      matched.taint if @string.tainted?
       matched
     end
   end
@@ -233,19 +241,19 @@ class StringScanner
   end
 
   def scan(pattern)
-    _scan pattern, true, true, true
+    scan_internal pattern, true, true, true
   end
 
   def scan_until(pattern)
-    _scan pattern, true, true, false
+    scan_internal pattern, true, true, false
   end
 
   def scan_full(pattern, advance_pos, getstr)
-    _scan pattern, advance_pos, getstr, true
+    scan_internal pattern, advance_pos, getstr, true
   end
 
   def search_full(pattern, advance_pos, getstr)
-    _scan pattern, advance_pos, getstr, false
+    scan_internal pattern, advance_pos, getstr, false
   end
 
   def self.must_C_version
@@ -253,11 +261,11 @@ class StringScanner
   end
 
   def skip(pattern)
-    _scan pattern, true, false, true
+    scan_internal pattern, true, false, true
   end
 
   def skip_until(pattern)
-    _scan pattern, true, false, false
+    scan_internal pattern, true, false, false
   end
 
   def string
@@ -293,8 +301,6 @@ class StringScanner
   def peek(len)
     raise ArgumentError if len < 0
     return '' if len.zero?
-
-    # Truffle: correctly use byte offsets and no rescue
     @string.byteslice(pos, len)
   end
 
@@ -303,54 +309,37 @@ class StringScanner
     peek len
   end
 
-  def _scan(pattern, advance_pos, getstr, headonly)
+  def scan_internal(pattern, advance_pos, getstr, headonly)
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
-    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string
 
-    @match = nil
+    # If the pattern already starts with a ^, and we're not at the start of
+    # the string, then we can't match as normal because match_from still tries
+    # to match the ^ at position 0 even though it's looking from point pos
+    # onwards, even if headonly is set. Instead, remove the ^. This could
+    # possibly be fixed in Joni instead, or maybe there is already some option
+    # we're not using.
 
-    if headonly
-      # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
-      # We use it here to avoid creating a new Regexp with '^' prepended.
-      @match = pattern.match_start @string, @pos
-    else
-      # NOTE - search_from is an Oniguruma feature that Rubinius exposes.
-      # We use it so we can begin the search in the middle of the string
-      @match = pattern.search_from @string, @pos
+    if pattern.source[0] == '^' && pos > 0
+      pattern = Regexp.new(pattern.source[1..-1])
+      headonly = true
     end
 
+    @match = pattern.match_onwards @string, pos, headonly
     return nil unless @match
 
     fin = @match.byte_end(0)
 
     @prev_pos = @pos
-
     @pos = fin if advance_pos
 
     width = fin - @prev_pos
-
     return width unless getstr
 
     @string.byteslice(@prev_pos, width)
   end
-  private :_scan
+  private :scan_internal
 
-  # Truffle: correct get_byte with non-ascii strings
-  def _get_byte
-    if eos?
-      @match = nil
-      return nil
-    end
-
-    # We need to match one byte, regardless of the string encoding
-    @match = Truffle.invoke_primitive :regexp_search_from_binary, /./mn, @string, pos
-
-    @prev_pos = @pos
-    @pos += 1
-
-    @string.byteslice(@prev_pos, 1)
-  end
-  private :_get_byte
 end

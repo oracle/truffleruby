@@ -79,6 +79,7 @@ public abstract class HashNodes {
             final int size = Layouts.ARRAY.getSize(array);
             final Object[] newStore = PackedArrayStrategy.createStore(getContext());
 
+            // written very carefully to allow PE
             for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
                 if (n < size) {
                     final Object pair = store[n];

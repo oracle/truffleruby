@@ -34,18 +34,19 @@ public class AndNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object leftValue = left.execute(frame);
 
-        if (leftCast == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            leftCast = insert(BooleanCastNodeGen.create(null));
-        }
-
-        final boolean leftBoolean = leftCast.executeToBoolean(leftValue);
-
-        if (conditionProfile.profile(leftBoolean)) {
+        if (conditionProfile.profile(castToBoolean(leftValue))) {
             return right.execute(frame);
         } else {
             return leftValue;
         }
+    }
+
+    private boolean castToBoolean(final Object value) {
+        if (leftCast == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            leftCast = insert(BooleanCastNodeGen.create(null));
+        }
+        return leftCast.executeToBoolean(value);
     }
 
 }

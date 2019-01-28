@@ -1,4 +1,4 @@
-# From tool/generate-cext-constants.rb
+# From ./tool/generate-cext-constants.rb
 
 module Truffle::CExt
   def Qundef
@@ -43,6 +43,10 @@ module Truffle::CExt
 
   def rb_mEnumerable
     Enumerable
+  end
+
+  def rb_cEnumerator
+    Enumerator
   end
 
   def rb_cFalseClass
@@ -267,6 +271,10 @@ module Truffle::CExt
 
   def rb_eZeroDivError
     ZeroDivisionError
+  end
+
+  def rb_eFatal
+    Truffle::CExt.rb_const_get(Object, 'fatal')
   end
 
   def rb_stdin

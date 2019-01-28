@@ -1,19 +1,22 @@
 # Compatibility
 
-TruffleRuby aims to be highly compatible with the standard implementation of
+TruffleRuby aims to be fully compatible with the standard implementation of
 Ruby, MRI, version 2.4.4, revision 63013.
+
+Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
+If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it to us.
 
 Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
 will have very low performance whenever they are used and we advise against
 using them on TruffleRuby if you can. Some features are missing entirely and may
-never be implemented. In a few limited cases we are deliberately incompatible
+never be implemented. In a few limited cases, we are deliberately incompatible
 with MRI in order to provide a greater capability.
 
 In general, we are not looking to debate whether Ruby features are good, bad, or
 if we could design the language better. If we can support a feature, we will do.
 
-In the future we aim to provide compatibility with extra functionality provided
+In the future, we aim to provide compatibility with extra functionality provided
 by JRuby, but at the moment we do not.
 
 ## Identification
@@ -27,11 +30,11 @@ TruffleReport defines these constants for identification:
 - `RUBY_RELEASE_DATE` is the Git commit date
 - `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0-` and the Git commit hash if your build is not part of a GraalVM release.
 
-Additionally, TruffleRuby defines
+Additionally, TruffleRuby defines:
 
 - `TruffleRuby.revision` which is the Git commit hash
 
-In the C API we define a preprocessor macro `TRUFFLERUBY`.
+In the C API, we define a preprocessor macro `TRUFFLERUBY`.
 
 ## Features entirely missing
 
@@ -43,7 +46,7 @@ as their semantics fundamentally do not match the technology that we are using.
 #### Fork
 
 You cannot `fork` the TruffleRuby interpreter. The feature is unlikely to ever
-be supported when running on the JVM, but could be supported in the future on
+be supported when running on the JVM but could be supported in the future on
 the SVM. The correct and portable way to test if `fork` is available is:
 ```ruby
 Process.respond_to?(:fork)
@@ -51,7 +54,9 @@ Process.respond_to?(:fork)
 
 #### Standard libraries
 
-Quite a few of the less commonly used  standard libraries are currently not
+`win32ole` is unsupported.
+
+Quite a few of the less commonly used standard libraries are currently not
 supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
 hard to give a definitive list of those that are missing.
@@ -98,7 +103,7 @@ development tools.
 
 `-X` is an undocumented synonym for `-C` and we (and other alternative
 implementations of Ruby) have repurposed it for extended options. We warn if
-your `-X` options looks like it was actually intended to be as in MRI.
+your `-X` options look like they are actually intended to be as in MRI.
 
 Programs passed in `-e` arguments with magic-comments must have an encoding that
 is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
@@ -124,7 +129,7 @@ If you use standard IO streams provided by the Polyglot engine, via the
 be redirected to these streams. That means that other IO operations on these
 file descriptors, such as `isatty` may not be relevant for where these streams
 actually end up, and operations like `dup` may lose the connection to the
-polyglot stream. For example if you `$stdout.reopen`, as some logging frameworks
+polyglot stream. For example, if you `$stdout.reopen`, as some logging frameworks
 do, you will get the native standard-out, not the polyglot out.
 
 Also, IO buffer drains, writes on IO objects with `sync` set, and
@@ -165,28 +170,13 @@ disabled where we dynamically detect that they probably won't be used. See the
 
 ## C Extension Compatibility
 
-#### Storing Ruby objects in native structures and arrays
+#### `VALUE` is a pointer
 
-You cannot store a Ruby object in a structure or array that has been natively
-allocated, such as on the stack, or in a heap allocated structure or array.
-
-Simple local variables of type `VALUE`, and locals arrays that are defined such
-as `VALUE array[n]` are an exception and are supported, provided their address
-is not taken and passed to a function that is not inlined.
-
-`void *rb_tr_handle_for_managed(VALUE managed)` and `VALUE
-rb_tr_managed_from_handle(void *native)` may help you work around this
-limitation. Use `void* rb_tr_handle_for_managed_leaking(VALUE managed)` if you
-don't yet know where to put a corresponding call to `void
-*rb_tr_release_handle(void *native)`. Use `VALUE
-rb_tr_managed_from_handle_or_null(void *native)` if the handle may be `NULL`.
-
-#### Mixing native and managed in C global variables
-
-C global variables can contain native data or they can contain managed data,
-but they cannot contain both in the same program run. If you have a global you
-assign `NULL` to (`NULL` being just `0` and so a native address) you cannot
-then assign managed data to this variable.
+In TruffleRuby `VALUE` is a pointer type (`void *`) rather than a
+integer type (`long`). This means that `switch` statements cannot be
+done using a raw `VALUE` as they can with MRI. You can normally
+replace any `switch` statement with `if` statements with little
+difficulty if required.
 
 #### Identifiers may be macros or functions
 
@@ -197,34 +187,18 @@ address of it, assigning to a function pointer variable and using defined() to
 check if a macro exists). These issues should all be considered bugs and be
 fixed, please report these cases.
 
-#### Variadic functions
-
-Variadic arguments of type `VALUE` that hold Ruby objects can be used, but they
-cannot be accessed with `va_start` etc. You can use
-`void *polyglot_get_arg(int i)` instead.
-
-#### Pointers to `VALUE` locals and variadic functions
-
-Pointers to local variables that have the type `VALUE` and hold Ruby objects can
-only be passed as function arguments if the function is inlined. LLVM will never
-inline variadic functions, so pointers to local variables that hold Ruby objects
-cannot be passed as variadic arguments.
-
-`rb_scan_args` is an exception and is supported.
-
 #### `rb_scan_args`
 
 `rb_scan_args` only supports up to ten pointers.
 
 #### `RDATA`
 
-The `mark` function of `RDATA` and `RTYPEDDATA` is never called.
-
-#### Ruby objects and truthiness in C
-
-All Ruby objects are truthy in C, except for `Qfalse`, the `Integer` value `0`,
-and the `Float` value `0.0`. The last two are incompatible with MRI, which would
-also see these values as truthy.
+The `mark` function of `RDATA` and `RTYPEDDATA` is not called during
+garbage collection. Instead we simulate this by caching information
+about objects as they are assigned to structs, and periodically run
+all mark functions when the cache has become full to represent those
+object relationships in a way that the our garbage collector will
+understand. The process should behave identically to MRI.
 
 ## Compatibility with JRuby
 

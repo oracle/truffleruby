@@ -17,7 +17,6 @@ require 'fileutils'
 require 'json'
 require 'timeout'
 require 'yaml'
-require 'open3'
 require 'rbconfig'
 require 'pathname'
 
@@ -26,7 +25,7 @@ MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f23314cbf560d8578b0c2cbd972b83575ba93cd5"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -53,9 +52,6 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
-# wait for sub-processes to handle the interrupt
-trap(:INT) {}
-
 MRI_TEST_MODULES = {
     '--no-sulong' => {
         help: 'exclude all tests requiring Sulong',
@@ -80,6 +76,23 @@ MRI_TEST_MODULES = {
         ]
     }
 }
+
+SUBPROCESSES = []
+
+# Forward signals to sub-processes, so they get notified when sending a signal to jt
+[:SIGINT, :SIGTERM].each do |signal|
+  trap(signal) do
+    SUBPROCESSES.each do |pid|
+      puts "\nSending #{signal} to process #{pid}"
+      begin
+        Process.kill(signal, pid)
+      rescue Errno::ESRCH
+        # Already killed
+      end
+    end
+    # Keep running jt which will wait for the subprocesses termination
+  end
+end
 
 module Utilities
   private
@@ -131,7 +144,7 @@ module Utilities
       options = ['--no-bootclasspath']
     elsif graal_home
       graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      output, _ = mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
+      output = mx('-v', '-p', graal_home, 'vm', '-version', capture: true, :err => :out)
       command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
         command_line = command_line[0]
@@ -147,8 +160,8 @@ module Utilities
     elsif graal_home = find_auto_graal_home
       javacmd = "#{find_graal_java_home(graal_home)}/bin/java"
       graal_jars = [
-        "#{graal_home}/mxbuild/dists/graal.jar",
-        "#{graal_home}/mxbuild/dists/graal-management.jar"
+        "#{graal_home}/mxbuild/dists/jdk1.8/graal.jar",
+        "#{graal_home}/mxbuild/dists/jdk1.8/graal-management.jar"
       ]
       vm_args = [
         '-XX:+UnlockExperimentalVMOptions',
@@ -166,7 +179,7 @@ module Utilities
   def find_auto_graal_home
     sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
     return nil unless Dir.exist?(sibling_compiler)
-    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
+    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/jdk1.8/graal-compiler.jar")
     sibling_compiler
   end
 
@@ -288,23 +301,32 @@ module Utilities
     `diff -u #{expected} #{actual}`
   end
 
-  def system_timeout(timeout, *args)
-    begin
-      pid = Process.spawn(*args)
-    rescue SystemCallError
-      return nil
-    end
+  def raw_sh_failed_status
+    `false`
+    $?
+  end
 
-    begin
-      Timeout.timeout timeout do
-        Process.waitpid pid
-        $?.success?
+  def raw_sh_with_timeout(timeout, pid)
+    if !timeout
+      yield
+    else
+      begin
+        Timeout.timeout(timeout) do
+          yield
+        end
+      rescue Timeout::Error
+        Process.kill('TERM', pid)
+        yield # Wait and read the pipe if capture: true
+        :timeout
       end
-    rescue Timeout::Error
-      Process.kill('TERM', pid)
-      Process.waitpid pid
-      nil
     end
+  end
+
+  def raw_sh_track_subprocess(pid)
+    SUBPROCESSES << pid
+    yield
+  ensure
+    SUBPROCESSES.delete(pid)
   end
 
   def raw_sh(*args)
@@ -318,44 +340,51 @@ module Utilities
       STDERR.puts "$ #{printable_cmd(args)}"
     end
 
-    if use_exec
-      result = exec(*args)
-    elsif timeout
-      result = system_timeout(timeout, *args)
-    elsif capture
-      if options.delete(:out) == :err
-        err, status = Open3.capture2e(*args)
-        out = ""
-      else
-        out, err, status = Open3.capture3(*args)
-      end
-      result = status.success?
-    else
-      result = system(*args)
+    exec(*args) if use_exec
+
+    if capture
+      raise ":capture can only be combined with :err => :out" if options.include?(:out)
+      pipe_r, pipe_w = IO.pipe
+      options[:out] = pipe_w
+      options[:err] = pipe_w if options[:err] == :out
     end
 
-    if result
-      if capture
-        [out, err]
-      else
-        true
-      end
-    elsif continue_on_failure
-      false
+    status = nil
+    out = nil
+    begin
+      pid = Process.spawn(*args)
+    rescue Errno::ENOENT # No such executable
+      status = raw_sh_failed_status
     else
-      status = $? unless capture
-      $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
+      raw_sh_track_subprocess(pid) do
+        pipe_w.close if capture
 
+        result = raw_sh_with_timeout(timeout, pid) do
+          out = pipe_r.read if capture
+          _, status = Process.waitpid2(pid)
+        end
+        if result == :timeout
+          status = raw_sh_failed_status
+        end
+      end
+    end
+
+    result = status.success?
+
+    if capture
+      pipe_r.close
+    end
+
+    if status.success? || continue_on_failure
       if capture
-        $stderr.puts out
-        $stderr.puts err
-      end
-
-      if status && status.exitstatus
-        exit status.exitstatus
+        out
       else
-        exit 1
+        status.success?
       end
+    else
+      $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
+      $stderr.puts out if capture
+      exit(status.exitstatus || status.termsig || status.stopsig || 1)
     end
   end
 
@@ -694,7 +723,7 @@ module Commands
         vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
         graal = true
-        vm_args << (arg == '--igv-full') ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
+        vm_args << (arg == '--igv-full' ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2")
         vm_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "-J-Dgraal.PrintBackendCFG=false"
       when '--no-print-cmd'
@@ -794,7 +823,7 @@ module Commands
       puts "Open PRs: #{open_prs}"
 
       sh 'git', 'fetch', Remotes.bitbucket, '--prune' # ensure we have locally only existing remote branches
-      branches, _        = sh 'git', 'branch', '--remote', '--list', capture: true
+      branches = sh 'git', 'branch', '--remote', '--list', capture: true
       branches_to_delete = branches.
           scan(/^ *#{Remotes.bitbucket}\/(github\/pr\/(\d+))$/).
           reject { |_, number| open_prs.include? Integer(number) }
@@ -814,7 +843,7 @@ module Commands
     def pr_push(*args)
       # Fetch PRs on GitHub
       fetch     = "+refs/pull/*/head:refs/remotes/#{Remotes.github}/pr/*"
-      out, _err = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
+      out = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
       sh 'git', 'config', '--add', "remote.#{Remotes.github}.fetch", fetch unless out.include? fetch
       sh 'git', 'fetch', Remotes.github
 
@@ -823,7 +852,7 @@ module Commands
         github_pr_branch = "#{Remotes.github}/pr/#{pr_number}"
       else
         github_pr_branch = begin
-          out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
+          out = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
           candidate = out.lines.find { |l| l.strip.start_with? "#{Remotes.github}/pr/" }
           candidate && candidate.strip.chomp
         end
@@ -868,9 +897,9 @@ module Commands
     def remote_urls(dir = TRUFFLERUBY_DIR)
       @remote_urls ||= Hash.new
       @remote_urls[dir] ||= begin
-        out, _err = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
+        out = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
         out.split.map do |remote|
-          url, _err = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
+          url = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
           [remote, url.chomp]
         end
       end
@@ -1112,7 +1141,7 @@ module Commands
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
         mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
-        out, _ = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
+        out = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
         raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
@@ -1176,7 +1205,6 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/msgpack/msgpack.sh"
           sh "test/truffle/cexts/puma/puma.sh"
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
@@ -1184,6 +1212,9 @@ EOS
 
           # Test a gem dynamically compiling a C extension
           sh "test/truffle/cexts/RubyInline/RubyInline.sh"
+
+          # Test cexts used by many projects
+          sh "test/truffle/cexts/msgpack/msgpack.sh"
       else
         raise "unknown test: #{test_name}"
       end
@@ -1458,7 +1489,6 @@ EOS
   end
 
   def metrics(command, *args)
-    trap(:INT) { puts; exit }
     args = args.dup
     case command
     when 'alloc'
@@ -1481,8 +1511,8 @@ EOS
     samples = []
     METRICS_REPS.times do
       log '.', "sampling\n"
-      out, err = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
-      samples.push memory_allocated(out+err)
+      out = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, :err => :out, no_print_cmd: true
+      samples.push memory_allocated(out)
     end
     log "\n", nil
     range = samples.max - samples.min
@@ -1568,12 +1598,12 @@ EOS
       log '.', "sampling\n"
 
       max_rss_in_mb = if LINUX
-                        out, err = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
-                        err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
+                        out = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+                        out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif MAC
-                        out, err = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
-                        err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
+                        out = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+                        out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
                         raise "Can't measure RSS on this platform."
@@ -1610,9 +1640,9 @@ EOS
 
     use_json = args.delete '--json'
 
-    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
+    out = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
 
-    err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
+    out =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
 
     log "\n", nil
@@ -1627,23 +1657,46 @@ EOS
     end
   end
 
-  def metrics_time(*args)
-    use_json = args.delete '--json'
-    flamegraph = args.delete '--flamegraph'
+  def metrics_time_measure(use_json, *args)
     native = args.include? '--native'
     metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
     verbose_gc_flag = native ? '--native.XX:+PrintGC' : '-J-verbose:gc' unless use_json
-    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
     args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
 
     samples = METRICS_REPS.times.map do
       log '.', "sampling\n"
       start = Time.now
-      _, err = run_ruby(*args, capture: true, no_print_cmd: true, :out => :err)
+      out = run_ruby(*args, capture: true, no_print_cmd: true, :err => :out)
       finish = Time.now
-      get_times(err, (finish - start) * 1000.0)
+      get_times(out, (finish - start) * 1000.0)
     end
     log "\n", nil
+    samples
+  end
+  private :metrics_time_measure
+
+  def metrics_time(*args)
+    use_json = args.delete '--json'
+    flamegraph = args.delete '--flamegraph'
+
+    samples = metrics_time_measure(use_json, *args)
+    metrics_time_format_results(samples, use_json, flamegraph)
+  end
+
+  def format_time_metrics(*args)
+    use_json = args.delete '--json'
+    flamegraph = args.delete '--flamegraph'
+
+    data = STDIN.read
+    times = data.lines.grep(/^(before|after)\b/)
+    total = times.last.split.last.to_f - times.first.split.last.to_f
+    samples = [get_times(data, total)]
+
+    metrics_time_format_results(samples, use_json, flamegraph)
+  end
+
+  def metrics_time_format_results(samples, use_json, flamegraph)
+    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
 
     results = {}
     mean_by_stack = {}
@@ -1686,6 +1739,7 @@ EOS
       sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
+  private :metrics_time_format_results
 
   def get_times(trace, total)
     result = Hash.new(0)
@@ -1694,7 +1748,7 @@ EOS
     result[stack.map(&:first)] = total
     result[%w[total jvm]] = 0
 
-    trace.lines do |line|
+    trace.each_line do |line|
       if line =~ /^(.+) (\d+)$/
         region = $1
         time = Float($2)
@@ -1780,22 +1834,19 @@ EOS
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
     begin
-      profile_data, err = run_ruby(env, *run_args, capture: true)
-      $stderr.puts(err) unless err.empty?
+      profile_data = run_ruby(env, *run_args, capture: true)
 
       profile_data_file = Tempfile.new %w[truffleruby-profile .json]
       profile_data_file.write(profile_data)
       profile_data_file.close
 
-      flamegraph_data, err = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
-      $stderr.puts(err) unless err.empty?
+      flamegraph_data = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
 
       flamegraph_data_file = Tempfile.new 'truffleruby-flamegraph-data'
       flamegraph_data_file.write(flamegraph_data)
       flamegraph_data_file.close
 
-      svg_data, err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
-      $stderr.puts(err) unless err.empty?
+      svg_data = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
 
       Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
       svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
@@ -1954,7 +2005,7 @@ EOS
 
   def check_parser
     build('parser')
-    diff, _err = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', :err => :out, capture: true
+    diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: true
     unless diff.empty?
       STDERR.puts "DIFF:"
       STDERR.puts diff

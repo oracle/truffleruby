@@ -57,4 +57,10 @@ describe "Enumerator::Lazy#reject" do
       end
     end
   end
+
+  it "works with an infinite enumerable" do
+    s = 0..Float::INFINITY
+    s.lazy.reject { |n| false }.first(100).should ==
+      s.first(100).reject { |n| false }
+  end
 end

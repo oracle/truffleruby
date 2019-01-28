@@ -40,6 +40,10 @@ local part_definitions = {
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
+      packages+: {
+        "pip:ninja_syntax": "==1.7.2", # Required by NFI and mx
+      },
+
       setup+: [
         # We don't want to proxy any internet access
         ["unset", "ANT_OPTS", "FTP_PROXY", "ftp_proxy", "GRADLE_OPTS",
@@ -175,7 +179,7 @@ local part_definitions = {
       ],
 
       environment+: {
-        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
+        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
       },
@@ -214,8 +218,8 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-core",
-        GRAAL_HOME: "$PWD/../graal/compiler",
-        VM_SUITE_HOME: "$PWD/../graal/vm",
+        GRAAL_HOME: "$BUILD_DIR/graal/compiler",
+        VM_SUITE_HOME: "$BUILD_DIR/graal/vm",
       },
     },
 
@@ -240,8 +244,8 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
-        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
-        VM_SUITE_HOME: "$PWD/../graal-enterprise/vm-enterprise",
+        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
+        VM_SUITE_HOME: "$BUILD_DIR/graal-enterprise/vm-enterprise",
       },
     },
 
@@ -297,7 +301,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "8u192-jvmci-0.52",
+          version: "8u192-jvmci-0.54",
           platformspecific: true,
         },
       },
@@ -311,7 +315,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "openjdk",
-          version: "8u192-jvmci-0.52",
+          version: "8u192-jvmci-0.54",
           platformspecific: true,
         },
       },
@@ -367,7 +371,7 @@ local part_definitions = {
       ],
       "$.run.specs":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
-        normal_machine: ["darwin_sierra", "amd64"],
+        normal_machine: ["darwin_mojave", "amd64"],
       },
       environment+: {
         LANG: "en_US.UTF-8",

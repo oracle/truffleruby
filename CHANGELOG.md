@@ -1,4 +1,24 @@
-# 1.0 RC 11
+# 1.0 RC 12
+
+Bug fixes:
+
+* Fixed a bug with `String#lines` and similar methods with multibyte
+  characters (#1543).
+* Fixed an issue with `String#{encode,encode!}` double-processing strings
+  using XML conversion options and a new destination encoding (#1545).
+* Fixed a bug where a raised cloned exception would be caught as the
+  original exception (#1542).
+* Fixed a bug with `StringScanner` and patterns starting with `^` (#1544).
+* Fixed `Enumerable::Lazy#uniq` with infinite streams (#1516).
+
+Compatibility:
+
+* Change to a new system for handling Ruby objects in C extensions which
+  greatly increases compatibility with MRI.
+* Implemented `BigDecimal#to_r` (#1521).
+* `Symbol#to_proc` now returns `-1` like on MRI (#1462).
+
+# 1.0 RC 11, 15 January 2019
 
 New features:
 

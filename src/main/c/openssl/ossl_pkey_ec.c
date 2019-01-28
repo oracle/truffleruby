@@ -219,10 +219,10 @@ static VALUE ossl_ec_key_initialize(int argc, VALUE *argv, VALUE self)
 	pass = ossl_pem_passwd_value(pass);
 	in = ossl_obj2bio(&arg);
 
-	ec = PEM_read_bio_ECPrivateKey(in, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
+	ec = PEM_read_bio_ECPrivateKey(in, NULL, ossl_pem_passwd_cb, (void *)pass);
 	if (!ec) {
 	    OSSL_BIO_reset(in);
-	    ec = PEM_read_bio_EC_PUBKEY(in, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
+	    ec = PEM_read_bio_EC_PUBKEY(in, NULL, ossl_pem_passwd_cb, (void *)pass);
 	}
 	if (!ec) {
 	    OSSL_BIO_reset(in);
@@ -468,7 +468,7 @@ static VALUE ossl_ec_key_to_string(VALUE self, VALUE ciph, VALUE pass, int forma
     switch(format) {
     case EXPORT_PEM:
     	if (private) {
-            i = PEM_write_bio_ECPrivateKey(out, ec, cipher, NULL, 0, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
+            i = PEM_write_bio_ECPrivateKey(out, ec, cipher, NULL, 0, ossl_pem_passwd_cb, (void *)pass);
     	} else {
             i = PEM_write_bio_EC_PUBKEY(out, ec);
         }
@@ -1618,9 +1618,7 @@ static VALUE ossl_ec_point_mul(int argc, VALUE *argv, VALUE self)
     SafeGetECGroup(group_v, group);
 
     result = rb_obj_alloc(cEC_POINT);
-    VALUE group_v_addr[1]; // TruffleRuby to allow the preprocessor to turn into a managed malloc
-    group_v_addr[0] = group_v; // TruffleRuby
-    ossl_ec_point_initialize(1, group_v_addr, result); // TruffleRuby
+    ossl_ec_point_initialize(1, &group_v, result);
     GetECPoint(result, point_result);
 
     rb_scan_args(argc, argv, "12", &arg1, &arg2, &arg3);

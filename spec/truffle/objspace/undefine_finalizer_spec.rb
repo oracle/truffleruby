@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -6,35 +6,28 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+require 'objspace'
+
 require_relative '../../ruby/spec_helper'
 
 describe "ObjectSpace.undefine_finalizer" do
 
-  it "if not used leaves the finalizer in place" do
-    finalized = 0
-    finalizer = proc {
-     finalized += 1
-    }
-    started = Time.now
-    until Time.now > started + 3
-      object = Object.new
-      ObjectSpace.define_finalizer object, finalizer
-    end
-    finalized.should > 0
-  end
+  # See comment in define_finalizer_spec.rb
 
   it "successfully unregisters a finalizer" do
-    finalized = 0
-    finalizer = proc {
-     finalized += 1
-    }
-    started = Time.now
-    until Time.now > started + 3
-      object = Object.new
+    channel = Truffle::Channel.new
+    Object.new.tap do |object|
+      finalizer = proc {
+        channel.send :finalized
+      }
       ObjectSpace.define_finalizer object, finalizer
+      ObjectSpace.reachable_objects_from(object).should include(finalizer)
       ObjectSpace.undefine_finalizer object
+      ObjectSpace.reachable_objects_from(object).should_not include(finalizer)
     end
-    finalized.should == 0
+    GC.start
+    Truffle::Debug.drain_finalization_queue               # Not needed for correctness
+    channel.try_receive.should be_nil
   end
 
 end

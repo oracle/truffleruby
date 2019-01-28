@@ -31,14 +31,15 @@ public abstract class ArrayDropTailNode extends RubyNode {
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public DynamicObject dropTail(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
         final int size = strategy.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
             return createArray(null, 0);
         } else {
             final int newSize = size - index;
-            final ArrayMirror withoutTail = strategy.makeStorageShared(array).extractRange(0, newSize);
-            return createArray(withoutTail.getArray(), newSize);
+            final Object withoutTail = extractRangeCopyOnWriteNode.execute(array, 0, newSize);
+            return createArray(withoutTail, newSize);
         }
     }
 

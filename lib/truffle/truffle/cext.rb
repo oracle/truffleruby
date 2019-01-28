@@ -51,7 +51,8 @@ module Truffle::CExt
   end
 
   class RbEncoding
-    ENCODING_CACHE = {}
+    ENCODING_CACHE = {} # Encoding => RbEncoding
+    NATIVE_CACHE = {} # RbEncoding => Encoding
     ENCODING_CACHE_MUTEX = Mutex.new
 
     private_class_method :new
@@ -59,6 +60,12 @@ module Truffle::CExt
     def self.get(encoding)
       ENCODING_CACHE_MUTEX.synchronize do
         ENCODING_CACHE.fetch(encoding) { |key| ENCODING_CACHE[key] = new(encoding) }
+      end
+    end
+
+    def self.get_encoding_from_native(rbencoding_ptr)
+      ENCODING_CACHE_MUTEX.synchronize do
+        NATIVE_CACHE[rbencoding_ptr].encoding
       end
     end
 
@@ -78,7 +85,28 @@ module Truffle::CExt
     end
 
     def name
-      RStringPtr.new(@encoding.name)
+      @strpointer ||= RStringPtr.new(@encoding.name)
+    end
+
+    def pointer?
+      true
+    end
+
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
+    end
+
+    def address
+      @address ||= cache_address
+    end
+
+    def cache_address
+      addr = name.address
+      ENCODING_CACHE_MUTEX.synchronize do
+        NATIVE_CACHE[addr] = self
+      end
+      addr
     end
   end
 
@@ -109,19 +137,26 @@ module Truffle::CExt
 
   class RStringPtr
     attr_reader :string
-    attr_accessor :act_like_pointer
 
     def initialize(string)
       @string = string
-      @act_like_pointer = false
     end
 
     def size
       Truffle::CExt.string_pointer_size(@string)
     end
 
+    def pointer?
+      true
+    end
+
     def address
       @address ||= Truffle::CExt.string_pointer_to_native(@string)
+    end
+
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
     end
 
     def [](index)
@@ -138,26 +173,66 @@ module Truffle::CExt
 
     alias_method :to_str, :string
     alias_method :to_s, :string
-    alias_method :pointer?, :act_like_pointer
+  end
+
+  class RArrayPtr
+    attr_reader :array
+
+    def initialize(array)
+      @array = array
+    end
+
+    def size
+      @array.size
+    end
+
+    def pointer?
+      true
+    end
+
+    def address
+      raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet'
+    end
+
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
+    end
+
+    def [](index)
+      Truffle::CExt.rb_tr_wrap(array[index])
+    end
+
+    def []=(index, value)
+      array[index] = Truffle::CExt.rb_tr_unwrap(value)
+    end
+
+    def native?
+      false
+    end
   end
 
   class RStringEndPtr
-    attr_accessor :act_like_pointer
-
     def initialize(string)
       @string = string
-      @act_like_pointer = false
     end
 
     def size
       0
     end
 
+    def pointer?
+      true
+    end
+
     def address
       @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
 
-    alias_method :pointer?, :act_like_pointer
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
+    end
   end
 
   T_NONE     = 0x00
@@ -287,7 +362,7 @@ module Truffle::CExt
       T_DATA
     when Data
       T_DATA
-    when Object
+    when BasicObject
       if hidden_variable_get(value, :data_holder)
         T_DATA
       else
@@ -838,7 +913,7 @@ module Truffle::CExt
 
     # TODO BJF 8-Mar-2017 Handle more ecflags
     if ecflags & Encoding::Converter::INVALID_REPLACE != 0
-      opts.merge!({:invalid => :replace})
+      opts[:invalid] = :replace
     end
 
     if opts.empty?
@@ -940,6 +1015,10 @@ module Truffle::CExt
     []
   end
 
+  def RARRAY_PTR(array)
+    RArrayPtr.new(array)
+  end
+
   def rb_hash_new
     {}
   end
@@ -954,7 +1033,7 @@ module Truffle::CExt
 
   def rb_hash_foreach(hash, func, farg)
     hash.each do |key, value|
-      st_result = Truffle::Interop.execute_without_conversion(func, key, value, farg)
+      st_result = Truffle::Interop.execute_without_conversion(func, rb_tr_wrap(key), rb_tr_wrap(value), farg)
 
       case st_result
       when ST_CONTINUE
@@ -977,7 +1056,8 @@ module Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      execute_with_mutex(function, *args)
+      Truffle::CExt.rb_tr_unwrap(
+        execute_with_mutex(function, *args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }))
     end
   end
 
@@ -1036,7 +1116,7 @@ module Truffle::CExt
   end
 
   def rb_yield_splat(values)
-    execute_with_mutex(rb_block_proc, *values)
+    execute_with_mutex(rb_block_proc, values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1184,7 +1264,7 @@ module Truffle::CExt
 
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
     return rb_enumeratorize(obj, meth, args) if size_fn.nil?
-    enum = obj.to_enum(meth, *args) { execute_with_mutex(size_fn, obj, args, enum) }
+    enum = obj.to_enum(meth, *args) { rb_tr_unwrap(execute_with_mutex(size_fn, rb_tr_wrap(obj), rb_tr_wrap(args), rb_tr_wrap(enum))) }
     enum
   end
 
@@ -1194,7 +1274,7 @@ module Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.send(:define_method, :__allocate__) do
-      Truffle::CExt.execute_with_mutex(function, self)
+      Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, Truffle::CExt.rb_tr_wrap(self)))
     end
     class << ruby_class
       private :__allocate__
@@ -1312,7 +1392,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      execute_with_mutex(func, arg)
+      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(arg)))
     end
   end
 
@@ -1332,8 +1412,16 @@ module Truffle::CExt
     Thread.current
   end
 
+  NATIVETHREAD_LOCKS = {}
+
   def rb_nativethread_lock_initialize
-    Mutex.new
+    lock = Mutex.new
+    NATIVETHREAD_LOCKS[lock] = nil
+    lock
+  end
+
+  def rb_nativethread_lock_destroy(lock)
+    NATIVETHREAD_LOCKS.delete(lock)
   end
 
   BASIC_OBJECT_ALLOCATE = BasicObject.method(:__allocate__).unbind
@@ -1407,15 +1495,15 @@ module Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.__send__(method, *args) do |*block_args|
-      Truffle::CExt.execute_with_mutex(func, block_args.first, data, block_args.size, block_args, nil)
+      rb_tr_unwrap(Truffle::CExt.execute_with_mutex(func, rb_tr_wrap(block_args.first), data, block_args.size, RARRAY_PTR(block_args), nil))
     end
   end
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      execute_with_mutex(b_proc, data1)
+      rb_tr_unwrap(execute_with_mutex(b_proc, data1))
     ensure
-      execute_with_mutex(e_proc, data2)
+      rb_tr_unwrap(execute_with_mutex(e_proc, data2))
     end
   end
 
@@ -1423,7 +1511,7 @@ module Truffle::CExt
     begin
       execute_with_mutex(b_proc, data1)
     rescue StandardError => e
-      execute_with_mutex(r_proc, data2, e)
+      execute_with_mutex(r_proc, data2, rb_tr_wrap(e))
     end
   end
 
@@ -1431,7 +1519,7 @@ module Truffle::CExt
     begin
       execute_with_mutex(b_proc, data1)
     rescue *rescued => e
-      execute_with_mutex(r_proc, data2, e)
+      execute_with_mutex(r_proc, data2, rb_tr_wrap(e))
     end
   end
 
@@ -1439,11 +1527,11 @@ module Truffle::CExt
     result = nil
 
     recursive = Thread.detect_recursion(obj) do
-      result = execute_with_mutex(func, obj, arg, 0)
+      result = rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(obj), rb_tr_wrap(arg), 0))
     end
 
     if recursive
-      execute_with_mutex(func, obj, arg, 1)
+      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(obj), rb_tr_wrap(arg), 1))
     else
       result
     end
@@ -1451,7 +1539,7 @@ module Truffle::CExt
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      execute_with_mutex(func, caught, data)
+      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(caught), rb_tr_wrap(data), rb_tr_wrap(nil)))
     end
   end
 
@@ -1547,7 +1635,7 @@ module Truffle::CExt
       end
     else
       call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
-        execute_with_mutex callback, block_arg, callback_arg
+        rb_tr_unwrap(execute_with_mutex callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg), rb_tr_wrap(nil))
       end
     end
   end
@@ -1649,11 +1737,11 @@ module Truffle::CExt
     id = name.to_sym
 
     getter_proc = -> {
-      execute_with_mutex getter, id, gvar, nil
+      rb_tr_unwrap(execute_with_mutex getter, rb_tr_wrap(id), gvar, rb_tr_wrap(nil))
     }
 
     setter_proc = -> value {
-      execute_with_mutex setter, value, id, gvar, nil
+      execute_with_mutex setter, rb_tr_wrap(value), rb_tr_wrap(id), gvar, rb_tr_wrap(nil)
     }
 
     Truffle::KernelOperations.define_hooked_variable id, getter_proc, setter_proc
@@ -1680,6 +1768,10 @@ module Truffle::CExt
 
   def rb_enc_from_encoding(rb_encoding)
     rb_encoding.encoding
+  end
+
+  def rb_enc_from_native_encoding(rb_encoding)
+    RbEncoding.get_encoding_from_native(rb_encoding)
   end
 
   def RSTRING_PTR(string)
@@ -1717,27 +1809,6 @@ module Truffle::CExt
     f = f.gsub('%ld', '%d')
 
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
-  end
-
-  class WrappedNumber
-    def initialize(a_number)
-      @number = a_number
-    end
-
-    attr_reader :number
-  end
-
-  def rb_tr_wrap_for_handle(a_number)
-    WrappedNumber.new(a_number)
-  end
-
-  def rb_tr_unwrap_from_handle(an_object)
-    case an_object
-    when WrappedNumber
-      an_object.number
-    else
-      an_object
-    end
   end
 
 end

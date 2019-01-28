@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -33,6 +34,8 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class NameToJavaStringNode extends RubyNode {
 
+    @Child private ToJavaStringNode toJavaStringNode;
+
     public static NameToJavaStringNode create() {
         return NameToJavaStringNodeGen.create(null);
     }
@@ -40,14 +43,20 @@ public abstract class NameToJavaStringNode extends RubyNode {
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = "isRubyString(value)")
-    public String stringNameToJavaString(DynamicObject value,
-                                         @Cached("create()") ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(value);
+    public String stringNameToJavaString(DynamicObject value) {
+        return executeToJavaString(value);
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public String symbolNameToJavaString(DynamicObject value,
-                                         @Cached("create()") ToJavaStringNode toJavaStringNode) {
+    public String symbolNameToJavaString(DynamicObject value) {
+        return executeToJavaString(value);
+    }
+
+    private String executeToJavaString(DynamicObject value) {
+        if (toJavaStringNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toJavaStringNode = insert(ToJavaStringNode.create());
+        }
         return toJavaStringNode.executeToJavaString(value);
     }
 

@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(ArrayGuards.class)
@@ -29,18 +30,21 @@ public abstract class ArrayGeneralizeNode extends RubyBaseNode {
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public Object[] generalize(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
+            @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         assert !ArrayGuards.isObjectArray(array);
-        final ArrayMirror mirror = strategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
         final int capacity;
-        if (extendProfile.profile(mirror.getLength() < requiredCapacity)) {
-            capacity = ArrayUtils.capacity(getContext(), mirror.getLength(), requiredCapacity);
+        final int length = capacityNode.execute(store);
+        if (extendProfile.profile(length < requiredCapacity)) {
+            capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
         } else {
-            capacity = mirror.getLength();
+            capacity = length;
         }
-        final Object[] store = mirror.getBoxedCopy(capacity);
-        strategy.setStore(array, store);
-        return store;
+        final Object[] newStore = boxedCopyNode.execute(store, capacity);
+        strategy.setStore(array, newStore);
+        return newStore;
     }
 
 }

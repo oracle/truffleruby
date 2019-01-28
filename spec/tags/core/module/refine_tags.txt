@@ -1,0 +1,2 @@
+fails:Module#refine for methods accessed indirectly is not honored by Kernel#public_send
+fails:Module#refine for methods accessed indirectly is not honored by &

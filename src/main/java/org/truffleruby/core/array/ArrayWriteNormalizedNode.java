@@ -20,6 +20,8 @@ import org.truffleruby.language.RubyBaseNode;
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
+import org.truffleruby.Layouts;
+
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
@@ -32,8 +34,9 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             "isInBounds(array, index)", "strategy.matches(array)", "strategy.accepts(value)"
     }, limit = "STORAGE_STRATEGIES")
     public Object writeWithin(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy strategy) {
-        strategy.newMirror(array).set(index, value);
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+        setNode.execute(Layouts.ARRAY.getStore(array), index, value);
         return value;
     }
 
@@ -46,13 +49,17 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy currentStrategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
-            @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy) {
+            @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
+            @Cached("currentStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
+            @Cached("currentStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+            @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
         final int size = getSize(array);
-        final ArrayMirror currentMirror = currentStrategy.newMirror(array);
-        final ArrayMirror storeMirror = generalizedStrategy.newArray(currentMirror.getLength());
-        currentMirror.copyTo(storeMirror, 0, 0, size);
-        storeMirror.set(index, value);
-        generalizedStrategy.setStore(array, storeMirror.getArray());
+        final Object store = Layouts.ARRAY.getStore(array);
+        final Object newStore = newStoreNode.execute(capacityNode.execute(store));
+        copyToNode.execute(store, newStore, 0, 0, size);
+        setNode.execute(newStore, index, value);
+        generalizedStrategy.setStore(array, newStore);
         return value;
     }
 
@@ -89,13 +96,14 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeBeyondObject(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+            @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
             @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final ArrayMirror store = mutableStrategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
         for (int n = strategy.getSize(array); n < index; n++) {
-            store.set(n, nil());
+            setNode.execute(store, n, nil());
         }
-        store.set(index, value);
+        setNode.execute(store, index, value);
         setSize(array, index + 1);
         return value;
     }

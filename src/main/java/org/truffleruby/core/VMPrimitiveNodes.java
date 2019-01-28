@@ -218,10 +218,11 @@ public abstract class VMPrimitiveNodes {
         public DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
                 @Cached("createBinaryProfile()") ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-            if (reRaiseProfile.profile(backtrace != null && backtrace.getTruffleException() != null)) {
-                // We need to rethrow the existing TruffleException, otherwise we would lose the
+            if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
+                // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
-                throw (RaiseException) backtrace.getTruffleException();
+                assert backtrace.getRaiseException().getException() == exception;
+                throw backtrace.getRaiseException();
             } else {
                 throw new RaiseException(getContext(), exception, internal);
             }
@@ -229,10 +230,10 @@ public abstract class VMPrimitiveNodes {
 
         public static void reRaiseException(RubyContext context, DynamicObject exception) {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-            if (backtrace != null && backtrace.getTruffleException() != null) {
-                // We need to rethrow the existing TruffleException, otherwise we would lose the
+            if (backtrace != null && backtrace.getRaiseException() != null) {
+                // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
-                throw (RaiseException) backtrace.getTruffleException();
+                throw backtrace.getRaiseException();
             } else {
                 throw new RaiseException(context, exception, false);
             }

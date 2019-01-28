@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.cext;
 
 import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
@@ -5,6 +14,7 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -28,54 +38,54 @@ public abstract class WrapNode extends RubyBaseNode {
     public abstract TruffleObject execute(Object value);
 
     @Specialization
-    public DynamicObject wrapLong(long value,
+    public ValueWrapper wrapLong(long value,
             @Cached("create()") BranchProfile smallFixnumProfile) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
             long val = (value << 1) | LONG_TAG;
-            return Layouts.VALUE_WRAPPER.createValueWrapper(value, val);
+            return new ValueWrapper(value, val);
         } else {
             return getContext().getValueWrapperManager().longWrapper(value);
         }
     }
 
     @Specialization
-    public DynamicObject wrapDouble(double value) {
+    public ValueWrapper wrapDouble(double value) {
         return getContext().getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
-    public DynamicObject wrapBoolean(boolean value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
+    public ValueWrapper wrapBoolean(boolean value) {
+        return new ValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
     }
 
     @Specialization
-    public DynamicObject wrapUndef(NotProvided value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNDEF_HANDLE);
+    public ValueWrapper wrapUndef(NotProvided value) {
+        return new ValueWrapper(value, UNDEF_HANDLE);
     }
 
-    @Specialization(guards = "isWrapped(value)")
-    public DynamicObject wrapWrappedValue(DynamicObject value) {
+    @Specialization
+    public ValueWrapper wrapWrappedValue(ValueWrapper value) {
         throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
     @Specialization(guards = "isNil(value)")
-    public DynamicObject wrapNil(DynamicObject value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(nil(), NIL_HANDLE);
+    public ValueWrapper wrapNil(DynamicObject value) {
+        return new ValueWrapper(nil(), NIL_HANDLE);
     }
 
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
-    public DynamicObject wrapValue(DynamicObject value,
+    public ValueWrapper wrapValue(DynamicObject value,
             @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
             @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode,
             @Cached("create()") BranchProfile noHandleProfile) {
-        DynamicObject wrapper = (DynamicObject) readWrapperNode.execute(value);
+        ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value);
         if (wrapper == null) {
             noHandleProfile.enter();
             synchronized (value) {
-                wrapper = (DynamicObject) readWrapperNode.execute(value);
+                wrapper = (ValueWrapper) readWrapperNode.execute(value);
                 if (wrapper == null) {
-                    wrapper = ValueWrapperObjectType.createValueWrapper(value);
+                    wrapper = new ValueWrapper(value, UNSET_HANDLE);
                     writeWrapperNode.write(value, wrapper);
                 }
             }
@@ -94,10 +104,6 @@ public abstract class WrapNode extends RubyBaseNode {
 
     public WriteObjectFieldNode createWriter() {
         return WriteObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER);
-    }
-
-    public boolean isWrapped(TruffleObject value) {
-        return ValueWrapperObjectType.isInstance(value);
     }
 
 }

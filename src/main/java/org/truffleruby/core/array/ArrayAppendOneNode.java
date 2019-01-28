@@ -39,19 +39,23 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject appendOneSameType(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
+            @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
+            @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final ArrayMirror storeMirror = strategy.newMirror(array);
+        final Object store = Layouts.ARRAY.getStore(array);
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
+        final int length = capacityNode.execute(store);
 
-        if (extendProfile.profile(newSize > storeMirror.getLength())) {
-            final int capacity = ArrayUtils.capacityForOneMore(getContext(), storeMirror.getLength());
-            final ArrayMirror newStoreMirror = storeMirror.copyArrayAndMirror(capacity);
-            newStoreMirror.set(oldSize, value);
-            strategy.setStore(array, newStoreMirror.getArray());
+        if (extendProfile.profile(newSize > length)) {
+            final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
+            final Object newStore = copyStoreNode.execute(store, capacity);
+            setNode.execute(newStore, oldSize, value);
+            strategy.setStore(array, newStore);
             setSize(array, newSize);
         } else {
-            storeMirror.set(oldSize, value);
+            setNode.execute(store, oldSize, value);
             setSize(array, newSize);
         }
         return array;
@@ -65,17 +69,21 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     public DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
-            @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy) {
+            @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
+            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
+            @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+            @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
         assert strategy != valueStrategy;
         final int oldSize = strategy.getSize(array);
         final int newSize = oldSize + 1;
-        final ArrayMirror currentMirror = strategy.newMirror(array);
-        final int oldCapacity = currentMirror.getLength();
+        final Object currentStore = Layouts.ARRAY.getStore(array);
+        final int oldCapacity = capacityNode.execute(currentStore);
         final int newCapacity = newSize > oldCapacity ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity) : oldCapacity;
-        final ArrayMirror storeMirror = generalizedStrategy.newArray(newCapacity);
-        currentMirror.copyTo(storeMirror, 0, 0, oldSize);
-        storeMirror.set(oldSize, value);
-        generalizedStrategy.setStore(array, storeMirror.getArray());
+        final Object newStore = newStoreNode.execute(newCapacity);
+        copyToNode.execute(currentStore, newStore, 0, 0, oldSize);
+        setNode.execute(newStore, oldSize, value);
+        generalizedStrategy.setStore(array, newStore);
         setSize(array, newSize);
         return array;
     }

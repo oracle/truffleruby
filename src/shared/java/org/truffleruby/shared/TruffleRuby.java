@@ -23,7 +23,7 @@ public class TruffleRuby {
     public static final String LANGUAGE_BASE_VERSION = "2.4.0"; // From RbConfig::CONFIG["ruby_version"]
     public static final int LANGUAGE_REVISION = 63013;
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
-    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2018 Oracle and/or its affiliates";
+    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
 
     public static String getVersionString(boolean isAOT) {

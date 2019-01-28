@@ -9,6 +9,14 @@
  */
 package org.truffleruby.core.format.read.array;
 
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
+import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.convert.ToDoubleNode;
+import org.truffleruby.core.format.convert.ToDoubleNodeGen;
+import org.truffleruby.core.format.read.SourceNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -16,13 +24,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.convert.ToDoubleNode;
-import org.truffleruby.core.format.convert.ToDoubleNodeGen;
-import org.truffleruby.core.format.read.SourceNode;
 
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),
@@ -55,13 +56,14 @@ public abstract class ReadDoubleNode extends FormatNode {
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
     public Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy) {
+            @Cached("ofStore(source)") ArrayStrategy strategy,
+            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         if (toDoubleNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toDoubleNode = insert(ToDoubleNodeGen.create(null));
         }
 
-        return toDoubleNode.executeToDouble(frame, strategy.newMirrorFromStore(source).get(advanceSourcePosition(frame)));
+        return toDoubleNode.executeToDouble(frame, getNode.execute(source, advanceSourcePosition(frame)));
     }
 
 }

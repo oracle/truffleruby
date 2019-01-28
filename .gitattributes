@@ -7,7 +7,10 @@
 # and a whole lot of actually vendored code isn't listed! What we want to do is
 # make the stats accurate for what is actually runtime code.
 
-# Ignore everything that isn't actually runtime code
+# Note that changes to this file have to be *committed* for github-linguist to
+# notice them.
+
+# Non-runtime code
 
 /bench/* linguist-vendored
 /bin/* linguist-vendored
@@ -23,22 +26,22 @@
 /lib/json/tools/* linguist-vendored
 /src/main/c/Makefile linguist-vendored
 /src/main/c/truffleposix/Makefile linguist-vendored
+/lib/ruby/gems/*/gems/*/bin/setup linguist-vendored
+/lib/truffle/post_install_hook.sh linguist-vendored
+/src/test/* linguist-vendored
+/src/processor/* linguist-vendored
 
-# Some things that I just want to ignore as it skews things
-
-/lib/ruby/gems/2.3.0/gems/net-telnet-0.1.1/bin/setup linguist-vendored
-
-# Ignore generated code
+# Generated code
 
 /src/main/java/org/truffleruby/parser/parser/RubyParser.java linguist-generated
 
-# Ignore templates
+# templates
 
 /lib/mri/rdoc/generator/template/* linguist-vendored
 
-# Ignore extra documentation
+# Documentation
 
-/lib/ruby/gems/2.3.0/gems/rake-10.4.2/doc/rake.1 linguist-documentation
+/lib/ruby/gems/*/gems/*/doc/* linguist-documentation
 
 # All our headers are C - don't magically work out they're ObjectiveC or C++
 

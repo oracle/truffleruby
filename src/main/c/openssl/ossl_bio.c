@@ -9,8 +9,6 @@
  */
 #include "ossl.h"
 
-#ifndef TRUFFLERUBY
-
 BIO *
 ossl_obj2bio(volatile VALUE *pobj)
 {
@@ -26,8 +24,6 @@ ossl_obj2bio(volatile VALUE *pobj)
     *pobj = obj;
     return bio;
 }
-
-#endif
 
 VALUE
 ossl_membio2str0(BIO *bio)

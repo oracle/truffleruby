@@ -1415,6 +1415,67 @@ public abstract class BigDecimalNodes {
 
     }
 
+    @CoreMethod(names = "to_r")
+    public abstract static class ToRNode extends BigDecimalCoreMethodArrayArgumentsNode {
+
+        @Child private CallDispatchHeadNode createRationalNode = CallDispatchHeadNode.createPrivate();
+
+        @Specialization(guards = "isNormal(value)")
+        public Object toR(DynamicObject value,
+                @Cached("new()") FixnumOrBignumNode numeratorConversionNode,
+                @Cached("new()") FixnumOrBignumNode denominatorConversionNode) {
+            final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value);
+
+            final BigInteger numerator = getNumerator(bigDecimalValue);
+            final BigInteger denominator = getDenominator(bigDecimalValue);
+
+            final Object numeratorAsRubyValue = numeratorConversionNode.fixnumOrBignum(numerator);
+            final Object denominatorAsRubyValue = denominatorConversionNode.fixnumOrBignum(denominator);
+
+            return createRationalNode.call(getContext().getCoreLibrary().getRationalClass(), "convert",
+                    numeratorAsRubyValue, denominatorAsRubyValue);
+        }
+
+        @Specialization(guards = "!isNormal(value)")
+        public Object toRSpecial(
+                DynamicObject value,
+                @Cached("create()") BranchProfile negInfinityProfile,
+                @Cached("create()") BranchProfile posInfinityProfile,
+                @Cached("create()") BranchProfile negZeroProfile,
+                @Cached("create()") BranchProfile nanProfile) {
+            final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
+
+            switch (type) {
+                case NEGATIVE_INFINITY:
+                    negInfinityProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNegInfinity(this));
+                case POSITIVE_INFINITY:
+                    posInfinityProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
+                case NAN:
+                    nanProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
+                case NEGATIVE_ZERO:
+                    negZeroProfile.enter();
+                    return createRationalNode.call(getContext().getCoreLibrary().getRationalClass(), "convert", 0, 1);
+                default:
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+            }
+        }
+
+        @TruffleBoundary
+        private BigInteger getNumerator(BigDecimal value) {
+            return value.scaleByPowerOfTen(value.scale()).toBigInteger();
+        }
+
+        @TruffleBoundary
+        private BigInteger getDenominator(BigDecimal value) {
+            return BigInteger.TEN.pow(value.scale());
+        }
+
+    }
+
     @NonStandard
     @CoreMethod(names = "unscaled", visibility = Visibility.PRIVATE)
     public abstract static class UnscaledNode extends BigDecimalCoreMethodArrayArgumentsNode {
