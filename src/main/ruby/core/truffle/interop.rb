@@ -224,7 +224,7 @@ module Truffle
           "#<Java class #{object.class.getName}>"
         elsif object.respond_to?(:size)
           "#<Java:#{hash_code} #{to_array(object).inspect}>"
-        elsif object.is_a?(::Java.type('java.util.Map'))
+        elsif is_java_map?(object)
           "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
         else
           "#<Java:#{hash_code} object #{object.getClass.getName}>"
@@ -283,6 +283,13 @@ module Truffle
     def self.from_java_array(array)
       to_array(array)
     end
+
+    def self.is_java_map?(object)
+      object.is_a?(::Java.type('java.util.Map'))
+    rescue RuntimeError
+      false
+    end
+    private_class_method :is_java_map?
 
     def self.pairs_from_java_map(map)
       enumerable(map.entrySet.toArray).map do |key_value|
