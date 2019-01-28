@@ -288,13 +288,13 @@ class Rational < Numeric
     end
   end
 
-  def self.convert(num, den, mathn = true)
+  def self.convert(num, den)
     if num.equal?(nil) || den.equal?(nil)
       raise TypeError, 'cannot convert nil into Rational'
     end
 
     if Integer === num && Integer === den
-      return reduce(num, den, mathn)
+      return reduce(num, den)
     end
 
     case num
@@ -322,7 +322,7 @@ class Rational < Numeric
   end
   private_class_method :convert
 
-  def self.reduce(num, den, mathn = true)
+  def self.reduce(num, den)
     case num
     when Integer
       # nothing
@@ -342,7 +342,7 @@ class Rational < Numeric
       end
 
       if den == 1
-        return (mathn && Truffle::Platform.mathn_loaded?) ? num : new(num, den)
+        return new(num, den)
       end
     when Numeric
       den = den.to_i
@@ -353,8 +353,6 @@ class Rational < Numeric
     gcd = num.gcd(den)
     num = num / gcd
     den = den / gcd
-
-    return num if mathn && Truffle::Platform.mathn_loaded? && den == 1
 
     new(num, den)
   end
