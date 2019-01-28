@@ -65,6 +65,17 @@ class MSpecScript
     "spec/ruby/core",
   ]
 
+  # Specs that need Sulong and should be tested in the Sulong gate
+  library_cext_specs = %w[
+    spec/ruby/library/etc
+    spec/ruby/library/openssl
+    spec/ruby/library/rbconfig/sizeof
+    spec/ruby/library/syslog
+    spec/ruby/library/yaml
+    spec/ruby/library/zlib
+    spec/ruby/security/cve_2017_17742_spec.rb
+  ]
+
   set :library, [
     "spec/ruby/library",
 
@@ -78,23 +89,10 @@ class MSpecScript
     "^spec/ruby/library/win32ole",
 
     # Tested separately as they need Sulong
-    "^spec/ruby/library/etc",
-    "^spec/ruby/library/openssl",
-    "^spec/ruby/library/rbconfig/sizeof",
-    "^spec/ruby/library/syslog",
-    "^spec/ruby/library/yaml",
-    "^spec/ruby/library/zlib",
+    *library_cext_specs.map { |path| "^#{path}" }
   ]
 
-  set :library_cext, [
-    "spec/ruby/library/etc",
-    "spec/ruby/library/openssl",
-    "spec/ruby/library/rbconfig/sizeof",
-    "spec/ruby/library/syslog",
-    "spec/ruby/library/yaml",
-    "spec/ruby/library/zlib",
-    "spec/ruby/security/cve_2017_17742_spec.rb",
-  ]
+  set :library_cext, library_cext_specs
 
   set :capi, [
     "spec/ruby/optional/capi"
