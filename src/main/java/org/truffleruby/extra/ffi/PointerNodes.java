@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra.ffi;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -32,8 +33,10 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -261,28 +264,39 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_string_to_null")
     public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
 
+        @Child private AllocateObjectNode allocateObjectNode;
+
         @Specialization(guards = "address == 0")
-        public DynamicObject readNullPointer(long address, long length,
-                                             @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+        public DynamicObject readNullPointer(long address, long length) {
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
         @Specialization(guards = "address != 0")
         public DynamicObject readStringToNull(long address, long length,
-                                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, length);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
         }
 
         @Specialization(guards = { "address != 0", "isNil(noLength)" })
         public DynamicObject readStringToNull(long address, DynamicObject noLength,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+        }
+
+        private DynamicObject allocate(DynamicObject object, Object[] values) {
+            if (allocateObjectNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                allocateObjectNode = insert(AllocateObjectNode.create());
+            }
+            return allocateObjectNode.allocate(object, values);
         }
 
     }
@@ -293,16 +307,18 @@ public abstract class PointerNodes {
         @Specialization
         public DynamicObject readBytes(long address, int length,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return makeStringNode.fromRope(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
                 ptr.readBytes(0, bytes, 0, length);
-                return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
             }
         }
 
