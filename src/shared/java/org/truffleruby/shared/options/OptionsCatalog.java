@@ -206,6 +206,11 @@ public class OptionsCatalog {
             "Use the pre-initialized context when available",
             null,
             true);
+    public static final BooleanOptionDescription HOST_INTEROP = new BooleanOptionDescription(
+            "ruby.interop.host",
+            "Allow interoperability with the host language (Java)",
+            null,
+            true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription(
             "ruby.trace.calls",
             "Support tracing (set_trace_func, TracePoint) of method calls",
@@ -725,6 +730,8 @@ public class OptionsCatalog {
                 return CEXT_LOCK;
             case "ruby.preinit":
                 return PREINITIALIZATION;
+            case "ruby.interop.host":
+                return HOST_INTEROP;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":
@@ -972,6 +979,7 @@ public class OptionsCatalog {
             INTERNAL_ENCODING,
             INTEROP_CONVERT_CACHE,
             INTEROP_EXECUTE_CACHE,
+            HOST_INTEROP,
             INTEROP_INVOKE_CACHE,
             INTEROP_NEW_CACHE,
             IS_A_CACHE,

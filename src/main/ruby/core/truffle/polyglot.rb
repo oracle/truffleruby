@@ -32,10 +32,8 @@ module Polyglot
 
 end
 
-unless TruffleRuby.native?
-
+if Truffle::Boot.get_option('interop.host')
   module Java
-
     def self.type(name)
       Truffle::Interop.java_type(name)
     end
@@ -70,7 +68,5 @@ unless TruffleRuby.native?
     module JavaLang
       class Throwable; end
     end
-
   end
-
 end

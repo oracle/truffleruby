@@ -40,6 +40,7 @@ SINGLE_THREADED: [single_threaded, boolean, ['!env.isCreateThreadAllowed() || ',
 POLYGLOT_STDIO: [polyglot.stdio, boolean, EMBEDDED || !NATIVE_PLATFORM, Use standard IO streams from the Graal-SDK polyglot API configuration]
 CEXT_LOCK: [cexts.lock, boolean, true, Use a Global Lock when running C extensions]
 PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
+HOST_INTEROP: [interop.host, boolean, ['env.isHostLookupAllowed() && ', true], Allow interoperability with the host language (Java)]
 
 TRACE_CALLS: [trace.calls, boolean, true, 'Support tracing (set_trace_func, TracePoint) of method calls']
 COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and print results on exit]
