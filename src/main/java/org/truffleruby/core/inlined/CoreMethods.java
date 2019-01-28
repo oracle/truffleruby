@@ -149,7 +149,8 @@ public class CoreMethods {
         int n = 1 /* self */ + args.length;
 
         if (callParameters.getBlock() != null) {
-            if (callParameters.getMethodName().equals("lambda") && callParameters.isIgnoreVisibility() && callParameters.getBlock() instanceof BlockDefinitionNode) {
+            if (callParameters.getMethodName().equals("lambda") && callParameters.isIgnoreVisibility() &&
+                    n == 1 && callParameters.getBlock() instanceof BlockDefinitionNode) {
                 return InlinedLambdaNodeGen.create(context, callParameters, self, callParameters.getBlock());
             } else {
                 // The calls below should all not be given a block
