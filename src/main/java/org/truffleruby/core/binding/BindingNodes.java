@@ -445,47 +445,11 @@ public abstract class BindingNodes {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
-        public abstract DynamicObject executeBinding(VirtualFrame frame);
-
         @Specialization
         public DynamicObject binding(VirtualFrame frame) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
             return BindingNodes.createBinding(getContext(), callerFrame);
-        }
-    }
-
-    @Primitive(name = "caller_binding_with_source_location_from_caller", needsSelf = false)
-    public abstract static class CallerBindingWithSourceLocationFromCallerNode extends PrimitiveArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-
-        public abstract DynamicObject executeBinding(VirtualFrame frame);
-
-        @Specialization(guards = "isCloningEnabled()")
-        protected DynamicObject bindingCached(VirtualFrame frame,
-                @Cached("getCallerSourceSection()") SourceSection cachedSourceSection) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-
-            return BindingNodes.createBinding(getContext(), callerFrame, cachedSourceSection);
-        }
-
-        @Specialization
-        protected DynamicObject bindingUncached(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-            final SourceSection sourceSection = getCallerSourceSection();
-
-            return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
-        }
-
-        @TruffleBoundary
-        protected SourceSection getCallerSourceSection() {
-            // TODO: ignore #send
-            return getContext().getCallStack().getCallerNode(0, true).getEncapsulatingSourceSection();
-        }
-
-        protected boolean isCloningEnabled() {
-            return coreLibrary().isCloningEnabled();
         }
     }
 

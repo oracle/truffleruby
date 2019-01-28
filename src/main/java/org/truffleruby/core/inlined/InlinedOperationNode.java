@@ -18,6 +18,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class InlinedOperationNode extends RubyNode {
 
@@ -39,6 +40,10 @@ public abstract class InlinedOperationNode extends RubyNode {
 
     protected abstract RubyNode[] getArgumentNodes();
 
+    protected RubyNode getBlockNode() {
+        return callNodeParameters.getBlock();
+    }
+
     private RubyCallNode rewriteToCallNode() {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         return atomic(() -> {
@@ -48,7 +53,7 @@ public abstract class InlinedOperationNode extends RubyNode {
             if (found) {
                 // We need to pass the updated children of this node to the call node
                 RubyCallNode callNode = new RubyCallNode(callNodeParameters.withReceiverAndArguments(
-                        getReceiverNode(), getArgumentNodes(), callNodeParameters.getBlock()));
+                        getReceiverNode(), getArgumentNodes(), getBlockNode()));
                 callNode.unsafeSetSourceSection(getSourceIndexLength());
                 replacedBy = callNode;
                 return replace(callNode, this + " could not be executed inline");
@@ -59,7 +64,11 @@ public abstract class InlinedOperationNode extends RubyNode {
     }
 
     protected Object rewriteAndCall(VirtualFrame frame, Object receiver, Object... arguments) {
-        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, null, arguments);
+        return rewriteAndCallWithBlock(frame, receiver, null, arguments);
+    }
+
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, DynamicObject block, Object... arguments) {
+        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
     }
 
     protected CoreMethods coreMethods() {

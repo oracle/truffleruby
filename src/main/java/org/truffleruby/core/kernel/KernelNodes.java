@@ -79,7 +79,6 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
-import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -259,6 +258,27 @@ public abstract class KernelNodes {
             } else {
                 return nil();
             }
+        }
+
+    }
+
+    @CoreMethod(names = "binding", isModuleFunction = true)
+    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
+
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+
+        @Specialization
+        protected DynamicObject bindingUncached(VirtualFrame frame) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final SourceSection sourceSection = getCallerSourceSection();
+
+            return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
+        }
+
+        @TruffleBoundary
+        protected SourceSection getCallerSourceSection() {
+            // TODO: ignore #send
+            return getContext().getCallStack().getCallerNode(0, true).getEncapsulatingSourceSection();
         }
 
     }
@@ -1006,31 +1026,9 @@ public abstract class KernelNodes {
             }
         }
 
-        @Specialization(guards = {"isCloningEnabled()", "isLiteralBlock"})
-        public DynamicObject lambdaFromBlockCloning(DynamicObject block,
-                        @Cached("isLiteralBlock(block)") boolean isLiteralBlock) {
-            return lambdaFromBlock(block);
-        }
-
-        @Specialization(guards = {"isCloningEnabled()", "!isLiteralBlock"})
-        public DynamicObject lambdaFromExistingProcCloning(DynamicObject block,
-                        @Cached("isLiteralBlock(block)") boolean isLiteralBlock) {
-            return block;
-        }
-
         @Specialization(guards = "isLiteralBlock(block)")
         public DynamicObject lambdaFromBlock(DynamicObject block) {
-            return ProcOperations.createRubyProc(
-                            coreLibrary().getProcFactory(),
-                            ProcType.LAMBDA,
-                            Layouts.PROC.getSharedMethodInfo(block),
-                            Layouts.PROC.getCallTargetForLambdas(block),
-                            Layouts.PROC.getCallTargetForLambdas(block),
-                            Layouts.PROC.getDeclarationFrame(block),
-                            Layouts.PROC.getMethod(block),
-                            Layouts.PROC.getBlock(block),
-                            null,
-                            Layouts.PROC.getDeclarationContext(block));
+            return ProcOperations.createLambdaFromBlock(getContext(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
@@ -1063,9 +1061,6 @@ public abstract class KernelNodes {
             warnNode.warningMessage(sourceSection, "tried to create Proc object without a block");
         }
 
-        protected boolean isCloningEnabled() {
-            return coreLibrary().isCloningEnabled();
-        }
     }
 
     @CoreMethod(names = "__method__", isModuleFunction = true)
