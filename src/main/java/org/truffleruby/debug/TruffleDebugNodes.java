@@ -443,17 +443,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_null", onSingleton = true)
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignNull implements TruffleObject {
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignNullMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
         @MessageResolution(receiverType = ForeignNull.class)
-        public static class ForeignNullMessageResolution {
+        public static class ForeignNull implements TruffleObject {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -465,12 +456,17 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_NULL")
-            public static abstract class ForeignIsNullNode extends Node {
+            public static abstract class IsNullNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignNull noll) {
                     return true;
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignNullForeign.ACCESS;
             }
 
         }
@@ -486,6 +482,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_pointer", required = 1, onSingleton = true)
     public abstract static class ForeignPointerNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignPointer.class)
         public static class ForeignPointer implements TruffleObject {
 
             private final long address;
@@ -498,16 +495,6 @@ public abstract class TruffleDebugNodes {
                 return address;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignPointerMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignPointer.class)
-        public static class ForeignPointerMessageResolution {
-
             @CanResolve
             public abstract static class Check extends Node {
 
@@ -518,7 +505,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_POINTER")
-            public static abstract class ForeignIsPointerNode extends Node {
+            public static abstract class IsPointerNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignPointer pointer) {
                     return true;
@@ -527,12 +514,17 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "AS_POINTER")
-            public static abstract class ForeignAsPointerNode extends Node {
+            public static abstract class AsPointerNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignPointer pointer) {
                     return pointer.getAddress();
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignPointerForeign.ACCESS;
             }
 
         }
@@ -548,17 +540,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object",  onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignObject implements TruffleObject {
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
         @MessageResolution(receiverType = ForeignObject.class)
-        public static class ForeignObjectMessageResolution {
+        public static class ForeignObject implements TruffleObject {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -570,12 +553,17 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_BOXED")
-            public static abstract class ForeignIsBoxedNode extends Node {
+            public static abstract class IsBoxedNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignObject number) {
                     return false;
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignObjectForeign.ACCESS;
             }
 
         }
@@ -592,6 +580,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
     public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignObjectFromMap.class)
         public static class ForeignObjectFromMap implements TruffleObject {
 
             private final Map map;
@@ -600,19 +589,9 @@ public abstract class TruffleDebugNodes {
                 this.map = map;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectFromMapMessageResolutionForeign.ACCESS;
-            }
-
             public Map getMap() {
                 return map;
             }
-        }
-
-
-        @MessageResolution(receiverType = ForeignObjectFromMap.class)
-        public static class ForeignObjectFromMapMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -624,7 +603,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "KEYS")
-            public static abstract class ForeignKeysNode extends Node {
+            public static abstract class KeysNode extends Node {
 
                 @CompilationFinal private ContextReference<RubyContext> contextReference;
 
@@ -645,13 +624,18 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "READ")
-            public static abstract class ForeignReadNode extends Node {
+            public static abstract class ReadNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignObjectFromMap object, Object key) {
                     final Map map = object.getMap();
                     return map.get(key);
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignObjectFromMapForeign.ACCESS;
             }
 
         }
@@ -667,6 +651,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_array_from_java", required = 1, onSingleton = true)
     public abstract static class ForeignArrayFromJavaNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignArrayFromJava.class)
         public static class ForeignArrayFromJava implements TruffleObject {
 
             private final Object[] array;
@@ -675,19 +660,9 @@ public abstract class TruffleDebugNodes {
                 this.array = array;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignForeignArrayFromJavaMessageResolutionForeign.ACCESS;
-            }
-
             public Object[] getArray() {
                 return array;
             }
-        }
-
-
-        @MessageResolution(receiverType = ForeignArrayFromJava.class)
-        public static class ForeignForeignArrayFromJavaMessageResolution {
 
             @CanResolve
             public abstract static class Check extends Node {
@@ -699,7 +674,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "HAS_SIZE")
-            public static abstract class ForeignHasSizeNode extends Node {
+            public static abstract class HasSizeNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
                     return true;
@@ -708,7 +683,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "GET_SIZE")
-            public static abstract class ForeignSizeNode extends Node {
+            public static abstract class SizeNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
                     final Object[] array = object.getArray();
@@ -718,13 +693,18 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "READ")
-            public static abstract class ForeignReadNode extends Node {
+            public static abstract class ReadNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignArrayFromJava object, Object key) {
                     final Object[] array = object.getArray();
                     return array[(int) key];
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignArrayFromJavaForeign.ACCESS;
             }
 
         }
@@ -751,6 +731,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)
     public abstract static class ForeignExecutableNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignExecutable.class)
         public static class ForeignExecutable implements TruffleObject {
 
             private final Object value;
@@ -763,16 +744,6 @@ public abstract class TruffleDebugNodes {
                 return value;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignExecutableMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignExecutable.class)
-        public static class ForeignExecutableMessageResolution {
-
             @CanResolve
             public abstract static class Check extends Node {
 
@@ -783,7 +754,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_EXECUTABLE")
-            public static abstract class ForeignIsExecutableNode extends Node {
+            public static abstract class IsExecutableNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignExecutable executable) {
                     return true;
@@ -792,12 +763,17 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "EXECUTE")
-            public static abstract class ForeignExecuteNode extends Node {
+            public static abstract class ExecuteNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignExecutable executable, Object... arguments) {
                     return executable.getValue();
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignExecutableForeign.ACCESS;
             }
 
         }
@@ -813,6 +789,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
 
+        @MessageResolution(receiverType = ForeignString.class)
         public static class ForeignString implements TruffleObject {
 
             private final String string;
@@ -825,16 +802,6 @@ public abstract class TruffleDebugNodes {
                 return string;
             }
 
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignStringMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
-        @MessageResolution(receiverType = ForeignString.class)
-        public static class ForeignStringMessageResolution {
-
             @CanResolve
             public abstract static class Check extends Node {
 
@@ -845,7 +812,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "IS_BOXED")
-            public static abstract class ForeignIsBoxedNode extends Node {
+            public static abstract class IsBoxedNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignString string) {
                     return true;
@@ -854,12 +821,17 @@ public abstract class TruffleDebugNodes {
             }
 
             @Resolve(message = "UNBOX")
-            public static abstract class ForeignUnboxNode extends Node {
+            public static abstract class UnboxNode extends Node {
 
                 protected Object access(VirtualFrame frame, ForeignString string) {
                     return string.getString();
                 }
 
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignStringForeign.ACCESS;
             }
 
         }

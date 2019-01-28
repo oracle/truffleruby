@@ -22,7 +22,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 
-abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
+public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Child private DoesRespondDispatchHeadNode definedNode;
     @Child private DoesRespondDispatchHeadNode indexDefinedNode;

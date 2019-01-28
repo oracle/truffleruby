@@ -17,7 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyObjectType;
+import org.truffleruby.interop.RubyObjectType;
 
 @ImportStatic(ShapeCachingGuards.class)
 public abstract class MetaClassNode extends RubyBaseNode {

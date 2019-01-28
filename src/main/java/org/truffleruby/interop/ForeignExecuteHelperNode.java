@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.yield.YieldNode;
 
-abstract class ForeignExecuteHelperNode extends RubyBaseNode {
+public abstract class ForeignExecuteHelperNode extends RubyBaseNode {
 
     public abstract Object executeCall(Object receiver, Object[] arguments);
 
