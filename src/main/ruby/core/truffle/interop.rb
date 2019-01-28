@@ -217,28 +217,32 @@ module Truffle
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       if object.is_a?(String)
         object.inspect
-      elsif Truffle::Interop.java?(object) && object.nil?
-        +'#<Java null>'
-      elsif Truffle::Interop.java?(object) && object.respond_to?(:size)
-        "#<Java:#{hash_code} #{to_array(object).inspect}>"
-      elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
-        "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
-      elsif Truffle::Interop.java_class?(object)
-        "#<Java class #{object.class.getName}>"
       elsif Truffle::Interop.java?(object)
-        "#<Java:#{hash_code} object #{object.getClass.getName}>"
-      elsif Truffle::Interop.null?(object)
-        +'#<Foreign null>'
-      elsif Truffle::Interop.pointer?(object)
-        "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}>"
-      elsif Truffle::Interop.size?(object)
-        "#<Foreign:#{hash_code} #{to_array(object).inspect}>"
-      elsif Truffle::Interop.executable?(object)
-        "#<Foreign:#{hash_code} proc>"
-      elsif Truffle::Interop.keys?(object)
-        "#<Foreign:#{hash_code} #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}>"
+        if object.nil?
+          +'#<Java null>'
+        elsif object.respond_to?(:size)
+          "#<Java:#{hash_code} #{to_array(object).inspect}>"
+        elsif object.is_a?(::Java.type('java.util.Map'))
+          "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
+        elsif Truffle::Interop.java_class?(object)
+          "#<Java class #{object.class.getName}>"
+        else
+          "#<Java:#{hash_code} object #{object.getClass.getName}>"
+        end
       else
-        "#<Foreign:#{hash_code}>"
+        if Truffle::Interop.null?(object)
+          +'#<Foreign null>'
+        elsif Truffle::Interop.pointer?(object)
+          "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}>"
+        elsif Truffle::Interop.size?(object)
+          "#<Foreign:#{hash_code} #{to_array(object).inspect}>"
+        elsif Truffle::Interop.executable?(object)
+          "#<Foreign:#{hash_code} proc>"
+        elsif Truffle::Interop.keys?(object)
+          "#<Foreign:#{hash_code} #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}>"
+        else
+          "#<Foreign:#{hash_code}>"
+        end
       end
     end
 
