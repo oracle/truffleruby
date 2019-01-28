@@ -37,7 +37,7 @@ module JavaUtilities
         bucket << m
       end
       simple_arities = simple_arities.map { |k, methods| [k, CallableSelector.new(methods)] }.to_h
-      method = lambda do |*args|
+      method = -> *args do
         cs = simple_arities[args.size]
         target = cs.find_matching_callable_for_args(args)
         conn = target.converter(args)

@@ -22,7 +22,7 @@ class String
     lines = self.lines
     if lines.size > 1
       q.group(0, '', '') do
-        q.seplist(lines, lambda { q.text ' +'; q.breakable }) do |v|
+        q.seplist(lines, -> { q.text ' +'; q.breakable }) do |v|
           q.pp v
         end
       end
@@ -595,7 +595,7 @@ class TruffleTool
   def subcommand_setup(rest)
     bundle_options = @options[:global][:bundle_options].split(' ')
     offline        = @options[:setup][:offline]
-    execute_all    = lambda do |cmd|
+    execute_all    = -> cmd do
       case cmd
       when Proc
         cmd.call

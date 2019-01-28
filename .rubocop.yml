@@ -26,6 +26,11 @@ Style/TrailingWhitespace:
   StyleGuide: "#no-trailing-whitespace"
   Enabled: true
 
+# Supports --auto-correct
+Style/Lambda:
+  Description: Enforce -> {} style lambdas instead of Kernel#lamba.
+  EnforcedStyle: literal
+
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
   Description: Checks for ambiguous operators in the first argument of a method invocation

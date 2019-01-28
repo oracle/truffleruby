@@ -45,17 +45,17 @@ module JavaUtilities
     def fast_checker(a)
       a_class = a.class
       unless a.nil?
-        lambda { |x| x.class == a_class }
+        -> x { x.class == a_class }
       else
-        lambda { |x| x == nil }
+        -> x { x == nil }
       end
     end
 
     def fast_converter(a)
       if a.kind_of?(JavaProxyMethods)
-        lambda { |x| x.java_object }
+        -> x { x.java_object }
       else
-        lambda { |x| x }
+        -> x { x }
       end
     end
 
@@ -88,7 +88,7 @@ module JavaUtilities
 
     def initialize(range, type)
       @range = range
-      @checker = lambda { |x| x.is_a?(Integer) && range.include?(x) }
+      @checker = -> x { x.is_a?(Integer) && range.include?(x) }
       super(type)
     end
 
@@ -110,9 +110,9 @@ module JavaUtilities
 
     def fast_converter(a)
       if a == nil
-        lambda { |_| 0 }
+        -> _ { 0 }
       else
-        lambda { |x| x }
+        -> x { x }
       end
     end
   end
@@ -159,9 +159,9 @@ module JavaUtilities
 
     def fast_converter(a)
       if a == nil
-        lambda { |_| 0.0 }
+        -> _ { 0.0 }
       else
-        lambda { |x| x }
+        -> x { x }
       end
     end
   end
@@ -184,9 +184,9 @@ module JavaUtilities
 
     def fast_converter(a)
       if a
-        lambda { |_| true }
+        -> _ { true }
       else
-        lambda { |_| false }
+        -> _ { false }
       end
     end
   end
@@ -204,7 +204,7 @@ module JavaUtilities
     def fast_converter(a)
       case a
       when Hash
-        lambda { |x| HashProxy.new(x).java_object }
+        -> x { HashProxy.new(x).java_object }
       else
         super(a)
       end
@@ -219,9 +219,9 @@ module JavaUtilities
     def fast_converter(a)
       case a
       when String
-        lambda { |x| ::Truffle::Interop.to_java_string(x) }
+        -> x { ::Truffle::Interop.to_java_string(x) }
       when Symbol
-        lambda { |x| ::Truffle::Interop.to_java_string(x.to_s) }
+        -> x { ::Truffle::Interop.to_java_string(x.to_s) }
       else
         super(a)
       end
@@ -370,7 +370,7 @@ module JavaUtilities
       a_size = args.size
       checkers = Array.new(a_size)
       (0...a_size).each { |i| checkers[i] = params[i].fast_checker(args[i]) }
-      lambda { |a|
+      -> a {
         r = true
         (0...a_size).each { |i| r = r && checkers[i][a[i]] }
         r }
@@ -380,7 +380,7 @@ module JavaUtilities
       a_size = args.size
       converters = Array.new(a_size)
       (0...a_size).each { |i| converters[i] = params[i].fast_converter(args[i]) }
-      lambda { |a| (0...a_size).each { |i| a[i] = converters[i][a[i]] }; a }
+      -> a { (0...a_size).each { |i| a[i] = converters[i][a[i]] }; a }
     end
 
     private

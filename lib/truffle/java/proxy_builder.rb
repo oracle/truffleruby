@@ -89,10 +89,10 @@ module JavaUtilities
         name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
         is_const = JavaUtilities.constant_field?(f)
         const_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
-        getter = lambda { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
+        getter = -> { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
         if !JavaUtilities.final_field?(f)
           mh = JavaUtilities.unreflect_getter(f)
-          setter = lambda { |v|
+          setter = -> v {
             ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, v)) }
         end
         add_to_singleton(name, Field.new(name, getter, setter, is_const, const_val))
@@ -112,11 +112,11 @@ module JavaUtilities
         is_static = JavaUtilities.static_field?(f)
         return if is_static
         name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
-        getter = lambda {
+        getter = -> {
           ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object)) }
         if !JavaUtilities.final_field?(f)
           mh = JavaUtilities.unreflect_getter(f)
-          setter = lambda { |v|
+          setter = -> v {
             ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object, v)) }
         end
         add_to_instance(name, Field.new(name, getter, setter))
@@ -255,11 +255,11 @@ module JavaUtilities
                 else
                   :define_method
                 end
-      @dispatcher.method_for_dispatch lambda { |method|
+      @dispatcher.method_for_dispatch -> method {
         wrapped = if static
-                    lambda { |*args| method[*args] }
+                    -> *args { method[*args] }
                   else
-                    lambda { |*args| method[self, *args] }
+                    -> *args { method[self, *args] }
                   end
         a_proxy.__send__(message, @name, wrapped)
       }
