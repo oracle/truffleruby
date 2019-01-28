@@ -71,11 +71,11 @@ class MSpecScript
     # Not yet explored
     "^spec/ruby/library/mathn",
 
-    # Doesn't exist as Ruby code - basically need to write from scratch
-    "^spec/ruby/library/win32ole",
-
     # Hangs in CI
     "^spec/ruby/library/net",
+
+    # Unsupported
+    "^spec/ruby/library/win32ole",
 
     # Tested separately as they need Sulong
     "^spec/ruby/library/etc",

@@ -54,6 +54,8 @@ Process.respond_to?(:fork)
 
 #### Standard libraries
 
+`win32ole` is unsupported.
+
 Quite a few of the less commonly used standard libraries are currently not
 supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
