@@ -9,6 +9,7 @@ Bug fixes:
 * Fixed a bug where a raised cloned exception would be caught as the
   original exception (#1542).
 * Fixed a bug with `StringScanner` and patterns starting with `^` (#1544).
+* Fixed `Enumerable::Lazy#uniq` with infinite streams (#1516).
 
 Compatibility:
 
