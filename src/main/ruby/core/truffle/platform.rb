@@ -48,10 +48,6 @@ module Truffle::Platform
     IS_WINDOWS
   end
 
-  def self.mathn_loaded?
-    false
-  end
-
   def self.has_lchmod?
     bsd? || darwin?
   end
