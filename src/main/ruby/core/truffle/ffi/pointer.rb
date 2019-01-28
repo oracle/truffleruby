@@ -117,6 +117,12 @@ module Truffle::FFI
       raise 'FFI::Pointer#network_order not yet implemented'
     end
 
+    private def check_bounds(offset, length)
+      if offset < 0 || (@total && length > @total)
+        raise IndexError, "Memory access offset=#{offset} size=#{length} is out of bounds"
+      end
+    end
+
     def get_string(offset, length = nil)
       Truffle.invoke_primitive :pointer_read_string_to_null, address + offset, length
     end
@@ -150,6 +156,33 @@ module Truffle::FFI
     def write_string(str, len = nil)
       len = str.bytesize unless len
       put_bytes(0, str, 0, len)
+    end
+
+    def get_array_of_string(offset, count = nil)
+      if count
+        check_bounds(offset, count * SIZE)
+        Array.new(count) do |i|
+          ptr = get_pointer(offset + i * SIZE)
+          if ptr.null?
+            nil
+          else
+            ptr.read_string
+          end
+        end
+      else
+        check_bounds(offset, SIZE)
+        strings = []
+        i = 0
+        loop do
+          ptr = get_pointer(offset + i * SIZE)
+          if ptr.null?
+            return strings
+          else
+            strings << ptr.read_string
+          end
+          i += 1
+        end
+      end
     end
 
     def get_bytes(offset, length)
