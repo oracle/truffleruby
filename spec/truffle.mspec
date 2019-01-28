@@ -68,7 +68,7 @@ class MSpecScript
   set :library, [
     "spec/ruby/library",
 
-    # Not yet explored
+    # Issues with monkey patching breaking our core
     "^spec/ruby/library/mathn",
 
     # Hangs in CI
