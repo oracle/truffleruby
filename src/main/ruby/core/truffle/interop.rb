@@ -220,12 +220,12 @@ module Truffle
       elsif Truffle::Interop.java?(object)
         if object.nil?
           +'#<Java null>'
+        elsif Truffle::Interop.java_class?(object)
+          "#<Java class #{object.class.getName}>"
         elsif object.respond_to?(:size)
           "#<Java:#{hash_code} #{to_array(object).inspect}>"
         elsif object.is_a?(::Java.type('java.util.Map'))
           "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
-        elsif Truffle::Interop.java_class?(object)
-          "#<Java class #{object.class.getName}>"
         else
           "#<Java:#{hash_code} object #{object.getClass.getName}>"
         end
