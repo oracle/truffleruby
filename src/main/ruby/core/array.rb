@@ -805,7 +805,7 @@ class Array
     args.push self
 
     outer_lambda = args.inject(result.method(:push)) do |trigger, values|
-      lambda do |partial|
+      -> partial do
         values.each do |val|
           trigger.call(partial.dup << val)
         end

@@ -14,6 +14,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -83,6 +84,20 @@ public abstract class ProcOperations {
                 block,
                 frameOnStackMarker,
                 declarationContext));
+    }
+
+    public static DynamicObject createLambdaFromBlock(RubyContext context, DynamicObject block) {
+        return ProcOperations.createRubyProc(
+                context.getCoreLibrary().getProcFactory(),
+                ProcType.LAMBDA,
+                Layouts.PROC.getSharedMethodInfo(block),
+                Layouts.PROC.getCallTargetForLambdas(block),
+                Layouts.PROC.getCallTargetForLambdas(block),
+                Layouts.PROC.getDeclarationFrame(block),
+                Layouts.PROC.getMethod(block),
+                Layouts.PROC.getBlock(block),
+                null,
+                Layouts.PROC.getDeclarationContext(block));
     }
 
     public static Object getSelf(DynamicObject proc) {

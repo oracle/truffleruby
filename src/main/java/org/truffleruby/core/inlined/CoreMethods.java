@@ -18,6 +18,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 /**
@@ -66,6 +67,8 @@ public class CoreMethods {
 
     public final InternalMethod EXCEPTION_BACKTRACE;
     public final InternalMethod BLOCK_GIVEN;
+    public final InternalMethod LAMBDA;
+    public final InternalMethod BINDING;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
     public final InternalMethod STRING_BYTESIZE;
@@ -115,6 +118,8 @@ public class CoreMethods {
         nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
 
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
+        LAMBDA = getMethod(kernelModule, "lambda");
+        BINDING = getMethod(kernelModule, "binding");
         NOT = getMethod(basicObjectClass, "!");
         EXCEPTION_BACKTRACE = getMethod(exceptionClass, "backtrace");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
@@ -135,7 +140,7 @@ public class CoreMethods {
 
     public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
         if (!context.getOptions().BASICOPS_INLINE ||
-                callParameters.getBlock() != null || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
+                callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
         }
 
@@ -143,12 +148,27 @@ public class CoreMethods {
         final RubyNode[] args = callParameters.getArguments();
         int n = 1 /* self */ + args.length;
 
+        if (callParameters.getBlock() != null) {
+            if (callParameters.getMethodName().equals("lambda") && callParameters.isIgnoreVisibility() &&
+                    n == 1 && callParameters.getBlock() instanceof BlockDefinitionNode) {
+                return InlinedLambdaNodeGen.create(context, callParameters, self, callParameters.getBlock());
+            } else {
+                // The calls below should all not be given a block
+                return new RubyCallNode(callParameters);
+            }
+        }
+
         if (n == 1) {
             switch (callParameters.getMethodName()) {
                 case "!":
                     return InlinedNotNodeGen.create(context, callParameters, self);
                 case "-@":
                     return InlinedNegNodeGen.create(context, callParameters, self);
+                case "binding":
+                    if (callParameters.isIgnoreVisibility()) {
+                        return InlinedBindingNodeGen.create(context, callParameters, self);
+                    }
+                    break;
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
                         return InlinedBlockGivenNodeGen.create(context, callParameters, self);

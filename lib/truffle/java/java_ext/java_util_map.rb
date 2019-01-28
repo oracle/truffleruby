@@ -44,7 +44,7 @@ module ::Java::JavaUtil::Map
 
   def to_proc
     h = self
-    lambda { |x| h[x] }
+    -> x { h[x] }
   end
 
   def rehash

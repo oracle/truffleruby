@@ -308,7 +308,7 @@ module JavaUtilities
   end
 
   def self.make_interface_proxy(a_class)
-    included_method = lambda { |class_or_module|
+    included_method = -> class_or_module {
       unless Thread.current[:MAKING_JAVA_PROXY]
         case class_or_module
         when Class
@@ -326,7 +326,7 @@ module JavaUtilities
           con = JavaUtilities::unreflect_constructor(
             JavaUtilities::java_array_get(Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, java_class), 0))
 
-          constructor = lambda { Java.invoke_java_method(con, JavaUtilities::invocation_handler(self)) }
+          constructor = -> { Java.invoke_java_method(con, JavaUtilities::invocation_handler(self)) }
 
           class_or_module.class_eval do
             include JavaProxyMethods unless ancestors.include?(JavaProxyMethods)
@@ -516,7 +516,7 @@ module JavaUtilities
   end
 
   def self.invoker_proc(owner)
-    lambda{ |m, *args|
+    -> m, *args {
       args = args.map { |a| JavaUtilities::wrap_java_value(a) }
       m = JavaUtilities::wrap_java_value(m)
       JavaUtilities.unwrap_java_value(owner.__send__(m.name, *args))
