@@ -71,7 +71,7 @@ class MSpecScript
     # Issues with monkey patching breaking our core
     "^spec/ruby/library/mathn",
 
-    # Hangs in CI
+    # Trying to enable breaks a lot of things
     "^spec/ruby/library/net",
 
     # Unsupported
