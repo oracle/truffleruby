@@ -63,6 +63,7 @@ public class Options {
     public final boolean POLYGLOT_STDIO;
     public final boolean CEXT_LOCK;
     public final boolean PREINITIALIZATION;
+    public final boolean HOST_INTEROP;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
     public final String CORE_LOAD_PATH;
@@ -191,6 +192,7 @@ public class Options {
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO, EMBEDDED || !NATIVE_PLATFORM);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         PREINITIALIZATION = builder.getOrDefault(OptionsCatalog.PREINITIALIZATION);
+        HOST_INTEROP = env.isHostLookupAllowed() && builder.getOrDefault(OptionsCatalog.HOST_INTEROP);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
@@ -359,6 +361,8 @@ public class Options {
                 return CEXT_LOCK;
             case "ruby.preinit":
                 return PREINITIALIZATION;
+            case "ruby.interop.host":
+                return HOST_INTEROP;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":

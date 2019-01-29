@@ -1,3 +1,9 @@
+# 1.0 RC 13
+
+New features:
+
+* Host interop with Java now works on SubstrateVM too.
+
 # 1.0 RC 12
 
 Bug fixes:
