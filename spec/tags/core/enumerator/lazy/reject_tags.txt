@@ -1,1 +1,0 @@
-fails:Enumerator::Lazy#reject lets exceptions raised in the block go through
