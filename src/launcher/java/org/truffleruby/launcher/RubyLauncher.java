@@ -114,7 +114,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
         } catch (CommandLineException commandLineException) {
-            System.err.println("truffleruby: " + commandLineException.getMessage());
+            System.err.println(TruffleRuby.SIMPLE_NAME + ": " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
                 printHelp(System.err);
             }
@@ -186,7 +186,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         throw abortInvalidArgument(argument,
-                "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
+                TruffleRuby.SIMPLE_NAME + ": invalid option " + description + "  (Use --help for usage instructions.)");
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -215,8 +215,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            System.err.print("truffleruby: ");
-            e.printStackTrace(System.err);
+            System.err.println(TruffleRuby.SIMPLE_NAME + ": " + e.getMessage());
             return 1;
         }
     }

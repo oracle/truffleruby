@@ -14,6 +14,8 @@ import org.graalvm.polyglot.Engine;
 
 public class TruffleRuby {
 
+    public static final String FORMAL_NAME = "TruffleRuby";
+    public static final String SIMPLE_NAME = "truffleruby";
     public static final String LANGUAGE_ID = "ruby";
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";

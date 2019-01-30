@@ -63,3 +63,4 @@ aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs
 aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
 aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher applies Truffle options
+slow:The launcher does not print a Java backtrace for an -S file that's not found

@@ -743,10 +743,15 @@ public class CoreExceptions {
     // IOError
 
     @TruffleBoundary
-    public DynamicObject ioError(String fileName, Node currentNode) {
+    public DynamicObject ioError(String error, String fileName, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().getIOErrorClass();
-        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Error reading file -  %s", fileName), UTF8Encoding.INSTANCE));
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("%s -- %s", error, fileName), UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
+    public DynamicObject ioError(String fileName, Node currentNode) {
+        return ioError("Error reading file", fileName, currentNode);
     }
 
     // RangeError

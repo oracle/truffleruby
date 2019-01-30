@@ -119,7 +119,7 @@ class Exception
 
   def full_message
     bt = backtrace
-    "#{bt[0]}: #{message} (#{self.class})\n" + bt[1..-1].map do |l|
+    "#{bt[0]}: #{Truffle::ExceptionOperations.message_and_class(self)}\n" + bt[1..-1].map do |l|
       "\tfrom #{l}\n"
     end.join
   end

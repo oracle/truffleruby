@@ -13,6 +13,10 @@ Changes:
 * `TRUFFLERUBY_CEXT_ENABLED` is no longer supported and C extensions are now
   always built, regardless of the value of this environment variable.
 
+Compatibility:
+
+* Improved the exception when an `-S` file isn't found.
+
 # 1.0 RC 12
 
 Bug fixes:

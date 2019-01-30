@@ -32,6 +32,10 @@ module Truffle
       ret
     end
 
+    def self.message_and_class(exception)
+      "#{exception.message} (#{exception.class})"
+    end
+
     NO_METHOD_ERROR = Proc.new do |exception|
       format("undefined method `%s' for %s", exception.name, receiver_string(exception))
     end
