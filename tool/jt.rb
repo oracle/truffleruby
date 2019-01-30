@@ -649,8 +649,7 @@ module Commands
     env_vars = %w[JAVA_HOME PATH RUBY_BIN GRAALVM_BIN
                   GRAAL_HOME TRUFFLERUBY_RESILIENT_GEM_HOME
                   JVMCI_BIN JVMCI_GRAAL_HOME OPENSSL_PREFIX
-                  AOT_BIN TRUFFLERUBY_CEXT_ENABLED
-                  TRUFFLERUBYOPT RUBYOPT]
+                  AOT_BIN TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect

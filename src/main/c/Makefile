@@ -31,15 +31,6 @@ EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(SULONG_MOCK) $(RUBY_O) $(RUBY_LIBRARY)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
-ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
-goal: no_cexts $(TRUFFLE_POSIX)
-else
-goal: all
-endif
-
-no_cexts: clean_cexts
-	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
-
 all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su \
 			$(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su $(CEXTS_DIR)/nkf.su \
 			$(CEXTS_DIR)/etc.su $(CEXTS_DIR)/rbconfig/sizeof.su

@@ -421,10 +421,6 @@ local part_definitions = {
       packages+: {
         ruby: ">=2.1.0",
       },
-      environment+: {
-        # Truffle compiles with ECJ but does not run (GR-4720)
-        TRUFFLERUBY_CEXT_ENABLED: "false",
-      },
       run+: [
         # Build with ECJ to get warnings
         ["mx", "sversions"],
