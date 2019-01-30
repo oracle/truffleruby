@@ -9,9 +9,6 @@ You will need:
 * [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)
 
-You can remove the dependencies on `libssl` by setting
-`export TRUFFLERUBY_CEXT_ENABLED=false`.
-
 ## Workspace directory
 
 We recommend creating an extra directory for building TruffleRuby:
@@ -100,7 +97,7 @@ locally unless we're working on that functionality (instead, the CI runs them).
 
 If you'd like to run tests with the native TruffleRuby binary, you can do so
 by providing the `--native` argument to the test command. Please note that
-you must follow the steps to build the native image before it can be used 
+you must follow the steps to build the native image before it can be used
 for tests.
 
 ```bash

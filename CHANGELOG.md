@@ -8,6 +8,11 @@ Bug fixes:
 
 * Fixed Enumerator::Lazy which wrongly rescued StandardError (#1557).
 
+Changes:
+
+* `TRUFFLERUBY_CEXT_ENABLED` is no longer supported and C extensions are now
+  always built, regardless of the value of this environment variable.
+
 # 1.0 RC 12
 
 Bug fixes:
