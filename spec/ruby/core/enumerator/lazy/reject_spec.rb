@@ -33,6 +33,18 @@ describe "Enumerator::Lazy#reject" do
     end
   end
 
+  it "lets exceptions raised in the block go through" do
+    lazy = 10.times.lazy.map do |i|
+      raise "foo"
+    end
+
+    lazy = lazy.reject(&:nil?)
+
+    -> {
+      lazy.first
+    }.should raise_error(RuntimeError, "foo")
+  end
+
   it "calls the block with a gathered array when yield with multiple arguments" do
     yields = []
     @yieldsmixed.reject { |v| yields << v }.force
