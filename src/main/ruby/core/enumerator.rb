@@ -257,7 +257,8 @@ class Enumerator
   end
 
   class Lazy < Enumerator
-    class StopLazyError < Exception; end # rubocop:disable Lint/InheritException
+    class StopLazyError < Exception # rubocop:disable Lint/InheritException
+    end
 
     def initialize(receiver, size=nil)
       raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
@@ -268,7 +269,7 @@ class Enumerator
           receiver.each(*each_args) do |*args|
             yield yielder, *args
           end
-        rescue StopLazyError, StandardError
+        rescue StopLazyError
           nil
         end
       end

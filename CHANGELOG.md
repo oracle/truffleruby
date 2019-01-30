@@ -4,6 +4,10 @@ New features:
 
 * Host interop with Java now works on SubstrateVM too.
 
+Bug fixes:
+
+* Fixed Enumerator::Lazy which wrongly rescued StandardError (#1557).
+
 # 1.0 RC 12
 
 Bug fixes:
