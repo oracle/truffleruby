@@ -95,7 +95,7 @@ POW_CACHE: [integer.pow.cache, integer, DEFAULT_CACHE, Cache size for Integer#**
 ARRAY_DUP_CACHE: [array.dup.cache, integer, 3, Cache size for copying small arrays]
 FRAME_VARIABLE_ACCESS_CACHE: [frame.variable.access.cache, integer, 5, Cache size for accessing variables in another frame]
 
-CLONE_DISABLED: [clone.disable, boolean, false, Disable all manual cloning]
+CLONE_DISABLED: [clone.disable, boolean, true, Disable all manual cloning]
 CLONE_DEFAULT: [clone.default, boolean, true, Default option for cloning]
 INLINE_DEFAULT: [inline.default, boolean, true, Default option for inlining]
 CORE_ALWAYS_CLONE: [core.always_clone, boolean, CLONE_DEFAULT, Always clone built-in core methods]
