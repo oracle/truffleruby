@@ -57,6 +57,7 @@ public class ExceptionTranslatingNode extends RubyNode {
 
     public RuntimeException translate(Throwable throwable) {
         try {
+            // Only throwing to use the pattern matching of catch
             throw throwable;
         } catch (ControlFlowException exception) {
             controlProfile.enter();

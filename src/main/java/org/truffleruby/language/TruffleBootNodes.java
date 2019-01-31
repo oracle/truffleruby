@@ -29,7 +29,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.MainLoader;
@@ -103,10 +103,17 @@ public abstract class TruffleBootNodes {
 
             setArgvGlobals(makeStringNode);
 
-            RubySource source = loadMainSourceSettingDollarZero(
-                    findSFile, makeStringNode,
-                    getContext().getOptions().EXECUTION_ACTION,
-                    getContext().getOptions().TO_EXECUTE.intern());
+            final RubySource source;
+
+            try {
+                source = loadMainSourceSettingDollarZero(
+                        findSFile, makeStringNode,
+                        getContext().getOptions().EXECUTION_ACTION,
+                        getContext().getOptions().TO_EXECUTE.intern());
+            } catch (RaiseException e) {
+                getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
+                return 1;
+            }
 
             if (source == null) {
                 // EXECUTION_ACTION was set to NONE
@@ -114,17 +121,29 @@ public abstract class TruffleBootNodes {
             }
 
             if (getContext().getOptions().SYNTAX_CHECK) {
-                return (int) checkSyntax.call(
-                        getContext().getCoreLibrary().getTruffleBootModule(),
-                        "check_syntax",
-                        source);
+                try {
+                    return (int) checkSyntax.call(
+                            getContext().getCoreLibrary().getTruffleBootModule(),
+                            "check_syntax",
+                            source);
+                } catch (RaiseException e) {
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
+                    return 1;
+                }
             } else {
-                final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                        source,
-                        ParserContext.TOP_LEVEL_FIRST,
-                        null,
-                        true,
-                        null);
+                final RubyRootNode rootNode;
+
+                try {
+                    rootNode = getContext().getCodeLoader().parse(
+                            source,
+                            ParserContext.TOP_LEVEL_FIRST,
+                            null,
+                            true,
+                            null);
+                } catch (RaiseException e) {
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
+                    return 1;
+                }
 
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL_FIRST,
@@ -220,7 +239,7 @@ public abstract class TruffleBootNodes {
                         throw new IllegalStateException();
                 }
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().ioError(e.getMessage(), toExecute, null));
             }
 
             getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);

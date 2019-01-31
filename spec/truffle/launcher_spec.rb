@@ -283,6 +283,14 @@ describe "The launcher" do
     out.should include(':b')
   end
 
+  it "does not print a Java backtrace for an -S file that's not found" do
+    out = ruby_exe(nil, options: "-S does_not_exist", args: "2>&1")
+    $?.success?.should == false
+    out.should include('truffleruby: No such file or directory -- does_not_exist (LoadError)')
+    out.should_not include('boot.rb')
+    out.should_not include('RubyLauncher.main')
+  end
+
   guard -> { TruffleRuby.graal? } do
     it "applies Truffle options" do
       prefix = TruffleRuby.native? ? '--native.' : '--jvm.'
