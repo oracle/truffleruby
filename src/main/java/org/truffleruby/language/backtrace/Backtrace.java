@@ -12,17 +12,16 @@ package org.truffleruby.language.backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTraceElement;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.InternalMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,12 +99,15 @@ public class Backtrace {
                     final Node callNode = i == 0 ? location : stackTraceElement.getLocation();
 
                     if (!callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
-                        final Frame frame = stackTraceElement.getFrame();
-                        final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
-
-                        if (callNode != null || method != null) { // Ignore the frame if we know nothing about it
-                            activations.add(new Activation(callNode, method.getName()));
+                        final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
+                        final String methodName;
+                        if (rootNode instanceof RubyRootNode) {
+                            // Ruby backtraces do not include the class name for MRI compatibility.
+                            methodName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
+                        } else {
+                            methodName = rootNode.getName();
                         }
+                        activations.add(new Activation(callNode, methodName));
                     }
 
                 }

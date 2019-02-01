@@ -39,7 +39,7 @@ public abstract class RubyBaseRootNode extends RootNode {
 
     @Override
     public boolean isCaptureFramesForTrace() {
-        return true;
+        return false;
     }
 
 }
