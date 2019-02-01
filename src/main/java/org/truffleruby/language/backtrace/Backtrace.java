@@ -29,7 +29,8 @@ import java.util.List;
 public class Backtrace {
 
     private final Node location;
-    private SourceSection sourceLocation;
+    /** Only set for SyntaxError, where getLocation() does not represent where the error occurred. */
+    private final SourceSection sourceLocation;
     private RaiseException raiseException;
     private Activation[] activations;
     private final int omitted;
