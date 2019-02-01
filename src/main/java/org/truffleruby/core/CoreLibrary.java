@@ -658,7 +658,7 @@ public class CoreLibrary {
     private InternalMethod getMethod(DynamicObject module, String name) {
         InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
         if (method == null || method.isUndefined()) {
-            throw new AssertionError();
+            throw new Error("method " + module + "#" + name + " not found during CoreLibrary initialization");
         }
         return method;
     }
