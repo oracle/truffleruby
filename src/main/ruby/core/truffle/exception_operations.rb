@@ -33,7 +33,12 @@ module Truffle
     end
 
     def self.message_and_class(exception)
-      "#{exception.message} (#{exception.class})"
+      message = exception.message.to_s
+      if i = message.index("\n")
+        "#{message[0...i]} (#{exception.class})#{message[i..-1]}"
+      else
+        "#{message} (#{exception.class})"
+      end
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|
