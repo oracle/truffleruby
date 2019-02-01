@@ -32,10 +32,12 @@ public class GetBacktraceException extends RuntimeException implements TruffleEx
         return null;
     }
 
+    @Override
     public Node getLocation() {
         return location;
     }
 
+    @Override
     public int getStackTraceElementLimit() {
         return limit;
     }
