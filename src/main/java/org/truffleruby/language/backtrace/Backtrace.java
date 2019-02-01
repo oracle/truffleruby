@@ -96,7 +96,8 @@ public class Backtrace {
             int i = 0;
             for (TruffleStackTraceElement stackTraceElement : stackTrace) {
                 if (i >= omitted) {
-                    final Node callNode = i == 0 ? location : stackTraceElement.getLocation();
+                    assert i != 0 || stackTraceElement.getLocation() == location;
+                    final Node callNode = stackTraceElement.getLocation();
 
                     if (!callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
                         final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
