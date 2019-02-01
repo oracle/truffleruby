@@ -203,7 +203,7 @@ public class BacktraceFormatter {
 
         final Node callNode = activation.getCallNode();
 
-        if (activation.getMethod() != null) { // A Ruby frame
+        if (activation.getMethodName() != null) { // A Ruby frame
             final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
             final String reportedName;
@@ -219,7 +219,7 @@ public class BacktraceFormatter {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
-                reportedName = activation.getMethod().getName();
+                reportedName = activation.getMethodName();
             }
 
             if (reportedSourceSection == null) {

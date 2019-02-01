@@ -104,7 +104,7 @@ public class Backtrace {
                         final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
 
                         if (callNode != null || method != null) { // Ignore the frame if we know nothing about it
-                            activations.add(new Activation(callNode, method));
+                            activations.add(new Activation(callNode, method.getName()));
                         }
                     }
 

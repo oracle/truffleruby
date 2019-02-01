@@ -96,7 +96,7 @@ public class ThreadBacktraceLocationNodes {
             final Activation activation = backtrace.getActivations()[activationIndex];
 
             // TODO eregon 8 Nov. 2016 This does not handle blocks
-            final String methodName = activation.getMethod().getSharedMethodInfo().getName();
+            final String methodName = activation.getMethodName();
 
             return makeStringNode.executeMake(methodName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
