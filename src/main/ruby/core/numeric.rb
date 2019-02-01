@@ -59,59 +59,69 @@ class Numeric
     nil
   end
 
-  def step(limit = undefined, step = undefined, by: undefined, to: undefined)
-    limit = if !undefined.equal?(limit) && !undefined.equal?(to)
+  def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
+    limit = if !undefined.equal?(orig_limit) && !undefined.equal?(to)
               raise ArgumentError, 'to is given twice'
-            elsif !undefined.equal?(limit)
-              limit
+            elsif !undefined.equal?(orig_limit)
+              orig_limit
             elsif !undefined.equal?(to)
               to
             else
               nil
             end
-    step = if !undefined.equal?(step) && !undefined.equal?(by)
+    step = if !undefined.equal?(orig_step) && !undefined.equal?(by)
              raise ArgumentError, 'step is given twice'
-           elsif !undefined.equal?(step)
-             step
+           elsif !undefined.equal?(orig_step)
+             orig_step
            elsif !undefined.equal?(by)
              by
            else
              1
            end
 
+    kwargs = {}
+    kwargs[:by] = by unless undefined.equal?(by)
+    kwargs[:to] = to unless undefined.equal?(to)
+
     unless block_given?
-      return to_enum(:step, limit, step) do
-        Truffle::NumericOperations.step_size(self, limit, step, by)
+      return to_enum(:step, orig_limit, orig_step, kwargs) do
+        Truffle::NumericOperations.step_size(self, limit, step, kwargs.any?)
       end
     end
 
-    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, by)
+    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, kwargs.any?)
 
     value = values[0]
     limit = values[1]
     step = values[2]
-    asc = values[3]
+    desc = values[3]
     is_float = values[4]
 
+    infinite = step == 0
+
     if is_float
-      n = Truffle::NumericOperations.step_float_size(value, limit, step, asc)
+      n = Truffle::NumericOperations.float_step_size(value, limit, step)
 
       if n > 0
         if step.infinite?
           yield value
+        elsif infinite
+          loop do
+            yield value
+          end
         else
           i = 0
-          if asc
+          if desc
             while i < n
               d = i * step + value
-              d = limit if limit < d
+              d = limit if limit > d
               yield d
               i += 1
             end
           else
             while i < n
               d = i * step + value
-              d = limit if limit > d
+              d = limit if limit < d
               yield d
               i += 1
             end
@@ -119,15 +129,22 @@ class Numeric
         end
       end
     else
-      if asc
-        until value > limit
+      if infinite
+        loop do
           yield value
           value += step
         end
       else
-        until value < limit
-          yield value
-          value += step
+        if desc
+          until value < limit
+            yield value
+            value += step
+          end
+        else
+          until value > limit
+            yield value
+            value += step
+          end
         end
       end
     end

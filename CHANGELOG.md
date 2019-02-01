@@ -7,6 +7,8 @@ New features:
 Bug fixes:
 
 * Fixed Enumerator::Lazy which wrongly rescued StandardError (#1557).
+* Fixed several problems with `Numeric#step` related to default arguments,
+  infinite sequences, and bad argument types (#1520).
 
 Changes:
 
