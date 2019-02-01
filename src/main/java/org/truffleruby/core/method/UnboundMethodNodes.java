@@ -43,7 +43,8 @@ public abstract class UnboundMethodNodes {
 
         @Specialization(guards = "isRubyUnboundMethod(other)")
         boolean equal(DynamicObject self, DynamicObject other) {
-            return Layouts.UNBOUND_METHOD.getMethod(self) == Layouts.UNBOUND_METHOD.getMethod(other) && Layouts.UNBOUND_METHOD.getOrigin(self) == Layouts.UNBOUND_METHOD.getOrigin(other);
+            return Layouts.UNBOUND_METHOD.getOrigin(self) == Layouts.UNBOUND_METHOD.getOrigin(other) &&
+                    MethodNodes.areInternalMethodEqual(Layouts.UNBOUND_METHOD.getMethod(self), Layouts.UNBOUND_METHOD.getMethod(other));
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")

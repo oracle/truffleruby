@@ -45,13 +45,22 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 @CoreClass("Method")
 public abstract class MethodNodes {
+
+    public static boolean areInternalMethodEqual(InternalMethod a, InternalMethod b) {
+        if (a == b || a.getSharedMethodInfo() == b.getSharedMethodInfo()) {
+            return true;
+        }
+
+        // For builtin aliases to be == such as String#size and String#length, even though they have
+        // different CallTarget, InternalMethod and SharedMethodInfo.
+        return a.getSharedMethodInfo().getArity() == b.getSharedMethodInfo().getArity();
+    }
 
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
@@ -61,16 +70,12 @@ public abstract class MethodNodes {
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(Layouts.METHOD.getReceiver(a), Layouts.METHOD.getReceiver(b)) &&
                     Layouts.METHOD.getMethod(a).getDeclaringModule() == Layouts.METHOD.getMethod(b).getDeclaringModule() &&
-                    originalMethod(a) == originalMethod(b);
+                    MethodNodes.areInternalMethodEqual(Layouts.METHOD.getMethod(a), Layouts.METHOD.getMethod(b));
         }
 
         @Specialization(guards = "!isRubyMethod(b)")
         public boolean equal(DynamicObject a, Object b) {
             return false;
-        }
-
-        private SharedMethodInfo originalMethod(DynamicObject a) {
-            return Layouts.METHOD.getMethod(a).getSharedMethodInfo();
         }
 
     }

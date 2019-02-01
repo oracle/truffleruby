@@ -141,7 +141,7 @@ public class CoreMethodNodeManager {
         verifyUsage(module, methodDetails, method, visibility);
 
         final String keywordAsOptional = method.keywordAsOptional().isEmpty() ? null : method.keywordAsOptional();
-        final boolean onSingleton = method.onSingleton() || method.constructor();
+        final Arity arity = createArity(method.required(), method.optional(), method.rest(), keywordAsOptional);
 
         final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
@@ -151,13 +151,14 @@ public class CoreMethodNodeManager {
             methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
         }
 
-        addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, methodNodeFactory,
-                method.required(), method.optional(), method.rest(), keywordAsOptional);
+        final boolean onSingleton = method.onSingleton() || method.constructor();
+        addMethods(module, method.isModuleFunction(), onSingleton, names, arity, visibility, methodNodeFactory);
     }
 
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility, boolean isModuleFunction, boolean onSingleton,
             int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
+        final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
@@ -165,29 +166,30 @@ public class CoreMethodNodeManager {
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
         });
 
-        addMethods(module, isModuleFunction, onSingleton, names, visibility, methodNodeFactory, required, optional, rest, keywordAsOptional);
+        addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory);
     }
 
-    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names, Visibility visibility, Function<SharedMethodInfo, RubyNode> methodNodeFactory,
-            int required, int optional, boolean rest, String keywordAsOptional) {
+    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names, Arity arity, Visibility visibility,
+            Function<SharedMethodInfo, RubyNode> methodNodeFactory) {
         if (isModuleFunction) {
-            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, required, optional, rest, keywordAsOptional);
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, required, optional, rest, keywordAsOptional);
+            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, arity);
         } else if (onSingleton) {
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, required, optional, rest, keywordAsOptional);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity);
         } else {
-            addMethod(context, module, methodNodeFactory, names, visibility, required, optional, rest, keywordAsOptional);
+            addMethod(context, module, methodNodeFactory, names, visibility, arity);
         }
     }
 
-    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility,
-            int required, int optional, boolean rest, String keywordAsOptional) {
+    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity) {
+        final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
+
         for (String name : names) {
             Visibility visibility = originalVisibility;
             if (ModuleOperations.isMethodPrivateFromName(name)) {
                 visibility = Visibility.PRIVATE;
             }
-            final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, keywordAsOptional, name);
+            final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, lexicalScope, module, name, arity);
             final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
             final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
             final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
@@ -196,18 +198,7 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module,
-            int required, int optional, boolean rest, String keywordAsOptional, String name) {
-
-        final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
-
-        final Arity arity;
-        if (keywordAsOptional == null) {
-            arity = new Arity(required, optional, rest);
-        } else {
-            arity = new Arity(required, optional, rest, 0, new String[]{keywordAsOptional}, false);
-        }
-
+    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope, DynamicObject module, String name, Arity arity) {
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
                 lexicalScope,
@@ -218,6 +209,14 @@ public class CoreMethodNodeManager {
                 "builtin",
                 null,
                 context.getOptions().CORE_ALWAYS_CLONE);
+    }
+
+    private static Arity createArity(int required, int optional, boolean rest, String keywordAsOptional) {
+        if (keywordAsOptional == null) {
+            return new Arity(required, optional, rest);
+        } else {
+            return new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, false);
+        }
     }
 
     private static CallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
