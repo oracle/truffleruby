@@ -12,6 +12,7 @@ package org.truffleruby.builtins;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
@@ -139,78 +140,56 @@ public class CoreMethodNodeManager {
         final Visibility visibility = method.visibility();
         verifyUsage(module, methodDetails, method, visibility);
 
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module,
-                method.required(), method.optional(), method.rest(), method.keywordAsOptional().isEmpty() ? null : method.keywordAsOptional(), names[0]);
-        final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
-
+        final String keywordAsOptional = method.keywordAsOptional().isEmpty() ? null : method.keywordAsOptional();
         final boolean onSingleton = method.onSingleton() || method.constructor();
-        addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, sharedMethodInfo, callTarget);
+
+        final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
+        final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
+        if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
+            methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
+        } else {
+            methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
+        }
+
+        addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, methodNodeFactory,
+                method.required(), method.optional(), method.rest(), keywordAsOptional);
     }
 
-    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
-            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
+    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility, boolean isModuleFunction, boolean onSingleton,
+            int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
 
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, keywordAsOptional, names[0]);
-
-        final RubyNode methodNode = new LazyRubyNode(() -> {
+        final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
         });
 
-        final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
-
-        addMethods(module, isModuleFunction, onSingleton, names, visibility, sharedMethodInfo, callTarget);
+        addMethods(module, isModuleFunction, onSingleton, names, visibility, methodNodeFactory, required, optional, rest, keywordAsOptional);
     }
 
-    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names,
-            Visibility visibility, SharedMethodInfo sharedMethodInfo, CallTarget callTarget) {
+    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names, Visibility visibility, Function<SharedMethodInfo, RubyNode> methodNodeFactory,
+            int required, int optional, boolean rest, String keywordAsOptional) {
         if (isModuleFunction) {
-            addMethod(context, module, sharedMethodInfo, callTarget, names, Visibility.PRIVATE);
-            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, Visibility.PUBLIC);
+            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, required, optional, rest, keywordAsOptional);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, required, optional, rest, keywordAsOptional);
         } else if (onSingleton) {
-            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, visibility);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, required, optional, rest, keywordAsOptional);
         } else {
-            addMethod(context, module, sharedMethodInfo, callTarget, names, visibility);
+            addMethod(context, module, methodNodeFactory, names, visibility, required, optional, rest, keywordAsOptional);
         }
     }
 
-    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method, final Visibility visibility) {
-        if (method.isModuleFunction()) {
-            if (visibility != Visibility.PUBLIC) {
-                RubyLanguage.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
-            }
-            if (method.onSingleton()) {
-                RubyLanguage.LOGGER.warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
-            }
-            if (method.constructor()) {
-                RubyLanguage.LOGGER.warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
-            }
-            if (RubyGuards.isRubyClass(module)) {
-                RubyLanguage.LOGGER.warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
-            }
-        }
-        if (method.onSingleton() && method.constructor()) {
-            RubyLanguage.LOGGER.warning("either onSingleton or constructor for " + methodDetails.getIndicativeName());
-        }
-
-        if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
-            RubyLanguage.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
-        }
-        if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
-            RubyLanguage.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
-        }
-    }
-
-    private static void addMethod(RubyContext context, DynamicObject module, SharedMethodInfo sharedMethodInfo, CallTarget callTarget, String[] names, Visibility originalVisibility) {
-        assert RubyGuards.isRubyModule(module);
-
+    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility,
+            int required, int optional, boolean rest, String keywordAsOptional) {
         for (String name : names) {
             Visibility visibility = originalVisibility;
             if (ModuleOperations.isMethodPrivateFromName(name)) {
                 visibility = Visibility.PRIVATE;
             }
+            final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, keywordAsOptional, name);
+            final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
+            final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
             final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(context, null, method);
@@ -218,11 +197,11 @@ public class CoreMethodNodeManager {
     }
 
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module,
-            int required, int optional, boolean rest,  String keywordAsOptional, String primaryName) {
+            int required, int optional, boolean rest, String keywordAsOptional, String name) {
+
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         final Arity arity;
-
         if (keywordAsOptional == null) {
             arity = new Arity(required, optional, rest);
         } else {
@@ -234,22 +213,11 @@ public class CoreMethodNodeManager {
                 lexicalScope,
                 arity,
                 module,
-                primaryName,
+                name,
                 0,
                 "builtin",
                 null,
                 context.getOptions().CORE_ALWAYS_CLONE);
-    }
-
-    private static CallTarget makeGenericMethod(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
-        final RubyNode methodNode;
-        if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
-            methodNode = new LazyRubyNode(() -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
-        } else {
-            methodNode = createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
-        }
-
-        return createCallTarget(context, sharedMethodInfo, methodNode);
     }
 
     private static CallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
@@ -362,6 +330,33 @@ public class CoreMethodNodeManager {
         }
 
         return node;
+    }
+
+    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method, final Visibility visibility) {
+        if (method.isModuleFunction()) {
+            if (visibility != Visibility.PUBLIC) {
+                RubyLanguage.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
+            }
+            if (method.onSingleton()) {
+                RubyLanguage.LOGGER.warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
+            }
+            if (method.constructor()) {
+                RubyLanguage.LOGGER.warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
+            }
+            if (RubyGuards.isRubyClass(module)) {
+                RubyLanguage.LOGGER.warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
+            }
+        }
+        if (method.onSingleton() && method.constructor()) {
+            RubyLanguage.LOGGER.warning("either onSingleton or constructor for " + methodDetails.getIndicativeName());
+        }
+
+        if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
+            RubyLanguage.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
+        }
+        if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
+            RubyLanguage.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
+        }
     }
 
     @SuppressWarnings("unchecked")
