@@ -127,10 +127,6 @@ public class Backtrace {
 
     }
 
-    public void setActivations(Activation[] activations) {
-        this.activations = activations;
-    }
-
     public int getOmitted() {
         return omitted;
     }
