@@ -144,11 +144,11 @@ module RbConfig
     expanded['rubylibprefix'] = "#{libdir}/#{ruby_base_name}"
     mkconfig['rubylibprefix'] = '$(libdir)/$(RUBY_BASE_NAME)'
     rubylibdir = \
-    expanded['rubylibdir'] = "#{rubylibprefix}/#{ruby_version}"
-    mkconfig['rubylibdir'] = '$(rubylibprefix)/$(ruby_version)'
+    expanded['rubylibdir'] = "#{libdir}/mri"
+    mkconfig['rubylibdir'] = '$(libdir)/mri'
     rubyarchdir = \
-    expanded['rubyarchdir'] = "#{rubylibdir}/#{arch}"
-    mkconfig['rubyarchdir'] = '$(rubylibdir)/$(arch)'
+    expanded['rubyarchdir'] = rubylibdir
+    mkconfig['rubyarchdir'] = '$(rubylibdir)'
     archdir = \
     expanded['archdir'] = rubyarchdir
     mkconfig['archdir'] = '$(rubyarchdir)'
