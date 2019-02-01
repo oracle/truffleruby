@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
@@ -226,7 +227,7 @@ public class CallStackManager {
     }
 
     @SuppressFBWarnings("ES")
-    public boolean ignoreFrame(Node callNode) {
+    public boolean ignoreFrame(Node callNode, RootCallTarget callTarget) {
         // Nodes with no call node are top-level or require, which *should* appear in the backtrace.
         if (callNode == null) {
             return false;
@@ -247,6 +248,11 @@ public class CallStackManager {
         }
 
         if (rootNode instanceof InternalRootNode) {
+            return true;
+        }
+
+        // Ignore BasicObject#__send__, Kernel#send and Kernel#public_send like MRI
+        if (context.getCoreLibrary().isSend(callTarget)) {
             return true;
         }
 

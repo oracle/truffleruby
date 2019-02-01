@@ -1212,7 +1212,10 @@ public class CoreLibrary {
     }
 
     public boolean isSend(InternalMethod method) {
-        CallTarget callTarget = method.getCallTarget();
+        return isSend(method.getCallTarget());
+    }
+
+    public boolean isSend(CallTarget callTarget) {
         return callTarget == basicObjectSendMethod.getCallTarget() || callTarget == kernelPublicSendMethod.getCallTarget();
     }
 

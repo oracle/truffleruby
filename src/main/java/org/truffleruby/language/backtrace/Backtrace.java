@@ -99,7 +99,7 @@ public class Backtrace {
                 if (i >= omitted) {
                     final Node callNode = i == 0 ? location : stackTraceElement.getLocation();
 
-                    if (!callStackManager.ignoreFrame(callNode)) {
+                    if (!callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
                         final Frame frame = stackTraceElement.getFrame();
                         final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
 
