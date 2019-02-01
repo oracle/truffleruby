@@ -34,6 +34,14 @@ ruby_version_is "2.5" do
         e.full_message(order: :bottom, highlight: false).should =~ /b.rb:2.*a.rb:1/m
       end
 
+      it "shows the caller if the exception has no backtrace" do
+        e = RuntimeError.new("Some runtime error")
+        e.backtrace.should == nil
+        full_message = e.full_message(highlight: false, order: :top)
+        full_message.should include("#{__FILE__}:#{__LINE__-1}:in `")
+        full_message.should include("': Some runtime error (RuntimeError)\n")
+      end
+
       it "shows the exception class at the end of the first line of the message when the message contains multiple lines" do
         begin
           line = __LINE__; raise "first line\nsecond line"
