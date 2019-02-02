@@ -320,12 +320,6 @@ suite = {
             ],
         },
 
-        "org.truffleruby.doc": {
-            "class": "TruffleRubyDocsProject",
-            "outputDir": "",
-            "prefix": "",
-        },
-
         "org.truffleruby.specs": {
             "class": "ArchiveProject",
             "prefix": "spec",
@@ -434,9 +428,8 @@ suite = {
             "dependencies": [
                 "org.truffleruby.bin",
                 "org.truffleruby.lib",
-                "org.truffleruby.doc",
             ],
-            "description": "TruffleRuby libraries, documentation, bin directory",
+            "description": "TruffleRuby libraries, bin directory",
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "MIT",              # minitest, did_you_mean, rake

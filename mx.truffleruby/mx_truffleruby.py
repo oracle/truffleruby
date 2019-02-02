@@ -41,15 +41,6 @@ class ArchiveProject(mx.ArchivableProject):
         return mx.ArchivableProject.walk(self.output_dir())
 
 
-class TruffleRubyDocsProject(ArchiveProject):
-    doc_files = (glob.glob(join(root, 'doc', 'legal', '*')) +
-        glob.glob(join(root, 'doc', 'user', '*')) +
-        glob.glob(join(root, '*.md')))
-
-    def getResults(self):
-        return [join(root, f) for f in self.doc_files]
-
-
 class TruffleRubySulongLibsProject(ArchiveProject):
     def getBuildTask(self, args):
         return TruffleRubySulongLibsBuildTask(self, args, 1)
