@@ -470,8 +470,7 @@ suite = {
                     "file:bin/testrb",
                 ],
                 "doc/" : [
-                    "file:doc/legal",
-                    "file:doc/user",
+                    "file:doc",
                 ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/deprecation.rb",
