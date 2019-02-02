@@ -265,7 +265,7 @@ suite = {
             "dir": "src/main/c",
             "buildDependencies": [
                 "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
-                "org.truffleruby.bin", # bin/truffleruby
+                "org.truffleruby.dev.launcher", # bin/truffleruby
                 "org.truffleruby.sulong-libs", # polyglot.h
             ],
             "output": ".",
@@ -300,8 +300,8 @@ suite = {
             ],
         },
 
-        "org.truffleruby.bin": {
-            "class": "TruffleRubyLauncherProject",
+        "org.truffleruby.dev.launcher": {
+            "class": "TruffleRubyDevLauncherProject",
             "buildDependencies": [
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-LAUNCHER",

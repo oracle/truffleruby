@@ -95,14 +95,14 @@ class TruffleRubySulongLibsBuildTask(mx.ArchivableBuildTask):
         if exists(self.sulong_libs_under_home):
             shutil.rmtree(self.sulong_libs_under_home)
 
-class TruffleRubyLauncherProject(ArchiveProject):
+class TruffleRubyDevLauncherProject(ArchiveProject):
     def getBuildTask(self, args):
-        return TruffleRubyLauncherBuildTask(self, args, 1)
+        return TruffleRubyDevLauncherBuildTask(self, args, 1)
 
     def getResults(self):
         return []
 
-class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
+class TruffleRubyDevLauncherBuildTask(mx.ArchivableBuildTask):
     def __init__(self, *args):
         mx.ArchivableBuildTask.__init__(self, *args)
 
