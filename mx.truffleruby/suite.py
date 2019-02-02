@@ -180,9 +180,9 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
-            "checkstyle" : "org.truffleruby",
+            "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "findbugsIgnoresGenerated" : True,
+            "findbugsIgnoresGenerated": True,
             "checkPackagePrefix": "false",
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -191,7 +191,7 @@ suite = {
                 "MIT",              # Joni, JCodings
             ],
             "externalProjects": {
-                "ruby-core" : {
+                "ruby-core": {
                     "type": "ruby",
                     "path": "ruby",
                     "source": ["core", "post-boot"],
@@ -386,23 +386,23 @@ suite = {
             "license": ["EPL-1.0"],
         },
 
-        "TRUFFLERUBY_GRAALVM_SUPPORT" : {
+        "TRUFFLERUBY_GRAALVM_SUPPORT": {
             "native": True,
             "platformDependent": True,
-            "description" : "TruffleRuby support distribution for the GraalVM",
-            "dependencies" : [
+            "description": "TruffleRuby support distribution for the GraalVM",
+            "dependencies": [
                 "org.truffleruby.cext",
             ],
-            "layout" : {
-                "./" : [
+            "layout": {
+                "./": [
                     "file:lib",  # contains some results from org.truffleruby.cext
                     "file:CHANGELOG.md",
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
                 ],
-                "LICENSE_TRUFFLERUBY.md" : "file:LICENCE.md",
-                "3rd_party_licenses_truffleruby.txt" : "file:3rd_party_licenses.txt",
-                "bin/" : [
+                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
+                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
+                "bin/": [
                     "file:bin/gem",
                     "file:bin/irb",
                     "file:bin/rake",
@@ -410,7 +410,7 @@ suite = {
                     "file:bin/ri",
                     "file:bin/testrb",
                 ],
-                "doc/" : [
+                "doc/": [
                     "file:doc",
                 ],
                 "src/main/c/openssl/": [
