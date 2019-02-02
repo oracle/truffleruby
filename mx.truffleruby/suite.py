@@ -121,9 +121,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.shared": {
@@ -139,9 +137,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.processor": {
@@ -153,9 +149,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.services": {
@@ -167,9 +161,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby": {
@@ -220,9 +212,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.core": {
@@ -246,18 +236,14 @@ suite = {
             ],
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.test-ruby": {
             "class": "ArchiveProject",
             "outputDir": "src/test/ruby",
             "prefix": "src/test/ruby",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.cext": {
@@ -311,9 +297,7 @@ suite = {
             ],
             "outputDir": "bin",
             "prefix": "bin",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
     },
 
@@ -352,9 +336,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
             "description": "TruffleRuby Annotation Processor",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "TRUFFLERUBY-SERVICES": {
@@ -401,9 +383,7 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "description": "TruffleRuby Launcher",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT" : {
@@ -465,9 +445,7 @@ suite = {
                 "TRUFFLERUBY",
                 "truffle:TRUFFLE_TCK"
             ],
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
     },
 }
