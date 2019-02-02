@@ -69,6 +69,8 @@ git checkout -- test/mri/tests/runner.rb
 # Licences
 cp ../ruby/BSDL doc/legal/ruby-bsdl.txt
 cp ../ruby/COPYING doc/legal/ruby-licence.txt
+cp lib/cext/include/ccan/licenses/BSD-MIT doc/legal/ccan-bsd-mit.txt
+cp lib/cext/include/ccan/licenses/CC0 doc/legal/ccan-cc0.txt
 
 # include/
 rm -rf lib/cext/include/ruby lib/cext/include/ccan
