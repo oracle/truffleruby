@@ -416,20 +416,6 @@ suite = {
             ],
         },
 
-        # Set of extra files to extract to run Ruby
-        "TRUFFLERUBY-ZIP": {
-            "native": True, # Not Java
-            "relpath": True,
-            "platformDependent": True, # org.truffleruby.bin
-            "dependencies": [
-                "org.truffleruby.bin",
-            ],
-            "description": "bin directory",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
-        },
-
         "TRUFFLERUBY_GRAALVM_SUPPORT" : {
             "native": True,
             "platformDependent": True,

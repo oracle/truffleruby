@@ -96,7 +96,7 @@ class TruffleRubySulongLibsBuildTask(mx.ArchivableBuildTask):
             shutil.rmtree(self.sulong_libs_under_home)
 
 class TruffleRubyLauncherProject(ArchiveProject):
-    # Only include the known launchers in truffleruby-bin and TRUFFLERUBY-ZIP.
+    # Only include the known launchers in truffleruby-bin.
     # Omit the Bash launcher (bin/truffleruby.sh) and bin/truffleruby
     # as they can be replaced by a SVM image.
     # Distributions needing the Bash launcher should copy it explicitly.
@@ -201,7 +201,6 @@ def build_truffleruby(args = []):
     truffleruby_dists = [
         'TRUFFLERUBY',
         'TRUFFLERUBY-LAUNCHER',
-        'TRUFFLERUBY-ZIP',
         'TRUFFLERUBY_GRAALVM_SUPPORT',
         'TRUFFLERUBY-TEST',
         'TRUFFLERUBY-SPECS',
