@@ -37,39 +37,42 @@
 module Truffle
   module NumericOperations
 
-    def self.step_float_size(value, limit, step, asc)
-      if (asc && value > limit) || (!asc && value < limit)
-        return 0
+    def self.float_step_size(value, limit, step)
+      if step.infinite?
+        return step > 0 ? (value <= limit ? 1 : 0) : (value >= limit ? 1 : 0)
       end
 
-      if step.infinite?
-        1
+      if step == 0
+        return Float::INFINITY
+      end
+
+      n = (limit - value) / step
+      return 0 if n < 0
+
+      err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
+
+      if err.finite?
+        err = 0.5 if err > 0.5
+        (n + err).floor + 1
       else
-        err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
-        if err.finite?
-          err = 0.5 if err > 0.5
-          ((limit - value) / step + err).floor + 1
-        else
-          0
-        end
+        n < 0 ? 0 : n
       end
     end
 
-    def self.step_size(value, limit, step, by)
-      values = step_fetch_args(value, limit, step, by)
+    def self.step_size(value, limit, step, uses_kwargs)
+      values = step_fetch_args(value, limit, step, uses_kwargs)
       value = values[0]
       limit = values[1]
       step = values[2]
-      asc = values[3]
+      desc = values[3]
       is_float = values[4]
 
-      if stepping_forever?(limit, step, asc)
+      if stepping_forever?(limit, step, desc)
         Float::INFINITY
       elsif is_float
-        # Ported from MRI
-        step_float_size(value, limit, step, asc)
+        float_step_size(value, limit, step)
       else
-        if (asc && value > limit) || (!asc && value < limit)
+        if (desc && value < limit) || (!desc && value > limit)
           0
         else
           ((value - limit).abs + 1).fdiv(step.abs).ceil
@@ -77,24 +80,35 @@ module Truffle
       end
     end
 
-    def self.stepping_forever?(limit, step, asc)
+    def self.stepping_forever?(limit, step, desc)
       return true if limit.nil? || step.zero?
-      if asc
-        limit == Float::INFINITY  && step != Float::INFINITY
-      else
+      if desc
         limit == -Float::INFINITY && step != -Float::INFINITY
+      else
+        limit == Float::INFINITY  && step != Float::INFINITY
       end
     end
 
-    def self.step_fetch_args(value, limit, step, by)
-      raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
-
-      asc = step > 0
-      if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
-        [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit),
-         Truffle::Type.rb_num2dbl(step), asc, true]
+    def self.step_fetch_args(value, limit, step, uses_kwargs)
+      if uses_kwargs
+        step ||= 1
       else
-        [value, limit, step, asc, false]
+        # Step can't be `nil` or `0` if passed via positional arguments,
+        # but it can be either value if passed via keyword arguments.
+
+        raise TypeError, 'step must be numeric' if step.nil?
+        raise ArgumentError, "step can't be 0" if step == 0
+      end
+
+      step = Truffle::Type.coerce_to_int(step) unless Numeric === step
+      desc = step < 0
+      default_limit = desc ? -Float::INFINITY : Float::INFINITY
+
+      if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
+        [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || default_limit),
+         Truffle::Type.rb_num2dbl(step), desc, true]
+      else
+        [value, limit || default_limit, step, desc, false]
       end
     end
 
