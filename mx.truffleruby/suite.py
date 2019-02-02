@@ -269,7 +269,19 @@ suite = {
                 "org.truffleruby.sulong-libs", # polyglot.h
             ],
             "output": ".",
-            "results": [], # Empty results as they overlap with org.truffleruby.lib
+            "results": [
+                "lib:lib/cext/truffleposix",
+                "lib/cext/sulongmock.o",
+                "lib/cext/ruby.o",
+                "lib/cext/ruby.su",
+                "lib/mri/etc.su",
+                "lib/mri/nkf.su",
+                "lib/mri/openssl.su",
+                "lib/mri/psych.su",
+                "lib/mri/rbconfig/sizeof.su",
+                "lib/mri/syslog.su",
+                "lib/mri/zlib.su",
+            ],
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
@@ -285,22 +297,6 @@ suite = {
             "prefix": "lib/cext/sulong-libs",
             "buildDependencies": [
                 "sulong:SULONG_LIBS",
-            ],
-        },
-
-        "org.truffleruby.lib": {
-            "class": "ArchiveProject",
-            "dependencies": [
-                "org.truffleruby.cext",
-                "org.truffleruby.sulong-libs",
-            ],
-            "outputDir": "lib",
-            "prefix": "lib",
-            "license": [
-                "EPL-1.0",
-                "MIT",              # minitest, did_you_mean, rake
-                "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI and RubySL
             ],
         },
 
@@ -424,17 +420,13 @@ suite = {
         "TRUFFLERUBY-ZIP": {
             "native": True, # Not Java
             "relpath": True,
-            "platformDependent": True, # org.truffleruby.cext, org.truffleruby.bin
+            "platformDependent": True, # org.truffleruby.bin
             "dependencies": [
                 "org.truffleruby.bin",
-                "org.truffleruby.lib",
             ],
-            "description": "TruffleRuby libraries, bin directory",
+            "description": "bin directory",
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # minitest, did_you_mean, rake
-                "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI
             ],
         },
 
