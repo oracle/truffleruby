@@ -256,7 +256,7 @@ suite = {
             ],
             "output": ".",
             "results": [
-                "lib:lib/cext/truffleposix",
+                "lib/cext/<lib:truffleposix>",
                 "lib/cext/sulongmock.o",
                 "lib/cext/ruby.o",
                 "lib/cext/ruby.su",

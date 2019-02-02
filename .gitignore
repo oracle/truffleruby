@@ -18,8 +18,8 @@ nbproject
 .factorypath
 
 # C extensions
-lib/cext/truffleposix.so
-lib/cext/truffleposix.dylib
+lib/cext/libtruffleposix.so
+lib/cext/libtruffleposix.dylib
 lib/cext/sulongmock.o
 lib/cext/ruby.su
 lib/cext/ruby.o
@@ -53,8 +53,8 @@ src/main/c/*/mkmf.log
 src/main/c/etc/constdefs.h
 src/main/c/sulongmock/sulongmock.c
 src/main/c/truffleposix/truffleposix.o
-src/main/c/truffleposix/truffleposix.so
-src/main/c/truffleposix/truffleposix.dylib
+src/main/c/truffleposix/libtruffleposix.so
+src/main/c/truffleposix/libtruffleposix.dylib
 
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/*.bc

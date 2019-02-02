@@ -30,7 +30,7 @@ ifeq ($(OS),SunOS)
 LDFLAGS += -lrt
 endif
 
-truffleposix.$(DLEXT): truffleposix.o Makefile
+libtruffleposix.$(DLEXT): truffleposix.o Makefile
 	$(CC) -shared $(LDFLAGS) -o $@ $<
 
 truffleposix.o: truffleposix.c Makefile

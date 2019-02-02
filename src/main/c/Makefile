@@ -13,7 +13,7 @@ CC := clang
 CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
 LDFLAGS := -m64
 
-TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
+TRUFFLE_POSIX := $(ROOT)/lib/cext/libtruffleposix.$(DLEXT)
 SULONG_HEADERS := $(wildcard $(ROOT)/lib/cext/include/sulong/*.h)
 GENERATE_SULONG_MOCK := $(ROOT)/tool/generate-sulongmock.rb
 SULONG_MOCK := $(ROOT)/lib/cext/sulongmock.o
@@ -63,10 +63,10 @@ clean_cexts:
 	rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.bc rbconfig-sizeof/sizeof.su
 
 # truffleposix
-truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/truffleposix.c
+truffleposix/libtruffleposix.$(DLEXT): truffleposix/Makefile truffleposix/truffleposix.c
 	cd truffleposix && $(MAKE)
 
-$(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
+$(TRUFFLE_POSIX): truffleposix/libtruffleposix.$(DLEXT)
 	cp $< $@
 
 # sulongmock.o

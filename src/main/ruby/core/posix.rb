@@ -40,7 +40,7 @@ module Truffle::POSIX
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
     if home = Truffle::Boot.ruby_home
-      libtruffleposix = "#{home}/lib/cext/truffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
+      libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
       Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
     else
       LIBC.resolve
