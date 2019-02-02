@@ -96,14 +96,14 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     @TruffleBoundary
     public synchronized void keepObject(Object object) {
+        if (counter == cacheSize) {
+            runAllMarkers();
+        }
         final ArrayList<Object> keepList = stackPreservation.get().peekFirst();
         if (keepList != null) {
             keepList.add(object);
         }
         keptObjects[counter++] = object;
-        if (counter == cacheSize) {
-            runAllMarkers();
-        }
     }
 
     @TruffleBoundary
