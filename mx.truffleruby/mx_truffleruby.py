@@ -196,7 +196,6 @@ def build_truffleruby(args = []):
         'TRUFFLERUBY-LAUNCHER',
         'TRUFFLERUBY_GRAALVM_SUPPORT',
         'TRUFFLERUBY-TEST',
-        'TRUFFLERUBY-SPECS',
     ]
     mx.command_function('sversions')([])
     mx.command_function('build')([

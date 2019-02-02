@@ -315,16 +315,6 @@ suite = {
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
-
-        "org.truffleruby.specs": {
-            "class": "ArchiveProject",
-            "prefix": "spec",
-            "outputDir": "spec",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # Ruby Specs
-            ],
-        },
     },
 
     "distributions": {
@@ -477,19 +467,6 @@ suite = {
             ],
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
-        },
-
-        "TRUFFLERUBY-SPECS": {
-            "native": True, # Not Java
-            "relpath": True,
-            "dependencies": [
-                "org.truffleruby.specs",
-            ],
-            "description": "TruffleRuby spec files from ruby/spec",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # Ruby Specs
             ],
         },
     },
