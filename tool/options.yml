@@ -90,6 +90,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
   DEFAULT_EXECUTION_ACTION: [default_execution_action, enum/default_execution_action, irb, What should be done when no action is set]
   ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value]
   ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value)]
+  BUILDING_CORE_CEXTS: [building.core.cexts, boolean, false, 'Used while building TruffleRuby to build core C extensions']
 
   # Low-level logging of implementation details
   LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]

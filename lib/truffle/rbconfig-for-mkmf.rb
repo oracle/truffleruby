@@ -78,11 +78,20 @@ warnflags = [
 cc = clang
 cxx = "#{clang}++"
 
-cflags = "#{debugflags} #{warnflags} -c -emit-llvm"
+base_cflags = "#{debugflags} #{warnflags}"
+cflags = "#{base_cflags} -c -emit-llvm"
 cflags = "#{extra_cflags} #{cflags}" if extra_cflags
 cxxflags = "#{cflags} -stdlib=libc++"
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
+
+if Truffle::Boot.get_option 'building.core.cexts'
+  ruby_home = Truffle::Boot.ruby_home
+  link_o_files = "#{ruby_home}/src/main/c/cext/ruby.o #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
+  RbConfig::MAKEFILE_CONFIG['CPPFLAGS'] = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
+else
+  link_o_files = "#{cext_dir}/ruby.o #{cext_dir}/sulongmock.o"
+end
 
 expanded = RbConfig::CONFIG
 mkconfig = RbConfig::MAKEFILE_CONFIG
@@ -104,9 +113,8 @@ mkconfig.merge!(common)
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 
-cflags_for_try_link = "#{debugflags} #{warnflags}"
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags_for_try_link} #{cext_dir}/ruby.o #{cext_dir}/sulongmock.o $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }

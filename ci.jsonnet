@@ -76,9 +76,7 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-      ] + self.before_build + [
-        ["mx", "build_truffleruby"],
-      ] + self.after_build,
+      ] + self.before_build + jt(["build"]) + self.after_build,
     },
 
     truffleruby: {

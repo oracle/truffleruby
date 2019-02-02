@@ -18,20 +18,6 @@ nbproject
 .factorypath
 
 # C extensions
-lib/cext/libtruffleposix.so
-lib/cext/libtruffleposix.dylib
-lib/cext/sulongmock.o
-lib/cext/ruby.su
-lib/cext/ruby.o
-lib/cext/sulong-libs
-lib/cext/include/sulong/polyglot.h
-lib/mri/openssl.su
-lib/mri/zlib.su
-lib/mri/psych.su
-lib/mri/syslog.su
-lib/mri/nkf.su
-lib/mri/etc.su
-lib/mri/rbconfig/sizeof.su
 /.ext
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile
@@ -50,8 +36,10 @@ src/main/c/*/*.bc
 src/main/c/*/*.su
 src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
+src/main/c/cext/ruby.o
 src/main/c/etc/constdefs.h
 src/main/c/sulongmock/sulongmock.c
+src/main/c/sulongmock/sulongmock.o
 src/main/c/truffleposix/truffleposix.o
 src/main/c/truffleposix/libtruffleposix.so
 src/main/c/truffleposix/libtruffleposix.dylib
@@ -128,8 +116,8 @@ bin/*
 !bin/rdoc
 !bin/ri
 !bin/ruby
-!bin/truffleruby.sh
 !bin/testrb
+!bin/truffleruby
 
 # Diagnostic output directory
 dumps/

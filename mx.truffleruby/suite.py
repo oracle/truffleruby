@@ -251,53 +251,31 @@ suite = {
             "dir": "src/main/c",
             "buildDependencies": [
                 "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
-                "org.truffleruby.dev.launcher", # bin/truffleruby
-                "org.truffleruby.sulong-libs", # polyglot.h
+                "sulong:SULONG_LIBS", # polyglot.h
             ],
+            "buildEnv": {
+              "TRUFFLERUBYOPT": "--building.core.cexts",
+              "SULONG_HEADERS_DIR": "<path:SULONG_LIBS>",
+              "SULONG_POLYGLOT_H": "<path:SULONG_LIBS>/polyglot.h",
+            },
             "output": ".",
             "results": [
-                "lib/cext/<lib:truffleposix>",
-                "lib/cext/sulongmock.o",
-                "lib/cext/ruby.o",
-                "lib/cext/ruby.su",
-                "lib/mri/etc.su",
-                "lib/mri/nkf.su",
-                "lib/mri/openssl.su",
-                "lib/mri/psych.su",
-                "lib/mri/rbconfig/sizeof.su",
-                "lib/mri/syslog.su",
-                "lib/mri/zlib.su",
+                "src/main/c/truffleposix/<lib:truffleposix>",
+                "src/main/c/sulongmock/sulongmock.o",
+                "src/main/c/cext/ruby.o",
+                "src/main/c/cext/ruby.su",
+                "src/main/c/etc/etc.su",
+                "src/main/c/nkf/nkf.su",
+                "src/main/c/openssl/openssl.su",
+                "src/main/c/psych/psych.su",
+                "src/main/c/rbconfig-sizeof/sizeof.su",
+                "src/main/c/syslog/syslog.su",
+                "src/main/c/zlib/zlib.su",
             ],
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
             ],
-        },
-
-        # Copy the files from SULONG_LIBS to lib/cext/sulong-libs.
-        # Used by native images, which need a relative path from the Ruby home
-        # to these libraries to pass to Sulong so it can find them outside GraalVM.
-        "org.truffleruby.sulong-libs": {
-            "class": "TruffleRubySulongLibsProject",
-            "outputDir": "lib/cext/sulong-libs",
-            "prefix": "lib/cext/sulong-libs",
-            "buildDependencies": [
-                "sulong:SULONG_LIBS",
-            ],
-        },
-
-        "org.truffleruby.dev.launcher": {
-            "class": "TruffleRubyDevLauncherProject",
-            "buildDependencies": [
-                "TRUFFLERUBY",
-                "TRUFFLERUBY-LAUNCHER",
-                "sulong:SULONG",
-                "tools:CHROMEINSPECTOR",
-                "tools:TRUFFLE_PROFILER",
-            ],
-            "outputDir": "bin",
-            "prefix": "bin",
-            "license": ["EPL-1.0"],
         },
     },
 
@@ -395,7 +373,6 @@ suite = {
             ],
             "layout": {
                 "./": [
-                    "file:lib",  # contains some results from org.truffleruby.cext
                     "file:CHANGELOG.md",
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
@@ -412,6 +389,66 @@ suite = {
                 ],
                 "doc/": [
                     "file:doc",
+                ],
+                "lib/": [
+                    "file:lib/json",
+                    "file:lib/mri",
+                    "file:lib/patches",
+                    "file:lib/truffle",
+                ],
+                "lib/cext/": [
+                    "file:lib/cext/patches",
+                    "file:lib/cext/*.rb",
+                    "file:src/main/c/truffleposix/<lib:truffleposix>",
+                    "file:src/main/c/sulongmock/sulongmock.o",
+                    "file:src/main/c/cext/ruby.o",
+                    "file:src/main/c/cext/ruby.su",
+                ],
+                "lib/cext/include/": [
+                    "file:lib/cext/include/ccan",
+                    "file:lib/cext/include/ruby",
+                    "file:lib/cext/include/truffleruby",
+                    "file:lib/cext/include/*.h",
+                ],
+                "lib/cext/include/sulong/": [
+                    "file:lib/cext/include/sulong/truffle.h",
+                    "extracted-dependency:sulong:SULONG_LIBS/*.h",
+                ],
+                "lib/cext/sulong-libs/": [
+                    "extracted-dependency:sulong:SULONG_LIBS/lib*",
+                ],
+                "lib/mri/": [
+                    "file:src/main/c/etc/etc.su",
+                    "file:src/main/c/nkf/nkf.su",
+                    "file:src/main/c/openssl/openssl.su",
+                    "file:src/main/c/psych/psych.su",
+                    "file:src/main/c/syslog/syslog.su",
+                    "file:src/main/c/zlib/zlib.su",
+                ],
+                "lib/mri/rbconfig/": [
+                    "file:src/main/c/rbconfig-sizeof/sizeof.su",
+                ],
+                "lib/ruby/gems/2.4.0/": [
+                    "file:lib/ruby/gems/2.4.0/truffleruby_gem_dir_marker.txt",
+                ],
+                "lib/ruby/gems/2.4.0/gems/": [
+                    "file:lib/ruby/gems/2.4.0/gems/did_you_mean-1.1.0",
+                    "file:lib/ruby/gems/2.4.0/gems/minitest-5.10.1",
+                    "file:lib/ruby/gems/2.4.0/gems/net-telnet-0.1.1",
+                    "file:lib/ruby/gems/2.4.0/gems/power_assert-0.4.1",
+                    "file:lib/ruby/gems/2.4.0/gems/rake-12.0.0",
+                    "file:lib/ruby/gems/2.4.0/gems/test-unit-3.2.3",
+                    "file:lib/ruby/gems/2.4.0/gems/xmlrpc-0.2.1",
+                ],
+                "lib/ruby/gems/2.4.0/specifications/": [
+                    "file:lib/ruby/gems/2.4.0/specifications/default",
+                    "file:lib/ruby/gems/2.4.0/specifications/did_you_mean-1.1.0.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/minitest-5.10.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/net-telnet-0.1.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/power_assert-0.4.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/rake-12.0.0.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/test-unit-3.2.3.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/xmlrpc-0.2.1.gemspec",
                 ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/deprecation.rb",

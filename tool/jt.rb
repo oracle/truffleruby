@@ -214,7 +214,7 @@ module Utilities
     if use_native
       ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
     else
-      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/bin/truffleruby"
+      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/graalvm/jre/languages/ruby/bin/ruby"
     end
   end
 
@@ -496,6 +496,7 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
+          graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby
           native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
@@ -605,28 +606,23 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when "cexts" # Included in 'mx build' but useful to recompile just that part
-      require 'etc'
-      cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
-      raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+      mx 'build', '--dependencies', 'org.truffleruby.cext'
+    when 'graalvm'
+      build_graalvm *options
     when 'native'
       build_native_image *options
     when nil
-      build_truffleruby
+      build_graalvm
     else
       raise ArgumentError, project
     end
-  end
-
-  def build_truffleruby(*options, sforceimports: true)
-    mx 'sforceimports' if sforceimports
-    mx 'build_truffleruby', *options
   end
 
   def clean(*options)
     project = options.shift
     case project
     when 'cexts'
-      raw_sh "make", "clean", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+      mx 'clean', '--dependencies', 'org.truffleruby.cext'
     when nil
       mx 'clean'
       sh 'rm', '-rf', 'mxbuild'
@@ -1026,6 +1022,7 @@ module Commands
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
+      "RUBYGEMS_TEST_PATH" => "#{TRUFFLERUBY_DIR}/test/mri/tests",
       "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
@@ -1941,11 +1938,26 @@ EOS
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
+  def build_graalvm(*options)
+    java_home = ENV["CI"] ? nil : ENV["JAVA_HOME"] || install_jvmci
+    graal = checkout_or_update_graal_repo(sforceimports: false)
+
+    mx_args = %w[--dynamicimports truffleruby]
+    chdir("#{graal}/vm") do
+      mx *mx_args, 'build', java_home: java_home
+    end
+
+    build_dir = "#{graal}/vm/latest_graalvm_home"
+    dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
+    FileUtils.rm_rf dest
+    FileUtils.cp_r build_dir, dest
+  end
+
   def build_native_image(*options)
     jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
 
-    build_truffleruby(sforceimports: sforceimports)
+    mx 'sforceimports' if sforceimports
 
     java_home = install_jvmci if jvmci
     graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
