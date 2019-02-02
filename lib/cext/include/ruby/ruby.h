@@ -498,10 +498,11 @@ MUST_INLINE int RB_FLOAT_TYPE_P(VALUE obj);
 
 bool RB_TYPE_P(VALUE value, int type);
 
-#define HAVE_RB_GC_GUARDED_PTR_VAL 1
-#define rb_gc_guarded_ptr_val(ptr, val) (ptr)
-#define RB_GC_GUARD(v) (v)
-#define RB_GC_GUARD_PTR(ptr) (ptr)
+#define RB_GC_GUARD(v) \
+    (*__extension__ ({ \
+        volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
+        rb_gc_guarded_ptr;                              \
+    }))
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))

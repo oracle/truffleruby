@@ -79,38 +79,31 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         }
     }
 
-    private static final int KEPT_COUNT_SIZE = 10_000;
+    private final int cacheSize;
 
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
-    private Object[] keptObjects = new Object[KEPT_COUNT_SIZE];
+    private Object[] keptObjects;
+    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<>();
 
     private int counter = 0;
 
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
+        cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
+        keptObjects = new Object[cacheSize];
     }
 
-    public void keepObject(Object object) {
-        Object[] oldKeptObjects = addToKeptObjects(object);
-        if (oldKeptObjects != null) {
-            runAllMarkers();
-        }
-    }
-
-    private synchronized Object[] addToKeptObjects(Object object) {
+    @TruffleBoundary
+    public synchronized void keepObject(Object object) {
         final ArrayList<Object> keepList = stackPreservation.get().peekFirst();
         if (keepList != null) {
             keepList.add(object);
         }
         keptObjects[counter++] = object;
-        if (counter == KEPT_COUNT_SIZE) {
-            counter = 0;
-            Object[] tmp = keptObjects;
-            keptObjects = new Object[KEPT_COUNT_SIZE];
-            return tmp;
+        if (counter == cacheSize) {
+            runAllMarkers();
         }
-        return null;
     }
 
     @TruffleBoundary
@@ -123,16 +116,23 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         stackPreservation.get().pop();
     }
 
-    private synchronized void runAllMarkers() {
-        MarkerReference currentMarker = getFirst();
-        MarkerReference nextMarker;
-        while (currentMarker != null) {
-            nextMarker = currentMarker.next;
-            runMarker(currentMarker);
-            if (nextMarker == currentMarker) {
-                throw new Error("The MarkerReference linked list structure has become broken.");
+    public synchronized void runAllMarkers() {
+        counter = 0;
+        oldKeptObjects.push(keptObjects);
+        try {
+            keptObjects = new Object[cacheSize];
+            MarkerReference currentMarker = getFirst();
+            MarkerReference nextMarker;
+            while (currentMarker != null) {
+                nextMarker = currentMarker.next;
+                runMarker(currentMarker);
+                if (nextMarker == currentMarker) {
+                    throw new Error("The MarkerReference linked list structure has become broken.");
+                }
+                currentMarker = nextMarker;
             }
-            currentMarker = nextMarker;
+        } finally {
+            oldKeptObjects.pop();
         }
     }
 
