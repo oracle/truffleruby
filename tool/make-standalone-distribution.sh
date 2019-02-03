@@ -99,4 +99,4 @@ TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.
 
 # Run all specs
 cd "$build_home"
-AOT_BIN="$release_home/bin/truffleruby" tool/jt.rb test --native --no-home :all
+AOT_BIN="$release_home/bin/truffleruby" tool/jt.rb test --native :all

@@ -1019,11 +1019,10 @@ module Commands
       end
     }
 
-    truffle_args =  if extra_args.include?('--native')
-                      %W[--home=#{TRUFFLERUBY_DIR}]
-                    else
-                      %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
-                    end
+    truffle_args = []
+    if !extra_args.include?('--native')
+      truffle_args += %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
+    end
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
@@ -1371,7 +1370,6 @@ EOS
 
       options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << find_launcher(true)
-      options << "-T--home=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
     end
 
     if args.delete('--graal')
@@ -1798,8 +1796,6 @@ EOS
     run_args = []
 
     if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
-      run_args.push "--home=#{TRUFFLERUBY_DIR}"
-
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
       benchmark_ruby ||= find_launcher(true)
