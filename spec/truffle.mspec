@@ -29,27 +29,6 @@ class MSpecScript
     end
   end
 
-  TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
-
-  set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"
-
-  # No flags set if a Ruby binary is specified via -t
-  if !child_process? and !ARGV.include?('-t') # note this is broken if you write for example -truby
-    prefix = TruffleRuby.native? ? '--native.' : '--jvm.'
-
-    flags = [
-      "#{prefix}ea",
-      "#{prefix}esa",
-      "#{prefix}Xmx2G"
-    ]
-    core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
-    if File.directory?(core_path)
-      flags << "--core.load_path=#{core_path}"
-      flags << "--backtraces.hide_core_files=false"
-    end
-    set :flags, flags
-  end
-
   set :command_line, [
     "spec/ruby/command_line"
   ]
@@ -133,6 +112,11 @@ class MSpecScript
     [%r(^.*/truffle),                   'spec/tags/truffle/'],
     [/_spec.rb$/,                       '_tags.txt']
   ]
+
+  if defined?(TruffleRuby) && TruffleRuby.native?
+    # exclude specs tagged with 'aot' and 'graalvm'
+    set :xtags, (get(:xtags) || []) + ['aot', 'graalvm']
+  end
 
   if windows?
     # exclude specs tagged with 'windows'

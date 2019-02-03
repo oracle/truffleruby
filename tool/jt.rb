@@ -470,14 +470,14 @@ module Utilities
       command, *args = args
     end
 
-    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args]
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
 
     if i = args.index('-t')
       launcher = args[i+1]
       flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
-      sh env_vars, launcher, *flags, *mspec_args, use_exec: true
+      sh env_vars, launcher, *flags, *mspec_args, *args, use_exec: true
     else
-      ruby env_vars, *mspec_args
+      ruby env_vars, *mspec_args, '-t', find_launcher(false), *args
     end
   end
 
@@ -1365,11 +1365,18 @@ EOS
       options += %w[--excl-tag slow]
     end
 
-    if args.delete('--native')
-      verify_native_bin!
+    if args.include?('-t')
+      # Running specs on another Ruby, pass no options
+    else
+      if args.delete('--native')
+        verify_native_bin!
+        options << '-t' << find_launcher(true)
+      else
+        options += %w[-T--jvm.ea -T--jvm.esa -T--jvm.Xmx2G]
+        options << "-T--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+      end
 
-      options += %w[--excl-tag graalvm --excl-tag aot]
-      options << '-t' << find_launcher(true)
+      options << '-T--backtraces.hide_core_files=false'
     end
 
     if args.delete('--graal')
