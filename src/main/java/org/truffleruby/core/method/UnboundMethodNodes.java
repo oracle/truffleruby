@@ -38,7 +38,7 @@ import org.truffleruby.parser.ArgumentDescriptor;
 @CoreClass("UnboundMethod")
 public abstract class UnboundMethodNodes {
 
-    @CoreMethod(names = "==", required = 1)
+    @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyUnboundMethod(other)")
