@@ -62,6 +62,11 @@ public abstract class MethodNodes {
         return a.getSharedMethodInfo().getArity() == b.getSharedMethodInfo().getArity();
     }
 
+    public static int hashInternalMethod(InternalMethod internalMethod) {
+        // Hash the Arity object to guarantee same hash values for areInternalMethodEqual() methods.
+        return internalMethod.getSharedMethodInfo().getArity().hashCode();
+    }
+
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
@@ -121,7 +126,7 @@ public abstract class MethodNodes {
             final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, Layouts.METHOD.getReceiver(rubyMethod).hashCode());
-            h = Hashing.update(h, method.getSharedMethodInfo().hashCode());
+            h = Hashing.update(h, hashInternalMethod(method));
             return Hashing.end(h);
         }
 

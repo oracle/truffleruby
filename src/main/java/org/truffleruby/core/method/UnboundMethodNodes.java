@@ -100,7 +100,7 @@ public abstract class UnboundMethodNodes {
             final InternalMethod method = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, Layouts.UNBOUND_METHOD.getOrigin(rubyMethod).hashCode());
-            h = Hashing.update(h, method.getSharedMethodInfo().hashCode());
+            h = Hashing.update(h, MethodNodes.hashInternalMethod(method));
             return Hashing.end(h);
         }
 
