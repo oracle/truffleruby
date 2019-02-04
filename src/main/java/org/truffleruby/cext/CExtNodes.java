@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -1316,16 +1317,21 @@ public class CExtNodes {
     public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object unwrap(Object value,
+        public Object unwrap(TruffleObject value,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
             if (object == null) {
                 exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().runtimeError("native handle not found", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError(exceptionMessage(value), this));
             } else {
                 return object;
             }
+        }
+
+        @TruffleBoundary
+        private String exceptionMessage(Object value) {
+            return String.format("native handle not found (%s)", value);
         }
 
         protected UnwrapNode createUnwrapNode() {
@@ -1333,7 +1339,7 @@ public class CExtNodes {
         }
     }
 
-    private static ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
+    private static final ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
 
     @CoreMethod(names = "create_mark_list", onSingleton = true, required = 0)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
@@ -1354,14 +1360,14 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frmae, Object markedObject,
+        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") BranchProfile noExceptionProfile,
-                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
-            Object unwrappedValue = unwrapNode.execute(markedObject);
-            if (unwrappedValue != null) {
+                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+            ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
+            if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getList().add(unwrappedValue);
+                getList().add(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
@@ -1372,6 +1378,33 @@ public class CExtNodes {
         @TruffleBoundary
         protected ArrayList<Object> getList() {
             return markList.get();
+        }
+
+        protected UnwrapNode createUnwrapNode() {
+            return UnwrapNodeGen.create();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_gc_guard", onSingleton = true, required = 1)
+    public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject guardedObject,
+                @Cached("create()") BranchProfile noExceptionProfile,
+                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+            ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
+            if (wrappedValue != null) {
+                noExceptionProfile.enter();
+                getContext().getMarkingService().keepObject(guardedObject);
+            }
+            return nil();
+        }
+
+        @Fallback
+        public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject) {
+            // Do nothing for unexpected objects, no matter how unexpected. This can occur inside
+            // macros that guard a variable which may not have been initialized.
+            return nil();
         }
 
         protected UnwrapNode createUnwrapNode() {

@@ -79,38 +79,43 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         }
     }
 
-    private static final int KEPT_COUNT_SIZE = 10_000;
+    private final int cacheSize;
 
     private final ThreadLocal<Deque<ArrayList<Object>>> stackPreservation = ThreadLocal.withInitial(() -> new ArrayDeque<>());
 
-    private Object[] keptObjects = new Object[KEPT_COUNT_SIZE];
+    private Object[] keptObjects;
+    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<>();
 
     private int counter = 0;
 
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
+        cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
+        keptObjects = new Object[cacheSize];
     }
 
-    public void keepObject(Object object) {
-        Object[] oldKeptObjects = addToKeptObjects(object);
-        if (oldKeptObjects != null) {
+    @TruffleBoundary
+    public synchronized void keepObject(Object object) {
+        /*
+         * It is important to get the ordering of events correct to avoid references being garbage
+         * collected too soon. If we are attempting to add a handle to a native structure then that
+         * consists of two events. First we create the handle, and then the handle is stored in the
+         * struct. If we run mark functions immediate after adding the handle to the list of kept
+         * objects then the mark function will be run before that handle is stored in the structure,
+         * and since it will be removed from the list of kept objects it could be collected before
+         * the mark functions are run again.
+         *
+         * Instead we check for the kept list being full before adding an object to it, as those
+         * handles are already stored in structs by this point.
+         */
+        if (counter == cacheSize) {
             runAllMarkers();
         }
-    }
-
-    private synchronized Object[] addToKeptObjects(Object object) {
         final ArrayList<Object> keepList = stackPreservation.get().peekFirst();
         if (keepList != null) {
             keepList.add(object);
         }
         keptObjects[counter++] = object;
-        if (counter == KEPT_COUNT_SIZE) {
-            counter = 0;
-            Object[] tmp = keptObjects;
-            keptObjects = new Object[KEPT_COUNT_SIZE];
-            return tmp;
-        }
-        return null;
     }
 
     @TruffleBoundary
@@ -123,16 +128,23 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         stackPreservation.get().pop();
     }
 
-    private synchronized void runAllMarkers() {
-        MarkerReference currentMarker = getFirst();
-        MarkerReference nextMarker;
-        while (currentMarker != null) {
-            nextMarker = currentMarker.next;
-            runMarker(currentMarker);
-            if (nextMarker == currentMarker) {
-                throw new Error("The MarkerReference linked list structure has become broken.");
+    public synchronized void runAllMarkers() {
+        counter = 0;
+        oldKeptObjects.push(keptObjects);
+        try {
+            keptObjects = new Object[cacheSize];
+            MarkerReference currentMarker = getFirst();
+            MarkerReference nextMarker;
+            while (currentMarker != null) {
+                nextMarker = currentMarker.next;
+                runMarker(currentMarker);
+                if (nextMarker == currentMarker) {
+                    throw new Error("The MarkerReference linked list structure has become broken.");
+                }
+                currentMarker = nextMarker;
             }
-            currentMarker = nextMarker;
+        } finally {
+            oldKeptObjects.pop();
         }
     }
 

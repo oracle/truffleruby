@@ -35,7 +35,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class WrapNode extends RubyBaseNode {
 
-    public abstract TruffleObject execute(Object value);
+    public abstract ValueWrapper execute(Object value);
 
     @Specialization
     public ValueWrapper wrapLong(long value,
@@ -94,7 +94,7 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isRubyBasicObject(value)")
-    public TruffleObject wrapNonRubyObject(TruffleObject value) {
+    public ValueWrapper wrapNonRubyObject(TruffleObject value) {
         throw new RaiseException(getContext(), coreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }
 
@@ -106,4 +106,7 @@ public abstract class WrapNode extends RubyBaseNode {
         return WriteObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER);
     }
 
+    public static WrapNode create() {
+        return WrapNodeGen.create();
+    }
 }

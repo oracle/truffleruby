@@ -108,9 +108,9 @@ public class RubyContext {
     private final CodeLoader codeLoader = new CodeLoader(this);
     private final FeatureLoader featureLoader = new FeatureLoader(this);
     private final TraceManager traceManager;
-    private final ReferenceProcessor referenceProcessor = new ReferenceProcessor(this);
-    private final FinalizationService finalizationService = new FinalizationService(this, referenceProcessor);
-    private final MarkingService markingService = new MarkingService(this, referenceProcessor);
+    private final ReferenceProcessor referenceProcessor;
+    private final FinalizationService finalizationService;
+    private final MarkingService markingService;
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
@@ -173,6 +173,10 @@ public class RubyContext {
         allocationReporter = env.lookup(AllocationReporter.class);
 
         options = createOptions(env);
+
+        referenceProcessor = new ReferenceProcessor(this);
+        finalizationService = new FinalizationService(this, referenceProcessor);
+        markingService = new MarkingService(this, referenceProcessor);
 
         // We need to construct this at runtime
         random = createRandomInstance();

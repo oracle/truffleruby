@@ -621,6 +621,11 @@ public class OptionsCatalog {
             "Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so",
             null,
             new String[]{});
+    public static final IntegerOptionDescription CEXTS_MARKING_CACHE = new IntegerOptionDescription(
+            "ruby.cexts.marking.cache",
+            "Number of objects converted to native handles before the marking service is run",
+            null,
+            100);
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription(
             "ruby.constant.dynamic_lookup.log",
             "Log source code positions where dynamic constant lookup is performed",
@@ -896,6 +901,8 @@ public class OptionsCatalog {
                 return CEXTS_LOG_WARNINGS;
             case "ruby.cexts.remap":
                 return CEXTS_LIBRARY_REMAP;
+            case "ruby.cexts.marking.cache":
+                return CEXTS_MARKING_CACHE;
             case "ruby.constant.dynamic_lookup.log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.options.log":
@@ -937,6 +944,7 @@ public class OptionsCatalog {
             CEXT_LOCK,
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
+            CEXTS_MARKING_CACHE,
             CEXTS_LIBRARY_REMAP,
             CLASS_CACHE,
             CLONE_DEFAULT,
