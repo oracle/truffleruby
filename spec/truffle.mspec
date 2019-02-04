@@ -114,6 +114,7 @@ class MSpecScript
     "spec/ruby/core/enumerable/any_spec.rb",
     "spec/ruby/core/enumerable/none_spec.rb",
     "spec/ruby/core/enumerable/one_spec.rb",
+    "spec/ruby/core/exception/full_message_spec.rb",
     "spec/ruby/core/hash/transform_keys_spec.rb",
     "spec/ruby/library/mathn/mathn_spec.rb",
   ]
@@ -163,7 +164,7 @@ if MSpecScript.child_process?
   if version = ENV["PRETEND_RUBY_VERSION"]
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
   elsif ARGV.include? ":ruby25"
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.0")
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.3")
   end
 
   # We do not use Ruby 2.5's FrozenError yet

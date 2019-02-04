@@ -117,8 +117,8 @@ class Exception
     end
   end
 
-  def full_message
-    bt = backtrace
+  def full_message(highlight: undefined, order: :bottom)
+    bt = backtrace || caller(1..1)
     "#{bt[0]}: #{Truffle::ExceptionOperations.message_and_class(self)}\n" + bt[1..-1].map do |l|
       "\tfrom #{l}\n"
     end.join

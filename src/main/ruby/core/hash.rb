@@ -499,9 +499,13 @@ class Hash
 
     Truffle.check_frozen
 
-    keys.each do |key|
-      new_key = yield(key)
-      self[new_key] = delete(key)
+    h = {}
+    begin
+      each_pair do |key, value|
+        h[yield(key)] = value
+      end
+    ensure
+      replace h
     end
     self
   end
