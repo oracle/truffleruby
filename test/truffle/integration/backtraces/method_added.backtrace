@@ -1,0 +1,8 @@
+/fixtures/method_added.rb:3:in `method_added': foo (RuntimeError)
+	from /fixtures/method_added.rb:1:in `TestMethodAdded'
+	from /fixtures/method_added.rb:1:in `<top (required)>'
+	from /method_added.rb:12:in `require'
+	from /method_added.rb:12:in `require'
+	from /method_added.rb:12:in `block in <main>'
+	from /backtraces.rb:17:in `check'
+	from /method_added.rb:11:in `<main>'
