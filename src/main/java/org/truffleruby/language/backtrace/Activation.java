@@ -15,7 +15,6 @@ public class Activation {
 
     /** might be null */
     private final Node callNode;
-    /** non-null iff it's a Ruby frame */
     private final String methodName;
 
     public Activation(Node callNode, String methodName) {

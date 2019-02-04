@@ -109,7 +109,12 @@ public class Backtrace {
                         } else {
                             methodName = rootNode.getName();
                         }
-                        activations.add(new Activation(callNode, methodName));
+
+                        // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
+                        // call node, but print info based on the methodName and CallTarget.
+                        if (rootNode instanceof RubyRootNode || callNode != null) {
+                            activations.add(new Activation(callNode, methodName));
+                        }
                     }
 
                 }

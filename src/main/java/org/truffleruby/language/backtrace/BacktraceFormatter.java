@@ -203,7 +203,7 @@ public class BacktraceFormatter {
 
         final Node callNode = activation.getCallNode();
 
-        if (activation.getMethodName() != null) { // A Ruby frame
+        if (callNode == null || callNode.getRootNode() instanceof RubyRootNode) { // A Ruby frame
             final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
             final String reportedName;
@@ -233,7 +233,7 @@ public class BacktraceFormatter {
             builder.append(reportedName);
             builder.append("'");
         } else { // A foreign frame
-            builder.append(formatForeign(callNode));
+            builder.append(formatForeign(callNode, activation.getMethodName()));
         }
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
@@ -244,9 +244,9 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    private String formatForeign(Node callNode) {
+    private String formatForeign(Node callNode, String methodName) {
         final StringBuilder builder = new StringBuilder();
-        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
+        final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
 
         if (sourceSection != null) {
             final Source source = sourceSection.getSource();
@@ -270,8 +270,10 @@ public class BacktraceFormatter {
                 builder.append(identifier);
                 builder.append("'");
             }
-        } else {
+        } else if (callNode != null) {
             builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
+        } else {
+            builder.append(methodName);
         }
 
         return builder.toString();
