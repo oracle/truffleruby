@@ -1,0 +1,8 @@
+/fixtures/require.rb:3:in `raising_method': message (RuntimeError)
+	from /fixtures/require.rb:6:in `TestModuleBacktrace'
+	from /fixtures/require.rb:1:in `<top (required)>'
+	from /require.rb:12:in `require'
+	from /require.rb:12:in `require'
+	from /require.rb:12:in `block in <main>'
+	from /backtraces.rb:17:in `check'
+	from /require.rb:11:in `<main>'

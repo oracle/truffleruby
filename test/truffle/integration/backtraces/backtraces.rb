@@ -16,7 +16,7 @@ def check(file)
   begin
     yield
   rescue Exception => exception
-    actual = exception.full_message.lines.map(&:chomp)
+    actual = exception.full_message(order: :top, highlight: false).lines.map(&:chomp)
   end
 
   while actual.size < expected.size

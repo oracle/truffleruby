@@ -12,17 +12,16 @@ package org.truffleruby.language.backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTraceElement;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.InternalMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,8 @@ import java.util.List;
 public class Backtrace {
 
     private final Node location;
-    private SourceSection sourceLocation;
+    /** Only set for SyntaxError, where getLocation() does not represent where the error occurred. */
+    private final SourceSection sourceLocation;
     private RaiseException raiseException;
     private Activation[] activations;
     private final int omitted;
@@ -97,14 +97,23 @@ public class Backtrace {
             int i = 0;
             for (TruffleStackTraceElement stackTraceElement : stackTrace) {
                 if (i >= omitted) {
-                    final Node callNode = i == 0 ? location : stackTraceElement.getLocation();
+                    assert i != 0 || stackTraceElement.getLocation() == location;
+                    final Node callNode = stackTraceElement.getLocation();
 
-                    if (!callStackManager.ignoreFrame(callNode)) {
-                        final Frame frame = stackTraceElement.getFrame();
-                        final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
+                    if (!callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
+                        final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
+                        final String methodName;
+                        if (rootNode instanceof RubyRootNode) {
+                            // Ruby backtraces do not include the class name for MRI compatibility.
+                            methodName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
+                        } else {
+                            methodName = rootNode.getName();
+                        }
 
-                        if (callNode != null || method != null) { // Ignore the frame if we know nothing about it
-                            activations.add(new Activation(callNode, method));
+                        // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
+                        // call node, but print info based on the methodName and CallTarget.
+                        if (rootNode instanceof RubyRootNode || callNode != null) {
+                            activations.add(new Activation(callNode, methodName));
                         }
                     }
 
@@ -123,10 +132,6 @@ public class Backtrace {
 
         return this.activations;
 
-    }
-
-    public void setActivations(Activation[] activations) {
-        this.activations = activations;
     }
 
     public int getOmitted() {

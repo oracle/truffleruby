@@ -10,31 +10,29 @@
 package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.methods.InternalMethod;
 
 public class Activation {
 
     /** might be null */
     private final Node callNode;
-    /** non-null iff it's a Ruby frame */
-    private final InternalMethod method;
+    private final String methodName;
 
-    public Activation(Node callNode, InternalMethod method) {
+    public Activation(Node callNode, String methodName) {
         this.callNode = callNode;
-        this.method = method;
+        this.methodName = methodName;
     }
 
     public Node getCallNode() {
         return callNode;
     }
 
-    public InternalMethod getMethod() {
-        return method;
+    public String getMethodName() {
+        return methodName;
     }
 
     @Override
     public String toString() {
-        return "Activation @ " + callNode + " " + method;
+        return "Activation @ " + callNode + " " + methodName;
     }
 
 }

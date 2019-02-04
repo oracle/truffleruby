@@ -658,7 +658,7 @@ public class CoreLibrary {
     private InternalMethod getMethod(DynamicObject module, String name) {
         InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
         if (method == null || method.isUndefined()) {
-            throw new AssertionError();
+            throw new Error("method " + module + "#" + name + " not found during CoreLibrary initialization");
         }
         return method;
     }
@@ -1212,7 +1212,10 @@ public class CoreLibrary {
     }
 
     public boolean isSend(InternalMethod method) {
-        CallTarget callTarget = method.getCallTarget();
+        return isSend(method.getCallTarget());
+    }
+
+    public boolean isSend(CallTarget callTarget) {
         return callTarget == basicObjectSendMethod.getCallTarget() || callTarget == kernelPublicSendMethod.getCallTarget();
     }
 

@@ -1,6 +1,5 @@
 Test error in Ruby => C ext support => Ruby
 /bin/backtraces:19:in `callback': Ruby callback error (RuntimeError)
-	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcallv'
 	from /src/main/c/cext/ruby.c:n:in `rb_funcallv'
@@ -18,7 +17,6 @@ Test with an internal error from rb_mutex_lock()
 Test error in Ruby => C ext => Ruby => C ext Proc => Ruby
 /bin/backtraces:59:in `block in bar': error (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `call'
-	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /ext/backtraces/backtraces.c:5:in `baz'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
@@ -26,7 +24,6 @@ Test error in Ruby => C ext => Ruby => C ext Proc => Ruby
 	from /lib/truffle/truffle/cext.rb:n:in `block in rb_proc_new'
 	from /bin/backtraces:59:in `call'
 	from /bin/backtraces:59:in `bar'
-	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /ext/backtraces/backtraces.c:9:in `foo'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
@@ -38,7 +35,6 @@ Test error in the callback to the Sulong-instrinsified qsort()
 [1, 2, 3, 4]
 /bin/backtraces:76:in `block in <main>': error from Ruby called from instrinsified qsort() (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `call'
-	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /ext/backtraces/backtraces.c:17:in `compare_function'
 	from com.oracle.truffle.llvm.libraries.bitcode/src/qsort.c:n:in `sulong_qsort'
@@ -54,7 +50,6 @@ Test error in callback from a native function
 /bin/backtraces:88:in `error_helper': error from Ruby called from Sulong called from native callback (RuntimeError)
 	from /bin/backtraces:93:in `block in <main>'
 	from /lib/truffle/truffle/cext.rb:n:in `call'
-	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /ext/backtraces/backtraces.c:38:in `sulong_callback'
 	from /ext/backtraces/backtraces.c:44:in `native_callback'

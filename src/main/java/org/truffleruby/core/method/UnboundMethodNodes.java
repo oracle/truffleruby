@@ -38,12 +38,13 @@ import org.truffleruby.parser.ArgumentDescriptor;
 @CoreClass("UnboundMethod")
 public abstract class UnboundMethodNodes {
 
-    @CoreMethod(names = "==", required = 1)
+    @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyUnboundMethod(other)")
         boolean equal(DynamicObject self, DynamicObject other) {
-            return Layouts.UNBOUND_METHOD.getMethod(self) == Layouts.UNBOUND_METHOD.getMethod(other) && Layouts.UNBOUND_METHOD.getOrigin(self) == Layouts.UNBOUND_METHOD.getOrigin(other);
+            return Layouts.UNBOUND_METHOD.getOrigin(self) == Layouts.UNBOUND_METHOD.getOrigin(other) &&
+                    MethodNodes.areInternalMethodEqual(Layouts.UNBOUND_METHOD.getMethod(self), Layouts.UNBOUND_METHOD.getMethod(other));
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
@@ -99,7 +100,7 @@ public abstract class UnboundMethodNodes {
             final InternalMethod method = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
             long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, Layouts.UNBOUND_METHOD.getOrigin(rubyMethod).hashCode());
-            h = Hashing.update(h, method.getSharedMethodInfo().hashCode());
+            h = Hashing.update(h, MethodNodes.hashInternalMethod(method));
             return Hashing.end(h);
         }
 
