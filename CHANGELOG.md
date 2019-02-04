@@ -18,6 +18,7 @@ Changes:
 Compatibility:
 
 * Improved the exception when an `-S` file isn't found.
+* Removed the message from exceptions raised by bare `raise` to better match MRI (#1487).
 
 # 1.0 RC 12
 

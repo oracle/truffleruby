@@ -117,7 +117,7 @@ module Truffle
         if exc
           skip = true
         else
-          exc = RuntimeError.new 'No current exception'
+          exc = RuntimeError.new ''
         end
       elsif exc.respond_to? :exception
         if undefined.equal? msg

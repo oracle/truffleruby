@@ -309,7 +309,7 @@ class Thread
       exc = exc.exception msg
       Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
     elsif no_argument
-      exc = RuntimeError.exception nil
+      exc = RuntimeError.exception ''
     elsif exc.kind_of? String
       exc = RuntimeError.exception exc
     else
