@@ -1,7 +1,8 @@
 # Legal Documentation
 
 This document applies to TruffleRuby as built and distributed as part of
-GraalVM, which is the only supported way to use TruffleRuby.
+GraalVM or the standalone distribution, which are the only supported ways to
+use TruffleRuby.
 
 ## TruffleRuby
 
@@ -26,6 +27,35 @@ version 2.4.4, including:
 
 MRI is copyright Yukihiro Matsumoto. It is made available under the terms of the
 2-clause BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.
+
+### Fourth-party code
+
+MRI itself includes some third-party code that we have then included. This
+includes, but isn't limited to:
+
+The general-purpose hash table library `src/main/c/cext/st.c` and
+`lib/cext/include/ruby/st.h` was written originally be Peter Moore and is
+public domain.
+
+`lib/cext/include/ccan/{build_assert,check_type,container_of,str}` are all
+utilities from CCAN and are public domain or available under the terms of the
+CC0 public domain dedication, see `ccan-cc0.txt`.
+
+`lib/cext/include/ccan/list` is a utility from CCAN and is available under the
+terms of 'BSD-MIT', see `ccan-bsd-mit.txt`. Despite the filename 'BSD-MIT' this
+is the conventional MIT licence.
+
+RDoc Darkfish theme fonts under `lib/mri/rdoc/generator/template/darkfish/` are
+available under the terms of the SIL Open Font License 1.1, see `ofl.txt`.
+
+The header file `lib/cext/include/ruby/onigmo.h` is part of Onigmo, available
+under the same 2-clause BSD licence as Ruby.
+
+RubyGems, in `lib/mri/rubygems` is available under the same custom licence as
+MRI, see `ruby-licence.txt`, or the MIT licence, see `mit.txt`.
+
+The C implementation of YAML, `src/main/c/psych/yaml` is available under the
+MIT licence, see `mit.txt`.
 
 ## JRuby
 
@@ -134,7 +164,7 @@ TruffleRuby uses JCodings (version as described in `mx.truffleruby/suite.py`).
 JCodings is copyright its authors and is released under an MIT licence (see
 `mit.txt`).
 
-# Patches
+## Patches
 
 `lib/patches` contains patches to gems that are automatically applied when the
 gems are loaded, and contain third party code from those gems, with permissive
@@ -142,15 +172,52 @@ licenses. We've added the licenses to the individual files.
 
 `lib/patches/stdlib` patches code in the standard library.
 
-# Ruby Specs
+## Ruby Specs
 
 We do not distribute MSpec or the Ruby Specs, but they are both copyright 2008
 Engine Yard and are released under an MIT licence (see `mit.txt`).
 
-# Jay
+## Jay
 
 TruffleRuby uses the Jay parser generator, modified from
 https://github.com/jruby/jay revision `9ffc59a`. Jay is copyright 1989 The
 Regents of the University of California, ported by Axel T. Schreiner, and is
 covered by the three-clause BSD licence (see `jay.txt`). We only distribute Jay
 in the source repository - it isn't part of releases.
+
+## Written offer for source code
+
+For any software that you receive from Oracle in binary form which is licensed
+under an open source license that gives you the right to receive the source
+code for that binary, you can obtain a copy of the applicable source code by
+visiting http://www.oracle.com/goto/opensourcecode. If the source code for the
+binary was not provided to you with the binary, you can also receive a copy of
+the source code on physical media by submitting a written request to the
+address listed below or by sending an email to Oracle using the following
+link: http://www.oracle.com/goto/opensourcecode/request.
+
+Oracle America, Inc.  
+Attn: Senior Vice President  
+Development and Engineering Legal  
+500 Oracle Parkway, 10th Floor  
+Redwood Shores, CA 94065  
+
+Your request should include:
+
+- The name of the binary for which you are requesting the source code
+- The name and version number of the Oracle product containing the binary
+- The date you received the Oracle product 
+- Your name 
+- Your company name (if applicable)
+- Your return mailing address and email, and 
+- A telephone number in the event we need to reach you. 
+
+We may charge you a fee to cover the cost of physical media and processing.
+
+Your request must be sent 
+
+1. within three (3) years of the date you received the Oracle product that
+included the binary that is the subject of your request, or
+
+2. in the case of code licensed under the GPL v3 for as long as Oracle offers
+spare parts or customer support for that product model.
