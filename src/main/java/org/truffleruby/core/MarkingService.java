@@ -96,6 +96,18 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     @TruffleBoundary
     public synchronized void keepObject(Object object) {
+        /*
+         * It is important to get the ordering of events correct to avoid references being garbage
+         * collected too soon. If we are attempting to add a handle to a native structure then that
+         * consists of two events. First we create the handle, and then the handle is stored in the
+         * struct. If we run mark functions immediate after adding the handle to the list of kept
+         * objects then the mark function will be run before that handle is stored in the structure,
+         * and since it will be removed from the list of kept objects it could be collected before
+         * the mark functions are run again.
+         *
+         * Instead we check for the kept list being full before adding an object to it, as those
+         * handles are already stored in structs by this point.
+         */
         if (counter == cacheSize) {
             runAllMarkers();
         }
