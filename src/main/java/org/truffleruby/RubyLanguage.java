@@ -158,9 +158,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         } else if (RubyGuards.isBoxedPrimitive(value) ||  RubyGuards.isRubyBasicObject(value)) {
             return context.send(value, "inspect").toString();
         } else if (value instanceof NotProvided) {
-            return "<unset parameter>";
+            return "<undefined>";
         } else if (value instanceof ValueWrapper) {
-            return "Wrapped (" + toString(context, ((ValueWrapper) value).getObject()) + ")";
+            return "VALUE: " + toString(context, ((ValueWrapper) value).getObject());
         } else if (value instanceof String) {
             return (String) value;
         } else {
