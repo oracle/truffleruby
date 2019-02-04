@@ -19,8 +19,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
+import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LazyRubyRootNode;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
@@ -146,7 +148,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean isObjectOfLanguage(Object object) {
-        return RubyGuards.isRubyBasicObject(object);
+        return object instanceof ValueWrapper || object instanceof NotProvided || RubyGuards.isRubyBasicObject(object);
     }
 
     @Override
@@ -155,6 +157,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return "<null>";
         } else if (RubyGuards.isBoxedPrimitive(value) ||  RubyGuards.isRubyBasicObject(value)) {
             return context.send(value, "inspect").toString();
+        } else if (value instanceof NotProvided) {
+            return "<undefined>";
+        } else if (value instanceof ValueWrapper) {
+            return "VALUE: " + toString(context, ((ValueWrapper) value).getObject());
         } else if (value instanceof String) {
             return (String) value;
         } else {
