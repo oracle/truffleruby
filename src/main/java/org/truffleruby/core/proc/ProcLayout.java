@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.proc;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -38,8 +38,8 @@ public interface ProcLayout extends BasicObjectLayout {
     Object[] build(
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            CallTarget callTargetForType,
-            CallTarget callTargetForLambdas,
+            RootCallTarget callTargetForType,
+            RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
             @Nullable InternalMethod method,
             @Nullable DynamicObject block,
@@ -54,9 +54,9 @@ public interface ProcLayout extends BasicObjectLayout {
 
     SharedMethodInfo getSharedMethodInfo(DynamicObject object);
 
-    CallTarget getCallTargetForType(DynamicObject object);
+    RootCallTarget getCallTargetForType(DynamicObject object);
 
-    CallTarget getCallTargetForLambdas(DynamicObject object);
+    RootCallTarget getCallTargetForLambdas(DynamicObject object);
 
     MaterializedFrame getDeclarationFrame(DynamicObject object);
 

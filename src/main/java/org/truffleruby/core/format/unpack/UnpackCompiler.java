@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format.unpack;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.LoopRecovery;
@@ -28,7 +28,7 @@ public class UnpackCompiler {
         this.currentNode = currentNode;
     }
 
-    public CallTarget compile(String format) {
+    public RootCallTarget compile(String format) {
         if (format.length() > context.getOptions().PACK_RECOVER_LOOP_MIN) {
             format = LoopRecovery.recoverLoop(format);
         }

@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -213,9 +212,9 @@ public class CoreLibrary {
     private final Map<String, DynamicObject> errnoClasses = new HashMap<>();
     private final Map<Integer, String> errnoValueToNames = new HashMap<>();
 
-    @CompilationFinal private InternalMethod basicObjectSendMethod;
-    @CompilationFinal private InternalMethod kernelPublicSendMethod;
-    @CompilationFinal private InternalMethod truffleBootMainMethod;
+    @CompilationFinal private SharedMethodInfo basicObjectSendInfo;
+    @CompilationFinal private SharedMethodInfo kernelPublicSendInfo;
+    @CompilationFinal private SharedMethodInfo truffleBootMainInfo;
 
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
@@ -650,9 +649,9 @@ public class CoreLibrary {
 
         coreMethodNodeManager.loadCoreMethodNodes();
 
-        basicObjectSendMethod = getMethod(basicObjectClass, "__send__");
-        kernelPublicSendMethod = getMethod(kernelModule, "public_send");
-        truffleBootMainMethod = getMethod(node.getSingletonClass(truffleBootModule), "main");
+        basicObjectSendInfo = getMethod(basicObjectClass, "__send__").getSharedMethodInfo();
+        kernelPublicSendInfo = getMethod(kernelModule, "public_send").getSharedMethodInfo();
+        truffleBootMainInfo = getMethod(node.getSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
     }
 
     private InternalMethod getMethod(DynamicObject module, String name) {
@@ -1212,15 +1211,15 @@ public class CoreLibrary {
     }
 
     public boolean isSend(InternalMethod method) {
-        return isSend(method.getCallTarget());
+        return isSend(method.getSharedMethodInfo());
     }
 
-    public boolean isSend(CallTarget callTarget) {
-        return callTarget == basicObjectSendMethod.getCallTarget() || callTarget == kernelPublicSendMethod.getCallTarget();
+    public boolean isSend(SharedMethodInfo sharedMethodInfo) {
+        return sharedMethodInfo == basicObjectSendInfo || sharedMethodInfo == kernelPublicSendInfo;
     }
 
     public boolean isTruffleBootMainMethod(SharedMethodInfo info) {
-        return info == truffleBootMainMethod.getSharedMethodInfo();
+        return info == truffleBootMainInfo;
     }
 
     public DynamicObjectFactory getIntRangeFactory() {

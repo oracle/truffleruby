@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -65,7 +65,7 @@ public class CodeLoader {
                           RubyRootNode rootNode,
                           MaterializedFrame parentFrame,
                           Object self) {
-        final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
         final DynamicObject declaringModule;
 
@@ -106,10 +106,10 @@ public class CodeLoader {
 
     public static class DeferredCall {
 
-        private final CallTarget callTarget;
+        private final RootCallTarget callTarget;
         private final Object[] arguments;
 
-        public DeferredCall(CallTarget callTarget, Object[] arguments) {
+        public DeferredCall(RootCallTarget callTarget, Object[] arguments) {
             this.callTarget = callTarget;
             this.arguments = arguments;
         }

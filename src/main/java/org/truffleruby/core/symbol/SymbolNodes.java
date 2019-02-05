@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -137,7 +137,7 @@ public abstract class SymbolNodes {
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
                     new SymbolProcNode(Layouts.SYMBOL.getString(symbol)));
 
-            final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
                     coreLibrary().getProcFactory(),

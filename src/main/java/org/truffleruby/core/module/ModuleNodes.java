@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -429,7 +428,7 @@ public abstract class ModuleNodes {
             }
             final RubyNode sequence = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, accessInstanceVariable));
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, null, sharedMethodInfo, sequence);
-            final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
             final InternalMethod method = new InternalMethod(getContext(), sharedMethodInfo, lexicalScope, DeclarationContext.NONE, accessorName, module, visibility, callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(getContext(), this, method);
@@ -1085,7 +1084,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc) {
-            final RootCallTarget callTarget = (RootCallTarget) Layouts.PROC.getCallTargetForLambdas(proc);
+            final RootCallTarget callTarget = Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
             final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).withMethodName(name);
             final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
@@ -1093,7 +1092,7 @@ public abstract class ModuleNodes {
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
             final RubyNode newBody = new CallMethodWithProcBody(declarationFrame, body);
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), rootNode.getFrameDescriptor(), info, newBody);
-            final CallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
+            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final DeclarationContext declarationContext = Layouts.PROC.getDeclarationContext(proc);
             final InternalMethod method = InternalMethod.fromProc(getContext(), info, declarationContext, name, module, Visibility.PUBLIC, proc, newCallTarget);

@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -601,7 +601,7 @@ public abstract class KernelNodes {
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
-                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
+                @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
@@ -629,7 +629,7 @@ public abstract class KernelNodes {
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
                 @Cached("newBindingDescriptor(getContext(), cachedRootNode)") FrameDescriptor newBindingDescriptor,
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootNodeWrapper rootNodeToEval,
-                @Cached("createCallTarget(rootNodeToEval)") CallTarget cachedCallTarget,
+                @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,
@@ -644,7 +644,7 @@ public abstract class KernelNodes {
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object self, RootNodeWrapper rootNode, CallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
+        private Object eval(Object self, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
             final InternalMethod method = new InternalMethod(
                     getContext(),
                     rootNode.getRootNode().getSharedMethodInfo(),
@@ -689,7 +689,7 @@ public abstract class KernelNodes {
             return compileSource(sourceText, BindingNodes.newFrame(parentFrame, additionalVariables), file, line);
         }
 
-        protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
+        protected RootCallTarget createCallTarget(RootNodeWrapper rootNode) {
             return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
@@ -1139,7 +1139,7 @@ public abstract class KernelNodes {
 
             final RubyNode newBody = new CallMethodMissingWithStaticName(name);
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), new FrameDescriptor(nil()), info, newBody);
-            final CallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
+            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final DynamicObject module = coreLibrary().getMetaClass(self);
             return new InternalMethod(getContext(), info, methodMissing.getLexicalScope(), DeclarationContext.NONE,
@@ -1777,7 +1777,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected CallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
+        protected RootCallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
             try {
                 return new PrintfCompiler(getContext(), this)
                         .compile(StringOperations.rope(format), arguments, isDebug);

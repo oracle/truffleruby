@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -32,7 +32,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             // TODO(eregon, 12 June 2015) we should maybe check an Assumption here to remove the cache entry when the lookup changes (redefined method, hierarchy changes)
             limit = "getCacheLimit()")
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
-            @Cached("method.getCallTarget()") CallTarget cachedCallTarget,
+            @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
         return callNode.call(frameArguments);
     }

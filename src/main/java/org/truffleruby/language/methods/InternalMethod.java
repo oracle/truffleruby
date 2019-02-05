@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -44,7 +44,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final boolean refined;
     private final DynamicObject proc; // only if method is created from a Proc
 
-    private final CallTarget callTarget;
+    private final RootCallTarget callTarget;
     private final DynamicObject capturedBlock;
     private final InternalMethod originalMethod;
 
@@ -56,7 +56,7 @@ public class InternalMethod implements ObjectGraphNode {
             DynamicObject declaringModule,
             Visibility visibility,
             DynamicObject proc,
-            CallTarget callTarget) {
+            RootCallTarget callTarget) {
         return new InternalMethod(
                 context,
                 sharedMethodInfo,
@@ -79,7 +79,7 @@ public class InternalMethod implements ObjectGraphNode {
             String name,
             DynamicObject declaringModule,
             Visibility visibility,
-            CallTarget callTarget) {
+            RootCallTarget callTarget) {
         this(context, sharedMethodInfo, lexicalScope, declarationContext, name, declaringModule, visibility, false, null, callTarget, null);
     }
 
@@ -93,7 +93,7 @@ public class InternalMethod implements ObjectGraphNode {
             Visibility visibility,
             boolean undefined,
             DynamicObject proc,
-            CallTarget callTarget,
+            RootCallTarget callTarget,
             DynamicObject capturedBlock) {
         this(sharedMethodInfo, lexicalScope, declarationContext, name, declaringModule, visibility, undefined, false,
                 !context.getCoreLibrary().isLoaded(), false, proc, callTarget, capturedBlock, null);
@@ -111,7 +111,7 @@ public class InternalMethod implements ObjectGraphNode {
             boolean builtIn,
             boolean refined,
             DynamicObject proc,
-            CallTarget callTarget,
+            RootCallTarget callTarget,
             DynamicObject capturedBlock,
             InternalMethod originalMethod) {
         assert RubyGuards.isRubyModule(declaringModule);
@@ -165,7 +165,7 @@ public class InternalMethod implements ObjectGraphNode {
         return refined;
     }
 
-    public CallTarget getCallTarget() {
+    public RootCallTarget getCallTarget() {
         return callTarget;
     }
 

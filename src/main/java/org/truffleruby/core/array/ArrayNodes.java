@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -1578,7 +1578,7 @@ public abstract class ArrayNodes {
         }
 
         @TruffleBoundary
-        protected CallTarget compileFormat(DynamicObject format) {
+        protected RootCallTarget compileFormat(DynamicObject format) {
             return new PackCompiler(getContext(), this).compile(format.toString());
         }
 

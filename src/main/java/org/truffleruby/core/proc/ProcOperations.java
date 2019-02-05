@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.proc;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -52,8 +52,8 @@ public abstract class ProcOperations {
             DynamicObjectFactory instanceFactory,
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            CallTarget callTargetForProcs,
-            CallTarget callTargetForLambdas,
+            RootCallTarget callTargetForProcs,
+            RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
             InternalMethod method,
             DynamicObject block,
@@ -61,7 +61,7 @@ public abstract class ProcOperations {
             DeclarationContext declarationContext) {
         assert block == null || RubyGuards.isRubyProc(block);
 
-        final CallTarget callTargetForType;
+        final RootCallTarget callTargetForType;
 
         switch (type) {
             case PROC:

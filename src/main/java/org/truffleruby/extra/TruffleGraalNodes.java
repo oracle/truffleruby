@@ -9,7 +9,6 @@
  */
 package org.truffleruby.extra;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -87,7 +86,7 @@ public abstract class TruffleGraalNodes {
         public DynamicObject copyCapturedLocals(DynamicObject proc) {
             final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
 
-            final RootCallTarget callTarget = (RootCallTarget) Layouts.PROC.getCallTargetForType(proc);
+            final RootCallTarget callTarget = Layouts.PROC.getCallTargetForType(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
 
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
@@ -100,9 +99,9 @@ public abstract class TruffleGraalNodes {
                 readNode.replace(new ObjectLiteralNode(value));
             }
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), rootNode.getSourceSection(), rootNode.getFrameDescriptor(), rootNode.getSharedMethodInfo(), newBody);
-            final CallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
+            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final CallTarget callTargetForLambdas;
+            final RootCallTarget callTargetForLambdas;
             if (Layouts.PROC.getType(proc) == ProcType.LAMBDA) {
                 callTargetForLambdas = newCallTarget;
             } else {

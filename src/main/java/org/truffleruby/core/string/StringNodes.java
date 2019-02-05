@@ -161,9 +161,9 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.yield.YieldNode;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -2527,7 +2527,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        protected CallTarget compileFormat(DynamicObject format) {
+        protected RootCallTarget compileFormat(DynamicObject format) {
             return new UnpackCompiler(getContext(), this).compile(format.toString());
         }
 

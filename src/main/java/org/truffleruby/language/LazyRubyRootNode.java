@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -75,7 +75,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
             final String[] argumentsArray = argumentNames.toArray(new String[argumentNames.size()]);
             final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentsArray, null, null, true, null);
 
-            final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
             callNode.forceInlining();
