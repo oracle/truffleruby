@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
@@ -187,10 +186,6 @@ public abstract class TruffleDebugNodes {
             return ast(method.getCallTarget());
         }
 
-        private DynamicObject ast(CallTarget callTarget) {
-            return ast((RootCallTarget) callTarget);
-        }
-
         private DynamicObject ast(RootCallTarget rootCallTarget) {
             return ast(rootCallTarget.getRootNode());
         }
@@ -245,11 +240,7 @@ public abstract class TruffleDebugNodes {
         }
 
         private void printAst(InternalMethod method) {
-            NodeUtil.printCompactTree(System.err, ((RootCallTarget) method.getCallTarget()).getRootNode());
-        }
-
-        private void printAst(CallTarget callTarget) {
-            printAst((RootCallTarget) callTarget);
+            NodeUtil.printCompactTree(System.err, method.getCallTarget().getRootNode());
         }
 
         private void printAst(RootCallTarget callTarget) {

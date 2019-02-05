@@ -255,7 +255,7 @@ import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.graal.AssertConstantNodeGen;
 import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
@@ -1296,7 +1296,7 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, false, source, parserContext, argsNode);
-        final CallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
+        final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
 
         return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(moduleNode, methodName, sharedMethodInfo, callTarget, isDefs));
     }

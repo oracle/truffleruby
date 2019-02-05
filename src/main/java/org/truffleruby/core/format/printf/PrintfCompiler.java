@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format.printf;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatEncoding;
@@ -29,7 +29,7 @@ public class PrintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public CallTarget compile(Rope format, Object[] arguments, boolean isDebug) {
+    public RootCallTarget compile(Rope format, Object[] arguments, boolean isDebug) {
         final PrintfSimpleParser parser = new PrintfSimpleParser(bytesToChars(format.getBytes()), arguments, isDebug);
         final List<SprintfConfig> configs = parser.parse();
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(context, configs);

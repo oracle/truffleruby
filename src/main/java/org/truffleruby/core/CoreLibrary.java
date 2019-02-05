@@ -23,10 +23,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -1215,7 +1215,7 @@ public class CoreLibrary {
         return isSend(method.getCallTarget());
     }
 
-    public boolean isSend(CallTarget callTarget) {
+    public boolean isSend(RootCallTarget callTarget) {
         return callTarget == basicObjectSendMethod.getCallTarget() || callTarget == kernelPublicSendMethod.getCallTarget();
     }
 

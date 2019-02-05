@@ -48,7 +48,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.Translator;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -191,7 +191,7 @@ public class CoreMethodNodeManager {
             }
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, lexicalScope, module, name, arity);
             final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
-            final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
+            final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
             final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(context, null, method);
@@ -219,7 +219,7 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static CallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
+    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
         final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }

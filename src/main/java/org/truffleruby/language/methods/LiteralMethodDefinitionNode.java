@@ -13,7 +13,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -25,7 +25,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
-    private final CallTarget callTarget;
+    private final RootCallTarget callTarget;
     private final boolean isDefSingleton;
 
     @Child private RubyNode moduleNode;
@@ -33,7 +33,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
 
     @Child private AddMethodNode addMethodNode;
 
-    public LiteralMethodDefinitionNode(RubyNode moduleNode, String name, SharedMethodInfo sharedMethodInfo, CallTarget callTarget, boolean isDefSingleton) {
+    public LiteralMethodDefinitionNode(RubyNode moduleNode, String name, SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget, boolean isDefSingleton) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;

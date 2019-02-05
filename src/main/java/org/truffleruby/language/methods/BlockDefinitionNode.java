@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.proc.ProcOperations;
@@ -34,8 +34,8 @@ public class BlockDefinitionNode extends RubyNode {
     // TODO(CS, 10-Jan-15) having two call targets isn't ideal, but they all have different semantics, and we don't
     // want to move logic into the call site
 
-    private final CallTarget callTargetForProcs;
-    private final CallTarget callTargetForLambdas;
+    private final RootCallTarget callTargetForProcs;
+    private final RootCallTarget callTargetForLambdas;
 
     private final BreakID breakID;
 
@@ -43,7 +43,7 @@ public class BlockDefinitionNode extends RubyNode {
     @Child private WithoutVisibilityNode withoutVisibilityNode;
 
     public BlockDefinitionNode(ProcType type, SharedMethodInfo sharedMethodInfo,
-                               CallTarget callTargetForProcs, CallTarget callTargetForLambdas, BreakID breakID, FrameSlot frameOnStackMarkerSlot) {
+            RootCallTarget callTargetForProcs, RootCallTarget callTargetForLambdas, BreakID breakID, FrameSlot frameOnStackMarkerSlot) {
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
 

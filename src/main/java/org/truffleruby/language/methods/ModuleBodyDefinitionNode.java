@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
@@ -35,13 +35,13 @@ public class ModuleBodyDefinitionNode extends RubyNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
-    private final CallTarget callTarget;
+    private final RootCallTarget callTarget;
     private final boolean captureBlock;
     private final boolean dynamicLexicalScope;
     private final Map<DynamicObject, LexicalScope> lexicalScopes;
 
     public ModuleBodyDefinitionNode(String name, SharedMethodInfo sharedMethodInfo,
-                                    CallTarget callTarget, boolean captureBlock, boolean dynamicLexicalScope) {
+            RootCallTarget callTarget, boolean captureBlock, boolean dynamicLexicalScope) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
