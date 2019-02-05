@@ -290,12 +290,12 @@ module Truffle::CExt
     SYNC = Mutex.new
 
     def execute_with_mutex(function, *args)
-      mine = SYNC.owned?
-      SYNC.lock unless mine
-      begin
+      if SYNC.owned?
         Truffle::Interop.execute_without_conversion(function, *args)
-      ensure
-        SYNC.unlock unless mine
+      else
+        SYNC.synchronize do
+          Truffle::Interop.execute_without_conversion(function, *args)
+        end
       end
     end
 
