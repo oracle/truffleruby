@@ -56,6 +56,7 @@ public abstract class TruffleGraalNodes {
     @CoreMethod(names = "always_split", onSingleton = true, required = 1)
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyMethod(rubyMethod)")
         public DynamicObject splitMethod(DynamicObject rubyMethod) {
             InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
@@ -63,6 +64,7 @@ public abstract class TruffleGraalNodes {
             return rubyMethod;
         }
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(rubyMethod)")
         public DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
             InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
@@ -70,6 +72,7 @@ public abstract class TruffleGraalNodes {
             return rubyMethod;
         }
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyProc(rubyProc)")
         public DynamicObject splitProc(DynamicObject rubyProc) {
             Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
