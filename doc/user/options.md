@@ -125,6 +125,11 @@ The SVM supports `--native.D` for setting system properties and
   --native.[option]  Pass options to the native image. To see available options, use '--native.help'.
 ```
 
+## Other binary switches
+
+Other binaries, such as `irb`, `gem`, and so on, support exactly the same
+switches as in standard Ruby.
+
 ## Determining the TruffleRuby home
 
 TruffleRuby needs to know where to locate files such as the standard library.
