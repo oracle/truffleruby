@@ -30,20 +30,12 @@ public abstract class MutexOperations {
             throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
 
-        if (lock.tryLock()) {
-            Layouts.THREAD.getOwnedLocks(thread).add(lock);
-            return;
-        }
-
-        context.getThreadManager().runUntilResult(currentNode, () -> {
-            lock.lockInterruptibly();
-            Layouts.THREAD.getOwnedLocks(thread).add(lock);
-            return ThreadManager.BlockingAction.SUCCESS;
-        });
+        lockInternal(context, lock, currentNode);
+        Layouts.THREAD.getOwnedLocks(thread).add(lock);
     }
 
     @TruffleBoundary
-    protected static void lockInternal(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
+    public static void lockInternal(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
         if (lock.tryLock()) {
             return;
         }
@@ -110,8 +102,13 @@ public abstract class MutexOperations {
         final RubyContext context = currentNode.getContext();
 
         checkOwnedMutex(context, lock, currentNode);
-        lock.unlock();
+        unlockInternal(lock);
         Layouts.THREAD.getOwnedLocks(thread).remove(lock);
+    }
+
+    @TruffleBoundary
+    public static void unlockInternal(ReentrantLock lock) {
+        lock.unlock();
     }
 
     public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode) {

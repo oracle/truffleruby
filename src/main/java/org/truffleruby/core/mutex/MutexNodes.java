@@ -155,13 +155,8 @@ public abstract class MutexNodes {
                         throw new RaiseException(getContext(), coreExceptions().threadErrorAlreadyLocked(this));
                     }
                 }
-                doUnlock(lock);
+                MutexOperations.unlockInternal(lock);
             }
-        }
-
-        @TruffleBoundary
-        private void doUnlock(ReentrantLock lock) {
-            lock.unlock();
         }
 
     }
