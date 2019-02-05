@@ -59,23 +59,29 @@ public abstract class TruffleGraalNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(rubyMethod)")
         public DynamicObject splitMethod(DynamicObject rubyMethod) {
-            InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
-            internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
+                InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
+                internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            }
             return rubyMethod;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(rubyMethod)")
         public DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
-            InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
-            internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
+                InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
+                internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            }
             return rubyMethod;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(rubyProc)")
         public DynamicObject splitProc(DynamicObject rubyProc) {
-            Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
+            if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
+                Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
+            }
             return rubyProc;
         }
     }

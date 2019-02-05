@@ -461,6 +461,11 @@ public class OptionsCatalog {
             "Always clone methods which call primitives",
             null,
             CLONE_DEFAULT.getDefaultValue());
+    public static final BooleanOptionDescription ALWAYS_SPLIT_HONOR = new BooleanOptionDescription(
+            "ruby.always_split.honor",
+            "Honor Truffle::Graal.always_split annotations",
+            null,
+            CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription INLINE_NEEDS_CALLER_FRAME = new BooleanOptionDescription(
             "ruby.inline_needs_caller_frame",
             "Inline methods that need their caller frame",
@@ -842,6 +847,8 @@ public class OptionsCatalog {
                 return CORE_ALWAYS_CLONE;
             case "ruby.primitive_callers.always_clone":
                 return PRIMITIVE_CALLERS_ALWAYS_CLONE;
+            case "ruby.always_split.honor":
+                return ALWAYS_SPLIT_HONOR;
             case "ruby.inline_needs_caller_frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield.always_clone":
@@ -930,6 +937,7 @@ public class OptionsCatalog {
     public static OptionDescription<?>[] allDescriptions() {
         return new OptionDescription<?>[] {
             ALLOCATE_CLASS_CACHE,
+            ALWAYS_SPLIT_HONOR,
             ARGV_GLOBAL_FLAGS,
             ARGV_GLOBAL_VALUES,
             ARGV_GLOBALS,
