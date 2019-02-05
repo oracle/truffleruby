@@ -1288,7 +1288,7 @@ public class BodyTranslator extends Translator {
         final Arity arity = argsNode.getArity();
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
-        final boolean alwaysClone = MethodTranslator.callsPrimitive(bodyNode) && context.getOptions().PRIMITIVE_CALLERS_ALWAYS_CLONE;
+        final boolean alwaysClone = context.getOptions().PRIMITIVE_CALLERS_ALWAYS_CLONE && MethodTranslator.callsPrimitive(bodyNode);
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
