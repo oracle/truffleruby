@@ -139,8 +139,8 @@ public class HeredocTerm extends StrTerm {
                 if (str != null) {
                     str.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
                 } else {
-                    final RopeBuilder builder = new RopeBuilder();
-                    builder.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
+                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), p, pend - p);
+                    builder.setEncoding(lbuf.getEncoding());
                     str = builder;
                 }
 
