@@ -227,7 +227,7 @@ public class MethodTranslator extends BodyTranslator {
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, this).translate();
         
-        final boolean isPrimitive = isPrimitive(bodyNode);
+        final boolean isPrimitive = callsPrimitive(bodyNode);
 
         RubyNode body;
         if (isPrimitive) {
@@ -261,7 +261,7 @@ public class MethodTranslator extends BodyTranslator {
         return body;
     }
 
-    public static boolean isPrimitive(ParseNode bodyNode) {
+    public static boolean callsPrimitive(ParseNode bodyNode) {
         if (bodyNode instanceof BlockParseNode) {
             BlockParseNode statements = (BlockParseNode) bodyNode;
             if (!statements.isEmpty() && statements.get(0) instanceof CallParseNode) {

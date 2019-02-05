@@ -456,6 +456,11 @@ public class OptionsCatalog {
             "Always clone built-in core methods",
             null,
             CLONE_DEFAULT.getDefaultValue());
+    public static final BooleanOptionDescription PRIMITIVE_CALLERS_ALWAYS_CLONE = new BooleanOptionDescription(
+            "ruby.primitive_callers.always_clone",
+            "Always clone methods which call primitives",
+            null,
+            CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription INLINE_NEEDS_CALLER_FRAME = new BooleanOptionDescription(
             "ruby.inline_needs_caller_frame",
             "Inline methods that need their caller frame",
@@ -835,6 +840,8 @@ public class OptionsCatalog {
                 return INLINE_DEFAULT;
             case "ruby.core.always_clone":
                 return CORE_ALWAYS_CLONE;
+            case "ruby.primitive_callers.always_clone":
+                return PRIMITIVE_CALLERS_ALWAYS_CLONE;
             case "ruby.inline_needs_caller_frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield.always_clone":
@@ -1017,6 +1024,7 @@ public class OptionsCatalog {
             NATIVE_INTERRUPT,
             POLYGLOT_STDIO,
             PREINITIALIZATION,
+            PRIMITIVE_CALLERS_ALWAYS_CLONE,
             READ_RUBYOPT,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
