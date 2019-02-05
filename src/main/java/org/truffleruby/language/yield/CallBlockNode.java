@@ -81,9 +81,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
         final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || getContext().getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
-            if (!getContext().getOptions().CLONE_DISABLED) {
-                callNode.cloneCallTarget();
-            }
+            callNode.cloneCallTarget();
         }
 
         if (getContext().getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {

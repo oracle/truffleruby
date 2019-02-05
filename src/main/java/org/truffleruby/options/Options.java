@@ -109,7 +109,6 @@ public class Options {
     public final int POW_CACHE;
     public final int ARRAY_DUP_CACHE;
     public final int FRAME_VARIABLE_ACCESS_CACHE;
-    public final boolean CLONE_DISABLED;
     public final boolean CLONE_DEFAULT;
     public final boolean INLINE_DEFAULT;
     public final boolean CORE_ALWAYS_CLONE;
@@ -241,7 +240,6 @@ public class Options {
         POW_CACHE = builder.getOrDefault(OptionsCatalog.POW_CACHE, DEFAULT_CACHE);
         ARRAY_DUP_CACHE = builder.getOrDefault(OptionsCatalog.ARRAY_DUP_CACHE);
         FRAME_VARIABLE_ACCESS_CACHE = builder.getOrDefault(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE);
-        CLONE_DISABLED = builder.getOrDefault(OptionsCatalog.CLONE_DISABLED);
         CLONE_DEFAULT = builder.getOrDefault(OptionsCatalog.CLONE_DEFAULT);
         INLINE_DEFAULT = builder.getOrDefault(OptionsCatalog.INLINE_DEFAULT);
         CORE_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CORE_ALWAYS_CLONE, CLONE_DEFAULT);
@@ -459,8 +457,6 @@ public class Options {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame.variable.access.cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
-            case "ruby.clone.disable":
-                return CLONE_DISABLED;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
