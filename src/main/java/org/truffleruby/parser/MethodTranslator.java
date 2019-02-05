@@ -44,7 +44,6 @@ import org.truffleruby.language.methods.CatchForLambdaNode;
 import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchForProcNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
@@ -82,7 +81,7 @@ public class MethodTranslator extends BodyTranslator {
         }
     }
 
-    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo, ProcType type, String[] variables) {
+    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode, ProcType type, String[] variables) {
         declareArguments();
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
@@ -218,11 +217,11 @@ public class MethodTranslator extends BodyTranslator {
      * method parsing. The substitution returns a node which performs
      * the parsing lazily and then calls doCompileMethodBody.
      */
-    public RubyNode compileMethodBody(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
-        return doCompileMethodBody(sourceSection, methodName, bodyNode, sharedMethodInfo);
+    public RubyNode compileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
+        return doCompileMethodBody(sourceSection, bodyNode);
     }
 
-    public RubyNode doCompileMethodBody(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
+    public RubyNode doCompileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
         declareArguments();
         final Arity arity = argsNode.getArity();
 
@@ -277,7 +276,7 @@ public class MethodTranslator extends BodyTranslator {
         return false;
     }
 
-    public RootCallTarget compileMethodNode(SourceIndexLength sourceSection, String methodName, MethodDefParseNode defNode, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
+    public RootCallTarget compileMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode, ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
 
@@ -288,10 +287,10 @@ public class MethodTranslator extends BodyTranslator {
 
             body = new LazyRubyNode(() -> {
                 restoreState(state);
-                return compileMethodBody(sourceSection, methodName, bodyNode, sharedMethodInfo);
+                return compileMethodBody(sourceSection, bodyNode);
             });
         } else {
-            body = compileMethodBody(sourceSection, methodName, bodyNode, sharedMethodInfo);
+            body = compileMethodBody(sourceSection, bodyNode);
         }
 
         final RubyRootNode rootNode = new RubyRootNode(
