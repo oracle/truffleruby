@@ -74,10 +74,9 @@ TruffleRuby:
   -J-option=value Translates to --jvm.option=value
 ```
 
-As well as being set at the command line, options, except for `log`,
-can be set using `--ruby.option=`.
-For example `--ruby.cexts.remap=true`. They can also be set as JVM system
-properties, where they have a prefix `polyglot.ruby.`. For example
+As well as being set at the command line, options, except for `log`, can be
+set using `--ruby.option=`. They can also be set as JVM system properties,
+where they have a prefix `polyglot.ruby.`. For example
 `--jvm.Dpolyglot.ruby.cexts.remap=true`, or via any other way of setting JVM
 system properties. Finally, options can be set as Graal-SDK polyglot API
 configuration options.
@@ -129,6 +128,12 @@ The SVM supports `--native.D` for setting system properties and
 
 Other binaries, such as `irb`, `gem`, and so on, support exactly the same
 switches as in standard Ruby.
+
+## TruffleRuby options
+
+TruffleRuby options (set via `-Xoption=value`, or `--ruby.option=value`) are
+all unsupported and subject to change at any time. Available options and
+documentaiton can be seen with `-Xoptions`.
 
 ## Determining the TruffleRuby home
 

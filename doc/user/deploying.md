@@ -65,9 +65,6 @@ then probably stabilise.
 To tune TruffleRuby you will need to consider the options of either your JVM or
 the SubstrateVM, and then Truffle, and Graal.
 
-TruffleRuby has a large set of options, which you can see with the `-Xoptions`
-flag.
-
 ## Logging
 
 Ruby application logging and warning works as in the standard implementation of
