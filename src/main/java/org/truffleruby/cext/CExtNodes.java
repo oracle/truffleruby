@@ -790,7 +790,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceFile() {
-            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
+            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getContext().getPath(sourceSection.getSource());
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
