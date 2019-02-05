@@ -30,7 +30,6 @@
 package org.truffleruby.parser.lexer;
 
 import org.jcodings.Encoding;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -137,10 +136,10 @@ public class HeredocTerm extends StrTerm {
                 }
 
                 if (str != null) {
-                    str.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
+                    str.append(lbuf.getBytes(), p, pend - p);
                 } else {
-                    final RopeBuilder builder = new RopeBuilder();
-                    builder.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
+                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), p, pend - p);
+                    builder.setEncoding(lbuf.getEncoding());
                     str = builder;
                 }
 
