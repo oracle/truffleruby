@@ -235,9 +235,15 @@ public class CallStackManager {
 
         final RootNode rootNode = callNode.getRootNode();
 
-        // Ignore Truffle::Boot.main and its caller
         if (rootNode instanceof RubyRootNode) {
             final SharedMethodInfo sharedMethodInfo = ((RubyRootNode) rootNode).getSharedMethodInfo();
+
+            // Ignore BasicObject#__send__, Kernel#send and Kernel#public_send like MRI
+            if (context.getCoreLibrary().isSend(sharedMethodInfo)) {
+                return true;
+            }
+
+            // Ignore Truffle::Boot.main and its caller
             if (context.getCoreLibrary().isTruffleBootMainMethod(sharedMethodInfo)) {
                 return true;
             }
@@ -251,10 +257,6 @@ public class CallStackManager {
             return true;
         }
 
-        // Ignore BasicObject#__send__, Kernel#send and Kernel#public_send like MRI
-        if (context.getCoreLibrary().isSend(callTarget)) {
-            return true;
-        }
 
         if (callNode.getEncapsulatingSourceSection() == null) {
             return true;
