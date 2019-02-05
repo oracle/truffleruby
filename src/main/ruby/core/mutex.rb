@@ -30,13 +30,4 @@ class Mutex
   def marshal_dump
     raise TypeError, "can't dump #{self.class}"
   end
-
-  def synchronize
-    lock
-    begin
-      yield
-    ensure
-      unlock
-    end
-  end
 end

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -24,11 +25,13 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -122,6 +125,43 @@ public abstract class MutexNodes {
 
             MutexOperations.unlock(lock, thread, this);
             return mutex;
+        }
+
+    }
+
+    @CoreMethod(names = "synchronize", needsBlock = true)
+    public abstract static class SynchronizeNode extends YieldingCoreMethodNode {
+
+        @Specialization
+        public Object synchronize(VirtualFrame frame, DynamicObject mutex, DynamicObject block,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile errorProfile) {
+            final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
+
+            if (lock.isHeldByCurrentThread()) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
+            }
+
+            MutexOperations.lockInternal(getContext(), lock, this);
+            try {
+                return yield(block);
+            } finally {
+                if (!lock.isHeldByCurrentThread()) {
+                    errorProfile.enter();
+                    if (!lock.isLocked()) {
+                        throw new RaiseException(getContext(), coreExceptions().threadErrorUnlockNotLocked(this));
+                    } else {
+                        throw new RaiseException(getContext(), coreExceptions().threadErrorAlreadyLocked(this));
+                    }
+                }
+                doUnlock(lock);
+            }
+        }
+
+        @TruffleBoundary
+        private void doUnlock(ReentrantLock lock) {
+            lock.unlock();
         }
 
     }

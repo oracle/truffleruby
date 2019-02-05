@@ -43,6 +43,18 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
+    protected static void lockInternal(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
+        if (lock.tryLock()) {
+            return;
+        }
+
+        context.getThreadManager().runUntilResult(currentNode, () -> {
+            lock.lockInterruptibly();
+            return ThreadManager.BlockingAction.SUCCESS;
+        });
+    }
+
+    @TruffleBoundary
     protected static void lockEvenWithExceptions(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         final RubyContext context = currentNode.getContext();
 
