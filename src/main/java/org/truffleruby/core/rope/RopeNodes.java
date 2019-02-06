@@ -1418,6 +1418,26 @@ public abstract class RopeNodes {
         }
     }
 
+    public abstract static class CodeRangeNode extends RubyBaseNode {
+
+        public static CodeRangeNode create() {
+            return RopeNodesFactory.CodeRangeNodeGen.create();
+        }
+
+        public abstract CodeRange execute(Rope rope);
+
+        @Specialization
+        public CodeRange getCodeRangeManaged(ManagedRope rope) {
+            return rope.getCodeRange();
+        }
+
+        @Specialization
+        public CodeRange getCodeRangeNative(NativeRope rope) {
+            return rope.getCodeRange();
+        }
+
+    }
+
     public abstract static class HashNode extends RubyBaseNode {
 
         public static HashNode create() {

@@ -17,10 +17,18 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
 
+    private CodeRange codeRange;
     private final Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
         this(allocateNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
+    }
+
+    private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
+        super(encoding, false, byteLength, characterLength, 1, null);
+
+        this.codeRange = codeRange;
+        this.pointer = pointer;
     }
 
     private static Pointer allocateNativePointer(FinalizationService finalizationService, byte[] bytes) {
@@ -36,11 +44,6 @@ public class NativeRope extends Rope {
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, existing, 0, existing.getSize());
         return pointer;
-    }
-
-    private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
-        super(encoding, codeRange, false, byteLength, characterLength, 1, null);
-        this.pointer = pointer;
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
@@ -59,6 +62,15 @@ public class NativeRope extends Rope {
         final byte[] bytes = new byte[byteLength()];
         copyTo(0, bytes, 0, byteLength());
         return bytes;
+    }
+
+    @Override
+    public CodeRange getCodeRange() {
+        return codeRange;
+    }
+
+    public void setCodeRange(CodeRange codeRange) {
+        this.codeRange = codeRange;
     }
 
     @TruffleBoundary

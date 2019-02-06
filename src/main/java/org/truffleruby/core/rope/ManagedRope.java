@@ -13,8 +13,17 @@ import org.jcodings.Encoding;
 
 public abstract class ManagedRope extends Rope {
 
+    private final CodeRange codeRange;
+
     protected ManagedRope(Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int byteLength, int characterLength, int ropeDepth, byte[] bytes) {
-        super(encoding, codeRange, singleByteOptimizable, byteLength, characterLength, ropeDepth, bytes);
+        super(encoding, singleByteOptimizable, byteLength, characterLength, ropeDepth, bytes);
+
+        this.codeRange = codeRange;
+    }
+
+    @Override
+    public CodeRange getCodeRange() {
+        return this.codeRange;
     }
 
     @Override
