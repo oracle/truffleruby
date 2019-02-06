@@ -11,6 +11,8 @@ package org.truffleruby.core.mutex;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
@@ -92,21 +94,20 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
-    protected static void unlock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
-        final RubyContext context = currentNode.getContext();
-
-        checkOwnedMutex(context, lock, currentNode);
+    protected static void unlock(ReentrantLock lock, DynamicObject thread) {
         unlockInternal(lock);
         Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
     @TruffleBoundary
     public static void unlockInternal(ReentrantLock lock) {
+        assert lock.isHeldByCurrentThread();
         lock.unlock();
     }
 
-    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
+    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode, BranchProfile errorProfile) {
         if (!lock.isHeldByCurrentThread()) {
+            errorProfile.enter();
             if (!lock.isLocked()) {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
             } else {
