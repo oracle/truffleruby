@@ -23,13 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class MutexOperations {
 
     @TruffleBoundary
-    protected static void lock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
-        final RubyContext context = currentNode.getContext();
-
-        if (lock.isHeldByCurrentThread()) {
-            throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
-        }
-
+    protected static void lock(RubyContext context, ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         lockInternal(context, lock, currentNode);
         Layouts.THREAD.getOwnedLocks(thread).add(lock);
     }

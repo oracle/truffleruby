@@ -56,10 +56,17 @@ public abstract class MutexNodes {
 
         @Specialization
         public DynamicObject lock(VirtualFrame frame, DynamicObject mutex,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
+
+            if (lock.isHeldByCurrentThread()) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
+            }
+
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            MutexOperations.lock(lock, thread, this);
+            MutexOperations.lock(getContext(), lock, thread, this);
             return mutex;
         }
 
