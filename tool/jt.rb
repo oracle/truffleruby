@@ -1030,8 +1030,10 @@ module Commands
       "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
-
-    cext_tests = test_files.select { |f| f.include?("cext-ruby") }
+    cext_tests = test_files.select { |f|
+      f.include?("cext-ruby") ||
+      f == "ruby/test_file_exhaustive.rb"
+    }
     cext_tests.each do |test|
       puts
       puts test
