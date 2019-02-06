@@ -131,8 +131,8 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
         public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
-                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
-            return makeSubstringRopeNode.executeMake(base.getEncoding(), nativeToManagedNode.execute(base), byteOffset, byteLength);
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            return makeLeafRopeNode.executeMake(base.getBytes(byteOffset, byteLength), base.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })

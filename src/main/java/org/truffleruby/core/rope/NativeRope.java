@@ -73,6 +73,12 @@ public class NativeRope extends Rope {
         this.codeRange = codeRange;
     }
 
+    public byte[] getBytes(int byteOffset, int byteLength) {
+        final byte[] bytes = new byte[byteLength];
+        copyTo(byteOffset, bytes, 0, byteLength);
+        return bytes;
+    }
+
     @TruffleBoundary
     public void copyTo(int byteOffset, byte[] dest, int bufferPos, int byteLength) {
         pointer.readBytes(byteOffset, dest, bufferPos, byteLength);
