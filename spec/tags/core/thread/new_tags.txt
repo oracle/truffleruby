@@ -1,0 +1,1 @@
+fails:Thread.new releases Mutexes held by the Thread when the Thread finishes, also with Mutex#synchronize
