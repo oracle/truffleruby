@@ -141,6 +141,7 @@ public class RubyContext {
     private volatile ConsoleHolder consoleHolder;
 
     private final Object classVariableDefinitionLock = new Object();
+    private final ReentrantLock cExtensionsLock = new ReentrantLock();
 
     private final boolean preInitialized;
     @CompilationFinal private boolean preInitializing;
@@ -650,6 +651,10 @@ public class RubyContext {
 
     public Object getClassVariableDefinitionLock() {
         return classVariableDefinitionLock;
+    }
+
+    public ReentrantLock getCExtensionsLock() {
+        return cExtensionsLock;
     }
 
     public Instrumenter getInstrumenter() {

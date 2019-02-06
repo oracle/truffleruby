@@ -15,13 +15,19 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -38,16 +44,19 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
 import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
@@ -100,11 +109,86 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
+
+    @ImportStatic(Message.class)
+    @Primitive(name = "interop_call_c_with_mutex")
+    public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
+                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached("EXECUTE.createNode()") Node executeNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+
+                MutexOperations.lockInternal(getContext(), lock, this);
+                try {
+                    return execute(receiver, args, executeNode, exceptionProfile);
+                } finally {
+                    MutexOperations.unlockInternal(lock);
+                }
+            } else {
+                return execute(receiver, args, executeNode, exceptionProfile);
+            }
+
+        }
+
+        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+    }
+
+    @ImportStatic(Message.class)
+    @Primitive(name = "interop_call_c_without_mutex")
+    public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public Object callCWithoutMutex(TruffleObject receiver, DynamicObject argsArray,
+                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached("EXECUTE.createNode()") Node executeNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+
+                MutexOperations.unlockInternal(lock);
+                try {
+                    return execute(receiver, args, executeNode, exceptionProfile);
+                } finally {
+                    MutexOperations.lockInternal(getContext(), lock, this);
+                }
+            } else {
+                return execute(receiver, args, executeNode, exceptionProfile);
+            }
+
+        }
+
+        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+    }
 
     // TODO (pitr-ch 14-Dec-2017): remove from java
     @CoreMethod(names = "INT2FIX", onSingleton = true, required = 1)
@@ -706,7 +790,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceFile() {
-            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
+            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getContext().getPath(sourceSection.getSource());
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -822,10 +906,9 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::Cext. */ "rb_call_super")
-                        || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_call_super")
                         || method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion")
-                        || method.getName().equals(/* Truffle::Cext. */ "rb_call_super_splatted")) {
+                        || method.getName().equals(/* Truffle::CExt. */ "rb_call_super_splatted")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
                 } else {
@@ -855,8 +938,7 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::Cext. */ "rb_frame_this_func")
-                        || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func")
                         || method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;

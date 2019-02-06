@@ -286,37 +286,6 @@ module Truffle::CExt
   RUBY_ECONV_PARTIAL_INPUT = Encoding::Converter::PARTIAL_INPUT
   RUBY_ECONV_AFTER_OUTPUT = Encoding::Converter::AFTER_OUTPUT
 
-  if Truffle::Boot.get_option 'cexts.lock'
-    SYNC = Mutex.new
-
-    def execute_with_mutex(function, *args)
-      mine = SYNC.owned?
-      SYNC.lock unless mine
-      begin
-        Truffle::Interop.execute_without_conversion(function, *args)
-      ensure
-        SYNC.unlock unless mine
-      end
-    end
-
-    def execute_without_mutex(function, *args)
-      SYNC.unlock
-      begin
-        Truffle::Interop.execute_without_conversion(function, *args)
-      ensure
-        SYNC.lock
-      end
-    end
-  else
-    def execute_with_mutex(function, *args)
-      Truffle::Interop.execute_without_conversion(function, *args)
-    end
-
-    def execute_without_mutex(function, *args)
-      Truffle::Interop.execute_without_conversion(function, *args)
-    end
-  end
-
   def supported?
     Interop.mime_type_supported?('application/x-sulong-library')
   end
@@ -1057,7 +1026,7 @@ module Truffle::CExt
   def rb_proc_new(function, value)
     Proc.new do |*args|
       Truffle::CExt.rb_tr_unwrap(
-        execute_with_mutex(function, *args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }))
+        Truffle.invoke_primitive(:interop_call_c_with_mutex, function, args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }))
     end
   end
 
@@ -1112,11 +1081,11 @@ module Truffle::CExt
   end
 
   def rb_yield(value)
-    execute_with_mutex(rb_block_proc, value)
+    Truffle.invoke_primitive(:interop_call_c_with_mutex, rb_block_proc, [value])
   end
 
   def rb_yield_splat(values)
-    execute_with_mutex(rb_block_proc, values)
+    Truffle.invoke_primitive(:interop_call_c_with_mutex, rb_block_proc, [values])
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1264,7 +1233,7 @@ module Truffle::CExt
 
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
     return rb_enumeratorize(obj, meth, args) if size_fn.nil?
-    enum = obj.to_enum(meth, *args) { rb_tr_unwrap(execute_with_mutex(size_fn, rb_tr_wrap(obj), rb_tr_wrap(args), rb_tr_wrap(enum))) }
+    enum = obj.to_enum(meth, *args) { rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, size_fn, [rb_tr_wrap(obj), rb_tr_wrap(args), rb_tr_wrap(enum)])) }
     enum
   end
 
@@ -1274,7 +1243,7 @@ module Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.send(:define_method, :__allocate__) do
-      Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, Truffle::CExt.rb_tr_wrap(self)))
+      Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, function, [Truffle::CExt.rb_tr_wrap(self)]))
     end
     class << ruby_class
       private :__allocate__
@@ -1392,7 +1361,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(arg)))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, func, [rb_tr_wrap(arg)]))
     end
   end
 
@@ -1451,7 +1420,7 @@ module Truffle::CExt
     # In a separate method to avoid capturing the object
     raise unless free.respond_to?(:call)
     proc {
-      execute_with_mutex(free, data_holder.data) unless data_holder.data.nil?
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, free, [data_holder.data]) unless data_holder.data.nil?
     }
   end
 
@@ -1460,7 +1429,7 @@ module Truffle::CExt
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list
-      execute_with_mutex(mark, data_holder.data) unless data_holder.data.nil?
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, mark, [data_holder.data]) unless data_holder.data.nil?
       set_mark_list_on_object(obj)
     }
   end
@@ -1495,31 +1464,31 @@ module Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.__send__(method, *args) do |*block_args|
-      rb_tr_unwrap(Truffle::CExt.execute_with_mutex(func, rb_tr_wrap(block_args.first), data, block_args.size, RARRAY_PTR(block_args), nil))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, func, [rb_tr_wrap(block_args.first), data, block_args.size, RARRAY_PTR(block_args), nil]))
     end
   end
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      rb_tr_unwrap(execute_with_mutex(b_proc, data1))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, b_proc, [data1]))
     ensure
-      rb_tr_unwrap(execute_with_mutex(e_proc, data2))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, e_proc, [data2]))
     end
   end
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
-      execute_with_mutex(b_proc, data1)
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, b_proc, [data1])
     rescue StandardError => e
-      execute_with_mutex(r_proc, data2, rb_tr_wrap(e))
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, r_proc, [data2, rb_tr_wrap(e)])
     end
   end
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
-      execute_with_mutex(b_proc, data1)
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, b_proc, [data1])
     rescue *rescued => e
-      execute_with_mutex(r_proc, data2, rb_tr_wrap(e))
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, r_proc, [data2, rb_tr_wrap(e)])
     end
   end
 
@@ -1527,11 +1496,11 @@ module Truffle::CExt
     result = nil
 
     recursive = Thread.detect_recursion(obj) do
-      result = rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(obj), rb_tr_wrap(arg), 0))
+      result = rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, func, [rb_tr_wrap(obj), rb_tr_wrap(arg), 0]))
     end
 
     if recursive
-      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(obj), rb_tr_wrap(arg), 1))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, func, [rb_tr_wrap(obj), rb_tr_wrap(arg), 1]))
     else
       result
     end
@@ -1539,7 +1508,7 @@ module Truffle::CExt
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      rb_tr_unwrap(execute_with_mutex(func, rb_tr_wrap(caught), rb_tr_wrap(data), rb_tr_wrap(nil)))
+      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, func, [rb_tr_wrap(caught), rb_tr_wrap(data), rb_tr_wrap(nil)]))
     end
   end
 
@@ -1609,7 +1578,7 @@ module Truffle::CExt
 
   def rb_thread_create(fn, args)
     Thread.new do
-      execute_with_mutex(fn, args)
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, fn, [args])
     end
   end
 
@@ -1621,7 +1590,7 @@ module Truffle::CExt
     end
 
     runner = -> {
-      execute_without_mutex(function, data1)
+      Truffle.invoke_primitive(:interop_call_c_without_mutex, function, [data1])
     }
 
     Thread.current.unblock unblocker, runner
@@ -1635,7 +1604,7 @@ module Truffle::CExt
       end
     else
       call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
-        rb_tr_unwrap(execute_with_mutex callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg), rb_tr_wrap(nil))
+        rb_tr_unwrap Truffle.invoke_primitive(:interop_call_c_with_mutex, callback, [rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg), rb_tr_wrap(nil)])
       end
     end
   end
@@ -1737,11 +1706,11 @@ module Truffle::CExt
     id = name.to_sym
 
     getter_proc = -> {
-      rb_tr_unwrap(execute_with_mutex getter, rb_tr_wrap(id), gvar, rb_tr_wrap(nil))
+      rb_tr_unwrap Truffle.invoke_primitive(:interop_call_c_with_mutex, getter, [rb_tr_wrap(id), gvar, rb_tr_wrap(nil)])
     }
 
     setter_proc = -> value {
-      execute_with_mutex setter, rb_tr_wrap(value), rb_tr_wrap(id), gvar, rb_tr_wrap(nil)
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, setter, [rb_tr_wrap(value), rb_tr_wrap(id), gvar, rb_tr_wrap(nil)])
     }
 
     Truffle::KernelOperations.define_hooked_variable id, getter_proc, setter_proc

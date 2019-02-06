@@ -597,18 +597,17 @@ public class BodyTranslator extends Translator {
          *   InvokePrimitiveNode(FooNode(arg1, arg2, ..., argN))
          */
 
-        final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
-
-        if (args.size() < 1 || !(args.get(0) instanceof SymbolParseNode)) {
+        final ParseNode firstArgNode = extractFirstArgumentNode(node.getArgsNode());
+        if (!(firstArgNode instanceof SymbolParseNode)) {
             throw new UnsupportedOperationException("Truffle.invoke_primitive must have at least an initial literal symbol argument");
         }
 
-        final String primitiveName = ((SymbolParseNode) args.get(0)).getName();
-
+        final String primitiveName = ((SymbolParseNode) firstArgNode).getName();
         final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
         final List<RubyNode> arguments = new ArrayList<>();
 
+        final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
         // The first argument was the symbol so we ignore it
         for (int n = 1; n < args.size(); n++) {
             RubyNode readArgumentNode = args.get(n).accept(this);
@@ -616,6 +615,18 @@ public class BodyTranslator extends Translator {
         }
 
         return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(RubyNode.EMPTY_ARRAY));
+    }
+
+    private ParseNode extractFirstArgumentNode(ParseNode argsNode) {
+        if (argsNode instanceof ArrayParseNode) {
+            final ArrayParseNode args = (ArrayParseNode) argsNode;
+            if (args.size() < 1) {
+                throw new UnsupportedOperationException("Truffle.invoke_primitive must have at least an initial literal symbol argument");
+            }
+            return args.get(0);
+        } else {
+            throw new UnsupportedOperationException("Unknown how to extract first argument node of " + argsNode.getClass());
+        }
     }
 
     private RubyNode translatePrivately(CallParseNode node) {

@@ -32,6 +32,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreClass("ConditionVariable")
 public abstract class ConditionVariableNodes {
@@ -54,23 +55,30 @@ public abstract class ConditionVariableNodes {
 
         @Specialization(guards = "isNil(timeout)")
         public DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            waitInternal(self, mutex, thread, -1);
+            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+
+            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
+            waitInternal(self, mutexLock, thread, -1);
             return self;
         }
 
         @Specialization
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            waitInternal(self, mutex, thread, durationInNanos);
+            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+
+            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
+            waitInternal(self, mutexLock, thread, durationInNanos);
             return self;
         }
 
         @TruffleBoundary
-        private void waitInternal(DynamicObject self, DynamicObject mutex, DynamicObject thread, long durationInNanos) {
-            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+        private void waitInternal(DynamicObject self, ReentrantLock mutexLock, DynamicObject thread, long durationInNanos) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             final long endNanoTime;
@@ -79,8 +87,6 @@ public abstract class ConditionVariableNodes {
             } else {
                 endNanoTime = 0;
             }
-
-            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this);
 
             // condLock must be locked before unlocking mutexLock, to avoid losing potential signals
             getContext().getThreadManager().runUntilResult(this, () -> {

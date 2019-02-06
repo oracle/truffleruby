@@ -21,6 +21,10 @@ import org.truffleruby.language.RubyGuards;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
 
+    public static ArrayToObjectArrayNode create() {
+        return ArrayToObjectArrayNodeGen.create();
+    }
+
     public Object[] unsplat(Object[] arguments) {
         assert arguments.length == 1;
         assert RubyGuards.isRubyArray(arguments[0]);
