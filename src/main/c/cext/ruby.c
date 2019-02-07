@@ -4268,7 +4268,7 @@ void rb_str_setter(VALUE val, ID id, VALUE *var) {
 }
 
 VALUE rb_sym_to_s(VALUE sym) {
-  rb_tr_error("rb_sym_to_s not implemented");
+  return RUBY_INVOKE(sym, "to_s");
 }
 
 long rb_str_strlen(VALUE str) {
