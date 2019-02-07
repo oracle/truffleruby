@@ -38,6 +38,7 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEnc
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
@@ -121,10 +122,10 @@ public abstract class EncodingNodes {
                 "firstEncoding != secondEncoding",
                 "first.isEmpty() == isFirstEmpty",
                 "second.isEmpty() == isSecondEmpty",
-                "first.getCodeRange() == firstCodeRange",
-                "second.getCodeRange() == secondCodeRange",
                 "first.getEncoding() == firstEncoding",
-                "second.getEncoding() == secondEncoding"
+                "second.getEncoding() == secondEncoding",
+                "codeRangeNode.execute(first) == firstCodeRange",
+                "codeRangeNode.execute(second) == secondCodeRange"
         }, limit = "getCacheLimit()")
         protected Encoding negotiateRopeRopeCached(Rope first, Rope second,
                 @Cached("first.getEncoding()") Encoding firstEncoding,
@@ -133,7 +134,8 @@ public abstract class EncodingNodes {
                 @Cached("second.isEmpty()") boolean isSecondEmpty,
                 @Cached("first.getCodeRange()") CodeRange firstCodeRange,
                 @Cached("second.getCodeRange()") CodeRange secondCodeRange,
-                @Cached("negotiateRopeRopeUncached(first, second)") Encoding negotiatedEncoding) {
+                @Cached("negotiateRopeRopeUncached(first, second)") Encoding negotiatedEncoding,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             return negotiatedEncoding;
         }
 
@@ -186,6 +188,7 @@ public abstract class EncodingNodes {
 
     public static abstract class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
+        @Child private RopeNodes.CodeRangeNode codeRangeNode;
         @Child private ToEncodingNode getEncodingNode = ToEncodingNode.create();
 
         public static NegotiateCompatibleEncodingNode create() {
@@ -325,7 +328,12 @@ public abstract class EncodingNodes {
             // this guard is only used on Ruby strings, but the method must handle any object type because of the form
             // of the generated code. If the object is not a Ruby string, the resulting value is never used.
             if (RubyGuards.isRubyString(string)) {
-                return StringOperations.rope((DynamicObject) string).getCodeRange();
+                if (codeRangeNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+                }
+
+                return codeRangeNode.execute(StringOperations.rope((DynamicObject) string));
             }
 
             return CodeRange.CR_UNKNOWN;

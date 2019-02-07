@@ -42,7 +42,6 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -1534,7 +1533,7 @@ public class ParserSupport {
     }
 
     private boolean is7BitASCII(Rope value) {
-        return value.getCodeRange() == CodeRange.CR_7BIT;
+        return value.isAsciiOnly();
     }
 
     // TODO: Put somewhere more consolidated (similar)

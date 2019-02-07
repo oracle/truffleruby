@@ -26,7 +26,7 @@ public class RegexpGuards {
     }
 
     public static boolean isValidEncoding(DynamicObject string) {
-        return StringOperations.codeRange(string) != CodeRange.CR_BROKEN;
+        return StringOperations.rope(string).getCodeRange() != CodeRange.CR_BROKEN;
     }
 
     public static boolean isSameRegexp(DynamicObject a, DynamicObject b) {

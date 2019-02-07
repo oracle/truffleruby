@@ -44,11 +44,12 @@ public abstract class ToJavaStringNode extends RubyNode {
     @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
     public String stringUncached(DynamicObject value,
             @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+            @Cached("create()") RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached("create()") RopeNodes.BytesNode bytesNode) {
         final Rope rope = StringOperations.rope(value);
         final byte[] bytes = bytesNode.execute(rope);
 
-        if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
+        if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
             return RopeOperations.decodeAscii(bytes, 0, bytes.length);
         } else {
             return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);

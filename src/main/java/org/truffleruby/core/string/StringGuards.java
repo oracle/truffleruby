@@ -15,6 +15,7 @@ import org.jcodings.Config;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 
 public class StringGuards {
 
@@ -24,8 +25,10 @@ public class StringGuards {
         return Layouts.STRING.getRope(string).isSingleByteOptimizable();
     }
 
-    public static boolean is7Bit(DynamicObject string) {
-        return StringOperations.codeRange(string) == CodeRange.CR_7BIT;
+    public static boolean is7Bit(DynamicObject string, RopeNodes.CodeRangeNode codeRangeNode) {
+        final Rope rope = StringOperations.rope(string);
+
+        return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
     }
 
     public static boolean isAsciiCompatible(DynamicObject string) {
@@ -36,20 +39,20 @@ public class StringGuards {
         return Layouts.STRING.getRope(string).getEncoding().isFixedWidth();
     }
 
-    public static boolean isValidUtf8(DynamicObject string) {
-        return isValidCodeRange(string) && Layouts.STRING.getRope(string).getEncoding().isUTF8();
+    public static boolean isValidUtf8(DynamicObject string, RopeNodes.CodeRangeNode codeRangeNode) {
+        final Rope rope = StringOperations.rope(string);
+
+        return rope.getEncoding().isUTF8() && codeRangeNode.execute(rope) == CodeRange.CR_VALID;
     }
 
     public static boolean isEmpty(DynamicObject string) {
         return Layouts.STRING.getRope(string).isEmpty();
     }
 
-    public static boolean isBrokenCodeRange(DynamicObject string) {
-        return StringOperations.codeRange(string) == CodeRange.CR_BROKEN;
-    }
+    public static boolean isBrokenCodeRange(DynamicObject string, RopeNodes.CodeRangeNode codeRangeNode) {
+        final Rope rope = StringOperations.rope(string);
 
-    public static boolean isValidCodeRange(DynamicObject string) {
-        return StringOperations.codeRange(string) == CodeRange.CR_VALID;
+        return codeRangeNode.execute(rope) == CodeRange.CR_BROKEN;
     }
 
     public static boolean isSingleByteString(DynamicObject string) {

@@ -66,7 +66,7 @@ public abstract class RegexpNodes {
 
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, DynamicObject regexp, Rope stringRope, byte[] stringBytes, boolean encodingConversion) {
-        final Encoding enc = checkEncoding(regexp, stringRope, true);
+        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
         Regex regex = Layouts.REGEXP.getRegex(regexp);
 
         if (encodingConversion && regex.getEncoding() != enc) {
@@ -101,10 +101,7 @@ public abstract class RegexpNodes {
         Layouts.REGEXP.setOptions(regexp, options);
     }
 
-    public static Encoding checkEncoding(DynamicObject regexp, Rope str, boolean warn) {
-        return checkEncoding(regexp, str.getEncoding(), str.getCodeRange(), warn);
-    }
-
+    @TruffleBoundary
     public static Encoding checkEncoding(DynamicObject regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
         assert RubyGuards.isRubyRegexp(regexp);
 

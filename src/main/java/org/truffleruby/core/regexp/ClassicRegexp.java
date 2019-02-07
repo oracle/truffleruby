@@ -582,6 +582,7 @@ public class ClassicRegexp implements ReOptions {
         return string;
     }
 
+    @TruffleBoundary
     private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc, Encoding[] fixedEnc, Rope str) {
         Encoding strEnc = str.getEncoding();
 
@@ -867,6 +868,7 @@ public class ClassicRegexp implements ReOptions {
         } while (true);
     }
 
+    @TruffleBoundary
     public void appendRegexpString19(RopeBuilder to, Rope str, int start, int len, Encoding resEnc) {
         int p = start;
         int end = p + len;

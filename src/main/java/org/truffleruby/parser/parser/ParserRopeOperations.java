@@ -41,7 +41,7 @@ public class ParserRopeOperations {
                 return rope;
             }
 
-            return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange() == CR_7BIT ? CR_7BIT : CR_UNKNOWN);
+            return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.isAsciiOnly() ? CR_7BIT : CR_UNKNOWN);
         } else {
             return ropeNode.getSubstringNode().executeSubstring(rope, sharedStart, sharedLength);
         }

@@ -485,15 +485,17 @@ public class CExtNodes {
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
                 @Cached("create()") BranchProfile errorProfile) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
+            final CodeRange ropeCodeRange = codeRangeNode.execute(rope);
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
 
             final CodeRange cr;
             if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
-                cr = rope.getCodeRange();
+                cr = ropeCodeRange;
             } else {
                 cr = CodeRange.CR_UNKNOWN;
             }
@@ -506,7 +508,7 @@ public class CExtNodes {
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            final int codePoint = StringSupport.preciseCodePoint(enc, rope.getCodeRange(), bytes, 0, bytes.length);
+            final int codePoint = StringSupport.preciseCodePoint(enc, ropeCodeRange, bytes, 0, bytes.length);
 
             return createArray(new Object[]{len_p, codePoint}, 2);
         }
@@ -1010,7 +1012,8 @@ public class CExtNodes {
         @Specialization(guards = "isRubyString(string)")
         protected NativeRope toNative(DynamicObject string,
                 @Cached("createBinaryProfile()") ConditionProfile convertProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             final Rope currentRope = rope(string);
 
             final NativeRope nativeRope;
@@ -1018,8 +1021,11 @@ public class CExtNodes {
             if (convertProfile.profile(currentRope instanceof NativeRope)) {
                 nativeRope = (NativeRope) currentRope;
             } else {
-                nativeRope = new NativeRope(getContext().getFinalizationService(), bytesNode.execute(currentRope), currentRope.getEncoding(), currentRope.characterLength(),
-                        currentRope.getCodeRange());
+                nativeRope = new NativeRope(getContext().getFinalizationService(),
+                        bytesNode.execute(currentRope),
+                        currentRope.getEncoding(),
+                        currentRope.characterLength(),
+                        codeRangeNode.execute(currentRope));
                 StringOperations.setRope(string, nativeRope);
             }
 
@@ -1322,6 +1328,7 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1329,7 +1336,7 @@ public class CExtNodes {
 
             return StringSupport.characterLength(
                     encoding,
-                    sameEncodingProfile.profile(encoding == ropeEncoding) ? rope.getCodeRange() : CodeRange.CR_UNKNOWN,
+                    sameEncodingProfile.profile(encoding == ropeEncoding) ? codeRangeNode.execute(rope) : CodeRange.CR_UNKNOWN,
                     StringOperations.rope(str).getBytes(),
                     p,
                     e,
@@ -1353,6 +1360,8 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private RopeNodes.CodeRangeNode codeRangeNode;
+
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
@@ -1361,12 +1370,21 @@ public class CExtNodes {
             final Rope rope = StringOperations.rope(str);
             final CodeRange cr;
             if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {
-                cr = rope.getCodeRange();
+                cr = codeRange(rope);
             } else {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
             return characterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+        }
+
+        private CodeRange codeRange(Rope rope) {
+            if (codeRangeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+            }
+
+            return codeRangeNode.execute(rope);
         }
 
     }
