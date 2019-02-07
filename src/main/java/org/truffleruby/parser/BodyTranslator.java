@@ -583,7 +583,7 @@ public class BodyTranslator extends Translator {
         fallbackNode = sequence(sourceSection, Arrays.asList(loadArguments, fallbackNode));
 
         final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
-        return primitive.createCallPrimitiveNode(context, source, sourceSection, fallbackNode);
+        return primitive.createCallPrimitiveNode(sourceSection, fallbackNode);
     }
 
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
@@ -1288,7 +1288,7 @@ public class BodyTranslator extends Translator {
         final Arity arity = argsNode.getArity();
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
-        final boolean alwaysClone = MethodTranslator.isPrimitive(bodyNode);
+        final boolean alwaysClone = context.getOptions().PRIMITIVE_CALLERS_ALWAYS_CLONE && MethodTranslator.callsPrimitive(bodyNode);
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
@@ -1307,7 +1307,7 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, false, source, parserContext, argsNode);
-        final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
+        final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, defNode, bodyNode);
 
         return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(moduleNode, methodName, sharedMethodInfo, callTarget, isDefs));
     }
@@ -1769,7 +1769,7 @@ public class BodyTranslator extends Translator {
         final RubyNode definitionNode;
 
         try {
-            definitionNode = methodCompiler.compileBlockNode(sourceSection, sharedMethodInfo.getName(), node.getBodyNode(), sharedMethodInfo, type, node.getScope().getVariables());
+            definitionNode = methodCompiler.compileBlockNode(sourceSection, node.getBodyNode(), type, node.getScope().getVariables());
         } finally {
             if (isLambda) {
                 frameOnStackMarkerSlotStack.pop();

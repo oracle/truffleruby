@@ -44,7 +44,7 @@ public class PrimitiveNodeConstructor {
         return factory.getExecutionSignature().size();
     }
 
-    public RubyNode createCallPrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection, RubyNode fallback) {
+    public RubyNode createCallPrimitiveNode(SourceIndexLength sourceSection, RubyNode fallback) {
         int argumentsCount = getPrimitiveArity();
         final List<RubyNode> arguments = new ArrayList<>(argumentsCount);
 

@@ -436,11 +436,6 @@ public class OptionsCatalog {
             "Cache size for accessing variables in another frame",
             null,
             5);
-    public static final BooleanOptionDescription CLONE_DISABLED = new BooleanOptionDescription(
-            "ruby.clone.disable",
-            "Disable all manual cloning",
-            null,
-            false);
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
             "ruby.clone.default",
             "Default option for cloning",
@@ -454,6 +449,16 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription CORE_ALWAYS_CLONE = new BooleanOptionDescription(
             "ruby.core.always_clone",
             "Always clone built-in core methods",
+            null,
+            CLONE_DEFAULT.getDefaultValue());
+    public static final BooleanOptionDescription PRIMITIVE_CALLERS_ALWAYS_CLONE = new BooleanOptionDescription(
+            "ruby.primitive_callers.always_clone",
+            "Always clone methods which call primitives",
+            null,
+            CLONE_DEFAULT.getDefaultValue());
+    public static final BooleanOptionDescription ALWAYS_SPLIT_HONOR = new BooleanOptionDescription(
+            "ruby.always_split.honor",
+            "Honor Truffle::Graal.always_split annotations",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription INLINE_NEEDS_CALLER_FRAME = new BooleanOptionDescription(
@@ -827,14 +832,16 @@ public class OptionsCatalog {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame.variable.access.cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
-            case "ruby.clone.disable":
-                return CLONE_DISABLED;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
                 return INLINE_DEFAULT;
             case "ruby.core.always_clone":
                 return CORE_ALWAYS_CLONE;
+            case "ruby.primitive_callers.always_clone":
+                return PRIMITIVE_CALLERS_ALWAYS_CLONE;
+            case "ruby.always_split.honor":
+                return ALWAYS_SPLIT_HONOR;
             case "ruby.inline_needs_caller_frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield.always_clone":
@@ -923,6 +930,7 @@ public class OptionsCatalog {
     public static OptionDescription<?>[] allDescriptions() {
         return new OptionDescription<?>[] {
             ALLOCATE_CLASS_CACHE,
+            ALWAYS_SPLIT_HONOR,
             ARGV_GLOBAL_FLAGS,
             ARGV_GLOBAL_VALUES,
             ARGV_GLOBALS,
@@ -948,7 +956,6 @@ public class OptionsCatalog {
             CEXTS_LIBRARY_REMAP,
             CLASS_CACHE,
             CLONE_DEFAULT,
-            CLONE_DISABLED,
             CONSTANT_CACHE,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             CORE_ALWAYS_CLONE,
@@ -1017,6 +1024,7 @@ public class OptionsCatalog {
             NATIVE_INTERRUPT,
             POLYGLOT_STDIO,
             PREINITIALIZATION,
+            PRIMITIVE_CALLERS_ALWAYS_CLONE,
             READ_RUBYOPT,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,

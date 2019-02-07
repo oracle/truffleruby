@@ -109,10 +109,11 @@ public class Options {
     public final int POW_CACHE;
     public final int ARRAY_DUP_CACHE;
     public final int FRAME_VARIABLE_ACCESS_CACHE;
-    public final boolean CLONE_DISABLED;
     public final boolean CLONE_DEFAULT;
     public final boolean INLINE_DEFAULT;
     public final boolean CORE_ALWAYS_CLONE;
+    public final boolean PRIMITIVE_CALLERS_ALWAYS_CLONE;
+    public final boolean ALWAYS_SPLIT_HONOR;
     public final boolean INLINE_NEEDS_CALLER_FRAME;
     public final boolean YIELD_ALWAYS_CLONE;
     public final boolean YIELD_ALWAYS_INLINE;
@@ -239,10 +240,11 @@ public class Options {
         POW_CACHE = builder.getOrDefault(OptionsCatalog.POW_CACHE, DEFAULT_CACHE);
         ARRAY_DUP_CACHE = builder.getOrDefault(OptionsCatalog.ARRAY_DUP_CACHE);
         FRAME_VARIABLE_ACCESS_CACHE = builder.getOrDefault(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE);
-        CLONE_DISABLED = builder.getOrDefault(OptionsCatalog.CLONE_DISABLED);
         CLONE_DEFAULT = builder.getOrDefault(OptionsCatalog.CLONE_DEFAULT);
         INLINE_DEFAULT = builder.getOrDefault(OptionsCatalog.INLINE_DEFAULT);
         CORE_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CORE_ALWAYS_CLONE, CLONE_DEFAULT);
+        PRIMITIVE_CALLERS_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.PRIMITIVE_CALLERS_ALWAYS_CLONE, CLONE_DEFAULT);
+        ALWAYS_SPLIT_HONOR = builder.getOrDefault(OptionsCatalog.ALWAYS_SPLIT_HONOR, CLONE_DEFAULT);
         INLINE_NEEDS_CALLER_FRAME = builder.getOrDefault(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME, INLINE_DEFAULT);
         YIELD_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.YIELD_ALWAYS_CLONE, CLONE_DEFAULT);
         YIELD_ALWAYS_INLINE = builder.getOrDefault(OptionsCatalog.YIELD_ALWAYS_INLINE, INLINE_DEFAULT);
@@ -455,14 +457,16 @@ public class Options {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame.variable.access.cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
-            case "ruby.clone.disable":
-                return CLONE_DISABLED;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
                 return INLINE_DEFAULT;
             case "ruby.core.always_clone":
                 return CORE_ALWAYS_CLONE;
+            case "ruby.primitive_callers.always_clone":
+                return PRIMITIVE_CALLERS_ALWAYS_CLONE;
+            case "ruby.always_split.honor":
+                return ALWAYS_SPLIT_HONOR;
             case "ruby.inline_needs_caller_frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield.always_clone":

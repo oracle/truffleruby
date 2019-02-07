@@ -158,17 +158,13 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
         if (callNode.isCallTargetCloningAllowed() && method.getSharedMethodInfo().shouldAlwaysClone()) {
-            if (!getContext().getOptions().CLONE_DISABLED) {
-                callNode.cloneCallTarget();
-            }
+            callNode.cloneCallTarget();
         } else if (getContext().getOptions().CALL_WITH_BLOCK_ALWAYS_CLONE) {
             final RubyCallNode rubyCallNode = findRubyCallNode();
             if (rubyCallNode != null && rubyCallNode.hasLiteralBlock()) {
                 // If the call has a literal block, it is interesting to split so the method can
                 // specialize for that block only and not all blocks given to the method so far.
-                if (!getContext().getOptions().CLONE_DISABLED) {
-                    callNode.cloneCallTarget();
-                }
+                callNode.cloneCallTarget();
             }
         }
 
