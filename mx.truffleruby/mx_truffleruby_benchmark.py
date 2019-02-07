@@ -70,7 +70,7 @@ class RubyBenchmarkSuite(mx_benchmark.BenchmarkSuite):
 
     def runArgs(self, bmSuiteArgs):
         return mx_benchmark.splitArgs(bmSuiteArgs, bmSuiteArgs)[1]
-    
+
     def default_benchmarks(self):
         return self.benchmarks()
 
@@ -83,9 +83,9 @@ class RubyBenchmarkSuite(mx_benchmark.BenchmarkSuite):
                 'guest-vm-config': os.environ.get('GUEST_VM_CONFIG', 'guest-vm-config')
             })
             return result
-        
+
         return [fixUpResult(r) for b in benchmarks or self.default_benchmarks() for r in self.runBenchmark(b, bmSuiteArgs)]
-    
+
     def runBenchmark(self, benchmark, bmSuiteArgs):
         raise NotImplementedError()
 
@@ -133,7 +133,7 @@ default_metrics_benchmarks = ['hello', 'compile-mandelbrot']
 class MetricsBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):
         return metrics_benchmarks.keys()
-    
+
     def default_benchmarks(self):
         return default_metrics_benchmarks
 
@@ -145,9 +145,9 @@ class AllocationBenchmarkSuite(MetricsBenchmarkSuite):
         out = mx.OutputCapture()
 
         jt(['metrics', 'alloc', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
-        
+
         data = json.loads(out.data)
-        
+
         return [{
             'benchmark': benchmark,
             'metric.name': 'memory',
@@ -184,9 +184,9 @@ class MinHeapBenchmarkSuite(MetricsBenchmarkSuite):
         out = mx.OutputCapture()
 
         jt(['metrics', 'minheap', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
-        
+
         data = json.loads(out.data)
-        
+
         return [{
             'benchmark': benchmark,
             'metric.name': 'memory',
@@ -238,7 +238,7 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
             'extra.metric.region': region,
             'metric.name': 'time',
             'metric.value': sample,
-            'metric.unit': 's',
+            'metric.unit': 'ms',
             'metric.better': 'lower',
             'metric.iteration': n
         } for region, region_data in data.items() for n, sample in enumerate(region_data['samples'])]
@@ -246,13 +246,13 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
 class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):
         raise NotImplementedError()
-    
+
     def name(self):
         raise NotImplementedError()
-    
+
     def time(self):
         raise NotImplementedError()
-    
+
     def directory(self):
         return self.name()
 
@@ -286,10 +286,10 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         arguments.extend(benchmark_names)
         arguments.extend(bmSuiteArgs)
         out = mx.OutputCapture()
-        
+
         if jt(arguments, out=out, nonZeroIsFatal=False) == 0:
             lines = out.data.split('\n')[1:-1]
-            
+
             data = self.filterLines(lines)
             elapsed = [d for n, d in enumerate(data) if n % 3 == 0]
             iterations = [d for n, d in enumerate(data) if n % 3 == 1]
@@ -321,9 +321,9 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     warmed_up_samples = [sample for n, sample in enumerate(samples) if n / float(len(samples)) >= 0.5]
                 else:
                     warmed_up_samples = samples
-                    
+
                 warmed_up_mean = sum(warmed_up_samples) / float(len(warmed_up_samples))
-                
+
                 return [{
                     'benchmark': benchmark,
                     'metric.name': 'throughput',
@@ -336,7 +336,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                 } for n, (e, i, sample) in enumerate(zip(elapsed, iterations, samples))]
         else:
             sys.stderr.write(out.data)
-            
+
             return [{
                 'benchmark': benchmark,
                 'metric.name': 'throughput',
@@ -367,13 +367,13 @@ classic_benchmark_time = 120
 class ClassicBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'classic'
-    
+
     def directory(self):
         return 'classic'
-    
+
     def benchmarks(self):
         return classic_benchmarks
-    
+
     def time(self):
         return classic_benchmark_time
 
@@ -398,13 +398,13 @@ chunky_benchmark_time = 120
 class ChunkyBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'chunky'
-    
+
     def directory(self):
         return 'chunky_png'
 
     def benchmarks(self):
         return chunky_benchmarks
-    
+
     def time(self):
         return chunky_benchmark_time
 
@@ -446,13 +446,13 @@ psd_benchmark_time = 120
 class PSDBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'psd'
-    
+
     def directory(self):
         return 'psd.rb'
 
     def benchmarks(self):
         return psd_benchmarks
-    
+
     def time(self):
         return psd_benchmark_time
 
@@ -526,7 +526,7 @@ class SyntheticBenchmarkSuite(AllBenchmarksBenchmarkSuite):
 
     def benchmarks(self):
         return synthetic_benchmarks
-    
+
     def time(self):
         return synthetic_benchmark_time
 
@@ -547,7 +547,7 @@ class MicroBenchmarkSuite(AllBenchmarksBenchmarkSuite):
                     jt(['benchmark', 'list', benchmark_file], out=out)
                     benchmarks.extend([benchmark_file + ':' + b.strip() for b in out.data.split('\n') if len(b.strip()) > 0])
         return benchmarks
-    
+
     def time(self):
         return micro_benchmark_time
 
@@ -580,7 +580,7 @@ server_benchmark_time = 60 * 4 # Seems unstable otherwise
 class ServerBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):
         return server_benchmarks
-    
+
     def name(self):
         return 'server'
 
@@ -589,9 +589,9 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
         if 'MX_NO_GRAAL' not in os.environ and not bmSuiteArgs:
             arguments.extend(['--graal', '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'])
         arguments.extend(['bench/servers/' + benchmark + '.rb'])
-        
+
         server = BackgroundJT(arguments + bmSuiteArgs)
-        
+
         with server:
             time.sleep(10)
             out = mx.OutputCapture()
@@ -604,7 +604,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
                 half_samples = len(samples) / 2
                 used_samples = samples[len(samples)-half_samples-1:]
                 ips = sum(used_samples) / float(len(used_samples))
-                
+
                 return [{
                     'benchmark': benchmark,
                     'metric.name': 'throughput',
@@ -614,7 +614,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
                 }]
             else:
                 sys.stderr.write(out.data)
-                
+
                 # TODO CS 24-Jun-16, how can we fail the wider suite?
                 return [{
                     'benchmark': benchmark,
