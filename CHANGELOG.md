@@ -15,6 +15,7 @@ Bug fixes:
 * `Exception#cause` is now correctly set for internal exceptions (#1560).
 * `rb_num2ull` is now implemented as well as being declared in the ruby.h header (#1573).
 * `rb_sym_to_s` is now implemented (#1575).
+* `R_TYPE_P` now returns the type number for a wider set of Ruby objects #(1574).
 
 Changes:
 
