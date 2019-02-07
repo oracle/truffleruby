@@ -122,20 +122,20 @@ public abstract class EncodingNodes {
                 "firstEncoding != secondEncoding",
                 "first.isEmpty() == isFirstEmpty",
                 "second.isEmpty() == isSecondEmpty",
-                "codeRangeNode.execute(first) == firstCodeRange",
-                "codeRangeNode.execute(second) == secondCodeRange",
                 "first.getEncoding() == firstEncoding",
-                "second.getEncoding() == secondEncoding"
+                "second.getEncoding() == secondEncoding",
+                "codeRangeNode.execute(first) == firstCodeRange",
+                "codeRangeNode.execute(second) == secondCodeRange"
         }, limit = "getCacheLimit()")
         protected Encoding negotiateRopeRopeCached(Rope first, Rope second,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("first.getEncoding()") Encoding firstEncoding,
                 @Cached("second.getEncoding()") Encoding secondEncoding,
                 @Cached("first.isEmpty()") boolean isFirstEmpty,
                 @Cached("second.isEmpty()") boolean isSecondEmpty,
-                @Cached("codeRangeNode.execute(first)") CodeRange firstCodeRange,
-                @Cached("codeRangeNode.execute(second)") CodeRange secondCodeRange,
-                @Cached("negotiateRopeRopeUncached(first, second)") Encoding negotiatedEncoding) {
+                @Cached("first.getCodeRange()") CodeRange firstCodeRange,
+                @Cached("second.getCodeRange()") CodeRange secondCodeRange,
+                @Cached("negotiateRopeRopeUncached(first, second)") Encoding negotiatedEncoding,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             return negotiatedEncoding;
         }
 
