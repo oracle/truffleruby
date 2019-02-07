@@ -687,13 +687,11 @@ public abstract class StringNodes {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
 
-        private final ConditionProfile asciiOnlyProfile = ConditionProfile.createBinaryProfile();
-
         @Specialization
         public boolean asciiOnly(DynamicObject string) {
             final CodeRange codeRange = codeRangeNode.execute(rope(string));
 
-            return asciiOnlyProfile.profile(codeRange == CR_7BIT);
+            return codeRange == CR_7BIT;
         }
 
     }
@@ -2739,13 +2737,11 @@ public abstract class StringNodes {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
 
-        private final ConditionProfile validEncodingProfile = ConditionProfile.createBinaryProfile();
-
         @Specialization
         public boolean validEncoding(DynamicObject string) {
             final CodeRange codeRange = codeRangeNode.execute(rope(string));
 
-            return validEncodingProfile.profile(codeRange != CR_BROKEN);
+            return codeRange != CR_BROKEN;
         }
 
     }
