@@ -1724,7 +1724,7 @@ class IO
   # interpreted as a binary sequence of bytes (Array#pack
   # might be a useful way to build this string). On Unix
   # platforms, see fcntl(2) for details. Not implemented on all platforms.
-  def ioctl(command, arg=0)
+  def ioctl(command, arg = 0)
     ensure_open
 
     if !arg
@@ -1738,16 +1738,17 @@ class IO
       # Most Linux ioctl codes predate the convention, so a fallback like this
       # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
-      buffer = FFI::MemoryPointer.new buffer_size
-      buffer.write_string arg, arg.bytesize
+      buffer = FFI::MemoryPointer.new(buffer_size)
+      buffer.write_string(arg, arg.bytesize)
       real_arg = buffer.address
     else
-      real_arg = Truffle::Type.coerce_to_int arg
+      real_arg = Truffle::Type.coerce_to_int(arg)
     end
 
-    command = Truffle::Type.coerce_to_int command
-    ret = Truffle::POSIX.ioctl descriptor, command, real_arg
+    command = Truffle::Type.coerce_to_int(command)
+    ret = Truffle::POSIX.ioctl(descriptor, command, real_arg)
     Errno.handle if ret < 0
+
     if arg.kind_of?(String)
       arg.replace buffer.read_string(buffer_size)
       buffer.free

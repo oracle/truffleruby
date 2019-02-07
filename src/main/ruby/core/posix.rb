@@ -181,6 +181,7 @@ module Truffle::POSIX
   attach_function :fsync, [:int], :int
   attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
+  attach_function :ioctl, [:int, :ulong, :long], :int
   attach_function :isatty, [:int], :int
   attach_function :lchmod, [:string, :mode_t], :int
   attach_function :lchown, [:string, :uid_t, :gid_t], :int

@@ -11,6 +11,8 @@ module Fiddle
 
     def initialize(library=nil)
       @handle = Truffle::Interop.eval('application/x-native', library ? "load #{library}" : 'default')
+    rescue RuntimeError
+      raise Fiddle::DLError, "#{library}: cannot open shared object file: No such file or directory"
     end
 
     def sym(symbol)
