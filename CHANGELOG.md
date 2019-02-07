@@ -15,6 +15,9 @@ Changes:
 
 * `TRUFFLERUBY_CEXT_ENABLED` is no longer supported and C extensions are now
   always built, regardless of the value of this environment variable.
+* Getting a substring of a string created by a C extension now uses
+  less memory as only the requested portion will be copied to a
+  managed string.
 
 Compatibility:
 
