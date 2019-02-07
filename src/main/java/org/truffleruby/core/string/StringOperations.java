@@ -109,10 +109,6 @@ public abstract class StringOperations {
         return rope(string).getEncoding();
     }
 
-    public static CodeRange codeRange(DynamicObject string) {
-        return rope(string).getCodeRange();
-    }
-
     public static boolean isASCIIOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);

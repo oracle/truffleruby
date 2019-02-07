@@ -40,6 +40,7 @@ import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
@@ -71,36 +72,38 @@ public class TruffleRegexpNodes {
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
+                @Cached("buildUnion(str, sep, args)") DynamicObject union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
-        public Object executeSlowUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args) {
-            return buildUnion(frame, str, sep, args);
+        public Object executeSlowUnion(DynamicObject str, DynamicObject sep, Object[] args) {
+            return buildUnion(str, sep, args);
         }
 
-        public DynamicObject buildUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args) {
+        public DynamicObject buildUnion(DynamicObject str, DynamicObject sep, Object[] args) {
             DynamicObject regexpString = null;
             for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
-                    regexpString = appendNode.executeStringAppend(str, string(frame, args[i]));
+                    regexpString = appendNode.executeStringAppend(str, string(args[i]));
                 } else {
                     regexpString = appendNode.executeStringAppend(regexpString, sep);
-                    regexpString = appendNode.executeStringAppend(regexpString, string(frame, args[i]));
+                    regexpString = appendNode.executeStringAppend(regexpString, string(args[i]));
                 }
             }
             return createRegexp(StringOperations.rope(regexpString));
         }
 
-        public DynamicObject string(VirtualFrame frame, Object obj) {
+        public DynamicObject string(Object obj) {
             if (RubyGuards.isRubyString(obj)) {
                 final Rope rope = StringOperations.rope((DynamicObject) obj);
-                final boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && rope.getCodeRange() == CodeRange.CR_7BIT;
+                final CodeRange codeRange = codeRangeNode.execute(rope);
+                final boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && codeRange == CodeRange.CR_7BIT;
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope, isAsciiOnly));
             } else {
                 return toSNode.execute((DynamicObject) obj);

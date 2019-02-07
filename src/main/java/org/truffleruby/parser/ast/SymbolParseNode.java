@@ -71,7 +71,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     public SymbolParseNode(SourceIndexLength position, Rope value) {
         super(position);
 
-        if (value.getCodeRange() == CodeRange.CR_7BIT) {
+        if (value.isAsciiOnly()) {
             rope = RopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE);
         } else {
             rope = value;

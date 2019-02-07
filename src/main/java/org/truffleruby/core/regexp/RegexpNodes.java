@@ -101,6 +101,7 @@ public abstract class RegexpNodes {
         Layouts.REGEXP.setOptions(regexp, options);
     }
 
+    @TruffleBoundary
     public static Encoding checkEncoding(DynamicObject regexp, Rope str, boolean warn) {
         return checkEncoding(regexp, str.getEncoding(), str.getCodeRange(), warn);
     }
