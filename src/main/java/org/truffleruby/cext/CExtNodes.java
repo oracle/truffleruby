@@ -1326,10 +1326,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.CodeRangeNode codeRangeNode;
-
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1337,20 +1336,11 @@ public class CExtNodes {
 
             return StringSupport.characterLength(
                     encoding,
-                    sameEncodingProfile.profile(encoding == ropeEncoding) ? codeRange(rope) : CodeRange.CR_UNKNOWN,
+                    sameEncodingProfile.profile(encoding == ropeEncoding) ? codeRangeNode.execute(rope) : CodeRange.CR_UNKNOWN,
                     StringOperations.rope(str).getBytes(),
                     p,
                     e,
                     true);
-        }
-
-        private CodeRange codeRange(Rope rope) {
-            if (codeRangeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
-            }
-
-            return codeRangeNode.execute(rope);
         }
 
     }

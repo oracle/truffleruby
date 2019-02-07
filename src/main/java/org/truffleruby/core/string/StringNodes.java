@@ -685,10 +685,9 @@ public abstract class StringNodes {
     @CoreMethod(names = "ascii_only?")
     public abstract static class ASCIIOnlyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
-
         @Specialization
-        public boolean asciiOnly(DynamicObject string) {
+        public boolean asciiOnly(DynamicObject string,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             final CodeRange codeRange = codeRangeNode.execute(rope(string));
 
             return codeRange == CR_7BIT;
@@ -2618,11 +2617,6 @@ public abstract class StringNodes {
     public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
-        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
-        @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-
-        private final ConditionProfile noopProfile = ConditionProfile.createBinaryProfile();
 
         public static InvertAsciiCaseNode createLowerToUpper() {
             final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
@@ -2648,7 +2642,11 @@ public abstract class StringNodes {
         public abstract DynamicObject executeInvert(DynamicObject string);
 
         @Specialization
-        protected DynamicObject invert(DynamicObject string) {
+        protected DynamicObject invert(DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
             final Rope rope = rope(string);
 
             final byte[] bytes = bytesNode.execute(rope);
@@ -2735,10 +2733,9 @@ public abstract class StringNodes {
     @CoreMethod(names = "valid_encoding?")
     public abstract static class ValidEncodingQueryNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
-
         @Specialization
-        public boolean validEncoding(DynamicObject string) {
+        public boolean validEncoding(DynamicObject string,
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             final CodeRange codeRange = codeRangeNode.execute(rope(string));
 
             return codeRange != CR_BROKEN;
