@@ -800,7 +800,7 @@ public abstract class StringNodes {
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         public int count(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("args.length") int size) {
-            final Rope[] ropes = argRopes(frame, args);
+            final Rope[] ropes = argRopes(frame, args, size);
             return countRopesNode.executeCount(string, ropes);
         }
 
@@ -811,9 +811,9 @@ public abstract class StringNodes {
         }
 
         @ExplodeLoop
-        protected Rope[] argRopes(VirtualFrame frame, Object[] args) {
+        protected Rope[] argRopes(VirtualFrame frame, Object[] args, int size) {
             final Rope[] strs = new Rope[args.length];
-            for (int i = 0; i < args.length; i++) {
+            for (int i = 0; i < size; i++) {
                 strs[i] = rope(toStr.executeToStr(frame, args[i]));
             }
             return strs;
@@ -944,7 +944,7 @@ public abstract class StringNodes {
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         public DynamicObject deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("args.length") int size) {
-            final Rope[] ropes = argRopes(frame, args);
+            final Rope[] ropes = argRopes(frame, args, size);
             return deleteBangRopesNode.executeDeleteBang(string, ropes);
         }
 
@@ -955,9 +955,9 @@ public abstract class StringNodes {
         }
 
         @ExplodeLoop
-        protected Rope[] argRopes(VirtualFrame frame, Object[] args) {
-            final Rope[] strs = new Rope[args.length];
-            for (int i = 0; i < args.length; i++) {
+        protected Rope[] argRopes(VirtualFrame frame, Object[] args, int size) {
+            final Rope[] strs = new Rope[size];
+            for (int i = 0; i < size; i++) {
                 strs[i] = rope(toStr.executeToStr(frame, args[i]));
             }
             return strs;
