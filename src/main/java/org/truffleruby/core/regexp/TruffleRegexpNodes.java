@@ -37,7 +37,6 @@ import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -72,7 +71,7 @@ public class TruffleRegexpNodes {
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child private RopeNodes.AsciiOnlyNode asciiOnlyNode = RopeNodes.AsciiOnlyNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
@@ -102,8 +101,7 @@ public class TruffleRegexpNodes {
         public DynamicObject string(Object obj) {
             if (RubyGuards.isRubyString(obj)) {
                 final Rope rope = StringOperations.rope((DynamicObject) obj);
-                final CodeRange codeRange = codeRangeNode.execute(rope);
-                final boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && codeRange == CodeRange.CR_7BIT;
+                final boolean isAsciiOnly = asciiOnlyNode.execute(rope);
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope, isAsciiOnly));
             } else {
                 return toSNode.execute((DynamicObject) obj);
