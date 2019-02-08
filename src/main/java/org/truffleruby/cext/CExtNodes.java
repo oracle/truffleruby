@@ -513,6 +513,19 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_str_new_nul", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject rbStrNewNul(int byteLength,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength);
+
+            return makeStringNode.fromRope(rope);
+        }
+
+    }
+
     @CoreMethod(names = "rb_str_capacity", onSingleton = true, required = 1)
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
