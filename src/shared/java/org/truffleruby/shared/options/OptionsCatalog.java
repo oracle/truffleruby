@@ -73,27 +73,27 @@ public class OptionsCatalog {
             "");
     public static final DefaultExecutionActionOptionDescription DEFAULT_EXECUTION_ACTION = new DefaultExecutionActionOptionDescription(
             "ruby.default_execution_action",
-            "What should be done when no action is set.",
+            "What should be done when no action is set",
             null,
             DefaultExecutionAction.IRB);
     public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
             "ruby.syntax_check",
-            "Do not execute just check syntax. (configured by -c Ruby options)",
+            "Do not execute just check syntax (configured by -c Ruby options)",
             new String[]{"-c"},
             false);
     public static final BooleanOptionDescription SHOW_VERSION = new BooleanOptionDescription(
             "ruby.show_version",
-            "Show version. (configured by --version Ruby options)",
+            "Show version (configured by --version Ruby options)",
             new String[]{"--version"},
             false);
     public static final BooleanOptionDescription SHOW_COPYRIGHT = new BooleanOptionDescription(
             "ruby.show_copyright",
-            "Show copyright. (configured by --copyright Ruby options)",
+            "Show copyright (configured by --copyright Ruby options)",
             new String[]{"--copyright"},
             false);
     public static final ShowHelpOptionDescription SHOW_HELP = new ShowHelpOptionDescription(
             "ruby.show_help",
-            "What help should be shown. (configured by -h, --help Ruby options)",
+            "What help should be shown (configured by -h, --help Ruby options)",
             new String[]{"-h", "--help"},
             ShowHelp.NONE);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
@@ -108,17 +108,17 @@ public class OptionsCatalog {
             Verbosity.FALSE);
     public static final BooleanOptionDescription ARGV_GLOBALS = new BooleanOptionDescription(
             "ruby.argv_globals",
-            "Parse options in script argv into global variables. (configured by -s Ruby options)",
+            "Parse options in script argv into global variables (configured by -s Ruby options)",
             new String[]{"-s"},
             false);
     public static final StringArrayOptionDescription ARGV_GLOBAL_VALUES = new StringArrayOptionDescription(
             "ruby.argv_global_values",
-            "Parsed options from script argv with a value.",
+            "Parsed options from script argv with a value",
             null,
             new String[]{});
     public static final StringArrayOptionDescription ARGV_GLOBAL_FLAGS = new StringArrayOptionDescription(
             "ruby.argv_global_flags",
-            "Parsed options from script argv acting as flags (no value).",
+            "Parsed options from script argv acting as flags (no value)",
             null,
             new String[]{});
     public static final BooleanOptionDescription DEFAULT_LAZY = new BooleanOptionDescription(
@@ -578,12 +578,12 @@ public class OptionsCatalog {
             true);
     public static final BooleanOptionDescription REGEXP_INSTRUMENT_CREATION = new BooleanOptionDescription(
             "ruby.regexp.instrument-creation",
-            "Enable instrumentation to gather stats on regexp creation.",
+            "Enable instrumentation to gather stats on regexp creation",
             null,
             false);
     public static final BooleanOptionDescription REGEXP_INSTRUMENT_MATCH = new BooleanOptionDescription(
             "ruby.regexp.instrument-match",
-            "Enable instrumentation to gather stats on regexp matching.",
+            "Enable instrumentation to gather stats on regexp matching",
             null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription(
