@@ -64,11 +64,11 @@ public abstract class OptionDescription<T> {
     }
 
     public OptionDescriptor toDescriptor() {
-        return OptionDescriptor.
-                newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName()).
-                help(getDescription()).
-                category(hasRubyOptions() ? OptionCategory.USER : OptionCategory.DEBUG).
-                build();
+        return OptionDescriptor
+                .newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName())
+                .help(getDescription())
+                .category(hasRubyOptions() ? OptionCategory.USER : OptionCategory.DEBUG)
+                .build();
     }
 
     protected abstract OptionType<T> getOptionType();
