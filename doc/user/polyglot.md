@@ -274,10 +274,10 @@ This can be turned off even when embedded, with the `embedded` option
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
 
 It's a separate option, but in an embedded configuration you may want to use
-the unsupported `-Xplatform.native=false` option, which disables use of NFI
+the experimental `-Xplatform.native=false` option, which disables use of NFI
 for internal functionality.
 
-Also, the unsupported option `-Xcexts=false` can disable C extensions.
+Also, the experimental option `-Xcexts=false` can disable C extensions.
 
 Note that, unlike for example pure JavaScript, Ruby is more than a
 self-contained expression language. It has a large core library that includes

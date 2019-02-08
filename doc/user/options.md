@@ -132,7 +132,7 @@ switches as in standard Ruby.
 ## TruffleRuby options
 
 TruffleRuby options (set via `-Xoption=value`, or `--ruby.option=value`) are
-all unsupported and subject to change at any time. Available options and
+all experimental and subject to change at any time. Available options and
 documentaiton can be seen with `-Xoptions`.
 
 ## Determining the TruffleRuby home

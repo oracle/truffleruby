@@ -134,7 +134,7 @@ The `erb` standard library has been modified to not use negative line numbers.
 #### Polyglot standard IO streams
 
 If you use standard IO streams provided by the Polyglot engine, via the
-unsupported `-Xpolyglot.stdio` option, reads and writes to file descriptors 1,
+experimental `-Xpolyglot.stdio` option, reads and writes to file descriptors 1,
 2 and 3 will be redirected to these streams. That means that other IO
 operations on these file descriptors, such as `isatty` may not be relevant for
 where these streams actually end up, and operations like `dup` may lose the
@@ -176,7 +176,7 @@ Ruby anyway.
 
 To help alleviate this problem in some cases backtraces are automatically
 disabled where we dynamically detect that they probably won't be used. See the
-unsupported `-Xbacktraces.omit_unused` option.
+experimental `-Xbacktraces.omit_unused` option.
 
 ## C Extension Compatibility
 

@@ -55,7 +55,8 @@ sudo port install openssl
 ## Remapping
 
 If `libssl` is in a non-standard location for your system, you can use the
-unsupported option. Let us know if you find that you need to use this.
+experimental `-Xcexts.remap` option. Let us know if you find that you need to
+use this.
 
 ```
 -Xcexts.remap=libssl.so:path/to/libssl.so
