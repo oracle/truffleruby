@@ -10,6 +10,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.FinalizationService;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -45,6 +46,13 @@ public class NativeRope extends Rope {
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, existing, 0, existing.getSize());
         return pointer;
+    }
+
+    public static NativeRope newBuffer(FinalizationService finalizationService, int byteLength) {
+        final Pointer pointer = Pointer.calloc(byteLength + 1);
+        pointer.enableAutorelease(finalizationService);
+
+        return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, byteLength, CodeRange.CR_UNKNOWN);
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
