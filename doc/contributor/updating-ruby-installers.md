@@ -54,7 +54,7 @@ cc `@hsbt` in the PR description.
 
 ## RVM
 
-There is a script in the repo that does most of the work:
+There is a script in the repo that does everything needed:
 
 ```
 ruby update-truffleruby.rb $VERSION ../ruby-versions/pkg
@@ -64,15 +64,12 @@ The script must be run after running the `ruby-versions` script above.
 
 Example PR for `1.0.0-rc12`: https://github.com/rvm/rvm/pull/4605
 
-You should also update `CHANGELOG.md`, which can only be done after creating the
-PR as the CHANGELOG points to PR numbers and URLs.
-
 cc `@havenwood` in the PR description.
 
 ## Conclusion
 
 This is easy enough but feels a bit redundant and requires manual steps for
-creating the PRs and updating the RVM changelog.
+creating the PRs.
 
 It would be even nicer if only one PR was needed to `ruby-versions`,
 which already has all the relevant data (versions and checksums),
