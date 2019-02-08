@@ -82,7 +82,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
@@ -777,9 +776,8 @@ public class RubyContext {
     }
 
     private boolean isRubyHome(File path) {
-        return Paths.get(path.toString(), "lib", "truffle").toFile().isDirectory() &&
-                Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory() &&
-                Paths.get(path.toString(), "lib", "patches").toFile().isDirectory();
+        final File lib = new File(path, "lib");
+        return new File(lib, "truffle").isDirectory() && new File(lib, "ruby").isDirectory() && new File(lib, "patches").isDirectory();
     }
 
     public TruffleNFIPlatform getTruffleNFI() {
