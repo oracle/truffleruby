@@ -1454,8 +1454,17 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        public CodeRange getCodeRangeNative(NativeRope rope) {
-            return rope.getCodeRange();
+        public CodeRange getCodeRangeNative(NativeRope rope,
+                @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
+            if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
+                final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                rope.setCodeRange(attributes.codeRange);
+
+                return attributes.codeRange;
+            } else {
+                return rope.getCodeRange();
+            }
         }
 
     }

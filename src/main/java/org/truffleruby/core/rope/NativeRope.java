@@ -13,6 +13,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.FinalizationService;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
@@ -64,8 +65,17 @@ public class NativeRope extends Rope {
         return bytes;
     }
 
+    public CodeRange getRawCodeRange() {
+        return codeRange;
+    }
+
     @Override
     public CodeRange getCodeRange() {
+        if (codeRange == CodeRange.CR_UNKNOWN) {
+            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+        }
+
         return codeRange;
     }
 
