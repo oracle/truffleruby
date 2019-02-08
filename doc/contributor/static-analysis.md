@@ -43,7 +43,7 @@ errors. We run it with the default Graal project configuration. Passing
 SpotBugs is enforced in our CI gate.
 
 ```
-$ mx findbugs
+$ mx spotbugs
 ```
 
 ## Ruby

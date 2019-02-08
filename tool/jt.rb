@@ -1971,7 +1971,7 @@ EOS
   def check_dsl_usage
     mx 'clean'
     # We need to build with -parameters to get parameter names.
-    # Build every project as "mx findbugs" needs it currently.
+    # Build every project as "mx spotbugs" needs it currently.
     mx 'build', '--force-javac', '-A-parameters'
     run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
   end
@@ -2057,7 +2057,7 @@ EOS
     checkstyle
     check_parser
     check_documentation_urls
-    mx 'findbugs'
+    mx 'spotbugs'
 
     # Revert the changes we made to the Truffle source.
     raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
