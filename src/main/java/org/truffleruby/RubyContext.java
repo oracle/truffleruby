@@ -82,7 +82,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -756,8 +755,9 @@ public class RubyContext {
         // Use the path relative to the launcher
 
         if (!options.LAUNCHER.isEmpty()) {
-            final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
-            final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
+            final File canonicalLauncherPath = new File(options.LAUNCHER).getCanonicalFile();
+            final File launcherDir = canonicalLauncherPath.getParentFile();
+            final File candidate = launcherDir == null ? null : launcherDir.getParentFile();
             RubyLanguage.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
