@@ -25,18 +25,12 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 @Generated("tool/generate-options.rb")
 public class Options {
 
-    public final String HOME;
-    public final boolean NO_HOME_PROVIDED;
-    public final String LAUNCHER;
-    public final boolean EMBEDDED;
     public final String[] LOAD_PATHS;
     public final String[] REQUIRED_LIBRARIES;
-    public final boolean READ_RUBYOPT;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     public final String WORKING_DIRECTORY;
     public final ExecutionAction EXECUTION_ACTION;
     public final String TO_EXECUTE;
-    public final DefaultExecutionAction DEFAULT_EXECUTION_ACTION;
     public final boolean SYNTAX_CHECK;
     public final boolean SHOW_VERSION;
     public final boolean SHOW_COPYRIGHT;
@@ -44,6 +38,15 @@ public class Options {
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
     public final boolean ARGV_GLOBALS;
+    public final String SOURCE_ENCODING;
+    public final String INTERNAL_ENCODING;
+    public final String EXTERNAL_ENCODING;
+    public final String HOME;
+    public final boolean NO_HOME_PROVIDED;
+    public final String LAUNCHER;
+    public final boolean EMBEDDED;
+    public final boolean READ_RUBYOPT;
+    public final DefaultExecutionAction DEFAULT_EXECUTION_ACTION;
     public final String[] ARGV_GLOBAL_VALUES;
     public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean DEFAULT_LAZY;
@@ -53,9 +56,6 @@ public class Options {
     public final boolean LAZY_RUBYGEMS;
     public final boolean PATCHING;
     public final boolean DID_YOU_MEAN;
-    public final String SOURCE_ENCODING;
-    public final String INTERNAL_ENCODING;
-    public final String EXTERNAL_ENCODING;
     public final boolean NATIVE_PLATFORM;
     public final boolean NATIVE_INTERRUPT;
     public final boolean HANDLE_INTERRUPT;
@@ -156,18 +156,12 @@ public class Options {
     public final boolean METRICS_TIME_REQUIRE;
     
     Options(OptionsBuilder builder, Env env) {
-        HOME = builder.getOrDefault(OptionsCatalog.HOME);
-        NO_HOME_PROVIDED = builder.getOrDefault(OptionsCatalog.NO_HOME_PROVIDED);
-        LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
-        EMBEDDED = builder.getOrDefault(OptionsCatalog.EMBEDDED);
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
         REQUIRED_LIBRARIES = builder.getOrDefault(OptionsCatalog.REQUIRED_LIBRARIES);
-        READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = builder.getOrDefault(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG);
         WORKING_DIRECTORY = builder.getOrDefault(OptionsCatalog.WORKING_DIRECTORY);
         EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.EXECUTION_ACTION);
         TO_EXECUTE = builder.getOrDefault(OptionsCatalog.TO_EXECUTE);
-        DEFAULT_EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.DEFAULT_EXECUTION_ACTION);
         SYNTAX_CHECK = builder.getOrDefault(OptionsCatalog.SYNTAX_CHECK);
         SHOW_VERSION = builder.getOrDefault(OptionsCatalog.SHOW_VERSION);
         SHOW_COPYRIGHT = builder.getOrDefault(OptionsCatalog.SHOW_COPYRIGHT);
@@ -175,6 +169,15 @@ public class Options {
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         ARGV_GLOBALS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBALS);
+        SOURCE_ENCODING = builder.getOrDefault(OptionsCatalog.SOURCE_ENCODING);
+        INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
+        EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
+        HOME = builder.getOrDefault(OptionsCatalog.HOME);
+        NO_HOME_PROVIDED = builder.getOrDefault(OptionsCatalog.NO_HOME_PROVIDED);
+        LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
+        EMBEDDED = builder.getOrDefault(OptionsCatalog.EMBEDDED);
+        READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
+        DEFAULT_EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.DEFAULT_EXECUTION_ACTION);
         ARGV_GLOBAL_VALUES = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_VALUES);
         ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
         DEFAULT_LAZY = builder.getOrDefault(OptionsCatalog.DEFAULT_LAZY);
@@ -184,9 +187,6 @@ public class Options {
         LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
-        SOURCE_ENCODING = builder.getOrDefault(OptionsCatalog.SOURCE_ENCODING);
-        INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
-        EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         NATIVE_PLATFORM = env.isNativeAccessAllowed() && builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
         NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT, NATIVE_PLATFORM);
         HANDLE_INTERRUPT = builder.getOrDefault(OptionsCatalog.HANDLE_INTERRUPT, !EMBEDDED);
@@ -289,20 +289,10 @@ public class Options {
 
     public Object fromDescription(OptionDescription<?> description) {
         switch (description.getName()) {
-            case "ruby.home":
-                return HOME;
-            case "ruby.no_home_provided":
-                return NO_HOME_PROVIDED;
-            case "ruby.launcher":
-                return LAUNCHER;
-            case "ruby.embedded":
-                return EMBEDDED;
             case "ruby.load_paths":
                 return LOAD_PATHS;
             case "ruby.required_libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.read_rubyopt":
-                return READ_RUBYOPT;
             case "ruby.ignore_lines_before_ruby_shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.working_directory":
@@ -311,8 +301,6 @@ public class Options {
                 return EXECUTION_ACTION;
             case "ruby.to_execute":
                 return TO_EXECUTE;
-            case "ruby.default_execution_action":
-                return DEFAULT_EXECUTION_ACTION;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
             case "ruby.show_version":
@@ -327,6 +315,24 @@ public class Options {
                 return VERBOSITY;
             case "ruby.argv_globals":
                 return ARGV_GLOBALS;
+            case "ruby.source_encoding":
+                return SOURCE_ENCODING;
+            case "ruby.internal_encoding":
+                return INTERNAL_ENCODING;
+            case "ruby.external_encoding":
+                return EXTERNAL_ENCODING;
+            case "ruby.home":
+                return HOME;
+            case "ruby.no_home_provided":
+                return NO_HOME_PROVIDED;
+            case "ruby.launcher":
+                return LAUNCHER;
+            case "ruby.embedded":
+                return EMBEDDED;
+            case "ruby.read_rubyopt":
+                return READ_RUBYOPT;
+            case "ruby.default_execution_action":
+                return DEFAULT_EXECUTION_ACTION;
             case "ruby.argv_global_values":
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
@@ -345,12 +351,6 @@ public class Options {
                 return PATCHING;
             case "ruby.did_you_mean":
                 return DID_YOU_MEAN;
-            case "ruby.source_encoding":
-                return SOURCE_ENCODING;
-            case "ruby.internal_encoding":
-                return INTERNAL_ENCODING;
-            case "ruby.external_encoding":
-                return EXTERNAL_ENCODING;
             case "ruby.platform.native":
                 return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,14 +9,15 @@
  */
 package org.truffleruby.shared.options;
 
+import org.graalvm.options.OptionCategory;
 import org.graalvm.options.OptionType;
 
 public class IntegerOptionDescription extends OptionDescription<Integer> {
 
     private final int defaultValue;
 
-    IntegerOptionDescription(String name, String description, String[] rubyOptions, int defaultValue) {
-        super(name, description, rubyOptions);
+    IntegerOptionDescription(OptionCategory category, String name, String description, String[] rubyOptions, int defaultValue) {
+        super(category, name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 

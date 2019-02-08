@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -16,11 +16,13 @@ import org.graalvm.options.OptionType;
 
 public abstract class OptionDescription<T> {
 
+    private final OptionCategory category;
     private final String name;
     private final String description;
     private final String[] rubyOptions;
 
-    public OptionDescription(String name, String description, String[] rubyOptions) {
+    public OptionDescription(OptionCategory category, String name, String description, String[] rubyOptions) {
+        this.category = category;
         this.name = name;
         this.description = description;
         this.rubyOptions = rubyOptions;
@@ -36,10 +38,6 @@ public abstract class OptionDescription<T> {
 
     public String getDescription() {
         return description;
-    }
-
-    public boolean hasRubyOptions() {
-        return rubyOptions != null && rubyOptions.length > 0;
     }
 
     public String[] getRubyOptions() {
@@ -67,7 +65,7 @@ public abstract class OptionDescription<T> {
         return OptionDescriptor
                 .newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName())
                 .help(getDescription())
-                .category(hasRubyOptions() ? OptionCategory.USER : OptionCategory.DEBUG)
+                .category(category)
                 .build();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,6 +9,7 @@
  */
 package org.truffleruby.shared.options;
 
+import org.graalvm.options.OptionCategory;
 import org.graalvm.options.OptionType;
 
 import java.util.Locale;
@@ -19,8 +20,8 @@ public abstract class EnumOptionDescription<T extends Enum<T>> extends OptionDes
     private final Class<T> type;
     private final OptionType<T> optionType;
 
-    EnumOptionDescription(String name, String description, String[] rubyOptions, T defaultValue, Class<T> type) {
-        super(name, description, rubyOptions);
+    EnumOptionDescription(OptionCategory category, String name, String description, String[] rubyOptions, T defaultValue, Class<T> type) {
+        super(category, name, description, rubyOptions);
         this.defaultValue = defaultValue;
         this.type = type;
         this.optionType = new OptionType<>(type.getName(), defaultValue, this::stringConverter);
