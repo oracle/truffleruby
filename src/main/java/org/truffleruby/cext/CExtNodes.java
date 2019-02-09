@@ -594,9 +594,9 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
         public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
-                                             @Cached("create()") RopeNodes.SubstringNode substringNode,
-                                             @Cached("create()") RopeNodes.ConcatNode concatNode,
-                                             @Cached("create()") RopeNodes.RepeatNode repeatNode) {
+                @Cached("create()") RopeNodes.SubstringNode substringNode,
+                @Cached("create()") RopeNodes.ConcatNode concatNode,
+                @Cached("create()") RopeNodes.RepeatNode repeatNode) {
             final Rope rope = rope(string);
 
             if (rope instanceof SubstringRope) {
@@ -620,8 +620,13 @@ public class CExtNodes {
                     }
                 }
             } else {
-                final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
-                StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
+                if (rope instanceof NativeRope) {
+                    final NativeRope newRope = ((NativeRope) rope).grow(getContext().getFinalizationService(), len);
+                    StringOperations.setRope(string, newRope);
+                } else {
+                    final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
+                    StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
+                }
             }
 
             return string;

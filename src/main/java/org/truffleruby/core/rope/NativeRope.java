@@ -49,7 +49,13 @@ public class NativeRope extends Rope {
     }
 
     public static NativeRope newBuffer(FinalizationService finalizationService, int byteLength) {
-        final Pointer pointer = Pointer.calloc(byteLength + 1);
+        return newBuffer(finalizationService, byteLength, byteLength);
+    }
+
+    public static NativeRope newBuffer(FinalizationService finalizationService, int byteCapacity, int byteLength) {
+        assert byteCapacity >= byteLength;
+
+        final Pointer pointer = Pointer.calloc(byteCapacity + 1);
         pointer.enableAutorelease(finalizationService);
 
         return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, byteLength, CodeRange.CR_UNKNOWN);
@@ -63,6 +69,16 @@ public class NativeRope extends Rope {
     public NativeRope makeCopy(FinalizationService finalizationService) {
         final Pointer newPointer = copyNativePointer(finalizationService, pointer);
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
+    }
+
+    public NativeRope grow(FinalizationService finalizationService, int newByteLength) {
+        assert newByteLength > this.byteLength();
+
+        final NativeRope ret = newBuffer(finalizationService, newByteLength, byteLength());
+        ret.pointer.writeBytes(0, this.pointer, 0, byteLength());
+        ret.codeRange = this.codeRange;
+
+        return ret;
     }
 
     @Override
