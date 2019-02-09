@@ -395,14 +395,24 @@ public abstract class RopeNodes {
 
         @Specialization
         public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
-                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
-            return executeConcat(nativeToManagedNode.execute(left), right, encoding);
+                @Cached("create()") NativeToManagedNode nativeToManagedNode,
+                @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
+            if (emptyNativeRopeProfile.profile(left.isEmpty())) {
+                return right;
+            } else {
+                return executeConcat(nativeToManagedNode.execute(left), right, encoding);
+            }
         }
 
         @Specialization
         public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
-                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
-            return executeConcat(left, nativeToManagedNode.execute(right), encoding);
+                @Cached("create()") NativeToManagedNode nativeToManagedNode,
+                @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
+            if (emptyNativeRopeProfile.profile(right.isEmpty())) {
+                return left;
+            } else {
+                return executeConcat(left, nativeToManagedNode.execute(right), encoding);
+            }
         }
 
         @Specialization(guards = "left.isEmpty()")
