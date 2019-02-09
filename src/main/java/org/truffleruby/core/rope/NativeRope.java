@@ -131,6 +131,9 @@ public class NativeRope extends Rope {
 
     public void set(int index, int value) {
         assert 0 <= index && index < pointer.getSize();
+        assert value >= 0 && value < 256;
+
+        codeRange = codeRange == CodeRange.CR_7BIT && value < 128 ? CodeRange.CR_7BIT : CodeRange.CR_UNKNOWN;
         pointer.writeByte(index, (byte) value);
     }
 
