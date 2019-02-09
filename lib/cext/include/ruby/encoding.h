@@ -70,7 +70,7 @@ enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_SET(obj,cr) (\
 	RBASIC(obj)->flags = \
 	(RBASIC(obj)->flags & ~RUBY_ENC_CODERANGE_MASK) | (cr))
-#define RB_ENC_CODERANGE_CLEAR(obj) RB_ENC_CODERANGE_SET((obj),0)
+#define RB_ENC_CODERANGE_CLEAR(obj) rb_enc_coderange_clear(obj)
 
 /* assumed ASCII compatibility */
 #define RB_ENC_CODERANGE_AND(a, b) \
@@ -236,6 +236,7 @@ ID rb_interned_id_p(const char *, long, rb_encoding *);
 int rb_enc_symname_p(const char*, rb_encoding*);
 int rb_enc_symname2_p(const char*, long, rb_encoding*);
 int rb_enc_str_coderange(VALUE);
+void rb_enc_coderange_clear(VALUE);
 long rb_str_coderange_scan_restartable(const char*, const char*, rb_encoding*, int*);
 int rb_enc_str_asciionly_p(VALUE);
 #define rb_enc_str_asciicompat_p(str) rb_enc_asciicompat(rb_enc_get(str))

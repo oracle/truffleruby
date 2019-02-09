@@ -846,7 +846,7 @@ VALUE rb_str_split(VALUE string, const char *split) {
 }
 
 void rb_str_modify(VALUE string) {
-  // Does nothing because writing to the string pointer will cause necessary invalidations anyway
+  ENC_CODERANGE_CLEAR(string);
 }
 
 VALUE rb_cstr2inum(const char *string, int base) {
@@ -1098,6 +1098,10 @@ int rb_utf8_encindex(void) {
 
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("RB_ENC_CODERANGE", obj));
+}
+
+void rb_enc_coderange_clear(VALUE obj) {
+  RUBY_CEXT_INVOKE("rb_enc_coderange_clear", obj);
 }
 
 int rb_encdb_alias(const char *alias, const char *orig) {
@@ -4201,6 +4205,8 @@ void rb_str_modify_expand(VALUE str, long expand) {
     rb_str_resize(str, len + expand);
     rb_str_set_len(str, len);
   }
+
+  ENC_CODERANGE_CLEAR(str);
 }
 
 #undef rb_str_cat_cstr

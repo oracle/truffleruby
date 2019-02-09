@@ -476,6 +476,21 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_enc_coderange_clear", onSingleton = true, required = 1)
+    public abstract static class RbEncCodeRangeClear extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject clearCodeRange(DynamicObject string,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+            nativeRope.setCodeRange(CodeRange.CR_UNKNOWN);
+            StringOperations.setRope(string, nativeRope);
+
+            return string;
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
