@@ -4200,10 +4200,7 @@ void rb_str_modify_expand(VALUE str, long expand) {
   }
 
   if (expand > 0) {
-    // Resize the native buffer but do not change RSTRING_LEN/byteLength
-    // TODO (eregon, 26 Apr 2018): Do this more directly.
     rb_str_resize(str, len + expand);
-    rb_str_set_len(str, len);
   }
 
   ENC_CODERANGE_CLEAR(str);
