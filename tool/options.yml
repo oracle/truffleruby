@@ -17,7 +17,7 @@ USER:
   INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
   EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
-DEBUG:
+EXPERT:
   HOME: [home, string, '', The location of the TruffleRuby installation files]
   NO_HOME_PROVIDED: [no_home_provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
   LAUNCHER: [launcher, string, '', The location of the TruffleRuby launcher program]
@@ -56,7 +56,6 @@ DEBUG:
   LAZY_CORE_METHOD_NODES: [lazy_core_method_nodes, boolean, DEFAULT_LAZY, Lazily create core method nodes]
   LAZY_TRANSLATION_CORE: [lazy_translation.core, boolean, DEFAULT_LAZY, Lazily translation of core source files]
   LAZY_TRANSLATION_USER: [lazy_translation.user, boolean, false, 'Lazily translation of stdlib, gem and user source files']
-  LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
 
   ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 16, How large an Array to allocate when we have no other information to go on]
   ARRAY_SMALL: [array.small, integer, 3, Maximum size of an Array to consider small for optimisations]
@@ -113,6 +112,23 @@ DEBUG:
   PACK_UNROLL_LIMIT: [pack.unroll, integer, 4, 'If a pack or unpack expression has a loop less than this many iterations, unroll it']
   PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, 'If a pack or unpack expression is longer than this, attempt to recover loops']
 
+  BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
+
+  REGEXP_INSTRUMENT_CREATION: [regexp.instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]
+  REGEXP_INSTRUMENT_MATCH: [regexp.instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching]
+
+  SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable shared objects]
+  SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]
+  SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
+  SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
+
+  CEXTS: [cexts, boolean, true, Enable use of C extensions]
+  CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
+  CEXTS_MARKING_CACHE: [cexts.marking.cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
+
+DEBUG:
+  LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
+
   EXCEPTIONS_STORE_JAVA: [exceptions.store_java, boolean, false, Store the Java exception with the Ruby backtrace]
   EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
   EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
@@ -127,21 +143,6 @@ DEBUG:
   BACKTRACE_ON_INTERRUPT: [backtraces.on_interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
   BACKTRACE_ON_SIGALRM: [backtraces.sigalrm, boolean, '!EMBEDDED', Show the backtraces of all Threads on SIGALRM]
   BACKTRACE_ON_RAISE: [backtraces.raise, boolean, false, Show the backtraces of exceptions at the point of them being raised]
-  BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
-
-  REGEXP_INSTRUMENT_CREATION: [regexp.instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]
-  REGEXP_INSTRUMENT_MATCH: [regexp.instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching]
-
-  SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable shared objects]
-  SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]
-  SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
-  SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
-
-  CEXTS: [cexts, boolean, true, Enable use of C extensions]
-  CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
-  CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
-  CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
-  CEXTS_MARKING_CACHE: [cexts.marking.cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
 
   LOG_DYNAMIC_CONSTANT_LOOKUP: [constant.dynamic_lookup.log, boolean, false, Log source code positions where dynamic constant lookup is performed]
 
@@ -152,3 +153,6 @@ DEBUG:
 
   METRICS_TIME_PARSING_FILE: [metrics.time.parsing.file, boolean, false, 'Measure time for parsing, translating and executing files, per file']
   METRICS_TIME_REQUIRE: [metrics.time.require, boolean, false, 'Measure time for #require and executing the required file']
+
+  CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
+  CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]

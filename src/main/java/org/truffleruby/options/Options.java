@@ -73,7 +73,6 @@ public class Options {
     public final boolean LAZY_CORE_METHOD_NODES;
     public final boolean LAZY_TRANSLATION_CORE;
     public final boolean LAZY_TRANSLATION_USER;
-    public final boolean LAZY_TRANSLATION_LOG;
     public final int ARRAY_UNINITIALIZED_SIZE;
     public final int ARRAY_SMALL;
     public final int HASH_PACKED_ARRAY_MAX;
@@ -122,6 +121,17 @@ public class Options {
     public final boolean CALL_WITH_BLOCK_ALWAYS_CLONE;
     public final int PACK_UNROLL_LIMIT;
     public final int PACK_RECOVER_LOOP_MIN;
+    public final boolean BASICOPS_INLINE;
+    public final boolean REGEXP_INSTRUMENT_CREATION;
+    public final boolean REGEXP_INSTRUMENT_MATCH;
+    public final boolean SHARED_OBJECTS_ENABLED;
+    public final boolean SHARED_OBJECTS_DEBUG;
+    public final boolean SHARED_OBJECTS_FORCE;
+    public final boolean SHARED_OBJECTS_SHARE_ALL;
+    public final boolean CEXTS;
+    public final String[] CEXTS_LIBRARY_REMAP;
+    public final int CEXTS_MARKING_CACHE;
+    public final boolean LAZY_TRANSLATION_LOG;
     public final boolean EXCEPTIONS_STORE_JAVA;
     public final boolean EXCEPTIONS_PRINT_JAVA;
     public final boolean EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
@@ -136,24 +146,14 @@ public class Options {
     public final boolean BACKTRACE_ON_INTERRUPT;
     public final boolean BACKTRACE_ON_SIGALRM;
     public final boolean BACKTRACE_ON_RAISE;
-    public final boolean BASICOPS_INLINE;
-    public final boolean REGEXP_INSTRUMENT_CREATION;
-    public final boolean REGEXP_INSTRUMENT_MATCH;
-    public final boolean SHARED_OBJECTS_ENABLED;
-    public final boolean SHARED_OBJECTS_DEBUG;
-    public final boolean SHARED_OBJECTS_FORCE;
-    public final boolean SHARED_OBJECTS_SHARE_ALL;
-    public final boolean CEXTS;
-    public final boolean CEXTS_LOG_LOAD;
-    public final boolean CEXTS_LOG_WARNINGS;
-    public final String[] CEXTS_LIBRARY_REMAP;
-    public final int CEXTS_MARKING_CACHE;
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
     public final boolean LOG_FEATURE_LOCATION;
     public final boolean METRICS_TIME_PARSING_FILE;
     public final boolean METRICS_TIME_REQUIRE;
+    public final boolean CEXTS_LOG_LOAD;
+    public final boolean CEXTS_LOG_WARNINGS;
     
     Options(OptionsBuilder builder, Env env) {
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
@@ -204,7 +204,6 @@ public class Options {
         LAZY_CORE_METHOD_NODES = builder.getOrDefault(OptionsCatalog.LAZY_CORE_METHOD_NODES, DEFAULT_LAZY);
         LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE, DEFAULT_LAZY);
         LAZY_TRANSLATION_USER = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_USER);
-        LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         ARRAY_UNINITIALIZED_SIZE = builder.getOrDefault(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE);
         ARRAY_SMALL = builder.getOrDefault(OptionsCatalog.ARRAY_SMALL);
         HASH_PACKED_ARRAY_MAX = builder.getOrDefault(OptionsCatalog.HASH_PACKED_ARRAY_MAX);
@@ -253,6 +252,17 @@ public class Options {
         CALL_WITH_BLOCK_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CALL_WITH_BLOCK_ALWAYS_CLONE, CLONE_DEFAULT);
         PACK_UNROLL_LIMIT = builder.getOrDefault(OptionsCatalog.PACK_UNROLL_LIMIT);
         PACK_RECOVER_LOOP_MIN = builder.getOrDefault(OptionsCatalog.PACK_RECOVER_LOOP_MIN);
+        BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
+        REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);
+        REGEXP_INSTRUMENT_MATCH = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_MATCH);
+        SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
+        SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
+        SHARED_OBJECTS_FORCE = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_FORCE);
+        SHARED_OBJECTS_SHARE_ALL = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_SHARE_ALL);
+        CEXTS = builder.getOrDefault(OptionsCatalog.CEXTS);
+        CEXTS_LIBRARY_REMAP = builder.getOrDefault(OptionsCatalog.CEXTS_LIBRARY_REMAP);
+        CEXTS_MARKING_CACHE = builder.getOrDefault(OptionsCatalog.CEXTS_MARKING_CACHE);
+        LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         EXCEPTIONS_STORE_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_STORE_JAVA);
         EXCEPTIONS_PRINT_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_JAVA);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA);
@@ -267,24 +277,14 @@ public class Options {
         BACKTRACE_ON_INTERRUPT = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_INTERRUPT);
         BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM, !EMBEDDED);
         BACKTRACE_ON_RAISE = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_RAISE);
-        BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
-        REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);
-        REGEXP_INSTRUMENT_MATCH = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_MATCH);
-        SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
-        SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
-        SHARED_OBJECTS_FORCE = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_FORCE);
-        SHARED_OBJECTS_SHARE_ALL = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_SHARE_ALL);
-        CEXTS = builder.getOrDefault(OptionsCatalog.CEXTS);
-        CEXTS_LOG_LOAD = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_LOAD);
-        CEXTS_LOG_WARNINGS = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_WARNINGS);
-        CEXTS_LIBRARY_REMAP = builder.getOrDefault(OptionsCatalog.CEXTS_LIBRARY_REMAP);
-        CEXTS_MARKING_CACHE = builder.getOrDefault(OptionsCatalog.CEXTS_MARKING_CACHE);
         LOG_DYNAMIC_CONSTANT_LOOKUP = builder.getOrDefault(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP);
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
         METRICS_TIME_PARSING_FILE = builder.getOrDefault(OptionsCatalog.METRICS_TIME_PARSING_FILE);
         METRICS_TIME_REQUIRE = builder.getOrDefault(OptionsCatalog.METRICS_TIME_REQUIRE);
+        CEXTS_LOG_LOAD = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_LOAD);
+        CEXTS_LOG_WARNINGS = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_WARNINGS);
     }
 
     public Object fromDescription(OptionDescription<?> description) {
@@ -385,8 +385,6 @@ public class Options {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.lazy_translation.user":
                 return LAZY_TRANSLATION_USER;
-            case "ruby.lazy_translation.log":
-                return LAZY_TRANSLATION_LOG;
             case "ruby.array.uninitialized_size":
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array.small":
@@ -483,6 +481,28 @@ public class Options {
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack.recover":
                 return PACK_RECOVER_LOOP_MIN;
+            case "ruby.basic_ops.inline":
+                return BASICOPS_INLINE;
+            case "ruby.regexp.instrument-creation":
+                return REGEXP_INSTRUMENT_CREATION;
+            case "ruby.regexp.instrument-match":
+                return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.shared.objects":
+                return SHARED_OBJECTS_ENABLED;
+            case "ruby.shared.objects.debug":
+                return SHARED_OBJECTS_DEBUG;
+            case "ruby.shared.objects.force":
+                return SHARED_OBJECTS_FORCE;
+            case "ruby.shared.objects.share_all":
+                return SHARED_OBJECTS_SHARE_ALL;
+            case "ruby.cexts":
+                return CEXTS;
+            case "ruby.cexts.remap":
+                return CEXTS_LIBRARY_REMAP;
+            case "ruby.cexts.marking.cache":
+                return CEXTS_MARKING_CACHE;
+            case "ruby.lazy_translation.log":
+                return LAZY_TRANSLATION_LOG;
             case "ruby.exceptions.store_java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions.print_java":
@@ -511,30 +531,6 @@ public class Options {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.backtraces.raise":
                 return BACKTRACE_ON_RAISE;
-            case "ruby.basic_ops.inline":
-                return BASICOPS_INLINE;
-            case "ruby.regexp.instrument-creation":
-                return REGEXP_INSTRUMENT_CREATION;
-            case "ruby.regexp.instrument-match":
-                return REGEXP_INSTRUMENT_MATCH;
-            case "ruby.shared.objects":
-                return SHARED_OBJECTS_ENABLED;
-            case "ruby.shared.objects.debug":
-                return SHARED_OBJECTS_DEBUG;
-            case "ruby.shared.objects.force":
-                return SHARED_OBJECTS_FORCE;
-            case "ruby.shared.objects.share_all":
-                return SHARED_OBJECTS_SHARE_ALL;
-            case "ruby.cexts":
-                return CEXTS;
-            case "ruby.cexts.log.load":
-                return CEXTS_LOG_LOAD;
-            case "ruby.cexts.log.warnings":
-                return CEXTS_LOG_WARNINGS;
-            case "ruby.cexts.remap":
-                return CEXTS_LIBRARY_REMAP;
-            case "ruby.cexts.marking.cache":
-                return CEXTS_MARKING_CACHE;
             case "ruby.constant.dynamic_lookup.log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.options.log":
@@ -547,6 +543,10 @@ public class Options {
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics.time.require":
                 return METRICS_TIME_REQUIRE;
+            case "ruby.cexts.log.load":
+                return CEXTS_LOG_LOAD;
+            case "ruby.cexts.log.warnings":
+                return CEXTS_LOG_WARNINGS;
             default:
                 return null;
         }
