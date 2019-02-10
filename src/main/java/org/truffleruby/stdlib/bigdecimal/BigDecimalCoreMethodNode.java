@@ -103,7 +103,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return defaultDivisionPrecision(a.precision(), b.precision(), limit);
     }
 
-    protected int getLimit(VirtualFrame frame) {
+    protected int getLimit() {
         return getLimitIntegerCast().executeCastInt(getLimitCall().call(getBigDecimalClass(), "limit"));
     }
 

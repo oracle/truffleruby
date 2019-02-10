@@ -73,7 +73,7 @@ public abstract class BigDecimalNodes {
                 "isNormalRubyBigDecimal(b)"
         })
         public Object add(VirtualFrame frame, DynamicObject a, DynamicObject b) {
-            return add(frame, a, b, getLimit(frame));
+            return add(frame, a, b, getLimit());
         }
 
         @Specialization(guards = {
@@ -125,7 +125,7 @@ public abstract class BigDecimalNodes {
                 "isNormalRubyBigDecimal(b)"
         })
         public Object subNormal(VirtualFrame frame, DynamicObject a, DynamicObject b) {
-            return subNormal(frame, a, b, getLimit(frame));
+            return subNormal(frame, a, b, getLimit());
         }
 
         @Specialization(guards = {
@@ -226,7 +226,7 @@ public abstract class BigDecimalNodes {
                 "isNormalRubyBigDecimal(b)"
         })
         public Object mult(VirtualFrame frame, DynamicObject a, DynamicObject b) {
-            return mult(frame, a, b, getLimit(frame));
+            return mult(frame, a, b, getLimit());
         }
 
         @Specialization(guards = {
@@ -303,7 +303,7 @@ public abstract class BigDecimalNodes {
                 "isNormalRubyBigDecimal(b)"
         })
         public Object div(VirtualFrame frame, DynamicObject a, DynamicObject b) {
-            final int precision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit(frame));
+            final int precision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit());
             return div(frame, a, b, precision);
         }
 
@@ -368,7 +368,7 @@ public abstract class BigDecimalNodes {
             final int newPrecision;
 
             if (zeroPrecisionProfile.profile(precision == 0)) {
-                newPrecision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit(frame));
+                newPrecision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit());
             } else {
                 newPrecision = precision;
             }
@@ -715,7 +715,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(a)")
         public Object power(VirtualFrame frame, DynamicObject a, int exponent, NotProvided precision) {
-            return executePower(frame, a, exponent, getLimit(frame));
+            return executePower(frame, a, exponent, getLimit());
         }
 
         @Specialization(guards = "isNormal(a)")
