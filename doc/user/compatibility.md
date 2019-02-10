@@ -79,6 +79,15 @@ for correctly synchronising access to your own shared mutable data structures,
 and we will be responsible for correctly synchronising the state of the
 interpreter.
 
+#### Threads detect interrupts at different points
+
+TruffleRuby threads may detect that they have been interrupted at different
+points in the program to where it would on MRI. In general, TruffleRuby seems
+to detect an interrupt sooner than MRI. JRuby and Rubinius are also different
+to MRI, the behaviour isn't documented in MRI, and it's likely to change
+between MRI versions, so we would not recommend depending on interrupt points
+at all.
+
 #### Fibers do not have the same performance characteristics as in MRI
 
 Most use cases of fibers rely on them being easy and cheap to start up and
