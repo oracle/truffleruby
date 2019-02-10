@@ -10,6 +10,7 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -97,6 +98,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return (limit > 0 && limit < combination) ? limit : combination;
     }
 
+    @TruffleBoundary
     protected static int defaultDivisionPrecision(BigDecimal a, BigDecimal b, int limit) {
         return defaultDivisionPrecision(a.precision(), b.precision(), limit);
     }
