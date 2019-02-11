@@ -20,6 +20,7 @@ Changes:
   less memory as only the requested portion will be copied to a
   managed string.
 * `-Xoptions` has been deprecated and will be removed - use `--help:languages` instead.
+* `-Xlog=` has been deprecated and will be removed - use `--log.ruby.level=` instead.
 
 Compatibility:
 

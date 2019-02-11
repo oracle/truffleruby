@@ -67,15 +67,13 @@ switches specific to TruffleRuby.
 
 ```
 TruffleRuby:
-  -Xlog=SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST
-                  set the TruffleRuby logging level
   -Xname=value    set a TruffleRuby option (omit value to set to true)
   -J-option=value Translates to --jvm.option=value
 ```
 
-As well as being set at the command line, options, except for `log`, can be
-set using `--option=`, or using `--ruby.option=` from any GraalVM language
-launcher. You can omit `=value` to set to `true`.
+As well as being set at the command line, options can be set using
+`--option=`, or using `--ruby.option=` from any GraalVM language launcher. You
+can omit `=value` to set to `true`.
 
 They can also be set as JVM system properties, where they have a prefix
 `polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`, or via

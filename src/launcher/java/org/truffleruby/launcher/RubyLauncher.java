@@ -337,8 +337,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         // Extra output for TruffleRuby
         out.println();
         out.println("TruffleRuby:");
-        out.println("  -Xlog=SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST");
-        out.println("                  set the TruffleRuby logging level");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
         out.println("  -J-option=value Translates to --jvm.option=value");
     }

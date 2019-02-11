@@ -770,7 +770,7 @@ public class RubyContext {
 
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use -Xlog=CONFIG to see details");
+            RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use --log.ruby.level=CONFIG to see details");
         }
 
         return null;
