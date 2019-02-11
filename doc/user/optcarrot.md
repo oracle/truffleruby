@@ -17,7 +17,7 @@ $ path/to/graalvm/bin/ruby bin/optcarrot --sdl2 --audio=none examples/Lan_Master
 On macOS, you might need an extra flag for the GUI to appear:
 
 ```
-$ path/to/graalvm/bin/ruby -J-XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
+$ path/to/graalvm/bin/ruby --jvm.XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 If you have a local checkout of TruffleRuby, you can also use the version of

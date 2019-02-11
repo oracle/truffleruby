@@ -41,5 +41,5 @@ runtime execution.
 Debugging on the JVM can be achieved with:
 
 ```
-bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby --log.level=FINE -e 'p :hi'
+bin/truffleruby --jvm.Dpolyglot.engine.PreinitializeContexts=ruby --log.level=FINE -e 'p :hi'
 ```
