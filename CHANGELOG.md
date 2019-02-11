@@ -19,6 +19,7 @@ Changes:
 * Getting a substring of a string created by a C extension now uses
   less memory as only the requested portion will be copied to a
   managed string.
+* `-Xoptions` has been deprecated and will be removed - use `--help:languages` instead.
 
 Compatibility:
 

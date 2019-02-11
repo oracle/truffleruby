@@ -396,6 +396,7 @@ public class CommandLineParser {
                         LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
+                        LOGGER.warning("-Xoptions is deprecated and will be removed - use --help:languages instead");
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                             assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);

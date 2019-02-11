@@ -192,6 +192,24 @@ describe "The launcher" do
     out.should include("-Xverbosity=")
   end
 
+  it "prints available user options for --help:languages" do
+    out = ruby_exe(nil, options: "--help:languages")
+    $?.success?.should == true
+    out.should include("--ruby.verbosity")
+  end
+
+  it "prints available expert options for --help:languages --help:expert" do
+    out = ruby_exe(nil, options: "--help:languages --help:expert")
+    $?.success?.should == true
+    out.should include("--ruby.home")
+  end
+
+  it "prints available debug options for --help:languages --help:debug" do
+    out = ruby_exe(nil, options: "--help:languages --help:debug")
+    $?.success?.should == true
+    out.should include("--ruby.exceptions.print_java")
+  end
+
   it "logs options if -Xoptions.log is set" do
     out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
     $?.success?.should == true

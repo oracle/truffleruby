@@ -69,17 +69,18 @@ switches specific to TruffleRuby.
 TruffleRuby:
   -Xlog=SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST
                   set the TruffleRuby logging level
-  -Xoptions       print available TruffleRuby options
   -Xname=value    set a TruffleRuby option (omit value to set to true)
   -J-option=value Translates to --jvm.option=value
 ```
 
 As well as being set at the command line, options, except for `log`, can be
-set using`--option=`, or using `--ruby.option=` from any GraalVM language
-launcher. They can also be set as JVM system properties, where they have a
-prefix `polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`,
-or via any other way of setting JVM system properties. Finally, options can be
-set as Graal-SDK polyglot API configuration options.
+set using `--option=`, or using `--ruby.option=` from any GraalVM language
+launcher. You can omit `=value` to set to `true`.
+
+They can also be set as JVM system properties, where they have a prefix
+`polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`, or via
+any other way of setting JVM system properties. Finally, options can be set as
+Graal-SDK polyglot API configuration options.
 
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
@@ -131,9 +132,10 @@ switches as in standard Ruby.
 
 ## TruffleRuby options
 
-TruffleRuby options (set via `-Xoption=value`, or `--ruby.option=value`) are
+TruffleRuby options (set via `--option=value`, or `--ruby.option=value`) are
 all experimental and subject to change at any time. Available options and
-documentation can be seen with `-Xoptions`.
+documentation can be seen with `--help:languages`. Additionally set
+`--help:expert` and `--help:debug` to see those categories of options.
 
 ## Determining the TruffleRuby home
 
