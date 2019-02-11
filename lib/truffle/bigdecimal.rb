@@ -6,7 +6,9 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-class Truffle::BigDecimal < Numeric
+BigDecimal = Truffle::BigDecimal
+
+class BigDecimal < Numeric
   include Comparable
 
   BASE = 10_000
@@ -285,8 +287,6 @@ class Truffle::BigDecimal < Numeric
 
   private_class_method :boolean_mode
 end
-
-BigDecimal = Truffle::BigDecimal
 
 module Kernel
   def BigDecimal(*args)

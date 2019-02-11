@@ -44,7 +44,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-@CoreClass("Truffle::BigDecimal")
+@CoreClass("BigDecimal")
 public abstract class BigDecimalNodes {
 
     // TODO (pitr 2015-jun-16): lazy setup when required, see https://github.com/jruby/jruby/pull/3048#discussion_r32413656
