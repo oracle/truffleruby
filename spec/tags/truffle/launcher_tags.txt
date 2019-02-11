@@ -3,8 +3,6 @@ slow:The launcher prints the full java command with -J-cmd
 slow:The launcher prints the full java command with -cmd in JAVA_OPTS
 slow:The launcher adds options from $JAVA_OPTS to the command
 slow:The launcher preserve spaces in options
-slow:The launcher takes options from TRUFFLERUBYOPT
-slow:The launcher takes options from RUBYOPT
 slow:The launcher takes options from system properties set in JAVA_OPTS
 slow:The launcher takes options from system properties set on the command line using -J
 slow:The launcher takes options from system properties set on the command line using -X
@@ -64,3 +62,15 @@ aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` dire
 aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher applies Truffle options
 slow:The launcher does not print a Java backtrace for an -S file that's not found
+slow:The launcher prints available user options for --help:languages
+slow:The launcher prints available expert options for --help:languages --help:expert
+slow:The launcher prints available debug options for --help:languages --help:debug
+slow:The launcher sets the log level using -Xlog=
+slow:The launcher sets the log level using --log.level=
+slow:The launcher takes normal Ruby options from TRUFFLERUBYOPT
+slow:The launcher takes --option options from TRUFFLERUBYOPT
+slow:The launcher takes --ruby.option options from TRUFFLERUBYOPT
+slow:The launcher takes normal Ruby options from RUBYOPT
+slow:The launcher takes --option options from RUBYOPT
+slow:The launcher takes --ruby.option options from RUBYOPT
+slow:The launcher sets the log level using --log.ruby.level=

@@ -21,7 +21,7 @@ guard -> { TruffleRuby.native? } do
     end
 
     it "is used when passing no incompatible options" do
-      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "-Xlog=FINE", args: "2>&1")
+      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "--log.level=FINE", args: "2>&1")
       out.should include("patchContext()")
       out.should_not include("createContext()")
       out.should_not include("initializeContext()")
@@ -30,7 +30,7 @@ guard -> { TruffleRuby.native? } do
 
     it "is not used when passing incompatible options" do
       no_native = "-Xpatching=false --disable-gems"
-      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "-Xlog=FINE #{no_native}", args: "2>&1")
+      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "--log.level=FINE #{no_native}", args: "2>&1")
       out.should include("patchContext()")
       out.should include("not reusing pre-initialized context: loading patching is false")
       out.should include("finalizeContext()")
@@ -42,7 +42,7 @@ guard -> { TruffleRuby.native? } do
 
     it "is not used when the home is unset but was set at build time" do
       code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
-      out = ruby_exe(code, options: "-Xlog=FINE -Xno_home_provided=true", args: "2>&1")
+      out = ruby_exe(code, options: "--log.level=FINE -Xno_home_provided=true", args: "2>&1")
       out.should include("[nil, false]\n")
       out.should include("not reusing pre-initialized context: Ruby home is unset")
     end

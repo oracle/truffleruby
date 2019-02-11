@@ -81,12 +81,12 @@ describe "The launcher" do
   end
 
   it "does not create context on --version and -v" do
-    v = ruby_exe(nil, options: "-Xlog=FINE -v", args: "2>&1")
+    v = ruby_exe(nil, options: "--log.level=FINE -v", args: "2>&1")
     v.should_not include("createContext()")
     v.should_not include("patchContext()")
     v.should include("truffleruby ")
 
-    version = ruby_exe(nil, options: "-Xlog=FINE --version", args: "2>&1")
+    version = ruby_exe(nil, options: "--log.level=FINE --version", args: "2>&1")
     version.should_not include("createContext()")
     version.should_not include("patchContext()")
     version.should include("truffleruby ")
@@ -99,14 +99,38 @@ describe "The launcher" do
     out.should == "value with spaces"
   end
 
-  it "takes options from TRUFFLERUBYOPT" do
+  it "takes normal Ruby options from TRUFFLERUBYOPT" do
     out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
-  it "takes options from RUBYOPT" do
+  it "takes --option options from TRUFFLERUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --ruby.option options from TRUFFLERUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes normal Ruby options from RUBYOPT" do
     out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --option options from RUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --ruby.option options from RUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbosity=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
@@ -192,10 +216,28 @@ describe "The launcher" do
     out.should include("-Xverbosity=")
   end
 
-  it "logs options if -Xoptions.log is set" do
-    out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
+  it "prints available user options for --help:languages" do
+    out = ruby_exe(nil, options: "--help:languages")
     $?.success?.should == true
-    out.should include("CONFIG: option home=")
+    out.should include("--ruby.verbosity")
+  end
+
+  it "prints available expert options for --help:languages --help:expert" do
+    out = ruby_exe(nil, options: "--help:languages --help:expert")
+    $?.success?.should == true
+    out.should include("--ruby.home")
+  end
+
+  it "prints available debug options for --help:languages --help:debug" do
+    out = ruby_exe(nil, options: "--help:languages --help:debug")
+    $?.success?.should == true
+    out.should include("--ruby.exceptions.print_java")
+  end
+
+  it "logs options if -Xoptions.log is set" do
+    out = ruby_exe("14", options: "--log.level=CONFIG -Xoptions.log", args: "2>&1")
+    $?.success?.should == true
+    out.should include("[ruby] CONFIG")
   end
 
   it "prints an error for an unknown option" do
@@ -205,6 +247,24 @@ describe "The launcher" do
     out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
+  end
+
+  it "sets the log level using -Xlog=" do
+    out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
+    $?.success?.should == true
+    out.should include("CONFIG: option home=")
+  end
+
+  it "sets the log level using --log.level=" do
+    out = ruby_exe("14", options: "-Xoptions.log --log.level=CONFIG", args: "2>&1")
+    $?.success?.should == true
+    out.should include("CONFIG: option home=")
+  end
+
+  it "sets the log level using --log.ruby.level=" do
+    out = ruby_exe("14", options: "-Xoptions.log --log.ruby.level=CONFIG", args: "2>&1")
+    $?.success?.should == true
+    out.should include("CONFIG: option home=")
   end
 
   describe 'StringArray option' do

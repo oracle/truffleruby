@@ -71,4 +71,4 @@ Ruby application logging and warning works as in the standard implementation of
 Ruby.
 
 For logging of TruffleRuby internals, standard Java logging is used. The logging
-level can be set with `-Xlog=INFO`, `=FINEST`, or so on.
+level can be set with `--log.level=INFO`, `=FINEST`, or so on.

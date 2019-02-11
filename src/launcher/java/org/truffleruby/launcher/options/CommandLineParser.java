@@ -396,6 +396,7 @@ public class CommandLineParser {
                         LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
+                        LOGGER.warning("-Xoptions is deprecated and will be removed - use --help:languages instead");
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                             assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
@@ -406,8 +407,9 @@ public class CommandLineParser {
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     } else if (extendedOption.startsWith("log=")) {
+                        LOGGER.warning("-Xlog= is deprecated and will be removed - use --log.level= instead");
                         final String level = extendedOption.substring("log=".length());
-                        config.getUnknownArguments().add("--log.ruby.level=" + level);
+                        config.getUnknownArguments().add("--log.level=" + level);
                     } else {
                         // Turn extra options into polyglot options and let
                         // org.graalvm.launcher.Launcher.parsePolyglotOption
