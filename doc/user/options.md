@@ -83,11 +83,6 @@ Graal-SDK polyglot API configuration options.
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
 
-The logging level is not a TruffleRuby option like the others and so cannot be
-set with a JVM system property. This is because the logger is once per VM,
-rather than once per TruffleRuby instance, and is used to report problems
-loading the TruffleRuby instance before options are loaded.
-
 TruffleRuby-specific options, as well as conventional Ruby options, can also
 bet set in the `TRUFFLERUBYOPT` environment variable, if run from the Ruby
 launcher.
