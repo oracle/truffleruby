@@ -114,7 +114,7 @@ public class RubyContext {
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
-    private final ValueWrapperManager valueWrapperManager = new ValueWrapperManager(this);
+    private final ValueWrapperManager valueWrapperManager;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -196,6 +196,7 @@ public class RubyContext {
         coreLibrary = new CoreLibrary(this);
         nativeConfiguration = loadNativeConfiguration();
         coreLibrary.initialize();
+        valueWrapperManager = new ValueWrapperManager(this);
         Metrics.printTime("after-create-core-library");
 
         symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), this);

@@ -11,11 +11,14 @@ package org.truffleruby.cext;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
+import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
+
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -31,10 +34,15 @@ public class ValueWrapper implements TruffleObject {
 
     private final Object object;
     private long handle;
+    @SuppressWarnings("unused")
+    // The handleBlock is held here to stop it being GCed and the memory freed while wrappers still
+    // exist with handles in it.
+    private HandleBlock handleBlock;
 
-    public ValueWrapper(Object object, long handle) {
+    public ValueWrapper(Object object, long handle, HandleBlock handleBlock) {
         this.object = object;
         this.handle = handle;
+        this.handleBlock = handleBlock;
     }
 
     public Object getObject() {
@@ -45,8 +53,9 @@ public class ValueWrapper implements TruffleObject {
         return handle;
     }
 
-    public void setHandle(long handle) {
+    public void setHandle(long handle, HandleBlock handleBlock) {
         this.handle = handle;
+        this.handleBlock = handleBlock;
     }
 
     @Override
@@ -79,14 +88,15 @@ public class ValueWrapper implements TruffleObject {
     public static long asPointer(
             ValueWrapper wrapper,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
+            @Cached KeepAliveNode keepAliveNode,
+            @Cached AllocateHandleNode createNativeHandleNode,
             @Cached BranchProfile createHandleProfile,
             @Cached BranchProfile taggedObjBranchProfile) {
 
         long handle = wrapper.getHandle();
         if (handle == ValueWrapperManager.UNSET_HANDLE) {
             createHandleProfile.enter();
-            handle = context.getValueWrapperManager().createNativeHandle(wrapper);
+            handle = createNativeHandleNode.execute(wrapper);
         }
         if (ValueWrapperManager.isTaggedObject(handle)) {
             taggedObjBranchProfile.enter();

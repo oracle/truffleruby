@@ -93,27 +93,27 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "handle == FALSE_HANDLE")
         protected ValueWrapper unwrapFalse(long handle) {
-            return new ValueWrapper(false, FALSE_HANDLE);
+            return new ValueWrapper(false, FALSE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
         protected ValueWrapper unwrapTrue(long handle) {
-            return new ValueWrapper(true, TRUE_HANDLE);
+            return new ValueWrapper(true, TRUE_HANDLE, null);
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
         protected ValueWrapper unwrapUndef(long handle) {
-            return new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE);
+            return new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
         protected ValueWrapper unwrapNil(long handle) {
-            return new ValueWrapper(nil(), NIL_HANDLE);
+            return new ValueWrapper(nil(), NIL_HANDLE, null);
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
         protected ValueWrapper unwrapTaggedLong(long handle) {
-            return new ValueWrapper(handle >> 1, handle);
+            return new ValueWrapper(null, handle, null);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
@@ -175,9 +175,14 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     public abstract Object execute(TruffleObject value);
 
-    @Specialization
-    protected Object unwrapValue(ValueWrapper value) {
+    @Specialization(guards = "!isTaggedLong(value.getHandle())")
+    protected Object unwrapValueObject(ValueWrapper value) {
         return value.getObject();
+    }
+
+    @Specialization(guards = "isTaggedLong(value.getHandle())")
+    protected long unwrapValueTaggedLong(ValueWrapper value) {
+        return value.getHandle() >> 1;
     }
 
     @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
