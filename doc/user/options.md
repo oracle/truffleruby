@@ -75,11 +75,11 @@ TruffleRuby:
 ```
 
 As well as being set at the command line, options, except for `log`, can be
-set using `--ruby.option=`. They can also be set as JVM system properties,
-where they have a prefix `polyglot.ruby.`. For example
-`--jvm.Dpolyglot.ruby.cexts.remap=true`, or via any other way of setting JVM
-system properties. Finally, options can be set as Graal-SDK polyglot API
-configuration options.
+set using`--option=`, or using `--ruby.option=` from any GraalVM language
+launcher. They can also be set as JVM system properties, where they have a
+prefix `polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`,
+or via any other way of setting JVM system properties. Finally, options can be
+set as Graal-SDK polyglot API configuration options.
 
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
