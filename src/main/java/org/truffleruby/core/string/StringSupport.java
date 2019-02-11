@@ -1569,4 +1569,7 @@ public final class StringSupport {
         return encoding.isSpace(c);
     }
 
+    public static boolean isAsciiCodepoint(int value) {
+        return value >= 0 && value < 128;
+    }
 }
