@@ -235,9 +235,9 @@ describe "The launcher" do
   end
 
   it "logs options if -Xoptions.log is set" do
-    out = ruby_exe("14", options: "--log.ruby.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "--log.ruby.level=CONFIG -Xoptions.log", args: "2>&1")
     $?.success?.should == true
-    out.should include("[ruby] FINE")
+    out.should include("[ruby] CONFIG")
   end
 
   it "prints an error for an unknown option" do
