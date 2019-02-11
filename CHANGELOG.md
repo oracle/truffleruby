@@ -16,6 +16,7 @@ Bug fixes:
 * `rb_num2ull` is now implemented as well as being declared in the ruby.h header (#1573).
 * `rb_sym_to_s` is now implemented (#1575).
 * `R_TYPE_P` now returns the type number for a wider set of Ruby objects #(1574).
+* `rb_fix2str` has now been implemented.
 
 Changes:
 

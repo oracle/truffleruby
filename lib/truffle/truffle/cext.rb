@@ -413,6 +413,10 @@ module Truffle::CExt
     Truffle::Type.rb_num2uint(value)
   end
 
+  def rb_fix2str(value, base)
+    value.to_s(base)
+  end
+
   def RB_NIL_P(value)
     nil.equal?(value)
   end

@@ -3965,7 +3965,7 @@ VALUE rb_num2fix(VALUE val) {
 }
 
 VALUE rb_fix2str(VALUE x, int base) {
-  rb_tr_error("rb_fix2str not implemented");
+  return RUBY_CEXT_INVOKE("rb_fix2str", x, INT2FIX(base));
 }
 
 VALUE rb_dbl_cmp(double a, double b) {
