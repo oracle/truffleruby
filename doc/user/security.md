@@ -24,6 +24,7 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2018-16395 | `OpenSSL::X509::Name` equality check does not work correctly | *todo* | *todo* | *todo*
 CVE-2018-16396 | Tainted flags are not propagated in `Array#pack` and `String#unpack` with some directives | Additional taint operations | Tested in ruby/spec `:security` | Additional taint operations
 CVE-2018-6914 | Unintentional file and directory creation with directory traversal in `tempfile` and `tmpdir` | Sanitization of paths | Tested in ruby/spec `:security` | Sanitization of paths
 CVE-2018-8779 | Unintentional socket creation by poisoned NUL byte in `UNIXServer` and `UNIXSocket` | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
