@@ -17,6 +17,7 @@ Bug fixes:
 * `rb_sym_to_s` is now implemented (#1575).
 * `R_TYPE_P` now returns the type number for a wider set of Ruby objects #(1574).
 * `rb_fix2str` has now been implemented.
+* `rb_protect` will now work even if `NilClass#==` has been redefined.
 
 Changes:
 

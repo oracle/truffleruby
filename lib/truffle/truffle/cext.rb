@@ -1063,7 +1063,7 @@ module Truffle::CExt
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
-    unless nil == e # This way around because e is a CapturedException which is a foreign object with no interop
+    unless Truffle::Interop.null?(e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
