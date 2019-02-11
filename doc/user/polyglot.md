@@ -274,9 +274,9 @@ This can be turned off even when embedded, with the `embedded` option
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
 
 It's a separate option, but in an embedded configuration you may want to set
-`allowNativeAccess(false)` method in your `Context.Builder`, or use the
-experimental `-Xplatform.native=false` option, to disable use of the NFI for
-internal functionality.
+`allowNativeAccess(false)` in your `Context.Builder`, or use the experimental
+`-Xplatform.native=false` option, to disable use of the NFI for internal
+functionality.
 
 Also, the experimental option `-Xcexts=false` can disable C extensions.
 
