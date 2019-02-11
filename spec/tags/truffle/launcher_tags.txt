@@ -66,10 +66,11 @@ slow:The launcher prints available user options for --help:languages
 slow:The launcher prints available expert options for --help:languages --help:expert
 slow:The launcher prints available debug options for --help:languages --help:debug
 slow:The launcher sets the log level using -Xlog=
-slow:The launcher sets the log level using --log.ruby.level=
+slow:The launcher sets the log level using --log.level=
 slow:The launcher takes normal Ruby options from TRUFFLERUBYOPT
 slow:The launcher takes --option options from TRUFFLERUBYOPT
 slow:The launcher takes --ruby.option options from TRUFFLERUBYOPT
 slow:The launcher takes normal Ruby options from RUBYOPT
 slow:The launcher takes --option options from RUBYOPT
 slow:The launcher takes --ruby.option options from RUBYOPT
+slow:The launcher sets the log level using --log.ruby.level=

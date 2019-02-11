@@ -81,12 +81,12 @@ describe "The launcher" do
   end
 
   it "does not create context on --version and -v" do
-    v = ruby_exe(nil, options: "--log.ruby.level=FINE -v", args: "2>&1")
+    v = ruby_exe(nil, options: "--log.level=FINE -v", args: "2>&1")
     v.should_not include("createContext()")
     v.should_not include("patchContext()")
     v.should include("truffleruby ")
 
-    version = ruby_exe(nil, options: "--log.ruby.level=FINE --version", args: "2>&1")
+    version = ruby_exe(nil, options: "--log.level=FINE --version", args: "2>&1")
     version.should_not include("createContext()")
     version.should_not include("patchContext()")
     version.should include("truffleruby ")
@@ -235,7 +235,7 @@ describe "The launcher" do
   end
 
   it "logs options if -Xoptions.log is set" do
-    out = ruby_exe("14", options: "--log.ruby.level=CONFIG -Xoptions.log", args: "2>&1")
+    out = ruby_exe("14", options: "--log.level=CONFIG -Xoptions.log", args: "2>&1")
     $?.success?.should == true
     out.should include("[ruby] CONFIG")
   end
@@ -251,6 +251,12 @@ describe "The launcher" do
 
   it "sets the log level using -Xlog=" do
     out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
+    $?.success?.should == true
+    out.should include("CONFIG: option home=")
+  end
+
+  it "sets the log level using --log.level=" do
+    out = ruby_exe("14", options: "-Xoptions.log --log.level=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
