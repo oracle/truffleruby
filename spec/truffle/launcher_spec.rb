@@ -99,14 +99,38 @@ describe "The launcher" do
     out.should == "value with spaces"
   end
 
-  it "takes options from TRUFFLERUBYOPT" do
+  it "takes normal Ruby options from TRUFFLERUBYOPT" do
     out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
-  it "takes options from RUBYOPT" do
+  it "takes --option options from TRUFFLERUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --ruby.option options from TRUFFLERUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes normal Ruby options from RUBYOPT" do
     out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --option options from RUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbosity=true" })
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes --ruby.option options from RUBYOPT" do
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbosity=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
