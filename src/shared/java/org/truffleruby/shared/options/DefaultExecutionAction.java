@@ -10,5 +10,7 @@
 package org.truffleruby.shared.options;
 
 public enum DefaultExecutionAction {
-    NONE, STDIN, IRB
+    NONE,
+    STDIN,
+    IRB
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,14 +9,15 @@
  */
 package org.truffleruby.shared.options;
 
+import org.graalvm.options.OptionCategory;
 import org.graalvm.options.OptionType;
 
 public class BooleanOptionDescription extends OptionDescription<Boolean> {
 
     private final boolean defaultValue;
 
-    BooleanOptionDescription(String name, String description, String[] rubyOptions, boolean defaultValue) {
-        super(name, description, rubyOptions);
+    BooleanOptionDescription(OptionCategory category, String name, String description, String[] rubyOptions, boolean defaultValue) {
+        super(category, name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 

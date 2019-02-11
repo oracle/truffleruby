@@ -273,11 +273,12 @@ This can be turned off even when embedded, with the `embedded` option
 (`--ruby.embedded=false` from another launcher, or
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
 
-It's a separate option, but in an embedded configuration you may want to use
-the `-Xplatform.native=false` option, which disables use of NFI for internal
+It's a separate option, but in an embedded configuration you may want to set
+`allowNativeAccess(false)` in your `Context.Builder`, or use the experimental
+`-Xplatform.native=false` option, to disable use of the NFI for internal
 functionality.
 
-Also, `-Xcexts=false` can disable C extensions.
+Also, the experimental option `-Xcexts=false` can disable C extensions.
 
 Note that, unlike for example pure JavaScript, Ruby is more than a
 self-contained expression language. It has a large core library that includes
