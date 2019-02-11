@@ -547,10 +547,7 @@ public class CExtNodes {
         @Specialization
         public long capacity(DynamicObject string,
                 @Cached("create()") StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            final long nativeBufferSize = nativeRope.getNativePointer().getSize();
-            assert nativeBufferSize > 0;
-            return nativeBufferSize - 1; // Do not count the extra byte for \0, like MRI.
+            return stringToNativeNode.executeToNative(string).getCapacity();
         }
 
     }

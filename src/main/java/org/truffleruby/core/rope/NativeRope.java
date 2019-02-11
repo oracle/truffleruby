@@ -163,6 +163,13 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
+    public long getCapacity() {
+        final long nativeBufferSize = pointer.getSize();
+        assert nativeBufferSize > 0;
+        // Do not count the extra byte for \0, like MRI.
+        return nativeBufferSize - 1;
+    }
+
     @TruffleBoundary
     public LeafRope toLeafRope() {
         return RopeOperations.create(getBytes(), getEncoding(), CodeRange.CR_UNKNOWN);
