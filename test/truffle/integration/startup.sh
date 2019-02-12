@@ -2,7 +2,7 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby -J-verbose:gc -e 'p :hi' > temp.txt
+jt ruby --jvm.verbose:gc -e 'p :hi' > temp.txt
 
 if grep 'Full GC' temp.txt
 then

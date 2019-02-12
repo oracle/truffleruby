@@ -94,7 +94,7 @@ describe "The launcher" do
 
   it "preserve spaces in options" do
     out = ruby_exe("print Truffle::System.get_java_property('foo')",
-                   options: (TruffleRuby.native? ? '--native.' : '-J-') + 'Dfoo="value with spaces"')
+                   options: (TruffleRuby.native? ? '--native.' : '--jvm.') + 'Dfoo="value with spaces"')
     $?.success?.should == true
     out.should == "value with spaces"
   end

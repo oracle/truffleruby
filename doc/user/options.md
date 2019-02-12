@@ -68,7 +68,6 @@ switches specific to TruffleRuby.
 ```
 TruffleRuby:
   -Xname=value    set a TruffleRuby option (omit value to set to true)
-  -J-option=value Translates to --jvm.option=value
 ```
 
 As well as being set at the command line, options can be set using
@@ -83,45 +82,26 @@ Graal-SDK polyglot API configuration options.
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
 
-The logging level is not a TruffleRuby option like the others and so cannot be
-set with a JVM system property. This is because the logger is once per VM,
-rather than once per TruffleRuby instance, and is used to report problems
-loading the TruffleRuby instance before options are loaded.
-
 TruffleRuby-specific options, as well as conventional Ruby options, can also
 bet set in the `TRUFFLERUBYOPT` environment variable, if run from the Ruby
 launcher.
 
-`--` or the first non-option argument both stop processing of Truffle-specific
-arguments in the same way it stops processing of Ruby arguments.
+`--` or the first non-option argument stop processing of TrufflRuby and VM
+options in the same way it stops processing of Ruby arguments.
 
-## JVM- and SVM-specific switches
+## VM-specific switches
 
-If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
-passing options to the JVM using either a `-J-` or `--jvm.` prefix.
-For example `-J-ea`. `-J-classpath` and `-J-cp` 
-also implicitly take the following argument to be passed to the JVM.
-`-J-cmd` print the Java command that will be executed, for
-debugging. 
+To set options in the underlying VM, use `--native.` in the native
+configuration, and `--jvm.` in the JVM configuration.
 
-```
-  --jvm.[option]  Pass options to the JVM; for example, '--jvm.classpath=myapp.jar'. To see available options. use '--jvm.help'.
-```
+For example `--native.Dsystem_property=value` or `--jvm.ea`.
 
-`--` or the first non-option argument both stop processing of JVM-specific
-arguments in the same way it stops processing of Ruby arguments.
+To set the classpath, use the `=` notation, rather than two separate arguments.
+For example `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar`.
 
-TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
-variables when running on a JVM (except for `JAVACMD` on the GraalVM).
-
-## SVM-specific switches
-
-The SVM supports `--native.D` for setting system properties and 
-`--native.XX:arg` for SVM options. 
-
-```
-  --native.[option]  Pass options to the native image. To see available options, use '--native.help'.
-```
+In the JVM configuration, TruffleRuby also supports the `JAVA_HOME`, `JAVACMD`
+and `JAVA_OPTS` environment variables when running on a JVM (except for
+`JAVACMD` on the GraalVM).
 
 ## Other binary switches
 

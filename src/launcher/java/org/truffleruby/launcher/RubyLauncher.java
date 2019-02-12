@@ -338,7 +338,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println();
         out.println("TruffleRuby:");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
-        out.println("  -J-option=value Translates to --jvm.option=value");
     }
 
     private static void printShortHelp(PrintStream out) {

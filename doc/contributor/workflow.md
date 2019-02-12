@@ -127,10 +127,10 @@ $ jt ruby --native ...
 
 ## Options
 
-Specify JVM options with `-J-option`.
+Specify JVM options with `--jvm.option`.
 
 ```bash
-$ jt ruby -J-Xmx1G test.rb
+$ jt ruby --jvm.Xmx1G test.rb
 ```
 
 TruffleRuby options are set with `-Xname=value`. For example
@@ -140,7 +140,7 @@ to Ruby exceptions. You can leave off the value to set the option to `true`.
 To see all options run `jt ruby --help:languages`.
 
 You can also set JVM options in the `JAVA_OPTS` environment variable (don't
-prefix with `-J`) variable. Ruby command line options and arguments can also be
+prefix with `--jvm.`) variable. Ruby command line options and arguments can also be
 set in `RUBYOPT`.
 
 ## Running with Graal
@@ -149,8 +149,8 @@ See the document on [build graal](building-graal.md), and then run `jt ruby`
 with the `--graal` option.
 
 We have flags in `jt` to set some options, such as `--trace` for
-`-J-Dgraal.TraceTruffleCompilation=true` and `--igv` for
-`-J-Dgraal.Dump=Truffle`.
+`--jvm.Dgraal.TraceTruffleCompilation=true` and `--igv` for
+`--jvm.Dgraal.Dump=Truffle`.
 
 ## Testing with Graal
 

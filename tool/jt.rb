@@ -28,7 +28,7 @@ PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
 
 JDEBUG_PORT = 51819
-JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
+JDEBUG = "--jvm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
@@ -173,7 +173,7 @@ module Utilities
     else
       raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
     end
-    [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
+    [javacmd, vm_args.map { |arg| "--jvm.#{arg[1..-1]}" } + options]
   end
 
   def find_auto_graal_home
@@ -700,12 +700,12 @@ module Commands
         graal = true
       when '--stress'
         graal = true
-        vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
-        vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
-        vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+        vm_args << '--jvm.Dgraal.TruffleCompileImmediately=true'
+        vm_args << '--jvm.Dgraal.TruffleBackgroundCompilation=false'
+        vm_args << '--jvm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
       when '--asm'
         graal = true
-        vm_args += %w[-J-XX:+UnlockDiagnosticVMOptions -J-XX:CompileCommand=print,*::callRoot]
+        vm_args += %w[--jvm.XX:+UnlockDiagnosticVMOptions --jvm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
@@ -713,18 +713,18 @@ module Commands
       when '--server'
         vm_args += %w[-Xinstrumentation_server_port=8080]
       when '--infopoints'
-        vm_args << "-J-XX:+UnlockDiagnosticVMOptions" << "-J-XX:+DebugNonSafepoints"
-        vm_args << "-J-Dgraal.TruffleEnableInfopoints=true"
+        vm_args << "--jvm.XX:+UnlockDiagnosticVMOptions" << "--jvm.XX:+DebugNonSafepoints"
+        vm_args << "--jvm.Dgraal.TruffleEnableInfopoints=true"
       when '--fg'
-        vm_args << "-J-Dgraal.TruffleBackgroundCompilation=false"
+        vm_args << "--jvm.Dgraal.TruffleBackgroundCompilation=false"
       when '--trace'
         graal = true
-        vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
+        vm_args << "--jvm.Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
         graal = true
-        vm_args << (arg == '--igv-full' ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2")
-        vm_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
-        vm_args << "-J-Dgraal.PrintBackendCFG=false"
+        vm_args << (arg == '--igv-full' ? "--jvm.Dgraal.Dump=:2" : "--jvm.Dgraal.Dump=TruffleTree,PartialEscape:2")
+        vm_args << "--jvm.Dgraal.PrintGraphFile=true" unless igv_running?
+        vm_args << "--jvm.Dgraal.PrintBackendCFG=false"
       when '--no-print-cmd'
         options[:no_print_cmd] = true
       when '--exec'
@@ -1022,7 +1022,7 @@ module Commands
     truffle_args =  if extra_args.include?('--native')
                       %W[-Xhome=#{TRUFFLERUBY_DIR}]
                     else
-                      %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+                      %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
                     end
 
     env_vars = {
@@ -1512,7 +1512,7 @@ EOS
     samples = []
     METRICS_REPS.times do
       log '.', "sampling\n"
-      out = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, :err => :out, no_print_cmd: true
+      out = run_ruby '--jvm.Dtruffleruby.metrics.memory_used_on_exit=true', '--jvm.verbose:gc', *args, capture: true, :err => :out, no_print_cmd: true
       samples.push memory_allocated(out)
     end
     log "\n", nil
@@ -1586,7 +1586,7 @@ EOS
   end
 
   def can_run_in_heap(heap, *command)
-    run_ruby("-J-Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
+    run_ruby("--jvm.Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
   end
 
   def metrics_maxrss(*args)
@@ -1660,8 +1660,8 @@ EOS
 
   def metrics_time_measure(use_json, *args)
     native = args.include? '--native'
-    metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
-    verbose_gc_flag = native ? '--native.XX:+PrintGC' : '-J-verbose:gc' unless use_json
+    metrics_time_option = "#{native ? '--native.D' : '--jvm.D'}truffleruby.metrics.time=true"
+    verbose_gc_flag = native ? '--native.XX:+PrintGC' : '--jvm.verbose:gc' unless use_json
     args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
 
     samples = METRICS_REPS.times.map do
@@ -1811,7 +1811,7 @@ EOS
 
     unless benchmark_ruby
       run_args.push '--graal' unless args.delete('--no-graal') || args.include?('list')
-      run_args.push '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      run_args.push '--jvm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
     run_args.push "-I#{find_gem('benchmark-ips')}/lib" rescue nil
@@ -2384,7 +2384,7 @@ EOS
 
       configs.each do |config|
         if config == '--jvm'
-          d = '-J-'
+          d = '--jvm.'
         else
           d = '--native.'
         end

@@ -75,6 +75,7 @@ while [ ${#java_opts[@]} -gt 0 ]; do
     val="${java_opts[0]}"
     case "$val" in
     -cmd)
+        echo '[ruby]' WARNING -cmd in $JAVA_OPTS has been deprecated and will be removed >&2
         print_command="true"
         ;;
     -cp|-classpath)
@@ -95,9 +96,11 @@ while [ $# -gt 0 ]
 do
     case "$1" in
     -J-cmd|--jvm.cmd)
+        echo '[ruby]' WARNING "$1" has been deprecated and will be removed >&2
         print_command="true"
         ;;
     -J-cp|-J-classpath)
+        echo '[ruby]' WARNING "$1" has been deprecated and will be removed - use --jvm.classpath="$2" instead >&2
         CP="$CP:$2"
         shift
         ;;
@@ -108,6 +111,7 @@ do
         CP="$CP:${1:16}"
         ;;
     -J*)
+        echo '[ruby]' WARNING "$1" has been deprecated and will be removed - use --jvm."${1:3}" instead >&2
         java_args+=("${1:2}")
         ;;
     --jvm.*)

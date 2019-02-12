@@ -6,7 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# Use -J-Dgraal.TruffleIterativePartialEscape=true
+# Use --jvm.Dgraal.TruffleIterativePartialEscape=true
 
 require 'readline'
 

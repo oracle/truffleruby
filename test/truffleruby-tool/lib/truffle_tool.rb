@@ -269,7 +269,7 @@ class TruffleTool
                   help:                ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
                   debug_port:          ['--debug-port PORT', 'Debug port', STORE_NEW_VALUE, '51819'],
                   debug_option:        ['--debug-option OPTION', 'Debug JVM option', STORE_NEW_VALUE,
-                                        '-J-agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
+                                        '--jvm.agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
                   truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.truffleruby-tool_bundle'],
                   graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (TRUFFLERUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
                   mock_load_path:      ['--mock-load-path PATH',
@@ -357,8 +357,8 @@ class TruffleTool
                 #{EXECUTABLE} run -- -S irb
                 #{EXECUTABLE} run -- -e 'puts :v'
                 #{EXECUTABLE} run -- -I test test/a_test_file_test.rb
-                #{EXECUTABLE} run -- -J-Xmx2G -- -I test test/a_test_file_test.rb
-                #{EXECUTABLE} --verbose run -S rspec -- -J-Xmx2G -- spec/some_spec.rb --format progress
+                #{EXECUTABLE} run -- --jvm.Xmx2G -- -I test test/a_test_file_test.rb
+                #{EXECUTABLE} --verbose run -S rspec -- --jvm.Xmx2G -- spec/some_spec.rb --format progress
 
     TXT
 
@@ -666,8 +666,8 @@ class TruffleTool
     log "Core load path: #{core_load_path} does not exist, fallbacking to --no-use-fs-core" if missing_core_load_path
 
     truffle_options = [
-        "-J-Xmx#{@options[:run][:xmx]}",
-        *(%w[-J-ea -J-esa] unless @options[:run][:no_asserts]),
+        "--jvm.Xmx#{@options[:run][:xmx]}",
+        *(%w[--jvm.ea --jvm.esa] unless @options[:run][:no_asserts]),
         *("-Xcore.load_path=#{core_load_path}" if @options[:global][:use_fs_core] && !missing_core_load_path),
         *('-Xexceptions.print_java=true' if @options[:run][:jexception])
     ]

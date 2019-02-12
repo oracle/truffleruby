@@ -262,15 +262,18 @@ public class CommandLineParser {
                     String javaOption = grabOptionalValue();
                     final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
 
-                    final String jvmOption = "--jvm." + javaOption.substring(1);
+                    final String jvmOption = javaOption.substring(1);
+
                     if (isClasspath) {
                         argumentIndex++;
                         final String cpValue = getCurrentArgument();
                         arguments.remove(argumentIndex);
                         argumentIndex--;
-                        arguments.set(argumentIndex, jvmOption + "=" + cpValue);
+                        LOGGER.warning(String.format("-J%s %s is deprecated and will be removed - use --jvm.classpath=%s instead", javaOption, cpValue, cpValue));
+                        arguments.set(argumentIndex, "--jvm." + jvmOption + "=" + cpValue);
                     } else {
-                        arguments.set(argumentIndex, jvmOption);
+                        LOGGER.warning(String.format("-J%s is deprecated and will be removed - use --jvm.%s instead", javaOption, jvmOption));
+                        arguments.set(argumentIndex, "--jvm." + jvmOption);
                     }
 
                     break FOR;

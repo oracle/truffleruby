@@ -21,6 +21,10 @@ Changes:
   managed string.
 * `-Xoptions` has been deprecated and will be removed - use `--help:languages` instead.
 * `-Xlog=` has been deprecated and will be removed - use `--log.level=` instead.
+* `-J` has been deprecated and will be removed - use `--jvm.` instead.
+* `-J-cp lib.jar` and so on have been deprecated and will be removed - use
+  `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
+* `-J-cmd`, `--jvm.cmd` and `-cmd` in `$JAVA_OPTS` have been deprecated and will be removed.
 
 Compatibility:
 

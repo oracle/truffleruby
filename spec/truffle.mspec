@@ -35,10 +35,12 @@ class MSpecScript
 
   # No flags set if a Ruby binary is specified via -t
   if !child_process? and !ARGV.include?('-t') # note this is broken if you write for example -truby
-    flags = %w[
-      -J-ea
-      -J-esa
-      -J-Xmx2G
+    prefix = TruffleRuby.native? ? '--native.' : '--jvm.'
+
+    flags = [
+      "#{prefix}ea",
+      "#{prefix}esa",
+      "#{prefix}Xmx2G"
     ]
     core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
