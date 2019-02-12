@@ -323,7 +323,7 @@ public abstract class IntegerNodes {
                 bMinusOne.enter();
                 if (a == Integer.MIN_VALUE) {
                     bMinusOneAMinimum.enter();
-                    return BigInteger.valueOf(a).negate();
+                    return -((long) Integer.MIN_VALUE);
                 } else {
                     bMinusOneANotMinimum.enter();
                     return -a;
@@ -364,7 +364,7 @@ public abstract class IntegerNodes {
                 bMinusOne.enter();
                 if (a == Long.MIN_VALUE) {
                     bMinusOneAMinimum.enter();
-                    return BigInteger.valueOf(a).negate();
+                    return createBignum(BigInteger.valueOf(a).negate());
                 } else {
                     bMinusOneANotMinimum.enter();
                     return -a;
