@@ -24,7 +24,8 @@ Changes:
 * `-J` has been deprecated and will be removed - use `--jvm.` instead.
 * `-J-cp lib.jar` and so on have been deprecated and will be removed - use
   `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
-* `-J-cmd`, `--jvm.cmd` and `-cmd` in `$JAVA_OPTS` have been deprecated and will be removed.
+* `-J-cmd`, `--jvm.cmd`, `JAVA_HOME`, `JAVACMD`, and `JAVA_OPTS` do not work in any released
+  configuration of TruffleRuby, so have been removed.
 
 Compatibility:
 

@@ -11,9 +11,6 @@ curl -LO 'http://central.maven.org/maven2/org/jacoco/org.jacoco.report/0.7.4.201
 JACOCO_AGENT=$(pwd)/jacoco-agent.jar
 JACOCO_LOG=$(pwd)/jacoco.exec
 
-export VERIFY_JRUBY=1
-export JAVA_OPTS="-javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG"
-
 rm -f jacoco.exec
-tool/jt.rb test
+tool/jt.rb test --jvm.javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG
 ant -f tool/java-coverage/build.xml
