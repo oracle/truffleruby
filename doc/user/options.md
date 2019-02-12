@@ -99,10 +99,6 @@ For example `--native.Dsystem_property=value` or `--jvm.ea`.
 To set the classpath, use the `=` notation, rather than two separate arguments.
 For example `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar`.
 
-In the JVM configuration, TruffleRuby also supports the `JAVA_HOME`, `JAVACMD`
-and `JAVA_OPTS` environment variables when running on a JVM (except for
-`JAVACMD` on the GraalVM).
-
 ## Other binary switches
 
 Other binaries, such as `irb`, `gem`, and so on, support exactly the same

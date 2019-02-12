@@ -139,9 +139,10 @@ to Ruby exceptions. You can leave off the value to set the option to `true`.
 
 To see all options run `jt ruby --help:languages`.
 
-You can also set JVM options in the `JAVA_OPTS` environment variable (don't
-prefix with `--jvm.`) variable. Ruby command line options and arguments can also be
-set in `RUBYOPT`.
+The development launcher supports `RUBY_BIN`, `JAVACMD`, `JAVA_HOME`, and
+`JAVA_OPTS`.
+
+Ruby command line options and arguments can also be set in `RUBYOPT`.
 
 ## Running with Graal
 

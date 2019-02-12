@@ -9,8 +9,6 @@ $ jt benchmark bench/classic/mandelbrot.rb --simple
 Output is iterations per second, printed roughly every second (more frequently
 for the first few iterations).
 
-The best way to set JVM options here is to use `JAVA_OPTS`.
-
 # Benchmarking without Graal
 
 You can turn off Graal if you want using `--no-graal`.

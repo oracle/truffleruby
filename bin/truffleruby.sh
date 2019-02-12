@@ -68,16 +68,10 @@ java_args+=("-Druby.home=$root")
 # no " to split $JAVA_OPTS into array elements
 java_opts=($JAVA_OPTS)
 
-print_command="false"
-
 # Extract -cp/-classpath arguments as we need to merge them
 while [ ${#java_opts[@]} -gt 0 ]; do
     val="${java_opts[0]}"
     case "$val" in
-    -cmd)
-        echo '[ruby]' WARNING -cmd in $JAVA_OPTS has been deprecated and will be removed >&2
-        print_command="true"
-        ;;
     -cp|-classpath)
         java_opts=("${java_opts[@]:1}")
         CP="$CP:${java_opts[0]}"
@@ -95,10 +89,6 @@ ruby_args=()
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -J-cmd|--jvm.cmd)
-        echo '[ruby]' WARNING "$1" has been deprecated and will be removed >&2
-        print_command="true"
-        ;;
     -J-cp|-J-classpath)
         echo '[ruby]' WARNING "$1" has been deprecated and will be removed - use --jvm.classpath="$2" instead >&2
         CP="$CP:$2"
@@ -142,16 +132,8 @@ if [ -n "$CP" ]; then
     java_args=("-cp" "${CP:1}" "${java_args[@]}")
 fi
 
-full_command=(
-    "$JAVACMD"
-    "${java_args[@]}"
-    org.truffleruby.launcher.RubyLauncher
-    "-Xlauncher=$root/bin/truffleruby"
+exec "$JAVACMD" \
+    "${java_args[@]}" \
+    org.truffleruby.launcher.RubyLauncher \
+    "-Xlauncher=$root/bin/truffleruby" \
     "${ruby_args[@]}"
-)
-
-if [ "$print_command" = "true" ]; then
-    echo $ "${full_command[@]}"
-fi
-
-exec "${full_command[@]}"

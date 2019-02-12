@@ -58,28 +58,6 @@ describe "The launcher" do
     $?.success?.should == true
   end
 
-  guard -> { !TruffleRuby.native? } do
-    it "prints the full java command with -J-cmd" do
-      should_print_full_java_command "-J-cmd --version"
-    end
-
-    it "prints the full java command with --jvm.cmd" do
-      should_print_full_java_command "--jvm.cmd --version"
-    end
-
-    it "prints the full java command with -cmd in JAVA_OPTS" do
-      should_print_full_java_command "--version", env: { "JAVA_OPTS" => "-cmd" }
-    end
-
-    it "adds options from $JAVA_OPTS to the command" do
-      option = '-Dfoo.bar=baz'
-      out = ruby_exe(nil, options: "-J-cmd --version", env: { "JAVA_OPTS" => option })
-      parts = out.lines[0].split(' ')
-      parts.find { |part| part =~ /^#{option}$/ }.should_not be_nil
-      $?.success?.should == true
-    end
-  end
-
   it "does not create context on --version and -v" do
     v = ruby_exe(nil, options: "--log.level=FINE -v", args: "2>&1")
     v.should_not include("createContext()")
@@ -136,12 +114,6 @@ describe "The launcher" do
   end
 
   guard -> { !TruffleRuby.native? } do
-    it "takes options from system properties set in JAVA_OPTS" do
-      out = ruby_exe("puts $VERBOSE", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=true" })
-      $?.success?.should == true
-      out.should == "true\n"
-    end
-
     it "takes options from system properties set on the command line using -J" do
       out = ruby_exe("puts $VERBOSE", options: "-J-Dpolyglot.ruby.verbosity=true")
       $?.success?.should == true
@@ -170,42 +142,29 @@ describe "The launcher" do
   end
 
   it "prioritises options on the command line over system properties" do
-    out = ruby_exe("puts $VERBOSE", options: "-W2", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=nil" })
+    prefix = TruffleRuby.native? ? 'native' : 'jvm'
+    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbosity=nil -W2")
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "prioritises options on the command line using -X over system properties" do
-    out = ruby_exe("puts $VERBOSE", options: "-Xverbosity=true", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=nil" })
+    prefix = TruffleRuby.native? ? 'native' : 'jvm'
+    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbosity=nil -Xverbosity=true")
     $?.success?.should == true
     out.should == "true\n"
   end
 
   guard -> { !TruffleRuby.native? } do
-    it "allows -cp in JAVA_OPTS" do
-      out = ruby_exe("puts 14", options: "-J-cmd", env: { "JAVA_OPTS" => "-cp does-not-exist.jar" })
-      $?.success?.should == true
-      out.lines[0].should include(":does-not-exist.jar")
-      out.lines[1].should == "14\n"
-    end
-
-    it "allows -classpath in JAVA_OPTS" do
-      out = ruby_exe("puts 14", options: "-J-cmd", env: { "JAVA_OPTS" => "-classpath does-not-exist.jar" })
-      $?.success?.should == true
-      out.lines[0].should include(":does-not-exist.jar")
-      out.lines[1].should == "14\n"
-    end
-
     ['-J-classpath ',
      '-J-cp ',
      '--jvm.classpath=',
      '--jvm.cp='
     ].each do |option|
       it "'#{option}' adds the jar" do
-        out = ruby_exe("puts 14", options: "#{option}does-not-exist.jar -J-cmd")
+        out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
         $?.success?.should == true
         out.lines[0].should include(":does-not-exist.jar")
-        out.lines[1].should == "14\n"
       end
     end
   end
