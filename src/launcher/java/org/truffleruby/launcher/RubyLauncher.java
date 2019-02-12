@@ -94,7 +94,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
-                    args.add(index, "-Xread_rubyopt=false");
+                    args.add(index, "--read_rubyopt=false");
                     args.addAll(index + 1, rubyoptArgs);
                     args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
                 }
@@ -178,15 +178,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected AbortException abortUnrecognizedArgument(String argument) {
-        final String description;
-        if (argument.startsWith("--ruby.")) {
-            description = argument + " (-X" + argument.substring(7) + ")";
-        } else {
-            description = argument;
-        }
-
         throw abortInvalidArgument(argument,
-                TruffleRuby.SIMPLE_NAME + ": invalid option " + description + "  (Use --help for usage instructions.)");
+                TruffleRuby.SIMPLE_NAME + ": invalid option " + argument + "  (Use --help for usage instructions.)");
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -334,10 +327,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
-        // Extra output for TruffleRuby
-        out.println();
-        out.println("TruffleRuby:");
-        out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
     }
 
     private static void printShortHelp(PrintStream out) {

@@ -26,6 +26,7 @@ Changes:
   `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
 * `-J-cmd`, `--jvm.cmd`, `JAVA_HOME`, `JAVACMD`, and `JAVA_OPTS` do not work in any released
   configuration of TruffleRuby, so have been removed.
+* `-Xoption=value` has been deprecated and will be removed - use `--option=value` instead.
 
 Compatibility:
 

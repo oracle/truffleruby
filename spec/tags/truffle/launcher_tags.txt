@@ -18,7 +18,7 @@ slow:The launcher '-J:classpath ' adds the jar
 slow:The launcher '-J:cp ' adds the jar
 slow:The launcher '--jvm.classpath=' adds the jar
 slow:The launcher '--jvm.cp=' adds the jar
-slow:The launcher enables deterministic hashing if -Xhashing.deterministic is set
+slow:The launcher enables deterministic hashing if --hashing.deterministic is set
 slow:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 slow:The launcher 'irb' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 slow:The launcher 'rake' in `RbConfig::CONFIG['bindir']` directory runs when symlinked

@@ -202,10 +202,15 @@ describe "The launcher" do
   it "prints an error for an unknown option" do
     out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
-    out.should include("invalid option --ruby.unknown=value (-Xunknown=value)")
+    out.should include("invalid option --unknown=value")
+    
     out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
+    
+    out = ruby_exe(nil, options: "--ruby.unknown=value", args: "2>&1")
+    $?.success?.should == false
+    out.should include("invalid option --ruby.unknown=value")
   end
 
   it "sets the log level using -Xlog=" do
@@ -235,7 +240,7 @@ describe "The launcher" do
     end
 
     it 'parses ,' do
-      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a,b")
+      out = ruby_exe("puts $LOAD_PATH", options: "--load_paths=a,b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
@@ -243,7 +248,7 @@ describe "The launcher" do
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
+      out = ruby_exe("puts $LOAD_PATH", options: "--load_paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a,b\n"
       out.lines[1].should == "#{Dir.pwd}\n"
@@ -251,8 +256,8 @@ describe "The launcher" do
     end
   end
 
-  it "enables deterministic hashing if -Xhashing.deterministic is set" do
-    out = ruby_exe("puts 14.hash", options: "-Xhashing.deterministic", args: "2>&1")
+  it "enables deterministic hashing if --hashing.deterministic is set" do
+    out = ruby_exe("puts 14.hash", options: "--hashing.deterministic", args: "2>&1")
     $?.success?.should == true
     out.should include("SEVERE: deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")

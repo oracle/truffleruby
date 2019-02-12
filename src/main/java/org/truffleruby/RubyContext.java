@@ -353,12 +353,12 @@ public class RubyContext {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
         if (!newOptions.PREINITIALIZATION) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "-Xpreinit is false");
+            RubyLanguage.LOGGER.fine(notReusingContext + "--preinit is false");
             return false;
         }
 
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
+            RubyLanguage.LOGGER.fine(notReusingContext + "--core.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
         }
 
@@ -720,7 +720,7 @@ public class RubyContext {
     @TruffleBoundary
     private String searchRubyHome(Options options) throws IOException {
         if (options.NO_HOME_PROVIDED) {
-            RubyLanguage.LOGGER.config("-Xruby.no_home_provided set");
+            RubyLanguage.LOGGER.config("--ruby.no_home_provided set");
             return null;
         }
 
@@ -728,13 +728,13 @@ public class RubyContext {
 
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
-            RubyLanguage.LOGGER.config(() -> String.format("trying -Xhome=%s, expanded to %s, as the Ruby home", options.HOME, home));
+            RubyLanguage.LOGGER.config(() -> String.format("trying --home=%s, expanded to %s, as the Ruby home", options.HOME, home));
             if (!isRubyHome(home)) {
-                RubyLanguage.LOGGER.warning(String.format("-Xhome=%s does not look like TruffleRuby's home", options.HOME));
+                RubyLanguage.LOGGER.warning(String.format("--home=%s does not look like TruffleRuby's home", options.HOME));
             }
             return home.getCanonicalPath();
         } else {
-            RubyLanguage.LOGGER.config("-Xhome not set, cannot determine home from it");
+            RubyLanguage.LOGGER.config("--home not set, cannot determine home from it");
         }
 
         // Use the Truffle reported home
@@ -770,7 +770,7 @@ public class RubyContext {
 
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use --log.level=CONFIG to see details");
+            RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set --home= or use --log.level=CONFIG to see details");
         }
 
         return null;

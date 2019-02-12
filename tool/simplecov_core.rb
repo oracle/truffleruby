@@ -1,5 +1,5 @@
-# Run with -Xcoverage.global=true if you want coverage of the core library
-# $ export TRUFFLERUBYOPT="-Xcoverage.global=true -Xrequired_libraries=./tool/simplecov_core.rb"
+# Run with --coverage.global=true if you want coverage of the core library
+# $ export TRUFFLERUBYOPT="--coverage.global=true --required_libraries=./tool/simplecov_core.rb"
 # Then run a hello world, specs, etc
 
 at_exit do

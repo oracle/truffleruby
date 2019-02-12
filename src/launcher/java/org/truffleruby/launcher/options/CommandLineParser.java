@@ -414,10 +414,11 @@ public class CommandLineParser {
                         final String level = extendedOption.substring("log=".length());
                         config.getUnknownArguments().add("--log.level=" + level);
                     } else {
+                        LOGGER.warning(String.format("-X%s is deprecated and will be removed - use --%s instead", extendedOption, extendedOption));
                         // Turn extra options into polyglot options and let
                         // org.graalvm.launcher.Launcher.parsePolyglotOption
                         // parse it
-                        config.getUnknownArguments().add("--ruby." + extendedOption);
+                        config.getUnknownArguments().add("--" + extendedOption);
                     }
                     break FOR;
                 case '-':

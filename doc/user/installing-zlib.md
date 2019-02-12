@@ -31,5 +31,5 @@ If `zlib` is in a non-standard location for your system, you can use the
 option:
 
 ```
--Xcexts.remap=libz.so:path/to/libz.so
+--cexts.remap=libz.so:path/to/libz.so
 ```
