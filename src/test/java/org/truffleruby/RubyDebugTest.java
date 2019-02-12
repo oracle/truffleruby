@@ -249,7 +249,7 @@ public class RubyDebugTest {
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
 
             final AtomicInteger numFrameVars = new AtomicInteger(0);
-            frame.forEach(var -> { numFrameVars.incrementAndGet(); });
+            frame.getScope().getDeclaredValues().forEach(var -> { numFrameVars.incrementAndGet(); });
             // There is (self) among the variables, hence substract 1:
             assertEquals(expectedFrame.length / 2, numFrameVars.get() - 1);
 
