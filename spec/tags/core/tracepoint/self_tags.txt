@@ -1,0 +1,1 @@
+fails:TracePoint#self return the class object from a class event
