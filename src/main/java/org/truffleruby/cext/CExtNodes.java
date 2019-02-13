@@ -497,7 +497,7 @@ public class CExtNodes {
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
                 @Cached("create()") BranchProfile errorProfile) {
@@ -513,7 +513,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            final int r = characterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
+            final int r = calculateCharacterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
@@ -1371,7 +1371,7 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
-                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1382,7 +1382,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            return characterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+            return calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
         }
 
         private CodeRange codeRange(Rope rope) {
