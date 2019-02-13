@@ -383,7 +383,7 @@ public abstract class BindingNodes {
 
                 frame = RubyArguments.getDeclarationFrame(frame);
             }
-            return ArrayHelpers.createArray(context, names);
+            return ArrayHelpers.createArray(context, names.toArray());
         }
 
         private static void addNamesFromFrame(RubyContext context, Frame frame, final Set<Object> names) {
