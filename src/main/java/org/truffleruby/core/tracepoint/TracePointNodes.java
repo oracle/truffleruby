@@ -53,7 +53,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "initialize", rest = true, needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public DynamicObject initialize(DynamicObject tracePoint, Object[] args, DynamicObject block) {
             Layouts.TRACE_POINT.setTags(tracePoint, new Class<?>[]{TraceManager.LineTag.class});
             Layouts.TRACE_POINT.setProc(tracePoint, block);
@@ -65,7 +65,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "enable", needsBlock = true)
     public abstract static class EnableNode extends YieldingCoreMethodNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public boolean enable(DynamicObject tracePoint, NotProvided block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
@@ -78,7 +78,7 @@ public abstract class TracePointNodes {
             return alreadyEnabled;
         }
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public Object enable(DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
@@ -118,12 +118,12 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "disable", needsBlock = true)
     public abstract static class DisableNode extends YieldingCoreMethodNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public boolean disable(DynamicObject tracePoint, NotProvided block) {
             return disable(tracePoint, (DynamicObject) null);
         }
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public boolean disable(DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
@@ -152,7 +152,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "enabled?")
     public abstract static class EnabledNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public boolean enabled(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getEventBinding(tracePoint) != null;
         }
@@ -162,7 +162,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "event")
     public abstract static class EventNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public DynamicObject event(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getEvent(tracePoint);
         }
@@ -172,7 +172,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "path")
     public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public DynamicObject path(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getPath(tracePoint);
         }
@@ -182,7 +182,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "lineno")
     public abstract static class LineNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public int line(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getLine(tracePoint);
         }
@@ -192,7 +192,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "method_id")
     public abstract static class MethodIDNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public DynamicObject methodId(DynamicObject tracePoint,
                 @Cached("create()") MakeStringNode makeStringNode) {
             final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
@@ -205,7 +205,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "self")
     public abstract static class SelfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public Object self(DynamicObject tracePoint) {
             final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
             return RubyArguments.getSelf(BindingNodes.getFrame(binding));
@@ -216,7 +216,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isTracePoint(tracePoint)")
+        @Specialization
         public DynamicObject binding(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getBinding(tracePoint);
         }
