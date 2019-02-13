@@ -54,24 +54,30 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    // because the factory is not constant
-    @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
         return createRubyException(context, rubyClass, message, node, null, javaException);
     }
 
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
+        return createRubyException(context, rubyClass, message, backtrace);
+    }
+
+    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node);
+        return createSystemCallError(context, rubyClass, message, errno, backtrace);
+    }
+
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
-        Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
+    private static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Backtrace backtrace) {
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace);
     }
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
-        Backtrace backtrace = context.getCallStack().getBacktrace(node);
+    private static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, int errno, Backtrace backtrace) {
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace, errno);
     }
