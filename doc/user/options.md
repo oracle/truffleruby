@@ -42,8 +42,8 @@ Features:
                   freeze all string literals (default: disabled)
 ```
 
-TruffleRuby also reads the `RUBYOPT` environment variable, if run from the Ruby
-launcher.
+TruffleRuby also reads the `RUBYOPT` environment variable, as in standard
+Ruby, if run from the Ruby launcher.
 
 ## Unlisted Ruby switches
 
@@ -60,21 +60,16 @@ but are documented in the Ruby manual page.
   --dump=insns    print disassembled instructions
 ```
 
-## TruffleRuby-specific switches
+## TruffleRuby options
 
-Beyond the standard Ruby command line switches we support some additional
-switches specific to TruffleRuby.
+TruffleRuby options are set via `--option=value`, or you can use
+`--ruby.option=value` from any launcher. You can omit `=value` to set to `true`.
 
-```
-TruffleRuby:
-  -Xname=value    set a TruffleRuby option (omit value to set to true)
-```
+Available options and documentation can be seen with `--help:languages`.
+Additionally set `--help:expert` and `--help:debug` to see those categories of
+options. All options all experimental and subject to change at any time.
 
-As well as being set at the command line, options can be set using
-`--option=`, or using `--ruby.option=` from any GraalVM language launcher. You
-can omit `=value` to set to `true`.
-
-They can also be set as JVM system properties, where they have a prefix
+Options can also be set as JVM system properties, where they have a prefix
 `polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`, or via
 any other way of setting JVM system properties. Finally, options can be set as
 Graal-SDK polyglot API configuration options.
@@ -82,14 +77,14 @@ Graal-SDK polyglot API configuration options.
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
 
-TruffleRuby-specific options, as well as conventional Ruby options, can also
-bet set in the `TRUFFLERUBYOPT` environment variable, if run from the Ruby
-launcher.
+TruffleRuby options, as well as conventional Ruby options and VM options, can
+also bet set in the `TRUFFLERUBYOPT` and `RUBYOPT` environment variables, if
+run from the Ruby launcher.
 
-`--` or the first non-option argument stop processing of TrufflRuby and VM
+`--` or the first non-option argument stops processing of TrufflRuby and VM
 options in the same way it stops processing of Ruby arguments.
 
-## VM-specific switches
+## VM options
 
 To set options in the underlying VM, use `--native.` in the native
 configuration, and `--jvm.` in the JVM configuration.
@@ -104,13 +99,6 @@ For example `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar`.
 Other binaries, such as `irb`, `gem`, and so on, support exactly the same
 switches as in standard Ruby.
 
-## TruffleRuby options
-
-TruffleRuby options (set via `--option=value`, or `--ruby.option=value`) are
-all experimental and subject to change at any time. Available options and
-documentation can be seen with `--help:languages`. Additionally set
-`--help:expert` and `--help:debug` to see those categories of options.
-
 ## Determining the TruffleRuby home
 
 TruffleRuby needs to know where to locate files such as the standard library.
@@ -118,7 +106,7 @@ These are stored in the TruffleRuby home directory.
 
 The search priority for finding Ruby home is:
 
-* The value of the TruffleRuby `home` option (i.e., `-Xhome=path/to/truffleruby_home`).
+* The value of the TruffleRuby `home` option (i.e., `--home=path/to/truffleruby_home`).
 * The home that the Truffle framework reports.
 * The parent of the directory containing the Ruby launcher executable.
 

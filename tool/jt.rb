@@ -29,7 +29,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
 
 JDEBUG_PORT = 51819
 JDEBUG = "--jvm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
-JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
+JEXCEPTION = "--exceptions.print_uncaught_java=true"
 METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
@@ -688,7 +688,7 @@ module Commands
     native = false
     graal = false
     ruby_args = []
-    vm_args = [core_load_path = "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"]
+    vm_args = [core_load_path = "--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"]
 
     while (arg = args.shift)
       case arg
@@ -711,7 +711,7 @@ module Commands
       when '--jexception', '--jexceptions'
         vm_args << JEXCEPTION
       when '--server'
-        vm_args += %w[-Xinstrumentation_server_port=8080]
+        vm_args += %w[--instrumentation_server_port=8080]
       when '--infopoints'
         vm_args << "--jvm.XX:+UnlockDiagnosticVMOptions" << "--jvm.XX:+DebugNonSafepoints"
         vm_args << "--jvm.Dgraal.TruffleEnableInfopoints=true"
@@ -1020,7 +1020,7 @@ module Commands
     }
 
     truffle_args =  if extra_args.include?('--native')
-                      %W[-Xhome=#{TRUFFLERUBY_DIR}]
+                      %W[--home=#{TRUFFLERUBY_DIR}]
                     else
                       %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
                     end
@@ -1099,7 +1099,7 @@ module Commands
   def test_compiler(*args)
     env = {}
 
-    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '-Xexceptions.print_java=true'].join(' ')
+    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--exceptions.print_java=true'].join(' ')
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
@@ -1320,11 +1320,11 @@ EOS
 
               gemserver_source = %w[--clear-sources --source http://localhost:8808]
 
-              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
                 'gem', 'install', *gemserver_source, '--no-document', 'bundler', '-v', bundler_version, '--backtrace')
-              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
                 'bundle', "_#{bundler_version}_", 'install', *install_flags)
-              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
                 'bundle', "_#{bundler_version}_", 'exec', 'rake')
             end
           ensure
@@ -1371,7 +1371,7 @@ EOS
 
       options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << find_launcher(true)
-      options << "-T-Xhome=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
+      options << "-T--home=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
     end
 
     if args.delete('--graal')
@@ -1798,7 +1798,7 @@ EOS
     run_args = []
 
     if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
-      run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
+      run_args.push "--home=#{TRUFFLERUBY_DIR}"
 
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
@@ -1973,7 +1973,7 @@ EOS
     # We need to build with -parameters to get parameter names.
     # Build every project as "mx findbugs" needs it currently.
     mx 'build', '--force-javac', '-A-parameters'
-    run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
+    run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
   end
 
   def rubocop(*args)
@@ -2388,7 +2388,7 @@ EOS
           d = '--native.'
         end
 
-        lines.push "RUN " + setup_env["ruby #{config} #{d}Dgraal.TruffleCompilationExceptionsAreThrown=true #{d}Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"]
+        lines.push "RUN " + setup_env["ruby #{config} #{d}Dgraal.TruffleCompilationExceptionsAreThrown=true #{d}Dgraal.TruffleIterativePartialEscape=true --basic_ops.inline=false pe/pe.rb"]
       end
     end
 

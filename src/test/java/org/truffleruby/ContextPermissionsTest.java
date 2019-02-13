@@ -39,7 +39,7 @@ public class ContextPermissionsTest {
 
     @Test
     public void testThreadsNoNative() throws Throwable {
-        // The ruby.single_threaded option needs to be set because -Xsingle_threaded defaults to -Xembedded.
+        // The ruby.single_threaded option needs to be set because --single_threaded defaults to --embedded.
         try (Context context = Context.newBuilder("ruby").allowCreateThread(true).option("ruby.single_threaded", "false").build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 

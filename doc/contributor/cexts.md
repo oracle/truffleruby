@@ -40,7 +40,7 @@ jt cextc bench/chunky_png/oily_png
 Then follow the instructions for benchmarking above, and then try:
 
 ```bash
-USE_CEXTS=true TRUFFLERUBYOPT=-Xcexts.log.load=true jt benchmark bench/chunky_png/chunky-color-r.rb --simple
+USE_CEXTS=true TRUFFLERUBYOPT=--cexts.log.load=true jt benchmark bench/chunky_png/chunky-color-r.rb --simple
 ```
 
 These benchmarks have Ruby fallbacks, so we should carefully check that the

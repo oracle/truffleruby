@@ -44,8 +44,8 @@ class MSpecScript
     ]
     core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
-      flags << "-Xcore.load_path=#{core_path}"
-      flags << "-Xbacktraces.hide_core_files=false"
+      flags << "--core.load_path=#{core_path}"
+      flags << "--backtraces.hide_core_files=false"
     end
     set :flags, flags
   end

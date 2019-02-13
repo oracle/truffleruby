@@ -135,5 +135,5 @@ fi
 exec "$JAVACMD" \
     "${java_args[@]}" \
     org.truffleruby.launcher.RubyLauncher \
-    "-Xlauncher=$root/bin/truffleruby" \
+    "--launcher=$root/bin/truffleruby" \
     "${ruby_args[@]}"

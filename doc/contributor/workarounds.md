@@ -16,8 +16,8 @@ only once.
 
 The evaluated patch files are not visible in `$LOAD_PATH` nor `$LOADED_FEATURES`.
 
-Patching can be disabled by passing the `-Xpatching=false` option. 
-`-X.log=CONFIG` can be used to see paths of loaded patch files.
+Patching can be disabled by passing the `--patching=false` option. 
+`--log.level=CONFIG` can be used to see paths of loaded patch files.
 
 # C file preprocessing
 
