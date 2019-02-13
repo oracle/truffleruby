@@ -48,6 +48,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -1489,13 +1490,14 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject guardedObject,
+        public DynamicObject addToMarkList(VirtualFrame frame, TruffleObject guardedObject,
+                @Cached("create()") MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached("create()") BranchProfile noExceptionProfile,
                 @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getContext().getMarkingService().keepObject(guardedObject);
+                keepAliveNode.execute(frame, guardedObject);
             }
             return nil();
         }
@@ -1567,8 +1569,9 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(VirtualFrame frame) {
-            getContext().getMarkingService().pushStackPreservationFrame();
+        public DynamicObject pushFrame(VirtualFrame frame,
+                @Cached("create()") MarkingServiceNodes.GetPreservationStackNode getStackNode) {
+            getStackNode.execute(frame).push();
             return nil();
         }
     }
@@ -1577,8 +1580,9 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject popFrame(VirtualFrame frame) {
-            getContext().getMarkingService().popStackPreservationFrame();
+        public DynamicObject popFrame(VirtualFrame frame,
+                @Cached("create()") MarkingServiceNodes.GetPreservationStackNode getStackNode) {
+            getStackNode.execute(frame).pop();
             return nil();
         }
     }
