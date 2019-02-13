@@ -20,6 +20,7 @@ import org.truffleruby.extra.ffi.Pointer;
 public class NativeRope extends Rope {
 
     private CodeRange codeRange;
+    private int characterLength;
     private final Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
@@ -27,9 +28,10 @@ public class NativeRope extends Rope {
     }
 
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
-        super(encoding, false, byteLength, characterLength, 1, null);
+        super(encoding, false, byteLength, 1, null);
 
         this.codeRange = codeRange;
+        this.characterLength = characterLength;
         this.pointer = pointer;
     }
 
@@ -101,6 +103,11 @@ public class NativeRope extends Rope {
         }
 
         return codeRange;
+    }
+
+    @Override
+    public int characterLength() {
+        return characterLength;
     }
 
     public void setCodeRange(CodeRange codeRange) {
