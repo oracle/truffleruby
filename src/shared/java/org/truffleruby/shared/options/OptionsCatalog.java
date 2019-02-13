@@ -21,97 +21,97 @@ public class OptionsCatalog {
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription(
             OptionCategory.USER,
             "ruby.load_paths",
-            "Load paths (configured by -I Ruby options)",
+            "Load paths (configured by the -I Ruby option)",
             new String[]{"-I"},
             new String[]{});
     public static final StringArrayOptionDescription REQUIRED_LIBRARIES = new StringArrayOptionDescription(
             OptionCategory.USER,
             "ruby.required_libraries",
-            "Required libraries (configured by -r Ruby options)",
+            "Required libraries (configured by the -r Ruby option)",
             new String[]{"-r"},
             new String[]{});
     public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.ignore_lines_before_ruby_shebang",
-            "strip off text before #!ruby line (configured by -x Ruby options)",
+            "strip off text before #!ruby line (configured by the -x Ruby option)",
             new String[]{"-x"},
             false);
     public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription(
             OptionCategory.USER,
             "ruby.working_directory",
-            "Interpreter will switch to this directory (configured by -C Ruby options)",
+            "Interpreter will switch to this directory (configured by the -C Ruby option)",
             new String[]{"-C"},
             "");
     public static final ExecutionActionOptionDescription EXECUTION_ACTION = new ExecutionActionOptionDescription(
             OptionCategory.USER,
             "ruby.execution_action",
-            "What should be done after context is created (configured by -e, -S Ruby options)",
+            "What should be done after context is created (configured by the -e, -S Ruby options)",
             new String[]{"-e", "-S"},
             ExecutionAction.NONE);
     public static final StringOptionDescription TO_EXECUTE = new StringOptionDescription(
             OptionCategory.USER,
             "ruby.to_execute",
-            "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable. (configured by -e, -S Ruby options)",
+            "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable. (configured by the -e, -S Ruby options)",
             new String[]{"-e", "-S"},
             "");
     public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.syntax_check",
-            "Do not execute just check syntax (configured by -c Ruby options)",
+            "Do not execute just check syntax (configured by the -c Ruby option)",
             new String[]{"-c"},
             false);
     public static final BooleanOptionDescription SHOW_VERSION = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.show_version",
-            "Show version (configured by --version Ruby options)",
+            "Show version (configured by the --version Ruby option)",
             new String[]{"--version"},
             false);
     public static final BooleanOptionDescription SHOW_COPYRIGHT = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.show_copyright",
-            "Show copyright (configured by --copyright Ruby options)",
+            "Show copyright (configured by the --copyright Ruby option)",
             new String[]{"--copyright"},
             false);
     public static final ShowHelpOptionDescription SHOW_HELP = new ShowHelpOptionDescription(
             OptionCategory.USER,
             "ruby.show_help",
-            "What help should be shown (configured by -h, --help Ruby options)",
+            "What help should be shown (configured by the -h, --help Ruby options)",
             new String[]{"-h", "--help"},
             ShowHelp.NONE);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.debug",
-            "Debug (configured by -d Ruby options)",
+            "Debug (configured by the -d Ruby option)",
             new String[]{"-d"},
             false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription(
             OptionCategory.USER,
             "ruby.verbosity",
-            "Verbosity (configured by -v, -w, -W, --verbose Ruby options)",
+            "Verbosity (configured by the -v, -w, -W, --verbose Ruby options)",
             new String[]{"-v", "-w", "-W", "--verbose"},
             Verbosity.FALSE);
     public static final BooleanOptionDescription ARGV_GLOBALS = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.argv_globals",
-            "Parse options in script argv into global variables (configured by -s Ruby options)",
+            "Parse options in script argv into global variables (configured by the -s Ruby option)",
             new String[]{"-s"},
             false);
     public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
             "ruby.source_encoding",
-            "Source encoding (configured by -K Ruby options)",
+            "Source encoding (configured by the -K Ruby option)",
             new String[]{"-K"},
             "");
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
             "ruby.internal_encoding",
-            "Internal encoding (configured by -E, -U Ruby options)",
+            "Internal encoding (configured by the -E, -U Ruby options)",
             new String[]{"-E", "-U"},
             "");
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
             "ruby.external_encoding",
-            "External encoding (configured by -E Ruby options)",
+            "External encoding (configured by the -E Ruby option)",
             new String[]{"-E"},
             "");
     public static final StringOptionDescription HOME = new StringOptionDescription(

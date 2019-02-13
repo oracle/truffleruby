@@ -76,7 +76,7 @@ options_data.each do |category, category_options|
         reference_default: parse_reference_defaults(default),
         env_condition:     env_condition,
         description:       description + (mri_names.empty? ?
-                                              '' : " (configured by #{mri_names.join(', ')} Ruby options)")
+                                              '' : " (configured by the #{mri_names.join(', ')} Ruby option#{'s' if mri_names.size > 1})")
     )
   end
 end
