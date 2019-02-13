@@ -1020,6 +1020,7 @@ public class CExtNodes {
         protected NativeRope toNative(DynamicObject string,
                 @Cached("createBinaryProfile()") ConditionProfile convertProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             final Rope currentRope = rope(string);
 
@@ -1031,7 +1032,7 @@ public class CExtNodes {
                 nativeRope = new NativeRope(getContext().getFinalizationService(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
-                        currentRope.characterLength(),
+                        characterLengthNode.execute(currentRope),
                         codeRangeNode.execute(currentRope));
                 StringOperations.setRope(string, nativeRope);
             }

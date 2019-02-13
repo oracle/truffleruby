@@ -1499,6 +1499,26 @@ public abstract class RopeNodes {
 
     }
 
+    public abstract static class CharacterLengthNode extends RubyBaseNode {
+
+        public static CharacterLengthNode create() {
+            return RopeNodesFactory.CharacterLengthNodeGen.create();
+        }
+
+        public abstract int execute(Rope rope);
+
+        @Specialization
+        public int getCharacterLengthManaged(ManagedRope rope) {
+            return rope.characterLength();
+        }
+
+        @Specialization
+        public int getCharacterLengthNative(NativeRope rope) {
+            return rope.characterLength();
+        }
+
+    }
+
     @ImportStatic(CodeRange.class)
     public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {
 

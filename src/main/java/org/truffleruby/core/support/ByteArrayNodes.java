@@ -209,6 +209,7 @@ public abstract class ByteArrayNodes {
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
                               @Cached("create()") RopeNodes.BytesNode bytesNode,
+                              @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
                               @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));
@@ -216,7 +217,7 @@ public abstract class ByteArrayNodes {
             if (notFoundProfile.profile(index == -1)) {
                 return nil();
             } else {
-                return index + patternRope.characterLength();
+                return index + characterLengthNode.execute(patternRope);
             }
         }
 
