@@ -108,12 +108,17 @@ class Exception
     cls = Truffle::Type.object_class self
     name = Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
-    out << ms.serialize_fixnum(2)
 
+    cause = self.cause
+    out << ms.serialize_fixnum(cause ? 3 : 2) # number of ivars
     out << ms.serialize(:mesg)
     out << ms.serialize(Truffle.invoke_primitive(:exception_message, self))
     out << ms.serialize(:bt)
     out << ms.serialize(self.backtrace)
+    if cause
+      out << ms.serialize(:cause)
+      out << ms.serialize(cause)
+    end
 
     out
   end
@@ -1153,6 +1158,8 @@ module Marshal
           Truffle.invoke_primitive :object_ivar_set, obj, :@custom_backtrace, value
         when :mesg
           Truffle.invoke_primitive :exception_set_message, obj, value
+        when :cause
+          Truffle.invoke_primitive :exception_set_cause, obj, value
         end
       end
     end
