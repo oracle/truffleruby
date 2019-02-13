@@ -9,6 +9,23 @@
 # GNU Lesser General Public License version 2.1.
 
 class TracePoint
+  def initialize(*events, &handler)
+    events = [:line] if events.empty?
+    events = events.map { |event| Truffle::Type.coerce_to event, Symbol, :to_sym }
+    events.each do |event|
+      case event
+      when :line
+        # Supported
+      else
+        raise ArgumentError, "unknown event: #{event}"
+      end
+    end
+
+    raise ArgumentError, 'must be called with a block' unless handler
+
+    Truffle.invoke_primitive :tracepoint_initialize, self, events.uniq, handler
+  end
+
   def inspect
     if enabled?
       "#<TracePoint:#{event}@#{path}:#{lineno}>"

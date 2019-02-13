@@ -22,8 +22,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.CodeRange;
@@ -50,12 +53,23 @@ public abstract class TracePointNodes {
 
     }
 
-    @CoreMethod(names = "initialize", rest = true, needsBlock = true)
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "tracepoint_initialize")
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize(DynamicObject tracePoint, Object[] args, DynamicObject block) {
-            Layouts.TRACE_POINT.setTags(tracePoint, new Class<?>[]{TraceManager.LineTag.class});
+        public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
+                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode) {
+            final Object[] events = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
+            Class<?>[] eventClasses = new Class<?>[events.length];
+            for (int i = 0; i < events.length; i++) {
+                if (events[i] == getSymbol("line")) {
+                    eventClasses[i] = TraceManager.LineTag.class;
+                } else {
+                    throw new UnsupportedOperationException(events[i].toString());
+                }
+            }
+
+            Layouts.TRACE_POINT.setTags(tracePoint, eventClasses);
             Layouts.TRACE_POINT.setProc(tracePoint, block);
             return tracePoint;
         }
@@ -119,12 +133,12 @@ public abstract class TracePointNodes {
     public abstract static class DisableNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public boolean disable(DynamicObject tracePoint, NotProvided block) {
+        public Object disable(DynamicObject tracePoint, NotProvided block) {
             return disable(tracePoint, (DynamicObject) null);
         }
 
         @Specialization
-        public boolean disable(DynamicObject tracePoint, DynamicObject block) {
+        public Object disable(DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
 
@@ -135,7 +149,7 @@ public abstract class TracePointNodes {
 
             if (block != null) {
                 try {
-                    yield(block);
+                    return yield(block);
                 } finally {
                     if (alreadyEnabled) {
                         eventBinding = EnableNode.createEventBinding(getContext(), tracePoint);
