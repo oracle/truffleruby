@@ -19,8 +19,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 @Layout
 public interface ExceptionLayout extends BasicObjectLayout {
 
-    String CAUSE_IDENTIFIER = "@cause";
-
     DynamicObjectFactory createExceptionShape(
             DynamicObject logicalClass,
             DynamicObject metaClass);

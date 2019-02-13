@@ -217,6 +217,27 @@ public abstract class ExceptionNodes {
 
     }
 
+    @CoreMethod(names = "cause")
+    public abstract static class CauseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject cause(DynamicObject exception) {
+            return Layouts.EXCEPTION.getCause(exception);
+        }
+
+    }
+
+    @Primitive(name = "exception_set_cause")
+    public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject setCause(DynamicObject exception, DynamicObject cause) {
+            Layouts.EXCEPTION.setCause(exception, cause);
+            return exception;
+        }
+
+    }
+
     @Primitive(name = "exception_errno_error", needsSelf = false, lowerFixnum = 2)
     public static abstract class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 

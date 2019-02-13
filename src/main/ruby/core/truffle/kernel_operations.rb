@@ -135,7 +135,7 @@ module Truffle
       unless skip
         exc.set_context ctx if ctx
         exc.capture_backtrace!(2) unless exc.backtrace?
-        Truffle.invoke_primitive :object_ivar_set, exc, :@cause, $!
+        Truffle.invoke_primitive :exception_set_cause, exc, $!
       end
 
       if $DEBUG
