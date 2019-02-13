@@ -5,4 +5,12 @@ describe 'TracePoint#inspect' do
     TracePoint.new(:call) {}.inspect.should ==
       '#<TracePoint:disabled>'
   end
+
+  it 'returns a String showing the event, path and line' do
+    inspect = nil
+    line = __LINE__
+    TracePoint.new(:line) { |tp| inspect = tp.inspect }.enable do
+      inspect.should == "#<TracePoint:line@#{__FILE__}:#{line+2}>"
+    end
+  end
 end
