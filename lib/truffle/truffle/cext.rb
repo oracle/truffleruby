@@ -1659,7 +1659,7 @@ module Truffle::CExt
   end
 
   def rb_any_to_s(object)
-    object.to_s
+    Truffle::StringOperations.any_to_s(object)
   end
 
   def rb_class_inherited_p(ruby_module, object)

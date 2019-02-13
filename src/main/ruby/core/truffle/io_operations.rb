@@ -37,18 +37,19 @@ module Truffle
         args.each do |arg|
           if arg.equal? nil
             str = ''
-          elsif arg.kind_of?(Array)
-            if Thread.guarding? arg
-              str = '[...]'
-            else
-              Thread.recursion_guard arg do
-                arg.each do |a|
-                  puts(io, a)
-                end
-              end
-            end
+          elsif Thread.guarding? arg
+            str = '[...]'
           else
-            str = arg.to_s
+            begin
+              arg = Truffle::Type.coerce_to(arg, Array, :to_ary)
+              Thread.recursion_guard arg do
+                arg.each { |a| puts(io, a) }
+              end
+              next
+            rescue
+              str = arg.to_s
+              str = Truffle::StringOperations.any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
+            end
           end
 
           if str
