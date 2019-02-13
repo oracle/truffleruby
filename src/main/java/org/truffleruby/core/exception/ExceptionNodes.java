@@ -85,6 +85,7 @@ public abstract class ExceptionNodes {
             }
             Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
             Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
+            Layouts.EXCEPTION.setCause(self, Layouts.EXCEPTION.getCause(from));
 
             return self;
         }
