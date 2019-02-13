@@ -9,6 +9,10 @@
 # GNU Lesser General Public License version 2.1.
 
 class TracePoint
+  def self.trace(*events, &handler)
+    TracePoint.new(*events, &handler).tap(&:enable)
+  end
+
   def initialize(*events, &handler)
     events = [:line] if events.empty?
     events = events.map { |event| Truffle::Type.coerce_to event, Symbol, :to_sym }
