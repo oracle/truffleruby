@@ -190,7 +190,7 @@ describe "The launcher" do
   it "prints available debug options for --help:languages --help:debug" do
     out = ruby_exe(nil, options: "--help:languages --help:debug")
     $?.success?.should == true
-    out.should include("--ruby.exceptions.print_java")
+    out.should include("--ruby.default_cache")
   end
 
   it "logs options if -Xoptions.log is set" do
@@ -203,11 +203,11 @@ describe "The launcher" do
     out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
-    
+
     out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
-    
+
     out = ruby_exe(nil, options: "--ruby.unknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --ruby.unknown=value")
