@@ -29,10 +29,11 @@ import com.oracle.truffle.api.object.DynamicObject;
  *
  * Since we are not running on a VM that allows us to add custom mark functions to our garbage
  * collector we keep objects alive in 2 ways. Any object converted to a native handle can be kept
- * alive by calling {@link #keepObject(Object)}. This will add the object to two lists, a list of
- * all objects converted to native during this call to a C extension function which will be popped
- * when the we return to Ruby code, and a fixed sized list of objects converted to native handles.
- * When the latter of these two lists is full all mark functions will be run.
+ * alive by executing a {@link MarkingServiceNodes.KeepAliveNode}. This will add the object to two
+ * lists, a list of all objects converted to native during this call to a C extension function which
+ * will be popped when the we return to Ruby code, and a fixed sized list of objects converted to
+ * native handles. When the latter of these two lists is full all mark functions will be run the
+ * next time an object is added.
  *
  * Marker references only keep a week reference to their owning object to ensure they don't
  * themselves stop the object from being garbage collected.
