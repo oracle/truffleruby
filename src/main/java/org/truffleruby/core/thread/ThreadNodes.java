@@ -611,8 +611,17 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject getException(VirtualFrame frame,
                 @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception;
+            return getLastException(getThreadNode.executeGetRubyThread(frame));
         }
+
+        private static DynamicObject getLastException(DynamicObject currentThread) {
+            return Layouts.THREAD.getThreadLocalGlobals(currentThread).exception;
+        }
+
+        public static DynamicObject getLastException(RubyContext context) {
+            return getLastException(context.getThreadManager().getCurrentThread());
+        }
+
     }
 
     @Primitive(name = "thread_get_return_code")

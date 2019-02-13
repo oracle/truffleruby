@@ -24,6 +24,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -574,64 +575,65 @@ public class CoreExceptions {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
-        return Layouts.NAME_ERROR.createNameError(
-                context.getCoreLibrary().getNameErrorFactory(),
+        return context.getCoreLibrary().getNameErrorFactory().newInstance(Layouts.NAME_ERROR.build(
                 messageString,
                 null,
                 backtrace,
+                cause,
                 receiver,
-                context.getSymbolTable().getSymbol(name));
+                context.getSymbolTable().getSymbol(name)));
     }
 
-    @TruffleBoundary
     public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final DynamicObject exception = Layouts.NAME_ERROR.createNameError(
-                context.getCoreLibrary().getNameErrorFactory(),
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final DynamicObject exception = context.getCoreLibrary().getNameErrorFactory().newInstance(Layouts.NAME_ERROR.build(
                 null,
                 formatter,
                 backtrace,
+                cause,
                 receiver,
-                context.getSymbolTable().getSymbol(name));
+                context.getSymbolTable().getSymbol(name)));
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
 
     // NoMethodError
 
-    @TruffleBoundary
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray =  createArray(context, args);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
-        return Layouts.NO_METHOD_ERROR.createNoMethodError(
-                context.getCoreLibrary().getNoMethodErrorFactory(),
+        return context.getCoreLibrary().getNoMethodErrorFactory().newInstance(Layouts.NO_METHOD_ERROR.build(
                 messageString,
                 null,
                 backtrace,
+                cause,
                 receiver,
                 context.getSymbolTable().getSymbol(name),
-                argsArray);
+                argsArray));
     }
 
-    @TruffleBoundary
     public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args);
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final DynamicObject exception = Layouts.NO_METHOD_ERROR.createNoMethodError(
-                context.getCoreLibrary().getNoMethodErrorFactory(),
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final DynamicObject exception = context.getCoreLibrary().getNoMethodErrorFactory().newInstance(Layouts.NO_METHOD_ERROR.build(
                 null,
                 formatter,
                 backtrace,
+                cause,
                 receiver,
                 context.getSymbolTable().getSymbol(name),
-                argsArray);
+                argsArray));
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
@@ -641,17 +643,17 @@ public class CoreExceptions {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
-        DynamicObject noMethodError = Layouts.NAME_ERROR.createNameError(
-                context.getCoreLibrary().getNoMethodErrorFactory(),
+        return context.getCoreLibrary().getNoMethodErrorFactory().newInstance(Layouts.NAME_ERROR.build(
                 messageString,
                 null,
                 backtrace,
+                cause,
                 null,
-                context.getSymbolTable().getSymbol("<unknown>"));
-        // FIXME: the name of the method is not known in this case currently
-        return noMethodError;
+                // FIXME: the name of the method is not known in this case currently
+                context.getSymbolTable().getSymbol("<unknown>")));
     }
 
     public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, Object name, Object[] args, UnknownIdentifierException exception, Node currentNode) {

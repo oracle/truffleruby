@@ -30,7 +30,7 @@ public abstract class NoMethodErrorNodes {
 
         @Specialization
         public DynamicObject allocateNoMethodError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, nil(), null, null, null, nil(), nil());
+            return allocateObjectNode.allocate(rubyClass, Layouts.NO_METHOD_ERROR.build(nil(), null, null, nil(), null, nil(), nil()));
         }
 
     }

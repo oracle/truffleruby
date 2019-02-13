@@ -22,11 +22,11 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createSystemCallError(
-            DynamicObjectFactory factory,
+    Object[] build(
             @Nullable Object message,
             @Nullable DynamicObject formatter,
             @Nullable Backtrace backtrace,
+            DynamicObject cause,
             Object errno);
 
     Object getErrno(DynamicObject object);

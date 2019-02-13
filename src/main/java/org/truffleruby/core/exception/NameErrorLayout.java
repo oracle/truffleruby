@@ -22,11 +22,11 @@ public interface NameErrorLayout extends ExceptionLayout {
         DynamicObject logicalClass,
         DynamicObject metaClass);
 
-    DynamicObject createNameError(
-        DynamicObjectFactory factory,
+    Object[] build(
         @Nullable Object message,
         @Nullable DynamicObject formatter,
         @Nullable Backtrace backtrace,
+        DynamicObject cause,
         @Nullable Object receiver,
         Object name);
 

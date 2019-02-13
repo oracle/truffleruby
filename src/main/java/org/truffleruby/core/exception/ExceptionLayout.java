@@ -19,15 +19,17 @@ import org.truffleruby.language.backtrace.Backtrace;
 @Layout
 public interface ExceptionLayout extends BasicObjectLayout {
 
+    String CAUSE_IDENTIFIER = "@cause";
+
     DynamicObjectFactory createExceptionShape(
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createException(
-            DynamicObjectFactory factory,
+    Object[] build(
             @Nullable Object message,
             @Nullable DynamicObject formatter,
-            @Nullable Backtrace backtrace);
+            @Nullable Backtrace backtrace,
+            DynamicObject cause);
 
     boolean isException(DynamicObject object);
 
@@ -39,5 +41,8 @@ public interface ExceptionLayout extends BasicObjectLayout {
 
     Backtrace getBacktrace(DynamicObject object);
     void setBacktrace(DynamicObject object, Backtrace value);
+
+    DynamicObject getCause(DynamicObject object);
+    void setCause(DynamicObject object, DynamicObject value);
 
 }
