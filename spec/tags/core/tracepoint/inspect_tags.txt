@@ -1,1 +1,0 @@
-fails:TracePoint#inspect returns a string containing a human-readable TracePoint status
