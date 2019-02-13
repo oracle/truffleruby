@@ -14,7 +14,7 @@ class TracePoint
     events = events.map { |event| Truffle::Type.coerce_to event, Symbol, :to_sym }
     events.each do |event|
       case event
-      when :line
+      when :line, :class
         # Supported
       else
         raise ArgumentError, "unknown event: #{event}"

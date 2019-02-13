@@ -12,8 +12,6 @@ package org.truffleruby.core.tracepoint;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.instrumentation.EventBinding;
-import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -36,7 +34,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.shared.TruffleRuby;
 
 @CoreClass("TracePoint")
 public abstract class TracePointNodes {
@@ -48,7 +45,7 @@ public abstract class TracePointNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, null, null, null, 0, null, null, null, false);
+            return allocateNode.allocate(rubyClass, Layouts.TRACE_POINT.build(null, null, null, 0, null, null, false));
         }
 
     }
@@ -59,17 +56,19 @@ public abstract class TracePointNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode) {
-            final Object[] events = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
-            Class<?>[] eventClasses = new Class<?>[events.length];
-            for (int i = 0; i < events.length; i++) {
-                if (events[i] == getSymbol("line")) {
-                    eventClasses[i] = TraceManager.LineTag.class;
+            final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
+            TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
+            for (int i = 0; i < eventSymbols.length; i++) {
+                if (eventSymbols[i] == getSymbol("line")) {
+                    events[i] = new TracePointEvent(TraceManager.LineTag.class, (DynamicObject) eventSymbols[i]);
+                } else if (eventSymbols[i] == getSymbol("class")) {
+                    events[i] = new TracePointEvent(TraceManager.ClassTag.class, (DynamicObject) eventSymbols[i]);
                 } else {
-                    throw new UnsupportedOperationException(events[i].toString());
+                    throw new UnsupportedOperationException(eventSymbols[i].toString());
                 }
             }
 
-            Layouts.TRACE_POINT.setTags(tracePoint, eventClasses);
+            Layouts.TRACE_POINT.setEvents(tracePoint, events);
             Layouts.TRACE_POINT.setProc(tracePoint, block);
             return tracePoint;
         }
@@ -81,12 +80,10 @@ public abstract class TracePointNodes {
 
         @Specialization
         public boolean enable(DynamicObject tracePoint, NotProvided block) {
-            EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
-            final boolean alreadyEnabled = eventBinding != null;
+            final boolean alreadyEnabled = isEnabled(tracePoint);
 
             if (!alreadyEnabled) {
-                eventBinding = createEventBinding(getContext(), tracePoint);
-                Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
+                createEventBindings(getContext(), tracePoint);
             }
 
             return alreadyEnabled;
@@ -94,37 +91,39 @@ public abstract class TracePointNodes {
 
         @Specialization
         public Object enable(DynamicObject tracePoint, DynamicObject block) {
-            EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
-            final boolean alreadyEnabled = eventBinding != null;
+            final boolean alreadyEnabled = isEnabled(tracePoint);
 
             if (!alreadyEnabled) {
-                eventBinding = createEventBinding(getContext(), tracePoint);
-                Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
+                createEventBindings(getContext(), tracePoint);
             }
 
             try {
                 return yield(block);
             } finally {
                 if (!alreadyEnabled) {
-                    dispose(eventBinding);
-                    Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
+                    disposeEventBindings(tracePoint);
                 }
             }
         }
 
-        @TruffleBoundary
-        public static EventBinding<?> createEventBinding(RubyContext context, DynamicObject tracePoint) {
-            return context.getInstrumenter().attachExecutionEventFactory(
-                    SourceSectionFilter.newBuilder()
-                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                    .tagIs((Class<?>[]) Layouts.TRACE_POINT.getTags(tracePoint))
-                    .includeInternal(false)
-                    .build(), eventContext -> new TracePointEventNode(context, eventContext, tracePoint));
+        public static boolean isEnabled(DynamicObject tracePoint) {
+            return Layouts.TRACE_POINT.getEvents(tracePoint)[0].hasEventBinding();
         }
 
         @TruffleBoundary
-        public static void dispose(EventBinding<?> eventBinding) {
-            eventBinding.dispose();
+        public static void createEventBindings(RubyContext context, DynamicObject tracePoint) {
+            final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
+            for (int i = 0; i < events.length; i++) {
+                events[i].setupEventBinding(context, tracePoint);
+            }
+        }
+
+        @TruffleBoundary
+        public static void disposeEventBindings(DynamicObject tracePoint) {
+            final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
+            for (int i = 0; i < events.length; i++) {
+                events[i].diposeEventBinding();
+            }
         }
 
     }
@@ -134,31 +133,34 @@ public abstract class TracePointNodes {
 
         @Specialization
         public Object disable(DynamicObject tracePoint, NotProvided block) {
-            return disable(tracePoint, (DynamicObject) null);
+            final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
+
+            if (wasEnabled) {
+                EnableNode.disposeEventBindings(tracePoint);
+            }
+
+            return wasEnabled;
         }
 
         @Specialization
         public Object disable(DynamicObject tracePoint, DynamicObject block) {
-            EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
-            final boolean alreadyEnabled = eventBinding != null;
+            final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
 
-            if (alreadyEnabled) {
-                EnableNode.dispose(eventBinding);
-                Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
+            if (wasEnabled) {
+                EnableNode.disposeEventBindings(tracePoint);
             }
 
             if (block != null) {
                 try {
                     return yield(block);
                 } finally {
-                    if (alreadyEnabled) {
-                        eventBinding = EnableNode.createEventBinding(getContext(), tracePoint);
-                        Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
+                    if (wasEnabled) {
+                        EnableNode.createEventBindings(getContext(), tracePoint);
                     }
                 }
             }
 
-            return alreadyEnabled;
+            return wasEnabled;
         }
 
     }
@@ -168,7 +170,7 @@ public abstract class TracePointNodes {
 
         @Specialization
         public boolean enabled(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getEventBinding(tracePoint) != null;
+            return EnableNode.isEnabled(tracePoint);
         }
 
     }
