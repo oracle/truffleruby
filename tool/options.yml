@@ -1,72 +1,112 @@
 USER:
+  # Options corresponding to MRI options, which are also useful outside the TruffleRuby launcher
   LOAD_PATHS: [[load_paths, -I], string-array, [], Load paths]
   REQUIRED_LIBRARIES: [[required_libraries, -r], string-array, [], Required libraries]
-  IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore_lines_before_ruby_shebang, -x], boolean, false, "strip off text before #!ruby line"]
   WORKING_DIRECTORY: [[working_directory, -C], string, '', Interpreter will switch to this directory]
-  EXECUTION_ACTION: [[execution_action, -e, -S], enum/execution_action, none, What should be done after context is created]
-  TO_EXECUTE: [[to_execute, -e, -S], string, '', "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable."]
-  SYNTAX_CHECK: [[syntax_check, -c], boolean, false, Do not execute just check syntax]
-  SHOW_VERSION: [[show_version, --version], boolean, false, Show version]
-  SHOW_COPYRIGHT: [[show_copyright, --copyright], boolean, false, Show copyright]
-  SHOW_HELP: [[show_help, -h, --help], enum/show_help, none, What help should be shown]
   DEBUG: [[debug, -d], boolean, false, Debug]
   VERBOSITY: [[verbosity, -v, -w, -W, --verbose], enum/verbosity, false, Verbosity]
-  ARGV_GLOBALS: [[argv_globals, -s], boolean, false, Parse options in script argv into global variables]
 
   SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
   INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
   EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
 EXPERT:
+  # Setting home and launcher, useful for embedding
   HOME: [home, string, '', The location of the TruffleRuby installation files]
   NO_HOME_PROVIDED: [no_home_provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
   LAUNCHER: [launcher, string, '', The location of the TruffleRuby launcher program]
-  EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
+  CORE_LOAD_PATH: [core.load_path, string, 'resource:/truffleruby', Location to load the Truffle core library from]
 
-  READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
-  DEFAULT_EXECUTION_ACTION: [default_execution_action, enum/default_execution_action, irb, What should be done when no action is set]
-  ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value]
-  ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value)]
-  DEFAULT_LAZY: [lazy.default, boolean, true, Enable default lazy options]
-  HASHING_DETERMINISTIC: [hashing.deterministic, boolean, false, Produce deterministic hash values]
-
+  # CRuby features (--enable/disable-FEATURE), also exposed as options so they can be used outside the Ruby launcher
   FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
   RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
+  DEFAULT_LAZY: [lazy.default, boolean, true, Enable default lazy options]
   LAZY_RUBYGEMS: [rubygems.lazy, boolean, DEFAULT_LAZY, Load RubyGems lazily on first failing require]
   PATCHING: [patching, boolean, true, Use patching]
   DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
+  HASHING_DETERMINISTIC: [hashing.deterministic, boolean, false, Produce deterministic hash values]
 
+  # Embedding options
+  EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
   NATIVE_PLATFORM: [platform.native, boolean, ['env.isNativeAccessAllowed() && ', true], Enables native calls via Truffle NFI for internal functionality]
   NATIVE_INTERRUPT: [platform.native_interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
   HANDLE_INTERRUPT: [platform.handle_interrupt, boolean, '!EMBEDDED', Handle the interrupt signal and raise an Interrupt exception]
   SINGLE_THREADED: [single_threaded, boolean, ['!env.isCreateThreadAllowed() || ', EMBEDDED], Use only a single thread to be compatible with languages not supporting multithreading]
   POLYGLOT_STDIO: [polyglot.stdio, boolean, EMBEDDED || !NATIVE_PLATFORM, Use standard IO streams from the Graal-SDK polyglot API configuration]
-  CEXT_LOCK: [cexts.lock, boolean, true, Use a Global Lock when running C extensions]
-  PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
   HOST_INTEROP: [interop.host, boolean, ['env.isHostLookupAllowed() && ', true], Allow interoperability with the host language (Java)]
 
+  # Ruby-level features
   TRACE_CALLS: [trace.calls, boolean, true, 'Support tracing (set_trace_func, TracePoint) of method calls']
   COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and print results on exit]
 
-  CORE_LOAD_PATH: [core.load_path, string, 'resource:/truffleruby', Location to load the Truffle core library from]
+  # Options helpful in for debugging, potentially also for user code
   CORE_AS_INTERNAL: [core_as_internal, boolean, true, 'Mark core library sources as internal']
   STDLIB_AS_INTERNAL: [stdlib_as_internal, boolean, true, 'Mark stdlib sources as internal']
+  LAZY_TRANSLATION_USER: [lazy_translation.user, boolean, false, 'Lazily translation of stdlib, gem and user source files']
 
+  # Options to tweak backtraces
+  EXCEPTIONS_STORE_JAVA: [exceptions.store_java, boolean, false, Store the Java exception with the Ruby backtrace]
+  EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
+  EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
+  EXCEPTIONS_PRINT_RUBY_FOR_JAVA: [exceptions.print_ruby_for_java, boolean, false, 'When printing a Java backtrace, also print the Ruby backtrace at that point']
+  EXCEPTIONS_TRANSLATE_ASSERT: [exceptions.translate_assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
+  EXCEPTIONS_WARN_STACKOVERFLOW: [exceptions.warn_stackoverflow, boolean, true, Warn when a stack overflow error is thrown]
+  EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions.warn_out_of_memory, boolean, true, Warn when an out-of-memory error is thrown]
+  BACKTRACES_HIDE_CORE_FILES: [backtraces.hide_core_files, boolean, true, 'Hide core source files in backtraces, like MRI does']
+  BACKTRACES_INTERLEAVE_JAVA: [backtraces.interleave_java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
+  BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backtraces]
+  BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
+  BACKTRACE_ON_INTERRUPT: [backtraces.on_interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
+  BACKTRACE_ON_SIGALRM: [backtraces.sigalrm, boolean, '!EMBEDDED', Show the backtraces of all Threads on SIGALRM]
+  BACKTRACE_ON_RAISE: [backtraces.raise, boolean, false, Show the backtraces of exceptions at the point of them being raised]
+
+  # C extension options
+  CEXTS: [cexts, boolean, true, Enable use of C extensions]
+  CEXT_LOCK: [cexts.lock, boolean, true, Use a Global Lock when running C extensions]
+  CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
+
+  # Debugging the values of options
+  OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
+
+  # Tracing loading of Ruby files and C extensions
+  LOG_LOAD: [log.load, boolean, false, Log loading files]
+  LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
+  CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
+  CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
+
+DEBUG: # Or "INTERNAL": options for debugging the TruffleRuby implementation
+  # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher
+  ARGV_GLOBALS: [[argv_globals, -s], boolean, false, Parse options in script argv into global variables]
+  IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore_lines_before_ruby_shebang, -x], boolean, false, "strip off text before #!ruby line"]
+  SYNTAX_CHECK: [[syntax_check, -c], boolean, false, Do not execute just check syntax]
+  SHOW_VERSION: [[show_version, --version], boolean, false, Show version]
+  SHOW_COPYRIGHT: [[show_copyright, --copyright], boolean, false, Show copyright]
+
+  # Used internally for the launcher to communicate with the RubyContext
+  SHOW_HELP: [[show_help, -h, --help], enum/show_help, none, What help should be shown]
+  EXECUTION_ACTION: [[execution_action, -e, -S], enum/execution_action, none, What should be done after context is created]
+  TO_EXECUTE: [[to_execute, -e, -S], string, '', "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable."]
+  READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
+  DEFAULT_EXECUTION_ACTION: [default_execution_action, enum/default_execution_action, irb, What should be done when no action is set]
+  ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value]
+  ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value)]
+
+  # Low-level logging of implementation details
+  LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
+  LOG_DYNAMIC_CONSTANT_LOOKUP: [constant.dynamic_lookup.log, boolean, false, Log source code positions where dynamic constant lookup is performed]
+  ROPE_PRINT_INTERN_STATS: [rope.print_intern_stats, boolean, false, Print interned rope stats at application exit]
+
+  # Options to debug the implementation
+  PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
   LAZY_BUILTINS: [lazy_builtins, boolean, DEFAULT_LAZY, Load builtin classes (core methods & primitives) lazily on first use]
   LAZY_CORE_METHOD_NODES: [lazy_core_method_nodes, boolean, DEFAULT_LAZY, Lazily create core method nodes]
   LAZY_TRANSLATION_CORE: [lazy_translation.core, boolean, DEFAULT_LAZY, Lazily translation of core source files]
-  LAZY_TRANSLATION_USER: [lazy_translation.user, boolean, false, 'Lazily translation of stdlib, gem and user source files']
 
-  ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 16, How large an Array to allocate when we have no other information to go on]
-  ARRAY_SMALL: [array.small, integer, 3, Maximum size of an Array to consider small for optimisations]
-  HASH_PACKED_ARRAY_MAX: [hash.packed_array.max, integer, 3, Maximum size of a Hash to consider using the packed array storage strategy for]
-
+  # Options to help debugging the implementation performance
+  BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
   ROPE_LAZY_SUBSTRINGS: [rope.lazy_substrings, boolean, true, Indicates whether a substring operation on a rope should be performed lazily]
-  ROPE_PRINT_INTERN_STATS: [rope.print_intern_stats, boolean, false, Print interned rope stats at application exit]
-  ROPE_DEPTH_THRESHOLD: [rope.depth_threshold, integer, 128, Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)]
 
-  GLOBAL_VARIABLE_MAX_INVALIDATIONS: [global_variable.max_invalidations, integer, 1, Maximum number of times a global variable can be changed to be considered constant]
-
+  # Inline cache sizes
   DEFAULT_CACHE: [default_cache, integer, 8, Default size for caches]
 
   METHOD_LOOKUP_CACHE: [method_lookup.cache, integer, DEFAULT_CACHE, Method lookup cache size]
@@ -97,6 +137,17 @@ EXPERT:
   ARRAY_DUP_CACHE: [array.dup.cache, integer, 3, Cache size for copying small arrays]
   FRAME_VARIABLE_ACCESS_CACHE: [frame.variable.access.cache, integer, 5, Cache size for accessing variables in another frame]
 
+  # Other caching and optimization limits
+  ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 16, How large an Array to allocate when we have no other information to go on]
+  ARRAY_SMALL: [array.small, integer, 3, Maximum size of an Array to consider small for optimisations]
+  HASH_PACKED_ARRAY_MAX: [hash.packed_array.max, integer, 3, Maximum size of a Hash to consider using the packed array storage strategy for]
+  PACK_UNROLL_LIMIT: [pack.unroll, integer, 4, 'If a pack or unpack expression has a loop less than this many iterations, unroll it']
+  PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, 'If a pack or unpack expression is longer than this, attempt to recover loops']
+  CEXTS_MARKING_CACHE: [cexts.marking.cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
+  ROPE_DEPTH_THRESHOLD: [rope.depth_threshold, integer, 128, Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)]
+  GLOBAL_VARIABLE_MAX_INVALIDATIONS: [global_variable.max_invalidations, integer, 1, Maximum number of times a global variable can be changed to be considered constant]
+
+  # Splitting and cloning, useful for debugging cloning
   CLONE_DEFAULT: [clone.default, boolean, true, Default option for cloning]
   INLINE_DEFAULT: [inline.default, boolean, true, Default option for inlining]
   CORE_ALWAYS_CLONE: [core.always_clone, boolean, CLONE_DEFAULT, Always clone built-in core methods]
@@ -109,50 +160,16 @@ EXPERT:
   METHODMISSING_ALWAYS_INLINE: [method_missing.always_inline, boolean, INLINE_DEFAULT, 'Always inline #method_missing']
   CALL_WITH_BLOCK_ALWAYS_CLONE: [call_with_block.always_clone, boolean, CLONE_DEFAULT, Always clone calls with a literal block]
 
-  PACK_UNROLL_LIMIT: [pack.unroll, integer, 4, 'If a pack or unpack expression has a loop less than this many iterations, unroll it']
-  PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, 'If a pack or unpack expression is longer than this, attempt to recover loops']
-
-  BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
-
+  # Instrumentation to debug performance
   REGEXP_INSTRUMENT_CREATION: [regexp.instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation]
   REGEXP_INSTRUMENT_MATCH: [regexp.instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching]
 
-  SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable shared objects]
-  SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]
-  SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
-  SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
-
-  CEXTS: [cexts, boolean, true, Enable use of C extensions]
-  CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
-  CEXTS_MARKING_CACHE: [cexts.marking.cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
-
-DEBUG:
-  LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
-
-  EXCEPTIONS_STORE_JAVA: [exceptions.store_java, boolean, false, Store the Java exception with the Ruby backtrace]
-  EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
-  EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
-  EXCEPTIONS_PRINT_RUBY_FOR_JAVA: [exceptions.print_ruby_for_java, boolean, false, 'When printing a Java backtrace, also print the Ruby backtrace at that point']
-  EXCEPTIONS_TRANSLATE_ASSERT: [exceptions.translate_assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
-  EXCEPTIONS_WARN_STACKOVERFLOW: [exceptions.warn_stackoverflow, boolean, true, Warn when a stack overflow error is thrown]
-  EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions.warn_out_of_memory, boolean, true, Warn when an out-of-memory error is thrown]
-  BACKTRACES_HIDE_CORE_FILES: [backtraces.hide_core_files, boolean, true, 'Hide core source files in backtraces, like MRI does']
-  BACKTRACES_INTERLEAVE_JAVA: [backtraces.interleave_java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
-  BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backtraces]
-  BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
-  BACKTRACE_ON_INTERRUPT: [backtraces.on_interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
-  BACKTRACE_ON_SIGALRM: [backtraces.sigalrm, boolean, '!EMBEDDED', Show the backtraces of all Threads on SIGALRM]
-  BACKTRACE_ON_RAISE: [backtraces.raise, boolean, false, Show the backtraces of exceptions at the point of them being raised]
-
-  LOG_DYNAMIC_CONSTANT_LOOKUP: [constant.dynamic_lookup.log, boolean, false, Log source code positions where dynamic constant lookup is performed]
-
-  OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
-
-  LOG_LOAD: [log.load, boolean, false, Log loading files]
-  LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
-
+  # Options for metrics, the output cannot be used directly without processing
   METRICS_TIME_PARSING_FILE: [metrics.time.parsing.file, boolean, false, 'Measure time for parsing, translating and executing files, per file']
   METRICS_TIME_REQUIRE: [metrics.time.require, boolean, false, 'Measure time for #require and executing the required file']
 
-  CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
-  CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
+  # Options to debug implementation and performance of thread-safe objects
+  SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable thread-safe objects]
+  SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]
+  SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
+  SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
