@@ -9,9 +9,12 @@
  */
 package org.truffleruby.core;
 
+import java.util.ArrayList;
+
 import org.truffleruby.core.MarkingService.MarkerStack;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -25,8 +28,13 @@ public class MarkingServiceNodes {
         @Specialization
         public void keepObjectAlive(VirtualFrame frame, Object object,
                 @Cached("create()") GetPreservationStackNode getStackNode) {
-            getStackNode.execute(frame).get().add(object);
+            addToList(getStackNode.execute(frame).get(), object);
             getContext().getMarkingService().addToKeptObjects(object);
+        }
+
+        @TruffleBoundary
+        protected void addToList(ArrayList<Object> list, Object object) {
+            list.add(object);
         }
 
         public static KeepAliveNode create() {
