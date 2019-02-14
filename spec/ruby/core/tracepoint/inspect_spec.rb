@@ -21,7 +21,8 @@ describe 'TracePoint#inspect' do
     TracePoint.new(:class) { |tp| inspect = tp.inspect }.enable do
       class TracePointSpec::C
       end
-      inspect.should == "#<TracePoint:class@#{__FILE__}:#{line+2}>"
     end
+
+    inspect.should == "#<TracePoint:class@#{__FILE__}:#{line+2}>"
   end
 end
