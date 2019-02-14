@@ -138,13 +138,4 @@ public abstract class Rope {
         return getByteSlow(index);
     }
 
-    public static final class StringAttributes {
-        final int characterLength;
-        final CodeRange codeRange;
-
-        StringAttributes(int characterLength, CodeRange codeRange) {
-            this.characterLength = characterLength;
-            this.codeRange = codeRange;
-        }
-    }
 }

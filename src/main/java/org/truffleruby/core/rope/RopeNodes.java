@@ -29,6 +29,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
+import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -215,10 +216,10 @@ public abstract class RopeNodes {
         public Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
                 @Cached("create()") CalculateAttributesNode calculateAttributesNode) {
 
-            final Rope.StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
+            final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
 
-            final CodeRange codeRange = attributes.codeRange;
-            final int characterLength = attributes.characterLength;
+            final CodeRange codeRange = attributes.getCodeRange();
+            final int characterLength = attributes.getCharacterLength();
             final boolean singleByteOptimizable = base.isSingleByteOptimizable() || (codeRange == CR_7BIT);
 
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
@@ -266,17 +267,17 @@ public abstract class RopeNodes {
             return RopeNodesFactory.CalculateAttributesNodeGen.create();
         }
 
-        abstract Rope.StringAttributes executeCalculateAttributes(Encoding encoding, byte[] bytes);
+        abstract StringAttributes executeCalculateAttributes(Encoding encoding, byte[] bytes);
 
         @Specialization(guards = "isEmpty(bytes)")
-        public Rope.StringAttributes calculateAttributesEmpty(Encoding encoding, byte[] bytes,
+        public StringAttributes calculateAttributesEmpty(Encoding encoding, byte[] bytes,
                                                   @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible) {
-            return new Rope.StringAttributes(0,
+            return new StringAttributes(0,
                     isAsciiCompatible.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID);
         }
 
         @Specialization(guards = { "!isEmpty(bytes)", "isBinaryString(encoding)" })
-        public Rope.StringAttributes calculateAttributesBinaryString(Encoding encoding, byte[] bytes,
+        public StringAttributes calculateAttributesBinaryString(Encoding encoding, byte[] bytes,
                                                          @Cached("create()") BranchProfile nonAsciiStringProfile) {
             CodeRange codeRange = CR_7BIT;
 
@@ -288,12 +289,12 @@ public abstract class RopeNodes {
                 }
             }
 
-            return new Rope.StringAttributes(bytes.length, codeRange);
+            return new StringAttributes(bytes.length, codeRange);
         }
 
         @Specialization(rewriteOn = NonAsciiCharException.class,
                 guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public Rope.StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, byte[] bytes) throws NonAsciiCharException {
+        public StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, byte[] bytes) throws NonAsciiCharException {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
             for (int i = 0; i < bytes.length; i++) {
@@ -302,12 +303,12 @@ public abstract class RopeNodes {
                 }
             }
 
-            return new Rope.StringAttributes(bytes.length, CR_7BIT);
+            return new StringAttributes(bytes.length, CR_7BIT);
         }
 
         @Specialization(replaces = "calculateAttributesAsciiCompatible",
                 guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public Rope.StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
+        public StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
                 @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
@@ -321,7 +322,7 @@ public abstract class RopeNodes {
                 if (Encoding.isAscii(bytes[p])) {
                     final int multiByteCharacterPosition = StringSupport.searchNonAscii(bytes, p, end);
                     if (multiByteCharacterPosition == -1) {
-                        return new Rope.StringAttributes(characters + (end - p), codeRange);
+                        return new StringAttributes(characters + (end - p), codeRange);
                     }
 
                     characters += multiByteCharacterPosition - p;
@@ -344,11 +345,11 @@ public abstract class RopeNodes {
                 characters++;
             }
 
-            return new Rope.StringAttributes(characters, codeRange);
+            return new StringAttributes(characters, codeRange);
         }
 
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
-        public Rope.StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
+        public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
                 @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
@@ -374,7 +375,7 @@ public abstract class RopeNodes {
                 }
             }
 
-            return new Rope.StringAttributes(characters, codeRange);
+            return new StringAttributes(characters, codeRange);
         }
 
         protected static final class NonAsciiCharException extends SlowPathException {
@@ -734,9 +735,9 @@ public abstract class RopeNodes {
                                                    @Cached("create()") BranchProfile validProfile,
                                                    @Cached("create()") BranchProfile brokenProfile,
                                                    @Cached("create()") BranchProfile errorProfile) {
-            final Rope.StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, bytes);
+            final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, bytes);
 
-            switch(attributes.codeRange) {
+            switch(attributes.getCodeRange()) {
                 case CR_7BIT: {
                     asciiOnlyProfile.enter();
                     return new AsciiOnlyLeafRope(bytes, encoding);
@@ -744,12 +745,12 @@ public abstract class RopeNodes {
 
                 case CR_VALID: {
                     validProfile.enter();
-                    return new ValidLeafRope(bytes, encoding, attributes.characterLength);
+                    return new ValidLeafRope(bytes, encoding, attributes.getCharacterLength());
                 }
 
                 case CR_BROKEN: {
                     brokenProfile.enter();
-                    return new InvalidLeafRope(bytes, encoding, attributes.characterLength);
+                    return new InvalidLeafRope(bytes, encoding, attributes.getCharacterLength());
                 }
 
                 default: {
@@ -1468,13 +1469,11 @@ public abstract class RopeNodes {
                 @Cached("create()") CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
-                final Rope.StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
                 rope.setAttributes(attributes);
-
-                return attributes.codeRange;
-            } else {
-                return rope.getRawCodeRange();
             }
+
+            return rope.getRawCodeRange();
         }
 
     }
@@ -1517,10 +1516,8 @@ public abstract class RopeNodes {
                 @Cached("create()") CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCharacterLengthProfile) {
             if (unknownCharacterLengthProfile.profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
-                final Rope.StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
                 rope.setAttributes(attributes);
-
-                return attributes.characterLength;
             }
 
             return rope.rawCharacterLength();

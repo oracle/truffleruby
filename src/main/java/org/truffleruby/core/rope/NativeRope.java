@@ -14,6 +14,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.FinalizationService;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
 
@@ -103,9 +104,8 @@ public class NativeRope extends Rope {
     @Override
     public CodeRange getCodeRange() {
         if (codeRange == CodeRange.CR_UNKNOWN) {
-            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
-            codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            setAttributes(attributes);
         }
 
         return codeRange;
@@ -118,9 +118,8 @@ public class NativeRope extends Rope {
     @Override
     public int characterLength() {
         if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
-            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
-            codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            setAttributes(attributes);
         }
 
         return characterLength;
@@ -139,8 +138,8 @@ public class NativeRope extends Rope {
     }
 
     public void setAttributes(StringAttributes attributes) {
-        this.characterLength = attributes.characterLength;
-        this.codeRange = attributes.codeRange;
+        this.characterLength = attributes.getCharacterLength();
+        this.codeRange = attributes.getCodeRange();
     }
 
     public byte[] getBytes(int byteOffset, int byteLength) {
