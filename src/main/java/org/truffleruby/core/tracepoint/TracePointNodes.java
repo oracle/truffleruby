@@ -57,20 +57,25 @@ public abstract class TracePointNodes {
         public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
-            TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
+            final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
             for (int i = 0; i < eventSymbols.length; i++) {
-                if (eventSymbols[i] == getSymbol("line")) {
-                    events[i] = new TracePointEvent(TraceManager.LineTag.class, (DynamicObject) eventSymbols[i]);
-                } else if (eventSymbols[i] == getSymbol("class")) {
-                    events[i] = new TracePointEvent(TraceManager.ClassTag.class, (DynamicObject) eventSymbols[i]);
-                } else {
-                    throw new UnsupportedOperationException(eventSymbols[i].toString());
-                }
+                events[i] = createEvents((DynamicObject) eventSymbols[i]);
             }
 
             Layouts.TRACE_POINT.setEvents(tracePoint, events);
             Layouts.TRACE_POINT.setProc(tracePoint, block);
             return tracePoint;
+        }
+
+        @TruffleBoundary
+        private TracePointEvent createEvents(DynamicObject eventSymbol) {
+            if (eventSymbol == getSymbol("line")) {
+                return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
+            } else if (eventSymbol == getSymbol("class")) {
+                return new TracePointEvent(TraceManager.ClassTag.class, eventSymbol);
+            } else {
+                throw new UnsupportedOperationException(Layouts.SYMBOL.getString(eventSymbol));
+            }
         }
 
     }
