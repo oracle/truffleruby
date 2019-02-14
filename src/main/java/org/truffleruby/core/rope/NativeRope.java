@@ -67,8 +67,7 @@ public class NativeRope extends Rope {
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
-        assert (codeRange != CodeRange.CR_UNKNOWN && characterLength != UNKNOWN_CHARACTER_LENGTH) ||
-                (codeRange == CodeRange.CR_UNKNOWN && characterLength == UNKNOWN_CHARACTER_LENGTH);
+        assert (codeRange == CodeRange.CR_UNKNOWN) == (characterLength == UNKNOWN_CHARACTER_LENGTH);
 
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
         return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
