@@ -1,1 +1,2 @@
 fails:SafeStringValue raises for tained string when $SAFE is 1
+fails:rb_str_modify_expand grows the capacity to bytesize + expand, not changing the bytesize

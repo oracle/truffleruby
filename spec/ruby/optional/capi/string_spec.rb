@@ -558,6 +558,28 @@ describe "C-API String function" do
     it_behaves_like :string_value_macro, :SafeStringValue
   end
 
+  describe "rb_str_modify_expand" do
+    it "grows the capacity to bytesize + expand, not changing the bytesize" do
+      str = @s.rb_str_buf_new(256, "abcd")
+      @s.rb_str_capacity(str).should == 256
+
+      @s.rb_str_set_len(str, 3)
+      str.bytesize.should == 3
+      @s.RSTRING_LEN(str).should == 3
+      @s.rb_str_capacity(str).should == 256
+
+      @s.rb_str_modify_expand(str, 4)
+      str.bytesize.should == 3
+      @s.RSTRING_LEN(str).should == 3
+      @s.rb_str_capacity(str).should == 7
+
+      @s.rb_str_modify_expand(str, 1024)
+      str.bytesize.should == 3
+      @s.RSTRING_LEN(str).should == 3
+      @s.rb_str_capacity(str).should == 1027
+    end
+  end
+
   describe "rb_str_resize" do
     it "reduces the size of the string" do
       str = @s.rb_str_resize("test", 2)
