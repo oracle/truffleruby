@@ -127,10 +127,6 @@ public class NativeRope extends Rope {
         }
     }
 
-    public void setCharacterLength(int characterLength) {
-        this.characterLength = characterLength;
-    }
-
     public void clearCodeRange() {
         this.codeRange = CodeRange.CR_UNKNOWN;
         this.characterLength = UNKNOWN_CHARACTER_LENGTH;
