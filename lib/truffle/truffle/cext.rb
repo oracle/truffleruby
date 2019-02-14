@@ -1063,7 +1063,7 @@ module Truffle::CExt
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
-    unless Truffle::Interop.null?(e)
+    unless Truffle::Type.object_equal(nil, e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
