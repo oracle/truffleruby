@@ -105,7 +105,7 @@ public class NativeRope extends Rope {
     public CodeRange getCodeRange() {
         if (codeRange == CodeRange.CR_UNKNOWN) {
             final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
-            setAttributes(attributes);
+            updateAttributes(attributes);
         }
 
         return codeRange;
@@ -119,7 +119,7 @@ public class NativeRope extends Rope {
     public int characterLength() {
         if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
             final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
-            setAttributes(attributes);
+            updateAttributes(attributes);
         }
 
         return characterLength;
@@ -137,7 +137,7 @@ public class NativeRope extends Rope {
         this.codeRange = codeRange;
     }
 
-    public void setAttributes(StringAttributes attributes) {
+    public void updateAttributes(StringAttributes attributes) {
         this.characterLength = attributes.getCharacterLength();
         this.codeRange = attributes.getCodeRange();
     }

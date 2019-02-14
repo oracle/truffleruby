@@ -1470,7 +1470,7 @@ public abstract class RopeNodes {
                 @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
-                rope.setAttributes(attributes);
+                rope.updateAttributes(attributes);
             }
 
             return rope.getRawCodeRange();
@@ -1517,7 +1517,7 @@ public abstract class RopeNodes {
                 @Cached("createBinaryProfile()") ConditionProfile unknownCharacterLengthProfile) {
             if (unknownCharacterLengthProfile.profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
-                rope.setAttributes(attributes);
+                rope.updateAttributes(attributes);
             }
 
             return rope.rawCharacterLength();
