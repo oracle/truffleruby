@@ -48,7 +48,7 @@ VALUE rb_tr_managed_if_handle(void *handle);
 void rb_tr_release_handle(void *handle);
 void rb_tr_release_if_handle(void *handle);
 
-// Managed Strucs
+// Managed Structs
 
 void* rb_tr_new_managed_struct_internal(void *type);
 #define rb_tr_new_managed_struct(type) rb_tr_new_managed_struct_internal(polyglot_##type##_typeid())

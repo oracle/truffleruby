@@ -759,10 +759,6 @@ module Truffle::CExt
     Truffle.invoke_primitive :string_to_f, string, badcheck
   end
 
-  def rb_str_new_nul(length)
-    "\0".b * length
-  end
-
   def rb_str_new_rstring_ptr(rstring_ptr, length)
     raise "#{rstring_ptr} not a RStringPtr" unless RStringPtr === rstring_ptr
     rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)

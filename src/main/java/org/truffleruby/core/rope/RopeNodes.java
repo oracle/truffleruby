@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,6 +29,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
+import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -217,8 +218,8 @@ public abstract class RopeNodes {
 
             final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
 
-            final CodeRange codeRange = attributes.codeRange;
-            final int characterLength = attributes.characterLength;
+            final CodeRange codeRange = attributes.getCodeRange();
+            final int characterLength = attributes.getCharacterLength();
             final boolean singleByteOptimizable = base.isSingleByteOptimizable() || (codeRange == CR_7BIT);
 
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
@@ -308,7 +309,7 @@ public abstract class RopeNodes {
         @Specialization(replaces = "calculateAttributesAsciiCompatible",
                 guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
         public StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
-                @Cached("create()") CharacterLengthNode characterLengthNode,
+                @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
 
@@ -328,7 +329,7 @@ public abstract class RopeNodes {
                     p = multiByteCharacterPosition;
                 }
 
-                final int lengthOfCurrentCharacter = characterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
+                final int lengthOfCurrentCharacter = calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
                     if (codeRange != CR_BROKEN) {
@@ -349,7 +350,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
         public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
-                @Cached("create()") CharacterLengthNode characterLengthNode,
+                @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
@@ -360,7 +361,7 @@ public abstract class RopeNodes {
             final int end = bytes.length;
 
             for (characters = 0; p < end; characters++) {
-                final int lengthOfCurrentCharacter = characterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
+                final int lengthOfCurrentCharacter = calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
                     if (codeRange != CR_BROKEN) {
@@ -395,14 +396,24 @@ public abstract class RopeNodes {
 
         @Specialization
         public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
-                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
-            return executeConcat(nativeToManagedNode.execute(left), right, encoding);
+                @Cached("create()") NativeToManagedNode nativeToManagedNode,
+                @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
+            if (emptyNativeRopeProfile.profile(left.isEmpty())) {
+                return right;
+            } else {
+                return executeConcat(nativeToManagedNode.execute(left), right, encoding);
+            }
         }
 
         @Specialization
         public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
-                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
-            return executeConcat(left, nativeToManagedNode.execute(right), encoding);
+                @Cached("create()") NativeToManagedNode nativeToManagedNode,
+                @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
+            if (emptyNativeRopeProfile.profile(right.isEmpty())) {
+                return left;
+            } else {
+                return executeConcat(left, nativeToManagedNode.execute(right), encoding);
+            }
         }
 
         @Specialization(guards = "left.isEmpty()")
@@ -641,7 +652,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
         public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
                 @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") CharacterLengthNode characterLengthNode) {
+                @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
@@ -659,7 +670,7 @@ public abstract class RopeNodes {
                     p = q;
                 }
 
-                final int delta = characterLengthNode.characterLengthWithRecovery(encoding, CR_VALID, bytes, p, e);
+                final int delta = calculateCharacterLengthNode.characterLengthWithRecovery(encoding, CR_VALID, bytes, p, e);
                 if (delta < 0) {
                     errorProfile.enter();
                     throw new UnsupportedOperationException("Code range is reported as valid, but is invalid for the given encoding: " + encodingName(encoding));
@@ -726,7 +737,7 @@ public abstract class RopeNodes {
                                                    @Cached("create()") BranchProfile errorProfile) {
             final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, bytes);
 
-            switch(attributes.codeRange) {
+            switch(attributes.getCodeRange()) {
                 case CR_7BIT: {
                     asciiOnlyProfile.enter();
                     return new AsciiOnlyLeafRope(bytes, encoding);
@@ -734,12 +745,12 @@ public abstract class RopeNodes {
 
                 case CR_VALID: {
                     validProfile.enter();
-                    return new ValidLeafRope(bytes, encoding, attributes.characterLength);
+                    return new ValidLeafRope(bytes, encoding, attributes.getCharacterLength());
                 }
 
                 case CR_BROKEN: {
                     brokenProfile.enter();
-                    return new InvalidLeafRope(bytes, encoding, attributes.characterLength);
+                    return new InvalidLeafRope(bytes, encoding, attributes.getCharacterLength());
                 }
 
                 default: {
@@ -1155,7 +1166,7 @@ public abstract class RopeNodes {
 
     public abstract static class GetCodePointNode extends RubyBaseNode {
 
-        @Child private CharacterLengthNode characterLengthNode;
+        @Child private CalculateCharacterLengthNode calculateCharacterLengthNode;
 
         public static GetCodePointNode create() {
             return RopeNodesFactory.GetCodePointNodeGen.create();
@@ -1208,12 +1219,12 @@ public abstract class RopeNodes {
         }
 
         private int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int start, int end) {
-            if (characterLengthNode == null) {
+            if (calculateCharacterLengthNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                characterLengthNode = insert(CharacterLengthNode.create());
+                calculateCharacterLengthNode = insert(CalculateCharacterLengthNode.create());
             }
 
-            return characterLengthNode.characterLength(encoding, codeRange, bytes, start, end);
+            return calculateCharacterLengthNode.characterLength(encoding, codeRange, bytes, start, end);
         }
 
     }
@@ -1454,8 +1465,16 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        public CodeRange getCodeRangeNative(NativeRope rope) {
-            return rope.getCodeRange();
+        public CodeRange getCodeRangeNative(NativeRope rope,
+                @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
+            if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
+                final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                rope.updateAttributes(attributes);
+                return attributes.getCodeRange();
+            } else {
+                return rope.getRawCodeRange();
+            }
         }
 
     }
@@ -1480,11 +1499,39 @@ public abstract class RopeNodes {
 
     }
 
-    @ImportStatic(CodeRange.class)
     public abstract static class CharacterLengthNode extends RubyBaseNode {
 
         public static CharacterLengthNode create() {
             return RopeNodesFactory.CharacterLengthNodeGen.create();
+        }
+
+        public abstract int execute(Rope rope);
+
+        @Specialization
+        public int getCharacterLengthManaged(ManagedRope rope) {
+            return rope.characterLength();
+        }
+
+        @Specialization
+        public int getCharacterLengthNative(NativeRope rope,
+                @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                @Cached("createBinaryProfile()") ConditionProfile unknownCharacterLengthProfile) {
+            if (unknownCharacterLengthProfile.profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
+                final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                rope.updateAttributes(attributes);
+                return attributes.getCharacterLength();
+            } else {
+                return rope.rawCharacterLength();
+            }
+        }
+
+    }
+
+    @ImportStatic(CodeRange.class)
+    public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {
+
+        public static CalculateCharacterLengthNode create() {
+            return RopeNodesFactory.CalculateCharacterLengthNodeGen.create();
         }
 
         protected abstract int executeLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
@@ -1646,16 +1693,6 @@ public abstract class RopeNodes {
             return makeLeafRopeNode.executeMake(bytesNode.execute(rope), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
-    }
-
-    public static final class StringAttributes {
-        final int characterLength;
-        final CodeRange codeRange;
-
-        StringAttributes(int characterLength, CodeRange codeRange) {
-            this.characterLength = characterLength;
-            this.codeRange = codeRange;
-        }
     }
 
 }

@@ -259,14 +259,14 @@ public final class StringSupport {
         return c;
     }
 
-    public static long strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
+    public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
         int c = 0;
         while (p < end) {
             if (Encoding.isAscii(bytes[p])) {
                 int q = searchNonAscii(bytes, p, end);
                 if (q == -1) {
-                    return pack(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT.toInt() : cr.toInt());
+                    return new StringAttributes(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT : cr);
                 }
                 c += q - p;
                 p = q;
@@ -283,10 +283,10 @@ public final class StringSupport {
             }
             c++;
         }
-        return pack(c, cr == CR_UNKNOWN ? CR_7BIT.toInt() : cr.toInt());
+        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
-    public static long strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
+    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
         int c;
         for (c = 0; p < end; c++) {
@@ -301,20 +301,8 @@ public final class StringSupport {
                 p++;
             }
         }
-        return pack(c, cr == CR_UNKNOWN ? CR_7BIT.toInt() : cr.toInt());
-    }
 
-    // arg cannot be negative
-    public static long pack(int result, int arg) {
-        return ((long) arg << 31) | result;
-    }
-
-    public static int unpackResult(long len) {
-        return (int) len & 0x7fffffff;
-    }
-
-    public static int unpackArg(long cr) {
-        return (int) (cr >>> 31);
+        return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
     @TruffleBoundary
@@ -1569,4 +1557,7 @@ public final class StringSupport {
         return encoding.isSpace(c);
     }
 
+    public static boolean isAsciiCodepoint(int value) {
+        return value >= 0 && value < 128;
+    }
 }

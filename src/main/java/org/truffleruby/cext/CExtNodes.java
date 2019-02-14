@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -35,7 +35,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -66,16 +65,13 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -479,13 +475,28 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_enc_coderange_clear", onSingleton = true, required = 1)
+    public abstract static class RbEncCodeRangeClear extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject clearCodeRange(DynamicObject string,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+            nativeRope.clearCodeRange();
+            StringOperations.setRope(string, nativeRope);
+
+            return string;
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
                 @Cached("create()") BranchProfile errorProfile) {
@@ -501,7 +512,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            final int r = characterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
+            final int r = calculateCharacterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
@@ -516,16 +527,26 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_str_new_nul", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject rbStrNewNul(int byteLength,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
+
+            return makeStringNode.fromRope(rope);
+        }
+
+    }
+
     @CoreMethod(names = "rb_str_capacity", onSingleton = true, required = 1)
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public long capacity(DynamicObject string,
                 @Cached("create()") StringToNativeNode stringToNativeNode) {
-            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            final long nativeBufferSize = nativeRope.getNativePointer().getSize();
-            assert nativeBufferSize > 0;
-            return nativeBufferSize - 1; // Do not count the extra byte for \0, like MRI.
+            return stringToNativeNode.executeToNative(string).getCapacity();
         }
 
     }
@@ -533,41 +554,26 @@ public class CExtNodes {
     @CoreMethod(names = "rb_str_set_len", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child NotOptimizedWarningNode notOptimizedWarningNode;
-
         @Specialization
         public DynamicObject strSetLen(DynamicObject string, int newByteLength,
                 @Cached("create()") StringToNativeNode stringToNativeNode,
-                @Cached("createBinaryProfile()") ConditionProfile binaryProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            final NativeRope newNativeRope;
 
-            if (binaryProfile.profile(nativeRope.getEncoding() == ASCIIEncoding.INSTANCE)) {
-                // TODO (eregon, 17 Jan 2019): We use CR_VALID here as zlib relies on it. Computing
-                // the coderange here on every call is too slow. A proper fix is to compute the
-                // CodeRange lazily on NativeRope.
-                newNativeRope = nativeRope.withByteLength(newByteLength, newByteLength, CodeRange.CR_VALID);
+            final CodeRange newCodeRange;
+            final int newCharacterLength;
+            if (asciiOnlyProfile.profile(nativeRope.getRawCodeRange() == CodeRange.CR_7BIT)) {
+                newCodeRange = CodeRange.CR_7BIT;
+                newCharacterLength = newByteLength;
             } else {
-                performanceWarn("calling rb_str_set_len() on non-binary string is not yet optimized");
-
-                final byte[] bytes = new byte[newByteLength];
-                nativeRope.getNativePointer().readBytes(0, bytes, 0, newByteLength);
-                final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(nativeRope.getEncoding(), bytes, 0, newByteLength);
-                final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-                final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
-                newNativeRope = nativeRope.withByteLength(newByteLength, characterLength, codeRange);
+                newCodeRange = CodeRange.CR_UNKNOWN;
+                newCharacterLength = NativeRope.UNKNOWN_CHARACTER_LENGTH;
             }
 
+            final NativeRope newNativeRope = nativeRope.withByteLength(newByteLength, newCharacterLength, newCodeRange);
             StringOperations.setRope(string, newNativeRope);
-            return string;
-        }
 
-        private void performanceWarn(String message) {
-            if (notOptimizedWarningNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                notOptimizedWarningNode = insert(new NotOptimizedWarningNode());
-            }
-            notOptimizedWarningNode.warn(message);
+            return string;
         }
 
     }
@@ -575,60 +581,24 @@ public class CExtNodes {
     @CoreMethod(names = "rb_str_resize", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "shouldNoop(string, len)")
-        public DynamicObject rbStrResizeSame(DynamicObject string, int len) {
-            return string;
-        }
+        @Specialization
+        public DynamicObject rbStrResize(DynamicObject string, int newByteLength,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
-        @Specialization(guards = "shouldShrink(string, len)")
-        public DynamicObject rbStrResizeShrink(DynamicObject string, int len,
-                                               @Cached("create()") RopeNodes.SubstringNode substringNode) {
-            StringOperations.setRope(string, substringNode.executeSubstring(rope(string), 0, len));
-            return string;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
-        public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
-                                             @Cached("create()") RopeNodes.SubstringNode substringNode,
-                                             @Cached("create()") RopeNodes.ConcatNode concatNode,
-                                             @Cached("create()") RopeNodes.RepeatNode repeatNode) {
-            final Rope rope = rope(string);
-
-            if (rope instanceof SubstringRope) {
-                final Rope nullAppended = concatNode.executeConcat(rope, RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], rope.getEncoding());
-
-                if (nullAppended.byteLength() == len) {
-                    StringOperations.setRope(string, nullAppended);
-                } else {
-                    final SubstringRope substringRope = (SubstringRope) rope;
-                    final Rope base = substringRope.getChild();
-
-                    final int lenFromBase = base.byteLength() <= len ? len - base.byteLength() : len - nullAppended.byteLength();
-                    final Rope fromBase = substringNode.executeSubstring(base, nullAppended.byteLength(), lenFromBase);
-                    final Rope withBase = concatNode.executeConcat(nullAppended, fromBase, nullAppended.getEncoding());
-
-                    if (withBase.byteLength() == len) {
-                        StringOperations.setRope(string, withBase);
-                    } else {
-                        final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
-                        StringOperations.setRope(string, concatNode.executeConcat(withBase, filler, rope.getEncoding()));
-                    }
-                }
+            if (nativeRope.byteLength() == newByteLength) {
+                // Like MRI's rb_str_resize()
+                nativeRope.clearCodeRange();
+                return string;
             } else {
-                final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
-                StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
+                final NativeRope newRope = nativeRope.resize(getContext().getFinalizationService(), newByteLength);
+
+                // Like MRI's rb_str_resize()
+                newRope.clearCodeRange();
+
+                StringOperations.setRope(string, newRope);
+                return string;
             }
-
-            return string;
-        }
-
-        protected static boolean shouldNoop(DynamicObject string, long len) {
-            return rope(string).byteLength() == len;
-        }
-
-        protected static boolean shouldShrink(DynamicObject string, long len) {
-            return rope(string).byteLength() > len;
         }
     }
 
@@ -1014,6 +984,7 @@ public class CExtNodes {
         protected NativeRope toNative(DynamicObject string,
                 @Cached("createBinaryProfile()") ConditionProfile convertProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             final Rope currentRope = rope(string);
 
@@ -1025,7 +996,7 @@ public class CExtNodes {
                 nativeRope = new NativeRope(getContext().getFinalizationService(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
-                        currentRope.characterLength(),
+                        characterLengthNode.execute(currentRope),
                         codeRangeNode.execute(currentRope));
                 StringOperations.setRope(string, nativeRope);
             }
@@ -1365,7 +1336,7 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
-                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1376,7 +1347,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            return characterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+            return calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
         }
 
         private CodeRange codeRange(Rope rope) {

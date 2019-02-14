@@ -32,6 +32,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
 import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -69,10 +70,10 @@ public class RopeOperations {
         int characterLength = -1;
 
         if (codeRange == CR_UNKNOWN) {
-            final long packedLengthAndCodeRange = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
+            final StringAttributes attributes = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
 
-            codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+            codeRange = attributes.getCodeRange();
+            characterLength = attributes.getCharacterLength();
         } else if (codeRange == CR_VALID || codeRange == CR_BROKEN) {
             characterLength = strLength(encoding, bytes, 0, bytes.length);
         }
@@ -240,9 +241,9 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    public static long calculateCodeRangeAndLength(Encoding encoding, byte[] bytes, int start, int end) {
+    public static StringAttributes calculateCodeRangeAndLength(Encoding encoding, byte[] bytes, int start, int end) {
         if (bytes.length == 0) {
-            return StringSupport.pack(0, encoding.isAsciiCompatible() ? CR_7BIT.toInt() : CR_VALID.toInt());
+            return new StringAttributes(0, encoding.isAsciiCompatible() ? CR_7BIT : CR_VALID);
         } else if (encoding == ASCIIEncoding.INSTANCE) {
             return strLengthWithCodeRangeBinaryString(bytes, start, end);
         } else if (encoding.isAsciiCompatible()) {
@@ -257,7 +258,7 @@ public class RopeOperations {
         return StringSupport.strLength(enc, bytes, p, end);
     }
 
-    private static long strLengthWithCodeRangeBinaryString(byte[] bytes, int start, int end) {
+    private static StringAttributes strLengthWithCodeRangeBinaryString(byte[] bytes, int start, int end) {
         CodeRange codeRange = CR_7BIT;
 
         for (int i = start; i < end; i++) {
@@ -267,7 +268,7 @@ public class RopeOperations {
             }
         }
 
-        return StringSupport.pack(end - start, codeRange.toInt());
+        return new StringAttributes(end - start, codeRange);
     }
 
     public static LeafRope flatten(Rope rope) {
@@ -654,10 +655,9 @@ public class RopeOperations {
     }
 
     public static boolean isInvalid(byte[] bytes, Encoding encoding) {
-        final long packedLengthAndCodeRange = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
-        final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+        final StringAttributes attributes = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
 
-        return codeRange == CR_BROKEN;
+        return attributes.getCodeRange() == CR_BROKEN;
     }
 
 }

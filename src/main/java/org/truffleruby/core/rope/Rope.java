@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -23,27 +23,23 @@ public abstract class Rope {
     private final Encoding encoding;
     private final boolean singleByteOptimizable;
     private final int byteLength;
-    private final int characterLength;
     private final int ropeDepth;
     private int hashCode = 0;
     protected byte[] bytes;
 
-    protected Rope(Encoding encoding, boolean singleByteOptimizable, int byteLength, int characterLength, int ropeDepth, byte[] bytes) {
+    protected Rope(Encoding encoding, boolean singleByteOptimizable, int byteLength, int ropeDepth, byte[] bytes) {
         assert encoding != null;
 
         this.encoding = encoding;
         this.singleByteOptimizable = singleByteOptimizable;
         this.byteLength = byteLength;
-        this.characterLength = characterLength;
         this.ropeDepth = ropeDepth;
         this.bytes = bytes;
     }
 
     public abstract Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange);
 
-    public final int characterLength() {
-        return characterLength;
-    }
+    public abstract int characterLength();
 
     public final int byteLength() {
         return byteLength;

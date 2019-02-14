@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -10,14 +10,20 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.FinalizationService;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.string.StringAttributes;
+import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
 
+    public static final int UNKNOWN_CHARACTER_LENGTH = -1;
+
     private CodeRange codeRange;
+    private int characterLength;
     private final Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
@@ -25,9 +31,11 @@ public class NativeRope extends Rope {
     }
 
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
-        super(encoding, false, byteLength, characterLength, 1, null);
+        super(encoding, false, byteLength, 1, null);
 
+        assert (codeRange == CodeRange.CR_UNKNOWN) == (characterLength == UNKNOWN_CHARACTER_LENGTH);
         this.codeRange = codeRange;
+        this.characterLength = characterLength;
         this.pointer = pointer;
     }
 
@@ -46,6 +54,15 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
+    public static NativeRope newBuffer(FinalizationService finalizationService, int byteCapacity, int byteLength) {
+        assert byteCapacity >= byteLength;
+
+        final Pointer pointer = Pointer.calloc(byteCapacity + 1);
+        pointer.enableAutorelease(finalizationService);
+
+        return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+    }
+
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
         return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
@@ -56,6 +73,16 @@ public class NativeRope extends Rope {
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
+    public NativeRope resize(FinalizationService finalizationService, int newByteLength) {
+        assert byteLength() != newByteLength;
+
+        final Pointer pointer = Pointer.malloc(newByteLength + 1);
+        pointer.writeBytes(0, this.pointer, 0, Math.min(byteLength(), newByteLength));
+        pointer.writeByte(newByteLength, (byte) 0); // Like MRI
+        pointer.enableAutorelease(finalizationService);
+        return new NativeRope(pointer, newByteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+    }
+
     @Override
     public byte[] getBytes() {
         // Always re-read bytes from the native pointer as they might have changed.
@@ -64,13 +91,44 @@ public class NativeRope extends Rope {
         return bytes;
     }
 
-    @Override
-    public CodeRange getCodeRange() {
+    public CodeRange getRawCodeRange() {
         return codeRange;
     }
 
-    public void setCodeRange(CodeRange codeRange) {
-        this.codeRange = codeRange;
+    @Override
+    public CodeRange getCodeRange() {
+        if (codeRange == CodeRange.CR_UNKNOWN) {
+            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            updateAttributes(attributes);
+            return attributes.getCodeRange();
+        } else {
+            return codeRange;
+        }
+    }
+
+    public int rawCharacterLength() {
+        return characterLength;
+    }
+
+    @Override
+    public int characterLength() {
+        if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
+            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            updateAttributes(attributes);
+            return attributes.getCharacterLength();
+        } else {
+            return characterLength;
+        }
+    }
+
+    public void clearCodeRange() {
+        this.characterLength = UNKNOWN_CHARACTER_LENGTH;
+        this.codeRange = CodeRange.CR_UNKNOWN;
+    }
+
+    public void updateAttributes(StringAttributes attributes) {
+        this.characterLength = attributes.getCharacterLength();
+        this.codeRange = attributes.getCodeRange();
     }
 
     public byte[] getBytes(int byteOffset, int byteLength) {
@@ -97,6 +155,12 @@ public class NativeRope extends Rope {
 
     public void set(int index, int value) {
         assert 0 <= index && index < pointer.getSize();
+        assert value >= -128 && value < 256;
+
+        if (!(codeRange == CodeRange.CR_7BIT && StringSupport.isAsciiCodepoint(value))) {
+            clearCodeRange();
+        }
+
         pointer.writeByte(index, (byte) value);
     }
 
@@ -119,6 +183,13 @@ public class NativeRope extends Rope {
 
     public Pointer getNativePointer() {
         return pointer;
+    }
+
+    public long getCapacity() {
+        final long nativeBufferSize = pointer.getSize();
+        assert nativeBufferSize > 0;
+        // Do not count the extra byte for \0, like MRI.
+        return nativeBufferSize - 1;
     }
 
     @TruffleBoundary

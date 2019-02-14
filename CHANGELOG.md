@@ -35,6 +35,12 @@ Compatibility:
 * Improved the exception when an `-S` file isn't found.
 * Removed the message from exceptions raised by bare `raise` to better match MRI (#1487).
 
+Performance:
+
+* Sped up `String` handling in native extensions, quite substantially in some cases,
+  by reducing conversions between native and managed strings and allowing for mutable
+  metadata in native strings.
+
 # 1.0 RC 12
 
 Bug fixes:
