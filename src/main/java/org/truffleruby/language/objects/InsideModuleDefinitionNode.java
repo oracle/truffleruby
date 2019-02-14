@@ -23,7 +23,7 @@ public class InsideModuleDefinitionNode extends RubyNode {
     @Child private RubyNode body;
 
     public InsideModuleDefinitionNode() {
-        // For the instrumentation wrapper
+        // The instrumentation wrapper requires a no-arg constructor
     }
 
     public InsideModuleDefinitionNode(RubyNode body) {

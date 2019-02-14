@@ -19,7 +19,7 @@ class TracePoint
     events.each do |event|
       case event
       when :line, :class
-        # Supported
+        # Supported event, keep it and pass it below
       else
         raise ArgumentError, "unknown event: #{event}"
       end
