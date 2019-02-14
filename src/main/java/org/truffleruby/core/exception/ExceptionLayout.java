@@ -23,11 +23,11 @@ public interface ExceptionLayout extends BasicObjectLayout {
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createException(
-            DynamicObjectFactory factory,
+    Object[] build(
             @Nullable Object message,
             @Nullable DynamicObject formatter,
-            @Nullable Backtrace backtrace);
+            @Nullable Backtrace backtrace,
+            DynamicObject cause);
 
     boolean isException(DynamicObject object);
 
@@ -39,5 +39,8 @@ public interface ExceptionLayout extends BasicObjectLayout {
 
     Backtrace getBacktrace(DynamicObject object);
     void setBacktrace(DynamicObject object, Backtrace value);
+
+    DynamicObject getCause(DynamicObject object);
+    void setCause(DynamicObject object, DynamicObject value);
 
 }

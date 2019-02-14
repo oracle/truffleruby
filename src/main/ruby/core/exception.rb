@@ -35,8 +35,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Exception
-  attr_reader :cause
-
   def ==(other)
     other.instance_of?(Truffle::Type.object_class(self)) &&
       message == other.message &&

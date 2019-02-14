@@ -44,7 +44,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         public DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, nil(), null, null);
+            return allocateObjectNode.allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil()));
         }
 
     }
@@ -85,6 +85,7 @@ public abstract class ExceptionNodes {
             }
             Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
             Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
+            Layouts.EXCEPTION.setCause(self, Layouts.EXCEPTION.getCause(from));
 
             return self;
         }
@@ -212,6 +213,27 @@ public abstract class ExceptionNodes {
         @Specialization
         public DynamicObject formatter(DynamicObject exception) {
             return Layouts.EXCEPTION.getFormatter(exception);
+        }
+
+    }
+
+    @CoreMethod(names = "cause")
+    public abstract static class CauseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject cause(DynamicObject exception) {
+            return Layouts.EXCEPTION.getCause(exception);
+        }
+
+    }
+
+    @Primitive(name = "exception_set_cause")
+    public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject setCause(DynamicObject exception, DynamicObject cause) {
+            Layouts.EXCEPTION.setCause(exception, cause);
+            return exception;
         }
 
     }

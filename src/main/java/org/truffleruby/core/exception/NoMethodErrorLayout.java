@@ -22,11 +22,11 @@ public interface NoMethodErrorLayout extends NameErrorLayout {
         DynamicObject logicalClass,
         DynamicObject metaClass);
 
-    DynamicObject createNoMethodError(
-        DynamicObjectFactory factory,
+    Object[] build(
         @Nullable Object message,
         @Nullable DynamicObject formatter,
         @Nullable Backtrace backtrace,
+        DynamicObject cause,
         @Nullable Object receiver,
         Object name,
         Object args);

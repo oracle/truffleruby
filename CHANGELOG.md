@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed the wrong encoding being associated with certain forms of heredoc strings (#1563).
 * Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
 * Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE` by -1 (#1581).
+* `Exception#cause` is now correctly set for internal exceptions (#1560).
 
 Changes:
 

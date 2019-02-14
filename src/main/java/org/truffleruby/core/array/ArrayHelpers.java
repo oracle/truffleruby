@@ -13,8 +13,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
-import java.util.Collection;
-
 public abstract class ArrayHelpers {
 
     public static Object getStore(DynamicObject array) {
@@ -50,10 +48,6 @@ public abstract class ArrayHelpers {
 
     public static DynamicObject createArray(RubyContext context, Object[] store) {
         return createArray(context, store, store.length);
-    }
-
-    public static DynamicObject createArray(RubyContext context, Collection<Object> store) {
-        return createArray(context, store.toArray());
     }
 
     public static DynamicObject createEmptyArray(RubyContext context) {

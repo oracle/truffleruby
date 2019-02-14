@@ -14,6 +14,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
@@ -54,26 +55,34 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    // because the factory is not constant
-    @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
         return createRubyException(context, rubyClass, message, node, null, javaException);
     }
 
-    // because the factory is not constant
-    @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
-        Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
-        context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
+        return createRubyException(context, rubyClass, message, backtrace);
+    }
+
+    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node);
+        return createSystemCallError(context, rubyClass, message, errno, backtrace);
     }
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
-        Backtrace backtrace = context.getCallStack().getBacktrace(node);
+    private static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Backtrace backtrace) {
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace, errno);
+        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(Layouts.EXCEPTION.build(message, null, backtrace, cause));
+    }
+
+    // because the factory is not constant
+    @TruffleBoundary
+    private static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, int errno, Backtrace backtrace) {
+        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
+        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, errno));
     }
 
     public static DynamicObject getFormatter(String name, RubyContext context) {
