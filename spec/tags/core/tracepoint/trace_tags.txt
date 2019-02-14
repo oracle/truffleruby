@@ -1,1 +1,0 @@
-fails:TracePoint.trace activates the trace automatically

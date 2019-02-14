@@ -131,6 +131,7 @@ import org.truffleruby.language.objects.DefineModuleNode;
 import org.truffleruby.language.objects.DefineModuleNodeGen;
 import org.truffleruby.language.objects.DynamicLexicalScopeNode;
 import org.truffleruby.language.objects.GetDynamicLexicalScopeNode;
+import org.truffleruby.language.objects.InsideModuleDefinitionNode;
 import org.truffleruby.language.objects.LexicalScopeNode;
 import org.truffleruby.language.objects.ReadClassVariableNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
@@ -968,6 +969,9 @@ public class BodyTranslator extends Translator {
     private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, String name, ParseNode bodyNode, boolean sclass) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
+        body = new InsideModuleDefinitionNode(body);
+        body.unsafeSetSourceSection(sourceSection);
+
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
         }
@@ -985,8 +989,6 @@ public class BodyTranslator extends Translator {
                 Truffle.getRuntime().createCallTarget(rootNode),
                 sclass,
                 environment.isDynamicConstantLookup());
-
-        definitionNode.unsafeSetSourceSection(sourceSection);
 
         return definitionNode;
     }

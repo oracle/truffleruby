@@ -1482,6 +1482,7 @@ public class CoreLibrary {
             "/core/method.rb",
             "/core/unbound_method.rb",
             "/core/warning.rb",
+            "/core/tracepoint.rb",
             "/core/truffle/interop.rb",
             "/core/truffle/polyglot.rb",
             "/core/posix.rb",

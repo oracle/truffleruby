@@ -12,15 +12,11 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.GenerateWrapper;
-import com.oracle.truffle.api.instrumentation.ProbeNode;
-import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -30,8 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Define a method from a module body (module/class/class << self ... end).
  */
-@GenerateWrapper
-public class ModuleBodyDefinitionNode extends RubyNode {
+public class ModuleBodyDefinitionNode extends RubyBaseNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
@@ -52,11 +47,6 @@ public class ModuleBodyDefinitionNode extends RubyNode {
 
     public ModuleBodyDefinitionNode(ModuleBodyDefinitionNode node) {
         this(node.name, node.sharedMethodInfo, node.callTarget, node.captureBlock, node.dynamicLexicalScope);
-    }
-
-    @Override
-    public WrapperNode createWrapper(ProbeNode probe) {
-        return new ModuleBodyDefinitionNodeWrapper(this, this, probe);
     }
 
     public InternalMethod createMethod(VirtualFrame frame, LexicalScope staticLexicalScope, DynamicObject module) {
@@ -90,18 +80,4 @@ public class ModuleBodyDefinitionNode extends RubyNode {
         }
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        // For the purpose of tracing in the right order
-        return nil();
-    }
-
-
-    @Override
-    public boolean hasTag(Class<? extends Tag> tag) {
-        if (tag == TraceManager.ClassTag.class) {
-            return true;
-        }
-        return super.hasTag(tag);
-    }
 }

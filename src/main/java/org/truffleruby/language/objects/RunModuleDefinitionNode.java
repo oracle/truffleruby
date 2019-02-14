@@ -37,7 +37,6 @@ public class RunModuleDefinitionNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final DynamicObject module = (DynamicObject) definingModule.execute(frame);
-        definitionMethod.execute(frame); // for tracing
         final InternalMethod definition = definitionMethod.createMethod(frame, lexicalScope, module);
 
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(

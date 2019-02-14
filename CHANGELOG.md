@@ -29,11 +29,14 @@ Changes:
 * `-J-cmd`, `--jvm.cmd`, `JAVA_HOME`, `JAVACMD`, and `JAVA_OPTS` do not work in any released
   configuration of TruffleRuby, so have been removed.
 * `-Xoption=value` has been deprecated and will be removed - use `--option=value` instead.
+* `TracePoint` now raises an `ArgumentError` for unsupported events.
+* `TracePoint.trace` and `TracePoint#inspect` have been implemented.
 
 Compatibility:
 
 * Improved the exception when an `-S` file isn't found.
 * Removed the message from exceptions raised by bare `raise` to better match MRI (#1487).
+* `TracePoint` now handles the `:class` event.
 
 Performance:
 

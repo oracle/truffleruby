@@ -1,5 +1,1 @@
-fails:TracePoint.new converts given event name as string into symbol using to_sym
 fails:TracePoint.new includes multiple events when multiple event names are passed as params
-fails:TracePoint.new raises a TypeError when the given object is not a string/symbol
-fails:TracePoint.new expects to be called with a block
-fails:TracePoint.new raises a Argument error when the give argument doesn't match an event name

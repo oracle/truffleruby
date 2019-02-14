@@ -1,2 +1,0 @@
-fails:TracePoint#enable without a block returns true if trace was enabled
-fails:TracePoint#enable without a block returns false if trace was disabled

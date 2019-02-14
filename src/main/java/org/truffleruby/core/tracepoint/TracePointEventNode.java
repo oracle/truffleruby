@@ -23,11 +23,13 @@ class TracePointEventNode extends TraceBaseEventNode {
 
     private final DynamicObject tracePoint;
     private final DynamicObject proc;
+    private final DynamicObject event;
 
-    public TracePointEventNode(RubyContext context, EventContext eventContext, DynamicObject tracePoint) {
+    public TracePointEventNode(RubyContext context, EventContext eventContext, DynamicObject tracePoint, DynamicObject event) {
         super(context, eventContext);
         this.tracePoint = tracePoint;
         this.proc = Layouts.TRACE_POINT.getProc(tracePoint);
+        this.event = event;
     }
 
     @Override
@@ -36,7 +38,7 @@ class TracePointEventNode extends TraceBaseEventNode {
             return;
         }
 
-        Layouts.TRACE_POINT.setEvent(tracePoint, context.getCoreStrings().LINE.getSymbol());
+        Layouts.TRACE_POINT.setEvent(tracePoint, event);
         Layouts.TRACE_POINT.setPath(tracePoint, getFile());
         Layouts.TRACE_POINT.setLine(tracePoint, getLine());
         Layouts.TRACE_POINT.setBinding(tracePoint, BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()));
