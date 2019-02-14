@@ -57,6 +57,7 @@ public abstract class TracePointNodes {
         public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
+
             final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
             for (int i = 0; i < eventSymbols.length; i++) {
                 events[i] = createEvents((DynamicObject) eventSymbols[i]);
@@ -69,9 +70,9 @@ public abstract class TracePointNodes {
 
         @TruffleBoundary
         private TracePointEvent createEvents(DynamicObject eventSymbol) {
-            if (eventSymbol == getSymbol("line")) {
+            if (eventSymbol == coreStrings().LINE.getSymbol()) {
                 return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
-            } else if (eventSymbol == getSymbol("class")) {
+            } else if (eventSymbol == coreStrings().CLASS.getSymbol()) {
                 return new TracePointEvent(TraceManager.ClassTag.class, eventSymbol);
             } else {
                 throw new UnsupportedOperationException(Layouts.SYMBOL.getString(eventSymbol));
