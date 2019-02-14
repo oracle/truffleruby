@@ -14,7 +14,7 @@ import org.jcodings.Encoding;
 public abstract class LazyRope extends ManagedRope {
 
     protected LazyRope(Encoding encoding, int byteLength, int characterLength) {
-        super(encoding, CodeRange.CR_7BIT, true, byteLength, characterLength, 1, null);
+        super(encoding, CodeRange.CR_7BIT, byteLength, characterLength, 1, null);
     }
 
     @Override

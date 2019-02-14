@@ -21,17 +21,15 @@ public abstract class Rope {
     protected static final boolean ALLOW_TO_STRING = true;
 
     private final Encoding encoding;
-    private final boolean singleByteOptimizable;
     private final int byteLength;
     private final int ropeDepth;
     private int hashCode = 0;
     protected byte[] bytes;
 
-    protected Rope(Encoding encoding, boolean singleByteOptimizable, int byteLength, int ropeDepth, byte[] bytes) {
+    protected Rope(Encoding encoding, int byteLength, int ropeDepth, byte[] bytes) {
         assert encoding != null;
 
         this.encoding = encoding;
-        this.singleByteOptimizable = singleByteOptimizable;
         this.byteLength = byteLength;
         this.ropeDepth = ropeDepth;
         this.bytes = bytes;
@@ -72,7 +70,7 @@ public abstract class Rope {
     public abstract CodeRange getCodeRange();
 
     public final boolean isSingleByteOptimizable() {
-        return singleByteOptimizable;
+        return getCodeRange() == CodeRange.CR_7BIT || getEncoding().isSingleByte();
     }
 
     public final boolean isAsciiOnly() {

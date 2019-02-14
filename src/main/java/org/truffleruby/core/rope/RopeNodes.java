@@ -206,7 +206,7 @@ public abstract class RopeNodes {
         @Specialization(guards = "base.isAsciiOnly()")
         public Rope makeSubstring7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength) {
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
-                return new SubstringRope(encoding, base, true, byteOffset, byteLength, byteLength, CR_7BIT);
+                return new SubstringRope(encoding, base, byteOffset, byteLength, byteLength, CR_7BIT);
             } else {
                 return new AsciiOnlyLeafRope(RopeOperations.extractRange(base, byteOffset, byteLength), encoding);
             }
@@ -220,10 +220,9 @@ public abstract class RopeNodes {
 
             final CodeRange codeRange = attributes.getCodeRange();
             final int characterLength = attributes.getCharacterLength();
-            final boolean singleByteOptimizable = base.isSingleByteOptimizable() || (codeRange == CR_7BIT);
 
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
-                return new SubstringRope(encoding, base, singleByteOptimizable, byteOffset, byteLength, characterLength, codeRange);
+                return new SubstringRope(encoding, base, byteOffset, byteLength, characterLength, codeRange);
             } else {
                 if (makeLeafRopeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -455,7 +454,6 @@ public abstract class RopeNodes {
 
             return new ConcatRope(left, right, encoding,
                     commonCodeRange(left.getCodeRange(), right.getCodeRange(), sameCodeRangeProfile, brokenCodeRangeProfile),
-                    isSingleByteOptimizable(left, right, isLeftSingleByteOptimizableProfile),
                     depth, isBalanced(left, right));
         }
 
@@ -526,8 +524,7 @@ public abstract class RopeNodes {
 
                     final ManagedRope child = new ConcatRope(left, right, rope.getEncoding(),
                                                       commonCodeRange(left.getCodeRange(), right.getCodeRange()),
-                                    left.isSingleByteOptimizable() && right.isSingleByteOptimizable(),
-                                                      depth(left, right), isBalanced(left, right));
+                            depth(left, right), isBalanced(left, right));
 
                     nextLevelQueue.add(child);
                 }
@@ -604,14 +601,6 @@ public abstract class RopeNodes {
 
             // If we get this far, one must be CR_7BIT and the other must be CR_VALID, so promote to the more general code range.
             return CR_VALID;
-        }
-
-        private boolean isSingleByteOptimizable(ManagedRope left, ManagedRope right, ConditionProfile isLeftSingleByteOptimizableProfile) {
-            if (isLeftSingleByteOptimizableProfile.profile(left.isSingleByteOptimizable())) {
-                return right.isSingleByteOptimizable();
-            }
-
-            return false;
         }
 
         private int depth(Rope left, Rope right) {

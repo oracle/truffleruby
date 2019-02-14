@@ -948,6 +948,7 @@ public final class StringSupport {
         return currentCodeRange;
     }
 
+    @TruffleBoundary
     public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, Encoding enc, boolean sflag) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
