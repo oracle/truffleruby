@@ -128,8 +128,8 @@ public class NativeRope extends Rope {
     }
 
     public void clearCodeRange() {
-        this.codeRange = CodeRange.CR_UNKNOWN;
         this.characterLength = UNKNOWN_CHARACTER_LENGTH;
+        this.codeRange = CodeRange.CR_UNKNOWN;
     }
 
     public void updateAttributes(StringAttributes attributes) {
