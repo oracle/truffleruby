@@ -229,8 +229,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
-        final Source.SourceBuilder builder =
-                Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
+        final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
         if (context.getOptions().CORE_AS_INTERNAL) {
             builder.internal(true);
         }
@@ -542,7 +541,7 @@ public class CoreLibrary {
         defineModule("Polyglot");
         warningModule = defineModule("Warning");
 
-        bigDecimalClass = defineClass(truffleModule, numericClass, "BigDecimal");
+        bigDecimalClass = defineClass(numericClass, "BigDecimal");
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
 
         final DynamicObject gem = defineModule(truffleModule, "Gem");

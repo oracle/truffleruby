@@ -207,6 +207,7 @@ static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
 
 #define LLONG_MIN_MINUS_ONE ((double)LLONG_MIN-1)
 #define LLONG_MAX_PLUS_ONE (2*(double)(LLONG_MAX/2+1))
+#define ULLONG_MAX_PLUS_ONE (2*(double)(ULLONG_MAX/2+1))
 #define LLONG_MIN_MINUS_ONE_IS_LESS_THAN(n) \
   (LLONG_MIN_MINUS_ONE == (double)LLONG_MIN ? \
    LLONG_MIN <= (n): \
@@ -237,6 +238,33 @@ LONG_LONG rb_num2ll(VALUE val) {
 
   val = rb_to_int(val);
   return NUM2LL(val);
+}
+
+unsigned LONG_LONG rb_num2ull(VALUE val) {
+  if (NIL_P(val)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from nil");
+  }
+
+  if (FIXNUM_P(val)) {
+    return (unsigned LONG_LONG)FIX2ULONG(val);
+  } else if (RB_TYPE_P(val, T_FLOAT)) {
+    if (RFLOAT_VALUE(val) <= ULLONG_MAX
+        && (RFLOAT_VALUE(val) >= 0)) {
+      return (unsigned LONG_LONG)(RFLOAT_VALUE(val));
+    } else {
+      FLOAT_OUT_OF_RANGE(val, "unsigned long long");
+    }
+  }
+  else if (RB_TYPE_P(val, T_BIGNUM)) {
+    return rb_big2ull(val);
+  } else if (RB_TYPE_P(val, T_STRING)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from string");
+  } else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from boolean");
+  }
+
+  val = rb_to_int(val);
+  return NUM2ULL(val);
 }
 
 short rb_num2short(VALUE value) {
@@ -3937,7 +3965,7 @@ VALUE rb_num2fix(VALUE val) {
 }
 
 VALUE rb_fix2str(VALUE x, int base) {
-  rb_tr_error("rb_fix2str not implemented");
+  return RUBY_CEXT_INVOKE("rb_fix2str", x, INT2FIX(base));
 }
 
 VALUE rb_dbl_cmp(double a, double b) {
@@ -4240,7 +4268,7 @@ void rb_str_setter(VALUE val, ID id, VALUE *var) {
 }
 
 VALUE rb_sym_to_s(VALUE sym) {
-  rb_tr_error("rb_sym_to_s not implemented");
+  return RUBY_INVOKE(sym, "to_s");
 }
 
 long rb_str_strlen(VALUE str) {

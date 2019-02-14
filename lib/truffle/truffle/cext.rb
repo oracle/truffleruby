@@ -361,6 +361,10 @@ module Truffle::CExt
       value.is_a?(File)
     when T_HASH
       value.is_a?(Hash)
+    when T_DATA
+      value.is_a?(Data)
+    when T_FLOAT
+      value.is_a?(Float)
     else
       raise "unknown type #{type}"
     end
@@ -407,6 +411,10 @@ module Truffle::CExt
 
   def rb_fix2uint(value)
     Truffle::Type.rb_num2uint(value)
+  end
+
+  def rb_fix2str(value, base)
+    value.to_s(base)
   end
 
   def RB_NIL_P(value)
@@ -1055,7 +1063,7 @@ module Truffle::CExt
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
-    unless nil == e # This way around because e is a CapturedException which is a foreign object with no interop
+    unless Truffle::Type.object_equal(nil, e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end

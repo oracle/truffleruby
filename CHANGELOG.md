@@ -13,6 +13,12 @@ Bug fixes:
 * Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
 * Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE` by -1 (#1581).
 * `Exception#cause` is now correctly set for internal exceptions (#1560).
+* `rb_num2ull` is now implemented as well as being declared in the ruby.h header (#1573).
+* `rb_sym_to_s` is now implemented (#1575).
+* `R_TYPE_P` now returns the type number for a wider set of Ruby objects #(1574).
+* `rb_fix2str` has now been implemented.
+* `rb_protect` will now work even if `NilClass#==` has been redefined.
+* `BigDecimal` has been moved out of the `Truffle` module to match MRI.
 
 Changes:
 
