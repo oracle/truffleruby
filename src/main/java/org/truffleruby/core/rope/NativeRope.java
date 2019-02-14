@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -18,6 +18,8 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
+
+    public static final int UNKNOWN_CHARACTER_LENGTH = -1;
 
     private CodeRange codeRange;
     private int characterLength;
@@ -64,6 +66,9 @@ public class NativeRope extends Rope {
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
+        assert (codeRange != CodeRange.CR_UNKNOWN && characterLength != UNKNOWN_CHARACTER_LENGTH) ||
+                (codeRange == CodeRange.CR_UNKNOWN && characterLength == UNKNOWN_CHARACTER_LENGTH);
+
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
         return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
     }
@@ -100,18 +105,42 @@ public class NativeRope extends Rope {
         if (codeRange == CodeRange.CR_UNKNOWN) {
             final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
             codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+            characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
         }
 
         return codeRange;
     }
 
-    @Override
-    public int characterLength() {
+    public int rawCharacterLength() {
         return characterLength;
     }
 
+    @Override
+    public int characterLength() {
+        if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
+            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+            characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+        }
+
+        return characterLength;
+    }
+
+    public void setCharacterLength(int characterLength) {
+        this.characterLength = characterLength;
+    }
+
     public void setCodeRange(CodeRange codeRange) {
+        if (codeRange != this.codeRange) {
+            characterLength = UNKNOWN_CHARACTER_LENGTH;
+        }
+
         this.codeRange = codeRange;
+    }
+
+    public void setAttributes(StringAttributes attributes) {
+        this.characterLength = attributes.characterLength;
+        this.codeRange = attributes.codeRange;
     }
 
     public byte[] getBytes(int byteOffset, int byteLength) {
@@ -143,7 +172,7 @@ public class NativeRope extends Rope {
         if (codeRange == CodeRange.CR_7BIT && StringSupport.isAsciiCodepoint(value)) {
             codeRange = CodeRange.CR_7BIT;
         } else {
-            codeRange = CodeRange.CR_UNKNOWN;
+            setCodeRange(CodeRange.CR_UNKNOWN);
         }
 
         pointer.writeByte(index, (byte) value);

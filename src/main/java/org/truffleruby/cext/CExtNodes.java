@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -560,12 +560,18 @@ public class CExtNodes {
                 @Cached("create()") StringToNativeNode stringToNativeNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            final NativeRope newNativeRope;
 
-            final CodeRange newCodeRange = asciiOnlyProfile.profile(nativeRope.getRawCodeRange() == CodeRange.CR_7BIT)
-                    ? CodeRange.CR_7BIT
-                    : CodeRange.CR_UNKNOWN;
-            newNativeRope = nativeRope.withByteLength(newByteLength, newByteLength, newCodeRange);
+            final CodeRange newCodeRange;
+            final int newCharacterLength;
+            if (asciiOnlyProfile.profile(nativeRope.getRawCodeRange() == CodeRange.CR_7BIT)) {
+                newCodeRange = CodeRange.CR_7BIT;
+                newCharacterLength = newByteLength;
+            } else {
+                newCodeRange = CodeRange.CR_UNKNOWN;
+                newCharacterLength = NativeRope.UNKNOWN_CHARACTER_LENGTH;
+            }
+
+            final NativeRope newNativeRope = nativeRope.withByteLength(newByteLength, newCharacterLength, newCodeRange);
             StringOperations.setRope(string, newNativeRope);
 
             return string;

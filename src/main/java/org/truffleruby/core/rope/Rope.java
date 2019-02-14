@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -138,4 +138,13 @@ public abstract class Rope {
         return getByteSlow(index);
     }
 
+    public static final class StringAttributes {
+        final int characterLength;
+        final CodeRange codeRange;
+
+        StringAttributes(int characterLength, CodeRange codeRange) {
+            this.characterLength = characterLength;
+            this.codeRange = codeRange;
+        }
+    }
 }
