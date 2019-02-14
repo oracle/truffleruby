@@ -163,9 +163,7 @@ public class NativeRope extends Rope {
         assert 0 <= index && index < pointer.getSize();
         assert value >= -128 && value < 256;
 
-        if (codeRange == CodeRange.CR_7BIT && StringSupport.isAsciiCodepoint(value)) {
-            codeRange = CodeRange.CR_7BIT;
-        } else {
+        if (!(codeRange == CodeRange.CR_7BIT && StringSupport.isAsciiCodepoint(value))) {
             clearCodeRange();
         }
 
