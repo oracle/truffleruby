@@ -31,7 +31,11 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
-import org.truffleruby.core.string.*;
+import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.StringAttributes;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
