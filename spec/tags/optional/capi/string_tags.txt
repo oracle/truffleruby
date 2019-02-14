@@ -1,2 +1,3 @@
 fails:SafeStringValue raises for tained string when $SAFE is 1
 fails:C-API String function rb_str_set_len on a ASCII-8BIT String invalidates the code range
+fails:rb_str_resize increases the size of the string

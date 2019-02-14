@@ -562,6 +562,7 @@ describe "C-API String function" do
     it "reduces the size of the string" do
       str = @s.rb_str_resize("test", 2)
       str.size.should == 2
+      str.bytesize.should == 2
       @s.RSTRING_LEN(str).should == 2
       str.should == "te"
     end
@@ -574,6 +575,7 @@ describe "C-API String function" do
       expected = "test".force_encoding("US-ASCII")
       str = @s.rb_str_resize(expected.dup, 12)
       str.size.should == 12
+      str.bytesize.should == 12
       @s.RSTRING_LEN(str).should == 12
       str[0, 4].should == expected
     end
