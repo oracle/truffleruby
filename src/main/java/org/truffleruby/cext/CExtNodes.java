@@ -532,7 +532,7 @@ public class CExtNodes {
         @Specialization
         public DynamicObject rbStrNewNul(int byteLength,
                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength);
+            final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
 
             return makeStringNode.fromRope(rope);
         }
@@ -580,35 +580,24 @@ public class CExtNodes {
     @CoreMethod(names = "rb_str_resize", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "shouldNoop(string, len)")
-        public DynamicObject rbStrResizeSame(DynamicObject string, int len) {
-            return string;
-        }
-
-        @Specialization(guards = "shouldShrink(string, len)")
-        public DynamicObject rbStrResizeShrink(DynamicObject string, int len,
-                                               @Cached("create()") RopeNodes.SubstringNode substringNode) {
-            StringOperations.setRope(string, substringNode.executeSubstring(rope(string), 0, len));
-            return string;
-        }
-
-        @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
-        public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
+        @Specialization
+        public DynamicObject rbStrResize(DynamicObject string, int newByteLength,
                 @Cached("create()") StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
-            final NativeRope newRope = nativeRope.grow(getContext().getFinalizationService(), len);
-            StringOperations.setRope(string, newRope);
+            if (nativeRope.byteLength() == newByteLength) {
+                // Like MRI's rb_str_resize()
+                nativeRope.clearCodeRange();
+                return string;
+            } else {
+                final NativeRope newRope = nativeRope.resize(getContext().getFinalizationService(), newByteLength);
 
-            return string;
-        }
+                // Like MRI's rb_str_resize()
+                newRope.clearCodeRange();
 
-        protected static boolean shouldNoop(DynamicObject string, long len) {
-            return rope(string).byteLength() == len;
-        }
-
-        protected static boolean shouldShrink(DynamicObject string, long len) {
-            return rope(string).byteLength() > len;
+                StringOperations.setRope(string, newRope);
+                return string;
+            }
         }
     }
 

@@ -33,6 +33,7 @@ public class NativeRope extends Rope {
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
         super(encoding, false, byteLength, 1, null);
 
+        assert (codeRange == CodeRange.CR_UNKNOWN) == (characterLength == UNKNOWN_CHARACTER_LENGTH);
         this.codeRange = codeRange;
         this.characterLength = characterLength;
         this.pointer = pointer;
@@ -53,17 +54,13 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
-    public static NativeRope newBuffer(FinalizationService finalizationService, int byteLength) {
-        return newBuffer(finalizationService, byteLength, byteLength);
-    }
-
     public static NativeRope newBuffer(FinalizationService finalizationService, int byteCapacity, int byteLength) {
         assert byteCapacity >= byteLength;
 
         final Pointer pointer = Pointer.calloc(byteCapacity + 1);
         pointer.enableAutorelease(finalizationService);
 
-        return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, byteLength, CodeRange.CR_UNKNOWN);
+        return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
@@ -78,14 +75,14 @@ public class NativeRope extends Rope {
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
-    public NativeRope grow(FinalizationService finalizationService, int newByteLength) {
-        assert newByteLength > this.byteLength();
+    public NativeRope resize(FinalizationService finalizationService, int newByteLength) {
+        assert byteLength() != newByteLength;
 
-        final NativeRope newRope = newBuffer(finalizationService, newByteLength, newByteLength);
-        newRope.pointer.writeBytes(0, this.pointer, 0, byteLength());
-        newRope.clearCodeRange();
-
-        return newRope;
+        final Pointer pointer = Pointer.malloc(newByteLength + 1);
+        pointer.writeBytes(0, this.pointer, 0, Math.min(byteLength(), newByteLength));
+        pointer.writeByte(newByteLength, (byte) 0); // Like MRI
+        pointer.enableAutorelease(finalizationService);
+        return new NativeRope(pointer, newByteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 
     @Override
