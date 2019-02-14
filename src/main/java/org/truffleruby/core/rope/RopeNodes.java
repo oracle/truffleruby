@@ -1471,9 +1471,10 @@ public abstract class RopeNodes {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
                 rope.updateAttributes(attributes);
+                return attributes.getCodeRange();
+            } else {
+                return rope.getRawCodeRange();
             }
-
-            return rope.getRawCodeRange();
         }
 
     }
@@ -1518,9 +1519,10 @@ public abstract class RopeNodes {
             if (unknownCharacterLengthProfile.profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
                 rope.updateAttributes(attributes);
+                return attributes.getCharacterLength();
+            } else {
+                return rope.rawCharacterLength();
             }
-
-            return rope.rawCharacterLength();
         }
 
     }
