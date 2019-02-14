@@ -2,3 +2,4 @@ fails:Module#autoload (concurrently) blocks others threads while doing an autolo
 fails:Module#autoload the autoload is removed when the same file is required directly without autoload with a full path
 fails:Module#autoload the autoload is removed when the same file is required directly without autoload with a relative path
 fails:Module#autoload the autoload is removed when the same file is required directly without autoload in a nested require
+fails:Module#autoload can be overridden with a second autoload on the same constant

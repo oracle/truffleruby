@@ -46,6 +46,17 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload.should have_constant(:B)
   end
 
+  it "can be overridden with a second autoload on the same constant" do
+    ModuleSpecs::Autoload.autoload :Overridden, @non_existent
+    ModuleSpecs::Autoload.autoload?(:Overridden).should == @non_existent
+
+    path = fixture(__FILE__, "autoload_overridden.rb")
+    ModuleSpecs::Autoload.autoload :Overridden, path
+    ModuleSpecs::Autoload.autoload?(:Overridden).should == path
+
+    ModuleSpecs::Autoload::Overridden.should == :overridden
+  end
+
   it "loads the registered constant when it is accessed" do
     ModuleSpecs::Autoload.should_not have_constant(:X)
     ModuleSpecs::Autoload.autoload :X, fixture(__FILE__, "autoload_x.rb")
