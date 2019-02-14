@@ -131,12 +131,9 @@ public class NativeRope extends Rope {
         this.characterLength = characterLength;
     }
 
-    public void setCodeRange(CodeRange codeRange) {
-        if (codeRange != this.codeRange) {
-            characterLength = UNKNOWN_CHARACTER_LENGTH;
-        }
-
-        this.codeRange = codeRange;
+    public void clearCodeRange() {
+        this.codeRange = CodeRange.CR_UNKNOWN;
+        this.characterLength = UNKNOWN_CHARACTER_LENGTH;
     }
 
     public void updateAttributes(StringAttributes attributes) {
@@ -173,7 +170,7 @@ public class NativeRope extends Rope {
         if (codeRange == CodeRange.CR_7BIT && StringSupport.isAsciiCodepoint(value)) {
             codeRange = CodeRange.CR_7BIT;
         } else {
-            setCodeRange(CodeRange.CR_UNKNOWN);
+            clearCodeRange();
         }
 
         pointer.writeByte(index, (byte) value);

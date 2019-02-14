@@ -483,7 +483,7 @@ public class CExtNodes {
         public DynamicObject clearCodeRange(DynamicObject string,
                 @Cached("create()") StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
-            nativeRope.setCodeRange(CodeRange.CR_UNKNOWN);
+            nativeRope.clearCodeRange();
             StringOperations.setRope(string, nativeRope);
 
             return string;
