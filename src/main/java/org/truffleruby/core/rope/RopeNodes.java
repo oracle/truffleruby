@@ -606,7 +606,7 @@ public abstract class RopeNodes {
             return CR_VALID;
         }
 
-        private boolean isSingleByteOptimizable(Rope left, Rope right, ConditionProfile isLeftSingleByteOptimizableProfile) {
+        private boolean isSingleByteOptimizable(ManagedRope left, ManagedRope right, ConditionProfile isLeftSingleByteOptimizableProfile) {
             if (isLeftSingleByteOptimizableProfile.profile(left.isSingleByteOptimizable())) {
                 return right.isSingleByteOptimizable();
             }
