@@ -64,10 +64,8 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -594,43 +592,13 @@ public class CExtNodes {
             return string;
         }
 
-        @TruffleBoundary
         @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
         public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
-                @Cached("create()") RopeNodes.SubstringNode substringNode,
-                @Cached("create()") RopeNodes.ConcatNode concatNode,
-                @Cached("create()") RopeNodes.RepeatNode repeatNode) {
-            final Rope rope = rope(string);
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
-            if (rope instanceof SubstringRope) {
-                final Rope nullAppended = concatNode.executeConcat(rope, RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], rope.getEncoding());
-
-                if (nullAppended.byteLength() == len) {
-                    StringOperations.setRope(string, nullAppended);
-                } else {
-                    final SubstringRope substringRope = (SubstringRope) rope;
-                    final Rope base = substringRope.getChild();
-
-                    final int lenFromBase = base.byteLength() <= len ? len - base.byteLength() : len - nullAppended.byteLength();
-                    final Rope fromBase = substringNode.executeSubstring(base, nullAppended.byteLength(), lenFromBase);
-                    final Rope withBase = concatNode.executeConcat(nullAppended, fromBase, nullAppended.getEncoding());
-
-                    if (withBase.byteLength() == len) {
-                        StringOperations.setRope(string, withBase);
-                    } else {
-                        final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
-                        StringOperations.setRope(string, concatNode.executeConcat(withBase, filler, rope.getEncoding()));
-                    }
-                }
-            } else {
-                if (rope instanceof NativeRope) {
-                    final NativeRope newRope = ((NativeRope) rope).grow(getContext().getFinalizationService(), len);
-                    StringOperations.setRope(string, newRope);
-                } else {
-                    final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
-                    StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
-                }
-            }
+            final NativeRope newRope = nativeRope.grow(getContext().getFinalizationService(), len);
+            StringOperations.setRope(string, newRope);
 
             return string;
         }

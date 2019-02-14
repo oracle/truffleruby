@@ -81,11 +81,11 @@ public class NativeRope extends Rope {
     public NativeRope grow(FinalizationService finalizationService, int newByteLength) {
         assert newByteLength > this.byteLength();
 
-        final NativeRope ret = newBuffer(finalizationService, newByteLength, byteLength());
-        ret.pointer.writeBytes(0, this.pointer, 0, byteLength());
-        ret.codeRange = this.codeRange;
+        final NativeRope newRope = newBuffer(finalizationService, newByteLength, newByteLength);
+        newRope.pointer.writeBytes(0, this.pointer, 0, byteLength());
+        newRope.clearCodeRange();
 
-        return ret;
+        return newRope;
     }
 
     @Override
