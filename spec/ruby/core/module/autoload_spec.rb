@@ -16,6 +16,14 @@ end
 describe "Module#autoload" do
   before :all do
     @non_existent = fixture __FILE__, "no_autoload.rb"
+
+    # Require RubyGems eagerly, to ensure #require is already the RubyGems
+    # version, before starting #autoload specs which snapshot #require, and
+    # could end up redefining #require as the original core Kernel#require.
+    begin
+      require "rubygems"
+    rescue LoadError
+    end
   end
 
   before :each do
