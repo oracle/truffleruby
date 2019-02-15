@@ -548,11 +548,9 @@ public abstract class ModuleNodes {
             }
 
             final RubyConstant constant = Layouts.MODULE.getFields(module).getConstant(name);
-            if (constant != null && !constant.isUndefined()) {
-                return nil();
+            if (constant == null || !constant.hasValue()) {
+                Layouts.MODULE.getFields(module).setAutoloadConstant(getContext(), this, name, filename);
             }
-
-            Layouts.MODULE.getFields(module).setAutoloadConstant(getContext(), this, name, filename);
 
             return nil();
         }
