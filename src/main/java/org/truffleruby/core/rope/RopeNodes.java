@@ -1527,8 +1527,15 @@ public abstract class RopeNodes {
 
         @Specialization
         public boolean isSingleByteOptimizable(Rope rope,
-                @Cached("create()") AsciiOnlyNode asciiOnlyNode) {
-            return asciiOnlyNode.execute(rope) || rope.getEncoding().isSingleByte();
+                @Cached("create()") AsciiOnlyNode asciiOnlyNode,
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
+            final boolean asciiOnly = asciiOnlyNode.execute(rope);
+
+            if (asciiOnlyProfile.profile(asciiOnly)) {
+                return true;
+            } else {
+                return rope.getEncoding().isSingleByte();
+            }
         }
 
     }
