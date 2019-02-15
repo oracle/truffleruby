@@ -21,8 +21,10 @@ public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
-    public static boolean isSingleByteOptimizable(DynamicObject string) {
-        return Layouts.STRING.getRope(string).isSingleByteOptimizable();
+    public static boolean isSingleByteOptimizable(DynamicObject string, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        final Rope rope = StringOperations.rope(string);
+
+        return singleByteOptimizableNode.execute(rope);
     }
 
     public static boolean is7Bit(DynamicObject string, RopeNodes.CodeRangeNode codeRangeNode) {
@@ -71,9 +73,9 @@ public class StringGuards {
         return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;
     }
 
-    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions) {
-        return (StringGuards.isSingleByteOptimizable(string) && !isAsciiCompatMapping(caseMappingOptions)) ||
-                (!StringGuards.isSingleByteOptimizable(string) && caseMappingOptions != Config.CASE_ASCII_ONLY);
+    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) && !isAsciiCompatMapping(caseMappingOptions)) ||
+                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) && caseMappingOptions != Config.CASE_ASCII_ONLY);
     }
 
 }

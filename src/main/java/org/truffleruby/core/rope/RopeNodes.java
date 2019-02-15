@@ -1156,6 +1156,7 @@ public abstract class RopeNodes {
     public abstract static class GetCodePointNode extends RubyBaseNode {
 
         @Child private CalculateCharacterLengthNode calculateCharacterLengthNode;
+        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
         public static GetCodePointNode create() {
             return RopeNodesFactory.GetCodePointNodeGen.create();
@@ -1163,13 +1164,13 @@ public abstract class RopeNodes {
 
         public abstract int executeGetCodePoint(Rope rope, int index);
 
-        @Specialization(guards = "rope.isSingleByteOptimizable()")
+        @Specialization(guards = "singleByteOptimizableNode.execute(rope)")
         public int getCodePointSingleByte(Rope rope, int index,
                                           @Cached("create()") GetByteNode getByteNode) {
             return getByteNode.executeGetByte(rope, index);
         }
 
-        @Specialization(guards = { "!rope.isSingleByteOptimizable()", "rope.getEncoding().isUTF8()" })
+        @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
         public int getCodePointUTF8(Rope rope, int index,
                 @Cached("create()") GetByteNode getByteNode,
                 @Cached("create()") BytesNode bytesNode,
@@ -1184,7 +1185,7 @@ public abstract class RopeNodes {
             return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode);
         }
 
-        @Specialization(guards = { "!rope.isSingleByteOptimizable()", "!rope.getEncoding().isUTF8()" })
+        @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
         public int getCodePointMultiByte(Rope rope, int index,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") BytesNode bytesNode,
@@ -1512,6 +1513,22 @@ public abstract class RopeNodes {
             } else {
                 return rope.rawCharacterLength();
             }
+        }
+
+    }
+
+    public abstract static class SingleByteOptimizableNode extends RubyBaseNode {
+
+        public static SingleByteOptimizableNode create() {
+            return RopeNodesFactory.SingleByteOptimizableNodeGen.create();
+        }
+
+        public abstract boolean execute(Rope rope);
+
+        @Specialization
+        public boolean isSingleByteOptimizable(Rope rope,
+                @Cached("create()") AsciiOnlyNode asciiOnlyNode) {
+            return asciiOnlyNode.execute(rope) || rope.getEncoding().isSingleByte();
         }
 
     }

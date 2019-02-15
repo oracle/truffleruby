@@ -753,6 +753,7 @@ public abstract class StringNodes {
     public abstract static class CaseCmpNode extends CoreMethodNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
@@ -784,8 +785,8 @@ public abstract class StringNodes {
             return StringSupport.multiByteCasecmp(encoding, rope(string), rope(other));
         }
 
-        public static boolean bothSingleByteOptimizable(DynamicObject string, DynamicObject other) {
-            return rope(string).isSingleByteOptimizable() && rope(other).isSingleByteOptimizable();
+        protected boolean bothSingleByteOptimizable(DynamicObject string, DynamicObject other) {
+            return singleByteOptimizableNode.execute(rope(string)) && singleByteOptimizableNode.execute(rope(other));
         }
     }
 
@@ -1046,13 +1047,15 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
+
+        @Specialization(guards = { "isSingleByteOptimizable(string, singleByteOptimizableNode)", "isAsciiCompatMapping(caseMappingOptions)" })
         public DynamicObject downcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                               @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = { "!isSingleByteOptimizable(string, singleByteOptimizableNode)", "caseMappingOptions == CASE_ASCII_ONLY" })
         public DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
@@ -1082,7 +1085,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         public DynamicObject downcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
@@ -1360,10 +1363,11 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string)" })
+        @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object lstripBangSingleByte(DynamicObject string,
-                                           @Cached("create()") RopeNodes.BytesNode bytesNode,
-                                           @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#singleByteLStrip.
 
             final Rope rope = rope(string);
@@ -1390,8 +1394,9 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string)" })
-        public Object lstripBang(DynamicObject string) {
+        @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+        public Object lstripBang(DynamicObject string,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
             final Rope rope = rope(string);
@@ -1466,6 +1471,7 @@ public abstract class StringNodes {
     public abstract static class RstripBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = "isEmpty(string)")
@@ -1473,7 +1479,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string)" })
+        @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object rstripBangSingleByte(DynamicObject string,
                                            @Cached("create()") RopeNodes.BytesNode bytesNode,
                                            @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
@@ -1504,7 +1510,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string)" })
+        @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object rstripBang(DynamicObject string,
                                  @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
@@ -1697,13 +1703,15 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
+
+        @Specialization(guards = { "isSingleByteOptimizable(string, singleByteOptimizableNode)", "isAsciiCompatMapping(caseMappingOptions)" })
         public DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = { "!isSingleByteOptimizable(string, singleByteOptimizableNode)", "caseMappingOptions == CASE_ASCII_ONLY" })
         public DynamicObject swapcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
@@ -1732,7 +1740,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         public DynamicObject swapcase(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
@@ -2315,10 +2323,13 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!reverseIsEqualToSelf(string, characterLengthNode)", "isSingleByteOptimizable(string)" })
+        @Specialization(guards = {
+                "!reverseIsEqualToSelf(string, characterLengthNode)",
+                "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public DynamicObject reverseSingleByteOptimizable(DynamicObject string,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             final Rope rope = rope(string);
             final byte[] originalBytes = bytesNode.execute(rope);
             final int len = originalBytes.length;
@@ -2337,10 +2348,13 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!reverseIsEqualToSelf(string, characterLengthNode)", "!isSingleByteOptimizable(string)" })
+        @Specialization(guards = {
+                "!reverseIsEqualToSelf(string, characterLengthNode)",
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public DynamicObject reverse(DynamicObject string,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from org.jruby.RubyString#reverse!
 
             final Rope rope = rope(string);
@@ -2683,13 +2697,15 @@ public abstract class StringNodes {
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
+
+        @Specialization(guards = { "isSingleByteOptimizable(string, singleByteOptimizableNode)", "isAsciiCompatMapping(caseMappingOptions)" })
         public DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                               @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = { "!isSingleByteOptimizable(string, singleByteOptimizableNode)", "caseMappingOptions == CASE_ASCII_ONLY" })
         public DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
@@ -2716,7 +2732,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         public DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
@@ -2764,8 +2780,9 @@ public abstract class StringNodes {
         @Child private RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child private RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
 
-        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteOptimizable(string, singleByteOptimizableNode)", "isAsciiCompatMapping(caseMappingOptions)" })
         public DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                                                   @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
                                                   @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -2812,7 +2829,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = { "!isSingleByteOptimizable(string, singleByteOptimizableNode)", "caseMappingOptions == CASE_ASCII_ONLY" })
         public DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -2860,7 +2877,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         public DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -3187,16 +3204,18 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "isSingleByteOptimizable(string)" })
-        public Object stringChrAtSingleByte(DynamicObject string, int byteIndex) {
+        @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+        public Object stringChrAtSingleByte(DynamicObject string, int byteIndex,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             return stringByteSubstringNode.executeStringByteSubstring(string, byteIndex, 1);
         }
 
-        @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string)" })
+        @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object stringChrAt(DynamicObject string, int byteIndex,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from Rubinius's Character::create_from.
 
             final Rope rope = rope(string);
@@ -3442,17 +3461,25 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "offset >= 0", "!offsetTooLarge(string, offset)", "isSingleByteOptimizable(string)" })
-        public Object stringFindCharacterSingleByte(DynamicObject string, int offset) {
+        @Specialization(guards = {
+                "offset >= 0",
+                "!offsetTooLarge(string, offset)",
+                "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+        public Object stringFindCharacterSingleByte(DynamicObject string, int offset,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from Rubinius's String::find_character.
 
             return substringNode.executeSubstring(string, offset, 1);
         }
 
-        @Specialization(guards = { "offset >= 0", "!offsetTooLarge(string, offset)", "!isSingleByteOptimizable(string)" })
+        @Specialization(guards = {
+                "offset >= 0",
+                "!offsetTooLarge(string, offset)",
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object stringFindCharacter(DynamicObject string, int offset,
                 @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             // Taken from Rubinius's String::find_character.
 
             final Rope rope = rope(string);
@@ -3791,23 +3818,28 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
+
         public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex);
 
         public static StringByteCharacterIndexNode create() {
             return StringByteCharacterIndexNodeFactory.create(null);
         }
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
+        @Specialization(guards = "isSingleByteOptimizable(string, singleByteOptimizableNode)")
         public int singleByte(DynamicObject string, int byteIndex) {
             return byteIndex;
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
+        @Specialization(guards = { "!isSingleByteOptimizable(string, singleByteOptimizableNode)", "isFixedWidthEncoding(string)" })
         public int fixedWidth(DynamicObject string, int byteIndex) {
             return byteIndex / encoding(string).minLength();
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)", "isValidUtf8(string, codeRangeNode)" })
+        @Specialization(guards = {
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
+                "!isFixedWidthEncoding(string)",
+                "isValidUtf8(string, codeRangeNode)" })
         public int validUtf8(DynamicObject string, int byteIndex,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             // Taken from Rubinius's String::find_byte_character_index.
@@ -3816,7 +3848,10 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)", "!isValidUtf8(string, codeRangeNode)" })
+        @Specialization(guards = {
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
+                "!isFixedWidthEncoding(string)",
+                "!isValidUtf8(string, codeRangeNode)" })
         public int notValidUtf8(DynamicObject string, int byteIndex,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
             // Taken from Rubinius's String::find_byte_character_index and Encoding::find_byte_character_index.
@@ -4014,14 +4049,19 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "index > 0", "isSingleByteOptimizable(string)" })
-        public int singleByteOptimizable(DynamicObject string, int index) {
+        @Specialization(guards = { "index > 0", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+        public int singleByteOptimizable(DynamicObject string, int index,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             return index - 1;
         }
 
-        @Specialization(guards = { "index > 0", "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
+        @Specialization(guards = {
+                "index > 0",
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
+                "isFixedWidthEncoding(string)" })
         public int fixedWidthEncoding(DynamicObject string, int index,
-                                      @Cached("createBinaryProfile()") ConditionProfile firstCharacterProfile) {
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached("createBinaryProfile()") ConditionProfile firstCharacterProfile) {
             final Encoding encoding = encoding(string);
 
             // TODO (nirvdrum 11-Apr-16) Determine whether we need to be bug-for-bug compatible with Rubinius.
@@ -4036,9 +4076,13 @@ public abstract class StringNodes {
             return (index / encoding.maxLength() - 1) * encoding.maxLength();
         }
 
-        @Specialization(guards = { "index > 0", "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)" })
+        @Specialization(guards = {
+                "index > 0",
+                "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
+                "!isFixedWidthEncoding(string)" })
         @TruffleBoundary
-        public Object other(DynamicObject string, int index) {
+        public Object other(DynamicObject string, int index,
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             final Rope rope = rope(string);
             final int p = 0;
             final int end = p + rope.byteLength();
