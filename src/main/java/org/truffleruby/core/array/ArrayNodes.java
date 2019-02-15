@@ -37,6 +37,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayNodesFactory.EachIteratorNodeGen;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
@@ -59,6 +60,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -70,6 +72,7 @@ import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
 
@@ -840,32 +843,71 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachIteratorNode extends RubyBaseNode {
 
-        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1" }, limit = "STORAGE_STRATEGIES")
-        public Object eachOne(DynamicObject array, DynamicObject block,
+        @Child private YieldNode dispatchNode = new YieldNode();
+
+        public abstract int execute(DynamicObject array, DynamicObject block, int startAt);
+
+        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")        
+        public int iterateOne(DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             yield(block, getNode.execute(store, 0));
 
-            return array;
+            return 1;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public Object eachOther(DynamicObject array, DynamicObject block,
+        public int iterateMany(DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             int n = 0;
+            int i = startAt;
             try {
-                for (; n < strategy.getSize(array); n++) {
-                    yield(block, getNode.execute(store, n));
+                for (; i < strategy.getSize(array); n++, i++) {
+                    yield(block, getNode.execute(store, i));
+                }
+                if (store != Layouts.ARRAY.getStore(array)) {
+                    return i;
+                }
+            } finally {
+                if (CompilerDirectives.inInterpreter()) {
+                    LoopNode.reportLoopCount(this, n);
+                }
+            }
+
+            return i;
+        }
+
+        public Object yield(DynamicObject block, Object... arguments) {
+            return dispatchNode.dispatch(block, arguments);
+        }
+
+        public static EachIteratorNode create() {
+            return EachIteratorNodeGen.create();
+        }
+    }
+
+    @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
+    @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
+    public abstract static class EachNode extends YieldingCoreMethodNode {
+
+        @Specialization
+        public Object eachOther(DynamicObject array, DynamicObject block,
+                @Cached("create()") EachIteratorNode iteratorNode) {
+            int n = 0;
+            int done = 0;
+            try {
+                while (done < Layouts.ARRAY.getSize(array)) {
+                    done = iteratorNode.execute(array, block, done);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {

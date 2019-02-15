@@ -27,6 +27,22 @@ describe "Array#each" do
     b.should == [2, nil, 4]
   end
 
+  it "yields elements added to the end of the array by the block" do
+    a = [2]
+    b = []
+    a.each { |x| b << x; x.times { a << 0 } if x > 0 }
+
+    b.should == [2, 0, 0]
+  end
+
+  it "Will not yield elements deleted from the end of the array" do
+    a = [2, 3, 1]
+    b = []
+    a.each { |x| b << x; a.delete_at(2) if x == 2 }
+
+    b.should == [2, 3]
+  end
+
   it_behaves_like :enumeratorize, :each
   it_behaves_like :enumeratorized_with_origin_size, :each, [1,2,3]
 end
