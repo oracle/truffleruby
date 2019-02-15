@@ -48,7 +48,7 @@ module Truffle
               next
             rescue
               str = arg.to_s
-              str = Truffle::StringOperations.any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
+              str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
             end
           end
 

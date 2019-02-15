@@ -618,10 +618,6 @@ module Truffle
       str
     end
 
-    def self.rb_any_to_s(obj)
-      Truffle.invoke_primitive :object_to_s, obj
-    end
-
     def self.object_respond_to__dump?(obj)
       object_respond_to? obj, :_dump, true
     end

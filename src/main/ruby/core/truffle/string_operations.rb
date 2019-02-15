@@ -167,9 +167,5 @@ module Truffle
         end
       end
     end
-
-    def self.any_to_s(object)
-      "#<#{object.class}:0x#{object.object_id.to_s(16)}>"
-    end
   end
 end
