@@ -42,13 +42,15 @@ module Truffle
           else
             begin
               arg = Truffle::Type.coerce_to(arg, Array, :to_ary)
+            rescue
+              str = arg.to_s
+              str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
+            end
+            if (arg.kind_of?(Array))
               Thread.recursion_guard arg do
                 arg.each { |a| puts(io, a) }
               end
               next
-            rescue
-              str = arg.to_s
-              str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
             end
           end
 
