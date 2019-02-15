@@ -109,6 +109,25 @@ module Truffle
       coerce_to_type_error obj, ret, meth, cls
     end
 
+    def self.coerce_to_or_nil(obj, cls, meth)
+      return obj if object_kind_of?(obj, cls)
+      execute_coerce_to_or_nil(obj, cls, meth)
+    end
+
+    def self.execute_coerce_to_or_nil(obj, cls, meth)
+      begin
+        ret = obj.__send__(meth)
+      rescue
+        return nil
+      end
+
+      if object_kind_of?(ret, cls)
+        ret
+      else
+        nil
+      end
+    end
+
     def self.coerce_to_failed(object, klass, method, exc=nil)
       if object_respond_to? object, :inspect
         raise TypeError,
