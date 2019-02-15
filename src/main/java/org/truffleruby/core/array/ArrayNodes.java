@@ -848,34 +848,41 @@ public abstract class ArrayNodes {
     public abstract static class EachIteratorNode extends RubyBaseNode {
 
         @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private EachIteratorNode recurseNode;
 
-        public abstract int execute(DynamicObject array, DynamicObject block, int startAt);
+        public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt);
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")        
-        public int iterateOne(DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             yield(block, getNode.execute(store, 0));
-
-            return 1;
+            if (Layouts.ARRAY.getSize(array) > 1) {
+                return getRecurseNode().execute(array, block, 1);
+            }
+            return array;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public int iterateMany(DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
+                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+                @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
+            final Object startStore = Layouts.ARRAY.getStore(array);
+            Object store = startStore;
 
             int n = 0;
             int i = startAt;
             try {
                 for (; i < strategy.getSize(array); n++, i++) {
-                    yield(block, getNode.execute(store, i));
-                }
-                if (store != Layouts.ARRAY.getStore(array)) {
-                    return i;
+                    if (strategyMatchProfile.profile(strategy.matches(array))) {
+                        yield(block, getNode.execute(store, i));
+                        store = Layouts.ARRAY.getStore(array);
+                    } else {
+                        return getRecurseNode().execute(array, block, i);
+                    }
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -883,7 +890,15 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return i;
+            return array;
+        }
+
+        private EachIteratorNode getRecurseNode() {
+            if (recurseNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                recurseNode = insert(EachIteratorNode.create());
+            }
+            return recurseNode;
         }
 
         public Object yield(DynamicObject block, Object... arguments) {
@@ -903,19 +918,7 @@ public abstract class ArrayNodes {
         @Specialization
         public Object eachOther(DynamicObject array, DynamicObject block,
                 @Cached("create()") EachIteratorNode iteratorNode) {
-            int n = 0;
-            int done = 0;
-            try {
-                while (done < Layouts.ARRAY.getSize(array)) {
-                    done = iteratorNode.execute(array, block, done);
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
+            return iteratorNode.execute(array, block, 0);
         }
 
     }
