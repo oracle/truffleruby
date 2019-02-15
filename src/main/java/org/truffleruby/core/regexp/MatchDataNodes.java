@@ -32,7 +32,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -55,6 +54,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreClass("MatchData")
 public abstract class MatchDataNodes {
 
+    @TruffleBoundary
     public static Object begin(RubyContext context, DynamicObject matchData, int index) {
         // Taken from org.jruby.RubyMatchData
         int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
@@ -63,13 +63,15 @@ public abstract class MatchDataNodes {
             return context.getCoreLibrary().getNil();
         }
 
-        if (!StringGuards.isSingleByteOptimizable(Layouts.MATCH_DATA.getSource(matchData))) {
+        final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
+        if (!rope.isSingleByteOptimizable()) {
             b = getCharOffsets(matchData).beg[index];
         }
 
         return b;
     }
 
+    @TruffleBoundary
     public static Object end(RubyContext context, DynamicObject matchData, int index) {
         // Taken from org.jruby.RubyMatchData
         int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
@@ -78,7 +80,8 @@ public abstract class MatchDataNodes {
             return context.getCoreLibrary().getNil();
         }
 
-        if (!StringGuards.isSingleByteOptimizable(Layouts.MATCH_DATA.getSource(matchData))) {
+        final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
+        if (!rope.isSingleByteOptimizable()) {
             e = getCharOffsets(matchData).end[index];
         }
 

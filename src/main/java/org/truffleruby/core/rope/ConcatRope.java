@@ -18,14 +18,13 @@ public class ConcatRope extends ManagedRope {
     private final ManagedRope right;
     private final boolean balanced;
 
-    public ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, boolean balanced) {
-        this(left, right, encoding, codeRange, singleByteOptimizable, depth, null, balanced);
+    public ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, int depth, boolean balanced) {
+        this(left, right, encoding, codeRange, depth, null, balanced);
     }
 
-    private ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, byte[] bytes, boolean balanced) {
+    private ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, int depth, byte[] bytes, boolean balanced) {
         super(encoding,
                 codeRange,
-                singleByteOptimizable,
                 left.byteLength() + right.byteLength(),
                 left.characterLength() + right.characterLength(),
                 depth,
@@ -41,7 +40,7 @@ public class ConcatRope extends ManagedRope {
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 
-        return new ConcatRope(getLeft(), getRight(), newEncoding, newCodeRange, isSingleByteOptimizable(), depth(), getRawBytes(), balanced);
+        return new ConcatRope(getLeft(), getRight(), newEncoding, newCodeRange, depth(), getRawBytes(), balanced);
     }
 
     @Override
