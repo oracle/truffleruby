@@ -864,7 +864,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            consumerNode.accept(frame, block, getNode.execute(store, 0), 0);
+            consumerNode.accept(frame, array, block, getNode.execute(store, 0), 0);
             if (Layouts.ARRAY.getSize(array) > 1) {
                 return getRecurseNode().execute(frame, array, block, 1);
             }
@@ -884,7 +884,7 @@ public abstract class ArrayNodes {
             try {
                 for (; i < strategy.getSize(array); n++, i++) {
                     if (strategyMatchProfile.profile(strategy.matches(array))) {
-                        consumerNode.accept(frame, block, getNode.execute(store, i), i);
+                        consumerNode.accept(frame, array, block, getNode.execute(store, i), i);
                         store = Layouts.ARRAY.getStore(array);
                     } else {
                         return getRecurseNode().execute(frame, array, block, i);
@@ -914,13 +914,13 @@ public abstract class ArrayNodes {
 
     protected abstract static interface ArrayElementConsumerNode extends NodeInterface {
 
-        public abstract void accept(VirtualFrame frame, DynamicObject block, Object element, int index);
+        public abstract void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index);
     }
 
     protected static class EachConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
         @Child private YieldNode dispatchNode = new YieldNode();
 
-        public void accept(VirtualFrame frame, DynamicObject block, Object element, int index) {
+        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
             dispatchNode.dispatch(block, element);
         }
 
@@ -946,7 +946,7 @@ public abstract class ArrayNodes {
     protected static class EachWithIndexConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
         @Child private YieldNode dispatchNode = new YieldNode();
 
-        public void accept(VirtualFrame frame, DynamicObject block, Object element, int index) {
+        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
             dispatchNode.dispatch(block, element, index);
         }
 
@@ -1505,31 +1505,30 @@ public abstract class ArrayNodes {
 
     }
 
+    protected static class MapInPlaceConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
+        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
+
+        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
+            writeNode.executeWrite(array, index, dispatchNode.dispatch(block, element));
+        }
+
+        public static MapInPlaceConsumerMode create() {
+            return new MapInPlaceConsumerMode();
+        }
+    }
+
     @CoreMethod(names = { "map!", "collect!" }, needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapInPlaceNode extends YieldingCoreMethodNode {
+    public abstract static class MapInPlaceNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ArrayWriteNormalizedNode writeNode;
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-        public Object map(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("createWriteNode()") ArrayWriteNormalizedNode writeNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            int n = 0;
-            try {
-                for (; n < strategy.getSize(array); n++) {
-                    writeNode.executeWrite(array, n, yield(block, getNode.execute(store, n)));
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
+        @Specialization
+        public Object map(VirtualFrame frame, DynamicObject array, DynamicObject block,
+                @Cached("create()") MapInPlaceConsumerMode consumerNode,
+                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(frame, array, block, 0);
         }
 
         protected ArrayWriteNormalizedNode createWriteNode() {
