@@ -41,11 +41,11 @@ module Truffle
             str = arg
           elsif Thread.guarding? arg
             str = '[...]'
-          elsif (ary = Truffle::Type.coerce_to_or_nil(arg, Array, :to_ary))
+          elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))
             Thread.recursion_guard arg do
               ary.each { |a| puts(io, a) }
             end
-            next
+            str = nil
           else
             str = arg.to_s
             str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
