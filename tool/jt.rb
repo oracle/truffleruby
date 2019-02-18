@@ -1984,11 +1984,19 @@ EOS
   alias :'native-launcher' :native_launcher
 
   def check_dsl_usage
-    mx 'clean'
-    # We need to build with -parameters to get parameter names.
-    # Build every project as "mx spotbugs" needs it currently.
-    mx 'build', '--force-javac', '-A-parameters'
-    run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
+    # Change the annotation retention policy in Truffle so we can inspect specializations.
+    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
+    begin
+      mx 'clean', '--dependencies', 'org.truffleruby'
+      # We need to build with -parameters to get parameter names.
+      mx 'build', '--dependencies', 'org.truffleruby', '--force-javac', '-A-parameters'
+      # Re-build GraalVM to run the check
+      build_graalvm
+      run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
+    ensure
+      # Revert the changes we made to the Truffle source.
+      raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
+    end
   end
 
   def rubocop(*args)
@@ -2062,9 +2070,6 @@ EOS
   end
 
   def lint(*args)
-    # Change the annotation retention policy in Truffle so we can inspect specializations.
-    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
-
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
     rubocop
@@ -2073,9 +2078,6 @@ EOS
     check_parser
     check_documentation_urls
     mx 'spotbugs'
-
-    # Revert the changes we made to the Truffle source.
-    raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
   end
 
   def verify_native_bin!
