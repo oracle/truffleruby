@@ -14,9 +14,6 @@ done
 
 source "$(dirname $SELF_PATH)/../common.sh.inc"
 
-# Use homedir of the RUBY_BIN executable if provided
-cd "$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
-
 function check_launchers() {
     if [ -n "$2" ]
     then
@@ -41,6 +38,11 @@ function check_in_dir() {
 }
 
 
+# Use the Ruby home of the `jt ruby` launcher
+ruby_home="$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
+cd "$ruby_home"
+
+
 echo '** Check all launchers work'
 check_launchers bin/ true
 check_in_dir bin
@@ -54,11 +56,9 @@ fi
 
 echo '** Check gem executables are installed in all bin dirs'
 
-home=$(pwd)
-
 cd "$(dirname $SELF_PATH)/hello-world"
-"$home/bin/gem" build hello-world.gemspec
-"$home/bin/gem" install hello-world-0.0.1.gem
+"$ruby_home/bin/gem" build hello-world.gemspec
+"$ruby_home/bin/gem" install hello-world-0.0.1.gem
 cd -
 
 version="$(bin/ruby -v)"
