@@ -314,23 +314,6 @@ local part_definitions = {
         path+:: ["$JAVA_HOME/bin"],
       },
     },
-
-    oraclejdk11: {
-      downloads+: {
-        JAVA_HOME: {
-          name: "oraclejdk",
-          version: "11+20",
-          platformspecific: true,
-        },
-
-        # We need a JDK 8 to compile TruffleRuby
-        EXTRA_JAVA_HOMES: $.jdk.labsjdk8.downloads["JAVA_HOME"],
-      },
-
-      environment+: {
-        path+:: ["$JAVA_HOME/bin"],
-      },
-    },
   },
 
   platform: {
@@ -559,14 +542,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      "ruby-test-fast-java11-linux": $.platform.linux + $.jdk.oraclejdk11 + $.use.common + $.use.build + $.cap.gate +
-                                    $.run.test_fast + { timelimit: "30:00" },
-    } +
-
-    {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
 
       "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
+      "ruby-test-fast-linux": linux_gate + $.use.build + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
       "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri + { timelimit: "25:00" },
       "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
       "ruby-test-cexts-linux": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
