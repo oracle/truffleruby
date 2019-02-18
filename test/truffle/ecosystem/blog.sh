@@ -27,15 +27,15 @@ function truffleruby {
 
 set -xe
 
-jt gem-test-pack
-truffleruby gem install truffleruby-gem-test-pack/gem-cache/bundler-1.16.5.gem --local --no-document
+gem_test_pack="$(jt gem-test-pack)"
+truffleruby gem install "$gem_test_pack/gem-cache/bundler-1.16.5.gem" --local --no-document
 
 # backup bin/rake, which gets overwritten
 cp bin/rake bin/rake-original
 
 cd test/truffle/ecosystem/blog
 
-truffleruby bundle config --local cache_path ../../../../truffleruby-gem-test-pack/gem-cache
+truffleruby bundle config --local cache_path "$gem_test_pack/gem-cache"
 truffleruby bundle config --local without postgresql mysql
 
 truffleruby bundle install --local --no-cache
