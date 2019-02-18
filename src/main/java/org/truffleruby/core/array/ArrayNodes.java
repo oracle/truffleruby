@@ -844,6 +844,11 @@ public abstract class ArrayNodes {
 
     }
 
+    protected abstract static interface ArrayElementConsumerNode extends NodeInterface {
+
+        public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);
+    }
+
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class EachIteratorNode extends RubyBaseNode {
@@ -852,7 +857,6 @@ public abstract class ArrayNodes {
         @Child private EachIteratorNode recurseNode;
 
         protected EachIteratorNode(ArrayElementConsumerNode consumerNode) {
-            super();
             this.consumerNode = consumerNode;
         }
 
@@ -864,7 +868,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            consumerNode.accept(frame, array, block, getNode.execute(store, 0), 0);
+            consumerNode.accept(array, block, getNode.execute(store, 0), 0);
             if (Layouts.ARRAY.getSize(array) > 1) {
                 return getRecurseNode().execute(frame, array, block, 1);
             }
@@ -884,7 +888,7 @@ public abstract class ArrayNodes {
             try {
                 for (; i < strategy.getSize(array); n++, i++) {
                     if (strategyMatchProfile.profile(strategy.matches(array))) {
-                        consumerNode.accept(frame, array, block, getNode.execute(store, i), i);
+                        consumerNode.accept(array, block, getNode.execute(store, i), i);
                         store = Layouts.ARRAY.getStore(array);
                     } else {
                         return getRecurseNode().execute(frame, array, block, i);
@@ -912,20 +916,15 @@ public abstract class ArrayNodes {
         }
     }
 
-    protected abstract static interface ArrayElementConsumerNode extends NodeInterface {
-
-        public abstract void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index);
-    }
-
-    protected static class EachConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
+    protected static class EachConsumerNode extends RubyBaseNode implements ArrayElementConsumerNode {
         @Child private YieldNode dispatchNode = new YieldNode();
 
-        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
             dispatchNode.dispatch(block, element);
         }
 
-        public static EachConsumerMode create() {
-            return new EachConsumerMode();
+        public static EachConsumerNode create() {
+            return new EachConsumerNode();
         }
     }
 
@@ -936,7 +935,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object eachOther(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("create()") EachConsumerMode consumerNode,
+                @Cached("create()") EachConsumerNode consumerNode,
                 @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
             return iteratorNode.execute(frame, array, block, 0);
         }
@@ -946,7 +945,7 @@ public abstract class ArrayNodes {
     protected static class EachWithIndexConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
         @Child private YieldNode dispatchNode = new YieldNode();
 
-        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
             dispatchNode.dispatch(block, element, index);
         }
 
@@ -1509,7 +1508,7 @@ public abstract class ArrayNodes {
         @Child private YieldNode dispatchNode = new YieldNode();
         @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
-        public void accept(VirtualFrame frame, DynamicObject array, DynamicObject block, Object element, int index) {
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
             writeNode.executeWrite(array, index, dispatchNode.dispatch(block, element));
         }
 
