@@ -361,7 +361,6 @@ local part_definitions = {
       capabilities+: self["$.cap"].normal_machine,
       targets+: ["deploy", "post-merge"],
     },
-    fast_cpu: { capabilities+: ["fast"] },
     bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
       is_after+:: ["$.cap.bench"],
@@ -548,12 +547,12 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-fast-linux": linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
-      "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.run.test_mri + { timelimit: "25:00" },
+      "ruby-test-fast-linux":  linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
+      "ruby-test-mri-linux":   linux_gate + $.run.test_mri + { timelimit: "25:00" },
       "ruby-test-integration": linux_gate + $.run.test_integration,
       "ruby-test-cexts-linux": linux_gate + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems": linux_gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem": linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-gems":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
 
       "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
@@ -582,7 +581,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } + {
       local shared = $.use.build + $.svm.enterprise + { timelimit: "01:15:00" },
 
-      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux + $.cap.fast_cpu,
+      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux,
       "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
     },
 
