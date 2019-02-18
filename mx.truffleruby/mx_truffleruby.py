@@ -252,11 +252,6 @@ def ruby_run_specs(args):
     with VerboseMx():
         jt('test', 'specs', *args)
 
-def ruby_testdownstream(args):
-    """Run fast specs"""
-    build_truffleruby()
-    ruby_run_specs(['--format', 'specdoc', '--excl-tag', 'slow'] + args)
-
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
     build_truffleruby()
@@ -347,7 +342,6 @@ mx.update_commands(_suite, {
     'build_truffleruby': [build_truffleruby, ''],
     'ruby_deploy_binaries': [ruby_deploy_binaries, ''],
     'ruby_download_binary_suite': [download_binary_suite, 'name [revision]'],
-    'ruby_testdownstream': [ruby_testdownstream, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
