@@ -19,6 +19,7 @@ Bug fixes:
 * `rb_fix2str` has now been implemented.
 * `rb_protect` will now work even if `NilClass#==` has been redefined.
 * `BigDecimal` has been moved out of the `Truffle` module to match MRI.
+* `StringIO#puts` now correctly handles `to_s` methods which do not return strings (#1577).
 
 Changes:
 
