@@ -24,6 +24,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -847,26 +848,31 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class EachIteratorNode extends RubyBaseNode {
 
-        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private ArrayElementConsumerNode consumerNode;
         @Child private EachIteratorNode recurseNode;
 
-        public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt);
+        protected EachIteratorNode(ArrayElementConsumerNode consumerNode) {
+            super();
+            this.consumerNode = consumerNode;
+        }
+
+        public abstract DynamicObject execute(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt);
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")        
-        public DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateOne(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            yield(block, getNode.execute(store, 0));
+            consumerNode.accept(frame, block, getNode.execute(store, 0), 0);
             if (Layouts.ARRAY.getSize(array) > 1) {
-                return getRecurseNode().execute(array, block, 1);
+                return getRecurseNode().execute(frame, array, block, 1);
             }
             return array;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateMany(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
@@ -878,10 +884,10 @@ public abstract class ArrayNodes {
             try {
                 for (; i < strategy.getSize(array); n++, i++) {
                     if (strategyMatchProfile.profile(strategy.matches(array))) {
-                        yield(block, getNode.execute(store, i));
+                        consumerNode.accept(frame, block, getNode.execute(store, i), i);
                         store = Layouts.ARRAY.getStore(array);
                     } else {
-                        return getRecurseNode().execute(array, block, i);
+                        return getRecurseNode().execute(frame, array, block, i);
                     }
                 }
             } finally {
@@ -896,56 +902,69 @@ public abstract class ArrayNodes {
         private EachIteratorNode getRecurseNode() {
             if (recurseNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                recurseNode = insert(EachIteratorNode.create());
+                recurseNode = insert(EachIteratorNode.create(consumerNode));
             }
             return recurseNode;
         }
 
-        public Object yield(DynamicObject block, Object... arguments) {
-            return dispatchNode.dispatch(block, arguments);
+        public static EachIteratorNode create(ArrayElementConsumerNode consumerNode) {
+            return EachIteratorNodeGen.create(consumerNode);
+        }
+    }
+
+    protected abstract static interface ArrayElementConsumerNode extends NodeInterface {
+
+        public abstract void accept(VirtualFrame frame, DynamicObject block, Object element, int index);
+    }
+
+    protected static class EachConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
+        @Child private YieldNode dispatchNode = new YieldNode();
+
+        public void accept(VirtualFrame frame, DynamicObject block, Object element, int index) {
+            dispatchNode.dispatch(block, element);
         }
 
-        public static EachIteratorNode create() {
-            return EachIteratorNodeGen.create();
+        public static EachConsumerMode create() {
+            return new EachConsumerMode();
         }
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object eachOther(DynamicObject array, DynamicObject block,
-                @Cached("create()") EachIteratorNode iteratorNode) {
-            return iteratorNode.execute(array, block, 0);
+        public Object eachOther(VirtualFrame frame, DynamicObject array, DynamicObject block,
+                @Cached("create()") EachConsumerMode consumerNode,
+                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(frame, array, block, 0);
         }
 
+    }
+
+    protected static class EachWithIndexConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
+        @Child private YieldNode dispatchNode = new YieldNode();
+
+        public void accept(VirtualFrame frame, DynamicObject block, Object element, int index) {
+            dispatchNode.dispatch(block, element, index);
+        }
+
+        public static EachWithIndexConsumerMode create() {
+            return new EachWithIndexConsumerMode();
+        }
     }
 
     @Primitive(name = "array_each_with_index")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachWithIndexNode extends YieldingCoreMethodNode {
+    public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-        public Object eachWithIndexOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            int n = 0;
-            try {
-                for (; n < strategy.getSize(array); n++) {
-                    yield(block, getNode.execute(store, n), n);
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
+        @Specialization
+        public Object eachOther(VirtualFrame frame, DynamicObject array, DynamicObject block,
+                @Cached("create()") EachWithIndexConsumerMode consumerNode,
+                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(frame, array, block, 0);
         }
 
     }
