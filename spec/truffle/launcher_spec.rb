@@ -12,6 +12,11 @@ require 'benchmark'
 
 describe "The launcher" do
 
+  def graalvm_bash_launcher?
+    launcher = RbConfig.ruby
+    File.binread(launcher, 2) == "#!"
+  end
+
   it 'is in the bindir' do
     bindir = File.expand_path(RbConfig::CONFIG['bindir'])
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
@@ -114,10 +119,12 @@ describe "The launcher" do
   end
 
   guard -> { !TruffleRuby.native? } do
-    it "takes options from system properties set on the command line using -J" do
-      out = ruby_exe("puts $VERBOSE", options: "-J-Dpolyglot.ruby.verbosity=true")
-      $?.success?.should == true
-      out.should == "true\n"
+    guard -> { !graalvm_bash_launcher? } do
+      it "takes options from system properties set on the command line using -J" do
+        out = ruby_exe("puts $VERBOSE", options: "-J-Dpolyglot.ruby.verbosity=true")
+        $?.success?.should == true
+        out.should == "true\n"
+      end
     end
 
     it "takes options from system properties set on the command line using --jvm" do
@@ -161,10 +168,12 @@ describe "The launcher" do
      '--jvm.classpath=',
      '--jvm.cp='
     ].each do |option|
-      it "'#{option}' adds the jar" do
-        out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
-        $?.success?.should == true
-        out.lines[0].should include(":does-not-exist.jar")
+      guard_not -> { option.start_with?('-J') and graalvm_bash_launcher? } do
+        it "'#{option}' adds the jar" do
+          out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
+          $?.success?.should == true
+          out.lines[0].should include(":does-not-exist.jar")
+        end
       end
     end
   end
