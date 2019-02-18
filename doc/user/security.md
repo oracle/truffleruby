@@ -63,6 +63,7 @@ None | FileUtils is vulnerable to symlink race attacks | *todo* | *todo* | *todo
 CVE-2010-0541 | XSS in WEBrick | *todo* | *todo* | *todo*
 None | Buffer over-run in `ARGF.inplace_mode=` | *todo* | *todo* | *todo*
 None | WEBrick has an Escape Sequence Injection vulnerability | *todo* | *todo* | *todo*
+CVE-2009-5147 | `DL::dlopen` opens libraries with tainted names | *todo* | *todo* | *todo*
 CVE-2009-4124 | Heap overflow in `String` | *todo* | *todo* | *todo*
 None | DoS vulnerability in `BigDecimal` | *todo* | *todo* | *todo*
 None | DoS vulnerability in `REXML` | *todo* | *todo* | *todo*
