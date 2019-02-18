@@ -81,7 +81,7 @@ def ruby_deploy_binaries(args):
         return deploy_binary(['--skip-existing', '--platform-dependent', 'truffleruby-binary-snapshots'])
 
 def miniruby_for_building_cexts(args):
-    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'sulong:SULONG'])
+    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
     mx_binary = join(mx._mx_home, 'mx')
     options = [
         '--home=' + root,
