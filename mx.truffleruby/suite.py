@@ -250,7 +250,8 @@ suite = {
             "native": True,
             "dir": "src/main/c",
             "buildDependencies": [
-                "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
+                "TRUFFLERUBY", # We need this jar to run extconf.rb
+                "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "sulong:SULONG_LIBS", # polyglot.h
             ],
             "buildEnv": {
