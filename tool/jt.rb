@@ -1174,7 +1174,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'lib/truffle/post_install_hook.sh')
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'mxbuild/graalvm/jre/languages/ruby/lib/truffle/post_install_hook.sh')
 
       when 'gems'
         # Test that we can compile and run some real C extensions
