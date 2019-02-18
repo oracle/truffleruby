@@ -15,10 +15,10 @@ done
 ecosystem=$(dirname "$SELF_PATH")
 truffle=$(dirname "$ecosystem")
 test=$(dirname "$truffle")
-home=$(dirname "$test")
+repo=$(dirname "$test")
 
 function jt {
-  ruby "${home}/tool/jt.rb" "$@"
+  ruby "${repo}/tool/jt.rb" "$@"
 }
 
 function truffleruby {
@@ -29,9 +29,6 @@ set -xe
 
 gem_test_pack="$(jt gem-test-pack)"
 truffleruby gem install "$gem_test_pack/gem-cache/bundler-1.16.5.gem" --local --no-document
-
-# backup bin/rake, which gets overwritten
-cp bin/rake bin/rake-original
 
 cd test/truffle/ecosystem/blog
 
@@ -72,6 +69,7 @@ test "$(curl -s "$url")" = '[]'
 
 kill_server
 
-# put back the original
-cd "$home"
-mv -f bin/rake-original bin/rake
+# put back the original bin/rake, as it gets overwritten by bundle install
+cp $repo/bin/rake $repo/mxbuild/graalvm/bin/rake
+cp $repo/bin/rake $repo/mxbuild/graalvm/jre/bin/rake
+cp $repo/bin/rake $repo/mxbuild/graalvm/jre/languages/ruby/bin/rake
