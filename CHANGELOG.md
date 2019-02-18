@@ -19,6 +19,7 @@ Bug fixes:
 * `rb_fix2str` has now been implemented.
 * `rb_protect` will now work even if `NilClass#==` has been redefined.
 * `BigDecimal` has been moved out of the `Truffle` module to match MRI.
+* `Array#each` now behaves like MRI when the array is modified (#1580).
 
 Changes:
 
