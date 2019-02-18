@@ -228,7 +228,7 @@ class TruffleTool
   LOCAL_CONFIG_FILE = '.truffleruby-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
   TRUFFLERUBY_PATH  = ROOT.join('../..').expand_path
-  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
+  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('mxbuild/graalvm/jre/languages/ruby/bin/truffleruby')
 
   module OptionBlocks
     STORE_NEW_VALUE         = -> (new, _old, _) { new }
