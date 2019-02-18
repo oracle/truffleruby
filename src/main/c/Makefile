@@ -5,6 +5,10 @@ else
 DLEXT := so
 endif
 
+ifndef MX_HOME
+$(error This Makefile should be called from mx)
+endif
+
 ROOT := $(realpath ../../..)
 RUBY := $(MX_HOME)/mx -p $(ROOT) miniruby_for_building_cexts
 
