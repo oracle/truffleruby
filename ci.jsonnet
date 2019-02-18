@@ -542,18 +542,20 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.run.lint + { timelimit: "30:00" },
+    } +
 
-      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
-      "ruby-test-fast-linux": linux_gate + $.use.build + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
-      "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri + { timelimit: "25:00" },
-      "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
-      "ruby-test-cexts-linux": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
+    {
+      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-compiler-graal-core": linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
-                                       $.run.test_compiler,
+      "ruby-test-fast-linux": linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
+      "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.run.test_mri + { timelimit: "25:00" },
+      "ruby-test-integration": linux_gate + $.run.test_integration,
+      "ruby-test-cexts-linux": linux_gate + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems": linux_gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem": linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
+
+      "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
       # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
     } +
