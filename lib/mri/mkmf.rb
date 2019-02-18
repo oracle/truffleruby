@@ -233,7 +233,7 @@ module MakeMakefile
   end
 
   if RUBY_ENGINE == 'truffleruby'
-    $extmk = Truffle::Boot.get_option('building.core.cexts')
+    $extmk = Truffle::Boot.get_option('building.core.cexts') || ENV.key?('MKMF_SET_EXTMK_TO_TRUE')
     topdir = RbConfig::CONFIG['prefix'] # the TruffleRuby home
     $hdrdir = RbConfig::CONFIG["rubyhdrdir"] # lib/cext/include
     $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"] # lib/cext/include

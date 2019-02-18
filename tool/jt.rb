@@ -781,10 +781,10 @@ module Commands
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
     target = "#{cext_dir}/lib/#{name}/#{name}.su"
-    compile_cext(name, ext_dir, target, *clang_opts)
+    compile_cext(name, ext_dir, target, clang_opts)
   end
 
-  def compile_cext(name, ext_dir, target, *clang_opts)
+  def compile_cext(name, ext_dir, target, clang_opts, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
@@ -792,7 +792,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run_ruby('-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
@@ -1026,6 +1026,11 @@ module Commands
       "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
+    compile_env = {
+      # MRI C-ext tests expect to be built with $extmk = true.
+      "MKMF_SET_EXTMK_TO_TRUE" => "true",
+    }
+
     cext_tests = test_files.select do |f|
       f.include?("cext-ruby") ||
       f == "ruby/test_file_exhaustive.rb"
@@ -1058,7 +1063,7 @@ module Commands
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)
-        compile_cext(name, compile_dir, dest_dir)
+        compile_cext(name, compile_dir, dest_dir, [], env: compile_env)
       else
         puts "c require not found for cext test: #{test_path}"
       end
@@ -1193,7 +1198,7 @@ EOS
             gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
             ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
+            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
 
             next if gem_name == 'psd_native' # psd_native is excluded just for running
             run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
