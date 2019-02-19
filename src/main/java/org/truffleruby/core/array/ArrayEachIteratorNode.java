@@ -10,7 +10,6 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.array.ArrayNodes.ArrayElementConsumerNode;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -19,12 +18,17 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayEachIteratorNode extends RubyBaseNode {
+
+    public static interface ArrayElementConsumerNode extends NodeInterface {
+        public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);
+    }
 
     @Child private ArrayEachIteratorNode recurseNode;
 

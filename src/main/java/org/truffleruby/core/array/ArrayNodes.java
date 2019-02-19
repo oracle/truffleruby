@@ -38,6 +38,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
@@ -840,11 +841,6 @@ public abstract class ArrayNodes {
             }
         }
 
-    }
-
-    protected abstract static interface ArrayElementConsumerNode extends NodeInterface {
-
-        public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
