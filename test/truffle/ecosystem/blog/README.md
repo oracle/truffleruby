@@ -59,14 +59,6 @@ This is the standard command to install Bundler.
 $ gem install bundler
 ```
 
-On TruffleRuby you currently need to use the system version of `libxml` as a
-dynamic library, rather than the vendored version as a static library. Without
-this you will see an error while attempting to make the static link.
-
-```
-$ bundle config --local build.nokogiri --use-system-libraries
-```
-
 Then the standard command to install dependencies and setup the database.
 
 ```

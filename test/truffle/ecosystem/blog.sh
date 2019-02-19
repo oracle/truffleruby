@@ -37,7 +37,6 @@ cd test/truffle/ecosystem/blog
 
 truffleruby bundle config --local cache_path ../../../../truffleruby-gem-test-pack/gem-cache
 truffleruby bundle config --local without postgresql mysql
-truffleruby bundle config --local build.nokogiri --use-system-libraries
 
 truffleruby bundle install --local --no-cache
 
