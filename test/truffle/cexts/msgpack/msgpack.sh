@@ -11,8 +11,9 @@ gem install "$(jt gem-test-pack)/gem-cache/bundler-1.16.5.gem" --local --no-docu
 
 cd "$(jt gem-test-pack)/gem-testing/msgpack-ruby"
 
-bundle config --local cache_path ./gem-cache
+# Use ruby -S to avoid the nested shebang problem on macOS
+ruby -S bundle config --local cache_path ./gem-cache
 
-bundle install --local --no-cache
-bundle exec rake compile
-bundle exec rake spec
+ruby -S bundle install --local --no-cache
+ruby -S bundle exec rake compile
+ruby -S bundle exec rake spec
