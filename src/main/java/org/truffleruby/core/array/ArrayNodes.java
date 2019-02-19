@@ -853,30 +853,29 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class EachIteratorNode extends RubyBaseNode {
 
-        @Child private ArrayElementConsumerNode consumerNode;
         @Child private EachIteratorNode recurseNode;
 
-        protected EachIteratorNode(ArrayElementConsumerNode consumerNode) {
-            this.consumerNode = consumerNode;
+        public static EachIteratorNode create() {
+            return EachIteratorNodeGen.create();
         }
 
-        public abstract DynamicObject execute(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt);
+        public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode);
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")        
-        public DynamicObject iterateOne(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             consumerNode.accept(array, block, getNode.execute(store, 0), 0);
             if (Layouts.ARRAY.getSize(array) > 1) {
-                return getRecurseNode().execute(frame, array, block, 1);
+                return getRecurseNode().execute(array, block, 1, consumerNode);
             }
             return array;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public DynamicObject iterateMany(VirtualFrame frame, DynamicObject array, DynamicObject block, int startAt,
+        public DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
@@ -891,7 +890,7 @@ public abstract class ArrayNodes {
                         consumerNode.accept(array, block, getNode.execute(store, i), i);
                         store = Layouts.ARRAY.getStore(array);
                     } else {
-                        return getRecurseNode().execute(frame, array, block, i);
+                        return getRecurseNode().execute(array, block, i, consumerNode);
                     }
                 }
             } finally {
@@ -906,64 +905,46 @@ public abstract class ArrayNodes {
         private EachIteratorNode getRecurseNode() {
             if (recurseNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                recurseNode = insert(EachIteratorNode.create(consumerNode));
+                recurseNode = insert(EachIteratorNode.create());
             }
             return recurseNode;
-        }
-
-        public static EachIteratorNode create(ArrayElementConsumerNode consumerNode) {
-            return EachIteratorNodeGen.create(consumerNode);
-        }
-    }
-
-    protected static class EachConsumerNode extends RubyBaseNode implements ArrayElementConsumerNode {
-        @Child private YieldNode dispatchNode = new YieldNode();
-
-        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
-            dispatchNode.dispatch(block, element);
-        }
-
-        public static EachConsumerNode create() {
-            return new EachConsumerNode();
         }
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EachNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
         @Specialization
-        public Object eachOther(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("create()") EachConsumerNode consumerNode,
-                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
-            return iteratorNode.execute(frame, array, block, 0);
+        public Object each(DynamicObject array, DynamicObject block,
+                @Cached("create()") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
         }
 
-    }
-
-    protected static class EachWithIndexConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
-        @Child private YieldNode dispatchNode = new YieldNode();
-
+        @Override
         public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
-            dispatchNode.dispatch(block, element, index);
+            yield(block, element);
         }
 
-        public static EachWithIndexConsumerMode create() {
-            return new EachWithIndexConsumerMode();
-        }
     }
 
     @Primitive(name = "array_each_with_index")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
+
+        @Child private YieldNode dispatchNode = new YieldNode();
 
         @Specialization
-        public Object eachOther(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("create()") EachWithIndexConsumerMode consumerNode,
-                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
-            return iteratorNode.execute(frame, array, block, 0);
+        public Object eachOther(DynamicObject array, DynamicObject block,
+                @Cached("create()") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
+        }
+
+        @Override
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
+            dispatchNode.dispatch(block, element, index);
         }
 
     }
@@ -1504,34 +1485,21 @@ public abstract class ArrayNodes {
 
     }
 
-    protected static class MapInPlaceConsumerMode extends RubyBaseNode implements ArrayElementConsumerNode {
-        @Child private YieldNode dispatchNode = new YieldNode();
-        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
-
-        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
-            writeNode.executeWrite(array, index, dispatchNode.dispatch(block, element));
-        }
-
-        public static MapInPlaceConsumerMode create() {
-            return new MapInPlaceConsumerMode();
-        }
-    }
-
     @CoreMethod(names = { "map!", "collect!" }, needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapInPlaceNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class MapInPlaceNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Child private ArrayWriteNormalizedNode writeNode;
+        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
         @Specialization
-        public Object map(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("create()") MapInPlaceConsumerMode consumerNode,
-                @Cached("create(consumerNode)") EachIteratorNode iteratorNode) {
-            return iteratorNode.execute(frame, array, block, 0);
+        public Object map(DynamicObject array, DynamicObject block,
+                @Cached("create()") EachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
         }
 
-        protected ArrayWriteNormalizedNode createWriteNode() {
-            return ArrayWriteNormalizedNodeGen.create();
+        @Override
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
+            writeNode.executeWrite(array, index, yield(block, element));
         }
 
     }
