@@ -1891,17 +1891,6 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "object_to_s")
-    public abstract static class ObjectToSNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject toS(Object obj,
-                                 @Cached("create()") ToSNode kernelToSNode) {
-            return kernelToSNode.executeToS(obj);
-        }
-
-    }
-
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 

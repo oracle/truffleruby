@@ -37,18 +37,18 @@ module Truffle
         args.each do |arg|
           if arg.equal? nil
             str = ''
-          elsif arg.kind_of?(Array)
-            if Thread.guarding? arg
-              str = '[...]'
-            else
-              Thread.recursion_guard arg do
-                arg.each do |a|
-                  puts(io, a)
-                end
-              end
+          elsif arg.kind_of?(String)
+            str = arg
+          elsif Thread.guarding? arg
+            str = '[...]'
+          elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))
+            Thread.recursion_guard arg do
+              ary.each { |a| puts(io, a) }
             end
+            str = nil
           else
             str = arg.to_s
+            str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
           end
 
           if str

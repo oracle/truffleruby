@@ -23,6 +23,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.objects.IsANode;
@@ -210,6 +211,17 @@ public abstract class TypeNodes {
         @Specialization(guards = "!isRubyArray(object)")
         protected boolean other(Object object) {
             return true;
+        }
+
+    }
+
+    @CoreMethod(names = "rb_any_to_s", onSingleton = true, required = 1)
+    public abstract static class ObjectToSNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject toS(Object obj,
+                @Cached("create()") ToSNode kernelToSNode) {
+            return kernelToSNode.executeToS(obj);
         }
 
     }

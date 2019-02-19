@@ -388,32 +388,7 @@ class StringIO
   end
 
   def puts(*args)
-    if args.empty?
-      write(DEFAULT_RECORD_SEPARATOR)
-    else
-      args.each do |arg|
-        if arg.nil?
-          line = ''
-        elsif Thread.guarding? arg
-          line = '[...]'
-        else
-          begin
-            arg = Truffle::Type.coerce_to(arg, Array, :to_ary)
-            Thread.recursion_guard arg do
-              arg.each { |a| puts a }
-            end
-            next
-          rescue
-            line = arg.to_s
-          end
-        end
-
-        write(line)
-        write(DEFAULT_RECORD_SEPARATOR) unless line[-1] == ?\n
-      end
-    end
-
-    nil
+    Truffle::IOOperations.puts(self, *args)
   end
 
   def read(length=nil, buffer=nil)
