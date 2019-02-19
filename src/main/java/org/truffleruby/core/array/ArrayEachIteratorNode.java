@@ -41,9 +41,12 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
         final Object store = Layouts.ARRAY.getStore(array);
 
         consumerNode.accept(array, block, getNode.execute(store, 0), 0);
+
         if (Layouts.ARRAY.getSize(array) > 1) {
+            // Implicitly profiles through lazy node creation
             return getRecurseNode().execute(array, block, 1, consumerNode);
         }
+
         return array;
     }
 
