@@ -11,3 +11,7 @@ example "[3, 1, 2][1]", 1
 example "[3, 1, 2].sort[1]", 2
 
 example "[14].pack('C').getbyte(0)", 14
+
+example "sum = 0; [1,2,3].each { |x| sum += x }; sum", 6
+
+example "sum = 0; [7].each { |x| sum += x }; sum", 7

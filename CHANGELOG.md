@@ -20,6 +20,7 @@ Bug fixes:
 * `rb_protect` will now work even if `NilClass#==` has been redefined.
 * `BigDecimal` has been moved out of the `Truffle` module to match MRI.
 * `StringIO#puts` now correctly handles `to_s` methods which do not return strings (#1577).
+* `Array#each` now behaves like MRI when the array is modified (#1580).
 
 Changes:
 

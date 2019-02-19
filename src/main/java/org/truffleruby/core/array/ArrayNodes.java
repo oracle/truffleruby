@@ -37,6 +37,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
@@ -70,6 +71,7 @@ import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
 
@@ -843,37 +845,17 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1" }, limit = "STORAGE_STRATEGIES")
-        public Object eachOne(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            yield(block, getNode.execute(store, 0));
-
-            return array;
+        @Specialization
+        public Object each(DynamicObject array, DynamicObject block,
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
         }
 
-        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public Object eachOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            int n = 0;
-            try {
-                for (; n < strategy.getSize(array); n++) {
-                    yield(block, getNode.execute(store, n));
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
+        @Override
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
+            yield(block, element);
         }
 
     }
@@ -881,26 +863,19 @@ public abstract class ArrayNodes {
     @Primitive(name = "array_each_with_index")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class EachWithIndexNode extends YieldingCoreMethodNode {
+    public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-        public Object eachWithIndexOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
+        @Child private YieldNode dispatchNode = new YieldNode();
 
-            int n = 0;
-            try {
-                for (; n < strategy.getSize(array); n++) {
-                    yield(block, getNode.execute(store, n), n);
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
+        @Specialization
+        public Object eachOther(DynamicObject array, DynamicObject block,
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
+        }
 
-            return array;
+        @Override
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
+            dispatchNode.dispatch(block, element, index);
         }
 
     }
@@ -1443,33 +1418,19 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map!", "collect!" }, needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class MapInPlaceNode extends YieldingCoreMethodNode {
+    public abstract static class MapInPlaceNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
-        @Child private ArrayWriteNormalizedNode writeNode;
+        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+        @Specialization
         public Object map(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("createWriteNode()") ArrayWriteNormalizedNode writeNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            int n = 0;
-            try {
-                for (; n < strategy.getSize(array); n++) {
-                    writeNode.executeWrite(array, n, yield(block, getNode.execute(store, n)));
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+            return iteratorNode.execute(array, block, 0, this);
         }
 
-        protected ArrayWriteNormalizedNode createWriteNode() {
-            return ArrayWriteNormalizedNodeGen.create();
+        @Override
+        public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
+            writeNode.executeWrite(array, index, yield(block, element));
         }
 
     }
