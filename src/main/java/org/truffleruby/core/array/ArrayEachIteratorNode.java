@@ -55,10 +55,9 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
             @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
-        int n = 0;
         int i = startAt;
         try {
-            for (; i < strategy.getSize(array); n++, i++) {
+            for (; i < strategy.getSize(array); i++) {
                 if (strategyMatchProfile.profile(strategy.matches(array))) {
                     final Object store = Layouts.ARRAY.getStore(array);
                     consumerNode.accept(array, block, getNode.execute(store, i), i);
@@ -68,7 +67,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
             }
         } finally {
             if (CompilerDirectives.inInterpreter()) {
-                LoopNode.reportLoopCount(this, n);
+                LoopNode.reportLoopCount(this, i - startAt);
             }
         }
 
