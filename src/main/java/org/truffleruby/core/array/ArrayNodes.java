@@ -38,7 +38,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.array.ArrayNodesFactory.EachIteratorNodeGen;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
@@ -61,7 +60,6 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -849,68 +847,6 @@ public abstract class ArrayNodes {
         public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);
     }
 
-    @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
-    public abstract static class EachIteratorNode extends RubyBaseNode {
-
-        @Child private EachIteratorNode recurseNode;
-
-        public static EachIteratorNode create() {
-            return EachIteratorNodeGen.create();
-        }
-
-        public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode);
-
-        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")        
-        public DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-            final Object store = Layouts.ARRAY.getStore(array);
-
-            consumerNode.accept(array, block, getNode.execute(store, 0), 0);
-            if (Layouts.ARRAY.getSize(array) > 1) {
-                return getRecurseNode().execute(array, block, 1, consumerNode);
-            }
-            return array;
-        }
-
-        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-        public DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
-            final Object startStore = Layouts.ARRAY.getStore(array);
-            Object store = startStore;
-
-            int n = 0;
-            int i = startAt;
-            try {
-                for (; i < strategy.getSize(array); n++, i++) {
-                    if (strategyMatchProfile.profile(strategy.matches(array))) {
-                        consumerNode.accept(array, block, getNode.execute(store, i), i);
-                        store = Layouts.ARRAY.getStore(array);
-                    } else {
-                        return getRecurseNode().execute(array, block, i, consumerNode);
-                    }
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
-            }
-
-            return array;
-        }
-
-        private EachIteratorNode getRecurseNode() {
-            if (recurseNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                recurseNode = insert(EachIteratorNode.create());
-            }
-            return recurseNode;
-        }
-    }
-
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
@@ -918,7 +854,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object each(DynamicObject array, DynamicObject block,
-                @Cached("create()") EachIteratorNode iteratorNode) {
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
@@ -938,7 +874,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object eachOther(DynamicObject array, DynamicObject block,
-                @Cached("create()") EachIteratorNode iteratorNode) {
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
@@ -1493,7 +1429,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object map(DynamicObject array, DynamicObject block,
-                @Cached("create()") EachIteratorNode iteratorNode) {
+                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
