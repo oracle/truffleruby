@@ -20,8 +20,6 @@ This has the effect that `$SAFE` and `Thread#safe_level` are `0` and no other
 levels are implemented. Trying to use level `1` will raise a `SecurityError`.
 Other levels will raise `ArgumentError` as in standard Ruby.
 
-`$SAFE` level 1 can be allowed, but ignored, with the `--safe` option.
-
 ## MRI Vulnerabilities
 
 Vulnerabilities reported against MRI may apply to the design of Ruby or to code
