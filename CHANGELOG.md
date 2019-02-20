@@ -21,6 +21,8 @@ Bug fixes:
 * `BigDecimal` has been moved out of the `Truffle` module to match MRI.
 * `StringIO#puts` now correctly handles `to_s` methods which do not return strings (#1577).
 * `Array#each` now behaves like MRI when the array is modified (#1580).
+* `Kernel#respond_to?` now returns false if a method is protected and
+  the `include_all` argument is false (#1568).
 
 Changes:
 
