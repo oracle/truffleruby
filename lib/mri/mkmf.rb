@@ -10,6 +10,9 @@ require 'shellwords'
 if RUBY_ENGINE == 'truffleruby'
   # Setup config here as we need to check the clang version
   require 'rbconfig-for-mkmf'
+  # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
+  # currently required as TruffleRuby cannot yet link to static libraries.
+  ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
 end
 
 # :stopdoc:
