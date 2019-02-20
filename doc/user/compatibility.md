@@ -56,7 +56,7 @@ Process.respond_to?(:fork)
 
 `win32ole` is unsupported.
 
-`fiddle` is essentially unsupported - the module and some methods are there
+`fiddle` is not yet implemented - the module and some methods are there
 but not enough to run anything serious.
 
 We provide our own included implementation of the interface of the `ffi` gem,
