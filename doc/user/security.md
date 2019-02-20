@@ -38,7 +38,7 @@ CVE-2017-0898 | Buffer underrun vulnerability in `Kernel.sprintf` | *todo* | *to
 CVE-2017-14033 | Buffer underrun vulnerability in OpenSSL ASN1 decode | *todo* | *todo* | *todo*
 CVE-2017-14064 | Heap exposure vulnerability in generating JSON | *todo* | *todo* | *todo*
 CVE-2017-0902, CVE-2017-0899, CVE-2017-0900, CVE-2017-0901 | Multiple vulnerabilities in RubyGems | *todo* | *todo* | *todo*
-CVE-2015-7551 | Unsafe tainted string usage in Fiddle and DL | *todo* | *todo* | *todo*
+CVE-2015-7551 | Unsafe tainted string usage in Fiddle and DL (regression of the mitigation of CVE-2009-5147) | Additional taint checks | Tested in MRI `test/mri/tests/fiddle/test_handle.rb` | Not applicable as we do not support `$SAFE`, and the `DL` module was removed in Ruby 2.2.0
 CVE-2015-1855 | Ruby OpenSSL Hostname Verification | *todo* | *todo* | *todo*
 CVE-2014-8090 | Another Denial of Service XML Expansion | *todo* | *todo* | *todo*
 CVE-2014-8080 | Denial of Service XML Expansion | *todo* | Tested in ruby/spec `:security` | *todo*
@@ -63,7 +63,7 @@ None | FileUtils is vulnerable to symlink race attacks | *todo* | *todo* | *todo
 CVE-2010-0541 | XSS in WEBrick | *todo* | *todo* | *todo*
 None | Buffer over-run in `ARGF.inplace_mode=` | *todo* | *todo* | *todo*
 None | WEBrick has an Escape Sequence Injection vulnerability | *todo* | *todo* | *todo*
-CVE-2009-5147 | `DL::dlopen` opens libraries with tainted names | *todo* | *todo* | *todo*
+CVE-2009-5147 | `DL::dlopen` opens libraries with tainted names | Additional taint checks | The `DL` module does not exist in modern Ruby | Not applicable as we do not support `$SAFE`, and the `DL` module was removed in Ruby 2.2.0
 CVE-2009-4124 | Heap overflow in `String` | *todo* | *todo* | *todo*
 None | DoS vulnerability in `BigDecimal` | *todo* | *todo* | *todo*
 None | DoS vulnerability in `REXML` | *todo* | *todo* | *todo*
