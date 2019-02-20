@@ -126,6 +126,7 @@ dtrace/test_raise.rb
 dtrace/test_require.rb
 dtrace/test_singleton_function.rb
 dtrace/test_string.rb
+fiddle/test_cparser.rb
 gdbm/test_gdbm.rb
 irb/test_completion.rb
 irb/test_option.rb
