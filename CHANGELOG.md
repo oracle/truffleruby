@@ -9,6 +9,8 @@ Bug fixes:
 * Fixed Enumerator::Lazy which wrongly rescued StandardError (#1557).
 * Fixed several problems with `Numeric#step` related to default arguments,
   infinite sequences, and bad argument types (#1520).
+* Fixed incorrect raising of `ArgumentError` with `Range#step` when at
+  least one component of the `Range` is `Float::INFINITY` (#1503).
 * Fixed the wrong encoding being associated with certain forms of heredoc strings (#1563).
 * Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
 * Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE` by -1 (#1581).

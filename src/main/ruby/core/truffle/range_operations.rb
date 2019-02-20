@@ -37,24 +37,10 @@
 module Truffle
   module RangeOperations
 
-    def self.step_float_iterations_size(range, first, last, step_size)
-      err = (first.abs + last.abs + (last - first).abs) / step_size.abs * Float::EPSILON
-      err = 0.5 if err > 0.5
-
-      if range.exclude_end?
-        iterations = ((last - first) / step_size - err).floor
-        iterations += 1 if iterations * step_size + first < last
-      else
-        iterations = ((last - first) / step_size + err).floor + 1
-      end
-
-      iterations
-    end
-
     def self.step_iterations_size(range, first, last, step_size)
       case first
       when Float
-        step_float_iterations_size(range, first, last, step_size)
+        Truffle::NumericOperations.float_step_size(first, last, step_size, range.exclude_end?)
       else
         range.size.nil? ? nil : (range.size.fdiv(step_size)).ceil
       end
