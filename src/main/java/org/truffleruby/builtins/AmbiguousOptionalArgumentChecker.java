@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.RubyNode;
 
 import java.lang.reflect.Method;
@@ -38,6 +39,7 @@ public class AmbiguousOptionalArgumentChecker {
         }
     }
 
+    @SuppressFBWarnings("Dm")
     private static void verifyNoAmbiguousOptionalArgumentsWithReflection(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod methodAnnotation) {
         if (methodAnnotation.optional() > 0 || methodAnnotation.needsBlock()) {
             final int opt = methodAnnotation.optional();
@@ -121,8 +123,14 @@ public class AmbiguousOptionalArgumentChecker {
 
     private static List<Method> specializations(Class<?> node) {
         Method[] methods = node.getDeclaredMethods();
-        return Arrays.stream(methods).filter(m -> m.isAnnotationPresent(Specialization.class)).collect(Collectors.toList());
+        return Arrays.stream(methods).filter(m -> isSpecialization(m)).collect(Collectors.toList());
     }
+
+    @SuppressFBWarnings("Dm")
+    private static boolean isSpecialization(Method m) {
+        return m.isAnnotationPresent(Specialization.class);
+    }
+
     private static boolean isGuarded(String name, String[] guards) {
         for (String guard : guards) {
             if (guard.equals("wasProvided(" + name + ")") ||
