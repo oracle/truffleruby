@@ -22,6 +22,7 @@ Bug fixes:
 * `StringIO#puts` now correctly handles `to_s` methods which do not return strings (#1577).
 * `Array#each` now behaves like MRI when the array is modified (#1580).
 * Clarified that `$SAFE` can never be set to a non-zero value.
+* Fix compatibility with RubyGems 3 (#1558).
 
 Changes:
 
