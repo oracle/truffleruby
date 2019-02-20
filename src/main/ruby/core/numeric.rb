@@ -100,7 +100,7 @@ class Numeric
     infinite = step == 0
 
     if is_float
-      n = Truffle::NumericOperations.float_step_size(value, limit, step)
+      n = Truffle::NumericOperations.float_step_size(value, limit, step, false)
 
       if n > 0
         if step.infinite?

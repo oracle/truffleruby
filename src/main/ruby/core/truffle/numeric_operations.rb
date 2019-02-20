@@ -37,7 +37,7 @@
 module Truffle
   module NumericOperations
 
-    def self.float_step_size(value, limit, step)
+    def self.float_step_size(value, limit, step, exclude_end)
       if step.infinite?
         return step > 0 ? (value <= limit ? 1 : 0) : (value >= limit ? 1 : 0)
       end
@@ -50,13 +50,23 @@ module Truffle
       return 0 if n < 0
 
       err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
+      err = 0.5 if err > 0.5
 
-      if err.finite?
-        err = 0.5 if err > 0.5
-        (n + err).floor + 1
+      if exclude_end
+        return 0 if n <= 0
+
+        if n < 1
+          n = 0
+        else
+          n = n.finite? && err.finite? ? (n - err).floor : n
+        end
       else
-        n < 0 ? 0 : n
+        return 0 if n < 0
+
+        n = n.finite? && err.finite? ? (n + err).floor : n
       end
+
+      n + 1
     end
 
     def self.step_size(value, limit, step, uses_kwargs)
@@ -70,7 +80,7 @@ module Truffle
       if stepping_forever?(limit, step, desc)
         Float::INFINITY
       elsif is_float
-        float_step_size(value, limit, step)
+        float_step_size(value, limit, step, false)
       else
         if (desc && value < limit) || (!desc && value > limit)
           0

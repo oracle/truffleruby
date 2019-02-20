@@ -256,7 +256,7 @@ class Range
 
     case first
     when Float
-      iterations = Truffle::RangeOperations.step_float_iterations_size(self, first, last, step_size)
+      iterations = Truffle::NumericOperations.float_step_size(first, last, step_size, exclude_end?)
 
       i = 0
       while i < iterations
