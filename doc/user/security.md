@@ -5,9 +5,22 @@ chris.seaton@oracle.com and CC kevin.menard@oracle.com.
 
 ## Unimplemented security features
 
-`$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
-Trying to use level `1` will raise a `SecurityError`. Other levels will raise
-`ArgumentError` as in standard Ruby.
+Ruby's `$SAFE` feature adds additional checks around how tainted data is used.
+However tainting data correctly and then the checks for it are inconsistent
+and their implementation has been the subject of many vulnerabilities,
+including regressions of previously fixed vulnerabilities, as detailed below.
+Consenus in the Ruby community is that `$SAFE` is a broken security feature
+that does not provide genuine safety and it will eventually be removed.
+
+For these reasons TruffleRuby will not let you enable the `$SAFE` feature.
+This does not disable a security feature that would normally be enabled - it
+prevents you from using a broken security feature.
+
+This has the effect that `$SAFE` and `Thread#safe_level` are `0` and no other
+levels are implemented. Trying to use level `1` will raise a `SecurityError`.
+Other levels will raise `ArgumentError` as in standard Ruby.
+
+`$SAFE` level 1 can be allowed, but ignored, with the `--safe` option.
 
 ## MRI Vulnerabilities
 
