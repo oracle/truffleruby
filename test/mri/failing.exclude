@@ -126,16 +126,7 @@ dtrace/test_raise.rb
 dtrace/test_require.rb
 dtrace/test_singleton_function.rb
 dtrace/test_string.rb
-fiddle/test_c_struct_entry.rb
-fiddle/test_c_union_entity.rb
-fiddle/test_closure.rb
 fiddle/test_cparser.rb
-fiddle/test_fiddle.rb
-fiddle/test_func.rb
-fiddle/test_function.rb
-fiddle/test_handle.rb
-fiddle/test_import.rb
-fiddle/test_pointer.rb
 gdbm/test_gdbm.rb
 irb/test_completion.rb
 irb/test_option.rb
