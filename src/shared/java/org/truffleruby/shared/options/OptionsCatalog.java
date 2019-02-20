@@ -337,457 +337,457 @@ public class OptionsCatalog {
             null,
             false);
     public static final BooleanOptionDescription ARGV_GLOBALS = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.argv_globals",
             "Parse options in script argv into global variables (configured by the -s Ruby option)",
             new String[]{"-s"},
             false);
     public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.ignore_lines_before_ruby_shebang",
             "strip off text before #!ruby line (configured by the -x Ruby option)",
             new String[]{"-x"},
             false);
     public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.syntax_check",
             "Do not execute just check syntax (configured by the -c Ruby option)",
             new String[]{"-c"},
             false);
     public static final BooleanOptionDescription SHOW_VERSION = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.show_version",
             "Show version (configured by the --version Ruby option)",
             new String[]{"--version"},
             false);
     public static final BooleanOptionDescription SHOW_COPYRIGHT = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.show_copyright",
             "Show copyright (configured by the --copyright Ruby option)",
             new String[]{"--copyright"},
             false);
     public static final ShowHelpOptionDescription SHOW_HELP = new ShowHelpOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.show_help",
             "What help should be shown (configured by the -h, --help Ruby options)",
             new String[]{"-h", "--help"},
             ShowHelp.NONE);
     public static final ExecutionActionOptionDescription EXECUTION_ACTION = new ExecutionActionOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.execution_action",
             "What should be done after context is created (configured by the -e, -S Ruby options)",
             new String[]{"-e", "-S"},
             ExecutionAction.NONE);
     public static final StringOptionDescription TO_EXECUTE = new StringOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.to_execute",
             "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable. (configured by the -e, -S Ruby options)",
             new String[]{"-e", "-S"},
             "");
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.read_rubyopt",
             "Read RUBYOPT and TRUFFLERUBYOPT environment variables",
             null,
             true);
     public static final DefaultExecutionActionOptionDescription DEFAULT_EXECUTION_ACTION = new DefaultExecutionActionOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.default_execution_action",
             "What should be done when no action is set",
             null,
             DefaultExecutionAction.IRB);
     public static final StringArrayOptionDescription ARGV_GLOBAL_VALUES = new StringArrayOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.argv_global_values",
             "Parsed options from script argv with a value",
             null,
             new String[]{});
     public static final StringArrayOptionDescription ARGV_GLOBAL_FLAGS = new StringArrayOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.argv_global_flags",
             "Parsed options from script argv acting as flags (no value)",
             null,
             new String[]{});
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.lazy_translation.log",
             "Log lazy translations from the parser AST to the Truffle AST",
             null,
             false);
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.constant.dynamic_lookup.log",
             "Log source code positions where dynamic constant lookup is performed",
             null,
             false);
     public static final BooleanOptionDescription ROPE_PRINT_INTERN_STATS = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.rope.print_intern_stats",
             "Print interned rope stats at application exit",
             null,
             false);
     public static final BooleanOptionDescription PREINITIALIZATION = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.preinit",
             "Use the pre-initialized context when available",
             null,
             true);
     public static final BooleanOptionDescription LAZY_BUILTINS = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.lazy_builtins",
             "Load builtin classes (core methods & primitives) lazily on first use",
             null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_CORE_METHOD_NODES = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.lazy_core_method_nodes",
             "Lazily create core method nodes",
             null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.lazy_translation.core",
             "Lazily translation of core source files",
             null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.basic_ops.inline",
             "Inline basic operations (like Fixnum operators) in the AST without a call",
             null,
             true);
     public static final BooleanOptionDescription ROPE_LAZY_SUBSTRINGS = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.rope.lazy_substrings",
             "Indicates whether a substring operation on a rope should be performed lazily",
             null,
             true);
     public static final IntegerOptionDescription DEFAULT_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.default_cache",
             "Default size for caches",
             null,
             8);
     public static final IntegerOptionDescription METHOD_LOOKUP_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.method_lookup.cache",
             "Method lookup cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription DISPATCH_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.dispatch.cache",
             "Dispatch (various forms of method call) cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription YIELD_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.yield.cache",
             "Yield cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription METHOD_TO_PROC_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.to_proc.cache",
             "Method#to_proc cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription IS_A_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.is_a.cache",
             "Kernel#is_a? and #kind_of? cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription BIND_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.bind.cache",
             "Cache size of test for being able to bind a method to a module",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription CONSTANT_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.constant.cache",
             "Constant cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INSTANCE_VARIABLE_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.instance_variable.cache",
             "Instance variable cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription BINDING_LOCAL_VARIABLE_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.binding_local_variable.cache",
             "Binding#local_variable_get/set cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription SYMBOL_TO_PROC_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.symbol_to_proc.cache",
             "Symbol#to_proc cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ALLOCATE_CLASS_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.allocate_class.cache",
             "Allocation size class cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription PACK_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.pack.cache",
             "Array#pack cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription UNPACK_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.unpack.cache",
             "String#unpack cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription EVAL_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.eval.cache",
             "eval cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription CLASS_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.class.cache",
             ".class and .metaclass cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ENCODING_COMPATIBLE_QUERY_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.encoding_compatible_query.cache",
             "Encoding.compatible? cache size",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ENCODING_LOADED_CLASSES_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.encoding_loaded_classes.cache",
             "Cache size of encoding operations based on anticipated number of total active encodings",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription THREAD_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.thread.cache",
             "Cache size of operations that depend on a particular thread",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ROPE_CLASS_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.rope_class.cache",
             "Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls",
             null,
             8);
     public static final IntegerOptionDescription INTEROP_CONVERT_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.interop.convert.cache",
             "Cache size for converting values for interop",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_EXECUTE_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.interop.execute.cache",
             "Cache size for interop EXECUTE messages",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_INVOKE_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.interop.invoke.cache",
             "Cache size for interop INVOKE messages",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_NEW_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.interop.new.cache",
             "Cache size for interop NEW messages",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription TIME_FORMAT_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.time.format.cache",
             "Cache size for parsed time format specifiers",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription POW_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.integer.pow.cache",
             "Cache size for Integer#** with a constant exponent",
             null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ARRAY_DUP_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.array.dup.cache",
             "Cache size for copying small arrays",
             null,
             3);
     public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.frame.variable.access.cache",
             "Cache size for accessing variables in another frame",
             null,
             5);
     public static final IntegerOptionDescription ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.array.uninitialized_size",
             "How large an Array to allocate when we have no other information to go on",
             null,
             16);
     public static final IntegerOptionDescription ARRAY_SMALL = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.array.small",
             "Maximum size of an Array to consider small for optimisations",
             null,
             3);
     public static final IntegerOptionDescription HASH_PACKED_ARRAY_MAX = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.hash.packed_array.max",
             "Maximum size of a Hash to consider using the packed array storage strategy for",
             null,
             3);
     public static final IntegerOptionDescription PACK_UNROLL_LIMIT = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.pack.unroll",
             "If a pack or unpack expression has a loop less than this many iterations, unroll it",
             null,
             4);
     public static final IntegerOptionDescription PACK_RECOVER_LOOP_MIN = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.pack.recover",
             "If a pack or unpack expression is longer than this, attempt to recover loops",
             null,
             32);
     public static final IntegerOptionDescription CEXTS_MARKING_CACHE = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.cexts.marking.cache",
             "Number of objects converted to native handles before the marking service is run",
             null,
             100);
     public static final IntegerOptionDescription ROPE_DEPTH_THRESHOLD = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.rope.depth_threshold",
             "Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)",
             null,
             128);
     public static final IntegerOptionDescription GLOBAL_VARIABLE_MAX_INVALIDATIONS = new IntegerOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.global_variable.max_invalidations",
             "Maximum number of times a global variable can be changed to be considered constant",
             null,
             1);
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.clone.default",
             "Default option for cloning",
             null,
             true);
     public static final BooleanOptionDescription INLINE_DEFAULT = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.inline.default",
             "Default option for inlining",
             null,
             true);
     public static final BooleanOptionDescription CORE_ALWAYS_CLONE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.core.always_clone",
             "Always clone built-in core methods",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription PRIMITIVE_CALLERS_ALWAYS_CLONE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.primitive_callers.always_clone",
             "Always clone methods which call primitives",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription ALWAYS_SPLIT_HONOR = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.always_split.honor",
             "Honor Truffle::Graal.always_split annotations",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription INLINE_NEEDS_CALLER_FRAME = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.inline_needs_caller_frame",
             "Inline methods that need their caller frame",
             null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription YIELD_ALWAYS_CLONE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.yield.always_clone",
             "Always clone yields",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription YIELD_ALWAYS_INLINE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.yield.always_inline",
             "Always inline yields",
             null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_CLONE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.method_missing.always_clone",
             "Always clone #method_missing",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_INLINE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.method_missing.always_inline",
             "Always inline #method_missing",
             null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription CALL_WITH_BLOCK_ALWAYS_CLONE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.call_with_block.always_clone",
             "Always clone calls with a literal block",
             null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription REGEXP_INSTRUMENT_CREATION = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.regexp.instrument-creation",
             "Enable instrumentation to gather stats on regexp creation",
             null,
             false);
     public static final BooleanOptionDescription REGEXP_INSTRUMENT_MATCH = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.regexp.instrument-match",
             "Enable instrumentation to gather stats on regexp matching",
             null,
             false);
     public static final BooleanOptionDescription METRICS_TIME_PARSING_FILE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.metrics.time.parsing.file",
             "Measure time for parsing, translating and executing files, per file",
             null,
             false);
     public static final BooleanOptionDescription METRICS_TIME_REQUIRE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.metrics.time.require",
             "Measure time for #require and executing the required file",
             null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.shared.objects",
             "Enable thread-safe objects",
             null,
             true);
     public static final BooleanOptionDescription SHARED_OBJECTS_DEBUG = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.shared.objects.debug",
             "Print information about shared objects",
             null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_FORCE = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.shared.objects.force",
             "Force sharing of objects roots at startup",
             null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_SHARE_ALL = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.shared.objects.share_all",
             "Consider all objects as shared",
             null,
