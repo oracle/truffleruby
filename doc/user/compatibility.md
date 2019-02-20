@@ -56,8 +56,15 @@ Process.respond_to?(:fork)
 
 `win32ole` is unsupported.
 
+`fiddle` is essentially unsupported - the module and some methods are there
+but not enough to run anything serious.
+
+We provide our own included implementation of the interface of the `ffi` gem,
+like JRuby and Rubinius, but the implemention of this is limited at the
+moment.
+
 Quite a few of the less commonly used standard libraries are currently not
-supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
+supported, such as `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
 hard to give a definitive list of those that are missing.
 
