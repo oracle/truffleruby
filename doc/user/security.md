@@ -9,7 +9,7 @@ Ruby's `$SAFE` feature adds additional checks around how tainted data is used.
 However tainting data correctly and then the checks for it are inconsistent
 and their implementation has been the subject of many vulnerabilities,
 including regressions of previously fixed vulnerabilities, as detailed below.
-Consenus in the Ruby community is that `$SAFE` is a broken security feature
+Consensus in the Ruby community is that `$SAFE` is a broken security feature
 that does not provide genuine safety and it will eventually be removed.
 
 For these reasons TruffleRuby will not let you enable the `$SAFE` feature.
