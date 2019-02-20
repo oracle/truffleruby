@@ -584,6 +584,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
+        JVMCI_HOME                                   Path to the JVMCI JDK used for building GraalVM
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -1944,7 +1945,7 @@ EOS
   end
 
   def build_graalvm(*options)
-    java_home = ENV["CI"] ? nil : ENV["JAVA_HOME"] || install_jvmci
+    java_home = ENV["CI"] ? nil : ENV["JVMCI_HOME"] || install_jvmci
     graal = checkout_or_update_graal_repo(sforceimports: false)
 
     mx_args = %w[--dynamicimports truffleruby]
