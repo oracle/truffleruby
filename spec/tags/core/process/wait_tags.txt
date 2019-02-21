@@ -7,3 +7,4 @@ slow:Process.wait waits for a child whose process group ID is that of the callin
 slow:Process.wait doesn't block if no child is available when WNOHANG is used
 slow:Process.wait always accepts flags=0
 fails:Process.wait doesn't block if no child is available when WNOHANG is used
+slow:Process.wait returns its child pid
