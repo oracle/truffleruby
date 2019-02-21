@@ -2,7 +2,7 @@
 
 source test/truffle/common.sh.inc
 
-# Simple programs should just work with -Xsingle_threaded
+# Simple programs should just work with --single_threaded
 
 jt ruby --single_threaded -e 14
 
