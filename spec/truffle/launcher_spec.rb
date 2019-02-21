@@ -167,8 +167,8 @@ describe "The launcher" do
     out.should include("--ruby.home")
   end
 
-  it "prints available debug options for --help:languages --help:debug" do
-    out = ruby_exe(nil, options: "--help:languages --help:debug")
+  it "prints available internal options for --help:languages --help:internal" do
+    out = ruby_exe(nil, options: "--help:languages --help:internal")
     $?.success?.should == true
     out.should include("--ruby.default_cache")
   end

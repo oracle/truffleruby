@@ -8,6 +8,7 @@ Changes:
 * `-J-cp lib.jar` and so on have removed - use `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
 * `-Xoption=value` has been removed - use `--option=value` instead.
 * The `-X` option now works as in MRI.
+* `--help:debug` is now `--help:internal`.
 
 # 1.0 RC 13
 

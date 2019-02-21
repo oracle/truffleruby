@@ -57,7 +57,7 @@ slow:The launcher applies Truffle options
 slow:The launcher does not print a Java backtrace for an -S file that's not found
 slow:The launcher prints available user options for --help:languages
 slow:The launcher prints available expert options for --help:languages --help:expert
-slow:The launcher prints available debug options for --help:languages --help:debug
+slow:The launcher prints available internal options for --help:languages --help:internal
 slow:The launcher sets the log level using -Xlog=
 slow:The launcher sets the log level using --log.level=
 slow:The launcher takes normal Ruby options from TRUFFLERUBYOPT
