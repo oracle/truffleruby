@@ -38,11 +38,6 @@ public class FileLoader {
     }
 
     public void ensureReadable(String path) {
-        if (context == null) {
-            // Ignore during pre-initialisation
-            return;
-        }
-
         final File file = new File(path);
 
         if (!file.exists()) {
@@ -63,7 +58,7 @@ public class FileLoader {
 
         final String name;
 
-        if (context != null && context.isPreInitializing()) {
+        if (context.isPreInitializing()) {
             name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(path));
         } else {
             name = path;

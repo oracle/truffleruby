@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 
@@ -24,6 +25,7 @@ public class LowerFixnumChecker {
 
     public static boolean SUCCESS = true;
 
+    @SuppressFBWarnings("Dm")
     public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip, int[] lowerFixnum) {
         final Class<? extends RubyNode> nodeClass = nodeFactory.getNodeClass();
         byte[] lowerArgs = null;

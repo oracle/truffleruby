@@ -74,7 +74,7 @@ EXPERT:
   CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
   CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
 
-DEBUG: # Or "INTERNAL": options for debugging the TruffleRuby implementation
+INTERNAL: # Options for debugging the TruffleRuby implementation
   # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher
   ARGV_GLOBALS: [[argv_globals, -s], boolean, false, Parse options in script argv into global variables]
   IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore_lines_before_ruby_shebang, -x], boolean, false, "strip off text before #!ruby line"]

@@ -36,14 +36,14 @@ Passing CheckStyle is enforced in our CI gate.
 $ mx checkstyle
 ```
 
-### FindBugs
+### SpotBugs
 
-[FindBugs](http://findbugs.sourceforge.net) looks for potential Java
-programming errors. We run it with the default Graal project configuration.
-Passing FindBugs is enforced in our CI gate.
+[SpotBugs](https://spotbugs.github.io) looks for potential Java programming
+errors. We run it with the default Graal project configuration. Passing
+SpotBugs is enforced in our CI gate.
 
 ```
-$ mx findbugs
+$ mx spotbugs
 ```
 
 ## Ruby
