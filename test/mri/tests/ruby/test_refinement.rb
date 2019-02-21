@@ -406,19 +406,20 @@ class TestRefinement < Test::Unit::TestCase
     end
 
     module M2
-      refine M do
-        def foo
-          "M@M2#foo"
-        end
-
-        def bar
-          "#{super} M@M2#bar"
-        end
-
-        def baz
-          "#{super} M@M2#baz"
-        end
-      end
+      # TODO CS 21-Feb-19 can we run this now?
+      #refine M do
+      #  def foo
+      #    "M@M2#foo"
+      #  end
+      #
+      #  def bar
+      #    "#{super} M@M2#bar"
+      #  end
+      #
+      #  def baz
+      #    "#{super} M@M2#baz"
+      #  end
+      #end
     end
 
     using M2
