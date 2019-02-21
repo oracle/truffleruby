@@ -24,7 +24,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
     }
 
     private DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
-        super(ignoreVisibility, false, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD);
+        super(ignoreVisibility, !ignoreVisibility, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD);
     }
 
     /**

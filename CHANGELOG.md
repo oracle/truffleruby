@@ -25,6 +25,8 @@ Bug fixes:
 * `Array#each` now behaves like MRI when the array is modified (#1580).
 * Clarified that `$SAFE` can never be set to a non-zero value.
 * Fix compatibility with RubyGems 3 (#1558).
+* `Kernel#respond_to?` now returns false if a method is protected and
+  the `include_all` argument is false (#1568).
 
 Changes:
 
