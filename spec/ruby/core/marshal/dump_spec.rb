@@ -479,8 +479,8 @@ describe "Marshal.dump" do
     it "dumps the cause for the exception" do
       exc = nil
       begin
-        raise Exception, "the cause"
-      rescue Exception => cause
+        raise StandardError, "the cause"
+      rescue StandardError => cause
         begin
           raise RuntimeError, "the consequence"
         rescue RuntimeError => e
@@ -490,7 +490,7 @@ describe "Marshal.dump" do
       end
 
       reloaded = Marshal.load(Marshal.dump(exc))
-      reloaded.cause.should be_an_instance_of(Exception)
+      reloaded.cause.should be_an_instance_of(StandardError)
       reloaded.cause.message.should == "the cause"
     end
   end

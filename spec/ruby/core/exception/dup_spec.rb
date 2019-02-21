@@ -61,8 +61,8 @@ describe "Exception#dup" do
 
   it "does copy the cause" do
     begin
-      raise Exception, "the cause"
-    rescue Exception => cause
+      raise StandardError, "the cause"
+    rescue StandardError => cause
       begin
         raise RuntimeError, "the consequence"
       rescue RuntimeError => e
