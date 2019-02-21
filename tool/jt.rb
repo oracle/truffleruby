@@ -214,7 +214,7 @@ module Utilities
     if use_native
       ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
     else
-      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/bin/truffleruby"
+      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/graalvm/jre/languages/ruby/bin/ruby"
     end
   end
 
@@ -470,14 +470,14 @@ module Utilities
       command, *args = args
     end
 
-    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args]
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
 
     if i = args.index('-t')
       launcher = args[i+1]
       flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
-      sh env_vars, launcher, *flags, *mspec_args, use_exec: true
+      sh env_vars, launcher, *flags, *mspec_args, *args, use_exec: true
     else
-      ruby env_vars, *mspec_args
+      ruby env_vars, *mspec_args, '-t', find_launcher(false), *args
     end
   end
 
@@ -496,6 +496,7 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
+          graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby
           native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
@@ -583,6 +584,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
+        JVMCI_HOME                                   Path to the JVMCI JDK used for building GraalVM
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -605,28 +607,23 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when "cexts" # Included in 'mx build' but useful to recompile just that part
-      require 'etc'
-      cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
-      raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+      mx 'build', '--dependencies', 'org.truffleruby.cext'
+    when 'graalvm'
+      build_graalvm *options
     when 'native'
       build_native_image *options
     when nil
-      build_truffleruby
+      build_graalvm
     else
       raise ArgumentError, project
     end
-  end
-
-  def build_truffleruby(*options, sforceimports: true)
-    mx 'sforceimports' if sforceimports
-    mx 'build_truffleruby', *options
   end
 
   def clean(*options)
     project = options.shift
     case project
     when 'cexts'
-      raw_sh "make", "clean", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+      mx 'clean', '--dependencies', 'org.truffleruby.cext'
     when nil
       mx 'clean'
       sh 'rm', '-rf', 'mxbuild'
@@ -785,10 +782,10 @@ module Commands
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
     target = "#{cext_dir}/lib/#{name}/#{name}.su"
-    compile_cext(name, ext_dir, target, *clang_opts)
+    compile_cext(name, ext_dir, target, clang_opts)
   end
 
-  def compile_cext(name, ext_dir, target, *clang_opts)
+  def compile_cext(name, ext_dir, target, clang_opts, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
@@ -796,7 +793,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run_ruby('-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
@@ -1019,17 +1016,22 @@ module Commands
       end
     }
 
-    truffle_args =  if extra_args.include?('--native')
-                      %W[--home=#{TRUFFLERUBY_DIR}]
-                    else
-                      %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
-                    end
+    truffle_args = []
+    if !extra_args.include?('--native')
+      truffle_args += %w[--jvm.Xmx2G --jvm.ea --jvm.esa --jexceptions]
+    end
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
+      "RUBYGEMS_TEST_PATH" => "#{TRUFFLERUBY_DIR}/test/mri/tests",
       "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
+    compile_env = {
+      # MRI C-ext tests expect to be built with $extmk = true.
+      "MKMF_SET_EXTMK_TO_TRUE" => "true",
+    }
+
     cext_tests = test_files.select do |f|
       f.include?("cext-ruby") ||
       f == "ruby/test_file_exhaustive.rb"
@@ -1062,7 +1064,7 @@ module Commands
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)
-        compile_cext(name, compile_dir, dest_dir)
+        compile_cext(name, compile_dir, dest_dir, [], env: compile_env)
       else
         puts "c require not found for cext test: #{test_path}"
       end
@@ -1178,7 +1180,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'lib/truffle/post_install_hook.sh')
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'mxbuild/graalvm/jre/languages/ruby/lib/truffle/post_install_hook.sh')
 
       when 'gems'
         # Test that we can compile and run some real C extensions
@@ -1197,7 +1199,7 @@ EOS
             gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
             ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
+            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
 
             next if gem_name == 'psd_native' # psd_native is excluded just for running
             run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
@@ -1366,12 +1368,18 @@ EOS
       options += %w[--excl-tag slow]
     end
 
-    if args.delete('--native')
-      verify_native_bin!
+    if args.include?('-t')
+      # Running specs on another Ruby, pass no options
+    else
+      if args.delete('--native')
+        verify_native_bin!
+        options << '-t' << find_launcher(true)
+      else
+        options += %w[-T--jvm.ea -T--jvm.esa -T--jvm.Xmx2G]
+        options << "-T--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+      end
 
-      options += %w[--excl-tag graalvm --excl-tag aot]
-      options << '-t' << find_launcher(true)
-      options << "-T--home=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
+      options << '-T--backtraces.hide_core_files=false'
     end
 
     if args.delete('--graal')
@@ -1798,8 +1806,6 @@ EOS
     run_args = []
 
     if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
-      run_args.push "--home=#{TRUFFLERUBY_DIR}"
-
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
       benchmark_ruby ||= find_launcher(true)
@@ -1938,11 +1944,26 @@ EOS
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
+  def build_graalvm(*options)
+    java_home = ENV["CI"] ? nil : ENV["JVMCI_HOME"] || install_jvmci
+    graal = checkout_or_update_graal_repo(sforceimports: false)
+
+    mx_args = %w[--dynamicimports truffleruby]
+    chdir("#{graal}/vm") do
+      mx *mx_args, 'build', java_home: java_home
+    end
+
+    build_dir = "#{graal}/vm/latest_graalvm_home"
+    dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
+    FileUtils.rm_rf dest
+    FileUtils.cp_r build_dir, dest
+  end
+
   def build_native_image(*options)
     jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
 
-    build_truffleruby(sforceimports: sforceimports)
+    mx 'sforceimports' if sforceimports
 
     java_home = install_jvmci if jvmci
     graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
@@ -1969,11 +1990,19 @@ EOS
   alias :'native-launcher' :native_launcher
 
   def check_dsl_usage
-    mx 'clean'
-    # We need to build with -parameters to get parameter names.
-    # Build every project as "mx spotbugs" needs it currently.
-    mx 'build', '--force-javac', '-A-parameters'
-    run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
+    # Change the annotation retention policy in Truffle so we can inspect specializations.
+    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
+    begin
+      mx 'clean', '--dependencies', 'org.truffleruby'
+      # We need to build with -parameters to get parameter names.
+      mx 'build', '--dependencies', 'org.truffleruby', '--force-javac', '-A-parameters'
+      # Re-build GraalVM to run the check
+      build_graalvm
+      run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
+    ensure
+      # Revert the changes we made to the Truffle source.
+      raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
+    end
   end
 
   def rubocop(*args)
@@ -2047,9 +2076,6 @@ EOS
   end
 
   def lint(*args)
-    # Change the annotation retention policy in Truffle so we can inspect specializations.
-    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
-
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
     rubocop
@@ -2058,9 +2084,6 @@ EOS
     check_parser
     check_documentation_urls
     mx 'spotbugs'
-
-    # Revert the changes we made to the Truffle source.
-    raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
   end
 
   def verify_native_bin!

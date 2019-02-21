@@ -90,6 +90,7 @@ public class Options {
     public final DefaultExecutionAction DEFAULT_EXECUTION_ACTION;
     public final String[] ARGV_GLOBAL_VALUES;
     public final String[] ARGV_GLOBAL_FLAGS;
+    public final boolean BUILDING_CORE_CEXTS;
     public final boolean LAZY_TRANSLATION_LOG;
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
     public final boolean ROPE_PRINT_INTERN_STATS;
@@ -221,6 +222,7 @@ public class Options {
         DEFAULT_EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.DEFAULT_EXECUTION_ACTION);
         ARGV_GLOBAL_VALUES = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_VALUES);
         ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
+        BUILDING_CORE_CEXTS = builder.getOrDefault(OptionsCatalog.BUILDING_CORE_CEXTS);
         LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         LOG_DYNAMIC_CONSTANT_LOOKUP = builder.getOrDefault(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP);
         ROPE_PRINT_INTERN_STATS = builder.getOrDefault(OptionsCatalog.ROPE_PRINT_INTERN_STATS);
@@ -419,6 +421,8 @@ public class Options {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
                 return ARGV_GLOBAL_FLAGS;
+            case "ruby.building.core.cexts":
+                return BUILDING_CORE_CEXTS;
             case "ruby.lazy_translation.log":
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant.dynamic_lookup.log":

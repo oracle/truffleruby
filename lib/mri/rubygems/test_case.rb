@@ -87,7 +87,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
   if RUBY_ENGINE == 'truffleruby'
     # Added to avoid hardcoded paths
-    TEST_DIR = File.expand_path("../../../../test/mri/tests", __FILE__)
+    TEST_DIR = ENV.fetch('RUBYGEMS_TEST_PATH', File.expand_path('../../../test', __FILE__))
   end
 
   attr_accessor :fetcher # :nodoc:

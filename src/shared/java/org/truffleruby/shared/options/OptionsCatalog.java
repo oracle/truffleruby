@@ -408,6 +408,12 @@ public class OptionsCatalog {
             "Parsed options from script argv acting as flags (no value)",
             null,
             new String[]{});
+    public static final BooleanOptionDescription BUILDING_CORE_CEXTS = new BooleanOptionDescription(
+            OptionCategory.DEBUG,
+            "ruby.building.core.cexts",
+            "Used while building TruffleRuby to build core C extensions",
+            null,
+            false);
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription(
             OptionCategory.INTERNAL,
             "ruby.lazy_translation.log",
@@ -925,6 +931,8 @@ public class OptionsCatalog {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
                 return ARGV_GLOBAL_FLAGS;
+            case "ruby.building.core.cexts":
+                return BUILDING_CORE_CEXTS;
             case "ruby.lazy_translation.log":
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant.dynamic_lookup.log":
@@ -1078,6 +1086,7 @@ public class OptionsCatalog {
             BASICOPS_INLINE,
             BIND_CACHE,
             BINDING_LOCAL_VARIABLE_CACHE,
+            BUILDING_CORE_CEXTS,
             CALL_WITH_BLOCK_ALWAYS_CLONE,
             CEXTS,
             CEXT_LOCK,

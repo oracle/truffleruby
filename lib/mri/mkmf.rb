@@ -233,36 +233,43 @@ module MakeMakefile
   end
 
   if RUBY_ENGINE == 'truffleruby'
-    topdir = RbConfig::CONFIG['prefix']
+    $extmk = Truffle::Boot.get_option('building.core.cexts') || ENV.key?('MKMF_SET_EXTMK_TO_TRUE')
+    topdir = RbConfig::CONFIG['prefix'] # the TruffleRuby home
+    $hdrdir = RbConfig::CONFIG["rubyhdrdir"] # lib/cext/include
+    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"] # lib/cext/include
+
+    unless File.exist?("#{$hdrdir}/ruby/ruby.h")
+      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby/ruby.h"
+    end
+
+    if not $extmk
+      $topdir = $hdrdir # lib/cext/include
+      $top_srcdir = $hdrdir # lib/cext/include
+    else
+      $top_srcdir ||= topdir + "/lib/cext" # lib/cext
+      $topdir ||= RbConfig::CONFIG["topdir"] # lib/mri
+    end
   else
     topdir = File.dirname(File.dirname(__FILE__))
-  end
-  
-  path = File.expand_path($0)
-  until (dir = File.dirname(path)) == path
-    if File.identical?(dir, topdir)
-      if RUBY_ENGINE == 'truffleruby'
-        $extmk = true if %r"\A(?:ext|enc|tool|test|src)\z" =~ File.basename(path)
-      else
+    path = File.expand_path($0)
+    until (dir = File.dirname(path)) == path
+      if File.identical?(dir, topdir)
         $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
+        break
       end
-      break
+      path = dir
     end
-    path = dir
-  end
-  $extmk ||= false
-  if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
-    $topdir = $hdrdir
-    $top_srcdir = $hdrdir
-    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-  elsif RUBY_ENGINE != 'truffleruby' && File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
-    $topdir ||= RbConfig::CONFIG["topdir"]
-    $arch_hdrdir = "$(extout)/include/$(arch)"
-  elsif RUBY_ENGINE == 'truffleruby' && File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/cext") + "/include")  + "/ruby.h")
-    $topdir ||= RbConfig::CONFIG["topdir"]
-    $arch_hdrdir = $top_srcdir + "/include"
-  else
-    abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
+    $extmk ||= false
+    if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
+      $topdir = $hdrdir
+      $top_srcdir = $hdrdir
+      $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
+    elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
+      $topdir ||= RbConfig::CONFIG["topdir"]
+      $arch_hdrdir = "$(extout)/include/$(arch)"
+    else
+      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
+    end
   end
 
   CONFTEST = "conftest".freeze
@@ -2651,7 +2658,7 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  
+
   if RUBY_ENGINE == 'truffleruby'
     $ruby = arg_config("--ruby", RbConfig.ruby)
   else

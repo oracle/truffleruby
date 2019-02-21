@@ -19,7 +19,7 @@ types = { 'void' => nil, 'bool' => 'false', 'float' => '0.0', 'double' => '0.0' 
 
 methods = []
 
-lines = IO.readlines('lib/cext/include/sulong/truffle.h') + IO.readlines('lib/cext/include/sulong/polyglot.h')
+lines = ARGV.flat_map { |header| IO.readlines(header) }
 lines.each do |line|
   # Ignore functions only defined for documentation
   break if line.start_with?('#ifdef DOXYGEN')
@@ -49,8 +49,8 @@ File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 
 #include <stdio.h>
 #include <stdint.h>
-#include <sulong/polyglot.h>
 #include <sulong/truffle.h>
+#include <polyglot.h>
 
 void rb_tr_mock() {
   fprintf(stderr, "Warning: Mock method called in sulongmock\\n");

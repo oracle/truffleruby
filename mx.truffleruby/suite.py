@@ -121,9 +121,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.shared": {
@@ -139,9 +137,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.processor": {
@@ -153,9 +149,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.services": {
@@ -167,9 +161,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby": {
@@ -188,9 +180,9 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
-            "checkstyle" : "org.truffleruby",
+            "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "findbugsIgnoresGenerated" : True,
+            "findbugsIgnoresGenerated": True,
             "checkPackagePrefix": "false",
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -199,7 +191,7 @@ suite = {
                 "MIT",              # Joni, JCodings
             ],
             "externalProjects": {
-                "ruby-core" : {
+                "ruby-core": {
                     "type": "ruby",
                     "path": "ruby",
                     "source": ["core", "post-boot"],
@@ -220,9 +212,7 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.core": {
@@ -246,93 +236,46 @@ suite = {
             ],
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.test-ruby": {
             "class": "ArchiveProject",
             "outputDir": "src/test/ruby",
             "prefix": "src/test/ruby",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "org.truffleruby.cext": {
             "native": True,
             "dir": "src/main/c",
             "buildDependencies": [
-                "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
-                "org.truffleruby.bin", # bin/truffleruby
-                "org.truffleruby.sulong-libs", # polyglot.h
+                "TRUFFLERUBY", # We need this jar to run extconf.rb
+                "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
+                "sulong:SULONG_LIBS", # polyglot.h
             ],
+            "buildEnv": {
+              "TRUFFLERUBYOPT": "--building.core.cexts",
+              "SULONG_HEADERS_DIR": "<path:SULONG_LIBS>",
+              "SULONG_POLYGLOT_H": "<path:SULONG_LIBS>/polyglot.h",
+            },
             "output": ".",
-            "results": [], # Empty results as they overlap with org.truffleruby.lib
+            "results": [
+                "src/main/c/truffleposix/<lib:truffleposix>",
+                "src/main/c/sulongmock/sulongmock.o",
+                "src/main/c/cext/ruby.o",
+                "src/main/c/cext/ruby.su",
+                "src/main/c/etc/etc.su",
+                "src/main/c/nkf/nkf.su",
+                "src/main/c/openssl/openssl.su",
+                "src/main/c/psych/psych.su",
+                "src/main/c/rbconfig-sizeof/sizeof.su",
+                "src/main/c/syslog/syslog.su",
+                "src/main/c/zlib/zlib.su",
+            ],
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
-            ],
-        },
-
-        # Copy the files from SULONG_LIBS to lib/cext/sulong-libs.
-        # Used by native images, which need a relative path from the Ruby home
-        # to these libraries to pass to Sulong so it can find them outside GraalVM.
-        "org.truffleruby.sulong-libs": {
-            "class": "TruffleRubySulongLibsProject",
-            "outputDir": "lib/cext/sulong-libs",
-            "prefix": "lib/cext/sulong-libs",
-            "buildDependencies": [
-                "sulong:SULONG_LIBS",
-            ],
-        },
-
-        "org.truffleruby.lib": {
-            "class": "ArchiveProject",
-            "dependencies": [
-                "org.truffleruby.cext",
-                "org.truffleruby.sulong-libs",
-            ],
-            "outputDir": "lib",
-            "prefix": "lib",
-            "license": [
-                "EPL-1.0",
-                "MIT",              # minitest, did_you_mean, rake
-                "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI and RubySL
-            ],
-        },
-
-        "org.truffleruby.bin": {
-            "class": "TruffleRubyLauncherProject",
-            "buildDependencies": [
-                "TRUFFLERUBY",
-                "TRUFFLERUBY-LAUNCHER",
-                "sulong:SULONG",
-                "tools:CHROMEINSPECTOR",
-                "tools:TRUFFLE_PROFILER",
-            ],
-            "outputDir": "bin",
-            "prefix": "bin",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
-        },
-
-        "org.truffleruby.doc": {
-            "class": "TruffleRubyDocsProject",
-            "outputDir": "",
-            "prefix": "",
-        },
-
-        "org.truffleruby.specs": {
-            "class": "ArchiveProject",
-            "prefix": "spec",
-            "outputDir": "spec",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # Ruby Specs
             ],
         },
     },
@@ -372,9 +315,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
             "description": "TruffleRuby Annotation Processor",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
         "TRUFFLERUBY-SERVICES": {
@@ -421,47 +362,25 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "description": "TruffleRuby Launcher",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
+            "license": ["EPL-1.0"],
         },
 
-        # Set of extra files to extract to run Ruby
-        "TRUFFLERUBY-ZIP": {
-            "native": True, # Not Java
-            "relpath": True,
-            "platformDependent": True, # org.truffleruby.cext, org.truffleruby.bin
-            "dependencies": [
-                "org.truffleruby.bin",
-                "org.truffleruby.lib",
-                "org.truffleruby.doc",
-            ],
-            "description": "TruffleRuby libraries, documentation, bin directory",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # minitest, did_you_mean, rake
-                "BSD-simplified",   # MRI
-                "BSD-new",          # Rubinius, FFI
-            ],
-        },
-
-        "TRUFFLERUBY_GRAALVM_SUPPORT" : {
+        "TRUFFLERUBY_GRAALVM_SUPPORT": {
             "native": True,
             "platformDependent": True,
-            "description" : "TruffleRuby support distribution for the GraalVM",
-            "dependencies" : [
+            "description": "TruffleRuby support distribution for the GraalVM",
+            "dependencies": [
                 "org.truffleruby.cext",
             ],
-            "layout" : {
-                "./" : [
-                    "file:lib",  # contains some results from org.truffleruby.cext
+            "layout": {
+                "./": [
                     "file:CHANGELOG.md",
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
                 ],
-                "LICENSE_TRUFFLERUBY.md" : "file:LICENCE.md",
-                "3rd_party_licenses_truffleruby.txt" : "file:3rd_party_licenses.txt",
-                "bin/" : [
+                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
+                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
+                "bin/": [
                     "file:bin/gem",
                     "file:bin/irb",
                     "file:bin/rake",
@@ -469,8 +388,68 @@ suite = {
                     "file:bin/ri",
                     "file:bin/testrb",
                 ],
-                "doc/" : [
+                "doc/": [
                     "file:doc",
+                ],
+                "lib/": [
+                    "file:lib/json",
+                    "file:lib/mri",
+                    "file:lib/patches",
+                    "file:lib/truffle",
+                ],
+                "lib/cext/": [
+                    "file:lib/cext/patches",
+                    "file:lib/cext/*.rb",
+                    "file:src/main/c/truffleposix/<lib:truffleposix>",
+                    "file:src/main/c/sulongmock/sulongmock.o",
+                    "file:src/main/c/cext/ruby.o",
+                    "file:src/main/c/cext/ruby.su",
+                ],
+                "lib/cext/include/": [
+                    "file:lib/cext/include/ccan",
+                    "file:lib/cext/include/ruby",
+                    "file:lib/cext/include/truffleruby",
+                    "file:lib/cext/include/*.h",
+                ],
+                "lib/cext/include/sulong/": [
+                    "file:lib/cext/include/sulong/truffle.h",
+                    "extracted-dependency:sulong:SULONG_LIBS/*.h",
+                ],
+                "lib/cext/sulong-libs/": [
+                    "extracted-dependency:sulong:SULONG_LIBS/lib*",
+                ],
+                "lib/mri/": [
+                    "file:src/main/c/etc/etc.su",
+                    "file:src/main/c/nkf/nkf.su",
+                    "file:src/main/c/openssl/openssl.su",
+                    "file:src/main/c/psych/psych.su",
+                    "file:src/main/c/syslog/syslog.su",
+                    "file:src/main/c/zlib/zlib.su",
+                ],
+                "lib/mri/rbconfig/": [
+                    "file:src/main/c/rbconfig-sizeof/sizeof.su",
+                ],
+                "lib/ruby/gems/2.4.0/": [
+                    "file:lib/ruby/gems/2.4.0/truffleruby_gem_dir_marker.txt",
+                ],
+                "lib/ruby/gems/2.4.0/gems/": [
+                    "file:lib/ruby/gems/2.4.0/gems/did_you_mean-1.1.0",
+                    "file:lib/ruby/gems/2.4.0/gems/minitest-5.10.1",
+                    "file:lib/ruby/gems/2.4.0/gems/net-telnet-0.1.1",
+                    "file:lib/ruby/gems/2.4.0/gems/power_assert-0.4.1",
+                    "file:lib/ruby/gems/2.4.0/gems/rake-12.0.0",
+                    "file:lib/ruby/gems/2.4.0/gems/test-unit-3.2.3",
+                    "file:lib/ruby/gems/2.4.0/gems/xmlrpc-0.2.1",
+                ],
+                "lib/ruby/gems/2.4.0/specifications/": [
+                    "file:lib/ruby/gems/2.4.0/specifications/default",
+                    "file:lib/ruby/gems/2.4.0/specifications/did_you_mean-1.1.0.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/minitest-5.10.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/net-telnet-0.1.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/power_assert-0.4.1.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/rake-12.0.0.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/test-unit-3.2.3.gemspec",
+                    "file:lib/ruby/gems/2.4.0/specifications/xmlrpc-0.2.1.gemspec",
                 ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/deprecation.rb",
@@ -504,22 +483,7 @@ suite = {
                 "TRUFFLERUBY",
                 "truffle:TRUFFLE_TCK"
             ],
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-            ],
-        },
-
-        "TRUFFLERUBY-SPECS": {
-            "native": True, # Not Java
-            "relpath": True,
-            "dependencies": [
-                "org.truffleruby.specs",
-            ],
-            "description": "TruffleRuby spec files from ruby/spec",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "MIT",              # Ruby Specs
-            ],
+            "license": ["EPL-1.0"],
         },
     },
 }

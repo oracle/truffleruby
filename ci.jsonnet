@@ -76,9 +76,7 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-      ] + self.before_build + [
-        ["mx", "build_truffleruby"],
-      ] + self.after_build,
+      ] + self.before_build + jt(["build"]) + self.after_build,
     },
 
     truffleruby: {
@@ -316,23 +314,6 @@ local part_definitions = {
         path+:: ["$JAVA_HOME/bin"],
       },
     },
-
-    oraclejdk11: {
-      downloads+: {
-        JAVA_HOME: {
-          name: "oraclejdk",
-          version: "11+20",
-          platformspecific: true,
-        },
-
-        # We need a JDK 8 to compile TruffleRuby
-        EXTRA_JAVA_HOMES: $.jdk.labsjdk8.downloads["JAVA_HOME"],
-      },
-
-      environment+: {
-        path+:: ["$JAVA_HOME/bin"],
-      },
-    },
   },
 
   platform: {
@@ -380,7 +361,6 @@ local part_definitions = {
       capabilities+: self["$.cap"].normal_machine,
       targets+: ["deploy", "post-merge"],
     },
-    fast_cpu: { capabilities+: ["fast"] },
     bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
       is_after+:: ["$.cap.bench"],
@@ -553,30 +533,21 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      local shared = $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.gate +
-                     $.run.test_unit_tck_specs + { timelimit: "35:00" },
-
-      "ruby-test-specs-linux": $.platform.linux + shared,
-      "ruby-test-specs-darwin": $.platform.darwin + shared,
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.run.lint + { timelimit: "30:00" },
     } +
 
     {
-      "ruby-test-fast-java11-linux": $.platform.linux + $.jdk.oraclejdk11 + $.use.common + $.use.build + $.cap.gate +
-                                    $.run.test_fast + { timelimit: "30:00" },
-    } +
+      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-    {
-      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
+      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + { timelimit: "35:00" },
+      "ruby-test-fast-linux":  linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
+      "ruby-test-mri-linux":   linux_gate + $.run.test_mri + { timelimit: "25:00" },
+      "ruby-test-integration": linux_gate + $.run.test_integration,
+      "ruby-test-cexts-linux": linux_gate + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
 
-      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
-      "ruby-test-mri-linux": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri + { timelimit: "25:00" },
-      "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
-      "ruby-test-cexts-linux": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
-
-      "ruby-test-compiler-graal-core": linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
-                                       $.run.test_compiler,
+      "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
       # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
     } +
@@ -584,7 +555,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-mri-darwin": darwin_gate + $.run.test_mri,
+      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + { timelimit: "35:00" },
+      "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
     } +
 
@@ -603,7 +575,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } + {
       local shared = $.use.build + $.svm.enterprise + { timelimit: "01:15:00" },
 
-      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux + $.cap.fast_cpu,
+      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux,
       "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
     },
 
