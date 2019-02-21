@@ -1,5 +1,8 @@
 # 1.0 RC 13
 
+Note that as TruffleRuby RC 13 is built on Ruby 2.4.4 it is still vulnerable
+to CVE-2018-16395. This will be fixed in the next release.
+
 New features:
 
 * Host interop with Java now works on SubstrateVM too.
