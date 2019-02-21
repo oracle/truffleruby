@@ -119,14 +119,6 @@ describe "The launcher" do
   end
 
   guard -> { !TruffleRuby.native? } do
-    guard -> { !graalvm_bash_launcher? } do
-      it "takes options from system properties set on the command line using -J" do
-        out = ruby_exe("puts $VERBOSE", options: "-J-Dpolyglot.ruby.verbosity=true")
-        $?.success?.should == true
-        out.should == "true\n"
-      end
-    end
-
     it "takes options from system properties set on the command line using --jvm" do
       out = ruby_exe("puts $VERBOSE", options: "--jvm.Dpolyglot.ruby.verbosity=true")
       $?.success?.should == true
@@ -142,12 +134,6 @@ describe "The launcher" do
     end
   end
 
-  it "takes options from system properties set on the command line using -X" do
-    out = ruby_exe("puts $VERBOSE", options: "-Xverbosity=true")
-    $?.success?.should == true
-    out.should == "true\n"
-  end
-
   it "prioritises options on the command line over system properties" do
     prefix = TruffleRuby.native? ? 'native' : 'jvm'
     out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbosity=nil -W2")
@@ -155,17 +141,8 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
-  it "prioritises options on the command line using -X over system properties" do
-    prefix = TruffleRuby.native? ? 'native' : 'jvm'
-    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbosity=nil -Xverbosity=true")
-    $?.success?.should == true
-    out.should == "true\n"
-  end
-
   guard -> { !TruffleRuby.native? } do
-    ['-J-classpath ',
-     '-J-cp ',
-     '--jvm.classpath=',
+    ['--jvm.classpath=',
      '--jvm.cp='
     ].each do |option|
       guard_not -> { option.start_with?('-J') and graalvm_bash_launcher? } do
@@ -176,12 +153,6 @@ describe "The launcher" do
         end
       end
     end
-  end
-
-  it "prints available options for -Xoptions" do
-    out = ruby_exe(nil, options: "-Xoptions")
-    $?.success?.should == true
-    out.should include("-Xverbosity=")
   end
 
   it "prints available user options for --help:languages" do
@@ -202,17 +173,13 @@ describe "The launcher" do
     out.should include("--ruby.default_cache")
   end
 
-  it "logs options if -Xoptions.log is set" do
-    out = ruby_exe("14", options: "--log.level=CONFIG -Xoptions.log", args: "2>&1")
+  it "logs options if --options.log is set" do
+    out = ruby_exe("14", options: "--log.level=CONFIG --options.log", args: "2>&1")
     $?.success?.should == true
     out.should include("[ruby] CONFIG")
   end
 
   it "prints an error for an unknown option" do
-    out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
-    $?.success?.should == false
-    out.should include("invalid option --unknown=value")
-
     out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
@@ -221,21 +188,15 @@ describe "The launcher" do
     $?.success?.should == false
     out.should include("invalid option --ruby.unknown=value")
   end
-
-  it "sets the log level using -Xlog=" do
-    out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
-    $?.success?.should == true
-    out.should include("CONFIG: option home=")
-  end
-
+  
   it "sets the log level using --log.level=" do
-    out = ruby_exe("14", options: "-Xoptions.log --log.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "--options.log --log.level=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
 
   it "sets the log level using --log.ruby.level=" do
-    out = ruby_exe("14", options: "-Xoptions.log --log.ruby.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "--options.log --log.ruby.level=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
