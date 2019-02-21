@@ -73,7 +73,7 @@ Performance:
   by reducing conversions between native and managed strings and allowing for mutable
   metadata in native strings.
 
-# 1.0 RC 12
+# 1.0 RC 12, 4 Februrary 2019
 
 Bug fixes:
 
