@@ -2531,7 +2531,7 @@ int rb_io_wait_writable(int fd) {
   #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
     case EWOULDBLOCK:
   #endif
-      rb_tr_error("rb_io_wait_writable wait case not implemented");
+      rb_thread_fd_writable(fd);
       return true;
 
     default:
