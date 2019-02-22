@@ -1,5 +1,9 @@
 # 1.0 RC 14
 
+Bug fixes:
+
+* Implement `rb_io_wait_writable` (#1586).
+
 Changes:
 
 * `-Xoptions` has been removed - use `--help:languages` instead.
