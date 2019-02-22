@@ -34,11 +34,9 @@
  */
 package org.truffleruby.launcher.options;
 
-import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
-import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.StringArrayOptionDescription;
@@ -209,8 +207,9 @@ public class CommandLineParser {
                     config.setOption(OptionsCatalog.SYNTAX_CHECK, true);
                     break;
                 case 'C':
+                case 'X':
                     disallowedInRubyOpts(argument);
-                    final String dir = grabValue(getArgumentError(" -C must be followed by a directory expression"));
+                    final String dir = grabValue(getArgumentError(" -" + argument.charAt(characterIndex) + " must be followed by a directory expression"));
                     config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
                     break FOR;
                 case 'd':
@@ -257,25 +256,6 @@ public class CommandLineParser {
                 case 'y':
                     disallowedInRubyOpts(argument);
                     LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
-                    break FOR;
-                case 'J':
-                    String javaOption = grabOptionalValue();
-                    final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
-
-                    final String jvmOption = javaOption.substring(1);
-
-                    if (isClasspath) {
-                        argumentIndex++;
-                        final String cpValue = getCurrentArgument();
-                        arguments.remove(argumentIndex);
-                        argumentIndex--;
-                        LOGGER.warning(String.format("-J%s %s is deprecated and will be removed - use --jvm.classpath=%s instead", javaOption, cpValue, cpValue));
-                        arguments.set(argumentIndex, "--jvm." + jvmOption + "=" + cpValue);
-                    } else {
-                        LOGGER.warning(String.format("-J%s is deprecated and will be removed - use --jvm.%s instead", javaOption, jvmOption));
-                        arguments.set(argumentIndex, "--jvm." + jvmOption);
-                    }
-
                     break FOR;
                 case 'K':
                     characterIndex++;
@@ -390,35 +370,6 @@ public class CommandLineParser {
                     String directory = grabOptionalValue();
                     if (directory != null) {
                         throw notImplemented("-x with directory");
-                    }
-                    break FOR;
-                case 'X':
-                    disallowedInRubyOpts(argument);
-                    final String extendedOption = grabValue("-X must be followed by an option");
-                    if (new File(extendedOption).isDirectory()) {
-                        LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
-                    }
-                    if (extendedOption.equals("options")) {
-                        LOGGER.warning("-Xoptions is deprecated and will be removed - use --help:languages instead");
-                        System.out.println("TruffleRuby options and their default values:");
-                        for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                            assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
-                            final String xName = option.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
-                            final String nameValue = String.format("-X%s=%s", xName, option.valueToString(option.getDefaultValue()));
-                            System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
-                        }
-                        // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
-                    } else if (extendedOption.startsWith("log=")) {
-                        LOGGER.warning("-Xlog= is deprecated and will be removed - use --log.level= instead");
-                        final String level = extendedOption.substring("log=".length());
-                        config.getUnknownArguments().add("--log.level=" + level);
-                    } else {
-                        LOGGER.warning(String.format("-X%s is deprecated and will be removed - use --%s instead", extendedOption, extendedOption));
-                        // Turn extra options into polyglot options and let
-                        // org.graalvm.launcher.Launcher.parsePolyglotOption
-                        // parse it
-                        config.getUnknownArguments().add("--" + extendedOption);
                     }
                     break FOR;
                 case '-':

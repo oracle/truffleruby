@@ -116,10 +116,6 @@ so, but this isn't always the case. For example `RubyVM` is not available.
 `-y`, `--yydebug`, `--dump=` are ignored with a warning as they are internal
 development tools.
 
-`-X` is an undocumented synonym for `-C` and we (and other alternative
-implementations of Ruby) have repurposed it for extended options. We warn if
-your `-X` options look like they are actually intended to be as in MRI.
-
 Programs passed in `-e` arguments with magic-comments must have an encoding that
 is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
 time we get them.

@@ -409,7 +409,7 @@ public class OptionsCatalog {
             null,
             new String[]{});
     public static final BooleanOptionDescription BUILDING_CORE_CEXTS = new BooleanOptionDescription(
-            OptionCategory.DEBUG,
+            OptionCategory.INTERNAL,
             "ruby.building.core.cexts",
             "Used while building TruffleRuby to build core C extensions",
             null,

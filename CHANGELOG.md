@@ -1,3 +1,15 @@
+# 1.0 RC 14
+
+Changes:
+
+* `-Xoptions` has been removed - use `--help:languages` instead.
+* `-Xlog=` has been removed - use `--log.level=` instead.
+* `-J` has been removed - use `--jvm.` instead.
+* `-J-cp lib.jar` and so on have removed - use `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
+* `-Xoption=value` has been removed - use `--option=value` instead.
+* The `-X` option now works as in MRI.
+* `--help:debug` is now `--help:internal`.
+
 # 1.0 RC 13
 
 Note that as TruffleRuby RC 13 is built on Ruby 2.4.4 it is still vulnerable
@@ -61,7 +73,7 @@ Performance:
   by reducing conversions between native and managed strings and allowing for mutable
   metadata in native strings.
 
-# 1.0 RC 12
+# 1.0 RC 12, 4 Februrary 2019
 
 Bug fixes:
 
