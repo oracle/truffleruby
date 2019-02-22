@@ -1,21 +1,12 @@
 slow:The launcher runs when symlinked
 slow:The launcher preserve spaces in options
-slow:The launcher takes options from system properties set on the command line using -J
-slow:The launcher takes options from system properties set on the command line using -X
 slow:The launcher prioritises options on the command line over system properties
-slow:The launcher prioritises options on the command line using -X over system properties
-slow:The launcher prints available options for -Xoptions
-slow:The launcher logs options if -Xoptions.log is set
 slow:The launcher prints an error for an unknown option
 slow:The launcher StringArray option appends multiple options
 slow:The launcher StringArray option parses ,
 slow:The launcher StringArray option parses , respecting escaping
 slow:The launcher takes options from system properties set on the command line using --jvm
 slow:The launcher takes options from system properties set on the command line using --native
-slow:The launcher '-J-classpath ' adds the jar
-slow:The launcher '-J-cp ' adds the jar
-slow:The launcher '-J:classpath ' adds the jar
-slow:The launcher '-J:cp ' adds the jar
 slow:The launcher '--jvm.classpath=' adds the jar
 slow:The launcher '--jvm.cp=' adds the jar
 slow:The launcher enables deterministic hashing if --hashing.deterministic is set
@@ -58,8 +49,6 @@ slow:The launcher does not print a Java backtrace for an -S file that's not foun
 slow:The launcher prints available user options for --help:languages
 slow:The launcher prints available expert options for --help:languages --help:expert
 slow:The launcher prints available internal options for --help:languages --help:internal
-slow:The launcher sets the log level using -Xlog=
-slow:The launcher sets the log level using --log.level=
 slow:The launcher takes normal Ruby options from TRUFFLERUBYOPT
 slow:The launcher takes --option options from TRUFFLERUBYOPT
 slow:The launcher takes --ruby.option options from TRUFFLERUBYOPT
@@ -68,3 +57,5 @@ slow:The launcher takes --option options from RUBYOPT
 slow:The launcher takes --ruby.option options from RUBYOPT
 slow:The launcher sets the log level using --log.ruby.level=
 fails(GR-13956):The launcher prints help containing runtime options
+slow:The launcher logs options if --options.log is set
+slow:The launcher sets the log level using --log.level=
