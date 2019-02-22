@@ -57,18 +57,8 @@ def jt(*args):
     mx.run(['ruby', join(root, 'tool/jt.rb')] + list(args))
 
 def build_truffleruby(args = []):
-    # Only build the necessary distributions to avoid building Sulong tests
-    truffleruby_dists = [
-        'TRUFFLERUBY',
-        'TRUFFLERUBY-LAUNCHER',
-        'TRUFFLERUBY_GRAALVM_SUPPORT',
-        'TRUFFLERUBY-TEST',
-    ]
     mx.command_function('sversions')([])
-    mx.command_function('build')([
-        '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
-        '-A-Xmaxerrs', '-A1000', # show more than default 100 errors not to hide actual errors under many missing symbols
-        '--dependencies', ','.join(truffleruby_dists)])
+    jt("build")
 
 def ruby_deploy_binaries(args):
     """Deploy a binary suite for truffleruby"""
@@ -103,8 +93,7 @@ def ruby_run_specs(args):
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
     build_truffleruby()
-    with VerboseMx():
-        mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'], cwd=root)
+    jt('ruby', '-e', 'puts "Hello Ruby!"')
 
 def ruby_testdownstream_aot(args):
     """Run tests for the native image"""
