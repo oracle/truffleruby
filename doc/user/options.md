@@ -52,7 +52,7 @@ but are documented in the Ruby manual page.
 
 ```
   -U              set the internal encoding to UTF-8
-  -KEeSsUuNnAa    sets the source and external encoding
+  -K[EeSsUuNnAa]  sets the source and external encoding
   --encoding=external[:internal]
                   the same as --external-encoding=external and optionally --internal-encoding=internal
   -y, --ydebug    debug the parser
