@@ -7,7 +7,9 @@ sdbm/test_sdbm.rb
 io/nonblock/test_flush.rb
 io/wait/test_io_wait.rb
 test_pty.rb
+ripper/test_files.rb
 ripper/test_filter.rb
+ripper/test_lexer.rb
 ripper/test_parser_events.rb
 ripper/test_ripper.rb
 ripper/test_scanner_events.rb
