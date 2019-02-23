@@ -103,10 +103,12 @@ suite = {
                 "logo",
                 "mxbuild",
                 "truffleruby-gem-test-pack",
+                "lib/json/java",
                 "lib/ruby",
                 "test/truffle/ecosystem/blog",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
+                "test/truffle/offline"
             ]
         },
     },
