@@ -307,10 +307,8 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
   return LONG2NUM(n);
 }
 
-VALUE rb_uint2inum(VALUE n) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num",
-          // Cast otherwise it's considered as truffle object address
-          (unsigned long) n));
+VALUE rb_uint2inum(uintptr_t n) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", n));
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
@@ -4531,7 +4529,7 @@ void rb_secure_update(VALUE obj) {
   rb_tr_error("rb_secure_update not implemented");
 }
 
-VALUE rb_uint2big(VALUE n) {
+VALUE rb_uint2big(uintptr_t n) {
   rb_tr_error("rb_uint2big not implemented");
 }
 
