@@ -46,6 +46,15 @@ describe "The --enable and --disable flags" do
     end
   end
 
+  it "can be used with all" do
+    e = "p [defined?(Gem), defined?(DidYouMean), $VERBOSE, 'foo'.frozen?]"
+    env = {'RUBYOPT' => '-w'}
+    ruby_exe(e, options: "--enable=all", env: env).chomp.should == "[\"constant\", \"constant\", true, true]"
+    ruby_exe(e, options: "--enable-all", env: env).chomp.should == "[\"constant\", \"constant\", true, true]"
+    ruby_exe(e, options: "--disable=all", env: env).chomp.should == "[nil, nil, false, false]"
+    ruby_exe(e, options: "--disable-all", env: env).chomp.should == "[nil, nil, false, false]"
+  end
+
   it "prints a warning for unknown features" do
     ruby_exe("p 14", options: "--enable=ruby-spec-feature-does-not-exist 2>&1").chomp.should include('warning: unknown argument for --enable')
     ruby_exe("p 14", options: "--disable=ruby-spec-feature-does-not-exist 2>&1").chomp.should include('warning: unknown argument for --disable')
