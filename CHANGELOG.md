@@ -2,6 +2,8 @@
 
 Changes:
 
+* `continuation` can no longer be required.
+* Unsupported stdlibs can be required but will raise an error.
 * `-Xoptions` has been removed - use `--help:languages` instead.
 * `-Xlog=` has been removed - use `--log.level=` instead.
 * `-J` has been removed - use `--jvm.` instead.
