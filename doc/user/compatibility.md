@@ -120,6 +120,9 @@ Programs passed in `-e` arguments with magic-comments must have an encoding that
 is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
 time we get them.
 
+`--jit` options and the `jit` feature are not supported because TruffleRuby
+uses Graal as a JIT.
+
 #### Setting the process title doesn't always work
 
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done

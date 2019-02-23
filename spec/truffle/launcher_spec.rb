@@ -300,4 +300,37 @@ describe "The launcher" do
       out.should include("[truffle] opt done")
     end
   end
+
+  it "ignores --jit... options with a warning and a hint to look at Graal documentation" do
+    [
+      "--jit",
+      "--jit-warnings",
+      "--jit-debug",
+      "--jit-wait",
+      "--jit-save-temps",
+      "--jit-verbose",
+      "--jit-max-cache",
+      "--jit-min-calls",
+    ].each do |option|
+      out = ruby_exe("p 14", options: option, args: "2>&1")
+      $?.success?.should == true
+      out.should include("JIT options are not supported - see the Graal documentation instead")
+      out.should include("14")
+    end
+  end
+  
+  it "warns on ignored options" do
+    [
+      "-y",
+      "--yydebug",
+      "--debug-frozen-string-literal",
+      "--dump=insns",
+    ].each do |option|
+      out = ruby_exe("p 14", options: option, args: "2>&1")
+      $?.success?.should == true
+      out.should include("[ruby] WARNING the #{option} switch is silently ignored as it is an internal development tool")
+      out.should include("14")
+    end
+  end
+
 end

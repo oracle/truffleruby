@@ -464,6 +464,8 @@ public class CommandLineParser {
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
                         LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                    } else if (argument.equals("--jit") || argument.startsWith("--jit-")) {
+                        LOGGER.warning("JIT options are not supported - see the Graal documentation instead");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
