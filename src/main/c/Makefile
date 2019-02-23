@@ -111,7 +111,7 @@ etc/etc.su: etc/Makefile etc/etc.c
 etc/etc.c: etc/constdefs.h
 
 etc/constdefs.h: etc/mkconstants.rb
-	$(RUBY) $< > $@
+	$(RUBY) $< -o $@
 
 # rbconfig/sizeof.su
 rbconfig-sizeof/Makefile: rbconfig-sizeof/extconf.rb $(EXTCONF_DEPS)
