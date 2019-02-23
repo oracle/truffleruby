@@ -161,6 +161,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "--copyright",
                 "--enable", "--disable",
                 "--external-encoding", "--internal-encoding",
+                "--yydebug",
+                "--debug-frozen-string-literal",
                 "--version",
                 "--help",
                 "--jit",
