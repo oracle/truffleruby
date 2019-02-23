@@ -114,7 +114,7 @@ so, but this isn't always the case. For example `RubyVM` is not available.
 #### Command line switches
 
 `-y`, `--yydebug`, `--dump=`, `--debug-frozen-string-literal` are ignored with
-a warning as they are internal development tools.
+a warning as they are unsupported development tools.
 
 Programs passed in `-e` arguments with magic-comments must have an encoding that
 is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
