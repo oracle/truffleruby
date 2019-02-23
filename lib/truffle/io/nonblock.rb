@@ -6,4 +6,31 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-raise NotImplementedError, 'io/nonblock is unsupported in TruffleRuby'
+class IO
+
+  def nonblock(nb=true)
+    if nb
+      previous = nonblock?
+      begin
+        self.nonblock = true unless previous
+        yield self
+      rescue
+        self.nonblock = previous unless previous
+      end
+    else
+      yield self
+    end
+  end
+  Truffle.invoke_primitive :method_unimplement, IO, :nonblock
+
+  def nonblock=(nb)
+    raise NotImplementedError
+  end
+  Truffle.invoke_primitive :method_unimplement, IO, :nonblock=
+
+  def nonblock?
+    false
+  end
+  Truffle.invoke_primitive :method_unimplement, IO, :nonblock?
+
+end
