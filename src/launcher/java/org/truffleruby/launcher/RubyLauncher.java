@@ -163,7 +163,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "--external-encoding", "--internal-encoding",
                 "--version",
                 "--help",
-                "-Xoptions"));
     }
 
     @Override
