@@ -116,11 +116,17 @@ module Process
   end
 
   def self.clock_getres(id, unit=:float_second)
-    case id = normalize_clock_id(id)
-    when CLOCK_REALTIME
-      res = 1_000_000
-    when CLOCK_MONOTONIC
-      res = 1
+    res = case id
+    when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+         :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+         :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+      1_000
+    when :TIME_BASED_CLOCK_REALTIME
+      1_000_000_000
+    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+         :TIMES_BASED_CLOCK_MONOTONIC
+      1
+    when :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
     else
       res = Truffle::POSIX.truffleposix_clock_getres(id)
       Errno.handle if res == 0
