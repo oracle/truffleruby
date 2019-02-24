@@ -1949,9 +1949,7 @@ EOS
     graal = checkout_or_update_graal_repo(sforceimports: false)
 
     mx_args = %w[--dynamicimports truffleruby]
-    chdir("#{graal}/vm") do
-      mx *mx_args, 'build', java_home: java_home
-    end
+    mx '-p', "#{graal}/vm", *mx_args, 'build', java_home: java_home
 
     build_dir = "#{graal}/vm/latest_graalvm_home"
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
