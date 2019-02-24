@@ -115,25 +115,22 @@ module Process
     const_set(key.substring(section.size, key.length), value)
   end
 
-  def self.clock_gettime(id, unit=:float_second)
-    if id.is_a?(Symbol)
-      id = case id
-           when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
-                :TIME_BASED_CLOCK_REALTIME
-             CLOCK_REALTIME
-           when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
-                :TIMES_BASED_CLOCK_MONOTONIC
-             CLOCK_MONOTONIC
-           when :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
-                :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID,
-                :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
-             CLOCK_THREAD_CPUTIME_ID
-           else
-             raise Errno::EINVAL
-           end
+  def self.clock_getres(id, unit=:float_second)
+    case id = normalize_clock_id(id)
+    when CLOCK_REALTIME
+      res = 1_000_000
+    when CLOCK_MONOTONIC
+      res = 1
+    else
+      res = Truffle::POSIX.truffleposix_clock_getres(id)
+      Errno.handle if res == 0
     end
 
-    case id
+    nanoseconds_to_unit(res, unit)
+  end
+
+  def self.clock_gettime(id, unit=:float_second)
+    case id = normalize_clock_id(id)
     when CLOCK_REALTIME
       time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
     when CLOCK_MONOTONIC
@@ -143,21 +140,43 @@ module Process
       Errno.handle if time == 0
     end
 
+    nanoseconds_to_unit(time, unit)
+  end
+
+  def self.normalize_clock_id(id)
+    return id unless id.is_a?(Symobl)
+    case id
+    when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+         :TIME_BASED_CLOCK_REALTIME
+      CLOCK_REALTIME
+    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+         :TIMES_BASED_CLOCK_MONOTONIC
+      CLOCK_MONOTONIC
+    when :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+         :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID,
+         :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+      CLOCK_THREAD_CPUTIME_ID
+    else
+      raise Errno::EINVAL
+    end
+  end
+
+  def self.nanoseconds_to_unit(nanoseconds, unit = :nanosecond)
     case unit
     when :nanosecond
-      time
+      nanoseconds
     when :microsecond
-      time / 1_000
+      nanoseconds / 1_000
     when :millisecond
-      time / 1_000_000
+      nanoseconds / 1_000_000
     when :second
-      time / 1_000_000_000
+      nanoseconds / 1_000_000_000
     when :float_microsecond
-      time / 1e3
+      nanoseconds / 1e3
     when :float_millisecond
-      time / 1e6
+      nanoseconds / 1e6
     when :float_second, nil
-      time / 1e9
+      nanoseconds / 1e9
     else
       raise ArgumentError, "unexpected unit: #{unit}"
     end
