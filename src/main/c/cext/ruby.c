@@ -1608,6 +1608,10 @@ VALUE rb_hash_size(VALUE hash) {
   return RUBY_INVOKE(hash, "size");
 }
 
+size_t rb_hash_size_num(VALUE hash) {
+  return (size_t) FIX2ULONG(rb_hash_size(hash));
+}
+
 // Class
 
 const char* rb_class2name(VALUE ruby_class) {
