@@ -144,7 +144,7 @@ module Process
   end
 
   def self.normalize_clock_id(id)
-    return id unless id.is_a?(Symobl)
+    return id unless id.is_a?(Symbol)
     case id
     when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
          :TIME_BASED_CLOCK_REALTIME
