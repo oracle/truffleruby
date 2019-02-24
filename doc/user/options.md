@@ -51,13 +51,11 @@ MRI has some extra Ruby switches which are aren't normally listed in help output
 but are documented in the Ruby manual page.
 
 ```
+  -Xdirectory     cd to directory before executing your script (same as -C)
   -U              set the internal encoding to UTF-8
-  -KEeSsUuNnAa    sets the source and external encoding
+  -K[EeSsUuNnAa]  sets the source and external encoding
   --encoding=external[:internal]
                   the same as --external-encoding=external and optionally --internal-encoding=internal
-  -y, --ydebug    debug the parser
-  -Xdirectory     the same as -Cdirectory
-  --dump=insns    print disassembled instructions
 ```
 
 ## TruffleRuby options

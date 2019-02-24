@@ -255,7 +255,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    warnInternalDebugTool(argument);
                     break FOR;
                 case 'K':
                     characterIndex++;
@@ -420,7 +420,7 @@ public class CommandLineParser {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        warnInternalDebugTool(argument);
                         break FOR;
                     } else if (rubyOpts && argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -434,7 +434,8 @@ public class CommandLineParser {
                     } else if (argument.startsWith("--profile")) {
                         throw notImplemented("--profile");
                     } else if (argument.equals("--debug-frozen-string-literal")) {
-                        throw notImplemented("--debug-frozen-string-literal");
+                        warnInternalDebugTool(argument);
+                        break FOR;
                     } else if (argument.startsWith("--disable")) {
                         final int len = argument.length();
                         if (len == "--disable".length()) {
@@ -457,13 +458,14 @@ public class CommandLineParser {
                             enableDisableFeature(enable, true);
                         }
                         break FOR;
-                    } else if (argument.equals("--gemfile")) {
-                        throw notImplemented("--gemfile");
                     } else if (argument.equals("--verbose")) {
                         config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        warnInternalDebugTool(argument);
+                        break FOR;
+                    } else if (argument.equals("--jit") || argument.startsWith("--jit-")) {
+                        LOGGER.warning("JIT options are not supported - see the Graal documentation instead");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -507,6 +509,10 @@ public class CommandLineParser {
         if (rubyOpts) {
             throw new CommandLineException("invalid switch in RUBYOPT: " + option + " (RuntimeError)");
         }
+    }
+
+    private void warnInternalDebugTool(String option) {
+        LOGGER.warning("the " + option + " switch is silently ignored as it is an internal development tool");
     }
 
     private static void errorMissingEquals(String label) throws CommandLineException {

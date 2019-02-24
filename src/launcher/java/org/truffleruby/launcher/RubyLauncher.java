@@ -161,9 +161,18 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "--copyright",
                 "--enable", "--disable",
                 "--external-encoding", "--internal-encoding",
+                "--yydebug",
+                "--debug-frozen-string-literal",
                 "--version",
                 "--help",
-                "-Xoptions"));
+                "--jit",
+                "--jit-warnings",
+                "--jit-debug",
+                "--jit-wait",
+                "--jit-save-temps",
+                "--jit-verbose",
+                "--jit-max-cache",
+                "--jit-min-calls"));
     }
 
     @Override

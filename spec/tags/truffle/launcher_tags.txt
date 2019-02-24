@@ -59,3 +59,7 @@ slow:The launcher sets the log level using --log.ruby.level=
 fails(GR-13956):The launcher prints help containing runtime options
 slow:The launcher logs options if --options.log is set
 slow:The launcher sets the log level using --log.level=
+slow:The launcher ignores --jit option with a warning
+slow:The launcher ignores --jit-... options with a warning and a hint to look at Graal options
+slow:The launcher ignores --jit... options with a warning and a hint to look at Graal documentation
+slow:The launcher warns on ignored options
