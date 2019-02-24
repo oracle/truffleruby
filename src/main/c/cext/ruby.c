@@ -303,7 +303,7 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_cmpint", val, a, b));
 }
 
-VALUE rb_int2inum(SIGNED_VALUE n) {
+VALUE rb_int2inum(intptr_t n) {
   return LONG2NUM(n);
 }
 
@@ -4533,7 +4533,7 @@ VALUE rb_uint2big(uintptr_t n) {
   rb_tr_error("rb_uint2big not implemented");
 }
 
-VALUE rb_int2big(SIGNED_VALUE n) {
+VALUE rb_int2big(intptr_t n) {
   // it cannot overflow Fixnum
   return LONG2FIX(n);
 }
