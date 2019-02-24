@@ -127,7 +127,7 @@ module Process
     end
 
     if unit == :hertz then
-      1.0 / nanoseconds_to_unit(res,:float_seconds)
+      1.0 / nanoseconds_to_unit(res,:float_second)
     else
       nanoseconds_to_unit(res,unit)
     end
