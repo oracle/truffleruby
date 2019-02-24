@@ -126,7 +126,11 @@ module Process
       Errno.handle if res == 0
     end
 
-    nanoseconds_to_unit(res, unit)
+    if unit == :hertz then
+      1.0 / nanoseconds_to_unit(res,:float_seconds)
+    else
+      nanoseconds_to_unit(res,unit)
+    end
   end
 
   def self.clock_gettime(id, unit=:float_second)
