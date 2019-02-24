@@ -703,8 +703,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject notImplementedError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().getNotImplementedErrorClass();
-        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Method %s not implemented", message),
-                UTF8Encoding.INSTANCE));
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
