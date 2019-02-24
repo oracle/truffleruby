@@ -7,7 +7,6 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-
 package org.truffleruby.shared;
 
 import org.graalvm.polyglot.Engine;
@@ -66,7 +65,7 @@ public class TruffleRuby {
             return systemVersion + "-" + BuildInformationImpl.INSTANCE.getRevision();
         }
 
-
         return systemVersion;
     }
+    
 }
