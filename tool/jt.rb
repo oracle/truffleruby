@@ -1931,12 +1931,9 @@ EOS
   def install_graal(*options)
     build
     java_home = install_jvmci unless options.include?("--no-jvmci")
-    graal = checkout_or_update_graal_repo
 
     puts "Building graal"
-    chdir("#{graal}/compiler") do
-      mx "build", java_home: java_home
-    end
+    mx "--dy", "/compiler", "build", java_home: java_home
 
     puts "Running with Graal"
     run_ruby "--graal", "-e", "p TruffleRuby.graal?"
