@@ -1,2 +1,1 @@
 fails:IO#syswrite on a file warns if called immediately after a buffered IO#write
-fails:IO#syswrite on a pipe returns the written bytes if the fd is in nonblock mode and write would block

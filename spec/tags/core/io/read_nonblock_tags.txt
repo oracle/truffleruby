@@ -1,9 +1,0 @@
-fails:IO#read_nonblock sets the IO in nonblock mode
-fails:IO#read_nonblock returns at most the number of bytes requested
-fails:IO#read_nonblock returns less data if that is all that is available
-fails:IO#read_nonblock allows for reading 0 bytes before any write
-fails:IO#read_nonblock allows for reading 0 bytes after a write
-fails:IO#read_nonblock reads into the passed buffer
-fails:IO#read_nonblock raises EOFError when the end is reached
-fails:IO#read_nonblock when exception option is set to false when there is no data returns :wait_readable
-fails:IO#read_nonblock when exception option is set to false when the end is reached returns nil
