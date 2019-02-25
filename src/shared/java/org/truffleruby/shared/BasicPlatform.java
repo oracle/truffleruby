@@ -62,7 +62,7 @@ public abstract class BasicPlatform {
     public static OS_TYPE determineOS() {
         final String osName = System.getProperty("os.name");
 
-        final String lowerOSName = osName.toLowerCase();
+        final String lowerOSName = osName.toLowerCase(Locale.ENGLISH);
         if (lowerOSName.contains("windows")) {
             return OS_TYPE.WINDOWS;
         }
