@@ -117,22 +117,32 @@ module Process
 
   def self.clock_getres(id, unit=:float_second)
     res = case id
+    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+         CLOCK_MONOTONIC
+      1
     when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
          :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
          :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
       1_000
+    when CLOCK_REALTIME
+      1_000_000
+    when :TIMES_BASED_CLOCK_MONOTONIC,
+         :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
+      10_000_000
     when :TIME_BASED_CLOCK_REALTIME
       1_000_000_000
-    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
-         :TIMES_BASED_CLOCK_MONOTONIC
-      1
-    when :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
+    when Symbol
+      raise Errno::EINVAL
     else
-      res = Truffle::POSIX.truffleposix_clock_getres(id)
-      Errno.handle if res == 0
+      _res = Truffle::POSIX.truffleposix_clock_getres(id)
+      if _res == 0 then
+        Errno.handle
+      else
+	 _res
+      end
     end
 
-    if unit == :hertz then
+    if :hertz == unit then
       1.0 / nanoseconds_to_unit(res,:float_second)
     else
       nanoseconds_to_unit(res,unit)
@@ -171,7 +181,7 @@ module Process
     end
   end
 
-  def self.nanoseconds_to_unit(nanoseconds, unit = :nanosecond)
+  def self.nanoseconds_to_unit(nanoseconds, unit)
     case unit
     when :nanosecond
       nanoseconds
