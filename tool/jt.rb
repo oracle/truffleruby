@@ -1948,12 +1948,11 @@ EOS
 
   def build_graalvm(*options)
     java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
-    graal = checkout_or_update_graal_repo(sforceimports: false)
+    mx_args = ['-p', TRUFFLERUBY_DIR, '--dynamicimports', '/vm']
 
-    mx_args = %w[--dynamicimports truffleruby]
-    mx '-p', "#{graal}/vm", *mx_args, 'build', java_home: java_home
+    mx(*mx_args, 'build', java_home: java_home)
+    build_dir = mx(*mx_args, 'graalvm-home', capture: true).chomp
 
-    build_dir = "#{graal}/vm/latest_graalvm_home"
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
