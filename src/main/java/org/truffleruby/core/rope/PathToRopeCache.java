@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringOperations;
 
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -40,23 +41,27 @@ public class PathToRopeCache {
      */
     @TruffleBoundary
     public Rope getCachedPath(String string) {
-        lock.readLock().lock();
+        final Lock readLock = lock.readLock();
+
+        readLock.lock();
         try {
             final Rope rope = javaStringToRope.get(string);
             if (rope != null) {
                 return rope;
             }
         } finally {
-            lock.readLock().unlock();
+            readLock.unlock();
         }
 
         final Rope cachedRope = context.getRopeCache().getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
 
-        lock.writeLock().lock();
+        final Lock writeLock = lock.writeLock();
+
+        writeLock.lock();
         try {
             javaStringToRope.putIfAbsent(string, cachedRope);
         } finally {
-            lock.writeLock().unlock();
+            writeLock.unlock();
         }
 
         return cachedRope;
