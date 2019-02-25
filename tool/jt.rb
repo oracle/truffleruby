@@ -1948,7 +1948,7 @@ EOS
     mx_args = ['-p', TRUFFLERUBY_DIR, '--dynamicimports', '/vm']
 
     mx(*mx_args, 'build', java_home: java_home)
-    build_dir = mx(*mx_args, 'graalvm-home', capture: true).chomp
+    build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
     FileUtils.rm_rf dest
