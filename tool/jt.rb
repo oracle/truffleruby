@@ -97,6 +97,10 @@ end
 module Utilities
   private
 
+  def ci?
+    ENV.key?("BUILD_URL")
+  end
+
   def truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
     raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
@@ -1399,7 +1403,7 @@ EOS
       options += %w[--format spec/truffle_formatter.rb]
     end
 
-    if ENV['CI']
+    if ci?
       options += %w[--format specdoc]
     end
 
@@ -1943,7 +1947,7 @@ EOS
   end
 
   def build_graalvm(*options)
-    java_home = ENV["CI"] ? nil : ENV["JVMCI_HOME"] || install_jvmci
+    java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
     graal = checkout_or_update_graal_repo(sforceimports: false)
 
     mx_args = %w[--dynamicimports truffleruby]

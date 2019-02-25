@@ -33,7 +33,6 @@ local part_definitions = {
       environment+: {
         path+:: [],
         java_opts+:: ["-Xmx2G"],
-        CI: "true",
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
         JAVA_OPTS: std.join(" ", self.java_opts),
