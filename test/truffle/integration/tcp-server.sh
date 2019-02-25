@@ -2,4 +2,5 @@
 
 source test/truffle/common.sh.inc
 
+jt check_test_port
 jt ruby test/truffle/integration/tcp-server/tcp-server.rb & test_server

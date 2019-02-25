@@ -6,5 +6,6 @@ jt gem-test-pack
 
 jt ruby -S gem install --local "$(jt gem-test-pack)/gem-cache/puma-3.10.0.gem" -V -N --backtrace
 
+jt check_test_port
 jt ruby "-I$(jt gem-test-pack)/gems/gems/rack-1.6.1/lib" -S \
   puma --bind "tcp://127.0.0.1:$PORT" test/truffle/cexts/puma/app.ru & test_server

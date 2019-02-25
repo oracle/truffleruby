@@ -1246,7 +1246,6 @@ EOS
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      check_test_port
       sh test_script
     end
   end
@@ -1260,7 +1259,6 @@ EOS
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      check_test_port
       sh test_script
     end
   end
