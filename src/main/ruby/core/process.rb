@@ -138,7 +138,7 @@ module Process
       if _res == 0 then
         Errno.handle
       else
-	 _res
+        _res
       end
     end
 
@@ -150,7 +150,24 @@ module Process
   end
 
   def self.clock_gettime(id, unit=:float_second)
-    case id = normalize_clock_id(id)
+    if id.is_a?(Symbol)
+      id = case id
+           when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+                :TIME_BASED_CLOCK_REALTIME
+             CLOCK_REALTIME
+           when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+                :TIMES_BASED_CLOCK_MONOTONIC
+             CLOCK_MONOTONIC
+           when :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+                :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID,
+                :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+             CLOCK_THREAD_CPUTIME_ID
+           else
+             raise Errno::EINVAL
+           end
+    end
+
+    case id
     when CLOCK_REALTIME
       time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
     when CLOCK_MONOTONIC
@@ -161,24 +178,6 @@ module Process
     end
 
     nanoseconds_to_unit(time, unit)
-  end
-
-  def self.normalize_clock_id(id)
-    return id unless id.is_a?(Symbol)
-    case id
-    when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
-         :TIME_BASED_CLOCK_REALTIME
-      CLOCK_REALTIME
-    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
-         :TIMES_BASED_CLOCK_MONOTONIC
-      CLOCK_MONOTONIC
-    when :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
-         :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID,
-         :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
-      CLOCK_THREAD_CPUTIME_ID
-    else
-      raise Errno::EINVAL
-    end
   end
 
   def self.nanoseconds_to_unit(nanoseconds, unit)
