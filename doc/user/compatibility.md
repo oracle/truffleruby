@@ -61,7 +61,6 @@ The following standard libraries are unsupported.
 * `gdbm`
 * `sdbm`
 * `io/console` (partially implemented, could be implemented in the future)
-* `io/nonblock` (could be implemented in the future)
 * `io/wait` (partially implemented, could be implemented in the future)
 * `pty` (could be implemented in the future)
 * `ripper` (could be implemented in the future)

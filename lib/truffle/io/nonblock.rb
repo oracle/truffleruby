@@ -8,29 +8,6 @@
 
 class IO
 
-  def nonblock(nb=true)
-    if nb
-      previous = nonblock?
-      begin
-        self.nonblock = true unless previous
-        yield self
-      rescue
-        self.nonblock = previous unless previous
-      end
-    else
-      yield self
-    end
-  end
-  Truffle.invoke_primitive :method_unimplement, IO, :nonblock
-
-  def nonblock=(nb)
-    raise NotImplementedError
-  end
-  Truffle.invoke_primitive :method_unimplement, IO, :nonblock=
-
-  def nonblock?
-    false
-  end
-  Truffle.invoke_primitive :method_unimplement, IO, :nonblock?
+  # #nonblock, #nonblock?, and #nonblock= are implemented in the core library in TruffleRuby
 
 end
