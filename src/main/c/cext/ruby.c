@@ -303,14 +303,12 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_cmpint", val, a, b));
 }
 
-VALUE rb_int2inum(SIGNED_VALUE n) {
+VALUE rb_int2inum(intptr_t n) {
   return LONG2NUM(n);
 }
 
-VALUE rb_uint2inum(VALUE n) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num",
-          // Cast otherwise it's considered as truffle object address
-          (unsigned long) n));
+VALUE rb_uint2inum(uintptr_t n) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", n));
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
@@ -1608,6 +1606,10 @@ void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
 
 VALUE rb_hash_size(VALUE hash) {
   return RUBY_INVOKE(hash, "size");
+}
+
+size_t rb_hash_size_num(VALUE hash) {
+  return (size_t) FIX2ULONG(rb_hash_size(hash));
 }
 
 // Class
@@ -4531,11 +4533,11 @@ void rb_secure_update(VALUE obj) {
   rb_tr_error("rb_secure_update not implemented");
 }
 
-VALUE rb_uint2big(VALUE n) {
+VALUE rb_uint2big(uintptr_t n) {
   rb_tr_error("rb_uint2big not implemented");
 }
 
-VALUE rb_int2big(SIGNED_VALUE n) {
+VALUE rb_int2big(intptr_t n) {
   // it cannot overflow Fixnum
   return LONG2FIX(n);
 }

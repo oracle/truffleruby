@@ -12,6 +12,10 @@
 #ifndef RUBY_IO_H
 #define RUBY_IO_H 1
 
+#ifdef RUBY_INTERNAL_H
+#error "Include this file before internal.h"
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #if 0
@@ -20,7 +24,6 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include <errno.h>
 #include "ruby/encoding.h"
 
 #if defined(HAVE_STDIO_EXT_H)
@@ -28,6 +31,7 @@ extern "C" {
 #endif
 
 #include "ruby/config.h"
+#include <errno.h>
 #if defined(HAVE_POLL)
 #  ifdef _AIX
 #    define reqevents events
@@ -78,6 +82,7 @@ POLYGLOT_DECLARE_STRUCT(rb_io_t)
 #define FMODE_APPEND                0x00000040
 #define FMODE_CREATE                0x00000080
 /* #define FMODE_NOREVLOOKUP        0x00000100 */
+#define FMODE_EXCL                  0x00000400
 #define FMODE_TRUNC                 0x00000800
 #define FMODE_TEXTMODE              0x00001000
 /* #define FMODE_PREP               0x00010000 */
