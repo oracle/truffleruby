@@ -1212,7 +1212,7 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/puma/puma.sh"
+          sh "test/truffle/cexts/puma/puma.sh" unless MAC
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
           sh "test/truffle/cexts/json/json.sh"
