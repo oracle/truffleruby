@@ -46,13 +46,15 @@ public class ResourceLoader {
             throw new FileNotFoundException(path);
         }
 
-        // We guarantee that we only put UTF-8 source files into resources
-        final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+        final Source source;
 
-        final Source source = Source
-                .newBuilder(TruffleRuby.LANGUAGE_ID, reader, path)
-                .internal(internal)
-                .build();
+        // We guarantee that we only put UTF-8 source files into resources
+        try (final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+            source = Source
+                    .newBuilder(TruffleRuby.LANGUAGE_ID, reader, path)
+                    .internal(internal)
+                    .build();
+        }
 
         return new RubySource(source);
     }
