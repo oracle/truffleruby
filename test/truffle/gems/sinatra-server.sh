@@ -2,6 +2,7 @@
 
 source test/truffle/common.sh.inc
 
+jt check_test_port
 jt ruby \
   -I$(jt gem-test-pack)/gems/gems/rack-1.6.1/lib \
   -I$(jt gem-test-pack)/gems/gems/rack-protection-1.5.3/lib \

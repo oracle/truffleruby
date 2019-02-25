@@ -97,6 +97,10 @@ end
 module Utilities
   private
 
+  def ci?
+    ENV.key?("BUILD_URL")
+  end
+
   def truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
     raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
@@ -1208,7 +1212,7 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/puma/puma.sh"
+          sh "test/truffle/cexts/puma/puma.sh" unless MAC
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
           sh "test/truffle/cexts/json/json.sh"
@@ -1246,7 +1250,6 @@ EOS
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      check_test_port
       sh test_script
     end
   end
@@ -1260,7 +1263,6 @@ EOS
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      check_test_port
       sh test_script
     end
   end
@@ -1401,7 +1403,7 @@ EOS
       options += %w[--format spec/truffle_formatter.rb]
     end
 
-    if ENV['CI']
+    if ci?
       options += %w[--format specdoc]
     end
 
@@ -1929,12 +1931,9 @@ EOS
   def install_graal(*options)
     build
     java_home = install_jvmci unless options.include?("--no-jvmci")
-    graal = checkout_or_update_graal_repo
 
     puts "Building graal"
-    chdir("#{graal}/compiler") do
-      mx "build", java_home: java_home
-    end
+    mx "--dy", "/compiler", "build", java_home: java_home
 
     puts "Running with Graal"
     run_ruby "--graal", "-e", "p TruffleRuby.graal?"
@@ -1945,15 +1944,12 @@ EOS
   end
 
   def build_graalvm(*options)
-    java_home = ENV["CI"] ? nil : ENV["JVMCI_HOME"] || install_jvmci
-    graal = checkout_or_update_graal_repo(sforceimports: false)
+    java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
+    mx_args = ['-p', TRUFFLERUBY_DIR, '--dynamicimports', '/vm']
 
-    mx_args = %w[--dynamicimports truffleruby]
-    chdir("#{graal}/vm") do
-      mx *mx_args, 'build', java_home: java_home
-    end
+    mx(*mx_args, 'build', java_home: java_home)
+    build_dir = mx(*mx_args, 'graalvm-home', capture: true).chomp
 
-    build_dir = "#{graal}/vm/latest_graalvm_home"
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
