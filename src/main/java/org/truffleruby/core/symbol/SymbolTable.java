@@ -35,6 +35,7 @@ import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -65,14 +66,16 @@ public class SymbolTable implements ReHashable {
         final StringKey stringKey = new StringKey(string, hashing);
         DynamicObject symbol;
 
-        lock.readLock().lock();
+        final Lock readLock = lock.readLock();
+
+        readLock.lock();
         try {
             symbol = lookupCache(stringToSymbolCache, stringKey);
             if (symbol != null) {
                 return symbol;
             }
         } finally {
-            lock.readLock().unlock();
+            readLock.unlock();
         }
 
         final Rope rope;
@@ -84,13 +87,16 @@ public class SymbolTable implements ReHashable {
         symbol = getSymbol(rope);
 
         // Add it to the direct j.l.String to Symbol cache
-        lock.writeLock().lock();
+
+        final Lock writeLock = lock.writeLock();
+
+        writeLock.lock();
         try {
             if (lookupCache(stringToSymbolCache, stringKey) == null) {
                 stringToSymbolCache.put(stringKey, new SoftReference<>(symbol));
             }
         } finally {
-            lock.writeLock().unlock();
+            writeLock.unlock();
         }
 
         return symbol;

@@ -543,6 +543,13 @@ public abstract class ModuleOperations {
         if (!trySetClassVariable(module, name, value)) {
             synchronized (context.getClassVariableDefinitionLock()) {
                 if (!trySetClassVariable(module, name, value)) {
+                    /*
+                     * This is double-checked locking, but it is safe because when writing to a ConcurrentHashMap "an
+                     * update operation for a given key bears a happens-before relation with any (non-null) retrieval
+                     * for that key reporting the updated value" (JavaDoc) so the value is guaranteed to be fully
+                     * published before it can be found in the map.
+                     */
+
                     moduleFields.getClassVariables().put(name, value);
                 }
             }
