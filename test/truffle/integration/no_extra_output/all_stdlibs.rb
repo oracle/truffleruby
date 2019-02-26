@@ -32,9 +32,6 @@ ignore = %w[
   dbm
   gdbm
   sdbm
-  io/console
-  io/nonblock
-  io/wait
   pty
   ripper
   win32
