@@ -37,6 +37,7 @@ ignore = %w[
   profiler
   pty
   ripper
+  shell
   win32
   win32ole
 ]
