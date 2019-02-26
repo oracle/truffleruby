@@ -1572,6 +1572,10 @@ VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none) {
   return RUBY_CEXT_INVOKE("rb_hash_set_ifnone", hash, if_none);
 }
 
+VALUE rb_hash_key_str(VALUE hash) {
+  rb_tr_error("rb_hash_key_str not yet implemented");
+}
+
 st_index_t rb_memhash(const void *data, long length) {
   // Not a proper hash - just something that produces a stable result for now
 
