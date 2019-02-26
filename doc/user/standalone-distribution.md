@@ -24,7 +24,7 @@ Just add `truffleruby` in the build matrix, such as:
 ```yaml
 language: ruby
 rvm:
-  - 2.6.0
+  - 2.6.1
   - truffleruby
 ```
 
@@ -48,7 +48,7 @@ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
 export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
 $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
-ruby -v # => truffleruby 1.0.0-rc3, like ruby 2.4.4, GraalVM CE Native [x86_64-linux]
+ruby -v # => truffleruby 1.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
 ```
 
 Note that you also need to ensure `GEM_HOME` and `GEM_PATH` are not set, so
