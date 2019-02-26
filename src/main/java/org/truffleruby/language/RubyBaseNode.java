@@ -62,6 +62,10 @@ public abstract class RubyBaseNode extends Node {
         return ArrayHelpers.createArray(getContext(), store, size);
     }
 
+    protected DynamicObject createArray(Object[] store) {
+        return createArray(store, store.length);
+    }
+
     protected DynamicObject createBignum(BigInteger value) {
         return BignumOperations.createBignum(getContext(), value);
     }

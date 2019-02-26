@@ -337,18 +337,35 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
-            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
-            assert description != null;
+            final String optionNameString = StringOperations.getString(optionName);
+
+            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + optionNameString);
+
+            if (description == null) {
+                throw new RaiseException(getContext(), coreExceptions().nameError("option not defined", nil(), optionNameString, this));
+            }
+
             final Object value = getContext().getOptions().fromDescription(description);
 
-            if (value instanceof String) {
-                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            if (value instanceof Boolean || value instanceof Integer) {
+                return value;
             } else if (value instanceof Enum) {
                 return getSymbol(((Enum<?>) value).name());
+            } else if (value instanceof String) {
+                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            } else if (value instanceof String[]) {
+                return toRubyArray((String[]) value);
             } else {
-                assert value instanceof Integer || value instanceof Boolean;
-                return value;
+                throw new UnsupportedOperationException();
             }
+        }
+
+        private DynamicObject toRubyArray(String[] strings) {
+            final Object[] objects = new Object[strings.length];
+            for (int n = 0; n < strings.length; n++) {
+                objects[n] = makeStringNode.executeMake(strings[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
+            return createArray(objects);
         }
 
     }
