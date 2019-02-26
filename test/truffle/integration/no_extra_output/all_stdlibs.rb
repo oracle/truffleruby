@@ -32,14 +32,13 @@ ignore = %w[
   dbm
   gdbm
   sdbm
+  debug
+  profile
+  profiler
   pty
   ripper
   win32
   win32ole
-  debug
-  profile
-  profiler
-  shell
 ]
 
 stdlibs -= ignore
