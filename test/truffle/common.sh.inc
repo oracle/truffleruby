@@ -25,6 +25,5 @@ function test_server {
   fi
 }
 
-function jt {
-  ruby tool/jt.rb "$@"
-}
+shopt -s expand_aliases
+alias jt="tool/jt.rb"
