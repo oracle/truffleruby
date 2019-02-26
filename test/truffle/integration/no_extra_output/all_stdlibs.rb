@@ -27,11 +27,26 @@ glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
 
 stdlibs += %w[json]
 
-ignore = %w[continuation debug profile profiler psych_jars shell]
+ignore = %w[
+  continuation    # warns on being required, as intended
+  dbm
+  gdbm
+  sdbm
+  debug
+  profile
+  profiler
+  pty
+  ripper
+  shell
+  win32
+  win32ole
+]
 
 stdlibs -= ignore
 
 stdlibs.uniq!
+
+stdlibs.reject! { |lib| lib.end_with? '-stubs' }
 
 stdlibs.each { |lib| require lib }
 

@@ -1,9 +1,44 @@
+# Explicitly unsupported stdlibs
+
+ruby/test_continuation.rb
+dbm/test_dbm.rb
+gdbm/test_gdbm.rb
+sdbm/test_sdbm.rb
+io/console/test_io_console.rb
+io/wait/test_io_wait.rb
+test_pty.rb
+ripper/test_files.rb
+ripper/test_filter.rb
+ripper/test_lexer.rb
+ripper/test_parser_events.rb
+ripper/test_ripper.rb
+ripper/test_scanner_events.rb
+ripper/test_sexp.rb
+win32ole/test_err_in_callback.rb
+win32ole/test_folderitem2_invokeverb.rb
+win32ole/test_nil2vtempty.rb
+win32ole/test_ole_methods.rb
+win32ole/test_propertyputref.rb
+win32ole/test_thread.rb
+win32ole/test_win32ole.rb
+win32ole/test_win32ole_event.rb
+win32ole/test_win32ole_method.rb
+win32ole/test_win32ole_param.rb
+win32ole/test_win32ole_record.rb
+win32ole/test_win32ole_type.rb
+win32ole/test_win32ole_typelib.rb
+win32ole/test_win32ole_variable.rb
+win32ole/test_win32ole_variant.rb
+win32ole/test_win32ole_variant_m.rb
+win32ole/test_win32ole_variant_outarg.rb
+win32ole/test_word.rb
+
+# Other issues
+
 ruby/test_argf.rb # spawn needed for tests
 ruby/test_case.rb # uses refinements
-ruby/test_continuation.rb # cannot load such file -- continuation
 ruby/test_enum.rb # cannot load such file -- continuation
 ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
-ruby/test_io.rb # cannot load such file -- io/nonblock
 ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/minitest/unit.rb:1417:in `sort': internal implementation error - NullPointerException null org.truffleruby.runtime.subsystems.TraceManager$4.probeTaggedAs(TraceManager.java:117) (RuntimeError)
 ruby/test_m17n_comb.rb # cannot load such file -- etc
 ruby/test_marshal.rb # including this causes error in test_objectspace.rb
@@ -13,7 +48,6 @@ ruby/test_settracefunc.rb # uninitialized constant TestSetTraceFunc::TracePoint
 ruby/test_sleep.rb #  cannot load such file -- etc
 ruby/test_sprintf_comb.rb # almost all failing / regression
 ruby/test_syntax.rb # refinements
-test_pty.rb
 bigdecimal/test_bigdecimal.rb
 bigdecimal/test_bigdecimal_util.rb
 bigdecimal/test_bigmath.rb
@@ -23,8 +57,6 @@ csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
 csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
 digest/test_digest_extend.rb # all failed
 fileutils/test_fileutils.rb # cannot load such file -- etc
-io/wait/test_io_wait.rb
-io/nonblock/test_flush.rb
 net/http/test_buffered_io.rb
 net/http/test_http.rb
 net/http/test_http_request.rb
@@ -81,11 +113,6 @@ psych/visitors/test_depth_first.rb
 psych/visitors/test_emitter.rb
 psych/visitors/test_to_ruby.rb
 psych/visitors/test_yaml_tree.rb
-ripper/test_filter.rb
-ripper/test_parser_events.rb
-ripper/test_ripper.rb
-ripper/test_scanner_events.rb
-ripper/test_sexp.rb
 scanf/test_scanf.rb # many failures / regression
 socket/test_addrinfo.rb
 socket/test_ancdata.rb
@@ -97,7 +124,6 @@ socket/test_udp.rb
 socket/test_unix.rb
 ruby/enc/test_euc_jp.rb # invalid multibyte char (EUC-JP)
 ruby/enc/test_windows_1251.rb
-dbm/test_dbm.rb
 dl/test_base.rb
 dl/test_c_struct_entry.rb
 dl/test_c_union_entity.rb
@@ -127,7 +153,6 @@ dtrace/test_require.rb
 dtrace/test_singleton_function.rb
 dtrace/test_string.rb
 fiddle/test_cparser.rb
-gdbm/test_gdbm.rb
 irb/test_completion.rb
 irb/test_option.rb
 irb/test_raise_no_backtrace_exception.rb
@@ -176,7 +201,6 @@ ruby/test_weakmap.rb
 rubygems/test_gem_remote_fetcher.rb # OpenSSL problems
 # Expects TRUFFLERUBY_VERSION to exist and other problems
 rubygems/test_gem_request_set_gem_dependency_api.rb
-sdbm/test_sdbm.rb
 shell/test_command_processor.rb
 test_curses.rb
 test_rbconfig.rb
@@ -202,24 +226,6 @@ webrick/test_httpversion.rb
 webrick/test_server.rb
 webrick/test_ssl_server.rb
 webrick/test_do_not_reverse_lookup.rb
-win32ole/test_err_in_callback.rb
-win32ole/test_folderitem2_invokeverb.rb
-win32ole/test_nil2vtempty.rb
-win32ole/test_ole_methods.rb
-win32ole/test_propertyputref.rb
-win32ole/test_thread.rb
-win32ole/test_win32ole.rb
-win32ole/test_win32ole_event.rb
-win32ole/test_win32ole_method.rb
-win32ole/test_win32ole_param.rb
-win32ole/test_win32ole_record.rb
-win32ole/test_win32ole_type.rb
-win32ole/test_win32ole_typelib.rb
-win32ole/test_win32ole_variable.rb
-win32ole/test_win32ole_variant.rb
-win32ole/test_win32ole_variant_m.rb
-win32ole/test_win32ole_variant_outarg.rb
-win32ole/test_word.rb
 xmlrpc/test_client.rb # pollutes other tests
 xmlrpc/test_cookie.rb # undefined method `http' for NilClass
 xmlrpc/test_parser.rb # `const_missing': uninitialized constant Test_REXMLStreamParser::GenericParserTest

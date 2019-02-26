@@ -53,6 +53,7 @@ git diff mri master | git apply -3
 * Update version information (version, base version, and revision) in `TruffleRuby`
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
+* Update `doc/contributor/stdlib.md`
 * Search for other instances of the old version number (there are a
   couple in tests). The version numbers may use `.` or `_` depending
   on context, and may be escaped as regular expressions so when

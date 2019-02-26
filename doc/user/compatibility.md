@@ -54,7 +54,22 @@ Process.respond_to?(:fork)
 
 #### Standard libraries
 
-`win32ole` is unsupported.
+The following standard libraries are unsupported.
+
+* `continuation`
+* `dbm`
+* `gdbm`
+* `sdbm`
+* `debug` (could be implemented in the future) <!-- TODO CS 26 Feb 19 document alternatives -->
+* `profile` (could be implemented in the future)
+* `profiler` (could be implemented in the future)
+* `io/console` (partially implemented, could be implemented in the future)
+* `io/wait` (partially implemented, could be implemented in the future)
+* `pty` (could be implemented in the future)
+* `ripper` (could be implemented in the future)
+* `shell` (could be implemented in the future) <!-- TODO CS 26 Feb 19 probably due to simple bug -->
+* `win32`
+* `win32ole`
 
 `fiddle` is not yet implemented - the module and some methods are there
 but not enough to run anything serious.
@@ -62,11 +77,6 @@ but not enough to run anything serious.
 We provide our own included implementation of the interface of the `ffi` gem,
 like JRuby and Rubinius, but the implemention of this is limited at the
 moment.
-
-Quite a few of the less commonly used standard libraries are currently not
-supported, such as `sdbm`, `gdbm`, `tk`. It's quite hard to get an
-understanding of all the standard libraries that should be available, so it's
-hard to give a definitive list of those that are missing.
 
 #### Safe levels
 
