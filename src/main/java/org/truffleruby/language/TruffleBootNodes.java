@@ -337,10 +337,12 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
-            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
+            final String optionNameString = StringOperations.getString(optionName);
+
+            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + optionNameString);
 
             if (description == null) {
-                return nil();
+                throw new RaiseException(getContext(), coreExceptions().nameError("option not defined", nil(), optionNameString, this));
             }
 
             final Object value = getContext().getOptions().fromDescription(description);
