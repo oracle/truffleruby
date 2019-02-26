@@ -8,7 +8,7 @@
 
 require 'sinatra'
 
-set :port, 14873
+set :port, 0
 
 get '/' do
   "Hello Sinatra!"

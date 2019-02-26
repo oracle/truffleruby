@@ -16,5 +16,5 @@ end
 
 Rack::Handler::WEBrick.run(
   Example.new,
-  :Port => 14873
+  :Port => 0
 )

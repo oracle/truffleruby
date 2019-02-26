@@ -1235,15 +1235,6 @@ EOS
   end
   private :test_report
 
-  def check_test_port
-    lsof = `lsof -i :14873`
-    unless lsof.empty?
-      STDERR.puts 'Someone is already listening on port 14873 - our tests can\'t run'
-      STDERR.puts lsof
-      exit 1
-    end
-  end
-
   def test_integration(*args)
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
