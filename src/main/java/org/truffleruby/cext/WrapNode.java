@@ -19,6 +19,7 @@ import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
@@ -85,7 +86,12 @@ public abstract class WrapNode extends RubyBaseNode {
             synchronized (value) {
                 wrapper = (ValueWrapper) readWrapperNode.execute(value);
                 if (wrapper == null) {
+                    /*
+                     * This is double-checked locking, but it's safe because the object that we create,
+                     * the ValueWrapper, is not published until after a memory store fence.
+                     */
                     wrapper = new ValueWrapper(value, UNSET_HANDLE);
+                    Pointer.UNSAFE.storeFence();
                     writeWrapperNode.write(value, wrapper);
                 }
             }
