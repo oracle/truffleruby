@@ -8,6 +8,7 @@
 
 require 'sinatra'
 
+set :bind, '127.0.0.1'
 set :port, 0
 
 get '/' do
