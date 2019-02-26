@@ -6,4 +6,4 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-raise NotImplementedError, 'pty is unsupported in TruffleRuby'
+raise LoadError, 'pty is unsupported in TruffleRuby'
