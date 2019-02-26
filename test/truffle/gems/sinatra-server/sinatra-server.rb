@@ -8,7 +8,8 @@
 
 require 'sinatra'
 
-set :port, 14873
+set :bind, '127.0.0.1'
+set :port, 0
 
 get '/' do
   "Hello Sinatra!"

@@ -1212,7 +1212,7 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/puma/puma.sh" unless MAC
+          sh "test/truffle/cexts/puma/puma.sh"
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
           sh "test/truffle/cexts/json/json.sh"
@@ -1234,15 +1234,6 @@ EOS
     sh 'ant', '-f', 'spec/buildTestReports.xml'
   end
   private :test_report
-
-  def check_test_port
-    lsof = `lsof -i :14873`
-    unless lsof.empty?
-      STDERR.puts 'Someone is already listening on port 14873 - our tests can\'t run'
-      STDERR.puts lsof
-      exit 1
-    end
-  end
 
   def test_integration(*args)
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"

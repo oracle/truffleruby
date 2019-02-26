@@ -14,7 +14,4 @@ class Example
   end
 end
 
-Rack::Handler::WEBrick.run(
-  Example.new,
-  :Port => 14873
-)
+Rack::Handler::WEBrick.run(Example.new, Host: '127.0.0.1', Port: 0)
