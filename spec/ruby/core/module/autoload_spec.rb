@@ -16,11 +16,18 @@ end
 describe "Module#autoload" do
   before :all do
     @non_existent = fixture __FILE__, "no_autoload.rb"
+
+    # Require RubyGems eagerly, to ensure #require is already the RubyGems
+    # version, before starting #autoload specs which snapshot #require, and
+    # could end up redefining #require as the original core Kernel#require.
+    begin
+      require "rubygems"
+    rescue LoadError
+    end
   end
 
   before :each do
     @loaded_features = $".dup
-    @frozen_module = Module.new.freeze
 
     ScratchPad.clear
   end
@@ -37,6 +44,17 @@ describe "Module#autoload" do
   it "sets the autoload constant in the constants table" do
     ModuleSpecs::Autoload.autoload :B, @non_existent
     ModuleSpecs::Autoload.should have_constant(:B)
+  end
+
+  it "can be overridden with a second autoload on the same constant" do
+    ModuleSpecs::Autoload.autoload :Overridden, @non_existent
+    ModuleSpecs::Autoload.autoload?(:Overridden).should == @non_existent
+
+    path = fixture(__FILE__, "autoload_overridden.rb")
+    ModuleSpecs::Autoload.autoload :Overridden, path
+    ModuleSpecs::Autoload.autoload?(:Overridden).should == path
+
+    ModuleSpecs::Autoload::Overridden.should == :overridden
   end
 
   it "loads the registered constant when it is accessed" do
@@ -651,8 +669,9 @@ describe "Module#autoload" do
 
   describe "on a frozen module" do
     it "raises a #{frozen_error_class} before setting the name" do
-      lambda { @frozen_module.autoload :Foo, @non_existent }.should raise_error(frozen_error_class)
-      @frozen_module.should_not have_constant(:Foo)
+      frozen_module = Module.new.freeze
+      lambda { frozen_module.autoload :Foo, @non_existent }.should raise_error(frozen_error_class)
+      frozen_module.should_not have_constant(:Foo)
     end
   end
 
