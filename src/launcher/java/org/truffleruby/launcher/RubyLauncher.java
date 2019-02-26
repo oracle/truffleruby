@@ -295,8 +295,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     // To update this, use:
-    // ruby -h | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
-    // and replace ruby by truffleruby for the first line.
+    // ruby --help | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
+    // replace ruby by truffleruby for the first line, and remove unsupported flags.
     // Also add an extra out.println(); before out.println("Features:");
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
@@ -318,16 +318,17 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  -s              enable some switch parsing for switches after script name");
         out.println("  -S              look for the script using PATH environment variable");
         out.println("  -T[level=1]     turn on tainting checks");
-        out.println("  -v, --verbose   print version number, then turn on verbose mode");
+        out.println("  -v              print the version number, then turn on verbose mode");
         out.println("  -w              turn warnings on for your script");
         out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  --copyright     print the copyright");
-        out.println("  --enable=feature[,...], --disable=feature[,...]");
-        out.println("                  enable or disable features");
+        out.println("  --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]");
+        out.println("                  enable or disable features. see below for available features");
         out.println("  --external-encoding=encoding, --internal-encoding=encoding");
         out.println("                  specify the default external or internal character encoding");
-        out.println("  --version       print the version");
+        out.println("  --verbose       turn on verbose mode and disable script from stdin");
+        out.println("  --version       print the version number, then exit");
         out.println("  --help          show this message, -h for short message");
         out.println();
         out.println("Features:");
