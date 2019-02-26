@@ -7,6 +7,14 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
+if RUBY_ENGINE == 'truffleruby'
+  # Setup config here as we need to check the clang version
+  require 'rbconfig-for-mkmf'
+  # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
+  # currently required as TruffleRuby cannot yet link to static libraries.
+  ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
+end
+
 class String
   # :stopdoc:
 
@@ -229,30 +237,44 @@ module MakeMakefile
     map.inject(dir) {|d, (orig, new)| d.gsub(orig, new)}
   end
 
-  topdir = File.dirname(File.dirname(__FILE__))
-  path = File.expand_path($0)
-  until (dir = File.dirname(path)) == path
-    if File.identical?(dir, topdir)
-      $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-      break
-    end
-    path = dir
-  end
-  $extmk ||= false
-  if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
-    $topdir = $hdrdir
-    $top_srcdir = $hdrdir
-    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
-    $topdir ||= RbConfig::CONFIG["topdir"]
-    $arch_hdrdir = "$(extout)/include/$(arch)"
-  else
-    abort <<MESSAGE
-mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h
+  if RUBY_ENGINE == 'truffleruby'
+    $extmk = Truffle::Boot.get_option('building.core.cexts') || ENV.key?('MKMF_SET_EXTMK_TO_TRUE')
+    topdir = RbConfig::CONFIG['prefix'] # the TruffleRuby home
+    $hdrdir = RbConfig::CONFIG["rubyhdrdir"] # lib/cext/include
+    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"] # lib/cext/include
 
-You might have to install separate package for the ruby development
-environment, ruby-dev or ruby-devel for example.
-MESSAGE
+    unless File.exist?("#{$hdrdir}/ruby/ruby.h")
+      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby/ruby.h"
+    end
+
+    if not $extmk
+      $topdir = $hdrdir # lib/cext/include
+      $top_srcdir = $hdrdir # lib/cext/include
+    else
+      $top_srcdir ||= topdir + "/lib/cext" # lib/cext
+      $topdir ||= RbConfig::CONFIG["topdir"] # lib/mri
+    end
+  else
+    topdir = File.dirname(File.dirname(__FILE__))
+    path = File.expand_path($0)
+    until (dir = File.dirname(path)) == path
+      if File.identical?(dir, topdir)
+        $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
+        break
+      end
+      path = dir
+    end
+    $extmk ||= false
+    if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
+      $topdir = $hdrdir
+      $top_srcdir = $hdrdir
+      $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
+    elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
+      $topdir ||= RbConfig::CONFIG["topdir"]
+      $arch_hdrdir = "$(extout)/include/$(arch)"
+    else
+      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
+    end
   end
 
   CONFTEST = "conftest".freeze
@@ -498,8 +520,14 @@ MSG
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
-    RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
-                     conf)
+    if RUBY_ENGINE == 'truffleruby'
+      # Specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
+      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
+                       conf)
+    else
+      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
+                       conf)
+    end
   end
 
   def cpp_command(outfile, opt="")
@@ -2137,7 +2165,14 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
-    if $extconf_h
+    if RUBY_ENGINE == 'truffleruby'
+      # Added dependency on Makefile as we should recompile if the Makefile was re-generated
+      if $extconf_h
+        depout.unshift("$(OBJS): Makefile $(RUBY_EXTCONF_H)\n\n")
+      else
+        depout.unshift("$(OBJS): Makefile\n\n")
+      end
+    else
       depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n")
       depout.unshift("$(OBJS): $(hdrdir)/ruby/win32.h\n\n") if $mswin or $mingw
     end
@@ -2492,7 +2527,12 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
+      if RUBY_ENGINE == 'truffleruby'
+        # Added dependency on Makefile as we should recompile if the Makefile was re-generated
+        mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
+      else
+        mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
+      end
     end
 
     $makefile_created = true
@@ -2634,7 +2674,12 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+
+  if RUBY_ENGINE == 'truffleruby'
+    $ruby = arg_config("--ruby", RbConfig.ruby)
+  else
+    $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+  end
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 

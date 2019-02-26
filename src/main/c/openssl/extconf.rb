@@ -14,7 +14,13 @@
 require "mkmf"
 require File.expand_path('../deprecation', __FILE__)
 
-dir_config("openssl")
+if RUBY_ENGINE == 'truffleruby'
+  require 'truffle/openssl-prefix'
+  dir_config("openssl", ENV["OPENSSL_PREFIX"])
+else
+  dir_config("openssl")
+end
+
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
@@ -107,7 +113,14 @@ end
 
 Logging::message "=== Checking for OpenSSL features... ===\n"
 # compile options
-have_func("RAND_egd")
+
+# Ubuntu 16.04 explicitly configures OpenSSL without SSLv2 support as it's
+# considered insecure. Therefore, we never define HAVE_SSLV2_METHOD so the
+# pre-compiled extension can be used on Ubuntu.
+unless RUBY_ENGINE == 'truffleruby'
+  have_func("SSLv2_method")
+end
+
 engines = %w{builtin_engines openbsd_dev_crypto dynamic 4758cca aep atalla chil
              cswift nuron sureware ubsec padlock capi gmp gost cryptodev aesni}
 engines.each { |name|

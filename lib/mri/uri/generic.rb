@@ -588,9 +588,17 @@ module URI
       if @opaque
         raise InvalidURIError,
           "can not set host with registry or opaque"
-      elsif parser.regexp[:HOST] !~ v
-        raise InvalidComponentError,
-          "bad component(expected host component): #{v}"
+      else
+        if RUBY_ENGINE == 'truffleruby'
+          bad = !parser.regexp[:HOST].match(v)
+        else
+          bad = parser.regexp[:HOST] !~ v
+        end
+        
+        if bad
+          raise InvalidComponentError,
+            "bad component(expected host component): #{v}"
+        end
       end
 
       return true
