@@ -13,10 +13,6 @@ require 'socket'
 require 'io/nonblock'
 require 'etc'
 
-if RUBY_ENGINE == 'truffleruby'
-  require 'timeout'
-end
-
 module WEBrick
   module Utils
     ##
@@ -41,7 +37,7 @@ module WEBrick
         Process::Sys::setgid(pw.gid)
         Process::Sys::setuid(pw.uid)
       else
-        warn("WEBrick::Utils::su doesn't work on this platform")
+        warn("WEBrick::Utils::su doesn't work on this platform", uplevel: 1)
       end
     end
     module_function :su
@@ -95,7 +91,6 @@ module WEBrick
 
     ###########
 
-    require "thread"
     require "timeout"
     require "singleton"
 
@@ -260,21 +255,14 @@ module WEBrick
     # than +seconds+.
     #
     # If +seconds+ is zero or nil, simply executes the block
-    if RUBY_ENGINE == 'truffleruby'
-      def timeout(seconds, exception=Timeout::Error, &block)
-        return yield if seconds.nil? or seconds.zero?
-        Timeout.timeout(seconds, exception, &block)
-      end
-    else
-      def timeout(seconds, exception=Timeout::Error)
-        return yield if seconds.nil? or seconds.zero?
-        # raise ThreadError, "timeout within critical session" if Thread.critical
-        id = TimeoutHandler.register(seconds, exception)
-        begin
-          yield(seconds)
-        ensure
-          TimeoutHandler.cancel(id)
-        end
+    def timeout(seconds, exception=Timeout::Error)
+      return yield if seconds.nil? or seconds.zero?
+      # raise ThreadError, "timeout within critical session" if Thread.critical
+      id = TimeoutHandler.register(seconds, exception)
+      begin
+        yield(seconds)
+      ensure
+        TimeoutHandler.cancel(id)
       end
     end
     module_function :timeout

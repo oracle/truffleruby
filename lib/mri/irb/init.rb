@@ -43,7 +43,6 @@ module IRB # :nodoc:
     @CONF[:LOAD_MODULES] = []
     @CONF[:IRB_RC] = nil
 
-    @CONF[:MATH_MODE] = false
     @CONF[:USE_READLINE] = false unless defined?(ReadlineInputMethod)
     @CONF[:INSPECT_MODE] = true
     @CONF[:USE_TRACER] = false
@@ -128,8 +127,6 @@ module IRB # :nodoc:
       case opt
       when "-f"
         @CONF[:RC] = false
-      when "-m"
-        @CONF[:MATH_MODE] = true
       when "-d"
         $DEBUG = true
         $VERBOSE = true
@@ -200,7 +197,7 @@ module IRB # :nodoc:
         print IRB.version, "\n"
         exit 0
       when "-h", "--help"
-        require "irb/help"
+        require_relative "help"
         IRB.print_usage
         exit 0
       when "--"
@@ -280,7 +277,7 @@ module IRB # :nodoc:
       begin
         require m
       rescue LoadError => err
-        warn err.backtrace[0] << ":#{err.class}: #{err}"
+        warn "#{err.class}: #{err}", uplevel: 0
       end
     end
   end

@@ -39,8 +39,6 @@ EOF
 
         when 2	# binding in loaded file(thread use)
           unless defined? BINDING_QUEUE
-            require "thread"
-
             IRB.const_set(:BINDING_QUEUE, Thread::SizedQueue.new(1))
             Thread.abort_on_exception = true
             Thread.start do
@@ -73,7 +71,7 @@ EOF
           end
         end
       end
-      eval("_=nil", @binding)
+      @binding.local_variable_set(:_, nil)
     end
 
     # The Binding of this workspace
@@ -85,6 +83,14 @@ EOF
     # Evaluate the given +statements+ within the  context of this workspace.
     def evaluate(context, statements, file = __FILE__, line = __LINE__)
       eval(statements, @binding, file, line)
+    end
+
+    def local_variable_set(name, value)
+      @binding.local_variable_set(name, value)
+    end
+
+    def local_variable_get(name)
+      @binding.local_variable_get(name)
     end
 
     # error message manipulator
@@ -107,6 +113,28 @@ EOF
         bt = bt.sub(/:\s*in `irb_binding'/, '')
       end
       bt
+    end
+
+    def code_around_binding
+      file, pos = @binding.source_location
+
+      unless defined?(::SCRIPT_LINES__[file]) && lines = ::SCRIPT_LINES__[file]
+        begin
+          lines = File.readlines(file)
+        rescue SystemCallError
+          return
+        end
+      end
+      pos -= 1
+
+      start_pos = [pos - 5, 0].max
+      end_pos   = [pos + 5, lines.size - 1].min
+
+      fmt = " %2s %#{end_pos.to_s.length}d: %s"
+      body = (start_pos..end_pos).map do |current_pos|
+        sprintf(fmt, pos == current_pos ? '=>' : '', current_pos + 1, lines[current_pos])
+      end.join("")
+      "\nFrom: #{file} @ line #{pos + 1} :\n\n#{body}\n"
     end
 
     def IRB.delete_caller

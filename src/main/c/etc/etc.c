@@ -627,8 +627,9 @@ VALUE rb_w32_conv_from_wchar(const WCHAR *wstr, rb_encoding *enc);
  * Returns system configuration directory.
  *
  * This is typically "/etc", but is modified by the prefix used when Ruby was
- * compiled. For example, if Ruby is built and installed in /usr/local, returns
- * "/usr/local/etc".
+ * compiled. For example, if Ruby is built and installed in /usr/local,
+ * returns "/usr/local/etc" on other platforms than Windows.
+ * On Windows, this always returns the directory provided by the system.
  */
 static VALUE
 etc_sysconfdir(VALUE obj)
@@ -676,11 +677,7 @@ etc_systmpdir(void)
     }
 # endif
 #endif
-#ifdef TRUFFLERUBY
-    rb_obj_untaint(tmpdir);
-#else
     FL_UNSET(tmpdir, FL_TAINT);
-#endif
     return tmpdir;
 }
 

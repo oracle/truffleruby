@@ -1,5 +1,6 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 require 'rdoc'
+require 'erb'
 require 'time'
 require 'json'
 require 'webrick'
@@ -217,7 +218,7 @@ exception:
 <pre>#{ERB::Util.html_escape exception.message}</pre>
 
 <p>Please report this to the
-<a href="https://github.com/rdoc/rdoc/issues">RDoc issues tracker</a>.  Please
+<a href="https://github.com/ruby/rdoc/issues">RDoc issues tracker</a>.  Please
 include the RDoc version, the URI above and exception class, message and
 backtrace.  If you're viewing a gem's documentation, include the gem name and
 version.  If you're viewing Ruby's documentation, include the version of ruby.
@@ -427,14 +428,14 @@ version.  If you're viewing Ruby's documentation, include the version of ruby.
       end
 
       raise WEBrick::HTTPStatus::NotFound,
-            "Could not find gem \"#{source_name}\". Are you sure you installed it?" unless ri_dir
+            "Could not find gem \"#{ERB::Util.html_escape(source_name)}\". Are you sure you installed it?" unless ri_dir
 
       store = RDoc::Store.new ri_dir, type
 
       return store if File.exist? store.cache_path
 
       raise WEBrick::HTTPStatus::NotFound,
-            "Could not find documentation for \"#{source_name}\". Please run `gem rdoc --ri gem_name`"
+            "Could not find documentation for \"#{ERB::Util.html_escape(source_name)}\". Please run `gem rdoc --ri gem_name`"
 
     end
   end

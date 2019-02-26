@@ -8,7 +8,7 @@ class Gem::Licenses
 
   # Software Package Data Exchange (SPDX) standard open-source software
   # license identifiers
-  IDENTIFIERS = %w(
+  LICENSE_IDENTIFIERS = %w(
       0BSD
       AAL
       ADSL
@@ -19,6 +19,8 @@ class Gem::Licenses
       AFL-3.0
       AGPL-1.0
       AGPL-3.0
+      AGPL-3.0-only
+      AGPL-3.0-or-later
       AMDPLPA
       AML
       AMPAS
@@ -41,16 +43,22 @@ class Gem::Licenses
       Artistic-1.0-Perl
       Artistic-1.0-cl8
       Artistic-2.0
+      BSD-1-Clause
       BSD-2-Clause
       BSD-2-Clause-FreeBSD
       BSD-2-Clause-NetBSD
+      BSD-2-Clause-Patent
       BSD-3-Clause
       BSD-3-Clause-Attribution
       BSD-3-Clause-Clear
       BSD-3-Clause-LBNL
+      BSD-3-Clause-No-Nuclear-License
+      BSD-3-Clause-No-Nuclear-License-2014
+      BSD-3-Clause-No-Nuclear-Warranty
       BSD-4-Clause
       BSD-4-Clause-UC
       BSD-Protection
+      BSD-Source-Code
       BSL-1.0
       Bahyph
       Barr
@@ -92,6 +100,8 @@ class Gem::Licenses
       CC0-1.0
       CDDL-1.0
       CDDL-1.1
+      CDLA-Permissive-1.0
+      CDLA-Sharing-1.0
       CECILL-1.0
       CECILL-1.1
       CECILL-2.0
@@ -120,12 +130,15 @@ class Gem::Licenses
       EFL-1.0
       EFL-2.0
       EPL-1.0
+      EPL-2.0
       EUDatagrid
       EUPL-1.0
       EUPL-1.1
+      EUPL-1.2
       Entessa
       ErlPL-1.1
       Eurosym
+      FSFAP
       FSFUL
       FSFULLR
       FTL
@@ -133,12 +146,34 @@ class Gem::Licenses
       Frameworx-1.0
       FreeImage
       GFDL-1.1
+      GFDL-1.1-only
+      GFDL-1.1-or-later
       GFDL-1.2
+      GFDL-1.2-only
+      GFDL-1.2-or-later
       GFDL-1.3
+      GFDL-1.3-only
+      GFDL-1.3-or-later
       GL2PS
       GPL-1.0
+      GPL-1.0+
+      GPL-1.0-only
+      GPL-1.0-or-later
       GPL-2.0
+      GPL-2.0+
+      GPL-2.0-only
+      GPL-2.0-or-later
+      GPL-2.0-with-GCC-exception
+      GPL-2.0-with-autoconf-exception
+      GPL-2.0-with-bison-exception
+      GPL-2.0-with-classpath-exception
+      GPL-2.0-with-font-exception
       GPL-3.0
+      GPL-3.0+
+      GPL-3.0-only
+      GPL-3.0-or-later
+      GPL-3.0-with-GCC-exception
+      GPL-3.0-with-autoconf-exception
       Giftware
       Glide
       Glulxe
@@ -152,14 +187,26 @@ class Gem::Licenses
       ISC
       ImageMagick
       Imlib2
+      Info-ZIP
       Intel
       Intel-ACPI
       Interbase-1.0
       JSON
       JasPer-2.0
+      LAL-1.2
+      LAL-1.3
       LGPL-2.0
+      LGPL-2.0+
+      LGPL-2.0-only
+      LGPL-2.0-or-later
       LGPL-2.1
+      LGPL-2.1+
+      LGPL-2.1-only
+      LGPL-2.1-or-later
       LGPL-3.0
+      LGPL-3.0+
+      LGPL-3.0-only
+      LGPL-3.0-or-later
       LGPLLR
       LPL-1.0
       LPL-1.02
@@ -170,6 +217,9 @@ class Gem::Licenses
       LPPL-1.3c
       Latex2e
       Leptonica
+      LiLiQ-P-1.1
+      LiLiQ-R-1.1
+      LiLiQ-Rplus-1.1
       Libpng
       MIT
       MIT-CMU
@@ -193,6 +243,7 @@ class Gem::Licenses
       NBPL-1.0
       NCSA
       NGPL
+      NLOD-1.0
       NLPL
       NOSL
       NPL-1.0
@@ -201,11 +252,13 @@ class Gem::Licenses
       NRL
       NTP
       Naumen
+      Net-SNMP
       NetCDF
       Newsletr
       Nokia
       Noweb
       Nunit
+      OCCT-PL
       OCLC-2.0
       ODbL-1.0
       OFL-1.0
@@ -229,6 +282,7 @@ class Gem::Licenses
       OLDAP-2.8
       OML
       OPL-1.0
+      OSET-PL-2.1
       OSL-1.0
       OSL-1.1
       OSL-2.0
@@ -259,6 +313,7 @@ class Gem::Licenses
       SISSL
       SISSL-1.2
       SMLNJ
+      SMPPL
       SNIA
       SPL-1.0
       SWL
@@ -269,12 +324,16 @@ class Gem::Licenses
       Spencer-86
       Spencer-94
       Spencer-99
+      StandardML-NJ
       SugarCRM-1.1.3
       TCL
+      TCP-wrappers
       TMate
       TORQUE-1.1
       TOSL
       UPL-1.0
+      Unicode-DFS-2015
+      Unicode-DFS-2016
       Unicode-TOU
       Unlicense
       VOSTROM
@@ -282,6 +341,7 @@ class Gem::Licenses
       Vim
       W3C
       W3C-19980720
+      W3C-20150513
       WTFPL
       Watcom-1.0
       Wsuipa
@@ -302,8 +362,10 @@ class Gem::Licenses
       Zlib
       bzip2-1.0.5
       bzip2-1.0.6
+      curl
       diffmark
       dvipdfm
+      eCos-2.0
       eGenix
       gSOAP-1.3b
       gnuplot
@@ -312,17 +374,49 @@ class Gem::Licenses
       mpich2
       psfrag
       psutils
+      wxWindows
       xinetd
       xpp
       zlib-acknowledgement
   ).freeze
 
+  # exception identifiers
+  EXCEPTION_IDENTIFIERS = %w(
+      389-exception
+      Autoconf-exception-2.0
+      Autoconf-exception-3.0
+      Bison-exception-2.2
+      Bootloader-exception
+      CLISP-exception-2.0
+      Classpath-exception-2.0
+      DigiRule-FOSS-exception
+      FLTK-exception
+      Fawkes-Runtime-exception
+      Font-exception-2.0
+      GCC-exception-2.0
+      GCC-exception-3.1
+      LZMA-exception
+      Libtool-exception
+      Linux-syscall-note
+      Nokia-Qt-exception-1.1
+      OCCT-exception-1.0
+      Qwt-exception-1.0
+      WxWindows-exception-3.1
+      eCos-exception-2.0
+      freertos-exception-2.0
+      gnu-javamail-exception
+      i2p-gpl-java-exception
+      mif-exception
+      openvpn-openssl-exception
+      u-boot-exception-2.0
+  ).freeze
+
   REGEXP = %r{
     \A
     (
-      #{Regexp.union(IDENTIFIERS)}
+      #{Regexp.union(LICENSE_IDENTIFIERS)}
       \+?
-      (\s WITH \s .+)?
+      (\s WITH \s #{Regexp.union(EXCEPTION_IDENTIFIERS)})?
       | #{NONSTANDARD}
     )
     \Z
@@ -333,7 +427,7 @@ class Gem::Licenses
   end
 
   def self.suggestions(license)
-    by_distance = IDENTIFIERS.group_by do |identifier|
+    by_distance = LICENSE_IDENTIFIERS.group_by do |identifier|
       levenshtein_distance(identifier, license)
     end
     lowest = by_distance.keys.min

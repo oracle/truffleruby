@@ -113,7 +113,8 @@ module Forwardable
   require 'forwardable/impl'
 
   # Version of +forwardable.rb+
-  FORWARDABLE_VERSION = "1.2.0"
+  VERSION = "1.2.0"
+  FORWARDABLE_VERSION = VERSION
 
   @debug = nil
   class << self
@@ -206,7 +207,7 @@ module Forwardable
       method_call = "#{<<-"begin;"}\n#{<<-"end;".chomp}"
         begin;
           unless defined? _.#{method}
-            ::Kernel.warn "\#{caller_locations(1)[0]}: "#{mesg.dump}"\#{_.class}"'##{method}'
+            ::Kernel.warn #{mesg.dump}"\#{_.class}"'##{method}', uplevel: 1
             _#{method_call}
           else
             _.#{method}(*args, &block)
@@ -221,7 +222,7 @@ module Forwardable
           #{pre}
           begin
             #{accessor}
-          end#{method_call}#{FILTER_EXCEPTION}
+          end#{method_call}
         end
       end
     end;
