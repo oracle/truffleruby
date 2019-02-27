@@ -11,6 +11,7 @@ Bug fixes:
 New features:
 
 * Implemented `String#delete_prefix`, `#delete_suffix`, and related methods.
+* Implemented `Dir.children`.
 
 Changes:
 
