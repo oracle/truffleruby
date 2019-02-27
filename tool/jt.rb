@@ -1935,6 +1935,8 @@ EOS
   end
 
   def build_graalvm(*options)
+    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') unless ci?
+
     java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
     mx_args = ['-p', TRUFFLERUBY_DIR, '--dynamicimports', '/vm']
 
