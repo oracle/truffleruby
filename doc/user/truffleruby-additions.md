@@ -17,7 +17,7 @@ truffleruby ..., like ruby ... <Java HotSpot(TM) 64-Bit Graal VM ... with Graal>
 ```
 
 In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be
-`'truffleruby'`.
+`'truffleruby'`. In C code `TRUFFLERUBY` is defined.
 
 It is also possible to use feature-detection instead of looking at
 `RUBY_ENGINE`. For example if you are writing an application that uses
@@ -91,3 +91,7 @@ interesting, such as `Truffle::POSIX` or `Truffle::FFI`. Additional modules and
 methods not listed in this document are designed to support the implementation
 of TruffleRuby and should not be used. They may be modified or made not visible
 to user programs in the future, and you should not use them.
+
+Extra macros, functions, and variables in TruffleRuby C extension headers
+beyond those provided by MRI, such as those starting with `rb_tr_*`, are
+unsupported and should not be used by any C extension.
