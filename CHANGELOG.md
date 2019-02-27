@@ -8,6 +8,10 @@ Bug fixes:
 * Combining multiple `**` arguments containing duplicate keys produced
   an incorrect hash. This has now been fixed (#1469).
 
+New features:
+
+* Implemented `String#delete_prefix`, `#delete_suffix`, and related methods.
+
 Changes:
 
 * `-Xoptions` has been removed - use `--help:languages` instead.

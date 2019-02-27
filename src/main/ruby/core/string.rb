@@ -110,6 +110,40 @@ class String
     str.delete!(*strings) || str
   end
 
+  def delete_prefix(prefix)
+    str = dup
+    str.delete_prefix!(prefix) || str
+  end
+
+  def delete_prefix!(prefix)
+    Truffle.check_frozen
+    prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
+    if !prefix.empty? && start_with?(prefix)
+      Truffle::Type.infect self, prefix
+      self[0, prefix.size] = ''
+      self
+    else
+      nil
+    end
+  end
+
+  def delete_suffix(suffix)
+    str = dup
+    str.delete_suffix!(suffix) || str
+  end
+
+  def delete_suffix!(suffix)
+    Truffle.check_frozen
+    suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
+    if !suffix.empty? && end_with?(suffix)
+      Truffle::Type.infect self, suffix
+      self[size - suffix.size, suffix.size] = ''
+      self
+    else
+      nil
+    end
+  end
+
   def include?(needle)
     !!Truffle.invoke_primitive(:find_string, self, StringValue(needle), 0)
   end
