@@ -10,7 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleStackTraceElement;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -88,7 +88,7 @@ public class TryNode extends RubyNode {
                      * therefore the exception is no longer being thrown on the exception path and the
                      * lazy stacktrace is no longer filled.
                      */
-                    TruffleStackTraceElement.fillIn(exception);
+                    TruffleStackTrace.fillIn(exception);
 
                     return setLastExceptionAndRunRescue(frame, exception, rescue);
                 }

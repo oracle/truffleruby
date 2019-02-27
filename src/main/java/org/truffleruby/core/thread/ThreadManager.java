@@ -12,7 +12,7 @@ package org.truffleruby.core.thread;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.TruffleStackTraceElement;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -282,7 +282,7 @@ public class ThreadManager {
         // to capture the backtrace from this thread.
         final TruffleException truffleException = Layouts.EXCEPTION.getBacktrace(exception).getRaiseException();
         if (truffleException != null) {
-            TruffleStackTraceElement.fillIn((Throwable) truffleException);
+            TruffleStackTrace.fillIn((Throwable) truffleException);
         }
 
         final DynamicObject mainThread = context.getThreadManager().getRootThread();

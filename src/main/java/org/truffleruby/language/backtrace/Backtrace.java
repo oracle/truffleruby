@@ -11,6 +11,7 @@ package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -49,7 +50,7 @@ public class Backtrace {
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
         RaiseException newRaiseException = new RaiseException(context, exception, this.raiseException.isInternalError());
         // Copy the TruffleStackTrace
-        TruffleStackTraceElement.fillIn(this.raiseException);
+        TruffleStackTrace.fillIn(this.raiseException);
         assert this.raiseException.getCause() != null;
         newRaiseException.initCause(this.raiseException.getCause());
         // Another way would be to copy the activations (copy.activations = getActivations()), but
@@ -88,7 +89,7 @@ public class Backtrace {
 
             // The stacktrace is computed here if it was not already computed and stored in the
             // TruffleException with TruffleStackTraceElement.fillIn().
-            final List<TruffleStackTraceElement> stackTrace = TruffleStackTraceElement.getStackTrace((Throwable) truffleException);
+            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStacktrace((Throwable) truffleException);
 
             final List<Activation> activations = new ArrayList<>();
             final RubyContext context = RubyLanguage.getCurrentContext();
