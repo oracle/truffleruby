@@ -62,6 +62,10 @@ test/mri/tests/cext-c/**/extconf.h
 test/mri/tests/cext-c/**/mkmf.log
 test/mri/tests/cext-c/**/*.o
 
+conftest
+conftest.c
+Info.plist
+
 # mx
 /mx.truffleruby/.pydevproject
 /mx.truffleruby/*.pyc
