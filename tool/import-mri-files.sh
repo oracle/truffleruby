@@ -5,11 +5,11 @@ set -e
 
 topdir=$(cd ../ruby && pwd -P)
 
-# Generate ext/rbconfig/sizeof/sizes.c
+# Generate ext/rbconfig/sizeof/sizes.c and limits.c
 (
   cd ../ruby/ext/rbconfig/sizeof
   cp depend Makefile
-  make sizes.c RUBY=ruby top_srcdir="$topdir"
+  make sizes.c limits.c RUBY=ruby top_srcdir="$topdir"
   rm Makefile
 )
 
