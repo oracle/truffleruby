@@ -1206,6 +1206,10 @@ void rb_tr_add_flags(VALUE value, int flags) {
   }
 }
 
+bool rb_tr_hidden_p(VALUE value) {
+  return false;
+}
+
 // Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
