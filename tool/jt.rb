@@ -73,6 +73,7 @@ MRI_TEST_MODULES = {
         include: openssl + syslog + [
             "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
             "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/zlib/test_zlib.rb",
         ]
     }
 }
