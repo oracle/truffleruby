@@ -25,6 +25,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.utilities.NeverValidAssumption;
 
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -72,6 +73,14 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         try {
             if (shared) {
                 writeBarrierNode.executeWriteBarrier(value);
+                /*
+                 * We need a STORE_STORE memory barrier here, to ensure the value is seen as shared by all threads
+                 * when published below by writing the value to a field of the object.
+                 * Otherwise, the compiler could theoretically move the write barrier
+                 * inside the synchronized block, and then the compiler or hardware could potentially
+                 * reorder the writes so that publication would happen before sharing.
+                 */
+                Pointer.UNSAFE.storeFence();
                 synchronized (object) {
                     // Re-check the shape under the monitor as another thread might have changed it
                     // by adding a field (fine) or upgrading an existing field to Object storage
