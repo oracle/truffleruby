@@ -21,8 +21,6 @@ require 'rbconfig'
 require 'pathname'
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
-MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
-MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
@@ -52,39 +50,42 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
+MRI_TEST_RELATIVE_PREFIX = "test/mri/tests"
+MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
+MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"
+MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
+
 # A list of MRI C API tests we can run. Files that do not load at all are in failing.exclude.
-MRI_TEST_CAPI_TESTS = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/capi_tests.list").map { |line|
-  "#{TRUFFLERUBY_DIR}/test/mri/tests/#{line.chomp}"
-}
+MRI_TEST_CAPI_TESTS = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/capi_tests.list").map(&:chomp)
 
 MRI_TEST_MODULES = {
     '--openssl' => {
         help: 'include only openssl tests',
-        include: openssl = Dir["#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"].sort,
+        include: openssl = ["openssl/test_*.rb"],
     },
     '--syslog' => {
         help: 'include only syslog tests',
         include: syslog = [
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
+            "test_syslog.rb",
+            "syslog/test_syslog_logger.rb"
         ]
     },
     '--cexts' => {
         help: 'run all MRI tests testing C extensions',
         include: cexts = openssl + syslog + [
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/nkf/test_kconv.rb",
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/nkf/test_nkf.rb",
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/zlib/test_zlib.rb",
+            "etc/test_etc.rb",
+            "nkf/test_kconv.rb",
+            "nkf/test_nkf.rb",
+            "zlib/test_zlib.rb",
         ]
     },
     '--capi' => {
       help: 'run all C-API MRI tests',
-      include: MRI_TEST_CAPI_TESTS,
+      include: capi = MRI_TEST_CAPI_TESTS,
     },
     '--all-sulong' => {
         help: 'run all tests requiring Sulong (C exts and C API)',
-        include: all_sulong = cexts + MRI_TEST_CAPI_TESTS
+        include: all_sulong = cexts + capi
     },
     '--no-sulong' => {
         help: 'exclude all tests requiring Sulong',
@@ -985,7 +986,6 @@ module Commands
     end
 
     mri_args = []
-    prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
     excluded_files = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
       map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
     patterns = []
@@ -1002,34 +1002,39 @@ module Commands
       end
     end
 
-    patterns.push "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb" if patterns.empty?
+    patterns.push "#{MRI_TEST_PREFIX}/**/test_*.rb" if patterns.empty?
 
     files_to_run = patterns.flat_map do |pattern|
-      Dir.glob(pattern).map do |path|
-        expanded_path = File.expand_path path
-        raise 'pattern does not match test files' unless expanded_path.start_with?(prefix)
-        expanded_path[prefix.size..-1]
-      end.reject do |path|
-        path.empty?
+      if pattern.start_with?(MRI_TEST_RELATIVE_PREFIX)
+        pattern = "#{TRUFFLERUBY_DIR}/#{pattern}"
+      elsif !pattern.start_with?(MRI_TEST_PREFIX)
+        pattern = "#{MRI_TEST_PREFIX}/#{pattern}"
       end
-    end.sort - excluded_files
+      glob = Dir.glob(pattern)
+      abort "pattern #{pattern} matched no files" if glob.empty?
+      glob.map { |path| mri_test_name(path) }
+    end.sort
+    files_to_run -= excluded_files
 
     run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
   private :test_mri
 
+  def mri_test_name(test)
+    prefix = "#{MRI_TEST_RELATIVE_PREFIX}/"
+    abs_prefix = "#{MRI_TEST_PREFIX}/"
+    if test.start_with?(prefix)
+      test[prefix.size..-1]
+    elsif test.start_with?(abs_prefix)
+      test[abs_prefix.size..-1]
+    else
+      test
+    end
+  end
+  private :mri_test_name
+
   def run_mri_tests(extra_args, test_files, runner_args, run_options)
-    prefix = "test/mri/tests/"
-    abs_prefix = "#{TRUFFLERUBY_DIR}/#{prefix}"
-    test_files = test_files.map { |file|
-      if file.start_with?(prefix)
-        file[prefix.size..-1]
-      elsif file.start_with?(abs_prefix)
-        file[abs_prefix.size..-1]
-      else
-        file
-      end
-    }
+    test_files = test_files.map { |file| mri_test_name(file) }
 
     truffle_args = []
     if !extra_args.include?('--native')
@@ -1038,7 +1043,7 @@ module Commands
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
-      "RUBYGEMS_TEST_PATH" => "#{TRUFFLERUBY_DIR}/test/mri/tests",
+      "RUBYGEMS_TEST_PATH" => MRI_TEST_PREFIX,
       "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
@@ -1054,7 +1059,7 @@ module Commands
     cext_tests.each do |test|
       puts
       puts test
-      test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
+      test_path = "#{MRI_TEST_PREFIX}/#{test}"
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
         cext_name = match[1]
