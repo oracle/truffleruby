@@ -1,6 +1,6 @@
 # TruffleRuby Options and Command Line
 
-TruffleRuby has the same command line interface as MRI 2.4.4.
+TruffleRuby has the same command line interface as our compatible MRI version.
 
 ```
 Usage: truffleruby [switches] [--] [programfile] [arguments]
@@ -22,16 +22,17 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
   -s              enable some switch parsing for switches after script name
   -S              look for the script using PATH environment variable
   -T[level=1]     turn on tainting checks
-  -v, --verbose   print version number, then turn on verbose mode
+  -v              print the version number, then turn on verbose mode
   -w              turn warnings on for your script
   -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose
   -x[directory]   strip off text before #!ruby line and perhaps cd to directory
   --copyright     print the copyright
-  --enable=feature[,...], --disable=feature[,...]
-                  enable or disable features
+  --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]
+                  enable or disable features. see below for available features
   --external-encoding=encoding, --internal-encoding=encoding
                   specify the default external or internal character encoding
-  --version       print the version
+  --verbose       turn on verbose mode and disable script from stdin
+  --version       print the version number, then exit
   --help          show this message, -h for short message
 
 Features:
