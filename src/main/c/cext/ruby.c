@@ -3827,7 +3827,8 @@ void rb_mark_hash(st_table *tbl) {
 }
 
 void rb_gc_force_recycle(VALUE obj) {
-  rb_tr_error("rb_gc_force_recycle not implemented");
+  // Comments in MRI imply rb_gc_force_recycle functions as a GC guard
+  RB_GC_GUARD(obj);
 }
 
 void rb_gc_copy_finalizer(VALUE dest, VALUE obj) {
