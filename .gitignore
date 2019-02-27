@@ -75,6 +75,7 @@ test/mri/tests/cext-c/**/*.o
 /rubyspec_temp
 
 # Tests
+/mri_tests.txt
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack
 /tool/docker/*
@@ -87,9 +88,14 @@ test/mri/tests/cext-c/**/*.o
 # Diagnostic output directory
 dumps/
 
-# Profile output directory
+# Profiling
 profiles/
+/time_metrics.stacks
+/time_metrics_flamegraph.svg
 
 # Jay
 tool/jay/*.o
 tool/jay/jay
+
+# Ignore .rb files at the root, it's temporary files to debug some issue
+/*.rb
