@@ -91,18 +91,6 @@ csv/test_encodings.rb # missing ObjectSpace define_finalizer specialization
 csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
 csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
 digest/test_digest_extend.rb # all failed
-dl/test_base.rb
-dl/test_c_struct_entry.rb
-dl/test_c_union_entity.rb
-dl/test_callback.rb
-dl/test_cfunc.rb
-dl/test_cparser.rb
-dl/test_cptr.rb
-dl/test_dl2.rb
-dl/test_func.rb
-dl/test_handle.rb
-dl/test_import.rb
-dl/test_win32.rb
 drb/test_acl.rb
 drb/test_drb.rb
 drb/test_drbssl.rb
