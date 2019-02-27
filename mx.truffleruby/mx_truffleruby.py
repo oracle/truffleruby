@@ -122,7 +122,7 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'specs', ':capi')
     jt('test', 'specs', ':truffle_capi')
     jt('test', 'specs', ':library_cext')
-    jt('test', 'mri', '--cext')
+    jt('test', 'mri', '--all-sulong')
     jt('test', 'cexts')
     jt('test', 'bundle')
 

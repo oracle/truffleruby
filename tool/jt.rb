@@ -52,14 +52,15 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
+# A list of MRI C API tests we can run. Files that do not load at all are in failing.exclude.
+MRI_TEST_CAPI_TESTS = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/capi_tests.list").map { |line|
+  "#{TRUFFLERUBY_DIR}/test/mri/tests/#{line.chomp}"
+}
+
 MRI_TEST_MODULES = {
-    '--no-sulong' => {
-        help: 'exclude all tests requiring Sulong',
-        exclude: "#{TRUFFLERUBY_DIR}/test/mri/sulong.exclude"
-    },
     '--openssl' => {
         help: 'include only openssl tests',
-        include: openssl = ["#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"],
+        include: openssl = Dir["#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"].sort,
     },
     '--syslog' => {
         help: 'include only syslog tests',
@@ -68,14 +69,27 @@ MRI_TEST_MODULES = {
             "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
         ]
     },
-    '--cext' => {
-        help: 'include only tests requiring Sulong',
-        include: openssl + syslog + [
-            "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
+    '--cexts' => {
+        help: 'run all MRI tests testing C extensions',
+        include: cexts = openssl + syslog + [
             "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/nkf/test_kconv.rb",
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/nkf/test_nkf.rb",
             "#{TRUFFLERUBY_DIR}/test/mri/tests/zlib/test_zlib.rb",
         ]
-    }
+    },
+    '--capi' => {
+      help: 'run all C-API MRI tests',
+      include: MRI_TEST_CAPI_TESTS,
+    },
+    '--all-sulong' => {
+        help: 'run all tests requiring Sulong (C exts and C API)',
+        include: all_sulong = cexts + MRI_TEST_CAPI_TESTS
+    },
+    '--no-sulong' => {
+        help: 'exclude all tests requiring Sulong',
+        exclude: all_sulong
+    },
 }
 
 SUBPROCESSES = []
@@ -972,14 +986,15 @@ module Commands
 
     mri_args = []
     prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
-    exclusions = ["#{TRUFFLERUBY_DIR}/test/mri/failing.exclude"]
+    excluded_files = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
+      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
     patterns = []
 
     args.each do |arg|
       test_module = MRI_TEST_MODULES[arg]
       if test_module
         patterns.push(*test_module[:include])
-        exclusions.push(*test_module[:exclude])
+        excluded_files.push(*test_module[:exclude])
       elsif arg.start_with?('-')
         mri_args.push arg
       else
@@ -988,11 +1003,6 @@ module Commands
     end
 
     patterns.push "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb" if patterns.empty?
-
-    excluded_files = exclusions.
-        flat_map { |f| File.readlines(f) }.
-        map { |l| l.gsub(/#.*/, '').strip }.
-        reject(&:empty?)
 
     files_to_run = patterns.flat_map do |pattern|
       Dir.glob(pattern).map do |path|
