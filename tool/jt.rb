@@ -55,7 +55,7 @@ MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
 MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-# A list of MRI C API tests we can run. Files that do not load at all are in failing.exclude.
+# A list of MRI C API tests we can load. Tests that do not load at all are in failing.exclude.
 MRI_TEST_CAPI_TESTS = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/capi_tests.list").map(&:chomp)
 
 MRI_TEST_MODULES = {
