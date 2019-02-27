@@ -324,7 +324,8 @@ static VALUE
 ossl_x509name_inspect(VALUE self)
 {
     return rb_enc_sprintf(rb_utf8_encoding(), "#<%"PRIsVALUE" %"PRIsVALUE">",
-			  rb_obj_class(self), ossl_x509name_to_utf8(self));
+			  (long) rb_obj_class(self), (long) ossl_x509name_to_utf8(self));
+                // TruffleRuby: added the two (long) casts above
 }
 
 /*

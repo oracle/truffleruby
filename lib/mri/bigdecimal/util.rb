@@ -6,7 +6,7 @@
 #++
 
 require 'bigdecimal'
-require 'bigdecimal/util.so'
+require 'bigdecimal/util.so' if RUBY_ENGINE != 'truffleruby'
 
 class Integer < Numeric
   # call-seq:

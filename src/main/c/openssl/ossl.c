@@ -105,14 +105,14 @@ ossl_str_new(const char *ptr, long len, int *pstate)
 
     str = rb_protect(ossl_str_new_i, len, &state);
     if (pstate)
-    *pstate = state;
+	*pstate = state;
     if (state) {
-    if (!pstate)
-        rb_set_errinfo(Qnil);
-    return Qnil;
+	if (!pstate)
+	    rb_set_errinfo(Qnil);
+	return Qnil;
     }
     if (ptr)
-    memcpy(RSTRING_PTR(str), ptr, len);
+	memcpy(RSTRING_PTR(str), ptr, len);
     return str;
 }
 
@@ -573,19 +573,15 @@ ossl_dyn_destroy_callback(struct CRYPTO_dynlock_value *l, const char *file, int 
     OPENSSL_free(l);
 }
 
-#ifdef TRUFFLERUBY
 static void ossl_threadid_func(CRYPTO_THREADID *id)
 {
     /* register native thread id */
+#ifdef TRUFFLERUBY
     CRYPTO_THREADID_set_pointer(id, (void *)rb_tr_obj_id(rb_nativethread_self()));
-}
 #else
-static unsigned long ossl_thread_id(void)
-{
-    /* before OpenSSL 1.0, this is 'unsigned long' */
-    return rb_tr_obj_id(rb_nativethread_self());
-}
+    CRYPTO_THREADID_set_pointer(id, (void *)rb_nativethread_self());
 #endif
+}
 
 static struct CRYPTO_dynlock_value *ossl_locks;
 
