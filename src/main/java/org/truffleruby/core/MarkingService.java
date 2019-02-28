@@ -10,10 +10,10 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.ReferenceProcessingService.WeakProcessingReference;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -45,69 +45,20 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         public abstract void mark(DynamicObject owner);
     }
 
-    public static class MarkerReference extends WeakReference<DynamicObject> implements ReferenceProcessingService.ProcessingReference<MarkerReference> {
+    public static class MarkerReference extends WeakProcessingReference<MarkerReference, DynamicObject> {
 
         private final MarkerAction action;
-        private final MarkingService service;
-        private MarkerReference next = null;
-        private MarkerReference prev = null;
 
         private MarkerReference(DynamicObject object, ReferenceQueue<? super Object> queue, MarkerAction action, MarkingService service) {
-            super(object, queue);
+            super(object, queue, service);
             this.action = action;
-            this.service = service;
-        }
-
-        public MarkerReference getPrevious() {
-            return prev;
-        }
-
-        public void setPrevious(MarkerReference previous) {
-            prev = previous;
-        }
-
-        public MarkerReference getNext() {
-            return next;
-        }
-
-        public void setNext(MarkerReference next) {
-            this.next = next;
-        }
-
-        public ReferenceProcessingService<MarkerReference> service() {
-            return service;
         }
     }
 
-    public static class MarkRunnerReference extends WeakReference<Object> implements ReferenceProcessingService.ProcessingReference<MarkRunnerReference> {
-
-        private final MarkRunnerService service;
-        private MarkRunnerReference next = null;
-        private MarkRunnerReference prev = null;
+    public static class MarkRunnerReference extends WeakProcessingReference<MarkRunnerReference, Object> {
 
         public MarkRunnerReference(Object object, ReferenceQueue<? super Object> queue, MarkRunnerService service) {
-            super(object, queue);
-            this.service = service;
-        }
-
-        public MarkRunnerReference getPrevious() {
-            return prev;
-        }
-
-        public void setPrevious(MarkRunnerReference previous) {
-            prev = previous;
-        }
-
-        public MarkRunnerReference getNext() {
-            return next;
-        }
-
-        public void setNext(MarkRunnerReference next) {
-            this.next = next;
-        }
-
-        public ReferenceProcessingService<MarkRunnerReference> service() {
-            return service;
+            super(object, queue, service);
         }
     }
 
