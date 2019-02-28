@@ -70,11 +70,11 @@ class Hash
   def self._constructor_fallback(*args)
     if args.size == 1
       obj = args.first
-      if hash = Truffle::Type.check_convert_type(obj, Hash, :to_hash)
+      if hash = Truffle::Type.rb_check_convert_type(obj, Hash, :to_hash)
         new_hash = allocate.replace(hash)
         new_hash.default = nil
         return new_hash
-      elsif associate_array = Truffle::Type.check_convert_type(obj, Array, :to_ary)
+      elsif associate_array = Truffle::Type.rb_check_convert_type(obj, Array, :to_ary)
         return new_from_associate_array(associate_array)
       end
     end

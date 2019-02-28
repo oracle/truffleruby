@@ -665,7 +665,7 @@ module Process
     when Symbol, String
       # do nothing
     else
-      unless r = Truffle::Type.check_convert_type(resource, String, :to_str)
+      unless r = Truffle::Type.rb_check_convert_type(resource, String, :to_str)
         return Truffle::Type.coerce_to resource, Integer, :to_int
       end
 

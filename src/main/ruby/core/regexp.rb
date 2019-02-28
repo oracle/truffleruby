@@ -231,7 +231,7 @@ class Regexp
     if other.kind_of? Symbol
       other = other.to_s
     elsif !other.kind_of? String
-      other = Truffle::Type.check_convert_type other, String, :to_str
+      other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
         Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
         return false

@@ -128,29 +128,6 @@ module Truffle
       raise TypeError, msg
     end
 
-    ##
-    # Same as coerce_to but returns nil if conversion fails.
-    # Corresponds to MRI's rb_check_convert_type()
-    #
-    def self.check_convert_type(obj, cls, meth)
-      return obj if object_kind_of?(obj, cls)
-      return nil unless object_respond_to?(obj, meth, true)
-      execute_check_convert_type(obj, cls, meth)
-    end
-
-    def self.execute_check_convert_type(obj, cls, meth)
-      begin
-        ret = obj.__send__(meth)
-      rescue
-        return nil
-      end
-
-      return ret if ret.nil? || object_kind_of?(ret, cls)
-
-      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
-      raise TypeError, msg
-    end
-
     # MRI conversion macros and functions
 
     def self.rb_num2int(val)
@@ -293,6 +270,8 @@ module Truffle
       v
     end
 
+    # Try to coerce obj to cls using meth.
+    # Similar to coerce_to but returns nil if conversion fails.
     def self.rb_check_convert_type(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, false)
@@ -523,7 +502,7 @@ module Truffle
       elsif obj.nil?
         raise TypeError, "can't convert nil into an exact number"
       else
-        check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
+        rb_check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
       end
     end
 

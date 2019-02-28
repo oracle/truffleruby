@@ -31,7 +31,7 @@ module Truffle
 
     def self.gsub_internal(orig, pattern, replacement)
       unless replacement.kind_of?(String)
-        hash = Truffle::Type.check_convert_type(replacement, Hash, :to_hash)
+        hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
       end
 

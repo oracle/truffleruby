@@ -36,11 +36,11 @@
 
 module Kernel
   def Array(obj)
-    ary = Truffle::Type.check_convert_type obj, Array, :to_ary
+    ary = Truffle::Type.rb_check_convert_type obj, Array, :to_ary
 
     return ary if ary
 
-    if array = Truffle::Type.check_convert_type(obj, Array, :to_a)
+    if array = Truffle::Type.rb_check_convert_type(obj, Array, :to_a)
       array
     else
       [obj]
@@ -82,7 +82,7 @@ module Kernel
   def Hash(obj)
     return {} if obj.equal?(nil) || obj == []
 
-    if hash = Truffle::Type.check_convert_type(obj, Hash, :to_hash)
+    if hash = Truffle::Type.rb_check_convert_type(obj, Hash, :to_hash)
       return hash
     end
 

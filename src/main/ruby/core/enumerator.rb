@@ -455,7 +455,7 @@ class Enumerator
             yielder.yield v
           end
         else
-          array = Truffle::Type.check_convert_type yield_ret, Array, :to_ary
+          array = Truffle::Type.rb_check_convert_type yield_ret, Array, :to_ary
           if array
             array.each do |v|
               yielder.yield v
@@ -472,7 +472,7 @@ class Enumerator
       return super(*lists) { |entry| yield entry } if block_given?
 
       lists.map! do |list|
-        array = Truffle::Type.check_convert_type list, Array, :to_ary
+        array = Truffle::Type.rb_check_convert_type list, Array, :to_ary
 
         case
         when array
