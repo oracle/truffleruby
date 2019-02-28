@@ -349,7 +349,7 @@ class String
 
     return nil unless match
 
-    if index = Truffle::Type.check_convert_type(capture, Integer, :to_int)
+    if index = Truffle::Type.rb_check_convert_type(capture, Integer, :to_int)
       return nil if index >= match.size || -index >= match.size
       capture = index
     end
@@ -402,7 +402,7 @@ class String
         options = to
         to_enc = Encoding.default_internal
       else
-        opts = Truffle::Type.check_convert_type to, Hash, :to_hash
+        opts = Truffle::Type.rb_check_convert_type to, Hash, :to_hash
 
         if opts
           options = opts
@@ -421,7 +421,7 @@ class String
       options = from
       from_enc = encoding
     else
-      opts = Truffle::Type.check_convert_type from, Hash, :to_hash
+      opts = Truffle::Type.rb_check_convert_type from, Hash, :to_hash
 
       if opts
         options = opts
@@ -497,7 +497,7 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |original_suffix|
-      suffix = Truffle::Type.check_convert_type original_suffix, String, :to_str
+      suffix = Truffle::Type.rb_check_convert_type original_suffix, String, :to_str
       unless suffix
         raise TypeError, "no implicit conversion of #{original_suffix.class} into String"
       end
@@ -716,7 +716,7 @@ class String
       untrusted = replacement.untrusted?
 
       unless replacement.kind_of?(String)
-        hash = Truffle::Type.check_convert_type(replacement, Hash, :to_hash)
+        hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
         tainted ||= replacement.tainted?
         untrusted ||= replacement.untrusted?
@@ -1466,7 +1466,7 @@ class String
 
   def start_with?(*prefixes)
     prefixes.each do |original_prefix|
-      prefix = Truffle::Type.check_convert_type original_prefix, String, :to_str
+      prefix = Truffle::Type.rb_check_convert_type original_prefix, String, :to_str
       unless prefix
         raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
       end
@@ -1505,7 +1505,7 @@ class String
     if args.is_a? Hash
       sprintf(self, args)
     else
-      result = Truffle::Type.check_convert_type args, Array, :to_ary
+      result = Truffle::Type.rb_check_convert_type args, Array, :to_ary
       if result.nil?
         sprintf(self, args)
       else

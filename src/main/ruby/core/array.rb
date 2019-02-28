@@ -83,7 +83,7 @@ class Array
   end
 
   def <=>(other)
-    other = Truffle::Type.check_convert_type other, Array, :to_ary
+    other = Truffle::Type.rb_check_convert_type other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
@@ -109,7 +109,7 @@ class Array
 
   def *(count)
     Truffle.primitive :array_mul
-    if str = Truffle::Type.check_convert_type(count, String, :to_str)
+    if str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
       join(str)
     else
       self * Truffle::Type.coerce_to(count, Integer, :to_int)
@@ -1002,7 +1002,7 @@ class Array
     return at Kernel.rand(size) if undefined.equal? count
 
     if undefined.equal? options
-      if o = Truffle::Type.check_convert_type(count, Hash, :to_hash)
+      if o = Truffle::Type.rb_check_convert_type(count, Hash, :to_hash)
         options = o
         count = nil
       else

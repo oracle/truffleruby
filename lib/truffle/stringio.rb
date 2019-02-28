@@ -679,7 +679,7 @@ class StringIO
 
       unless sep == $/ or sep.nil?
         osep = sep
-        sep = Truffle::Type.check_convert_type sep, String, :to_str
+        sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
         limit = Truffle::Type.coerce_to_int osep unless sep
       end
     end

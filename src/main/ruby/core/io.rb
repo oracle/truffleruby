@@ -1569,7 +1569,7 @@ class IO
       when nil
         sep = nil
       else
-        unless sep = Truffle::Type.check_convert_type(sep_or_limit, String, :to_str)
+        unless sep = Truffle::Type.rb_check_convert_type(sep_or_limit, String, :to_str)
           sep = $/
           limit = Truffle::Type.coerce_to sep_or_limit, Integer, :to_int
         end
