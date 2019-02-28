@@ -11,7 +11,6 @@ package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
@@ -112,6 +111,12 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         }
     }
 
+    /**
+     * This service handles actually running the mark functions when this is needed. It's done this
+     * way so that mark functions and finalizers are run on the same thread, and so that we can
+     * avoid the use of any additional locks in this process (as these may cause deadlocks).
+     *
+     */
     public static class MarkRunnerService extends ReferenceProcessingService<MarkingService.MarkRunnerReference> {
 
         private final MarkingService markingService;
@@ -145,7 +150,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             MarkerReference currentMarker = markingService.getFirst();
             MarkerReference nextMarker;
             while (currentMarker != null) {
-                nextMarker = currentMarker.next;
+                nextMarker = currentMarker.getNext();
                 markingService.runMarker(currentMarker);
                 if (nextMarker == currentMarker) {
                     throw new Error("The MarkerReference linked list structure has become broken.");
@@ -159,10 +164,9 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     private final ThreadLocal<MarkerThreadLocalData> threadLocalData;
 
-    private final ArrayDeque<Object[]> oldKeptObjects = new ArrayDeque<>();
-    private MarkRunnerService runnerService;
+    private final MarkRunnerService runnerService;
 
-    private UnsizedQueue keptObjectQueue = new UnsizedQueue();
+    private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
 
     public static class MarkerThreadLocalData {
         private final MarkerKeptObjects keptObjects;
@@ -279,56 +283,25 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         return threadLocalData.get();
     }
 
-    @TruffleBoundary
-    public MarkerStack getStackFromThreadLocal() {
-        return threadLocalData.get().getPreservationStack();
-    }
-
-    @TruffleBoundary
-    public MarkerKeptObjects getKeptObjectsFromThreadLocal() {
-        return threadLocalData.get().getKeptObjects();
-    }
-
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
         cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
-        threadLocalData = ThreadLocal.withInitial(() -> new MarkerThreadLocalData(this));
+        threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
         runnerService = new MarkRunnerService(context, referenceProcessor, this);
     }
 
     @TruffleBoundary
-    public void makeThreadLocalData() {
+    public MarkerThreadLocalData makeThreadLocalData() {
         MarkerThreadLocalData data = new MarkerThreadLocalData(this);
         MarkerKeptObjects keptObjects = data.getKeptObjects();
         context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
+        return data;
     }
 
     @TruffleBoundary
     public void queueForMarking(Object[] objects) {
         keptObjectQueue.add(objects);
         runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
-    }
-
-    @TruffleBoundary
-    public void runAllMarkers() {
-        MarkerKeptObjects objects = getKeptObjectsFromThreadLocal();
-        objects.counter = 0;
-        oldKeptObjects.push(objects.objects);
-        try {
-            objects.objects = new Object[cacheSize];
-            MarkerReference currentMarker = getFirst();
-            MarkerReference nextMarker;
-            while (currentMarker != null) {
-                nextMarker = currentMarker.next;
-                runMarker(currentMarker);
-                if (nextMarker == currentMarker) {
-                    throw new Error("The MarkerReference linked list structure has become broken.");
-                }
-                currentMarker = nextMarker;
-            }
-        } finally {
-            oldKeptObjects.pop();
-        }
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
