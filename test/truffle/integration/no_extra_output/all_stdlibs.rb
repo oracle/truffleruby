@@ -17,8 +17,7 @@ stdlibs = glob('lib/mri/*.{rb,su}').map { |file|
 }
 
 glob('lib/truffle/*.rb').map { |file|
-  lib = File.basename(file, '.*')
-  stdlibs << lib unless lib.end_with? '-stubs'
+  stdlibs << File.basename(file, '.*')
 }
 
 glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
@@ -45,8 +44,6 @@ ignore = %w[
 stdlibs -= ignore
 
 stdlibs.uniq!
-
-stdlibs.reject! { |lib| lib.end_with? '-stubs' }
 
 stdlibs.each { |lib| require lib }
 

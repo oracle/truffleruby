@@ -8,7 +8,7 @@ API, and shut downs the rails server. It requires Redis as a database to be
 running in its default configuration on `localhost:6379`.
 
 The `jt test ecosystem rails-app` should be executed in TruffleRuby's home. The
-output will be similar to following: 
+output will be similar to following:
 
 ```txt
 jt test ecosystem rails-app
@@ -88,7 +88,7 @@ Use `bundle show [gemname]` to see where a bundled gem is installed.
 + path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool run --offline -- -S bundle exec bin/rails server
 ....jtt: loading YAML configuration path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool.yaml
 jtt: executing "run" command
-jtt: $ TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" path/to/truffleruby/bin/truffleruby -J-Xmx2G -J-ea -J-esa -Xcore.load_path\=path/to/truffleruby/src/main/ruby -I path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -r openssl-stubs -r stubs -S bundle exec bin/rails server
+jtt: $ TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" path/to/truffleruby/bin/truffleruby -J-Xmx2G -J-ea -J-esa -Xcore.load_path\=path/to/truffleruby/src/main/ruby -I path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -S bundle exec bin/rails server
 ....[ruby] WARNING rubygems.rb:11 Could not find 'did_you_mean' (>= 0) among 148 total gem(s)
 Checked in 'GEM_PATH=path/to/truffleruby/truffleruby-gem-test-pack-5/gems', execute `gem env` for more information
 .HTML sanitization stubbed
@@ -151,7 +151,7 @@ true+ kill %1
 + kill 9617
 ```
 
-There are several levels of indirection but it always prints what command is actually 
+There are several levels of indirection but it always prints what command is actually
 executed. It's prefixed with `+` if it's executed by bash or by `$` if it's our tool.
 
 If the test finishes without problem then the rails server can be executed from
@@ -159,21 +159,21 @@ the `path/to/truffleruby/test/truffle/ecosystem/rails-app` directory for further
 The server can be started with following command which can be copied out from the output.
 
 ```bash
-TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" path/to/truffleruby/bin/truffleruby -J-Xmx2G -J-ea -J-esa -Xcore.load_path\=path/to/truffleruby/src/main/ruby -I path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -r openssl-stubs -r stubs -S bundle exec bin/rails server
+TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" path/to/truffleruby/bin/truffleruby -J-Xmx2G -J-ea -J-esa -Xcore.load_path\=path/to/truffleruby/src/main/ruby -I path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -S bundle exec bin/rails server
 ```
 
 The command can be further modified for inspection.
-First it's useful to use jt not to run TruffleRuby directly. 
+First it's useful to use jt not to run TruffleRuby directly.
 (`-Xcore.load_path` option can be then omitted.)
 
 ```bash
-env TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" ../../../../tool/jt.rb ruby -J-Xmx2G -J-ea -J-esa -I /Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -r openssl-stubs -r stubs -S bundle exec ./bin/rails server
+env TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" ../../../../tool/jt.rb ruby -J-Xmx2G -J-ea -J-esa -I /Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -S bundle exec ./bin/rails server
 ```
 
 To run on Graal pass `--graal` to `jt ruby`.
 
 ```bash
-env TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" ../../../../tool/jt.rb ruby --graal -J-Xmx2G -J-ea -J-esa -I /Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -r openssl-stubs -r stubs -S bundle exec ./bin/rails server
+env TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="/Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" ../../../../tool/jt.rb ruby --graal -J-Xmx2G -J-ea -J-esa -I /Users/pitr/Workspace/labs/truffleruby-ws/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -S bundle exec ./bin/rails server
 ```
- 
+
 The command can be further modified as needed to investigate.
