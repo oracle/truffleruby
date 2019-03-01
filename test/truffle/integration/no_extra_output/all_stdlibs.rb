@@ -26,8 +26,9 @@ glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
 
 stdlibs += %w[json]
 
+# 'continuation' warns on being required, as MRI
 ignore = %w[
-  continuation    # warns on being required, as intended
+  continuation
   dbm
   gdbm
   sdbm
