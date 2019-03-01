@@ -177,6 +177,19 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             return counter == service.cacheSize;
         }
 
+        /**
+         * This method is called when finalizing the {@link MarkerThreadLocalData} of another
+         * thread. we want to either queue the running of mark functions for any objects still kept
+         * alive by that other thread, or copy them into our kept objects. If our keptObjects buffer
+         * is already full we should queue and reset it first, and then consider one of four cases.
+         *
+         * 1. The other threads kept object buffer is full. We'll just queue that.
+         * 2. The other thread has an empty kept object buffer. We don't need to do anything.
+         * 3. The whole of the other thread's kept object buffer will fit into our buffer.
+         *    We can just copy its contents into our buffer.
+         * 4. The other buffer will not fit into our buffer. We need to copy across as much as will
+         *    fit, queue the now full buffer, and then copy the rest.
+         */
         public void keepObjects(MarkerKeptObjects otherObjects) {
             if (isFull()) {
                 queueAndReset();
@@ -245,6 +258,13 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     public MarkerThreadLocalData makeThreadLocalData() {
         MarkerThreadLocalData data = new MarkerThreadLocalData(this);
         MarkerKeptObjects keptObjects = data.getKeptObjects();
+        /*
+         * This finalizer will ensure all the objects remaining in our kept objects buffer will be
+         * queue at some point. We don't need to do a queue and reset as the MarkerKeptObjects is
+         * going to be GC'ed anyway. We also don't simply queue the keptObjects buffer because it
+         * may only have zero, or very few, objects in it and we don't want to run mark functions
+         * more often than we have to.
+         */
         context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
         return data;
     }
