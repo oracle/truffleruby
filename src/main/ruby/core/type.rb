@@ -277,7 +277,7 @@ module Truffle
       v = convert_type(obj, cls, meth, false)
       return nil if v.nil?
       unless object_kind_of?(v, cls)
-        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(v)})"
+        raise TypeError, "can't convert #{obj.class} to #{cls} (#{obj.class}##{meth} gives #{v.class})"
       end
       v
     end
@@ -286,7 +286,7 @@ module Truffle
       return obj if object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, true)
       unless object_kind_of?(v, cls)
-        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(v)})"
+        raise TypeError, "can't convert #{obj.class} to #{cls} (#{obj.class}##{meth} gives #{v.class})"
       end
       v
     end
