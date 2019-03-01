@@ -531,12 +531,12 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |original_suffix|
-      suffix = Truffle::Type.rb_check_convert_type original_suffix, String, :to_str
-      unless suffix
-        raise TypeError, "no implicit conversion of #{original_suffix.class} into String"
-      end
+      suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
+      Truffle::Type.compatible_encoding self, suffix
+
       return true if self[-suffix.length, suffix.length] == suffix
     end
+
     false
   end
 
