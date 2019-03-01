@@ -355,6 +355,7 @@ local part_definitions = {
     gate: {
       capabilities+: self["$.cap"].normal_machine,
       targets+: ["gate"],
+      notify_emails: false,
     },
     deploy: {
       capabilities+: self["$.cap"].normal_machine,
