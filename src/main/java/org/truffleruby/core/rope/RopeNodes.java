@@ -350,11 +350,10 @@ public abstract class RopeNodes {
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
         public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
                 @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
 
-            CodeRange codeRange = asciiCompatibleProfile.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID;
+            CodeRange codeRange = CR_VALID;
             int characters;
             int p = 0;
             final int end = bytes.length;
