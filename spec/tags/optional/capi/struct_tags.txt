@@ -1,4 +1,3 @@
-fails:C-API Struct function rb_struct_define_under returns the member names as Symbols
 fails:C-API Struct function rb_struct_define raises an ArgumentError if arguments contain duplicate member name
 fails:C-API Struct function rb_struct_getmember returns the value of a struct member
 fails:C-API Struct function rb_struct_getmember raises a NameError if the struct member does not exist

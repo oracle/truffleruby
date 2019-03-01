@@ -1,3 +1,2 @@
-fails:C-API Class function rb_call_super calls the method in the superclass through two native levels
 fails(autoload):C-API Class function rb_path2class resolves autoload constants
 fails(autoload):C-API Class function rb_path_to_class resolves autoload constants
