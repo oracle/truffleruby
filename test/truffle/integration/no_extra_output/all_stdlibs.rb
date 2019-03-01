@@ -6,22 +6,30 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+require 'rbconfig'
+
 def glob(pattern)
   files = Dir.glob(pattern)
   raise "no libraries found with #{pattern}" if files.empty?
   files
 end
 
-stdlibs = glob('lib/mri/*.{rb,su}').map { |file|
-  File.basename(file, '.*')
-}
+stdlibs = []
 
-glob('lib/truffle/*.rb').map { |file|
+glob("#{RbConfig::CONFIG['rubylibdir']}/*.rb").each { |file|
   stdlibs << File.basename(file, '.*')
 }
 
-glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
-  stdlibs << "net/#{file}"
+glob("#{RbConfig::CONFIG['archdir']}/*.su").each { |file|
+  stdlibs << File.basename(file, '.*')
+}
+
+glob("#{RbConfig::CONFIG['prefix']}/lib/truffle/*.rb").each { |file|
+  stdlibs << File.basename(file, '.*')
+}
+
+glob("#{RbConfig::CONFIG['rubylibdir']}/net/*.rb").each { |file|
+  stdlibs << "net/#{File.basename(file, '.*')}"
 }
 
 stdlibs += %w[json]
