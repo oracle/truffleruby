@@ -567,11 +567,8 @@ module Truffle
       unless enc
         enc_a = object_encoding a
         enc_b = object_encoding b
-        message = +'undefined conversion '
-        message << "for '#{a.inspect}' " if object_kind_of?(a, String)
-        message << "from #{enc_a} to #{enc_b}"
 
-        raise Encoding::CompatibilityError, message
+        raise Encoding::CompatibilityError, "incompatible character encodings: #{enc_a} and #{enc_b}"
       end
 
       enc
