@@ -347,10 +347,12 @@ public abstract class RopeNodes {
             return new StringAttributes(characters, codeRange);
         }
 
+
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
         public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
                 @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile fixedWidthProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
 
             CodeRange codeRange = CR_VALID;
@@ -369,7 +371,16 @@ public abstract class RopeNodes {
                     p += lengthOfCurrentCharacter;
                 } else {
                     codeRange = CR_BROKEN;
-                    p++;
+
+                    // If a string is detected as broken and we already know the character length due to a
+                    // fixed width encoding, there's no value in visiting any more bytes.
+                    if (fixedWidthProfile.profile(encoding.isFixedWidth())) {
+                        characters = (bytes.length + encoding.minLength() - 1) / encoding.minLength();
+
+                        break;
+                    } else {
+                        p++;
+                    }
                 }
             }
 
