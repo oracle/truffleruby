@@ -52,9 +52,16 @@ module Truffle
           end
 
           if str
-            # Truffle: write the string + record separator (\n) atomically so multithreaded #puts is bearable
-            unless str.end_with?(DEFAULT_RECORD_SEPARATOR)
-              str += DEFAULT_RECORD_SEPARATOR
+            # Truffle: write the string + record separator (\n) atomically so multi-threaded #puts is bearable
+            if str.encoding.ascii_compatible?
+              unless str.end_with?(DEFAULT_RECORD_SEPARATOR)
+                str += DEFAULT_RECORD_SEPARATOR
+              end
+            else
+              rs = DEFAULT_RECORD_SEPARATOR.encode(str.encoding)
+              unless str.end_with?(rs)
+                str += rs
+              end
             end
             io.write str
           end

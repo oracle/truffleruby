@@ -55,6 +55,7 @@ New features:
 * Fixed error when using arrows keys first within `irb` or `pry` (#1478, #1486).
 * Fixed `String#inspect` when the string uses a non-UTF-8 ASCII-compatible
   encoding and has non-ASCII characters.
+* Fixed `puts` for strings with non-ASCII-compatible encodings.
 
 Changes:
 
