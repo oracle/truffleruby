@@ -6,47 +6,47 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+require 'rbconfig'
+
 def glob(pattern)
   files = Dir.glob(pattern)
   raise "no libraries found with #{pattern}" if files.empty?
   files
 end
 
-stdlibs = glob('lib/mri/*.{rb,su}').map { |file|
-  File.basename(file, '.*')
+stdlibs = []
+
+glob("#{RbConfig::CONFIG['rubylibdir']}/*.rb").each { |file|
+  stdlibs << File.basename(file, '.*')
 }
 
-glob('lib/truffle/*.rb').map { |file|
-  lib = File.basename(file, '.*')
-  stdlibs << lib unless lib.end_with? '-stubs'
+glob("#{RbConfig::CONFIG['archdir']}/*.su").each { |file|
+  stdlibs << File.basename(file, '.*')
 }
 
-glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
-  stdlibs << "net/#{file}"
+glob("#{RbConfig::CONFIG['prefix']}/lib/truffle/*.rb").each { |file|
+  stdlibs << File.basename(file, '.*')
+}
+
+glob("#{RbConfig::CONFIG['rubylibdir']}/net/*.rb").each { |file|
+  stdlibs << "net/#{File.basename(file, '.*')}"
 }
 
 stdlibs += %w[json]
 
+# 'continuation' warns on being required, as MRI
+# Others fail to load
 ignore = %w[
-  continuation    # warns on being required, as intended
-  dbm
-  gdbm
-  sdbm
+  continuation
   debug
   profile
   profiler
-  pty
-  ripper
   shell
-  win32
-  win32ole
 ]
 
 stdlibs -= ignore
 
 stdlibs.uniq!
-
-stdlibs.reject! { |lib| lib.end_with? '-stubs' }
 
 stdlibs.each { |lib| require lib }
 
