@@ -76,10 +76,20 @@ public class ConsoleHolder {
         this.in = new IoStream(context, inFd, inIo);
         this.out = new IoStream(context, outFd, outIo);
 
+        // Disable the creation of a Thread to read the input. We already handle interrupts
+        // natively. See ConsoleReader.setInput() for the logic to determine "nonBlockingEnabled".
+        final String timeout = System.getProperty(ConsoleReader.JLINE_ESC_TIMEOUT);
+        System.setProperty(ConsoleReader.JLINE_ESC_TIMEOUT, "0");
         try {
             readline = new ConsoleReader(in.getIn(), out.getOut());
         } catch (IOException e) {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
+        } finally {
+            if (timeout == null) {
+                System.clearProperty(ConsoleReader.JLINE_ESC_TIMEOUT);
+            } else {
+                System.setProperty(ConsoleReader.JLINE_ESC_TIMEOUT, timeout);
+            }
         }
 
         readline.setExpandEvents(false);
