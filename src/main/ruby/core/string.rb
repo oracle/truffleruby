@@ -595,7 +595,7 @@ class String
     end
 
     Truffle::Type.infect result, self
-    result.encode(result_encoding, encoding)
+    result.force_encoding(result_encoding)
   end
 
   def inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
