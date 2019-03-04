@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Implement `rb_io_wait_writable` (#1586).
+* Fixed error when using arrows keys first within `irb` or `pry` (#1478, #1486).
 
 Changes:
 
