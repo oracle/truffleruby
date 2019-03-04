@@ -429,8 +429,6 @@ public class CommandLineParser {
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
-                    } else if (argument.startsWith("--profile")) {
-                        throw notImplemented("--profile");
                     } else if (argument.equals("--debug-frozen-string-literal")) {
                         warnInternalDebugTool(argument);
                         break FOR;
