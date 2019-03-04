@@ -398,23 +398,11 @@ public class CommandLineParser {
                             config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingNames.substring(index + 1));
                         }
                         break FOR;
-                    } else if (argument.startsWith("--external-encoding")) {
-                        if (argument.equals("--external-encoding")) {
-                            characterIndex = argument.length();
-                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
-                            argument = argument + "=" + feature;
-                        }
-                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
-                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingName);
-                        break FOR;
-                    } else if (argument.startsWith("--internal-encoding")) {
-                        if (argument.equals("--internal-encoding")) {
-                            characterIndex = argument.length();
-                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
-                            argument = argument + "=" + feature;
-                        }
-                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
-                        config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingName);
+                    } else if (argument.equals("--external-encoding") || argument.equals("--internal-encoding")) {
+                        // Just translate to option=value form and let the Launcher handle it
+                        characterIndex = argument.length();
+                        String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                        config.getUnknownArguments().add(argument + "=" + feature);
                         break FOR;
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
