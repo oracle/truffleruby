@@ -68,7 +68,6 @@ test/mri/tests/cext-c/**/*.o
 /mx.truffleruby/env
 /mx.truffleruby/eclipse-launches
 /mxbuild
-/mx.imports
 /TRUFFLERUBY*.dist
 
 # ruby/spec
