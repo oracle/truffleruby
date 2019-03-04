@@ -46,7 +46,6 @@ OTHER_COPYRIGHTS = [
   /Copyright \(c\) \d{4} Engine Yard/,
   /Copyright \(c\) \d{4} Akinori MUSHA/, # SHA-2
   /Copyright \(c\) \d{4}-\d{4} The JRuby project/, # io/console
-  /Copyright \(c\) \d{4} Damien Miller <djm@mindrot\.org>/, # BCrypt
   /Copyright \(C\) \d{4}-\d{4} Wayne Meissner/, # FFI
   /Copyright \(c\) \d{4}, Brian Shirai/, # rubysl-socket
   /Ruby is copyrighted free software by Yukihiro Matsumoto/, # MRI license
@@ -59,7 +58,6 @@ OTHER_COPYRIGHTS = [
 truffle_paths = %w[
   lib/cext
   lib/truffle
-  test/truffleruby-tool
   src
   test/truffle
   spec/truffle

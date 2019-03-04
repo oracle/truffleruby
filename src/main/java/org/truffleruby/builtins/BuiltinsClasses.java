@@ -132,8 +132,6 @@ import org.truffleruby.extra.TruffleRubyNodesBuiltins;
 import org.truffleruby.extra.TruffleRubyNodesFactory;
 import org.truffleruby.extra.ffi.PointerNodesBuiltins;
 import org.truffleruby.extra.ffi.PointerNodesFactory;
-import org.truffleruby.gem.bcrypt.BCryptNodesBuiltins;
-import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
 import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.PolyglotNodesBuiltins;
@@ -167,7 +165,6 @@ public abstract class BuiltinsClasses {
         ArrayNodesBuiltins.setup(coreManager, primitiveManager);
         AtomicReferenceNodesBuiltins.setup(coreManager, primitiveManager);
         BasicObjectNodesBuiltins.setup(coreManager, primitiveManager);
-        BCryptNodesBuiltins.setup(coreManager, primitiveManager);
         BigDecimalNodesBuiltins.setup(coreManager, primitiveManager);
         BindingNodesBuiltins.setup(coreManager, primitiveManager);
         ByteArrayNodesBuiltins.setup(coreManager, primitiveManager);
@@ -243,7 +240,6 @@ public abstract class BuiltinsClasses {
             ArrayNodesFactory.getFactories(),
             AtomicReferenceNodesFactory.getFactories(),
             BasicObjectNodesFactory.getFactories(),
-            BCryptNodesFactory.getFactories(),
             BigDecimalNodesFactory.getFactories(),
             BindingNodesFactory.getFactories(),
             ByteArrayNodesFactory.getFactories(),

@@ -544,9 +544,6 @@ public class CoreLibrary {
         bigDecimalClass = defineClass(numericClass, "BigDecimal");
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
 
-        final DynamicObject gem = defineModule(truffleModule, "Gem");
-        defineModule(gem, "BCrypt");
-
         truffleFFIModule = defineModule(truffleModule, "FFI");
         truffleFFIPointerClass = defineClass(truffleFFIModule, objectClass, "Pointer");
         Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
