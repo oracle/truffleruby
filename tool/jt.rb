@@ -36,7 +36,6 @@ RUBOCOP_INCLUDE_LIST = %w[
   lib/truffle
   src/main/ruby
   src/test/ruby
-  test/truffleruby-tool
   tool/generate-sulongmock.rb
 ]
 
