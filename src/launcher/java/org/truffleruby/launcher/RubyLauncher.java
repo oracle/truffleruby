@@ -152,7 +152,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-s",
                 "-S",
                 "-T",
-                "-v", "--verbose",
+                "-v",
                 "-w",
                 "-W",
                 "-x",
