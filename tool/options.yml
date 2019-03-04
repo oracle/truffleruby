@@ -7,8 +7,8 @@ USER:
   VERBOSITY: [[verbosity, -v, -w, -W, --verbose], enum/verbosity, false, Verbosity]
 
   SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
-  INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
-  EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
+  INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
+  EXTERNAL_ENCODING: [[external-encoding, -E], string, '', External encoding]
 
 EXPERT:
   # Setting home and launcher, useful for embedding

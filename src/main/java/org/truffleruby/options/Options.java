@@ -303,9 +303,9 @@ public class Options {
                 return VERBOSITY;
             case "ruby.source_encoding":
                 return SOURCE_ENCODING;
-            case "ruby.internal_encoding":
+            case "ruby.internal-encoding":
                 return INTERNAL_ENCODING;
-            case "ruby.external_encoding":
+            case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
             case "ruby.home":
                 return HOME;

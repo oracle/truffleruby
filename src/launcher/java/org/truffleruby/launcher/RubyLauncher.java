@@ -158,7 +158,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-x",
                 "--copyright",
                 "--enable", "--disable",
-                "--external-encoding", "--internal-encoding",
                 "--version"));
     }
 

@@ -56,13 +56,13 @@ public class OptionsCatalog {
             "");
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.internal_encoding",
+            "ruby.internal-encoding",
             "Internal encoding (configured by the -E, -U Ruby options)",
             new String[]{"-E", "-U"},
             "");
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.external_encoding",
+            "ruby.external-encoding",
             "External encoding (configured by the -E Ruby option)",
             new String[]{"-E"},
             "");
@@ -813,9 +813,9 @@ public class OptionsCatalog {
                 return VERBOSITY;
             case "ruby.source_encoding":
                 return SOURCE_ENCODING;
-            case "ruby.internal_encoding":
+            case "ruby.internal-encoding":
                 return INTERNAL_ENCODING;
-            case "ruby.external_encoding":
+            case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
             case "ruby.home":
                 return HOME;
