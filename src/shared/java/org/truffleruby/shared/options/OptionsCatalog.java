@@ -39,13 +39,13 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.debug",
-            "Debug (configured by the -d Ruby option)",
+            "Sets $DEBUG to this value (configured by the -d Ruby option)",
             new String[]{"-d"},
             false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription(
             OptionCategory.USER,
             "ruby.verbose",
-            "Verbosity (configured by the -v, -w, -W Ruby options)",
+            "Sets $VERBOSE to this value (configured by the -v, -w, -W Ruby options)",
             new String[]{"-v", "-w", "-W"},
             Verbosity.FALSE);
     public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(

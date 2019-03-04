@@ -3,8 +3,8 @@ USER:
   LOAD_PATHS: [[load-paths, -I], string-array, [], Load paths]
   REQUIRED_LIBRARIES: [[required-libraries, -r], string-array, [], Required libraries]
   WORKING_DIRECTORY: [[working-directory, -C], string, '', Interpreter will switch to this directory]
-  DEBUG: [[debug, -d], boolean, false, Debug]
-  VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, Verbosity]
+  DEBUG: [[debug, -d], boolean, false, 'Sets $DEBUG to this value']
+  VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, 'Sets $VERBOSE to this value']
 
   SOURCE_ENCODING: [[source-encoding, -K], string, '', Source encoding]
   INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
