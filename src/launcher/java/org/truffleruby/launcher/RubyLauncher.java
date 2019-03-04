@@ -139,7 +139,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-a",
                 "-c",
                 "-C",
-                "-d", "--debug",
+                "-d",
                 "-e",
                 "-E", "--encoding",
                 "-F",
