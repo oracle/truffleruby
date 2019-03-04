@@ -102,7 +102,6 @@ suite = {
                 "dumps",
                 "logo",
                 "mxbuild",
-                "mx.imports",
                 ".ext",
                 "truffleruby-gem-test-pack",
                 "lib/json/java",
