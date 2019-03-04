@@ -1,14 +1,14 @@
 USER:
   # Options corresponding to MRI options, which are also useful outside the TruffleRuby launcher
-  LOAD_PATHS: [[load_paths, -I], string-array, [], Load paths]
-  REQUIRED_LIBRARIES: [[required_libraries, -r], string-array, [], Required libraries]
-  WORKING_DIRECTORY: [[working_directory, -C], string, '', Interpreter will switch to this directory]
-  DEBUG: [[debug, -d], boolean, false, Debug]
-  VERBOSITY: [[verbosity, -v, -w, -W, --verbose], enum/verbosity, false, Verbosity]
+  LOAD_PATHS: [[load-paths, -I], string-array, [], Load paths]
+  REQUIRED_LIBRARIES: [[required-libraries, -r], string-array, [], Required libraries]
+  WORKING_DIRECTORY: [[working-directory, -C], string, '', Interpreter will switch to this directory]
+  DEBUG: [[debug, -d], boolean, false, 'Sets $DEBUG to this value']
+  VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, 'Sets $VERBOSE to this value']
 
-  SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
-  INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
-  EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
+  SOURCE_ENCODING: [[source-encoding, -K], string, '', Source encoding]
+  INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
+  EXTERNAL_ENCODING: [[external-encoding, -E], string, '', External encoding]
 
 EXPERT:
   # Setting home and launcher, useful for embedding

@@ -82,7 +82,7 @@ module Truffle
 
     Truffle::Boot.redo do
       $DEBUG = Truffle::Boot.get_option 'debug'
-      $VERBOSE = case Truffle::Boot.get_option 'verbosity'
+      $VERBOSE = case Truffle::Boot.get_option 'verbose'
                  when :TRUE
                    true
                  when :FALSE

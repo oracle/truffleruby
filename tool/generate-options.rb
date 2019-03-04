@@ -47,8 +47,7 @@ options_data.each do |category, category_options|
       boxed_type = 'Integer'
       default    = default.to_s
     when /^enum\/(\w*)/
-      name       = $1
-      type       = camelize name
+      type       = camelize $1
       boxed_type = type
       default    = "#{type}.#{default.to_s.upcase}"
     when 'string'

@@ -398,26 +398,12 @@ public class CommandLineParser {
                             config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingNames.substring(index + 1));
                         }
                         break FOR;
-                    } else if (argument.startsWith("--external-encoding")) {
-                        if (argument.equals("--external-encoding")) {
-                            characterIndex = argument.length();
-                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
-                            argument = argument + "=" + feature;
-                        }
-                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
-                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingName);
+                    } else if (argument.equals("--external-encoding") || argument.equals("--internal-encoding")) {
+                        // Just translate to option=value form and let the Launcher handle it
+                        characterIndex = argument.length();
+                        String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                        config.getUnknownArguments().add(argument + "=" + feature);
                         break FOR;
-                    } else if (argument.startsWith("--internal-encoding")) {
-                        if (argument.equals("--internal-encoding")) {
-                            characterIndex = argument.length();
-                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
-                            argument = argument + "=" + feature;
-                        }
-                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
-                        config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingName);
-                        break FOR;
-                    } else if (argument.equals("--debug")) {
-                        throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         warnInternalDebugTool(argument);
@@ -431,8 +417,6 @@ public class CommandLineParser {
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
-                    } else if (argument.startsWith("--profile")) {
-                        throw notImplemented("--profile");
                     } else if (argument.equals("--debug-frozen-string-literal")) {
                         warnInternalDebugTool(argument);
                         break FOR;
@@ -457,9 +441,6 @@ public class CommandLineParser {
                         for (String enable : valueListFor(argument, "enable")) {
                             enableDisableFeature(enable, true);
                         }
-                        break FOR;
-                    } else if (argument.equals("--verbose")) {
-                        config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
                         warnInternalDebugTool(argument);

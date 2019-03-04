@@ -20,49 +20,49 @@ public class OptionsCatalog {
 
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription(
             OptionCategory.USER,
-            "ruby.load_paths",
+            "ruby.load-paths",
             "Load paths (configured by the -I Ruby option)",
             new String[]{"-I"},
             new String[]{});
     public static final StringArrayOptionDescription REQUIRED_LIBRARIES = new StringArrayOptionDescription(
             OptionCategory.USER,
-            "ruby.required_libraries",
+            "ruby.required-libraries",
             "Required libraries (configured by the -r Ruby option)",
             new String[]{"-r"},
             new String[]{});
     public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.working_directory",
+            "ruby.working-directory",
             "Interpreter will switch to this directory (configured by the -C Ruby option)",
             new String[]{"-C"},
             "");
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
             OptionCategory.USER,
             "ruby.debug",
-            "Debug (configured by the -d Ruby option)",
+            "Sets $DEBUG to this value (configured by the -d Ruby option)",
             new String[]{"-d"},
             false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription(
             OptionCategory.USER,
-            "ruby.verbosity",
-            "Verbosity (configured by the -v, -w, -W, --verbose Ruby options)",
-            new String[]{"-v", "-w", "-W", "--verbose"},
+            "ruby.verbose",
+            "Sets $VERBOSE to this value (configured by the -v, -w, -W Ruby options)",
+            new String[]{"-v", "-w", "-W"},
             Verbosity.FALSE);
     public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.source_encoding",
+            "ruby.source-encoding",
             "Source encoding (configured by the -K Ruby option)",
             new String[]{"-K"},
             "");
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.internal_encoding",
+            "ruby.internal-encoding",
             "Internal encoding (configured by the -E, -U Ruby options)",
             new String[]{"-E", "-U"},
             "");
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.external_encoding",
+            "ruby.external-encoding",
             "External encoding (configured by the -E Ruby option)",
             new String[]{"-E"},
             "");
@@ -801,21 +801,21 @@ public class OptionsCatalog {
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
-            case "ruby.load_paths":
+            case "ruby.load-paths":
                 return LOAD_PATHS;
-            case "ruby.required_libraries":
+            case "ruby.required-libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.working_directory":
+            case "ruby.working-directory":
                 return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
-            case "ruby.verbosity":
+            case "ruby.verbose":
                 return VERBOSITY;
-            case "ruby.source_encoding":
+            case "ruby.source-encoding":
                 return SOURCE_ENCODING;
-            case "ruby.internal_encoding":
+            case "ruby.internal-encoding":
                 return INTERNAL_ENCODING;
-            case "ruby.external_encoding":
+            case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
             case "ruby.home":
                 return HOME;

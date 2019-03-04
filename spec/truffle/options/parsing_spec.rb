@@ -24,8 +24,9 @@ describe "Options" do
     end
 
     it "enum values" do
-      ruby_exe("p Truffle::Boot.get_option('verbosity')").should_not == ":NIL\n"
-      ruby_exe("p Truffle::Boot.get_option('verbosity')", options: "--verbosity=NIL").should == ":NIL\n"
+      ruby_exe("p Truffle::Boot.get_option('verbose')").should_not == ":NIL\n"
+      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose=NIL").should == ":NIL\n"
+      ruby_exe("p Truffle::Boot.get_option('verbose')", options: "--verbose").should == ":TRUE\n"
     end
 
     it "strings" do
@@ -34,9 +35,9 @@ describe "Options" do
     end
 
     it "arrays of strings" do
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=ruby_spec_test_value").should == "[\"ruby_spec_test_value\"]\n"
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=a,b,c").should == "[\"a\", \"b\", \"c\"]\n"
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=a\\\\,b,c").should == "[\"a,b\", \"c\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=ruby_spec_test_value").should == "[\"ruby_spec_test_value\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a,b,c").should == "[\"a\", \"b\", \"c\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a\\\\,b,c").should == "[\"a,b\", \"c\"]\n"
     end
 
   end
@@ -52,7 +53,7 @@ describe "Options" do
     end
 
     it "enum values" do
-      ruby_exe("14", options: "--verbosity=foo", args: "2>&1").should include("Invalid argument --verbosity=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO'")
+      ruby_exe("14", options: "--verbose=foo", args: "2>&1").should include("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO'")
     end
 
   end

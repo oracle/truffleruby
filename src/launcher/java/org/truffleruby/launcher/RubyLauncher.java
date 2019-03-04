@@ -132,6 +132,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         System.exit(exitValue);
     }
 
+    /**
+     * This is only used to provide suggestions when an option is misspelled.
+     * It should only list options which are parsed directly by the CommandLineParser.
+     * Normal SDK options are already handled by the common Launcher code.
+     */
     @Override
     protected void collectArguments(Set<String> options) {
         options.addAll(Arrays.asList(
@@ -139,9 +144,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-a",
                 "-c",
                 "-C",
-                "-d", "--debug",
+                "-d",
                 "-e",
-                "-E", "--encoding",
+                "-E",
                 "-F",
                 "-i",
                 "-I",
@@ -152,25 +157,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-s",
                 "-S",
                 "-T",
-                "-v", "--verbose",
+                "-v",
                 "-w",
                 "-W",
                 "-x",
                 "--copyright",
-                "--enable", "--disable",
-                "--external-encoding", "--internal-encoding",
-                "--yydebug",
-                "--debug-frozen-string-literal",
-                "--version",
-                "--help",
-                "--jit",
-                "--jit-warnings",
-                "--jit-debug",
-                "--jit-wait",
-                "--jit-save-temps",
-                "--jit-verbose",
-                "--jit-max-cache",
-                "--jit-min-calls"));
+                "--disable",
+                "--enable",
+                "--encoding",
+                "--version"));
     }
 
     @Override
