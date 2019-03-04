@@ -416,8 +416,6 @@ public class CommandLineParser {
                         final String encodingName = argument.substring(argument.indexOf('=') + 1);
                         config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingName);
                         break FOR;
-                    } else if (argument.equals("--debug")) {
-                        throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         warnInternalDebugTool(argument);
