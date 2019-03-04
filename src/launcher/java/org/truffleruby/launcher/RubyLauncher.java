@@ -162,15 +162,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "--yydebug",
                 "--debug-frozen-string-literal",
                 "--version",
-                "--help",
-                "--jit",
-                "--jit-warnings",
-                "--jit-debug",
-                "--jit-wait",
-                "--jit-save-temps",
-                "--jit-verbose",
-                "--jit-max-cache",
-                "--jit-min-calls"));
+                "--help"));
     }
 
     @Override
