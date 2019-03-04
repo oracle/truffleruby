@@ -299,7 +299,7 @@ public class Options {
                 return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
-            case "ruby.verbosity":
+            case "ruby.verbose":
                 return VERBOSITY;
             case "ruby.source_encoding":
                 return SOURCE_ENCODING;

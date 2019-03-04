@@ -442,9 +442,6 @@ public class CommandLineParser {
                             enableDisableFeature(enable, true);
                         }
                         break FOR;
-                    } else if (argument.equals("--verbose")) {
-                        config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                        break FOR;
                     } else if (argument.startsWith("--dump=")) {
                         warnInternalDebugTool(argument);
                         break FOR;

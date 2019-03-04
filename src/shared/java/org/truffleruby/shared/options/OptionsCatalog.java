@@ -44,9 +44,9 @@ public class OptionsCatalog {
             false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription(
             OptionCategory.USER,
-            "ruby.verbosity",
-            "Verbosity (configured by the -v, -w, -W, --verbose Ruby options)",
-            new String[]{"-v", "-w", "-W", "--verbose"},
+            "ruby.verbose",
+            "Verbosity (configured by the -v, -w, -W Ruby options)",
+            new String[]{"-v", "-w", "-W"},
             Verbosity.FALSE);
     public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
@@ -809,7 +809,7 @@ public class OptionsCatalog {
                 return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
-            case "ruby.verbosity":
+            case "ruby.verbose":
                 return VERBOSITY;
             case "ruby.source_encoding":
                 return SOURCE_ENCODING;

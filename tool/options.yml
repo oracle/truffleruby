@@ -4,7 +4,7 @@ USER:
   REQUIRED_LIBRARIES: [[required_libraries, -r], string-array, [], Required libraries]
   WORKING_DIRECTORY: [[working_directory, -C], string, '', Interpreter will switch to this directory]
   DEBUG: [[debug, -d], boolean, false, Debug]
-  VERBOSITY: [[verbosity, -v, -w, -W, --verbose], enum/verbosity, false, Verbosity]
+  VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, Verbosity]
 
   SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
   INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]

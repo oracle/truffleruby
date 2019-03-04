@@ -89,13 +89,13 @@ describe "The launcher" do
   end
 
   it "takes --option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbosity=true" })
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbose=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbosity=true" })
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbose=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
@@ -107,20 +107,20 @@ describe "The launcher" do
   end
 
   it "takes --option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbosity=true" })
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbose=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbosity=true" })
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbose=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   guard -> { !TruffleRuby.native? } do
     it "takes options from system properties set on the command line using --jvm" do
-      out = ruby_exe("puts $VERBOSE", options: "--jvm.Dpolyglot.ruby.verbosity=true")
+      out = ruby_exe("puts $VERBOSE", options: "--jvm.Dpolyglot.ruby.verbose=true")
       $?.success?.should == true
       out.should == "true\n"
     end
@@ -128,7 +128,7 @@ describe "The launcher" do
 
   guard -> { TruffleRuby.native? } do
     it "takes options from system properties set on the command line using --native" do
-      out = ruby_exe("puts $VERBOSE", options: "--native.Dpolyglot.ruby.verbosity=true")
+      out = ruby_exe("puts $VERBOSE", options: "--native.Dpolyglot.ruby.verbose=true")
       $?.success?.should == true
       out.should == "true\n"
     end
@@ -136,7 +136,7 @@ describe "The launcher" do
 
   it "prioritises options on the command line over system properties" do
     prefix = TruffleRuby.native? ? 'native' : 'jvm'
-    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbosity=nil -W2")
+    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbose=nil -W2")
     $?.success?.should == true
     out.should == "true\n"
   end
@@ -158,7 +158,7 @@ describe "The launcher" do
   it "prints available user options for --help:languages" do
     out = ruby_exe(nil, options: "--help:languages")
     $?.success?.should == true
-    out.should include("--ruby.verbosity")
+    out.should include("--ruby.verbose")
   end
 
   it "prints available expert options for --help:languages --help:expert" do
@@ -188,7 +188,7 @@ describe "The launcher" do
     $?.success?.should == false
     out.should include("invalid option --ruby.unknown=value")
   end
-  
+
   it "sets the log level using --log.level=" do
     out = ruby_exe("14", options: "--options.log --log.level=CONFIG", args: "2>&1")
     $?.success?.should == true
@@ -318,7 +318,7 @@ describe "The launcher" do
       out.should include("14")
     end
   end
-  
+
   it "warns on ignored options" do
     [
       "-y",
