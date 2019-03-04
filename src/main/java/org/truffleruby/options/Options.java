@@ -291,17 +291,17 @@ public class Options {
 
     public Object fromDescription(OptionDescription<?> description) {
         switch (description.getName()) {
-            case "ruby.load_paths":
+            case "ruby.load-paths":
                 return LOAD_PATHS;
-            case "ruby.required_libraries":
+            case "ruby.required-libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.working_directory":
+            case "ruby.working-directory":
                 return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
             case "ruby.verbose":
                 return VERBOSITY;
-            case "ruby.source_encoding":
+            case "ruby.source-encoding":
                 return SOURCE_ENCODING;
             case "ruby.internal-encoding":
                 return INTERNAL_ENCODING;

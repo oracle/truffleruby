@@ -35,9 +35,9 @@ describe "Options" do
     end
 
     it "arrays of strings" do
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=ruby_spec_test_value").should == "[\"ruby_spec_test_value\"]\n"
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=a,b,c").should == "[\"a\", \"b\", \"c\"]\n"
-      ruby_exe("p Truffle::Boot.get_option('load_paths')", options: "--load_paths=a\\\\,b,c").should == "[\"a,b\", \"c\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=ruby_spec_test_value").should == "[\"ruby_spec_test_value\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a,b,c").should == "[\"a\", \"b\", \"c\"]\n"
+      ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a\\\\,b,c").should == "[\"a,b\", \"c\"]\n"
     end
 
   end

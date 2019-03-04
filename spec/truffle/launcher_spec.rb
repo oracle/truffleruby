@@ -210,7 +210,7 @@ describe "The launcher" do
     end
 
     it 'parses ,' do
-      out = ruby_exe("puts $LOAD_PATH", options: "--load_paths=a,b")
+      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a,b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
@@ -218,7 +218,7 @@ describe "The launcher" do
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out = ruby_exe("puts $LOAD_PATH", options: "--load_paths=a\\\\,b,,\\\\c")
+      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a,b\n"
       out.lines[1].should == "#{Dir.pwd}\n"
@@ -254,7 +254,7 @@ describe "The launcher" do
     $?.success?.should == true
     out.should =~ /language options/i
     out.should include("Ruby:")
-    out.should include("--ruby.load_paths=")
+    out.should include("--ruby.load-paths=")
   end
 
   guard -> { TruffleRuby.sulong? } do

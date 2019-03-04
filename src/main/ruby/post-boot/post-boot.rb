@@ -9,7 +9,7 @@
 # GNU Lesser General Public License version 2.1.
 
 Truffle::Boot.delay do
-  wd = Truffle::Boot.get_option('working_directory')
+  wd = Truffle::Boot.get_option('working-directory')
   Dir.chdir(wd) unless wd.empty?
 end
 

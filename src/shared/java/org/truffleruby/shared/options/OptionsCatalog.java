@@ -20,19 +20,19 @@ public class OptionsCatalog {
 
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription(
             OptionCategory.USER,
-            "ruby.load_paths",
+            "ruby.load-paths",
             "Load paths (configured by the -I Ruby option)",
             new String[]{"-I"},
             new String[]{});
     public static final StringArrayOptionDescription REQUIRED_LIBRARIES = new StringArrayOptionDescription(
             OptionCategory.USER,
-            "ruby.required_libraries",
+            "ruby.required-libraries",
             "Required libraries (configured by the -r Ruby option)",
             new String[]{"-r"},
             new String[]{});
     public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.working_directory",
+            "ruby.working-directory",
             "Interpreter will switch to this directory (configured by the -C Ruby option)",
             new String[]{"-C"},
             "");
@@ -50,7 +50,7 @@ public class OptionsCatalog {
             Verbosity.FALSE);
     public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(
             OptionCategory.USER,
-            "ruby.source_encoding",
+            "ruby.source-encoding",
             "Source encoding (configured by the -K Ruby option)",
             new String[]{"-K"},
             "");
@@ -801,17 +801,17 @@ public class OptionsCatalog {
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
-            case "ruby.load_paths":
+            case "ruby.load-paths":
                 return LOAD_PATHS;
-            case "ruby.required_libraries":
+            case "ruby.required-libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.working_directory":
+            case "ruby.working-directory":
                 return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
             case "ruby.verbose":
                 return VERBOSITY;
-            case "ruby.source_encoding":
+            case "ruby.source-encoding":
                 return SOURCE_ENCODING;
             case "ruby.internal-encoding":
                 return INTERNAL_ENCODING;
