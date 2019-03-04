@@ -146,7 +146,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-C",
                 "-d",
                 "-e",
-                "-E", "--encoding",
+                "-E",
                 "-F",
                 "-i",
                 "-I",
@@ -162,7 +162,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "-W",
                 "-x",
                 "--copyright",
-                "--enable", "--disable",
+                "--disable",
+                "--enable",
+                "--encoding",
                 "--version"));
     }
 
