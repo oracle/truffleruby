@@ -11,7 +11,9 @@
 # A script to synchronize changes from the Ruby source files
 # to the GraalVM build instantaneously.
 
+# Use 'gem install listen' to install this dependency
 require 'listen'
+
 require 'fileutils'
 
 FROM = File.expand_path('../..', File.realpath(__FILE__))
