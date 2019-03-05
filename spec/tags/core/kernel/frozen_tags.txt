@@ -1,0 +1,4 @@
+fails:Kernel#frozen? on a Complex returns true
+fails:Kernel#frozen? on a Complex literal returns true
+fails:Kernel#frozen? on a Rational returns true
+fails:Kernel#frozen? on a Rational literal returns true

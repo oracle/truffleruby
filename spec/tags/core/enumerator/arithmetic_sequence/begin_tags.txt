@@ -1,0 +1,1 @@
+fails:Enumerator::ArithmeticSequence#begin returns the begin of the sequence

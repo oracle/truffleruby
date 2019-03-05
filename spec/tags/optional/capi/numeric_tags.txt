@@ -1,0 +1,1 @@
+fails:CApiNumericSpecs rb_num_coerce_cmp lets the exception go through if #coerce raises an exception

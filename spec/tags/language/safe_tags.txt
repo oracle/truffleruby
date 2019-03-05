@@ -10,3 +10,8 @@ fails:The $SAFE variable cannot be set to 3
 fails:The $SAFE variable cannot be set to 4
 fails:The $SAFE variable cannot be set to values below 0
 fails:The $SAFE variable cannot be set to values above 4
+fails:The $SAFE variable raises ArgumentError when set to values below 0
+fails:The $SAFE variable can be manually lowered
+fails:The $SAFE variable is not Proc local
+fails:The $SAFE variable is not lambda local
+fails:The $SAFE variable is global like regular global variables

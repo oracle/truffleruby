@@ -1,0 +1,3 @@
+fails:Kernel#then yields self
+fails:Kernel#then returns the block return value
+fails:Kernel#then returns a sized Enumerator when no block given

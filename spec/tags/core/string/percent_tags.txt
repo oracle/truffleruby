@@ -15,3 +15,6 @@ fails:String#% flags * left-justifies the result if width is negative
 fails:String#% flags * left-justifies the result if specified with $ argument is negative
 fails:String#% precision string formats determines the maximum number of characters to be copied from the string
 fails:String#% reference by name %{name} style supports flags, width and precision
+fails:String#% other formats % alone raises an ArgumentError
+fails:String#% faulty key sets the Hash as the receiver of KeyError
+fails:String#% faulty key sets the unmatched key as the key of KeyError

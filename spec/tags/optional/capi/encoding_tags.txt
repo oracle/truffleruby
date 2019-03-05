@@ -8,3 +8,7 @@ fails:C-API Encoding function rb_enc_get_index returns the index of the dummy en
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of an Object
 fails:C-API Encoding function rb_enc_nth returns the byte index of the given character index
 fails:C-API Encoding function rb_encdb_alias creates an alias for an existing Encoding
+fails:C-API Encoding function rb_enc_alias creates an alias for an existing Encoding
+fails:C-API Encoding function rb_enc_get_index returns -1 for an object without an encoding
+fails:C-API Encoding function rb_enc_set_index raises an ArgumentError for a non-encoding capable object
+fails:C-API Encoding function ENCODING_SET raises an ArgumentError for a non-encoding capable object

@@ -1,0 +1,1 @@
+fails:A block yielded a single Array when non-symbol keys are in a keyword arguments Hash raises an ArgumentError

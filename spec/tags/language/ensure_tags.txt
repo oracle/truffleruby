@@ -1,0 +1,5 @@
+fails:An ensure block inside 'do end' block is executed when an exception is raised in it's corresponding begin block
+fails:An ensure block inside 'do end' block is executed when an exception is raised and rescued in it's corresponding begin block
+fails:An ensure block inside 'do end' block is executed even when a symbol is thrown in it's corresponding begin block
+fails:An ensure block inside 'do end' block is executed when nothing is raised or thrown in it's corresponding begin block
+fails:An ensure block inside 'do end' block has no return value

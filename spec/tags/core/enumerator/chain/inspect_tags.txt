@@ -1,0 +1,2 @@
+fails:Enumerator::Chain#inspect shows a representation of the Enumerator
+fails:Enumerator::Chain#inspect calls inspect on its chain elements

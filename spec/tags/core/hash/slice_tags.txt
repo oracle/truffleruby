@@ -1,0 +1,6 @@
+fails:Hash#slice returns a new empty hash without arguments
+fails:Hash#slice returns the requested subset
+fails:Hash#slice returns a hash ordered in the order of the requested keys
+fails:Hash#slice returns only the keys of the original hash
+fails:Hash#slice returns a Hash instance, even on subclasses
+fails:Hash#slice uses the regular Hash#[] method, even on subclasses that override it

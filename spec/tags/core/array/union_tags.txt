@@ -1,0 +1,11 @@
+fails:Array#union returns an array of elements that appear in either array (union)
+fails:Array#union creates an array with no duplicates
+fails:Array#union creates an array with elements in order they are first encountered
+fails:Array#union properly handles recursive arrays
+fails:Array#union tries to convert the passed argument to an Array using #to_ary
+fails:Array#union acts as if using an intermediate hash to collect values
+fails:Array#union does not return subclass instances for Array subclasses
+fails:Array#union does not call to_ary on array subclasses
+fails:Array#union properly handles an identical item even when its #eql? isn't reflexive
+fails:Array#union returns unique elements when given no argument
+fails:Array#union accepts multiple arguments

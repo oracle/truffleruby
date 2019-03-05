@@ -128,3 +128,9 @@ fails:Kernel.printf formatting io is not specified flags * left-justifies the re
 fails:Kernel.printf formatting io is not specified flags * left-justifies the result if specified with $ argument is negative
 fails:Kernel.printf formatting io is not specified precision string formats determines the maximum number of characters to be copied from the string
 fails:Kernel.printf formatting io is not specified reference by name %{name} style supports flags, width and precision
+fails:Kernel.printf formatting io is specified other formats % alone raises an ArgumentError
+fails:Kernel.printf formatting io is specified faulty key sets the Hash as the receiver of KeyError
+fails:Kernel.printf formatting io is specified faulty key sets the unmatched key as the key of KeyError
+fails:Kernel.printf formatting io is not specified other formats % alone raises an ArgumentError
+fails:Kernel.printf formatting io is not specified faulty key sets the Hash as the receiver of KeyError
+fails:Kernel.printf formatting io is not specified faulty key sets the unmatched key as the key of KeyError

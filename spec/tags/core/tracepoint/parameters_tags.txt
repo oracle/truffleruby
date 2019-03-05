@@ -1,0 +1,2 @@
+fails:TracePoint#parameters returns the parameters of block
+fails:TracePoint#parameters returns the parameters of lambda block

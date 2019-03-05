@@ -20,3 +20,5 @@ slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread and
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
 fails:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
 fails:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
+slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required
+slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required

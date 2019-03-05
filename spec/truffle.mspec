@@ -44,6 +44,11 @@ class MSpecScript
 
   set :core, [
     "spec/ruby/core",
+
+    "^spec/ruby/core/struct/new_spec.rb",
+    "^spec/ruby/core/tracepoint",
+    "^spec/ruby/core/dir/glob_spec.rb",
+    "^spec/ruby/core/dir/element_reference_spec.rb"
   ]
 
   # Specs that need Sulong and should be tested in the Sulong gate

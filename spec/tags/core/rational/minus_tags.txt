@@ -1,0 +1,1 @@
+fails:Rational#- does not rescue exception raised in other#coerce

@@ -1,0 +1,5 @@
+fails:Random.urandom returns a String
+fails:Random.urandom returns a String of the length given as argument
+fails:Random.urandom raises an ArgumentError on a negative size
+fails:Random.urandom returns an ASCII-8BIT String
+fails:Random.urandom returns a random binary String

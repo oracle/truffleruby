@@ -1,0 +1,2 @@
+fails:Kernel#dup returns self for Complex
+fails:Kernel#dup returns self for Rational

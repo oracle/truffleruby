@@ -1,0 +1,2 @@
+fails:File#path raises IOError if file was opened with File::TMPFILE
+fails:Array#append raises a RuntimeError on a frozen array

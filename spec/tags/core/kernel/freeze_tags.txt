@@ -1,0 +1,2 @@
+fails:Kernel#freeze on a Complex has no effect since it is already frozen
+fails:Kernel#freeze on a Rational has no effect since it is already frozen

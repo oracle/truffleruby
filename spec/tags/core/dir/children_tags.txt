@@ -1,0 +1,5 @@
+fails:Dir#children returns an Array of filenames in an existing directory including dotfiles
+fails:Dir#children accepts an options Hash
+fails:Dir#children returns children encoded with the filesystem encoding by default
+fails:Dir#children returns children encoded with the specified encoding
+fails:Dir#children returns children transcoded to the default internal encoding

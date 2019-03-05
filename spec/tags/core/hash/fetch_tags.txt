@@ -1,0 +1,2 @@
+fails:Hash#fetch when the key is not found sets the Hash as the receiver of KeyError
+fails:Hash#fetch when the key is not found sets the unmatched key as the key of KeyError

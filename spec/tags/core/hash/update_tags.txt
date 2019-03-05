@@ -1,0 +1,2 @@
+fails:Hash#update accepts multiple hashes
+fails:Hash#update accepts zero arguments

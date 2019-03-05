@@ -1,2 +1,5 @@
 slow:BigDecimal is not defined unless it is required
 fails:Kernel#BigDecimal raises ArgumentError for invalid strings
+fails:BigDecimal is not defined unless it is required
+fails:Kernel#BigDecimal does not ignores trailing garbage
+fails:Kernel#BigDecimal process underscores as Float()
