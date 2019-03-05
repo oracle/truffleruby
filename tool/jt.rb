@@ -701,15 +701,16 @@ module Commands
 
     native = false
     graal = false
+    core_load_path = true
     ruby_args = []
-    vm_args = [core_load_path = "--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"]
+    vm_args = []
 
     while (arg = args.shift)
       case arg
       when '--native'
         native = true
       when '--no-core-load-path'
-        vm_args.delete core_load_path
+        core_load_path = false
       when '--graal'
         graal = true
       when '--stress'
@@ -752,6 +753,10 @@ module Commands
     end
 
     ruby_args += args
+
+    if core_load_path
+      vm_args << "--experimental-options" << "--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+    end
 
     if graal
       if ENV["RUBY_BIN"] || native
@@ -1293,6 +1298,9 @@ EOS
     if args.include?('-t')
       # Running specs on another Ruby, pass no options
     else
+      # For --core.load_path and --backtraces.hide_core_files
+      options << "-T--experimental-options"
+
       if args.delete('--native')
         verify_native_bin!
         options << '-t' << find_launcher(true)
