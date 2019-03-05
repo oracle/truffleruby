@@ -587,9 +587,6 @@ module Commands
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
-      jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
-                                                    if the pr_number is not supplied current HEAD is used to find a PR which contains it
-      jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed
       jt install jvmci                              install a JVMCI JDK in the parent directory
       jt install graal [--no-jvmci]                 install Graal in the parent directory (--no-jvmci to use the system Java)
       jt docker                                     build a Docker image - see doc/contributor/docker.md
@@ -822,79 +819,6 @@ module Commands
     end
   end
 
-  module PR
-    include Utilities
-    extend self
-
-    def pr_clean(*args)
-      require 'net/http'
-
-      dry_run = args.delete '--dry-run'
-      uri     = URI('https://api.github.com/repos/oracle/truffleruby/pulls')
-      puts "Contacting GitHub: #{uri}"
-      data     = Net::HTTP.get(uri)
-      prs_data = JSON.parse data
-      open_prs = prs_data.map { |prd| Integer(prd.fetch('number')) }
-      puts "Open PRs: #{open_prs}"
-
-      sh 'git', 'fetch', Remotes.bitbucket, '--prune' # ensure we have locally only existing remote branches
-      branches = sh 'git', 'branch', '--remote', '--list', capture: true
-      branches_to_delete = branches.
-          scan(/^ *#{Remotes.bitbucket}\/(github\/pr\/(\d+))$/).
-          reject { |_, number| open_prs.include? Integer(number) }
-
-      puts "Deleting #{branches_to_delete.size} remote branches on #{Remotes.bitbucket}:"
-      puts branches_to_delete.map(&:last).map(&:to_i).to_s
-      return if dry_run
-
-      branches_to_delete.each do |remote_branch, _|
-        sh 'git', 'push', '--no-verify', Remotes.bitbucket, ":#{remote_branch}"
-      end
-
-      # update remote branches
-      sh 'git', 'fetch', Remotes.bitbucket, '--prune'
-    end
-
-    def pr_push(*args)
-      # Fetch PRs on GitHub
-      fetch     = "+refs/pull/*/head:refs/remotes/#{Remotes.github}/pr/*"
-      out = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
-      sh 'git', 'config', '--add', "remote.#{Remotes.github}.fetch", fetch unless out.include? fetch
-      sh 'git', 'fetch', Remotes.github
-
-      pr_number = args.first
-      if pr_number
-        github_pr_branch = "#{Remotes.github}/pr/#{pr_number}"
-      else
-        github_pr_branch = begin
-          out = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
-          candidate = out.lines.find { |l| l.strip.start_with? "#{Remotes.github}/pr/" }
-          candidate && candidate.strip.chomp
-        end
-
-        unless github_pr_branch
-          puts 'Could not find HEAD in any of the GitHub pull-requests.'
-          exit 1
-        end
-
-        pr_number = github_pr_branch.split('/').last
-      end
-
-      target_branch = if git_branch.start_with?('release')
-        git_branch
-      else
-        "github/pr/#{pr_number}"
-      end
-
-      sh 'git', 'push', '--force', '--no-verify', Remotes.bitbucket, "#{github_pr_branch}:refs/heads/#{target_branch}"
-    end
-
-    def pr_update_master(skip_upstream_fetch: false)
-      sh 'git', 'fetch', Remotes.github unless skip_upstream_fetch
-      sh 'git', 'push', '--no-verify', Remotes.bitbucket, "#{Remotes.github}/master:master"
-    end
-  end
-
   module Remotes
     include Utilities
     extend self
@@ -927,20 +851,6 @@ module Commands
     def try_fetch(repo)
       remote = github(repo) || bitbucket(repo) || 'origin'
       raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
-    end
-  end
-
-  def pr(*args)
-    command, *options = args
-    case command
-    when 'clean'
-      PR.pr_clean *options
-    when 'up'
-      PR.pr_update_master *options
-    else
-      PR.pr_push *args
-      # To regularly update bb/master
-      PR.pr_update_master skip_upstream_fetch: true
     end
   end
 
