@@ -593,6 +593,7 @@ module Commands
       jt install jvmci                              install a JVMCI JDK in the parent directory
       jt install graal [--no-jvmci]                 install Graal in the parent directory (--no-jvmci to use the system Java)
       jt docker                                     build a Docker image - see doc/contributor/docker.md
+      jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -2096,6 +2097,10 @@ EOS
     end
   end
   private :verify_native_bin!
+
+  def sync
+    exec(RbConfig.ruby, "#{TRUFFLERUBY_DIR}/tool/sync.rb")
+  end
 
   def docker(*args)
     command = args.shift
