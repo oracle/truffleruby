@@ -89,7 +89,7 @@ public class Backtrace {
 
             // The stacktrace is computed here if it was not already computed and stored in the
             // TruffleException with TruffleStackTraceElement.fillIn().
-            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStacktrace((Throwable) truffleException);
+            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace((Throwable) truffleException);
 
             final List<Activation> activations = new ArrayList<>();
             final RubyContext context = RubyLanguage.getCurrentContext();
