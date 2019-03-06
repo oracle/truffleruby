@@ -515,7 +515,9 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby
+          graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
+              --graal     include graal compiler in the build
+              --native    build native ruby image as well   
           native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
@@ -579,11 +581,11 @@ module Commands
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
-          --no-graal              don't imply --graal
-          JT_BENCHMARK_RUBY=ruby  benchmark some other Ruby, like MRI
-          note that to run most MRI benchmarks, you should translate them first with normal Ruby and cache the result, such as
-              benchmark bench/mri/bm_vm1_not.rb --cache
-              jt benchmark bench/mri/bm_vm1_not.rb --use-cache
+          --no-graal                   don't imply --graal
+          JT_BENCHMARK_RUBY=ruby       benchmark some other Ruby, like MRI 
+                                       note that to run most MRI benchmarks, you should translate them first with normal 
+                                       Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
+                                       jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
@@ -629,13 +631,11 @@ module Commands
     when "cexts" # Included in 'mx build' but useful to recompile just that part
       mx 'build', '--dependencies', 'org.truffleruby.cext'
     when 'graalvm'
-      build_graalvm *options
+      build_graalvm(*options)
     when 'native'
-      build_native_image *options
-    when nil
-      build_graalvm
+      build_native_image(*options)
     else
-      raise ArgumentError, project
+      build_graalvm(*project, *options)
     end
   end
 
@@ -1952,9 +1952,15 @@ EOS
 
   def build_graalvm(*options)
     mx('-p', TRUFFLERUBY_DIR, 'sforceimports') unless ci?
+    graal = options.delete('--graal')
+    native = options.delete('--native')
 
     java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
-    mx_args = ['-p', TRUFFLERUBY_DIR, '--dynamicimports', '/vm']
+    mx_args = ['-p', TRUFFLERUBY_DIR,
+               '--dynamicimports', '/vm',
+               *(%w[--dynamicimports /compiler] if graal),
+               *(%w[--dynamicimports /substratevm --disable-libpolyglot --disable-polyglot --force-bash-launchers=lli,native-image] if native),
+               *options]
 
     mx(*mx_args, 'build', java_home: java_home)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
