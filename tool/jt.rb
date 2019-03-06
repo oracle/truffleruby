@@ -1968,6 +1968,12 @@ EOS
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
+
+    if MAC && !native
+      bin = "#{dest}/jre/languages/ruby/bin"
+      FileUtils.mv "#{bin}/truffleruby", "#{bin}/truffleruby.sh"
+      FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{bin}/truffleruby"
+    end
   end
 
   def build_native_image(*options)
