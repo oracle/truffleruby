@@ -35,6 +35,7 @@ local part_definitions = {
         java_opts+:: ["-Xmx2G"],
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
+        GRAALVM_CHECK_EXPERIMENTAL_OPTIONS: "true",
         JAVA_OPTS: std.join(" ", self.java_opts),
         PATH: std.join(":", self.path + ["$PATH"]),
       },
