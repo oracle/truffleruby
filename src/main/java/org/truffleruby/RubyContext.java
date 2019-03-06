@@ -389,7 +389,6 @@ public class RubyContext {
     private Options createOptions(TruffleLanguage.Env env) {
         Metrics.printTime("before-options");
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
 
         final Options options = optionsBuilder.build(env);

@@ -24,12 +24,6 @@ public class OptionsBuilder {
 
     private final Map<OptionDescriptor, Object> options = new HashMap<>();
 
-    public void set(Map<String, Object> properties) {
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-            set(property.getKey(), property.getValue());
-        }
-    }
-
     public void set(OptionValues optionValues) {
         for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
             final OptionKey<?> key = optionValues.getDescriptors().get(descriptor.getName()).getKey();
