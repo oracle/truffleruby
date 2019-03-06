@@ -1150,6 +1150,7 @@ $stderr = $stdout; raise "\x82\xa0"') do |outs, errs, status|
     warning = nil
     path = nil
     Tempfile.create(%w[circular .rb]) do |t|
+    begin # TruffleRuby extra begin for ensure
       path = File.realpath(t.path)
       basename = File.basename(path)
       t.puts "require '#{basename}'"
@@ -1159,6 +1160,7 @@ $stderr = $stdout; raise "\x82\xa0"') do |outs, errs, status|
     ensure
       $LOAD_PATH.pop
       $LOADED_FEATURES.delete(t)
+    end
     end
     assert_equal(1, warning.size)
     assert_match(/circular require/, warning.first)
