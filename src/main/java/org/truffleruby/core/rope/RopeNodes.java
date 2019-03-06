@@ -1205,15 +1205,14 @@ public abstract class RopeNodes {
                 @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
             final byte[] bytes = bytesNode.execute(rope);
             final Encoding encoding = rope.getEncoding();
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(encoding, codeRange, bytes, index, rope.byteLength());
+            final int characterLength = characterLength(actualEncoding, codeRange, bytes, index, rope.byteLength());
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
             }
-
-            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
 
             return mbcToCode(actualEncoding, bytes, index, rope.byteLength());
         }
