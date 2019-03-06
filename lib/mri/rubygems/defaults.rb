@@ -38,7 +38,7 @@ module Gem
              [
                RbConfig::CONFIG['rubylibprefix'],
                'gems',
-               '2.4.0' # RbConfig::CONFIG['ruby_version']
+               RbConfig::CONFIG['ruby_version']
              ]
            else
              [

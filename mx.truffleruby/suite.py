@@ -432,27 +432,27 @@ suite = {
                 "lib/mri/rbconfig/": [
                     "file:src/main/c/rbconfig-sizeof/sizeof.su",
                 ],
-                "lib/ruby/gems/2.4.0/": [
-                    "file:lib/ruby/gems/2.4.0/truffleruby_gem_dir_marker.txt",
+                "lib/ruby/gems/2.6.0/": [
+                    "file:lib/ruby/gems/2.6.0/truffleruby_gem_dir_marker.txt",
                 ],
-                "lib/ruby/gems/2.4.0/gems/": [
-                    "file:lib/ruby/gems/2.4.0/gems/did_you_mean-1.1.0",
-                    "file:lib/ruby/gems/2.4.0/gems/minitest-5.10.1",
-                    "file:lib/ruby/gems/2.4.0/gems/net-telnet-0.1.1",
-                    "file:lib/ruby/gems/2.4.0/gems/power_assert-0.4.1",
-                    "file:lib/ruby/gems/2.4.0/gems/rake-12.0.0",
-                    "file:lib/ruby/gems/2.4.0/gems/test-unit-3.2.3",
-                    "file:lib/ruby/gems/2.4.0/gems/xmlrpc-0.2.1",
+                "lib/ruby/gems/2.6.0/gems/": [
+                    "file:lib/ruby/gems/2.6.0/gems/did_you_mean-1.1.0",
+                    "file:lib/ruby/gems/2.6.0/gems/minitest-5.10.1",
+                    "file:lib/ruby/gems/2.6.0/gems/net-telnet-0.1.1",
+                    "file:lib/ruby/gems/2.6.0/gems/power_assert-0.4.1",
+                    "file:lib/ruby/gems/2.6.0/gems/rake-12.0.0",
+                    "file:lib/ruby/gems/2.6.0/gems/test-unit-3.2.3",
+                    "file:lib/ruby/gems/2.6.0/gems/xmlrpc-0.2.1",
                 ],
-                "lib/ruby/gems/2.4.0/specifications/": [
-                    "file:lib/ruby/gems/2.4.0/specifications/default",
-                    "file:lib/ruby/gems/2.4.0/specifications/did_you_mean-1.1.0.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/minitest-5.10.1.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/net-telnet-0.1.1.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/power_assert-0.4.1.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/rake-12.0.0.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/test-unit-3.2.3.gemspec",
-                    "file:lib/ruby/gems/2.4.0/specifications/xmlrpc-0.2.1.gemspec",
+                "lib/ruby/gems/2.6.0/specifications/": [
+                    "file:lib/ruby/gems/2.6.0/specifications/default",
+                    "file:lib/ruby/gems/2.6.0/specifications/did_you_mean-1.1.0.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/minitest-5.10.1.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/net-telnet-0.1.1.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/power_assert-0.4.1.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/rake-12.0.0.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/test-unit-3.2.3.gemspec",
+                    "file:lib/ruby/gems/2.6.0/specifications/xmlrpc-0.2.1.gemspec",
                 ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/deprecation.rb",
