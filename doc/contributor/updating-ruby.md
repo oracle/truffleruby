@@ -73,8 +73,8 @@ Default gems are imported from MRI files, except the .gemspec files in
 `lib/ruby/gems/2.4.0/specifications/default`.
 To update those, copy the files over from an installed MRI.
 ```
-rm -rf lib/ruby/gems/2.4.0/specifications/default
-cp ~/.rubies/ruby-2.4.4/lib/ruby/gems/2.4.0/specifications/default lib/ruby/gems/2.4.0/specifications
+rm -rf lib/ruby/gems/2.6.0/specifications/default
+cp -r ~/.rubies/ruby-2.6.1/lib/ruby/gems/2.6.0/specifications/default lib/ruby/gems/2.6.0/specifications
 ```
 
 ## Updating bundled gems
