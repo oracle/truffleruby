@@ -454,6 +454,9 @@ class TestMethod < Test::Unit::TestCase
     c3.class_eval { alias bar foo }
     m3 = c3.new.method(:bar)
     assert_equal("#<Method: #{c3.inspect}(#{c.inspect})#bar(foo)>", m3.inspect, bug7806)
+
+    m.taint
+    assert_predicate(m.inspect, :tainted?, "inspect result should be infected")
   end
 
   def test_callee_top_level
@@ -779,6 +782,19 @@ class TestMethod < Test::Unit::TestCase
     assert_equal(:bar, m.call, feature8391)
   end
 
+  def test_singleton_method_prepend
+    bug14658 = '[Bug #14658]'
+    c1 = Class.new
+    o = c1.new
+    def o.bar; :bar; end
+    class << o; prepend Module.new; end
+    m = assert_nothing_raised(NameError, bug14658) {o.singleton_method(:bar)}
+    assert_equal(:bar, m.call, bug14658)
+
+    o = Object.new
+    assert_raise(NameError, bug14658) {o.singleton_method(:bar)}
+  end
+
   Feature9783 = '[ruby-core:62212] [Feature #9783]'
 
   def assert_curry_three_args(m)
@@ -991,5 +1007,88 @@ class TestMethod < Test::Unit::TestCase
     obj = c.new
     assert_equal('1', obj.foo(1))
     assert_equal('1', obj.bar(1))
+  end
+
+  def test_argument_error_location
+    body = <<-'END_OF_BODY'
+    eval <<-'EOS'
+    $line_lambda = __LINE__; $f = lambda do
+      _x = 1
+    end
+    $line_method = __LINE__; def foo
+      _x = 1
+    end
+    begin
+      $f.call(1)
+    rescue ArgumentError => e
+      assert_equal "(eval):#{$line_lambda.to_s}:in `block in <main>'", e.backtrace.first
+    end
+    begin
+      foo(1)
+    rescue ArgumentError => e
+      assert_equal "(eval):#{$line_method}:in `foo'", e.backtrace.first
+    end
+    EOS
+    END_OF_BODY
+
+    assert_separately [], body
+    # without trace insn
+    assert_separately [], "RubyVM::InstructionSequence.compile_option = {trace_instruction: false}\n" + body
+  end
+
+  def test_eqq
+    assert_operator(0.method(:<), :===, 5)
+    assert_not_operator(0.method(:<), :===, -5)
+  end
+
+  def test_compose_with_method
+    c = Class.new {
+      def f(x) x * 2 end
+      def g(x) x + 1 end
+    }
+    f = c.new.method(:f)
+    g = c.new.method(:g)
+
+    assert_equal(6, (f << g).call(2))
+    assert_equal(6, (g >> f).call(2))
+  end
+
+  def test_compose_with_proc
+    c = Class.new {
+      def f(x) x * 2 end
+    }
+    f = c.new.method(:f)
+    g = proc {|x| x + 1}
+
+    assert_equal(6, (f << g).call(2))
+    assert_equal(6, (g >> f).call(2))
+  end
+
+  def test_compose_with_callable
+    c = Class.new {
+      def f(x) x * 2 end
+    }
+    c2 = Class.new {
+      def call(x) x + 1 end
+    }
+    f = c.new.method(:f)
+    g = c2.new
+
+    assert_equal(6, (f << g).call(2))
+    assert_equal(5, (f >> g).call(2))
+  end
+
+  def test_compose_with_noncallable
+    c = Class.new {
+      def f(x) x * 2 end
+    }
+    f = c.new.method(:f)
+
+    assert_raise(NoMethodError) {
+      (f << 5).call(2)
+    }
+    assert_raise(NoMethodError) {
+      (f >> 5).call(2)
+    }
   end
 end

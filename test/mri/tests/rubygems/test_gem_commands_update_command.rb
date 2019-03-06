@@ -2,12 +2,6 @@
 require 'rubygems/test_case'
 require 'rubygems/commands/update_command'
 
-begin
-  gem "rdoc"
-rescue Gem::LoadError
-  # ignore
-end
-
 class TestGemCommandsUpdateCommand < Gem::TestCase
 
   def setup
@@ -107,7 +101,7 @@ class TestGemCommandsUpdateCommand < Gem::TestCase
     end
 
     out = @ui.output.split "\n"
-    assert_equal "Latest version currently installed. Aborting.", out.shift
+    assert_equal "Latest version already installed. Done.", out.shift
     assert_empty out
   end
 
@@ -223,7 +217,6 @@ class TestGemCommandsUpdateCommand < Gem::TestCase
   end
 
   def test_execute_rdoc
-    skip if RUBY_VERSION <= "1.8.7"
     spec_fetcher do |fetcher|
       fetcher.download 'a', 2
       fetcher.spec 'a', 1
@@ -510,5 +503,23 @@ class TestGemCommandsUpdateCommand < Gem::TestCase
     assert_empty arguments
   end
 
-end
+  def test_explain
+    spec_fetcher do |fetcher|
+      fetcher.download 'a', 2
+      fetcher.spec 'a', 1
+    end
 
+    @cmd.options[:explain] = true
+    @cmd.options[:args] = %w[a]
+
+    use_ui @ui do
+      @cmd.execute
+    end
+
+    out = @ui.output.split "\n"
+
+    assert_equal "Gems to update:", out.shift
+    assert_equal "  a-2", out.shift
+    assert_empty out
+  end
+end

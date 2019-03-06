@@ -98,7 +98,7 @@ class WEBrick::TestFileHandler < Test::Unit::TestCase
     config = { :DocumentRoot => File.dirname(__FILE__), }
     this_file = File.basename(__FILE__)
     filesize = File.size(__FILE__)
-    this_data = File.open(__FILE__, "rb") {|f| f.read}
+    this_data = File.binread(__FILE__)
     range = nil
     bug2593 = '[ruby-dev:40030]'
 
@@ -114,7 +114,7 @@ class WEBrick::TestFileHandler < Test::Unit::TestCase
       http.request(req){|res|
         assert_equal("200", res.code, log.call)
         assert_equal("text/plain", res.content_type, log.call)
-        assert_equal(File.read(__FILE__), res.body, log.call)
+        assert_equal(this_data, res.body, log.call)
       }
 
       req = Net::HTTP::Get.new("/#{this_file}", "range"=>"bytes=#{filesize-100}-")
@@ -330,6 +330,22 @@ class WEBrick::TestFileHandler < Test::Unit::TestCase
       resok &&= File.exist?(__FILE__+"::$DATA")
       req = Net::HTTP::Get.new("/webrick.cgi::$DATA/test")
       http.request(req, &response_assertion)
+    end
+  end
+
+  def test_erbhandler
+    config = { :DocumentRoot => File.dirname(__FILE__) }
+    log_tester = lambda {|log, access_log|
+      log = log.reject {|s| /ERROR `.*\' not found\./ =~ s }
+      assert_equal([], log)
+    }
+    TestWEBrick.start_httpserver(config, log_tester) do |server, addr, port, log|
+      http = Net::HTTP.new(addr, port)
+      req = Net::HTTP::Get.new("/webrick.rhtml")
+      http.request(req) do |res|
+        assert_equal("200", res.code, log.call)
+        assert_match %r!\Areq to http://[^/]+/webrick\.rhtml {}\n!, res.body
+      end
     end
   end
 end

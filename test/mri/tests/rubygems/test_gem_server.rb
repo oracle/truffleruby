@@ -100,7 +100,7 @@ class TestGemServer < Gem::TestCase
     specs_dir = File.join dir, 'specifications'
     FileUtils.mkdir_p specs_dir
 
-    open File.join(specs_dir, spec.spec_name), 'w' do |io|
+    File.open File.join(specs_dir, spec.spec_name), 'w' do |io|
       io.write spec.to_ruby
     end
 
@@ -127,7 +127,7 @@ class TestGemServer < Gem::TestCase
     assert_match %r| \d\d:\d\d:\d\d |, @res['date']
     assert_equal 'application/x-gzip', @res['content-type']
     assert_equal [['a', Gem::Version.new(2), Gem::Platform::RUBY]],
-                 Marshal.load(Gem.gunzip(@res.body))
+                 Marshal.load(Gem::Util.gunzip(@res.body))
   end
 
   def test_listen
@@ -177,7 +177,7 @@ class TestGemServer < Gem::TestCase
     assert_match %r| \d\d:\d\d:\d\d |, @res['date']
     assert_equal 'application/x-gzip', @res['content-type']
     assert_equal [['a', v('3.a'), Gem::Platform::RUBY]],
-                 Marshal.load(Gem.gunzip(@res.body))
+                 Marshal.load(Gem::Util.gunzip(@res.body))
   end
 
   def test_quick_gemdirs
@@ -198,7 +198,7 @@ class TestGemServer < Gem::TestCase
 
     FileUtils.mkdir_p specs_dir
 
-    open File.join(specs_dir, spec.spec_name), 'w' do |io|
+    File.open File.join(specs_dir, spec.spec_name), 'w' do |io|
       io.write spec.to_ruby
     end
 
@@ -222,7 +222,7 @@ class TestGemServer < Gem::TestCase
     assert_equal 404, @res.status, @res.body
     assert_match %r| \d\d:\d\d:\d\d |, @res['date']
     assert_equal 'text/plain', @res['content-type']
-    assert_equal 'No gems found matching "z" "9" nil', @res.body
+    assert_equal 'No gems found matching "z-9"', @res.body
     assert_equal 404, @res.status
   end
 
@@ -236,7 +236,7 @@ class TestGemServer < Gem::TestCase
     assert @res['date']
     assert_equal 'application/x-deflate', @res['content-type']
 
-    spec = Marshal.load Gem.inflate(@res.body)
+    spec = Marshal.load Gem::Util.inflate(@res.body)
     assert_equal 'a', spec.name
     assert_equal Gem::Version.new(1), spec.version
   end
@@ -253,7 +253,7 @@ class TestGemServer < Gem::TestCase
     assert @res['date']
     assert_equal 'application/x-deflate', @res['content-type']
 
-    spec = Marshal.load Gem.inflate(@res.body)
+    spec = Marshal.load Gem::Util.inflate(@res.body)
     assert_equal 'a', spec.name
     assert_equal Gem::Version.new(1), spec.version
     assert_equal Gem::Platform.local, spec.platform
@@ -269,7 +269,7 @@ class TestGemServer < Gem::TestCase
     assert @res['date']
     assert_equal 'application/x-deflate', @res['content-type']
 
-    spec = Marshal.load Gem.inflate(@res.body)
+    spec = Marshal.load Gem::Util.inflate(@res.body)
     assert_equal 'a', spec.name
     assert_equal v('3.a'), spec.version
   end
@@ -286,8 +286,25 @@ class TestGemServer < Gem::TestCase
     assert @res['date']
     assert_equal 'application/x-deflate', @res['content-type']
 
-    spec = Marshal.load Gem.inflate(@res.body)
+    spec = Marshal.load Gem::Util.inflate(@res.body)
     assert_equal 'a-b', spec.name
+    assert_equal v('3.a'), spec.version
+  end
+
+  def test_quick_marshal_a_b_1_3_a_gemspec_rz
+    quick_gem 'a-b-1', '3.a'
+
+    data = StringIO.new "GET /quick/Marshal.#{Gem.marshal_version}/a-b-1-3.a.gemspec.rz HTTP/1.0\r\n\r\n"
+    @req.parse data
+
+    @server.quick @req, @res
+
+    assert_equal 200, @res.status, @res.body
+    assert @res['date']
+    assert_equal 'application/x-deflate', @res['content-type']
+
+    spec = Marshal.load Gem::Util.inflate(@res.body)
+    assert_equal 'a-b-1', spec.name
     assert_equal v('3.a'), spec.version
   end
 
@@ -322,7 +339,7 @@ class TestGemServer < Gem::TestCase
     specs_dir = File.join dir, 'specifications'
     FileUtils.mkdir_p specs_dir
 
-    open File.join(specs_dir, spec.spec_name), 'w' do |io|
+    File.open File.join(specs_dir, spec.spec_name), 'w' do |io|
       io.write spec.to_ruby
     end
 
@@ -360,9 +377,9 @@ class TestGemServer < Gem::TestCase
     assert_equal 200, @res.status
     assert_match 'xsshomepagegem 1', @res.body
 
-    # This verifies that the homepage for this spec is not displayed and is set to ".", because it's not a 
+    # This verifies that the homepage for this spec is not displayed and is set to ".", because it's not a
     # valid HTTP/HTTPS URL and could be unsafe in an HTML context.  We would prefer to throw an exception here,
-    # but spec.homepage is currently free form and not currently required to be a URL, this behavior may be 
+    # but spec.homepage is currently free form and not currently required to be a URL, this behavior may be
     # validated in future versions of Gem::Specification.
     #
     # There are two variant we're checking here, one where rdoc is not present, and one where rdoc is present in the same regex:
@@ -388,7 +405,7 @@ class TestGemServer < Gem::TestCase
     #
     #
     #  <a href="." title=".">[www]</a>
-    regex_match = /xsshomepagegem 1<\/b>[\s]+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/xsshomepagegem-1\/">\[rdoc\]<\/a>)[\s]+<a href="\." title="\.">\[www\]<\/a>/
+    regex_match = /xsshomepagegem 1<\/b>\s+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/xsshomepagegem-1\/">\[rdoc\]<\/a>)\s+<a href="\." title="\.">\[www\]<\/a>/
     assert_match regex_match, @res.body
   end
 
@@ -415,9 +432,9 @@ class TestGemServer < Gem::TestCase
     assert_equal 200, @res.status
     assert_match 'invalidhomepagegem 1', @res.body
 
-    # This verifies that the homepage for this spec is not displayed and is set to ".", because it's not a 
+    # This verifies that the homepage for this spec is not displayed and is set to ".", because it's not a
     # valid HTTP/HTTPS URL and could be unsafe in an HTML context.  We would prefer to throw an exception here,
-    # but spec.homepage is currently free form and not currently required to be a URL, this behavior may be 
+    # but spec.homepage is currently free form and not currently required to be a URL, this behavior may be
     # validated in future versions of Gem::Specification.
     #
     # There are two variant we're checking here, one where rdoc is not present, and one where rdoc is present in the same regex:
@@ -443,7 +460,7 @@ class TestGemServer < Gem::TestCase
     #
     #
     #  <a href="." title=".">[www]</a>
-    regex_match = /invalidhomepagegem 1<\/b>[\s]+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/invalidhomepagegem-1\/">\[rdoc\]<\/a>)[\s]+<a href="\." title="\.">\[www\]<\/a>/
+    regex_match = /invalidhomepagegem 1<\/b>\s+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/invalidhomepagegem-1\/">\[rdoc\]<\/a>)\s+<a href="\." title="\.">\[www\]<\/a>/
     assert_match regex_match, @res.body
   end
 
@@ -470,7 +487,7 @@ class TestGemServer < Gem::TestCase
     assert_equal 200, @res.status
     assert_match 'validhomepagegemhttp 1', @res.body
 
-    regex_match = /validhomepagegemhttp 1<\/b>[\s]+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/validhomepagegemhttp-1\/">\[rdoc\]<\/a>)[\s]+<a href="http:\/\/rubygems\.org" title="http:\/\/rubygems\.org">\[www\]<\/a>/
+    regex_match = /validhomepagegemhttp 1<\/b>\s+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/validhomepagegemhttp-1\/">\[rdoc\]<\/a>)\s+<a href="http:\/\/rubygems\.org" title="http:\/\/rubygems\.org">\[www\]<\/a>/
     assert_match regex_match, @res.body
   end
 
@@ -497,7 +514,7 @@ class TestGemServer < Gem::TestCase
     assert_equal 200, @res.status
     assert_match 'validhomepagegemhttps 1', @res.body
 
-    regex_match = /validhomepagegemhttps 1<\/b>[\s]+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/validhomepagegemhttps-1\/">\[rdoc\]<\/a>)[\s]+<a href="https:\/\/rubygems\.org" title="https:\/\/rubygems\.org">\[www\]<\/a>/
+    regex_match = /validhomepagegemhttps 1<\/b>\s+(<span title="rdoc not installed">\[rdoc\]<\/span>|<a href="\/doc_root\/validhomepagegemhttps-1\/">\[rdoc\]<\/a>)\s+<a href="https:\/\/rubygems\.org" title="https:\/\/rubygems\.org">\[www\]<\/a>/
     assert_match regex_match, @res.body
   end
 
@@ -526,7 +543,7 @@ class TestGemServer < Gem::TestCase
     specs_dir = File.join dir, 'specifications'
     FileUtils.mkdir_p specs_dir
 
-    open File.join(specs_dir, spec.spec_name), 'w' do |io|
+    File.open File.join(specs_dir, spec.spec_name), 'w' do |io|
       io.write spec.to_ruby
     end
 
@@ -554,7 +571,7 @@ class TestGemServer < Gem::TestCase
     assert_equal [['a', Gem::Version.new(1), Gem::Platform::RUBY],
                   ['a', Gem::Version.new(2), Gem::Platform::RUBY],
                   ['a', v('3.a'), Gem::Platform::RUBY]],
-                 Marshal.load(Gem.gunzip(@res.body))
+                 Marshal.load(Gem::Util.gunzip(@res.body))
   end
 
   def test_uri_encode

@@ -358,7 +358,10 @@ class TestM17N < Test::Unit::TestCase
       "\u3042".encode("UTF-16LE"),
       "\u3042".encode("UTF-16BE"),
     ].each do |str|
-      assert_equal(str, eval(str.dump), "[ruby-dev:33142]")
+      dump = str.dump
+      assert_equal(str, eval(dump), "[ruby-dev:33142]")
+      assert_equal(str, dump.undump)
+      assert_equal(str, eval("# frozen-string-literal: true\n#{dump}"), '[Bug #14687]')
     end
   end
 
@@ -465,7 +468,7 @@ class TestM17N < Test::Unit::TestCase
   def test_regexp_ascii_none
     r = /a/n
 
-    assert_warning(%r{regexp match /\.\.\./n against to}) {
+    assert_warning(%r{historical binary regexp match /\.\.\./n against}) {
       assert_regexp_generic_ascii(r)
     }
 
@@ -474,13 +477,13 @@ class TestM17N < Test::Unit::TestCase
     assert_equal(0, r =~ s("a"))
     assert_equal(0, r =~ u("a"))
     assert_equal(nil, r =~ a("\xc2\xa1"))
-    assert_warning(%r{regexp match /\.\.\./n against to EUC-JP string}) {
+    assert_warning(%r{historical binary regexp match /\.\.\./n against EUC-JP string}) {
       assert_equal(nil, r =~ e("\xc2\xa1"))
     }
-    assert_warning(%r{regexp match /\.\.\./n against to Windows-31J string}) {
+    assert_warning(%r{historical binary regexp match /\.\.\./n against Windows-31J string}) {
       assert_equal(nil, r =~ s("\xc2\xa1"))
     }
-    assert_warning(%r{regexp match /\.\.\./n against to UTF-8 string}) {
+    assert_warning(%r{historical binary regexp match /\.\.\./n against UTF-8 string}) {
       assert_equal(nil, r =~ u("\xc2\xa1"))
     }
 
@@ -725,7 +728,7 @@ class TestM17N < Test::Unit::TestCase
 
   def test_union_1_regexp
     assert_regexp_generic_ascii(Regexp.union(//))
-    assert_warning(%r{regexp match /.../n against to}) {
+    assert_warning(%r{historical binary regexp match /.../n against}) {
       assert_regexp_generic_ascii(Regexp.union(//n))
     }
     assert_regexp_fixed_eucjp(Regexp.union(//e))
@@ -768,7 +771,7 @@ class TestM17N < Test::Unit::TestCase
   end
 
   def test_dynamic_ascii_regexp
-    assert_warning(%r{regexp match /.../n against to}) {
+    assert_warning(%r{historical binary regexp match /.../n against}) {
       assert_regexp_generic_ascii(/#{ }/n)
     }
     assert_regexp_fixed_ascii8bit(/#{ }\xc2\xa1/n)
@@ -1519,6 +1522,17 @@ class TestM17N < Test::Unit::TestCase
       t.setbyte(i, 0xe3)
       assert_not_predicate(t, :valid_encoding?, failure)
     }
+  end
+
+  def test_setbyte_range
+    s = u("\xE3\x81\x82\xE3\x81\x84")
+    assert_nothing_raised { s.setbyte(0, -1) }
+    assert_nothing_raised { s.setbyte(0, 0x00) }
+    assert_nothing_raised { s.setbyte(0, 0x7F) }
+    assert_nothing_raised { s.setbyte(0, 0x80) }
+    assert_nothing_raised { s.setbyte(0, 0xff) }
+    assert_nothing_raised { s.setbyte(0, 0x100) }
+    assert_nothing_raised { s.setbyte(0, 0x4f7574206f6620636861722072616e6765) }
   end
 
   def test_compatible

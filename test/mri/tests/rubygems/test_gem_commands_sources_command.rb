@@ -157,7 +157,7 @@ source http://gems.example.com/ already present in the cache
     EOF
 
     assert_equal expected, @ui.output
-    assert_equal '', @ui.error 
+    assert_equal '', @ui.error
   end
 
   def test_execute_add_http_rubygems_org
@@ -298,4 +298,3 @@ beta-gems.example.com is not a URI
   end
 
 end
-

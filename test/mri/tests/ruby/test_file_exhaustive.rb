@@ -3,7 +3,7 @@ require "test/unit"
 require "fileutils"
 require "tmpdir"
 require "socket"
-require 'c/file'
+require '-test-/file'
 
 class TestFileExhaustive < Test::Unit::TestCase
   DRIVE = Dir.pwd[%r'\A(?:[a-z]:|//[^/]+/[^/]+)'i]
@@ -495,22 +495,39 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_file.grpowned?(utf8_file)
   end if POSIX
 
+  def io_open(file_name)
+    # avoid File.open since we do not want #to_path
+    io = IO.for_fd(IO.sysopen(file_name))
+    yield io
+  ensure
+    io&.close
+  end
+
   def test_suid
     assert_file.not_setuid?(regular_file)
     assert_file.not_setuid?(utf8_file)
-    assert_file.setuid?(suidfile) if suidfile
+    if suidfile
+      assert_file.setuid?(suidfile)
+      io_open(suidfile) { |io| assert_file.setuid?(io) }
+    end
   end
 
   def test_sgid
     assert_file.not_setgid?(regular_file)
     assert_file.not_setgid?(utf8_file)
-    assert_file.setgid?(sgidfile) if sgidfile
+    if sgidfile
+      assert_file.setgid?(sgidfile)
+      io_open(sgidfile) { |io| assert_file.setgid?(io) }
+    end
   end
 
   def test_sticky
     assert_file.not_sticky?(regular_file)
     assert_file.not_sticky?(utf8_file)
-    assert_file.sticky?(stickyfile) if stickyfile
+    if stickyfile
+      assert_file.sticky?(stickyfile)
+      io_open(stickyfile) { |io| assert_file.sticky?(io) }
+    end
   end
 
   def test_path_identical_p
@@ -647,6 +664,34 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_equal(t + 2, File.mtime(zerofile))
   end
 
+  def test_utime_symlinkfile
+    return unless symlinkfile
+    t = Time.local(2000)
+    stat = File.lstat(symlinkfile)
+    assert_equal(1, File.utime(t, t, symlinkfile))
+    assert_equal(t, File.stat(regular_file).atime)
+    assert_equal(t, File.stat(regular_file).mtime)
+  end
+
+  def test_lutime
+    return unless File.respond_to?(:lutime)
+    return unless symlinkfile
+
+    r = File.stat(regular_file)
+    t = Time.local(2000)
+    File.lutime(t + 1, t + 2, symlinkfile)
+  rescue NotImplementedError => e
+    skip(e.message)
+  else
+    stat = File.stat(regular_file)
+    assert_equal(r.atime, stat.atime)
+    assert_equal(r.mtime, stat.mtime)
+
+    stat = File.lstat(symlinkfile)
+    assert_equal(t + 1, stat.atime)
+    assert_equal(t + 2, stat.mtime)
+  end
+
   def test_hardlink
     return unless hardlinkfile
     assert_equal("file", File.ftype(hardlinkfile))
@@ -736,7 +781,10 @@ class TestFileExhaustive < Test::Unit::TestCase
   def test_expand_path
     assert_equal(regular_file, File.expand_path(File.basename(regular_file), File.dirname(regular_file)))
     assert_equal(utf8_file, File.expand_path(File.basename(utf8_file), File.dirname(utf8_file)))
-    if NTFS
+  end
+
+  if NTFS
+    def test_expand_path_ntfs
       [regular_file, utf8_file].each do |file|
         assert_equal(file, File.expand_path(file + " "))
         assert_equal(file, File.expand_path(file + "."))
@@ -747,8 +795,11 @@ class TestFileExhaustive < Test::Unit::TestCase
       assert_match(/\Ae:\//i, File.expand_path('e:foo', 'd:/bar'))
       assert_match(%r'\Ac:/bar/foo\z'i, File.expand_path('c:foo', 'c:/bar'))
     end
-    case RUBY_PLATFORM
-    when /darwin/
+  end
+
+  case RUBY_PLATFORM
+  when /darwin/
+    def test_expand_path_hfs
       ["\u{feff}", *"\u{2000}"..."\u{2100}"].each do |c|
         file = regular_file + c
         full_path = File.expand_path(file)
@@ -764,11 +815,16 @@ class TestFileExhaustive < Test::Unit::TestCase
         end
       end
     end
-    if DRIVE
+  end
+
+  if DRIVE
+    def test_expand_path_absolute
       assert_match(%r"\Az:/foo\z"i, File.expand_path('/foo', "z:/bar"))
       assert_match(%r"\A//host/share/foo\z"i, File.expand_path('/foo', "//host/share/bar"))
       assert_match(%r"\A#{DRIVE}/foo\z"i, File.expand_path('/foo'))
-    else
+    end
+  else
+    def test_expand_path_absolute
       assert_equal("/foo", File.expand_path('/foo'))
     end
   end
@@ -863,6 +919,8 @@ class TestFileExhaustive < Test::Unit::TestCase
 
     assert_raise(ArgumentError) { File.expand_path(".", UnknownUserHome) }
     assert_nothing_raised(ArgumentError) { File.expand_path("#{DRIVE}/", UnknownUserHome) }
+    ENV["HOME"] = "#{DRIVE}UserHome"
+    assert_raise(ArgumentError) { File.expand_path("~") }
   ensure
     ENV["HOME"] = home
   end
@@ -1136,7 +1194,10 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_equal("foo", File.basename("foo", ".ext"))
     assert_equal("foo", File.basename("foo.ext", ".ext"))
     assert_equal("foo", File.basename("foo.ext", ".*"))
-    if NTFS
+  end
+
+  if NTFS
+    def test_basename_strip
       [regular_file, utf8_file].each do |file|
         basename = File.basename(file)
         assert_equal(basename, File.basename(file + " "))
@@ -1150,7 +1211,9 @@ class TestFileExhaustive < Test::Unit::TestCase
         assert_equal(basename, File.basename(file + ".", ".*"))
         assert_equal(basename, File.basename(file + "::$DATA", ".*"))
       end
-    else
+    end
+  else
+    def test_basename_strip
       [regular_file, utf8_file].each do |file|
         basename = File.basename(file)
         assert_equal(basename + " ", File.basename(file + " "))
@@ -1165,13 +1228,18 @@ class TestFileExhaustive < Test::Unit::TestCase
         assert_equal(basename, File.basename(file + "::$DATA", ".*"))
       end
     end
-    if File::ALT_SEPARATOR == '\\'
+  end
+
+  if File::ALT_SEPARATOR == '\\'
+    def test_basename_backslash
       a = "foo/\225\\\\"
       [%W"cp437 \225", %W"cp932 \225\\"].each do |cp, expected|
         assert_equal(expected.force_encoding(cp), File.basename(a.dup.force_encoding(cp)), cp)
       end
     end
+  end
 
+  def test_basename_encoding
     assert_incompatible_encoding {|d| File.basename(d)}
     assert_incompatible_encoding {|d| File.basename(d, ".*")}
     assert_raise(Encoding::CompatibilityError) {File.basename("foo.ext", ".*".encode("utf-16le"))}
@@ -1187,8 +1255,14 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_equal(@dir, File.dirname(regular_file))
     assert_equal(@dir, File.dirname(utf8_file))
     assert_equal(".", File.dirname(""))
+  end
+
+  def test_dirname_encoding
     assert_incompatible_encoding {|d| File.dirname(d)}
-    if File::ALT_SEPARATOR == '\\'
+  end
+
+  if File::ALT_SEPARATOR == '\\'
+    def test_dirname_backslash
       a = "\225\\\\foo"
       [%W"cp437 \225", %W"cp932 \225\\"].each do |cp, expected|
         assert_equal(expected.force_encoding(cp), File.dirname(a.dup.force_encoding(cp)), cp)
@@ -1269,6 +1343,19 @@ class TestFileExhaustive < Test::Unit::TestCase
       end
     end
     assert_raise(Encoding::CompatibilityError, bug7168) {File.join(names)}
+  end
+
+  def test_join_with_changed_separator
+    assert_separately([], "#{<<~"begin;"}\n#{<<~"end;"}")
+    bug = '[ruby-core:79579] [Bug #13223]'
+    begin;
+      class File
+        remove_const :Separator
+        remove_const :SEPARATOR
+      end
+      GC.start
+      assert_equal("hello/world", File.join("hello", "world"), bug)
+    end;
   end
 
   def test_truncate
@@ -1434,11 +1521,7 @@ class TestFileExhaustive < Test::Unit::TestCase
       assert_integer_or_nil(fs1.rdev_minor)
       assert_integer(fs1.ino)
       assert_integer(fs1.mode)
-      unless /emx|mswin|mingw/ =~ RUBY_PLATFORM
-        # on Windows, nlink is always 1. but this behavior will be changed
-        # in the future.
-        assert_equal(hardlinkfile ? 2 : 1, fs1.nlink)
-      end
+      assert_equal(hardlinkfile ? 2 : 1, fs1.nlink)
       assert_integer(fs1.uid)
       assert_integer(fs1.gid)
       assert_equal(3, fs1.size)

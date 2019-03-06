@@ -1122,7 +1122,7 @@ class TestMiniTestUnitTestCase < MiniTest::Unit::TestCase
   # *sigh* This is quite an odd scenario, but it is from real (albeit
   # ugly) test code in ruby-core:
   #
-  # http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?view=rev&revision=29259
+  # https://svn.ruby-lang.org/cgi-bin/viewvc.cgi?view=rev&revision=29259
 
   def test_assert_raises_skip
     @assertion_count = 0
@@ -1528,7 +1528,9 @@ class TestMiniTestUnitTestCase < MiniTest::Unit::TestCase
 
   def test_refute_match_matcher_object
     @assertion_count = 2
-    @tc.refute_match Object.new, 5 # default #=~ returns false
+    non_verbose do
+      @tc.refute_match Object.new, 5 # default #=~ returns false
+    end
   end
 
   def test_refute_match_object_triggered
@@ -1645,7 +1647,7 @@ class TestMiniTestUnitTestCase < MiniTest::Unit::TestCase
     assert_equal expected, sample_test_case.test_methods
   end
 
-  def util_assert_triggered expected, klass = MiniTest::Assertion
+  def assert_triggered expected, klass = MiniTest::Assertion
     e = assert_raises klass do
       yield
     end
@@ -1656,6 +1658,7 @@ class TestMiniTestUnitTestCase < MiniTest::Unit::TestCase
 
     assert_equal expected, msg
   end
+  alias util_assert_triggered assert_triggered
 
   def util_msg exp, act, msg = nil
     s = "Expected: #{exp.inspect}\n  Actual: #{act.inspect}"

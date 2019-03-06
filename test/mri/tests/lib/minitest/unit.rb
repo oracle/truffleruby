@@ -1,9 +1,9 @@
 # encoding: utf-8
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require "optparse"
 require "rbconfig"
-# require "leakchecker"
+require "leakchecker"
 
 ##
 # Minimal (mostly drop-in) replacement for test-unit.
@@ -872,35 +872,46 @@ module MiniTest
       suites = TestCase.send "#{type}_suites"
       return if suites.empty?
 
-      start = Time.now
-
       puts
       puts "# Running #{type}s:"
       puts
 
       @test_count, @assertion_count = 0, 0
+      test_count = assertion_count = 0
       sync = output.respond_to? :"sync=" # stupid emacs
       old_sync, output.sync = output.sync, true if sync
 
-      results = _run_suites suites, type
+      count = 0
+      begin
+        start = Time.now
 
-      @test_count      = results.inject(0) { |sum, (tc, _)| sum + tc }
-      @assertion_count = results.inject(0) { |sum, (_, ac)| sum + ac }
+        results = _run_suites suites, type
+
+        @test_count      = results.inject(0) { |sum, (tc, _)| sum + tc }
+        @assertion_count = results.inject(0) { |sum, (_, ac)| sum + ac }
+        test_count      += @test_count
+        assertion_count += @assertion_count
+        t = Time.now - start
+        count += 1
+        unless @repeat_count
+          puts
+          puts
+        end
+        puts "Finished%s %ss in %.6fs, %.4f tests/s, %.4f assertions/s.\n" %
+             [(@repeat_count ? "(#{count}/#{@repeat_count}) " : ""), type,
+               t, @test_count.fdiv(t), @assertion_count.fdiv(t)]
+      end while @repeat_count && count < @repeat_count &&
+                report.empty? && failures.zero? && errors.zero?
 
       output.sync = old_sync if sync
-
-      t = Time.now - start
-
-      puts
-      puts
-      puts "Finished #{type}s in %.6fs, %.4f tests/s, %.4f assertions/s." %
-        [t, test_count / t, assertion_count / t]
 
       report.each_with_index do |msg, i|
         puts "\n%3d) %s" % [i + 1, msg]
       end
 
       puts
+      @test_count      = test_count
+      @assertion_count = assertion_count
 
       status
     end
@@ -929,7 +940,7 @@ module MiniTest
         filter === m || filter === "#{suite}##{m}"
       }
 
-      # leakchecker = LeakChecker.new
+      leakchecker = LeakChecker.new
 
       assertions = filtered_test_methods.map { |method|
         inst = suite.new method
@@ -945,7 +956,9 @@ module MiniTest
         puts if @verbose
         $stdout.flush
 
-        # leakchecker.check("#{inst.class}\##{inst.__name__}")
+        unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
+          leakchecker.check("#{inst.class}\##{inst.__name__}")
+        end
 
         inst._assertions
       }
@@ -1010,6 +1023,7 @@ module MiniTest
       @verbose = false
       @mutex = Thread::Mutex.new
       @info_signal = Signal.list['INFO']
+      @repeat_count = nil
     end
 
     def synchronize # :nodoc:
@@ -1157,6 +1171,14 @@ module MiniTest
       def windows? platform = RUBY_PLATFORM
         /mswin|mingw/ =~ platform
       end
+
+      ##
+      # Is this running on mingw?
+
+      def mingw? platform = RUBY_PLATFORM
+        /mingw/ =~ platform
+      end
+
     end
 
     ##

@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require_relative "utils"
 
-if defined?(OpenSSL::TestUtils)
+if defined?(OpenSSL)
 
 class OpenSSL::TestOCSP < OpenSSL::TestCase
   def setup
@@ -122,14 +122,29 @@ class OpenSSL::TestOCSP < OpenSSL::TestCase
 
     assert_equal true, req.verify([@cert], store, OpenSSL::OCSP::NOINTERN)
     ret = req.verify([@cert], store)
-    if ret || openssl?(1, 0, 2) || libressl?(2, 4, 2)
+    if ret || openssl?(1, 0, 2)
       assert_equal true, ret
     else
       # RT2560; OCSP_request_verify() does not find signer cert from 'certs' when
       # OCSP_NOINTERN is not specified.
-      # fixed by OpenSSL 1.0.1j, 1.0.2 and LibreSSL 2.4.2
+      # fixed by OpenSSL 1.0.1j, 1.0.2
       pend "RT2560: ocsp_req_find_signer"
     end
+
+    # not signed
+    req = OpenSSL::OCSP::Request.new.add_certid(cid)
+    assert_equal false, req.verify([], store)
+  end
+
+  def test_request_is_signed
+    cid = OpenSSL::OCSP::CertificateId.new(@cert, @ca_cert)
+    req = OpenSSL::OCSP::Request.new
+    req.add_certid(cid)
+    assert_equal false, req.signed?
+    assert_equal false, OpenSSL::OCSP::Request.new(req.to_der).signed?
+    req.sign(@cert, @cert_key, [])
+    assert_equal true, req.signed?
+    assert_equal true, OpenSSL::OCSP::Request.new(req.to_der).signed?
   end
 
   def test_request_nonce
@@ -247,11 +262,6 @@ class OpenSSL::TestOCSP < OpenSSL::TestCase
     bres.add_status(cid2, OpenSSL::OCSP::V_CERTSTATUS_REVOKED, OpenSSL::OCSP::REVOKED_STATUS_UNSPECIFIED, -400, -300, nil, [])
     bres.add_status(cid2, OpenSSL::OCSP::V_CERTSTATUS_GOOD, nil, nil, Time.now + 100, nil, nil)
 
-    if bres.responses[2].check_validity # thisUpdate is in future; must fail
-      # LibreSSL bug; skip for now
-      pend "OCSP_check_validity() is broken"
-    end
-
     single1 = bres.responses[0]
     assert_equal false, single1.check_validity
     assert_equal false, single1.check_validity(30)
@@ -260,6 +270,8 @@ class OpenSSL::TestOCSP < OpenSSL::TestCase
     assert_equal true, single2.check_validity
     assert_equal true, single2.check_validity(0, 500)
     assert_equal false, single2.check_validity(0, 200)
+    single3 = bres.responses[2]
+    assert_equal false, single3.check_validity
   end
 
   def test_response

@@ -1,7 +1,6 @@
 # frozen_string_literal: false
 require 'test/unit'
 require 'tempfile'
-require 'thread'
 
 class TestAutoload < Test::Unit::TestCase
   def test_autoload_so
@@ -284,6 +283,68 @@ p Foo::Bar
         assert_warning(/ZZZ is deprecated/, bug) {AutoloadTest::ZZZ}
       end;
     end
+  end
+
+  def test_autoload_fork
+    EnvUtil.default_warning do
+      Tempfile.create(['autoload', '.rb']) {|file|
+        file.puts 'sleep 0.3; class AutoloadTest; end'
+        file.close
+        add_autoload(file.path)
+        begin
+          thrs = []
+          3.times do
+            thrs << Thread.new { AutoloadTest; nil }
+            thrs << Thread.new { fork { AutoloadTest } }
+          end
+          thrs.each(&:join)
+          thrs.each do |th|
+            pid = th.value or next
+            _, status = Process.waitpid2(pid)
+            assert_predicate status, :success?
+          end
+        ensure
+          remove_autoload_constant
+          assert_nil $!, '[ruby-core:86410] [Bug #14634]'
+        end
+      }
+    end
+  end if Process.respond_to?(:fork)
+
+  def test_autoload_same_file
+    Dir.mktmpdir('autoload') do |tmpdir|
+      File.write("#{tmpdir}/b.rb", "#{<<~'begin;'}\n#{<<~'end;'}")
+      begin;
+        module Foo; end
+        module Bar; end
+      end;
+      3.times do # timing-dependent, needs a few times to hit [Bug #14742]
+        assert_separately(%W[-I #{tmpdir}], "#{<<-'begin;'}\n#{<<-'end;'}")
+        begin;
+          autoload :Foo, 'b'
+          autoload :Bar, 'b'
+          t1 = Thread.new do Foo end
+          t2 = Thread.new do Bar end
+          t1.join
+          t2.join
+          bug = '[ruby-core:86935] [Bug #14742]'
+          assert_instance_of Module, t1.value, bug
+          assert_instance_of Module, t2.value, bug
+        end;
+      end
+    end
+  end
+
+  def test_no_leak
+    assert_no_memory_leak([], '', <<~'end;', 'many autoloads', timeout: 30)
+      200000.times do |i|
+        m = Module.new
+        m.instance_eval do
+          autoload :Foo, 'x'
+          autoload :Bar, i.to_s
+        end
+      end
+    end;
   end
 
   def add_autoload(path)

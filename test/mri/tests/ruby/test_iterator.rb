@@ -107,6 +107,16 @@ class TestIterator < Test::Unit::TestCase
     assert_equal([1, 2, 3, 4, 5, 6, 7], x)
   end
 
+  def test_array_for_masgn
+    a = [Struct.new(:to_ary).new([1,2])]
+    x = []
+    a.each {|i,j|x << [i,j]}
+    assert_equal([[1,2]], x)
+    x = []
+    for i,j in a; x << [i,j]; end
+    assert_equal([[1,2]], x)
+  end
+
   def test_append_method_to_built_in_class
     x = [[1,2],[3,4],[5,6]]
     assert_equal(x.iter_test1{|e|e}, x.iter_test2{|e|e})
@@ -279,6 +289,9 @@ class TestIterator < Test::Unit::TestCase
   def proc_call(&b)
     b.call
   end
+  def proc_call2(b)
+    b.call
+  end
   def proc_yield()
     yield
   end
@@ -300,6 +313,7 @@ class TestIterator < Test::Unit::TestCase
 
   def test_ljump
     assert_raise(LocalJumpError) {get_block{break}.call}
+    assert_raise(LocalJumpError) {proc_call2(get_block{break}){}}
 
     # cannot use assert_nothing_raised due to passing block.
     begin

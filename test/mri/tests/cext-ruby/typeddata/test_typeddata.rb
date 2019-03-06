@@ -25,7 +25,5 @@ class Test_TypedData < Test::Unit::TestCase
       n = 1 << 20
       Bug::TypedData.make(n)
     end;
-  rescue MiniTest::Assertion => e
-    skip e.message
   end
 end

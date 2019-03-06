@@ -1,7 +1,7 @@
-# coding: utf-8
-# frozen_string_literal: false
+# frozen_string_literal: true
 
-require 'rdoc/test_case'
+require 'minitest_helper'
+require 'timeout'
 
 class TestRDocText < RDoc::TestCase
 
@@ -62,7 +62,7 @@ class TestRDocText < RDoc::TestCase
 
   def test_expand_tabs_encoding
     inn = "hello\ns\tdave"
-    inn.force_encoding Encoding::BINARY
+    inn = RDoc::Encoding.change_encoding inn, Encoding::BINARY
 
     out = expand_tabs inn
 
@@ -96,7 +96,7 @@ The comments associated with
   The comments associated with
     TEXT
 
-    text.force_encoding Encoding::US_ASCII
+    text = RDoc::Encoding.change_encoding text, Encoding::US_ASCII
 
     expected = <<-EXPECTED
 
@@ -259,8 +259,7 @@ paragraph will be cut off some point after the one-hundredth character.
     TEXT
 
     expected = <<-EXPECTED
-<p>This is one-hundred characters or more of text in a single paragraph.  This
-paragraph will be cut off …
+<p>This is one-hundred characters or more of text in a single paragraph.  This paragraph will be cut off …
     EXPECTED
 
     assert_equal expected, snippet(text)
@@ -304,7 +303,7 @@ paragraph will be cut off …
 # The comments associated with
     TEXT
 
-    text.force_encoding Encoding::CP852
+    text = RDoc::Encoding.change_encoding text, Encoding::CP852
 
     expected = <<-EXPECTED
 
@@ -333,7 +332,7 @@ paragraph will be cut off …
     assert_equal Encoding::UTF_8, ''.encoding, 'Encoding sanity check'
 
     text = " \n"
-    text.force_encoding Encoding::US_ASCII
+    text = RDoc::Encoding.change_encoding text, Encoding::US_ASCII
 
     stripped = strip_newlines text
 
@@ -378,6 +377,32 @@ paragraph will be cut off …
     assert_equal expected, strip_stars(text)
   end
 
+  def test_strip_stars_document_method_special
+    text = <<-TEXT
+/*
+ * Document-method: Zlib::GzipFile#mtime=
+ * Document-method: []
+ * Document-method: `
+ * Document-method: |
+ * Document-method: &
+ * Document-method: <=>
+ * Document-method: =~
+ * Document-method: +
+ * Document-method: -
+ * Document-method: +@
+ *
+ * A comment
+ */
+    TEXT
+
+    expected = <<-EXPECTED
+
+   A comment
+    EXPECTED
+
+    assert_equal expected, strip_stars(text)
+  end
+
   def test_strip_stars_encoding
     text = <<-TEXT
 /*
@@ -387,7 +412,7 @@ paragraph will be cut off …
  */
     TEXT
 
-    text.force_encoding Encoding::CP852
+    text = RDoc::Encoding.change_encoding text, Encoding::CP852
 
     expected = <<-EXPECTED
 
@@ -411,7 +436,7 @@ paragraph will be cut off …
  */
     TEXT
 
-    text.force_encoding Encoding::BINARY
+    text = RDoc::Encoding.change_encoding text, Encoding::BINARY
 
     expected = <<-EXPECTED
 

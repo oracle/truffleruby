@@ -159,7 +159,7 @@ class TestResolvDNS < Test::Unit::TestCase
     u.bind("127.0.0.1", 0)
     _, port, _, host = u.addr
     u.close
-    # A rase condition here.
+    # A race condition here.
     # Another program may use the port.
     # But no way to prevent it.
     Timeout.timeout(5) do
@@ -176,6 +176,16 @@ class TestResolvDNS < Test::Unit::TestCase
       tmpfile.close
       assert_nothing_raised(ArgumentError, bug9273) do
         Resolv::DNS::Config.parse_resolv_conf(tmpfile.path)
+      end
+    end
+  end
+
+  def test_resolv_conf_by_command
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        assert_raise(Errno::ENOENT, Errno::EINVAL) do
+          Resolv::DNS::Config.parse_resolv_conf("|echo foo")
+        end
       end
     end
   end
@@ -202,8 +212,23 @@ class TestResolvDNS < Test::Unit::TestCase
 
   def test_ipv6_create
     ref = '[Bug #11910] [ruby-core:72559]'
-    assert_instance_of Resolv::IPv6, Resolv::IPv6.create('::1')
-    assert_instance_of Resolv::IPv6, Resolv::IPv6.create('::1:127.0.0.1')
+    assert_instance_of Resolv::IPv6, Resolv::IPv6.create('::1'), ref
+    assert_instance_of Resolv::IPv6, Resolv::IPv6.create('::1:127.0.0.1'), ref
+  end
+
+  def test_ipv6_should_be_16
+    ref = '[rubygems:1626]'
+
+    broken_message =
+      "\0\0\0\0\0\0\0\0\0\0\0\1" \
+      "\x03ns2\bdnsimple\x03com\x00" \
+      "\x00\x1C\x00\x01\x00\x02OD" \
+      "\x00\x10$\x00\xCB\x00 I\x00\x01\x00\x00\x00\x00"
+
+    e = assert_raise_with_message(Resolv::DNS::DecodeError, /IPv6 address must be 16 bytes/, ref) do
+      Resolv::DNS::Message.decode broken_message
+    end
+    assert_kind_of(ArgumentError, e.cause)
   end
 
   def test_too_big_label_address
