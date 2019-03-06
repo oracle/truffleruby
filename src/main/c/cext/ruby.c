@@ -1177,6 +1177,14 @@ rb_encoding *rb_enc_from_index(int index) {
   return rb_to_encoding(rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enc_from_index", index)));
 }
 
+void RB_ENC_CODERANGE_SET(VALUE obj, int cr) {
+  rb_tr_error("RB_ENC_CODERANGE_SET not implemented");
+}
+
+int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
+  rb_tr_error("rb_enc_mbc_to_codepoint not implemented");
+}
+
 int rb_enc_str_coderange(VALUE str) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_str_coderange", str));
 }
