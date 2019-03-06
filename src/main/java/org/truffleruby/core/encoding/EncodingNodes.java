@@ -474,6 +474,21 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "get_actual_encoding", needsSelf = false)
+    public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject getActualEncoding(DynamicObject string,
+                @Cached("create()") GetActualEncodingNode getActualEncodingNode,
+                @Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
+            final Rope rope = StringOperations.rope(string);
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
+
+            return getRubyEncodingNode.executeGetRubyEncoding(actualEncoding);
+        }
+
+    }
+
     // Port of MRI's `get_actual_encoding`.
     public abstract static class GetActualEncodingNode extends RubyBaseNode {
 

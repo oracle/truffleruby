@@ -550,23 +550,11 @@ class String
     ascii = enc.ascii_compatible?
     unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
 
-    if unicode
-      if enc.equal? Encoding::UTF_16
-        a = getbyte 0
-        b = getbyte 1
-
-        unless (a == 0xfe and b == 0xff) or (a == 0xff and b == 0xfe)
-          unicode = false
-        end
-      elsif enc.equal? Encoding::UTF_32
-        a = getbyte 0
-        b = getbyte 1
-        c = getbyte 2
-        d = getbyte 3
-
-        unless (a == 0 and b == 0 and c == 0xfe and d == 0xfe) or (a == 0xff and b == 0xfe and c == 0 and d == 0)
-          unicode = false
-        end
+    actual_encoding = enc.dummy? ? Truffle.invoke_primitive(:get_actual_encoding, self) : enc
+    if actual_encoding != enc
+      enc = actual_encoding
+      if unicode
+        unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
       end
     end
 
