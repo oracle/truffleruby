@@ -3200,8 +3200,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringByteSubstringPrimitiveNode stringByteSubstringNode = StringByteSubstringPrimitiveNode.create();
-
         @Specialization(guards = "indexOutOfBounds(string, byteIndex)")
         public Object stringChrAtOutOfBounds(DynamicObject string, int byteIndex) {
             return nil();
@@ -3209,33 +3207,36 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object stringChrAtSingleByte(DynamicObject string, int byteIndex,
+                @Cached("create()") StringByteSubstringPrimitiveNode stringByteSubstringNode,
                 @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             return stringByteSubstringNode.executeStringByteSubstring(string, byteIndex, 1);
         }
 
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object stringChrAt(DynamicObject string, int byteIndex,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
-                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-            // Taken from Rubinius's Character::create_from.
-
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached("create()") MakeStringNode makeStringNode) {
             final Rope rope = rope(string);
+            final Encoding encoding = getActualEncodingNode.execute(rope);
             final int end = rope.byteLength();
-            final int c = calculateCharacterLengthNode.characterLength(rope.getEncoding(), codeRangeNode.execute(rope),
-                    bytesNode.execute(rope), byteIndex, end);
+            final byte[] bytes = bytesNode.execute(rope);
+            final int c = calculateCharacterLengthNode.characterLength(encoding, codeRangeNode.execute(rope),
+                    bytes, byteIndex, end);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                 return nil();
             }
 
-            final int n = StringSupport.MBCLEN_CHARFOUND_LEN(c);
-            if (n + byteIndex > end) {
+            if (c + byteIndex > end) {
                 return nil();
             }
 
-            return stringByteSubstringNode.executeStringByteSubstring(string, byteIndex, n);
+            return makeStringNode.executeMake(
+                    ArrayUtils.extractRange(bytes, byteIndex, byteIndex + c), encoding, CR_UNKNOWN);
         }
 
         protected static boolean indexOutOfBounds(DynamicObject string, int byteIndex) {
