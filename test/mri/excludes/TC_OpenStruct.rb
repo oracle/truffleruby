@@ -1,2 +1,5 @@
 exclude :test_method_missing, "needs investigation"
+exclude :test_private_method, "needs investigation"
+exclude :test_protected_method, "needs investigation"
+exclude :test_to_h_with_block, "needs investigation"
 exclude :test_delete_field, "needs investigation"

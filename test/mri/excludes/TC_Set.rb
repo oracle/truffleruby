@@ -1,2 +1,8 @@
 exclude :test_inspect, "needs investigation"
 exclude :test_eq , "needs investigation"
+exclude :test_eqq, "needs investigation"
+exclude :test_to_s, "needs investigation"
+exclude :test_filter!, "needs investigation"
+exclude :test_freeze, "needs investigation"
+exclude :test_freeze_clone, "needs investigation"
+exclude :test_reset, "needs investigation"

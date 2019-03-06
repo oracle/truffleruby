@@ -278,6 +278,10 @@ ruby/test_range.rb # open range
 ruby/test_rubyoptions.rb # uses RubyVM
 test_pp.rb # uses RubyVM
 ruby/test_time_tz.rb
+ruby/test_thread_queue.rb # hangs
+monitor/test_monitor.rb # hangs
+csv/write/test_general.rb # encoding
+ruby/test_parse.rb # encoding
 
 # Other issues
 
