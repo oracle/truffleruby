@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -103,6 +103,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
@@ -1396,11 +1397,12 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object lstripBang(DynamicObject string,
-                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+                @Cached("create()") RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
             final Rope rope = rope(string);
-            final Encoding enc = RopeOperations.STR_ENC_GET(rope);
+            final Encoding enc = getActualEncodingNode.execute(rope);
             final int s = 0;
             final int end = s + rope.byteLength();
 
@@ -1512,11 +1514,12 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         public Object rstripBang(DynamicObject string,
-                                 @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile) {
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
             final Rope rope = rope(string);
-            final Encoding enc = RopeOperations.STR_ENC_GET(rope);
+            final Encoding enc = getActualEncodingNode.execute(rope);
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
