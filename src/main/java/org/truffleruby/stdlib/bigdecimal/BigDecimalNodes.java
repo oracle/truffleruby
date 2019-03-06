@@ -1062,15 +1062,10 @@ public abstract class BigDecimalNodes {
             return aCompare.compareTo(bCompare);
         }
 
-        @Specialization(guards = "isNil(b)")
-        public Object compareNil(DynamicObject a, DynamicObject b) {
-            return nil();
-        }
-
-        @Specialization(guards = { "!isRubyBigDecimal(b)", "!isNil(b)" })
+        @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object compareCoerced(DynamicObject a, DynamicObject b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
         @TruffleBoundary
