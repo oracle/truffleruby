@@ -28,6 +28,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
@@ -1185,6 +1186,7 @@ public abstract class RopeNodes {
                 @Cached("create()") GetByteNode getByteNode,
                 @Cached("create()") BytesNode bytesNode,
                 @Cached("create()") CodeRangeNode codeRangeNode,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode,
                 @Cached("createBinaryProfile()") ConditionProfile singleByteCharProfile,
                 @Cached("create()") BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
@@ -1192,14 +1194,15 @@ public abstract class RopeNodes {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode);
+            return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode, getActualEncodingNode);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
         public int getCodePointMultiByte(Rope rope, int index,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") BytesNode bytesNode,
-                @Cached("create()") CodeRangeNode codeRangeNode) {
+                @Cached("create()") CodeRangeNode codeRangeNode,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
             final byte[] bytes = bytesNode.execute(rope);
             final Encoding encoding = rope.getEncoding();
             final CodeRange codeRange = codeRangeNode.execute(rope);
@@ -1210,7 +1213,9 @@ public abstract class RopeNodes {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
             }
 
-            return mbcToCode(encoding, bytes, index, rope.byteLength());
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
+
+            return mbcToCode(actualEncoding, bytes, index, rope.byteLength());
         }
 
         @TruffleBoundary
