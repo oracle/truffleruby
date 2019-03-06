@@ -9,19 +9,20 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
+import org.truffleruby.shared.options.RubyOptionTypes;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class OptionsBuilder {
 
-    private final Map<OptionDescription<?>, Object> options = new HashMap<>();
+    private final Map<OptionDescriptor, Object> options = new HashMap<>();
 
     public void set(Map<String, Object> properties) {
         for (Map.Entry<String, Object> property : properties.entrySet()) {
@@ -30,47 +31,52 @@ public class OptionsBuilder {
     }
 
     public void set(OptionValues optionValues) {
-        for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            final OptionKey<?> key = optionValues.getDescriptors().get(option.getName()).getKey();
+        for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
+            final OptionKey<?> key = optionValues.getDescriptors().get(descriptor.getName()).getKey();
 
             if (optionValues.hasBeenSet(key)) {
-                set(option.getName(), optionValues.get(key));
+                set(descriptor.getName(), optionValues.get(key));
             }
         }
     }
 
     private void set(String name, Object value) {
-        final OptionDescription<?> description = OptionsCatalog.fromName(name);
+        final OptionDescriptor descriptor = OptionsCatalog.fromName(name);
 
-        if (description == null) {
+        if (descriptor == null) {
             throw new UnknownOptionException(name);
         }
 
-        options.put(description, description.checkValue(value));
+        options.put(descriptor, RubyOptionTypes.parseValue(descriptor, value));
     }
 
     public Options build(Env env) {
         return new Options(this, env);
     }
 
-    <T> T getOrDefault(OptionDescription<T> description) {
-        final T value = description.cast(options.get(description));
+    <T> T getOrDefault(OptionDescriptor descriptor) {
+        final T value = cast(options.get(descriptor));
 
         if (value == null) {
-            return description.getDefaultValue();
+            return cast(descriptor.getKey().getDefaultValue());
         } else {
             return value;
         }
     }
 
-    <T> T getOrDefault(OptionDescription<T> description, T defaultValue) {
-        final T value = description.cast(options.get(description));
+    <T> T getOrDefault(OptionDescriptor descriptor, T defaultValue) {
+        final T value = cast(options.get(descriptor));
 
         if (value == null) {
             return defaultValue;
         } else {
             return value;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(Object value) {
+        return (T) value;
     }
 
 }

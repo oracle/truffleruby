@@ -26,7 +26,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
@@ -190,11 +189,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected OptionDescriptors getOptionDescriptors() {
-        final OptionDescription<?>[] allDescriptions = OptionsCatalog.allDescriptions();
+        final OptionDescriptor[] allDescriptions = OptionsCatalog.allDescriptors();
         final List<OptionDescriptor> options = new ArrayList<>(allDescriptions.length);
 
-        for (OptionDescription<?> option : allDescriptions) {
-            options.add(option.toDescriptor());
+        for (OptionDescriptor descriptor : allDescriptions) {
+            options.add(descriptor);
         }
 
         return OptionDescriptors.create(options);

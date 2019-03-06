@@ -21,6 +21,7 @@ import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.ShowHelp;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -260,7 +261,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private String setRubyLauncher() {
-        if (config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
+        if (String.class.cast(config.getOption(OptionsCatalog.LAUNCHER)).isEmpty()) {
             final String launcher = ProcessProperties.getExecutableName();
             config.setOption(OptionsCatalog.LAUNCHER, launcher);
             return launcher;
@@ -277,7 +278,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             System.out.println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
-        switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
+        switch ((ShowHelp) config.getOption(OptionsCatalog.SHOW_HELP)) {
             case NONE:
                 break;
             case SHORT:

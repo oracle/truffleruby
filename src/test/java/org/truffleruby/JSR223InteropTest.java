@@ -33,7 +33,7 @@ public class JSR223InteropTest {
 
     @Before
     public void before() {
-        System.setProperty(OptionsCatalog.HOME.getPropertyName(), System.getProperty("user.dir"));
+        System.setProperty("polyglot." + OptionsCatalog.HOME.getName(), System.getProperty("user.dir"));
     }
 
     @Test

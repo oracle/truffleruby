@@ -34,12 +34,12 @@
  */
 package org.truffleruby.launcher;
 
+import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.ShowHelp;
-import org.truffleruby.shared.options.StringArrayOptionDescription;
 import org.truffleruby.shared.options.Verbosity;
 
 import java.io.File;
@@ -134,7 +134,7 @@ public class CommandLineParser {
 
                 // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise it would not be
                 // possible to determine if the value is suppose to be `true` or `"true"`.
-                final StringArrayOptionDescription optionDescription =
+                final OptionDescriptor optionDescription =
                         value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
                 // replace dashes with underscores make it a valid global variable name
                 config.appendOptionValue(optionDescription, key.replace('-', '_'));

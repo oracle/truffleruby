@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -38,7 +39,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.ExecutionAction;
-import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.io.IOException;
@@ -338,14 +338,13 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
             final String optionNameString = StringOperations.getString(optionName);
+            final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
-            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + optionNameString);
-
-            if (description == null) {
+            if (descriptor == null) {
                 throw new RaiseException(getContext(), coreExceptions().nameError("option not defined", nil(), optionNameString, this));
             }
 
-            final Object value = getContext().getOptions().fromDescription(description);
+            final Object value = getContext().getOptions().fromDescriptor(descriptor);
 
             if (value instanceof Boolean || value instanceof Integer) {
                 return value;
