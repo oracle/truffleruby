@@ -72,7 +72,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false);
             argumentCommandLineParser.processArguments();
 
-            if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
+            if ((boolean) config.getOption(OptionsCatalog.READ_RUBYOPT)) {
                 // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
@@ -270,11 +270,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
-        if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
+        if ((boolean) config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(TruffleRuby.getVersionString(isAOT()));
         }
 
-        if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
+        if ((boolean) config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
             System.out.println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
