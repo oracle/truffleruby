@@ -28,6 +28,9 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.shared.options;
 
+import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,35 +44,45 @@ public class CommandLineOptions {
     public CommandLineOptions(Map<String, String> options) {
         this.options = options;
         this.arguments = new String[]{};
-        this.unknownArguments = new ArrayList<>(0);
+        this.unknownArguments = new ArrayList<>();
     }
 
     public Map<String, String> getOptions() {
         return options;
     }
 
-    public <T> void setOption(OptionDescription<T> key, T value) {
-        setOptionRaw(key, key.valueToString(value));
+    public <T> void setOption(OptionDescriptor descriptor, T value) {
+        setOptionRaw(descriptor, RubyOptionTypes.valueToString(value));
     }
 
-    public <T> T getOption(OptionDescription<T> key) {
-        return key.checkValue(getOptionRaw(key));
+    public <T> T getOption(OptionDescriptor descriptor) {
+        return RubyOptionTypes.parseValue(descriptor, getOptionRaw(descriptor));
     }
 
-    public <T> void appendOptionValue(AppendableOptionDescription<T> key, String newValue) {
-        setOptionRaw(
-                key,
-                key.append(getOptionRaw(key), newValue));
+    public <T> void appendOptionValue(OptionDescriptor descriptor, String newValue) {
+        final OptionType<?> type = descriptor.getKey().getType();
+
+        final String appended;
+
+        if (type == OptionType.defaultType(String.class)) {
+            appended = getOptionRaw(descriptor) + newValue;
+        } else if (type == StringArrayOptionType.INSTANCE) {
+            appended = StringArrayOptionType.append(getOptionRaw(descriptor), newValue);
+        } else {
+            throw new UnsupportedOperationException();
+        }
+
+        setOptionRaw(descriptor, appended);
     }
 
-    private void setOptionRaw(OptionDescription<?> key, String value) {
-        options.put(key.getName(), value);
+    private void setOptionRaw(OptionDescriptor descriptor, String value) {
+        options.put(descriptor.getName(), value);
     }
 
-    private <T> String getOptionRaw(OptionDescription<T> key) {
+    private <T> String getOptionRaw(OptionDescriptor descriptor) {
         return options.getOrDefault(
-                key.getName(),
-                key.valueToString(key.getDefaultValue()));
+                descriptor.getName(),
+                RubyOptionTypes.valueToString(descriptor.getKey().getDefaultValue()));
     }
 
     public String[] getArguments() {

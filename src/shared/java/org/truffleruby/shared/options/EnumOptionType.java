@@ -9,12 +9,14 @@
  */
 package org.truffleruby.shared.options;
 
-import org.graalvm.options.OptionCategory;
+import org.graalvm.options.OptionType;
 
-public class ExecutionActionOptionDescription extends EnumOptionDescription<ExecutionAction> {
+import java.util.Locale;
 
-    ExecutionActionOptionDescription(OptionCategory category, String name, String description, String[] rubyOptions, ExecutionAction defaultValue) {
-        super(category, name, description, rubyOptions, defaultValue, ExecutionAction.class);
+public class EnumOptionType {
+
+    public static <T extends Enum<T>> OptionType<T> optionTypeFor(Class<T> type, T defaultValue) {
+        return new OptionType<>(type.getName(), defaultValue, v -> Enum.valueOf(type, v.toUpperCase(Locale.ENGLISH)));
     }
 
 }

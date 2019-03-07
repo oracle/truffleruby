@@ -21,6 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
 import com.oracle.truffle.api.source.SourceSection;
+import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -64,9 +65,7 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
-import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.Platform;
@@ -76,6 +75,7 @@ import org.truffleruby.platform.darwin.DarwinNativeConfiguration;
 import org.truffleruby.platform.linux.LinuxNativeConfiguration;
 import org.truffleruby.platform.solaris.SolarisSparcV9NativeConfiguration;
 import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.RubyOptionTypes;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -355,7 +355,7 @@ public class RubyContext {
             return false;
         }
 
-        if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
+        if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue())) {
             RubyLanguage.LOGGER.fine(notReusingContext + "--core.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
         }
@@ -387,17 +387,13 @@ public class RubyContext {
 
     private Options createOptions(TruffleLanguage.Env env) {
         Metrics.printTime("before-options");
-        final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
-        optionsBuilder.set(env.getOptions()); // SDK options
-
-        final Options options = optionsBuilder.build(env);
+        final Options options = new Options(env, env.getOptions());
 
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
-            for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
-                final String xName = option.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
-                RubyLanguage.LOGGER.config("option " + xName + "=" + option.valueToString(options.fromDescription(option)));
+            for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
+                assert descriptor.getName().startsWith(TruffleRuby.LANGUAGE_ID);
+                final String xName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
+                RubyLanguage.LOGGER.config("option " + xName + "=" + RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
             }
         }
 

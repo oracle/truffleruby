@@ -31,7 +31,7 @@ public class ParserCache {
 
     static {
         if (TruffleOptions.AOT) {
-            final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH.getDefaultValue();
+            final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue();
             final Map<String, RootParseNode> cache = new HashMap<>();
 
             for (String coreFile : CoreLibrary.CORE_FILES) {
