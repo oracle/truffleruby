@@ -74,3 +74,9 @@ fails:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][1]` directory ru
 fails:The launcher 'ri' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 fails:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
 fails:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
+slow:The launcher 'bundle' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
+slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
+slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
+slow:The launcher 'bundler' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
+slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
+slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked

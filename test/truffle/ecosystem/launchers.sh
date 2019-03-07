@@ -17,14 +17,14 @@ source "$(dirname $SELF_PATH)/../common.sh.inc"
 function check_launchers() {
     if [ -n "$2" ]
     then
-        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.4.4 ]]
-        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.4.4 ]]
+        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.6.1 ]]
+        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.6.1 ]]
     fi
-    [[ "$(${1}gem --version)" =~ ^2.6.14.1$ ]]
-    [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
-    [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
-    [[ "$(${1}rdoc --version)" =~ ^5.0.0$ ]]
-    [[ "$(${1}ri --version)" =~ ^ri\ 5.0.0$ ]]
+    [[ "$(${1}gem --version)" =~ ^3.0.1$ ]]
+    [[ "$(${1}irb --version)" =~ ^irb\ 1.0.0 ]]
+    [[ "$(${1}rake --version)" =~ ^rake,\ version\ 12.3.2 ]]
+    [[ "$(${1}rdoc --version)" =~ ^6.1.0$ ]]
+    [[ "$(${1}ri --version)" =~ ^ri\ 6.1.0$ ]]
 }
 
 function check_in_dir() {
@@ -81,15 +81,15 @@ fi
 
 echo '** Check bundled gems'
 
-# 2.3.3 bundled gems, https://github.com/ruby/ruby/blob/v2_3_3/gems/bundled_gems
+# see doc/contributor/stdlib.md
 bundled_gems=(
-    "did_you_mean 1.1.0"
-    "minitest 5.10.1"
-    "net-telnet 0.1.1"
-    "power_assert 0.4.1"
-    "rake 12.0.0"
-    "test-unit 3.2.3"
-    "xmlrpc 0.2.1"
+    "did_you_mean 1.3.0"
+    "minitest 5.11.3"
+    "net-telnet 0.2.0"
+    "power_assert 1.1.3"
+    "rake 12.3.2"
+    "test-unit 3.2.9"
+    "xmlrpc 0.3.0"
 )
 gem_list=$(bin/gem list)
 

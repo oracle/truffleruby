@@ -84,12 +84,17 @@ https://github.com/ruby/ruby/blob/ruby_a_b/gems/bundled_gems (replace `_a_b`
 with the right version branch for what you are importing). See if we need to
 update any bundled gems.
 
+```bash
+$ git diff vx_y_z va_b_c gems/bundled_gems   # in MRI
+```
+
 To update a bundled gem, follow these steps:
 
 * Remove the current gem and gemspec from `lib/ruby/gems/a.b.c/gems` and `lib/ruby/gems/a.b.c/specifications`
 * Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
 * Update the project `.gitignore` to allow the newly install gem sources and gemspec
-* If the gem installs any executables like `rake` in `bin`. Add these to the `.gitignore` using `!bin/rake` if not already and ensure that the shebang has a format as follows:
+* Copy from the build directory `lib` to the source `lib`
+* If the gem installs any executables like `rake` in `bin` ensure that the shebang has a format as follows:
 
 ```bash
 #!/usr/bin/env bash

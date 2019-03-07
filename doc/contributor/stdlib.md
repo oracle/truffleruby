@@ -173,10 +173,10 @@ gem list | grep default:
 gems/bundled_gems
 ```
 
-* `did_you_mean` 1.1.0 (helper to suggest method names on method missing)
-* `minitest` 5.10.1 (test framework)
-* `net-telnet` 0.1.1
-* `power_assert` 0.4.1
-* `rake` 12.0.0 (hybrid bundled gem and standard library)
-* `test-unit` 3.2.3 (test framework)
-* `xmlrpc` 0.2.1 (RPC using XML)
+* `did_you_mean` 1.3.0 (helper to suggest method names on method missing)
+* `minitest` 5.11.3 (test framework)
+* `net-telnet` 0.2.0
+* `power_assert` 1.1.3
+* `rake` 12.3.2 (hybrid bundled gem and standard library)
+* `test-unit` 3.2.9 (test framework)
+* `xmlrpc` 0.3.0 (RPC using XML)
