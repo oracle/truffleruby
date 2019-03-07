@@ -4656,7 +4656,23 @@ VALUE rb_current_receiver(void) {
 }
 
 int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optional, VALUE *values) {
-  rb_tr_error("rb_get_kwargs not implemented");
+  if (optional == -1) {
+    rb_tr_error("rb_get_kwargs with rest not implemented");
+  }
+
+  if (optional > 0) {
+    rb_tr_error("rb_get_kwargs with optional not implemented");
+  }
+
+  if (optional < 0) {
+    rb_tr_error("rb_get_kwargs with rest and optional not implemented");
+  }
+
+  for (int n = 0; n < required; n++) {
+    values[n] = rb_hash_fetch(keyword_hash, table[n]);
+  }
+
+  return required;
 }
 
 VALUE rb_extract_keywords(VALUE *orighash) {
