@@ -1242,12 +1242,11 @@ EOS
 
               gemserver_source = %w[--clear-sources --source http://localhost:8808]
 
-              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
-                'gem', 'install', *gemserver_source, '--no-document', 'bundler', '-v', bundler_version, '--backtrace')
-              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
-                'bundle', "_#{bundler_version}_", 'install', *install_flags)
-              run_ruby(environment, *args, '--exceptions.print_java=true', '-S',
-                'bundle', "_#{bundler_version}_", 'exec', 'rake')
+              run_ruby(environment, *args, '--exceptions.print_java=true',
+                '-Sbundle', 'install', '-V', *install_flags)
+              
+              run_ruby(environment, *args, '--exceptions.print_java=true',
+                '-Sbundle', 'exec', '-V', 'rake')
             end
           ensure
             FileUtils.remove_entry_secure temp_dir
