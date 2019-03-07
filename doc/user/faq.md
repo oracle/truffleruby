@@ -115,12 +115,12 @@ end
 ```
 
 As well as the instructions for running with GraalVM that are described in
-[Using GraalVM](using-graalvm.md), we'll also use the `--jvm.Dgraal.TraceTruffleCompilation=true`
+[Using GraalVM](using-graalvm.md), we'll also use the `--vm.Dgraal.TraceTruffleCompilation=true`
 to ask Truffle to tell us when it compiles something.
 
 ```
-$ ruby --jvm.Dgraal.TraceTruffleCompilation=true test.rb
-[truffle] opt done         block in <main> test.rb:1 <opt> <split-3a9ffa1b>         |ASTSize       8/    8 |Time   103(  99+4   )ms |DirectCallNodes I    0/D    0 |GraalNodes    24/    3 |CodeSize           69 |CodeAddress 0x11245cf50 |Source   ../test.rb:1 
+$ ruby --vm.Dgraal.TraceTruffleCompilation=true test.rb
+[truffle] opt done         block in <main> test.rb:1 <opt> <split-3a9ffa1b>         |ASTSize       8/    8 |Time   103(  99+4   )ms |DirectCallNodes I    0/D    0 |GraalNodes    24/    3 |CodeSize           69 |CodeAddress 0x11245cf50 |Source   ../test.rb:1
 ```
 
 Here you can see that Truffle has decided to use Graal to compile the block of

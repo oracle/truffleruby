@@ -77,7 +77,7 @@ describe "The launcher" do
 
   it "preserve spaces in options" do
     out = ruby_exe("print Truffle::System.get_java_property('foo')",
-                   options: (TruffleRuby.native? ? '--native.' : '--jvm.') + 'Dfoo="value with spaces"')
+                   options: '--vm.Dfoo="value with spaces"')
     $?.success?.should == true
     out.should == "value with spaces"
   end
@@ -118,39 +118,26 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
-  guard -> { !TruffleRuby.native? } do
-    it "takes options from system properties set on the command line using --jvm" do
-      out = ruby_exe("puts $VERBOSE", options: "--jvm.Dpolyglot.ruby.verbose=true")
-      $?.success?.should == true
-      out.should == "true\n"
-    end
-  end
-
-  guard -> { TruffleRuby.native? } do
-    it "takes options from system properties set on the command line using --native" do
-      out = ruby_exe("puts $VERBOSE", options: "--native.Dpolyglot.ruby.verbose=true")
-      $?.success?.should == true
-      out.should == "true\n"
-    end
+  it "takes options from system properties set on the command line using --vm" do
+    out = ruby_exe("puts $VERBOSE", options: "--vm.Dpolyglot.ruby.verbose=true")
+    $?.success?.should == true
+    out.should == "true\n"
   end
 
   it "prioritises options on the command line over system properties" do
-    prefix = TruffleRuby.native? ? 'native' : 'jvm'
-    out = ruby_exe("puts $VERBOSE", options: "--#{prefix}.Dpolyglot.ruby.verbose=nil -W2")
+    out = ruby_exe("puts $VERBOSE", options: '--vm.Dpolyglot.ruby.verbose=nil -W2')
     $?.success?.should == true
     out.should == "true\n"
   end
 
   guard -> { !TruffleRuby.native? } do
-    ['--jvm.classpath=',
-     '--jvm.cp='
+    ['--vm.classpath=',
+     '--vm.cp='
     ].each do |option|
-      guard_not -> { option.start_with?('-J') and graalvm_bash_launcher? } do
-        it "'#{option}' adds the jar" do
-          out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
-          $?.success?.should == true
-          out.lines[0].should include(":does-not-exist.jar")
-        end
+      it "'#{option}' adds the jar" do
+        out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
+        $?.success?.should == true
+        out.lines[0].should include(":does-not-exist.jar")
       end
     end
   end
@@ -291,10 +278,9 @@ describe "The launcher" do
 
   guard -> { TruffleRuby.graal? } do
     it "applies Truffle options" do
-      prefix = TruffleRuby.native? ? '--native.' : '--jvm.'
       options = [
-        "#{prefix}Dgraal.TraceTruffleCompilation=true",
-        "#{prefix}Dgraal.TruffleBackgroundCompilation=false",
+        "--vm.Dgraal.TraceTruffleCompilation=true",
+        "--vm.Dgraal.TruffleBackgroundCompilation=false",
       ].join(" ")
       out = ruby_exe("2000.times {}", options: options, args: "2>&1")
       out.should include("[truffle] opt done")

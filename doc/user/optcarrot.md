@@ -11,13 +11,13 @@ You will need `SDL2` to be installed, then you can play Lan Master  with the
 following command.
 
 ```
-$ path/to/graalvm/bin/ruby bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
+$ path/to/graalvm/bin/ruby --jvm bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 On macOS, you might need an extra flag for the GUI to appear:
 
 ```
-$ path/to/graalvm/bin/ruby --jvm.XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
+$ path/to/graalvm/bin/ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 If you have a local checkout of TruffleRuby, you can also use the version of

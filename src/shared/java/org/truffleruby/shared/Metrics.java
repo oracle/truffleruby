@@ -44,8 +44,8 @@ public class Metrics {
     }
 
     /**
-     * Assigned here so the property is read after processing the --native.D... options. It needs to
-     * be called in each classloader using the Metrics class.
+     * Assigned here so the property is read after processing the --vm.D... options on SVM.
+     * It needs to be called in each classloader using the Metrics class.
      */
     public static void initializeOption() {
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");

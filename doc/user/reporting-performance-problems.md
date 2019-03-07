@@ -34,12 +34,12 @@ tool, like `benchmark-ips` described below, to run the benchmark, or the slower
 warmup time will mean that you don't see TruffleRuby's true performance in the
 benchmark. If you want to write simpler benchmarks that just run a while loop
 with a simple timer (which we would not recommend anyway), then use the default
-native mode so that startup and warmup time is shorter. 
+native mode so that startup and warmup time is shorter.
 
 ## How to check for basic performance problems
 
 If you are examining the performance of TruffleRuby, we would recommend that you
-always run with the `--jvm.Dgraal.TraceTruffleCompilation=true` flag. If you see
+always run with the `--vm.Dgraal.TraceTruffleCompilation=true` flag. If you see
 compilation failures or repeated compilation of the same methods, this is an
 indicator that something is not working as intended and you may need to examine
 why, or ask us to help you do so. If you don't run with this flag Truffle will
@@ -58,13 +58,13 @@ A benchmark could look like this:
 require 'benchmark/ips'
 
 Benchmark.ips do |x|
-  
+
   x.iterations = 3
-  
+
   x.report("adding") do
     14 + 2
   end
-  
+
 end
 ```
 

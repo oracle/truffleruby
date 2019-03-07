@@ -5,10 +5,9 @@ slow:The launcher prints an error for an unknown option
 slow:The launcher StringArray option appends multiple options
 slow:The launcher StringArray option parses ,
 slow:The launcher StringArray option parses , respecting escaping
-slow:The launcher takes options from system properties set on the command line using --jvm
-slow:The launcher takes options from system properties set on the command line using --native
-slow:The launcher '--jvm.classpath=' adds the jar
-slow:The launcher '--jvm.cp=' adds the jar
+slow:The launcher takes options from system properties set on the command line using --vm
+slow:The launcher '--vm.classpath=' adds the jar
+slow:The launcher '--vm.cp=' adds the jar
 slow:The launcher enables deterministic hashing if --hashing.deterministic is set
 slow:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 slow:The launcher 'irb' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
