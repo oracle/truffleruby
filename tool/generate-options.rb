@@ -99,7 +99,7 @@ options.each do |option|
   end
 end
 
-File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(<<JAVA).result)
+File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(<<'JAVA').result)
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -116,6 +116,7 @@ package org.truffleruby.options;
 import javax.annotation.Generated;
 
 import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -129,8 +130,16 @@ public class Options {
 
     <% options.each do |o| %>public final <%= o.type %> <%= o.constant %>;
     <% end %>
-    Options(OptionsBuilder builder, Env env) {
-    <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %><%= o.boxed_type %>.class.cast(builder.getOrDefault(OptionsCatalog.<%= o.constant %><%= o.reference_default ? ', ' + o.default : '' %>));
+    public Options(Env env, OptionValues options) {
+    <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %><%=
+      key = "OptionsCatalog.#{o.constant}_KEY"
+      value = if o.reference_default
+        "options.hasBeenSet(#{key}) ? options.get(#{key}) : #{o.default}"
+      else
+        "options.get(#{key})"
+      end
+      o.env_condition ? "(#{value});" : "#{value};"
+      %>
     <% end %>}
 
     public Object fromDescriptor(OptionDescriptor descriptor) {

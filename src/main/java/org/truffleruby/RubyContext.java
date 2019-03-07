@@ -65,7 +65,6 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
-import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
@@ -388,10 +387,7 @@ public class RubyContext {
 
     private Options createOptions(TruffleLanguage.Env env) {
         Metrics.printTime("before-options");
-        final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getOptions()); // SDK options
-
-        final Options options = optionsBuilder.build(env);
+        final Options options = new Options(env, env.getOptions());
 
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
