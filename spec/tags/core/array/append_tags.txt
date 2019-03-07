@@ -1,4 +1,0 @@
-fails:Array#append appends the arguments to the array
-fails:Array#append isn't confused by previous shift
-fails:Array#append properly handles recursive arrays
-fails:Array#append raises a RuntimeError on a frozen array

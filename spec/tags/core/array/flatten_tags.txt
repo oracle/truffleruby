@@ -1,1 +1,0 @@
-fails:Array#flatten with a non-Array object in the Array calls respond_to_missing?(:to_ary, true) to try coercing

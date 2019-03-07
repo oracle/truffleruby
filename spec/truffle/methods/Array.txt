@@ -8,6 +8,7 @@
 []
 []=
 any?
+append
 assoc
 at
 bsearch
@@ -24,6 +25,7 @@ cycle
 delete
 delete_at
 delete_if
+difference
 dig
 drop
 drop_while
@@ -33,6 +35,8 @@ empty?
 eql?
 fetch
 fill
+filter
+filter!
 find_index
 first
 flatten
@@ -54,6 +58,7 @@ min
 pack
 permutation
 pop
+prepend
 product
 push
 rassoc
@@ -88,6 +93,7 @@ to_ary
 to_h
 to_s
 transpose
+union
 uniq
 uniq!
 unshift
