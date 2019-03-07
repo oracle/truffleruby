@@ -994,7 +994,9 @@ module Commands
       test_module = MRI_TEST_MODULES[arg]
       if test_module
         patterns.push(*test_module[:include])
-        excluded_files.push(*test_module[:exclude])
+        excluded_files.concat test_module[:exclude].to_a.flat_map { |pattern|
+          Dir.glob("#{MRI_TEST_PREFIX}/#{pattern}").sort.map { |path| mri_test_name(path) }
+        }
       elsif arg.start_with?('-')
         mri_args.push arg
       else
