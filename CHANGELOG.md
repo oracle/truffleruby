@@ -14,6 +14,7 @@ Changes:
 * `-Xoption=value` has been removed - use `--option=value` instead.
 * The `-X` option now works as in MRI.
 * `--help:debug` is now `--help:internal`.
+* `--jvm.` and `--native.` have been deprecated, use `--vm.` instead to pass VM options.
 
 # 1.0 RC 13
 

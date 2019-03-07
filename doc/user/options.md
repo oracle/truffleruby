@@ -69,7 +69,7 @@ Additionally set `--help:expert` and `--help:internal` to see those categories o
 options. All options all experimental and subject to change at any time.
 
 Options can also be set as JVM system properties, where they have a prefix
-`polyglot.ruby.`. For example `--jvm.Dpolyglot.ruby.cexts.remap=true`, or via
+`polyglot.ruby.`. For example `--vm.Dpolyglot.ruby.cexts.remap=true`, or via
 any other way of setting JVM system properties. Finally, options can be set as
 Graal-SDK polyglot API configuration options.
 
@@ -85,13 +85,13 @@ options in the same way it stops processing of Ruby arguments.
 
 ## VM options
 
-To set options in the underlying VM, use `--native.` in the native
-configuration, and `--jvm.` in the JVM configuration.
+To set options in the underlying VM, use `--vm.`, valid for both the native
+configuration and the JVM configuration.
 
-For example `--native.Dsystem_property=value` or `--jvm.ea`.
+For example `--vm.Dsystem_property=value` or `--vm.ea`.
 
 To set the classpath, use the `=` notation, rather than two separate arguments.
-For example `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar`.
+For example `--vm.cp=lib.jar` or `--vm.classpath=lib.jar`.
 
 ## Other binary switches
 
