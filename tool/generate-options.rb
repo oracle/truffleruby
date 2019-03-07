@@ -181,8 +181,8 @@ public class OptionsCatalog {
             .help("<%= o.description %>")
             .category(OptionCategory.<%= o.category %>)
             .build();
-    <% end %>
-    public static OptionDescriptor fromName(String name) {
+
+    <% end %>public static OptionDescriptor fromName(String name) {
         switch (name) {
             <% options.each do |o| %>case "ruby.<%= o.name %>":
                 return <%= o.constant %>;
