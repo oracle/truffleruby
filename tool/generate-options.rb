@@ -88,11 +88,9 @@ options.each do |option|
   options_map[option.constant] = option
   if option.reference_default
     option.default_value = option.reference_default.map { |r|
-      if r.start_with?('!')
-        '!' + options_map[r[1..-1]].default_value
-      else
-        options_map[r].default_value
-      end
+      raise r unless r =~ /^(!?)(.+)$/
+      prefix, name = $1, $2
+      "#{prefix}#{options_map[name].constant}_KEY.getDefaultValue()"
     }.join(' || ')
   else
     option.default_value = option.default
