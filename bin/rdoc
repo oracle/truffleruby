@@ -17,6 +17,8 @@ exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 #!ruby
 # ^ marks start of Ruby interpretation
 
+# from libexec/rdoc
+
 #
 #  RDoc: Documentation tool for source code
 #        (see lib/rdoc/rdoc.rb for more information)

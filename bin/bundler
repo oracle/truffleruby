@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# ignored by Ruby interpreter
+
+# get the absolute path of the executable and resolve symlinks
+SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
+while [ -h "$SELF_PATH" ]; do
+  # 1) cd to directory of the symlink
+  # 2) cd to the directory of where the symlink points
+  # 3) get the pwd
+  # 4) append the basename
+  DIR=$(dirname "$SELF_PATH")
+  SYM=$(readlink "$SELF_PATH")
+  SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
+done
+exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
+
+#!ruby
+# ^ marks start of Ruby interpretation
+
+# from libexec/bundler
+
+# Exit cleanly from an early interrupt
+Signal.trap("INT") do
+  Bundler.ui.debug("\n#{caller.join("\n")}") if defined?(Bundler)
+  exit 1
+end
+
+require "bundler"
+# Check if an older version of bundler is installed
+$LOAD_PATH.each do |path|
+  next unless path =~ %r{/bundler-0\.(\d+)} && $1.to_i < 9
+  err = String.new
+  err << "Looks like you have a version of bundler that's older than 0.9.\n"
+  err << "Please remove your old versions.\n"
+  err << "An easy way to do this is by running `gem cleanup bundler`."
+  abort(err)
+end
+
+require "bundler/friendly_errors"
+Bundler.with_friendly_errors do
+  require "bundler/cli"
+
+  # Allow any command to use --help flag to show help for that command
+  help_flags = %w[--help -h]
+  help_flag_used = ARGV.any? {|a| help_flags.include? a }
+  args = help_flag_used ? Bundler::CLI.reformatted_help_args(ARGV) : ARGV
+
+  Bundler::CLI.start(args, :debug => true)
+end

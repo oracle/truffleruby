@@ -384,6 +384,8 @@ suite = {
                 "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
                 "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
                 "bin/": [
+                    "file:bin/bundle",
+                    "file:bin/bundler",
                     "file:bin/gem",
                     "file:bin/irb",
                     "file:bin/rake",
