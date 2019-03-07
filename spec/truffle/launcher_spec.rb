@@ -30,7 +30,6 @@ describe "The launcher" do
                 rdoc:        /^6\.1\.0$/,
                 ri:          /^ri 6\.1\.0$/,
                 ruby:        /truffleruby .* like ruby 2\.6\.1/,
-                testrb:      [/^testrb: version unknown$/, true],
                 truffleruby: /truffleruby .* like ruby 2\.6\.1/ }
 
   launchers.each do |launcher, (test, skip_success)|

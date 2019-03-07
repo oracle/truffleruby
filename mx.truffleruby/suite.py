@@ -389,7 +389,6 @@ suite = {
                     "file:bin/rake",
                     "file:bin/rdoc",
                     "file:bin/ri",
-                    "file:bin/testrb",
                 ],
                 "doc/": [
                     "file:doc",
