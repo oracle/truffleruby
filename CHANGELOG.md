@@ -1,5 +1,7 @@
 # 1.0 RC 14
 
+Updated to Ruby 2.6.1.
+
 Bug fixes:
 
 * Implement `rb_io_wait_writable` (#1586).
