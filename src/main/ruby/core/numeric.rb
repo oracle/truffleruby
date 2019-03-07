@@ -278,9 +278,9 @@ class Numeric
   end
   private :bit_coerce
 
-  def redo_coerced(meth, right)
+  def redo_coerced(meth, right, *extra)
     b, a = math_coerce(right)
-    a.__send__ meth, b
+    a.__send__ meth, b, *extra
   end
   private :redo_coerced
 

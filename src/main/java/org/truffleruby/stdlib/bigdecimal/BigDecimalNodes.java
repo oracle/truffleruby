@@ -84,10 +84,7 @@ public abstract class BigDecimalNodes {
             return addSpecial(frame, a, b, 0);
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(a)",
-                "!isRubyBigDecimal(b)"
-        })
+        @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object addCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
@@ -115,6 +112,12 @@ public abstract class BigDecimalNodes {
         protected Object addSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
             return super.addSpecial(frame, a, b, precision);
         }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object addCoerced(DynamicObject a, Object b, int precision,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("add"), b, precision);
+        }
     }
 
     @CoreMethod(names = "-", required = 1)
@@ -136,10 +139,7 @@ public abstract class BigDecimalNodes {
             return subSpecial(frame, a, b, 0);
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(a)",
-                "!isRubyBigDecimal(b)"
-        })
+        @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object subCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
@@ -166,6 +166,12 @@ public abstract class BigDecimalNodes {
         })
         public Object subSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
             return super.subSpecial(frame, a, b, precision);
+        }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object subCoerced(DynamicObject a, Object b, int precision,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("sub"), b, precision);
         }
     }
 
@@ -252,6 +258,12 @@ public abstract class BigDecimalNodes {
         public Object multSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b) {
             return multSpecial(frame, a, b, 0);
         }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object multCoerced(DynamicObject a, Object b,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
+        }
     }
 
     @CoreMethod(names = "mult", required = 2, lowerFixnum = 2)
@@ -293,6 +305,12 @@ public abstract class BigDecimalNodes {
         public Object multSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
             return super.multSpecial(frame, a, b, precision);
         }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object multCoerced(DynamicObject a, Object b, int precision,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("mult"), b, precision);
+        }
     }
 
     @CoreMethod(names = { "/", "quo" }, required = 1)
@@ -329,6 +347,12 @@ public abstract class BigDecimalNodes {
         })
         public Object divSpecialSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b) {
             return divSpecialSpecial(frame, a, b, 0);
+        }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object divCoerced(DynamicObject a, Object b,
+                                  @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
     }
 
@@ -469,6 +493,18 @@ public abstract class BigDecimalNodes {
         public Object divSpecialSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
             return super.divSpecialSpecial(frame, a, b, precision);
         }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object divCoerced(DynamicObject a, Object b, NotProvided precision,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b);
+        }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object divCoerced(DynamicObject a, Object b, int precision,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b, precision);
+        }
     }
 
     @CoreMethod(names = "divmod", required = 1)
@@ -568,6 +604,12 @@ public abstract class BigDecimalNodes {
             throw new UnsupportedOperationException("unreachable code branch");
         }
 
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object divmodCoerced(DynamicObject a, Object b,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("divmod"), b);
+        }
+
     }
 
     @CoreMethod(names = "remainder", required = 1)
@@ -613,6 +655,12 @@ public abstract class BigDecimalNodes {
             } else {
                 return createBigDecimal(frame, BigDecimalType.NAN);
             }
+        }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object remainderCoerced(DynamicObject a, Object b,
+                                    @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("remainder"), b);
         }
     }
 
@@ -690,6 +738,12 @@ public abstract class BigDecimalNodes {
             }
 
             throw new UnsupportedOperationException("unreachable code branch");
+        }
+
+        @Specialization(guards = "!isRubyBigDecimal(b)")
+        public Object moduloCoerced(DynamicObject a, Object b,
+                                       @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", getSymbol("modulo"), b);
         }
     }
 
@@ -1062,15 +1116,10 @@ public abstract class BigDecimalNodes {
             return aCompare.compareTo(bCompare);
         }
 
-        @Specialization(guards = "isNil(b)")
-        public Object compareNil(DynamicObject a, DynamicObject b) {
-            return nil();
-        }
-
-        @Specialization(guards = { "!isRubyBigDecimal(b)", "!isNil(b)" })
+        @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object compareCoerced(DynamicObject a, DynamicObject b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
         @TruffleBoundary
