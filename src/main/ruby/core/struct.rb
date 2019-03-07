@@ -103,7 +103,21 @@ class Struct
   end
 
   def to_h
-    Hash[each_pair.to_a]
+    h = {}
+    each_pair.each_with_index do |elem, i|
+      elem = yield(elem) if block_given?
+      unless elem.respond_to?(:to_ary)
+        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+      end
+
+      ary = elem.to_ary
+      if ary.size != 2
+        raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
+      end
+
+      h[ary[0]] = ary[1]
+    end
+    h
   end
 
   def to_s

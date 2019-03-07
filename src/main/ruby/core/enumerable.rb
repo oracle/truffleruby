@@ -283,13 +283,14 @@ module Enumerable
   def to_h(*arg)
     h = {}
     each_with_index(*arg) do |elem, i|
+      elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
         raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
       end
 
       ary = elem.to_ary
       if ary.size != 2
-        raise ArgumentError, "wrong array length at #{i} (expected 2, was #{ary.size})"
+        raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
       end
 
       h[ary[0]] = ary[1]

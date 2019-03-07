@@ -260,9 +260,23 @@ module Truffle
     end
 
     def to_hash
-      hsh = {}
-      each { |k, v| hsh[k] = v }
-      hsh
+      h = {}
+      each_with_index do |elem|
+        if block_given?
+          elem = yield(elem)
+        end
+        unless elem.respond_to?(:to_ary)
+          raise TypeError, "wrong element type #{elem.class} (expected array)"
+        end
+
+        ary = elem.to_ary
+        if ary.size != 2
+          raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
+        end
+
+        h[ary[0]] = ary[1]
+      end
+      h
     end
 
     alias_method :to_h, :to_hash

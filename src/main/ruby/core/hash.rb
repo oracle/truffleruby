@@ -298,7 +298,9 @@ class Hash
   end
 
   def to_h
-    if instance_of? Hash
+    if block_given?
+      super
+    elsif instance_of? Hash
       self
     else
       Hash.allocate.replace(to_hash)
