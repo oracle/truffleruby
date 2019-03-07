@@ -52,7 +52,8 @@ public class Parser extends RubyObject {
     private boolean symbolizeNames;
     private RubyClass objectClass;
     private RubyClass arrayClass;
-    private RubyHash matchString;
+    private RubyClass decimalClass;
+    private RubyHash match_string;
 
     private static final int DEFAULT_MAX_NESTING = 100;
 
@@ -131,6 +132,10 @@ public class Parser extends RubyObject {
      * <dt><code>:array_class</code>
      * <dd>Defaults to Array.
      *
+     * <dt><code>:decimal_class</code>
+     * <dd>Specifies which class to use instead of the default (Float) when
+     * parsing decimal numbers. This class must accept a single string argument
+     * in its constructor.
      * </dl>
      */
     @JRubyMethod(name = "new", required = 1, optional = 1, meta = true)
@@ -157,7 +162,8 @@ public class Parser extends RubyObject {
         this.createAdditions = opts.getBool("create_additions", false);
         this.objectClass     = opts.getClass("object_class", runtime.getHash());
         this.arrayClass      = opts.getClass("array_class", runtime.getArray());
-        this.matchString    = opts.getHash("match_string");
+        this.decimalClass    = opts.getClass("decimal_class", null);
+        this.match_string    = opts.getHash("match_string");
 
         if(symbolizeNames && createAdditions) {
           throw runtime.newArgumentError(
@@ -489,13 +495,13 @@ public class Parser extends RubyObject {
 
             return p;
         }
-        
+
         RubyInteger createInteger(int p, int new_p) {
             Ruby runtime = getRuntime();
             ByteList num = absSubSequence(p, new_p);
             return bytesToInum(runtime, num);
         }
-        
+
         RubyInteger bytesToInum(Ruby runtime, ByteList num) {
             return runtime.is1_9() ?
                     ConvertBytes.byteListToInum19(runtime, num, 10, true) :
@@ -525,7 +531,9 @@ public class Parser extends RubyObject {
                 res.update(null, p);
                 return;
             }
-            RubyFloat number = createFloat(p, new_p);
+            IRubyObject number = parser.decimalClass == null ?
+                createFloat(p, new_p) : createCustomDecimal(p, new_p);
+
             res.update(number, new_p + 1);
             return;
         }
@@ -540,14 +548,21 @@ public class Parser extends RubyObject {
             if (cs < JSON_float_first_final) {
                 return -1;
             }
-            
+
             return p;
         }
-        
+
         RubyFloat createFloat(int p, int new_p) {
             Ruby runtime = getRuntime();
             ByteList num = absSubSequence(p, new_p);
             return RubyFloat.newFloat(runtime, dc.parse(num, true, runtime.is1_9()));
+        }
+
+        IRubyObject createCustomDecimal(int p, int new_p) {
+            Ruby runtime = getRuntime();
+            ByteList num = absSubSequence(p, new_p);
+            IRubyObject numString = runtime.newString(num.toString());
+            return parser.decimalClass.callMethod(context, "new", numString);
         }
 
         %%{
@@ -616,7 +631,7 @@ public class Parser extends RubyObject {
                 }
             }
 
-            if (cs >= JSON_string_first_final && result != null) {                
+            if (cs >= JSON_string_first_final && result != null) {
                 if (result instanceof RubyString) {
                   ((RubyString)result).force_encoding(context, info.utf8.get());
                 }
@@ -734,7 +749,7 @@ public class Parser extends RubyObject {
                 fhold;
                 fbreak;
             }
-            
+
             pair      = ignore* begin_name >parse_name ignore* name_separator
               ignore* begin_value >parse_value;
             next_pair = ignore* value_separator pair;

@@ -1,5 +1,8 @@
 # Changes
 
+## 2017-04-18 (2.1.0)
+ * Allow passing of `decimal_class` option to specify a class as which to parse
+   JSON float numbers.
 ## 2017-03-23 (2.0.4)
  * Raise exception for incomplete unicode surrogates/character escape
    sequences. This problem was reported by Daniel Gollahon (dgollahon).

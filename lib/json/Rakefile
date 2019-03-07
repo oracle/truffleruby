@@ -257,7 +257,7 @@ if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
   end
 
   desc "Testing library (jruby)"
-  task :test_ext => [ :create_jar, :check_env, :do_test_ext ]
+  task :test_ext => [ :check_env, :create_jar, :do_test_ext ]
 
   UndocumentedTestTask.new do |t|
     t.name = 'do_test_ext'
@@ -331,7 +331,7 @@ else
   end
 
   desc "Testing library (extension)"
-  task :test_ext => [ :compile, :check_env, :do_test_ext ]
+  task :test_ext => [ :check_env, :compile, :do_test_ext ]
 
   UndocumentedTestTask.new do |t|
     t.name = 'do_test_ext'
