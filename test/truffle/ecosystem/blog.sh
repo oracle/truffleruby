@@ -28,7 +28,6 @@ function truffleruby {
 set -xe
 
 gem_test_pack="$(jt gem-test-pack)"
-truffleruby gem install "$gem_test_pack/gem-cache/bundler-1.16.5.gem" --local --no-document
 
 cd test/truffle/ecosystem/blog
 

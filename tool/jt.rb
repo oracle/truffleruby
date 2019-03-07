@@ -1217,7 +1217,6 @@ EOS
       %w[--deployment]
     ]
     gems = %w[algebrick]
-    bundler_version = '1.16.5'
 
     gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-d', "#{gem_test_pack}/gems")
     begin
