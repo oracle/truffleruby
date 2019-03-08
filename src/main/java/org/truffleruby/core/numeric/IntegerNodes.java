@@ -858,9 +858,21 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        public Object compare(Object a, Object b,
+        public Object compare(int a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_no_error", b);
+        }
+
+        @Specialization(guards = "!isRubyNumber(b)")
+        public Object compare(long a, Object b,
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_no_error", b);
+        }
+
+        @Specialization(guards = "!isRubyNumber(b)")
+        public Object compare(DynamicObject a, Object b,
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare", coreStrings().SPACESHIP.getSymbol(), b);
         }
 
     }
@@ -1742,17 +1754,22 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public double pow(DynamicObject a, double b) {
-            return powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
+        public Object pow(DynamicObject a, double b) {
+            double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
+            if (Double.isNaN(doublePow)) {
+                return FAILURE;
+            } else {
+                return doublePow;
+            }
         }
 
         @Specialization(guards = "isRubyBignum(b)")
-        public Void pow(DynamicObject a, DynamicObject b) {
-            throw new UnsupportedOperationException();
+        public Object pow(DynamicObject a, DynamicObject b) {
+            return FAILURE;
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object pow(long a, Object b) {
+        public Object pow(Object a, Object b) {
             return FAILURE;
         }
 

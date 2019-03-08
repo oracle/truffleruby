@@ -1,4 +1,0 @@
-fails:Integer#floor returns self if passed a precision of zero
-fails:Integer#floor returns itself as a float if passed a positive precision
-fails:Integer#floor precision argument specified as part of the floor method is negative returns the largest integer less than self with at least precision.abs trailing zeros
-fails:Integer#floor returns itself if passed a positive precision

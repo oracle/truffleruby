@@ -1,4 +1,0 @@
-fails:Integer#anybits? returns true iff all the bits of the argument are set in the receiver
-fails:Integer#anybits? handles negative values using two's complement notation
-fails:Integer#anybits? coerces the rhs using to_int
-fails:Integer#anybits? raises a TypeError when given a non-Integer

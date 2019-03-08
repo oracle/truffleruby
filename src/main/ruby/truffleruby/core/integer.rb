@@ -40,8 +40,6 @@ Object.deprecate_constant :Fixnum, :Bignum
 class Integer < Numeric
 
   alias_method :truncate, :to_i
-  alias_method :ceil, :to_i
-  alias_method :floor, :to_i
 
   # Have a copy in Integer of the Numeric version, as MRI does
   public :remainder
@@ -49,10 +47,12 @@ class Integer < Numeric
   def **(o)
     Truffle.primitive :integer_pow
 
-    if o.is_a?(Float) && self < 0 && o != o.round
+    if (o.is_a?(Float) || o.is_a?(Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
     elsif o.is_a?(Integer) && o < 0
       return Rational.new(self, 1) ** o
+    elsif o.is_a?(Integer) && o > 0
+      return self ** o.to_f
     end
 
     redo_coerced :**, o
@@ -61,6 +61,22 @@ class Integer < Numeric
   def [](index)
     index = Truffle::Type.coerce_to_int(index)
     index < 0 ? 0 : (self >> index) & 1
+  end
+
+  def allbits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    return (self & mask) == mask
+  end
+
+  def anybits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    return (self & mask) != 0
+  end
+
+  def ceil(precision = 0)
+    return self unless precision < 0
+    x = 10 ** precision.abs
+    ((self / x) + 1) * x
   end
 
   def coerce(other)
@@ -86,6 +102,23 @@ class Integer < Numeric
     else
       redo_coerced :fdiv, n
     end
+  end
+
+  def floor(precision = 0)
+    return self unless precision < 0
+    x = 10 ** precision.abs
+    (self / x) * x
+  end
+
+  def nobits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    return (self & mask) == 0
+  end
+
+  def pow(e, m=undefined)
+    return self ** e if undefined.equal?(m)
+    raise TypeError, "2nd argument not allowed unless all arguments are integers" unless Truffle::Type.object_kind_of?(m, Integer)
+    (self ** e) % m
   end
 
   def times
