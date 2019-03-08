@@ -74,6 +74,7 @@ def miniruby_for_building_cexts(args):
     jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
     mx_binary = join(mx._mx_home, 'mx')
     options = [
+        '--experimental-options',
         '--home=' + root,
         '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
         '--disable-gems'
