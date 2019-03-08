@@ -219,7 +219,7 @@ class Hash
     end
 
     return default unless undefined.equal?(default)
-    raise KeyError, "key #{key} not found"
+    raise KeyError.new("key #{key} not found", :receiver => self, :key => key)
   end
 
   def fetch_values(*keys, &block)
@@ -242,22 +242,24 @@ class Hash
     self
   end
 
-  def merge!(other)
+  def merge!(*others)
     Truffle.check_frozen
 
-    other = Truffle::Type.coerce_to other, Hash, :to_hash
+    others.each do |other|
+      other = Truffle::Type.coerce_to other, Hash, :to_hash
 
-    if block_given?
-      other.each_pair do |key,value|
-        if key? key
-          __store__ key, yield(key, self[key], value)
-        else
+      if block_given?
+        other.each_pair do |key,value|
+          if key? key
+            __store__ key, yield(key, self[key], value)
+          else
+            __store__ key, value
+          end
+        end
+      else
+        other.each_pair do |key,value|
           __store__ key, value
         end
-      end
-    else
-      other.each_pair do |key,value|
-        __store__ key, value
       end
     end
     self
@@ -283,6 +285,8 @@ class Hash
     selected
   end
 
+  alias_method :filter, :select
+
   def select!
     return to_enum(:select!) { size } unless block_given?
 
@@ -296,6 +300,8 @@ class Hash
 
     self
   end
+
+  alias_method :filter!, :select!
 
   def to_h
     if block_given?

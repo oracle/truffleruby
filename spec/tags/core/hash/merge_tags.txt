@@ -1,4 +1,2 @@
 fails:Hash#merge accepts multiple hashes
 fails:Hash#merge accepts zero arguments and returns self
-fails:Hash#merge! accepts multiple hashes
-fails:Hash#merge! accepts zero arguments
