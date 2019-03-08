@@ -9,14 +9,11 @@
  */
 package org.truffleruby;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.services.scriptengine.TruffleRubyScriptEngine;
 import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
 import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.options.OptionsCatalog;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -31,16 +28,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class JSR223InteropTest {
-
-    @Before
-    public void before() {
-        System.setProperty("polyglot." + OptionsCatalog.HOME.getName(), System.getProperty("user.dir"));
-    }
-
-    @After
-    public void after() {
-        System.clearProperty("polyglot." + OptionsCatalog.HOME.getName());
-    }
 
     @Test
     public void testVersion() {
