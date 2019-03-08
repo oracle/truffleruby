@@ -60,6 +60,7 @@ public abstract class BucketsStrategy {
 
             final int index = BucketsStrategy.getBucketIndex(hashed, newEntries.length);
             Entry bucketEntry = newEntries[index];
+            boolean duplicateKey = false;
 
             if (bucketEntry == null) {
                 newEntries[index] = newEntry;
@@ -72,23 +73,7 @@ public abstract class BucketsStrategy {
                         bucketEntry.setValue(entry.getValue());
 
                         actualSize--;
-
-                        if (bucketEntry.getPreviousInSequence() != null) {
-                            bucketEntry.getPreviousInSequence().setNextInSequence(bucketEntry.getNextInSequence());
-                        }
-
-                        if (bucketEntry.getNextInSequence() != null) {
-                            bucketEntry.getNextInSequence().setPreviousInSequence(bucketEntry.getPreviousInSequence());
-                        }
-
-                        if (bucketEntry == lastInSequence) {
-                            lastInSequence = bucketEntry.getPreviousInSequence();
-                        }
-
-                        // We wasted by allocating newEntry, but never mind
-                        newEntry = bucketEntry;
-                        previousInBucket = null;
-
+                        duplicateKey = true;
                         break;
                     }
 
@@ -96,23 +81,25 @@ public abstract class BucketsStrategy {
                     bucketEntry = bucketEntry.getNextInLookup();
                 }
 
-                if (previousInBucket != null) {
+                if (!duplicateKey && previousInBucket != null) {
                     previousInBucket.setNextInLookup(newEntry);
                 }
             }
 
-            if (firstInSequence == null) {
-                firstInSequence = newEntry;
+            if (!duplicateKey) {
+                if (firstInSequence == null) {
+                    firstInSequence = newEntry;
+                }
+
+                if (lastInSequence != null) {
+                    lastInSequence.setNextInSequence(newEntry);
+                }
+
+                newEntry.setPreviousInSequence(lastInSequence);
+                newEntry.setNextInSequence(null);
+
+                lastInSequence = newEntry;
             }
-
-            if (lastInSequence != null) {
-                lastInSequence.setNextInSequence(newEntry);
-            }
-
-            newEntry.setPreviousInSequence(lastInSequence);
-            newEntry.setNextInSequence(null);
-
-            lastInSequence = newEntry;
         }
 
         final DynamicObject nil = context.getCoreLibrary().getNil();
