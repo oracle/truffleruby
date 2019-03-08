@@ -242,6 +242,29 @@ class Hash
     self
   end
 
+  def merge(*others)
+    unless block_given?
+      current = self
+      others.each do |other|
+        other = Truffle::Type.coerce_to(other, Hash, :to_hash)
+        current = Truffle::HashOperations.hash_merge(current, other)
+      end
+    else
+      current = self.dup
+      others.each do |other|
+        other.each do |k, v|
+          other = Truffle::Type.coerce_to(other, Hash, :to_hash)
+          if current.include?(k)
+            current[k] = yield(k, current[k], v)
+          else
+            current[k] = v
+          end
+        end
+      end
+    end
+    current
+  end
+      
   def merge!(*others)
     Truffle.check_frozen
 
@@ -465,10 +488,6 @@ class Hash
       Truffle::Type.check_arity(args.size, 1, 1)
       proc_hash[args[0]]
     end
-  end
-
-  def merge_fallback(other, &block)
-    merge(Truffle::Type.coerce_to other, Hash, :to_hash, &block)
   end
 
   def transform_values
