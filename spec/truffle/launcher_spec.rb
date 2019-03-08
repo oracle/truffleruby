@@ -33,6 +33,14 @@ describe "The launcher" do
                 truffleruby: /truffleruby .* like ruby 2\.6\.1/ }
 
   launchers.each do |launcher, (test, skip_success)|
+    unless [:ruby, :truffleruby].include?(launcher)
+      it "'#{launcher}' runs as an -S command" do
+        out = ruby_exe(nil, options: "-S#{launcher} --version 2>&1")
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+    end
+
     extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
         split(File::PATH_SEPARATOR).
         each_with_index.
@@ -40,6 +48,12 @@ describe "The launcher" do
     bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
 
     bin_dirs.each do |name, bin_dir|
+      it "'#{launcher}' in `#{name}` directory runs" do
+        out = `#{bin_dir}/#{launcher} --version 2>&1`
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+
       it "'#{launcher}' in `#{name}` directory runs when symlinked" do
         require "tmpdir"
         # Use the system tmp dir to not be under the Ruby home dir
