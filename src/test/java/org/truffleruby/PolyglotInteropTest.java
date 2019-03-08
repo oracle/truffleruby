@@ -37,6 +37,7 @@ public class PolyglotInteropTest {
     @Test
     public void testCreateContextNoAccess() {
         try (Context polyglot = Context.newBuilder()
+                .allowExperimentalOptions(true)
                 .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .option(OptionsCatalog.NATIVE_PLATFORM.getName(), Boolean.FALSE.toString())
                 .build()) {
