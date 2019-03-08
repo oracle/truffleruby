@@ -7,7 +7,7 @@ do
   echo "$f"
   options=""
   if [ "$(basename "$f")" = "javascript.rb" ]; then
-    options="--single_threaded"
+    options="--experimental-options --single_threaded"
   fi
   jt ruby --no-core-load-path $options "$f"
 done
