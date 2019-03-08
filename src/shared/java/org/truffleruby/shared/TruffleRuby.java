@@ -9,8 +9,6 @@
  */
 package org.truffleruby.shared;
 
-import org.graalvm.polyglot.Engine;
-
 public class TruffleRuby {
 
     public static final String FORMAL_NAME = "TruffleRuby";
