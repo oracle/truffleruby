@@ -15,4 +15,3 @@ module Truffle
     end
   end
 end
-

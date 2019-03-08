@@ -264,7 +264,7 @@ class Hash
     end
     current
   end
-      
+
   def merge!(*others)
     Truffle.check_frozen
 
@@ -334,7 +334,7 @@ class Hash
     end
     res
   end
-  
+
   def to_h
     if block_given?
       super
