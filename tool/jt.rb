@@ -724,7 +724,7 @@ module Commands
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
-        vm_args << JEXCEPTION
+        vm_args << '--experimental-options' << JEXCEPTION
       when '--server'
         vm_args += %w[--instrumentation_server_port=8080]
       when '--infopoints'
