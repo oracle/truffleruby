@@ -54,6 +54,7 @@ select
 select!
 shift
 size
+slice
 store
 to_a
 to_h

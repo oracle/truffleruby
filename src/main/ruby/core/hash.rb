@@ -326,6 +326,15 @@ class Hash
 
   alias_method :filter!, :select!
 
+  def slice(*keys)
+    res = {}
+    keys.each do |k|
+      v = _get_or_undefined(k)
+      res[k] = v unless undefined.equal?(v)
+    end
+    res
+  end
+  
   def to_h
     if block_given?
       super
