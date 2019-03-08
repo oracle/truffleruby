@@ -27,7 +27,6 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
 
 JDEBUG_PORT = 51819
 JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
-JEXCEPTION = "--exceptions.print_uncaught_java=true"
 METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
@@ -517,7 +516,7 @@ module Commands
           cexts                                      build only the C extensions (part of "jt build")
           graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
               --graal     include graal compiler in the build
-              --native    build native ruby image as well   
+              --native    build native ruby image as well
           native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
@@ -582,8 +581,8 @@ module Commands
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
           --no-graal                   don't imply --graal
-          JT_BENCHMARK_RUBY=ruby       benchmark some other Ruby, like MRI 
-                                       note that to run most MRI benchmarks, you should translate them first with normal 
+          JT_BENCHMARK_RUBY=ruby       benchmark some other Ruby, like MRI
+                                       note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
@@ -724,9 +723,9 @@ module Commands
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
-        vm_args << '--experimental-options' << JEXCEPTION
+        vm_args << '--experimental-options' << '--exceptions.print_uncaught_java=true'
       when '--server'
-        vm_args += %w[--instrumentation_server_port=8080]
+        vm_args << '--experimental-options' << '--instrumentation_server_port=8080'
       when '--infopoints'
         vm_args << "--vm.XX:+UnlockDiagnosticVMOptions" << "--vm.XX:+DebugNonSafepoints"
         vm_args << "--vm.Dgraal.TruffleEnableInfopoints=true"
@@ -1038,7 +1037,7 @@ module Commands
   def test_compiler(*args)
     env = {}
 
-    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--exceptions.print_java=true'].join(' ')
+    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions.print_java=true'].join(' ')
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
@@ -1245,12 +1244,17 @@ EOS
                 # add bin from gem_home to PATH
                 'PATH' => ["#{gem_home}/bin", ENV['PATH']].join(File::PATH_SEPARATOR))
 
+              options = [
+                '--experimental-options',
+                '--exceptions.print_java=true',
+              ]
+
               gemserver_source = %w[--clear-sources --source http://localhost:8808]
 
-              run_ruby(environment, *args, '--exceptions.print_java=true',
+              run_ruby(environment, *args, *options,
                 '-Sbundle', 'install', '-V', *install_flags)
-              
-              run_ruby(environment, *args, '--exceptions.print_java=true',
+
+              run_ruby(environment, *args, *options,
                 '-Sbundle', 'exec', '-V', 'rake')
             end
           ensure
@@ -1324,7 +1328,7 @@ EOS
     end
 
     if args.delete('--jexception') || args.delete('--jexceptions')
-      options << "-T#{JEXCEPTION}"
+      options << "-T--experimental-options" << "-T--exceptions.print_uncaught_java=true"
     end
 
     if args.delete('--truffle-formatter')
@@ -2351,7 +2355,7 @@ EOS
       end
 
       configs.each do |config|
-        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true --basic_ops.inline=false pe/pe.rb"]
+        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true --experimental-options --basic_ops.inline=false pe/pe.rb"]
       end
     end
 
