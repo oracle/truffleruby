@@ -25,6 +25,8 @@ Changes:
 * The `-X` option now works as in MRI.
 * `--help:debug` is now `--help:internal`.
 * `--jvm.` and `--native.` have been deprecated, use `--vm.` instead to pass VM options.
+* `ripper` is still not implemented, but the module now exists and has some
+  methods that are implemented as no-ops.
 
 # 1.0 RC 13
 
