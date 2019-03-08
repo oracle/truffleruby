@@ -9,6 +9,7 @@
  */
 package org.truffleruby;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
@@ -34,6 +35,11 @@ public class JSR223InteropTest {
     @Before
     public void before() {
         System.setProperty("polyglot." + OptionsCatalog.HOME.getName(), System.getProperty("user.dir"));
+    }
+
+    @After
+    public void after() {
+        System.clearProperty("polyglot." + OptionsCatalog.HOME.getName());
     }
 
     @Test
