@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, &block)
+  def self.new(klass_name, *attrs, keyword_init: true, &block)
     if klass_name
       if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
