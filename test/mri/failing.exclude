@@ -35,136 +35,6 @@ win32ole/test_win32ole_variant_m.rb
 win32ole/test_win32ole_variant_outarg.rb
 win32ole/test_word.rb
 
-# Failing due to changes in stdlib
-
-rubygems/test_bundled_ca.rb
-rubygems/test_config.rb
-rubygems/test_deprecate.rb
-rubygems/test_gem.rb
-rubygems/test_gem_available_set.rb
-rubygems/test_gem_command.rb
-rubygems/test_gem_command_manager.rb
-rubygems/test_gem_commands_build_command.rb
-rubygems/test_gem_commands_cert_command.rb
-rubygems/test_gem_commands_check_command.rb
-rubygems/test_gem_commands_cleanup_command.rb
-rubygems/test_gem_commands_contents_command.rb
-rubygems/test_gem_commands_dependency_command.rb
-rubygems/test_gem_commands_environment_command.rb
-rubygems/test_gem_commands_fetch_command.rb
-rubygems/test_gem_commands_generate_index_command.rb
-rubygems/test_gem_commands_help_command.rb
-rubygems/test_gem_commands_install_command.rb
-rubygems/test_gem_commands_list_command.rb
-rubygems/test_gem_commands_lock_command.rb
-rubygems/test_gem_commands_mirror.rb
-rubygems/test_gem_commands_open_command.rb
-rubygems/test_gem_commands_outdated_command.rb
-rubygems/test_gem_commands_owner_command.rb
-rubygems/test_gem_commands_pristine_command.rb
-rubygems/test_gem_commands_push_command.rb
-rubygems/test_gem_commands_query_command.rb
-rubygems/test_gem_commands_search_command.rb
-rubygems/test_gem_commands_server_command.rb
-rubygems/test_gem_commands_setup_command.rb
-rubygems/test_gem_commands_sources_command.rb
-rubygems/test_gem_commands_specification_command.rb
-rubygems/test_gem_commands_stale_command.rb
-rubygems/test_gem_commands_uninstall_command.rb
-rubygems/test_gem_commands_unpack_command.rb
-rubygems/test_gem_commands_update_command.rb
-rubygems/test_gem_commands_which_command.rb
-rubygems/test_gem_commands_yank_command.rb
-rubygems/test_gem_config_file.rb
-rubygems/test_gem_dependency.rb
-rubygems/test_gem_dependency_installer.rb
-rubygems/test_gem_dependency_list.rb
-rubygems/test_gem_dependency_resolution_error.rb
-rubygems/test_gem_doctor.rb
-rubygems/test_gem_ext_builder.rb
-rubygems/test_gem_ext_cmake_builder.rb
-rubygems/test_gem_ext_configure_builder.rb
-rubygems/test_gem_ext_ext_conf_builder.rb
-rubygems/test_gem_ext_rake_builder.rb
-rubygems/test_gem_gem_runner.rb
-rubygems/test_gem_gemcutter_utilities.rb
-rubygems/test_gem_impossible_dependencies_error.rb
-rubygems/test_gem_indexer.rb
-rubygems/test_gem_install_update_options.rb
-rubygems/test_gem_installer.rb
-rubygems/test_gem_local_remote_options.rb
-rubygems/test_gem_name_tuple.rb
-rubygems/test_gem_package.rb
-rubygems/test_gem_package_old.rb
-rubygems/test_gem_package_tar_header.rb
-rubygems/test_gem_package_tar_reader.rb
-rubygems/test_gem_package_tar_reader_entry.rb
-rubygems/test_gem_package_tar_writer.rb
-rubygems/test_gem_package_task.rb
-rubygems/test_gem_path_support.rb
-rubygems/test_gem_platform.rb
-rubygems/test_gem_rdoc.rb
-rubygems/test_gem_remote_fetcher.rb
-rubygems/test_gem_request.rb
-rubygems/test_gem_request_connection_pools.rb
-rubygems/test_gem_request_set.rb
-rubygems/test_gem_request_set_gem_dependency_api.rb
-rubygems/test_gem_request_set_lockfile.rb
-rubygems/test_gem_request_set_lockfile_parser.rb
-rubygems/test_gem_request_set_lockfile_tokenizer.rb
-rubygems/test_gem_requirement.rb
-rubygems/test_gem_resolver.rb
-rubygems/test_gem_resolver_activation_request.rb
-rubygems/test_gem_resolver_api_set.rb
-rubygems/test_gem_resolver_api_specification.rb
-rubygems/test_gem_resolver_best_set.rb
-rubygems/test_gem_resolver_composed_set.rb
-rubygems/test_gem_resolver_conflict.rb
-rubygems/test_gem_resolver_dependency_request.rb
-rubygems/test_gem_resolver_git_set.rb
-rubygems/test_gem_resolver_git_specification.rb
-rubygems/test_gem_resolver_index_set.rb
-rubygems/test_gem_resolver_index_specification.rb
-rubygems/test_gem_resolver_installed_specification.rb
-rubygems/test_gem_resolver_installer_set.rb
-rubygems/test_gem_resolver_local_specification.rb
-rubygems/test_gem_resolver_lock_set.rb
-rubygems/test_gem_resolver_lock_specification.rb
-rubygems/test_gem_resolver_requirement_list.rb
-rubygems/test_gem_resolver_specification.rb
-rubygems/test_gem_resolver_vendor_set.rb
-rubygems/test_gem_resolver_vendor_specification.rb
-rubygems/test_gem_security.rb
-rubygems/test_gem_security_policy.rb
-rubygems/test_gem_security_signer.rb
-rubygems/test_gem_security_trust_dir.rb
-rubygems/test_gem_server.rb
-rubygems/test_gem_silent_ui.rb
-rubygems/test_gem_source.rb
-rubygems/test_gem_source_fetch_problem.rb
-rubygems/test_gem_source_git.rb
-rubygems/test_gem_source_installed.rb
-rubygems/test_gem_source_list.rb
-rubygems/test_gem_source_local.rb
-rubygems/test_gem_source_lock.rb
-rubygems/test_gem_source_specific_file.rb
-rubygems/test_gem_source_vendor.rb
-rubygems/test_gem_spec_fetcher.rb
-rubygems/test_gem_specification.rb
-rubygems/test_gem_stream_ui.rb
-rubygems/test_gem_stub_specification.rb
-rubygems/test_gem_text.rb
-rubygems/test_gem_uninstaller.rb
-rubygems/test_gem_unsatisfiable_dependency_error.rb
-rubygems/test_gem_uri_formatter.rb
-rubygems/test_gem_util.rb
-rubygems/test_gem_validator.rb
-rubygems/test_gem_version.rb
-rubygems/test_gem_version_option.rb
-rubygems/test_kernel.rb
-rubygems/test_remote_fetch_error.rb
-rubygems/test_require.rb
-
 # Failing since upgrade to 2.6.1
 
 matrix/test_matrix.rb # open range
@@ -180,6 +50,7 @@ ruby/test_thread_queue.rb # hangs
 monitor/test_monitor.rb # hangs
 csv/write/test_general.rb # encoding
 ruby/test_parse.rb # encoding
+rubygems/test_gem_security.rb # hangs
 
 # Other issues
 
