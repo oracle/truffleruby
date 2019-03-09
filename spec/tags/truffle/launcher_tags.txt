@@ -102,3 +102,7 @@ slow:The launcher 'rdoc' runs as an -S command
 slow:The launcher 'rdoc' in `RbConfig::CONFIG['bindir']` directory runs
 slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
 slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
+fails:The launcher 'gem' runs as an -S command
+fails:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs
+fails:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
+fails:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
