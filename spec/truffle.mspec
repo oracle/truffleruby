@@ -56,9 +56,7 @@ class MSpecScript
   ]
 
   set :core, [
-    "spec/ruby/core",
-
-    "^spec/ruby/core/tracepoint",
+    "spec/ruby/core"
   ]
 
   set :library, [
