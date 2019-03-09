@@ -571,8 +571,8 @@ module Commands
       jt tag spec/ruby/language                      tag failing specs in this directory
       jt tag spec/ruby/language/while_spec.rb        tag failing specs in this file
       jt tag all spec/ruby/language                  tag all specs in this file, without running them
-      jt untag spec/ruby/language                    untag passing specs in this directory
-      jt untag spec/ruby/language/while_spec.rb      untag passing specs in this file
+      jt untag ...                                   untag passing specs
+      jt purge ...                                   remove tags without specs
       jt mspec ...                                   run MSpec with the TruffleRuby configuration and custom arguments
       jt metrics alloc [--json] ...                  how much memory is allocated running a program
       jt metrics instructions ...                    how many CPU instructions are used to run a program
@@ -1275,6 +1275,9 @@ EOS
     when 'untag'
       options += %w[--del fails --pass]
       command = 'tag'
+    when 'purge'
+      options += %w[--purge]
+      command = 'tag'
     when 'tag_all'
       options += %w[--unguarded --all --dry-run --add fails]
       command = 'tag'
@@ -1371,6 +1374,10 @@ EOS
     test_specs('tag_all', *args)
   end
   private :tag_all
+
+  def purge(path, *args)
+    test_specs('purge', path, *args)
+  end
 
   def untag(path, *args)
     puts
