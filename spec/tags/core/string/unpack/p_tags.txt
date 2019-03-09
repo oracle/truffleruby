@@ -1,2 +1,0 @@
-fails:String#unpack with format 'P' returns a random object after consuming a size-of a machine word bytes
-fails:String#unpack with format 'p' returns a random object after consuming a size-of a machine word bytes

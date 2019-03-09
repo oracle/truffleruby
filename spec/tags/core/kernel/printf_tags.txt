@@ -107,7 +107,6 @@ fails:Kernel.printf formatting io is specified reference by name %<name>s style 
 fails:Kernel.printf formatting io is specified reference by name %<name>s style supports flags, width, precision and type
 fails:Kernel.printf formatting io is specified reference by name %<name>s style allows to place name in any position
 fails:Kernel.printf formatting io is specified reference by name %<name>s style cannot be mixed with unnamed style
-fails:Kernel.printf formatting io is specified reference by name %<name>s style raises KeyError when there is no matching key
 fails:Kernel.printf formatting io is specified reference by name %{name} style uses value passed in a hash argument
 fails:Kernel.printf formatting io is specified reference by name %{name} style does not support type style
 fails:Kernel.printf formatting io is specified reference by name %{name} style supports flags, width and precision

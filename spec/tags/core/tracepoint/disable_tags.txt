@@ -1,1 +1,0 @@
-fails:TracePoint#disable is disabled within a block & also returns false when its called with a block

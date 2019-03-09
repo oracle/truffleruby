@@ -1,3 +1,2 @@
-fails:Socket::BasicSocket#recv_nonblock allows an output buffer as third argument
 fails:Socket::BasicSocket#recv_nonblock using IPv4 allows an output buffer as third argument
 fails:Socket::BasicSocket#recv_nonblock using IPv6 allows an output buffer as third argument

@@ -1,2 +1,1 @@
-slow:Kernel#autoload when Object is frozen raises a RuntimeError before defining the constant
 slow:Kernel#autoload when Object is frozen raises a FrozenError before defining the constant

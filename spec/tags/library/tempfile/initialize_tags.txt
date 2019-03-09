@@ -1,2 +1,1 @@
-fails:Tempfile#initialize sets the permisssions on the tempfile to 0600
 fails:Tempfile#initialize sets the permissions on the tempfile to 0600

@@ -1,1 +1,0 @@
-solaris:UDPSocket.new raises Errno::EAFNOSUPPORT if unsupported family passed

@@ -9,9 +9,7 @@ slow:Process.spawn raises an ArgumentError if an environment key includes an equ
 slow:Process.spawn raises an ArgumentError if an environment key includes a null byte
 slow:Process.spawn raises an ArgumentError if an environment value includes a null byte
 slow:Process.spawn unsets other environment variables when given a true :unsetenv_others option
-slow:Process.spawn unsets other environment variables when given a non-false :unsetenv_others option
 slow:Process.spawn does not unset other environment variables when given a false :unsetenv_others option
-slow:Process.spawn does not unset other environment variables when given a nil :unsetenv_others option
 slow:Process.spawn does not unset environment variables included in the environment hash
 slow:Process.spawn joins the current process group by default
 slow:Process.spawn joins the current process if pgroup: false
@@ -22,17 +20,13 @@ slow:Process.spawn joins the specified process group if pgroup: pgid
 slow:Process.spawn uses the current working directory as its working directory
 slow:Process.spawn uses the current umask by default
 slow:Process.spawn sets the umask if given the :umask option
-slow:Process.spawn redirects STDOUT to the given file descriptior if out: Fixnum
 slow:Process.spawn redirects STDOUT to the given file if out: IO
 slow:Process.spawn redirects STDOUT to the given file if out: String
 slow:Process.spawn redirects STDOUT to the given file if out: [String name, String mode]
-slow:Process.spawn redirects STDERR to the given file descriptior if err: Fixnum
 slow:Process.spawn redirects STDERR to the given file descriptor if err: IO
 slow:Process.spawn redirects STDERR to the given file if err: String
 slow:Process.spawn redirects STDERR to child STDOUT if :err => [:child, :out]
-slow:Process.spawn redirects both STDERR and STDOUT to the given file descriptior
 slow:Process.spawn redirects both STDERR and STDOUT to the given IO
-slow:Process.spawn does NOT redirect both STDERR and STDOUT at the time to the given name
 slow:Process.spawn when passed :chdir changes to the directory passed for :chdir
 slow:Process.spawn when passed :chdir calls #to_path to convert the :chdir value
 slow:Process.spawn when passed close_others: true closes file descriptors >= 3 in the child process even if fds are set close_on_exec=false
@@ -54,7 +48,6 @@ slow:Process.spawn raises an ArgumentError if passed env and options but no comm
 slow:Process.spawn raises an Errno::ENOENT for an empty string
 slow:Process.spawn raises an Errno::ENOENT if the command does not exist
 slow:Process.spawn raises an Errno::EACCES when the file does not have execute permissions
-slow:Process.spawn raises an Errno::EACCES when passed a directory
 slow:Process.spawn raises an ArgumentError when passed a string key in options
 slow:Process.spawn raises an ArgumentError when passed an unknown option key
 slow:Process.spawn with a single argument subjects the specified command to shell expansion
@@ -79,7 +72,6 @@ slow:Process.spawn with a command array raises a TypeError if an element in the 
 slow:Process.spawn redirects both STDERR and STDOUT at the time to the given name
 fails:Process.spawn sets the umask if given the :umask option
 fails:Process.spawn raises an Errno::EACCES when the file does not have execute permissions
-fails:Process.spawn raises an Errno::EACCES when passed a directory
 fails:Process.spawn with multiple arguments raises an ArgumentError if an argument includes a null byte
 fails:Process.spawn with a command array raises an ArgumentError if the Strings in the Array include a null byte
 fails:Process.spawn when passed :chdir changes to the directory passed for :chdir
