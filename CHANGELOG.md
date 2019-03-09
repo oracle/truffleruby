@@ -7,6 +7,7 @@ Bug fixes:
 * Coerce the right hand side for all `BigDecimal` operations (#1598).
 * Combining multiple `**` arguments containing duplicate keys produced
   an incorrect hash. This has now been fixed (#1469).
+* `IO#read_nonblock` now returns the passed buffer object, if one is supplied.
 
 New features:
 

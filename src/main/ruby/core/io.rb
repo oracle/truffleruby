@@ -2077,8 +2077,7 @@ class IO
     end
 
     if str
-      buffer.replace(str) if buffer
-      str
+      buffer ? buffer.replace(str) : str
     else # EOF
       if exception
         raise EOFError, 'end of file reached'
