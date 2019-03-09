@@ -386,8 +386,8 @@ local part_definitions = {
       run+: [
         ["mx", "unittest", "org.truffleruby"],
         ["mx", "tck"],
-      ] + jt(["test", "specs"] + self["$.run.specs"].test_spec_options) +
-          jt(["test", "specs", ":ruby25"]),
+      ] + jt(["test", "specs"] + self["$.run.specs"].test_spec_options),
+              # + jt(["test", "specs", ":next"]) disabled as it's currently empty and MSpec doesn't support empty sets of files
     },
 
     test_fast: {
