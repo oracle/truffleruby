@@ -244,27 +244,6 @@ rubygems/test_kernel.rb
 rubygems/test_remote_fetch_error.rb
 rubygems/test_require.rb
 
-webrick/test_cgi.rb
-webrick/test_config.rb
-webrick/test_cookie.rb
-webrick/test_do_not_reverse_lookup.rb
-webrick/test_filehandler.rb
-webrick/test_htmlutils.rb
-webrick/test_httpauth.rb
-webrick/test_httpproxy.rb
-webrick/test_httprequest.rb
-webrick/test_httpresponse.rb
-webrick/test_httpserver.rb
-webrick/test_httputils.rb
-webrick/test_httpversion.rb
-webrick/test_server.rb
-webrick/test_ssl_server.rb
-webrick/test_utils.rb
-
-net/ftp/test_buffered_socket.rb
-net/ftp/test_ftp.rb
-net/ftp/test_mlsx_entry.rb
-
 # Failing since upgrade to 2.6.1
 
 matrix/test_matrix.rb # open range
