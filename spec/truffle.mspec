@@ -29,13 +29,26 @@ class MSpecScript
     end
   end
 
+  # Specs that need Sulong and should be tested in the Sulong gate
+  library_cext_specs = %w[
+    spec/ruby/library/etc
+    spec/ruby/library/openssl
+    spec/ruby/library/rbconfig/sizeof
+    spec/ruby/library/syslog
+    spec/ruby/library/yaml
+    spec/ruby/library/zlib
+    spec/ruby/security/cve_2017_17742_spec.rb
+  ]
+
   set :command_line, [
     "spec/ruby/command_line"
   ]
 
   set :security, [
     "spec/ruby/security",
-    "^spec/ruby/security/cve_2017_17742_spec.rb" # :library_cext
+
+    # Tested separately as they need Sulong
+    *library_cext_specs.map { |path| "^#{path}" }
   ]
 
   set :language, [
@@ -51,22 +64,8 @@ class MSpecScript
     "^spec/ruby/core/dir/element_reference_spec.rb"
   ]
 
-  # Specs that need Sulong and should be tested in the Sulong gate
-  library_cext_specs = %w[
-    spec/ruby/library/etc
-    spec/ruby/library/openssl
-    spec/ruby/library/rbconfig/sizeof
-    spec/ruby/library/syslog
-    spec/ruby/library/yaml
-    spec/ruby/library/zlib
-    spec/ruby/security/cve_2017_17742_spec.rb
-  ]
-
   set :library, [
     "spec/ruby/library",
-
-    # Issues with monkey patching breaking our core
-    "^spec/ruby/library/mathn",
 
     # Trying to enable breaks a lot of things
     "^spec/ruby/library/net",
@@ -86,6 +85,8 @@ class MSpecScript
 
   set :truffle, [
     "spec/truffle",
+
+    # Tested separately
     "^spec/truffle/capi"
   ]
 
