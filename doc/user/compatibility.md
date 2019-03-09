@@ -85,6 +85,10 @@ Trying to use level `1` will raise a `SecurityError`. Other levels will raise
 `ArgumentError` as in standard Ruby. See our [security notes](security.md) for
 more explanation on this.
 
+#### Internal MRI functionality
+
+`RubyVM` is not intended for users and is not implemented.
+
 ## Features with major differences
 
 #### Threads run in parallel
