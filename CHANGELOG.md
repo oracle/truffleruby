@@ -5,7 +5,8 @@ Updated to Ruby 2.6.1.
 Bug fixes:
 
 * Implement `rb_io_wait_writable` (#1586).
-* Fixed error when using arrows keys first within `irb` or `pry` (#1478, #1486).
+* Fixed error when using arrows keys first within `irb` or `pry`
+  (#1478, #1486).
 * Coerce the right hand side for all `BigDecimal` operations (#1598).
 * Combining multiple `**` arguments containing duplicate keys produced
   an incorrect hash. This has now been fixed (#1469).
@@ -21,12 +22,14 @@ Changes:
 
 * `-Xoptions` has been removed - use `--help:languages` instead.
 * `-Xlog=` has been removed - use `--log.level=` instead.
-* `-J` has been removed - use `--jvm.` instead.
-* `-J-cp lib.jar` and so on have removed - use `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
+* `-J` has been removed - use `--vm.` instead.
+* `-J-cp lib.jar` and so on have removed - use `--vm.cp=lib.jar` or
+  `--vm.classpath=lib.jar` instead.
+* `--jvm.` and `--native.` have been deprecated, use `--vm.` instead to pass
+  VM options.
 * `-Xoption=value` has been removed - use `--option=value` instead.
 * The `-X` option now works as in MRI.
 * `--help:debug` is now `--help:internal`.
-* `--jvm.` and `--native.` have been deprecated, use `--vm.` instead to pass VM options.
 * `ripper` is still not implemented, but the module now exists and has some
   methods that are implemented as no-ops.
 
@@ -41,22 +44,28 @@ New features:
 
 Bug fixes:
 
-* Fixed Enumerator::Lazy which wrongly rescued StandardError (#1557).
+* Fixed `Enumerator::Lazy` which wrongly rescued `StandardError` (#1557).
 * Fixed several problems with `Numeric#step` related to default arguments,
   infinite sequences, and bad argument types (#1520).
 * Fixed incorrect raising of `ArgumentError` with `Range#step` when at
   least one component of the `Range` is `Float::INFINITY` (#1503).
-* Fixed the wrong encoding being associated with certain forms of heredoc strings (#1563).
-* Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
-* Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE` by -1 (#1581).
+* Fixed the wrong encoding being associated with certain forms of heredoc
+  strings (#1563).
+* Call `#coerce` on right hand operator if `BigDecimal` is the left hand
+  operator (#1533).
+* Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE`
+  by -1 (#1581).
 * `Exception#cause` is now correctly set for internal exceptions (#1560).
-* `rb_num2ull` is now implemented as well as being declared in the ruby.h header (#1573).
+* `rb_num2ull` is now implemented as well as being declared in the `ruby.h`
+  header (#1573).
 * `rb_sym_to_s` is now implemented (#1575).
-* `R_TYPE_P` now returns the type number for a wider set of Ruby objects #(1574).
+* `R_TYPE_P` now returns the type number for a wider set of Ruby
+  objects (#1574).
 * `rb_fix2str` has now been implemented.
 * `rb_protect` will now work even if `NilClass#==` has been redefined.
 * `BigDecimal` has been moved out of the `Truffle` module to match MRI.
-* `StringIO#puts` now correctly handles `to_s` methods which do not return strings (#1577).
+* `StringIO#puts` now correctly handles `to_s` methods which do not return
+  strings (#1577).
 * `Array#each` now behaves like MRI when the array is modified (#1580).
 * Clarified that `$SAFE` can never be set to a non-zero value.
 * Fix compatibility with RubyGems 3 (#1558).
@@ -70,28 +79,32 @@ Changes:
 * Getting a substring of a string created by a C extension now uses
   less memory as only the requested portion will be copied to a
   managed string.
-* `-Xoptions` has been deprecated and will be removed - use `--help:languages` instead.
+* `-Xoptions` has been deprecated and will be removed - use `--help:languages`
+  instead.
 * `-Xlog=` has been deprecated and will be removed - use `--log.level=` instead.
 * `-J` has been deprecated and will be removed - use `--jvm.` instead.
 * `-J-cp lib.jar` and so on have been deprecated and will be removed - use
   `--jvm.cp=lib.jar` or `--jvm.classpath=lib.jar` instead.
-* `-J-cmd`, `--jvm.cmd`, `JAVA_HOME`, `JAVACMD`, and `JAVA_OPTS` do not work in any released
+* `-J-cmd`, `--jvm.cmd`, `JAVA_HOME`, `JAVACMD`, and `JAVA_OPTS` do not work
+  in any released
   configuration of TruffleRuby, so have been removed.
-* `-Xoption=value` has been deprecated and will be removed - use `--option=value` instead.
+* `-Xoption=value` has been deprecated and will be removed - use
+  `--option=value` instead.
 * `TracePoint` now raises an `ArgumentError` for unsupported events.
 * `TracePoint.trace` and `TracePoint#inspect` have been implemented.
 
 Compatibility:
 
 * Improved the exception when an `-S` file isn't found.
-* Removed the message from exceptions raised by bare `raise` to better match MRI (#1487).
+* Removed the message from exceptions raised by bare `raise` to better match
+  MRI (#1487).
 * `TracePoint` now handles the `:class` event.
 
 Performance:
 
-* Sped up `String` handling in native extensions, quite substantially in some cases,
-  by reducing conversions between native and managed strings and allowing for mutable
-  metadata in native strings.
+* Sped up `String` handling in native extensions, quite substantially in some
+  cases, by reducing conversions between native and managed strings and allowing
+  for mutable metadata in native strings.
 
 # 1.0 RC 12, 4 Februrary 2019
 
@@ -120,7 +133,8 @@ New features:
 * macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
   `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 * TruffleRuby now automatically detects native access and threading permissions
-  from the `Context` API, and can run code with no permissions given (`Context.create()`).
+  from the `Context` API, and can run code with no permissions
+  given (`Context.create()`).
 
 Bug fixes:
 
@@ -130,7 +144,8 @@ Bug fixes:
 * `IO#reopen` now properly resets the receiver to be close-on-exec.
 * `StringIO#set_encoding` no longer raises an exception if the underlying
   `String` is frozen (#1473).
-* Fix handling of `Symbol` encodings in `Marshal#dump` and `Marshal#load` (#1530).
+* Fix handling of `Symbol` encodings in `Marshal#dump` and
+ `Marshal#load` (#1530).
 
 Compatibility:
 
@@ -257,15 +272,18 @@ Bug fixes:
 * `readline` can now be interrupted by the interrupt signal (Ctrl+C). This fixes
   Ctrl+C to work in IRB.
 * Better compatibility with C extensions due to a new "managed struct" type.
-* Fixed compilation warnings which produced confusing messages for end users (#1422).
+* Fixed compilation warnings which produced confusing messages for end
+  users (#1422).
 * Improved compatibility with Truffle polyglot STDIO.
 * Fixed version check preventing TruffleRuby from working with Bundler 2.0 and
   later (#1413).
-* Fixed problem with `Kernel.public_send` not tracking its caller properly (#1425).
+* Fixed problem with `Kernel.public_send` not tracking its caller
+  properly (#1425).
 * `rb_thread_call_without_gvl()` no longer holds the C-extensions lock.
 * Fixed `caller_locations` when called inside `method_added`.
 * Fixed `mon_initialize` when called inside `initialize_copy` (#1428).
-* `Mutex` correctly raises a `TypeError` when trying to serialize with `Marshal.dump`.
+* `Mutex` correctly raises a `TypeError` when trying to serialize
+  with `Marshal.dump`.
 
 Performance:
 
@@ -614,7 +632,7 @@ Performance:
 
 * Conversion of ASCII-only Ruby strings to Java strings is now faster.
 * Several operations on multi-byte character strings are now faster.
-* Native I/O reads are ~22% faster.
+* Native I/O reads are about 22% faster.
 
 Bug fixes:
 
