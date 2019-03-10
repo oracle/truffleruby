@@ -72,13 +72,13 @@ public abstract class IntegerNodes {
         public abstract Object executeNeg(Object a);
 
         @Specialization(rewriteOn = ArithmeticException.class)
-        public int neg(int value) {
+        public int doInt(int value) {
             // TODO CS 13-Oct-16, use negateExact, but this isn't intrinsified by Graal yet
             return Math.subtractExact(0, value);
         }
 
-        @Specialization(replaces = "neg")
-        public Object negWithOverflow(int value) {
+        @Specialization(replaces = "doInt")
+        public Object doIntWithOverflow(int value) {
             if (value == Integer.MIN_VALUE) {
                 return -((long) value);
             }
@@ -86,17 +86,17 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
-        public long neg(long value) {
+        public long doLong(long value) {
             return Math.subtractExact(0, value);
         }
 
-        @Specialization
-        public Object negWithOverflow(long value) {
+        @Specialization(replaces = "doLong")
+        public Object doLongWihtOverflow(long value) {
             return fixnumOrBignum(BigInteger.valueOf(value).negate());
         }
 
         @Specialization
-        public Object neg(DynamicObject value) {
+        public Object doObject(DynamicObject value) {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(value).negate());
         }
 
