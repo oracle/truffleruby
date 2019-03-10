@@ -1,0 +1,1 @@
+fails:Enumerator::ArithmeticSequence#each returns self

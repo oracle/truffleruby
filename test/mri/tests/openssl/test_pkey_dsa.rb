@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require_relative 'utils'
 
-if defined?(OpenSSL::TestUtils)
+if defined?(OpenSSL) && defined?(OpenSSL::PKey::DSA)
 
 class OpenSSL::TestPKeyDSA < OpenSSL::PKeyTestCase
   def test_private
@@ -41,7 +41,6 @@ class OpenSSL::TestPKeyDSA < OpenSSL::PKeyTestCase
       assert_equal true, dsa512.verify(OpenSSL::Digest::DSS1.new, signature, data)
     end
 
-    return unless openssl?(1, 0, 0)
     signature = dsa512.sign("SHA1", data)
     assert_equal true, dsa512.verify("SHA1", signature, data)
 

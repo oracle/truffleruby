@@ -1,6 +1,4 @@
 fails:Kernel#sprintf returns a String in the same encoding as the format String if compatible
-fails:Kernel#sprintf returns a String in the argument encoding if format encoding is more restrictive
-fails:Kernel#sprintf with format string that contains %<> sections raises ArgumentError if missing second named argument
 fails:Kernel#sprintf returns a String in the argument's encoding if format encoding is more restrictive
 fails:Kernel#sprintf raises Encoding::CompatibilityError if both encodings are ASCII compatible and there ano not ASCII characters
 fails:Kernel#sprintf other formats c raises ArgumentError if argument is an empty string
@@ -34,3 +32,9 @@ fails:Kernel.sprintf flags * left-justifies the result if width is negative
 fails:Kernel.sprintf flags * left-justifies the result if specified with $ argument is negative
 fails:Kernel.sprintf precision string formats determines the maximum number of characters to be copied from the string
 fails:Kernel.sprintf reference by name %{name} style supports flags, width and precision
+fails:Kernel#sprintf other formats % alone raises an ArgumentError
+fails:Kernel#sprintf faulty key sets the Hash as the receiver of KeyError
+fails:Kernel#sprintf faulty key sets the unmatched key as the key of KeyError
+fails:Kernel.sprintf other formats % alone raises an ArgumentError
+fails:Kernel.sprintf faulty key sets the Hash as the receiver of KeyError
+fails:Kernel.sprintf faulty key sets the unmatched key as the key of KeyError

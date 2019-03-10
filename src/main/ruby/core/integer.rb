@@ -245,6 +245,12 @@ class Integer < Numeric
     to_s(base).chars.map(&:to_i).reverse
   end
 
+  def self.sqrt(n)
+    n = Truffle::Type.coerce_to_int(n)
+    raise Math::DomainError if n.negative?
+    Math.sqrt(n).floor
+  end
+
   private def upto_internal(val)
     return to_enum(:upto, val) { self <= val ? val - self + 1 : 0 } unless block_given?
 

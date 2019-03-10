@@ -130,6 +130,14 @@ class Dir
     self
   end
 
+  def children
+    ret = []
+    while s = dir.read
+      ret << false if s != '.' and s != '..'
+    end
+    ret
+  end
+
   def inspect
     "#<#{self.class}:#{@path}>"
   end
@@ -151,6 +159,10 @@ class Dir
       else
         dir
       end
+    end
+
+    def children(*args)
+      each_child(*args).to_a
     end
 
     def each_child(path, options=undefined)

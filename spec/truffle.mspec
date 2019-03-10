@@ -29,23 +29,6 @@ class MSpecScript
     end
   end
 
-  set :command_line, [
-    "spec/ruby/command_line"
-  ]
-
-  set :security, [
-    "spec/ruby/security",
-    "^spec/ruby/security/cve_2017_17742_spec.rb" # :library_cext
-  ]
-
-  set :language, [
-    "spec/ruby/language"
-  ]
-
-  set :core, [
-    "spec/ruby/core",
-  ]
-
   # Specs that need Sulong and should be tested in the Sulong gate
   library_cext_specs = %w[
     spec/ruby/library/etc
@@ -57,11 +40,27 @@ class MSpecScript
     spec/ruby/security/cve_2017_17742_spec.rb
   ]
 
+  set :command_line, [
+    "spec/ruby/command_line"
+  ]
+
+  set :security, [
+    "spec/ruby/security",
+
+    # Tested separately as they need Sulong
+    *library_cext_specs.map { |path| "^#{path}" }
+  ]
+
+  set :language, [
+    "spec/ruby/language"
+  ]
+
+  set :core, [
+    "spec/ruby/core"
+  ]
+
   set :library, [
     "spec/ruby/library",
-
-    # Issues with monkey patching breaking our core
-    "^spec/ruby/library/mathn",
 
     # Trying to enable breaks a lot of things
     "^spec/ruby/library/net",
@@ -81,6 +80,8 @@ class MSpecScript
 
   set :truffle, [
     "spec/truffle",
+
+    # Tested separately
     "^spec/truffle/capi"
   ]
 
@@ -88,16 +89,7 @@ class MSpecScript
     "spec/truffle/capi"
   ]
 
-  set :ruby25, [
-    "spec/ruby/core/kernel/yield_self_spec.rb",
-    "spec/ruby/core/method/case_compare_spec.rb",
-    "spec/ruby/core/enumerable/all_spec.rb",
-    "spec/ruby/core/enumerable/any_spec.rb",
-    "spec/ruby/core/enumerable/none_spec.rb",
-    "spec/ruby/core/enumerable/one_spec.rb",
-    "spec/ruby/core/exception/full_message_spec.rb",
-    "spec/ruby/core/hash/transform_keys_spec.rb",
-    "spec/ruby/library/mathn/mathn_spec.rb",
+  set :next, [
   ]
 
   set :backtrace_filter, /mspec\//
@@ -142,15 +134,15 @@ class MSpecScript
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
   # All specs, including specs needing C-extensions support.
-  # 2.4/2.5 specs are not included as they need to run in a separate process.
+  # Next version specs are not included as they need to run in a separate process.
   set :all, get(:files) + get(:capi) + get(:truffle_capi) + get(:library_cext)
 end
 
 if MSpecScript.child_process?
   if version = ENV["PRETEND_RUBY_VERSION"]
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
-  elsif ARGV.include? ":ruby25"
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.3")
+  elsif ARGV.include? ":next"
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.7.0")
   end
 
   # We do not use Ruby 2.5's FrozenError yet

@@ -22,16 +22,25 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  launchers = { gem:         /^2\.6\.14\.1$/,
-                irb:         /^irb 0\.9\.6/,
-                rake:        /^rake, version [0-9.]+/,
-                rdoc:        /^5\.0\.0$/,
-                ri:          /^ri 5\.0\.0$/,
-                ruby:        /truffleruby .* like ruby 2\.4\.4/,
-                testrb:      [/^testrb: version unknown$/, true],
-                truffleruby: /truffleruby .* like ruby 2\.4\.4/ }
+  launchers = { bundle:      /^Bundler version 1\.17\.2$/,
+                bundler:     /^Bundler version 1\.17\.2$/,
+                gem:         /^3\.0\.1$/,
+                irb:         /^irb 1\.0\.0/,
+                rake:        /^rake, version 12\.3\.2/,
+                rdoc:        /^6\.1\.0$/,
+                ri:          /^ri 6\.1\.0$/,
+                ruby:        /truffleruby .* like ruby 2\.6\.1/,
+                truffleruby: /truffleruby .* like ruby 2\.6\.1/ }
 
   launchers.each do |launcher, (test, skip_success)|
+    unless [:ruby, :truffleruby].include?(launcher)
+      it "'#{launcher}' runs as an -S command" do
+        out = ruby_exe(nil, options: "-S#{launcher} --version 2>&1")
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+    end
+
     extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
         split(File::PATH_SEPARATOR).
         each_with_index.
@@ -39,6 +48,12 @@ describe "The launcher" do
     bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
 
     bin_dirs.each do |name, bin_dir|
+      it "'#{launcher}' in `#{name}` directory runs" do
+        out = `#{bin_dir}/#{launcher} --version 2>&1`
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+
       it "'#{launcher}' in `#{name}` directory runs when symlinked" do
         require "tmpdir"
         # Use the system tmp dir to not be under the Ruby home dir

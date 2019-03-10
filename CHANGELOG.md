@@ -1,5 +1,7 @@
 # 1.0 RC 14
 
+Updated to Ruby 2.6.1.
+
 Bug fixes:
 
 * Implement `rb_io_wait_writable` (#1586).
@@ -7,6 +9,13 @@ Bug fixes:
 * Coerce the right hand side for all `BigDecimal` operations (#1598).
 * Combining multiple `**` arguments containing duplicate keys produced
   an incorrect hash. This has now been fixed (#1469).
+* `IO#read_nonblock` now returns the passed buffer object, if one is supplied.
+
+New features:
+
+* Implemented `String#delete_prefix`, `#delete_suffix`, and related methods.
+* Implemented `Dir.children` and `Dir#children`.
+* Implemented `Integer#sqrt`.
 
 Changes:
 
@@ -18,6 +27,8 @@ Changes:
 * The `-X` option now works as in MRI.
 * `--help:debug` is now `--help:internal`.
 * `--jvm.` and `--native.` have been deprecated, use `--vm.` instead to pass VM options.
+* `ripper` is still not implemented, but the module now exists and has some
+  methods that are implemented as no-ops.
 
 # 1.0 RC 13
 

@@ -1,0 +1,1 @@
+fails:Enumerator::Chain#each calls each on its constituents as needed

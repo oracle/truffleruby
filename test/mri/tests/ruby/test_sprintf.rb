@@ -238,6 +238,12 @@ class TestSprintf < Test::Unit::TestCase
     assert_equal("with options {:capture=>/\\d+/}", sprintf("with options %p" % options))
   end
 
+  def test_inspect
+    obj = Object.new
+    def obj.inspect; "TEST"; end
+    assert_equal("<TEST>", sprintf("<%p>", obj))
+  end
+
   def test_invalid
     # Star precision before star width:
     assert_raise(ArgumentError, "[ruby-core:11569]") {sprintf("%.**d", 5, 10, 1)}
@@ -424,6 +430,16 @@ class TestSprintf < Test::Unit::TestCase
     assert_equal("%" * BSIZ, sprintf("%%" * BSIZ))
   end
 
+  def test_percent_sign_at_end
+    assert_raise_with_message(ArgumentError, "incomplete format specifier; use %% (double %) instead") do
+      sprintf("%")
+    end
+
+    assert_raise_with_message(ArgumentError, "incomplete format specifier; use %% (double %) instead") do
+      sprintf("abc%")
+    end
+  end
+
   def test_rb_sprintf
     assert_match(/^#<TestSprintf::T012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789:0x[0-9a-f]+>$/,
                  T012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.new.inspect)
@@ -442,7 +458,10 @@ class TestSprintf < Test::Unit::TestCase
     assert_raise_with_message(ArgumentError, "named<key2> after numbered") {sprintf("%1$<key2>s", :key => "value")}
     assert_raise_with_message(ArgumentError, "named<key2> after unnumbered(2)") {sprintf("%s%s%<key2>s", "foo", "bar", :key => "value")}
     assert_raise_with_message(ArgumentError, "named<key2> after <key>") {sprintf("%<key><key2>s", :key => "value")}
-    assert_raise_with_message(KeyError, "key<key> not found") {sprintf("%<key>s", {})}
+    h = {}
+    e = assert_raise_with_message(KeyError, "key<key> not found") {sprintf("%<key>s", h)}
+    assert_same(h, e.receiver)
+    assert_equal(:key, e.key)
   end
 
   def test_named_untyped_enc
@@ -502,5 +521,26 @@ class TestSprintf < Test::Unit::TestCase
   def test_width_underflow
     bug = 'https://github.com/mruby/mruby/issues/3347'
     assert_equal("!", sprintf("%*c", 0, ?!.ord), bug)
+  end
+
+  def test_negative_width_overflow
+    assert_raise_with_message(ArgumentError, /too big/) do
+      sprintf("%*s", RbConfig::LIMITS["INT_MIN"], "")
+    end
+  end
+
+  def test_no_hidden_garbage
+    skip unless Thread.list.size == 1
+
+    fmt = [4, 2, 2].map { |x| "%0#{x}d" }.join('-') # defeats optimization
+    ObjectSpace.count_objects(res = {}) # creates strings on first call
+    GC.disable
+    before = ObjectSpace.count_objects(res)[:T_STRING]
+    val = sprintf(fmt, 1970, 1, 1)
+    after = ObjectSpace.count_objects(res)[:T_STRING]
+    assert_equal before + 1, after, 'only new string is the created one'
+    assert_equal '1970-01-01', val
+  ensure
+    GC.enable
   end
 end

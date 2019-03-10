@@ -1,0 +1,14 @@
+fails:Method#<< returns a Proc that is the composition of self and the passed Proc
+fails:Method#<< calls passed Proc with arguments and then calls self with result
+fails:Method#<< accepts any callable object
+fails:Method#<< raises NoMethodError when called if passed not callable object
+fails:Method#<< when called does not try to coerce argument with #to_proc
+fails:Method#<< composition is a lambda
+fails:Method#<< composition may accept multiple arguments
+fails:Method#>> returns a Proc that is the composition of self and the passed Proc
+fails:Method#>> calls passed Proc with arguments and then calls self with result
+fails:Method#>> accepts any callable object
+fails:Method#>> raises NoMethodError when called if passed not callable object
+fails:Method#>> when called does not try to coerce argument with #to_proc
+fails:Method#>> composition is a lambda
+fails:Method#>> composition may accept multiple arguments

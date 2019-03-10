@@ -21,8 +21,7 @@ class TestGemInstallUpdateOptions < Gem::InstallerTestCase
       --build-root build_root
       --format-exec
       --ignore-dependencies
-      --rdoc
-      --ri
+      --document
       -E
       -f
       -i /install_to
@@ -92,24 +91,6 @@ class TestGemInstallUpdateOptions < Gem::InstallerTestCase
     assert_equal %w[ri], @cmd.options[:document]
   end
 
-  def test_rdoc
-    @cmd.handle_options %w[--rdoc]
-
-    assert_equal %w[rdoc ri], @cmd.options[:document].sort
-  end
-
-  def test_rdoc_no
-    @cmd.handle_options %w[--no-rdoc]
-
-    assert_equal %w[ri], @cmd.options[:document]
-  end
-
-  def test_ri
-    @cmd.handle_options %w[--no-ri]
-
-    assert_equal %w[], @cmd.options[:document]
-  end
-
   def test_security_policy
     skip 'openssl is missing' unless defined?(OpenSSL::SSL)
 
@@ -119,11 +100,14 @@ class TestGemInstallUpdateOptions < Gem::InstallerTestCase
   end
 
   def test_security_policy_unknown
+    skip 'openssl is missing' unless defined?(OpenSSL::SSL)
+
     @cmd.add_install_update_options
 
-    assert_raises OptionParser::InvalidArgument do
+    e = assert_raises OptionParser::InvalidArgument do
       @cmd.handle_options %w[-P UnknownSecurity]
     end
+    assert_includes e.message, "UnknownSecurity"
   end
 
   def test_user_install_enabled
@@ -140,6 +124,8 @@ class TestGemInstallUpdateOptions < Gem::InstallerTestCase
   def test_user_install_disabled_read_only
     if win_platform?
       skip('test_user_install_disabled_read_only test skipped on MS Windows')
+    elsif Process.uid.zero?
+      skip('test_user_install_disabled_read_only test skipped in root privilege')
     else
       @cmd.handle_options %w[--no-user-install]
 

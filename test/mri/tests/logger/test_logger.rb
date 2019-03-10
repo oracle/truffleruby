@@ -235,6 +235,10 @@ class TestLogger < Test::Unit::TestCase
     log = log_add(logger, WARN, nil, "progname?")
     assert_equal("progname?\n", log.msg)
     assert_equal("my_progname", log.progname)
+    #
+    logger = Logger.new(nil)
+    log = log_add(logger, INFO, nil, false)
+    assert_equal("false\n", log.msg)
   end
 
   def test_level_log
@@ -322,7 +326,7 @@ class TestLogger < Test::Unit::TestCase
     r, w = IO.pipe
     logger = Logger.new(w)
     logger << "msg"
-    read_ready, = IO.select([r], nil, nil, 0.1)
+    IO.select([r], nil, nil, 0.1)
     w.close
     msg = r.read
     r.close
@@ -331,7 +335,7 @@ class TestLogger < Test::Unit::TestCase
     r, w = IO.pipe
     logger = Logger.new(w)
     logger << "msg2\n\n"
-    read_ready, = IO.select([r], nil, nil, 0.1)
+    IO.select([r], nil, nil, 0.1)
     w.close
     msg = r.read
     r.close

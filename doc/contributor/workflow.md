@@ -191,8 +191,9 @@ $ PRETEND_RUBY_VERSION=2.5.0 jt test spec/ruby/core/integer/digits_spec.rb
 
 This also works for `jt tag`/`jt untag`.
 
-When working on a 2.4/2.5 feature, add the spec file in the corresponding file
-list (`:ruby25`) in `spec/truffle.mspec` so that the specs are run in CI too.
+When working on a feature from the next version of Ruby, add the spec file in
+the corresponding file list (`:next`) in `spec/truffle.mspec` so that the
+specs are run in CI too.
 
 ## How to fix a failing MRI test
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require_relative 'utils'
 
-if defined?(OpenSSL::TestUtils)
+if defined?(OpenSSL)
 
 class OpenSSL::TestPKCS7 < OpenSSL::TestCase
   def setup
@@ -133,6 +133,8 @@ class OpenSSL::TestPKCS7 < OpenSSL::TestCase
     assert_equal(@ca_cert.subject.to_s, recip[1].issuer.to_s)
     assert_equal(3, recip[1].serial)
     assert_equal(data, p7.decrypt(@rsa1024, @ee2_cert))
+
+    assert_equal(data, p7.decrypt(@rsa1024))
   end
 
   def test_graceful_parsing_failure #[ruby-core:43250]

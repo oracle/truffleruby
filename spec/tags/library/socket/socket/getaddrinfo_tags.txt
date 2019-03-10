@@ -1,1 +1,0 @@
-fails(Ubuntu 18.04):Socket.getaddrinfo without global reverse lookups accepts a Fixnum as the protocol family

@@ -29,7 +29,7 @@ class TestGemPathSupport < Gem::TestCase
     assert_equal expected, ps.path
   end
 
-  if defined?(File::ALT_SEPARATOR) and File::ALT_SEPARATOR
+  if File::ALT_SEPARATOR
     def test_initialize_home_normalize
       alternate = @tempdir.gsub(File::SEPARATOR, File::ALT_SEPARATOR)
       ps = Gem::PathSupport.new "GEM_HOME" => alternate
@@ -44,10 +44,10 @@ class TestGemPathSupport < Gem::TestCase
     assert_equal ENV["GEM_HOME"], ps.home
 
     expected = [
-                File.join(@tempdir, 'foo'),
-                File.join(@tempdir, 'bar'),
-                ENV["GEM_HOME"],
-               ]
+      File.join(@tempdir, 'foo'),
+      File.join(@tempdir, 'bar'),
+      ENV["GEM_HOME"],
+    ]
 
     assert_equal expected, ps.path
   end
@@ -63,9 +63,9 @@ class TestGemPathSupport < Gem::TestCase
       assert_equal ENV["GEM_HOME"], ps.home
 
       expected = [
-                  File.join(@tempdir, 'foo'),
-                  File.join(@tempdir, 'bar'),
-                  ] + Gem.default_path << ENV["GEM_HOME"]
+        File.join(@tempdir, 'foo'),
+        File.join(@tempdir, 'bar'),
+      ] + Gem.default_path << ENV["GEM_HOME"]
 
       assert_equal expected, ps.path
     end
@@ -81,9 +81,9 @@ class TestGemPathSupport < Gem::TestCase
     assert_equal ENV["GEM_HOME"], ps.home
 
     expected = [
-                File.join(@tempdir, 'foo'),
-                File.join(@tempdir, 'bar'),
-                ] + Gem.default_path << ENV["GEM_HOME"]
+      File.join(@tempdir, 'foo'),
+      File.join(@tempdir, 'bar'),
+    ] + Gem.default_path << ENV["GEM_HOME"]
 
     assert_equal expected, ps.path
   end

@@ -5,3 +5,5 @@ exclude :test_api_endpoint_ignores_trans_domain_values_that_starts_with_original
 exclude :test_ssl_connection_allow_verify_none, "needs investigation"
 exclude :test_api_endpoint_ignores_trans_domain_values_that_end_with_original, "needs investigation"
 exclude :test_api_endpoint_ignores_trans_domain_values, "needs investigation"
+exclude :test_do_not_follow_insecure_redirect, "needs investigation"
+exclude :test_ssl_client_cert_auth_connection, "needs investigation"

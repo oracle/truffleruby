@@ -1,3 +1,6 @@
 fails:String#% output's encoding is the same as the format string if passed value is encoding-compatible
 fails:String#% output's encoding negotiates a compatible encoding if necessary
 fails:String#% output's encoding raises if a compatible encoding can't be found
+fails:String#% raises an error if single % appears at the end
+fails:String#% when key is missing from passed-in hash sets the Hash as the receiver of KeyError
+fails:String#% when key is missing from passed-in hash sets the unmatched key as the key of KeyError

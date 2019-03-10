@@ -72,7 +72,7 @@ class Gem::InstallerTestCase < Gem::TestCase
   #   a spec named 'a', intended for regular installs
   # @user_spec::
   #   a spec named 'b', intended for user installs
-
+  #
   # @gem::
   #   the path to a built gem from @spec
   # @user_spec::
@@ -104,16 +104,6 @@ class Gem::InstallerTestCase < Gem::TestCase
     @user_installer = util_installer @user_spec, Gem.user_dir, :user
 
     Gem::Installer.path_warning = false
-  end
-
-  def util_gem_bindir spec = @spec # :nodoc:
-    # TODO: deprecate
-    spec.bin_dir
-  end
-
-  def util_gem_dir spec = @spec # :nodoc:
-    # TODO: deprecate
-    spec.gem_dir
   end
 
   ##
@@ -193,4 +183,3 @@ class Gem::InstallerTestCase < Gem::TestCase
   end
 
 end
-

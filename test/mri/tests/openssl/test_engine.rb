@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require_relative 'utils'
 
-if defined?(OpenSSL::TestUtils) && defined?(OpenSSL::Engine)
+if defined?(OpenSSL) && defined?(OpenSSL::Engine)
 
 class OpenSSL::TestEngine < OpenSSL::TestCase
   def test_engines_free # [ruby-dev:44173]

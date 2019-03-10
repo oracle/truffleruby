@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 require 'tsort'
 
 ##
@@ -217,6 +217,7 @@ class RDoc::Parser::C < RDoc::Parser
   def deduplicate_call_seq
     @methods.each do |var_name, functions|
       class_name = @known_classes[var_name]
+      next unless class_name
       class_obj  = find_class var_name, class_name
 
       functions.each_value do |method_names|
@@ -666,11 +667,9 @@ class RDoc::Parser::C < RDoc::Parser
 
       #meth_obj.params = params
       meth_obj.start_collecting_tokens
-      tk = RDoc::RubyToken::Token.new nil, 1, 1
-      tk.set_text body
+      tk = { :line_no => 1, :char_no => 1, :text => body }
       meth_obj.add_token tk
       meth_obj.comment = comment
-      meth_obj.offset  = offset
       meth_obj.line    = file_content[0, offset].count("\n") + 1
 
       body
@@ -685,11 +684,9 @@ class RDoc::Parser::C < RDoc::Parser
       find_modifiers comment, meth_obj
 
       meth_obj.start_collecting_tokens
-      tk = RDoc::RubyToken::Token.new nil, 1, 1
-      tk.set_text body
+      tk = { :line_no => 1, :char_no => 1, :text => body }
       meth_obj.add_token tk
       meth_obj.comment = comment
-      meth_obj.offset  = offset
       meth_obj.line    = file_content[0, offset].count("\n") + 1
 
       body
@@ -869,8 +866,8 @@ class RDoc::Parser::C < RDoc::Parser
 
   def handle_attr(var_name, attr_name, read, write)
     rw = ''
-    rw << 'R' if '1' == read
-    rw << 'W' if '1' == write
+    rw += 'R' if '1' == read
+    rw += 'W' if '1' == write
 
     class_name = @known_classes[var_name]
 
@@ -986,8 +983,8 @@ class RDoc::Parser::C < RDoc::Parser
         if new_definition.empty? then # Default to literal C definition
           new_definition = definition
         else
-          new_definition.gsub!("\:", ":")
-          new_definition.gsub!("\\", '\\')
+          new_definition = new_definition.gsub("\:", ":")
+          new_definition = new_definition.gsub("\\", '\\')
         end
 
         new_definition.sub!(/\A(\s+)/, '')
@@ -1241,7 +1238,7 @@ class RDoc::Parser::C < RDoc::Parser
   # when scanning for classes and methods
 
   def remove_commented_out_lines
-    @content.gsub!(%r%//.*rb_define_%, '//')
+    @content = @content.gsub(%r%//.*rb_define_%, '//')
   end
 
   ##

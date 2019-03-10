@@ -417,6 +417,15 @@ class SystemCallError < StandardError
 end
 
 class KeyError < IndexError
+
+  attr_reader :receiver
+  attr_reader :key
+
+  def initialize(message = nil, receiver: nil, key: nil)
+    @receiver = receiver
+    @key = key
+    super(message)
+  end
 end
 
 class SignalException < Exception

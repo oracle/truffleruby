@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
 
-if defined?(OpenSSL::TestUtils)
+if defined?(OpenSSL)
 
 module OpenSSL::TestEOF
   def test_eof_0

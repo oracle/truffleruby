@@ -2,3 +2,9 @@ fails:Kernel.Float for hexadecimal literals with binary exponent allows embedded
 fails:Kernel.Float for hexadecimal literals with binary exponent allows embedded _ in a number on either side of the P
 fails:Kernel#Float for hexadecimal literals with binary exponent allows embedded _ in a number on either side of the p
 fails:Kernel#Float for hexadecimal literals with binary exponent allows embedded _ in a number on either side of the P
+fails:Kernel.Float when passed exception: false and valid input returns a Float number
+fails:Kernel.Float when passed exception: false and invalid input swallows an error
+fails:Kernel.Float when passed exception: false and nil swallows it
+fails:Kernel#Float when passed exception: false and valid input returns a Float number
+fails:Kernel#Float when passed exception: false and invalid input swallows an error
+fails:Kernel#Float when passed exception: false and nil swallows it

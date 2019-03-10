@@ -1,0 +1,2 @@
+fails:Enumerator::ArithmeticSequence.new is not defined
+fails:Enumerator::ArithmeticSequence.allocate is not defined

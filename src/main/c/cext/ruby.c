@@ -1177,6 +1177,14 @@ rb_encoding *rb_enc_from_index(int index) {
   return rb_to_encoding(rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enc_from_index", index)));
 }
 
+void RB_ENC_CODERANGE_SET(VALUE obj, int cr) {
+  rb_tr_error("RB_ENC_CODERANGE_SET not implemented");
+}
+
+int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
+  rb_tr_error("rb_enc_mbc_to_codepoint not implemented");
+}
+
 int rb_enc_str_coderange(VALUE str) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_str_coderange", str));
 }
@@ -1204,6 +1212,10 @@ void rb_tr_add_flags(VALUE value, int flags) {
   if (flags & RUBY_FL_FREEZE) {
     rb_obj_freeze(value);
   }
+}
+
+bool rb_tr_hidden_p(VALUE value) {
+  return false;
 }
 
 // Undef conflicting macro from encoding.h like MRI
@@ -3827,7 +3839,8 @@ void rb_mark_hash(st_table *tbl) {
 }
 
 void rb_gc_force_recycle(VALUE obj) {
-  rb_tr_error("rb_gc_force_recycle not implemented");
+  // Comments in MRI imply rb_gc_force_recycle functions as a GC guard
+  RB_GC_GUARD(obj);
 }
 
 void rb_gc_copy_finalizer(VALUE dest, VALUE obj) {
@@ -4643,7 +4656,23 @@ VALUE rb_current_receiver(void) {
 }
 
 int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optional, VALUE *values) {
-  rb_tr_error("rb_get_kwargs not implemented");
+  if (optional == -1) {
+    rb_tr_error("rb_get_kwargs with rest not implemented");
+  }
+
+  if (optional > 0) {
+    rb_tr_error("rb_get_kwargs with optional not implemented");
+  }
+
+  if (optional < 0) {
+    rb_tr_error("rb_get_kwargs with rest and optional not implemented");
+  }
+
+  for (int n = 0; n < required; n++) {
+    values[n] = rb_hash_fetch(keyword_hash, table[n]);
+  }
+
+  return required;
 }
 
 VALUE rb_extract_keywords(VALUE *orighash) {

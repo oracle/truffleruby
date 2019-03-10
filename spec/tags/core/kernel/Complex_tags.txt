@@ -1,1 +1,7 @@
 fails:Kernel.Complex() when passed nil raises TypeError
+fails:Kernel.Complex() when passed exception: false and [Numeric] returns a complex number
+fails:Kernel.Complex() when passed exception: false and [non-Numeric] swallows an error
+fails:Kernel.Complex() when passed exception: false and [non-Numeric, Numeric] argument throws a TypeError
+fails:Kernel.Complex() when passed exception: false and [anything, non-Numeric] argument swallows an error
+fails:Kernel.Complex() when passed exception: false and non-numeric String arguments swallows an error
+fails:Kernel.Complex() when passed exception: false and nil arguments swallows an error

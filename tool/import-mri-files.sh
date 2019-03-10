@@ -5,11 +5,11 @@ set -e
 
 topdir=$(cd ../ruby && pwd -P)
 
-# Generate ext/rbconfig/sizeof/sizes.c
+# Generate ext/rbconfig/sizeof/sizes.c and limits.c
 (
   cd ../ruby/ext/rbconfig/sizeof
   cp depend Makefile
-  make sizes.c RUBY=ruby top_srcdir="$topdir"
+  make sizes.c limits.c RUBY=ruby top_srcdir="$topdir"
   rm Makefile
 )
 
@@ -20,6 +20,8 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
+find lib/mri | grep '/.gemspec$' | xargs rm
+find lib/mri | grep '/.document$' | xargs rm
 
 # *.c
 cp ../ruby/st.c src/main/c/cext/st.c

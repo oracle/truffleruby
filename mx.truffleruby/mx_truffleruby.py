@@ -145,6 +145,8 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
     ],
     provided_executables=[
+        'bin/bundle',
+        'bin/bundler',
         'bin/gem',
         'bin/irb',
         'bin/rake',

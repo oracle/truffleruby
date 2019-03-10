@@ -1,1 +1,3 @@
 fails:The rescue keyword allows 'rescue' in method arguments
+fails:The rescue keyword raises SyntaxError when else is used without rescue and ensure
+fails:The rescue keyword allows rescue in 'do end' block

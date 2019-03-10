@@ -1,0 +1,14 @@
+fails:Proc#<< returns a Proc that is the composition of self and the passed Proc
+fails:Proc#<< calls passed Proc with arguments and then calls self with result
+fails:Proc#<< accepts any callable object
+fails:Proc#<< raises NoMethodError when called if passed not callable object
+fails:Proc#<< when called does not try to coerce argument with #to_proc
+fails:Proc#<< composition is a Proc
+fails:Proc#<< composition may accept multiple arguments
+fails:Proc#>> returns a Proc that is the composition of self and the passed Proc
+fails:Proc#>> calls passed Proc with arguments and then calls self with result
+fails:Proc#>> accepts any callable object
+fails:Proc#>> raises NoMethodError when called if passed not callable object
+fails:Proc#>> when called does not try to coerce argument with #to_proc
+fails:Proc#>> composition is a Proc
+fails:Proc#>> composition may accept multiple arguments

@@ -324,7 +324,7 @@ module Truffle
       respond = check_funcall_respond_to(recv, meth, true)
       return default if respond == 0
       unless check_funcall_callable(recv, meth)
-        return check_funcall_missing(recv, meth, args, respond, default);
+        return check_funcall_missing(recv, meth, args, respond, default, true);
       end
       recv.__send__(meth)
     end
@@ -339,8 +339,8 @@ module Truffle
       end
     end
 
-    def self.check_funcall_missing(recv, meth, args, respond, default)
-      ret = basic_obj_respond_to_missing(recv, meth, false) #PRIV false
+    def self.check_funcall_missing(recv, meth, args, respond, default, priv = false)
+      ret = basic_obj_respond_to_missing(recv, meth, priv)
       respond_to_missing = !undefined.equal?(ret)
       return default if respond_to_missing and !ret
       ret = default

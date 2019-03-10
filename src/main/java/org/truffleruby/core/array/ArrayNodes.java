@@ -1654,7 +1654,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "push", rest = true, optional = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = { "push", "append" }, rest = true, optional = 1, raiseIfFrozenSelf = true)
     public abstract static class PushNode extends ArrayCoreMethodNode {
 
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();

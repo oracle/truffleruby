@@ -1,0 +1,1 @@
+fails:Net::FTP#quit sends the QUIT command to the server

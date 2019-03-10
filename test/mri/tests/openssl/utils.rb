@@ -34,7 +34,7 @@ require "tempfile"
 require "socket"
 require "envutil"
 
-if defined?(OpenSSL) && OpenSSL::OPENSSL_VERSION_NUMBER >= 0x10000000
+if defined?(OpenSSL)
 
 module OpenSSL::TestUtils
   module Fixtures
@@ -56,14 +56,10 @@ module OpenSSL::TestUtils
     end
   end
 
-  DSA_SIGNATURE_DIGEST = OpenSSL::OPENSSL_VERSION_NUMBER > 0x10000000 ?
-                         OpenSSL::Digest::SHA1 :
-                         OpenSSL::Digest::DSS1
-
   module_function
 
   def issue_cert(dn, key, serial, extensions, issuer, issuer_key,
-                 not_before: nil, not_after: nil, digest: nil)
+                 not_before: nil, not_after: nil, digest: "sha256")
     cert = OpenSSL::X509::Certificate.new
     issuer = cert unless issuer
     issuer_key = key unless issuer_key
@@ -71,7 +67,7 @@ module OpenSSL::TestUtils
     cert.serial = serial
     cert.subject = dn
     cert.issuer = issuer.subject
-    cert.public_key = key.public_key
+    cert.public_key = key
     now = Time.now
     cert.not_before = not_before || now - 3600
     cert.not_after = not_after || now + 3600
@@ -81,7 +77,6 @@ module OpenSSL::TestUtils
     extensions.each{|oid, value, critical|
       cert.add_extension(ef.create_extension(oid, value, critical))
     }
-    digest ||= OpenSSL::PKey::DSA === issuer_key ? DSA_SIGNATURE_DIGEST.new : "sha256"
     cert.sign(issuer_key, digest)
     cert
   end
@@ -182,7 +177,10 @@ class OpenSSL::SSLTestCase < OpenSSL::TestCase
   end
 
   def tls12_supported?
-    OpenSSL::SSL::SSLContext::METHODS.include?(:TLSv1_2)
+    ctx = OpenSSL::SSL::SSLContext.new
+    ctx.min_version = ctx.max_version = OpenSSL::SSL::TLS1_2_VERSION
+    true
+  rescue
   end
 
   def readwrite_loop(ctx, ssl)
@@ -216,6 +214,10 @@ class OpenSSL::SSLTestCase < OpenSSL::TestCase
       threads = []
       begin
         server_thread = Thread.new do
+          if Thread.method_defined?(:report_on_exception=) # Ruby >= 2.4
+            Thread.current.report_on_exception = false
+          end
+
           begin
             loop do
               begin
@@ -229,6 +231,10 @@ class OpenSSL::SSLTestCase < OpenSSL::TestCase
               end
 
               th = Thread.new do
+                if Thread.method_defined?(:report_on_exception=)
+                  Thread.current.report_on_exception = false
+                end
+
                 begin
                   server_proc.call(ctx, ssl)
                 ensure
@@ -244,6 +250,10 @@ class OpenSSL::SSLTestCase < OpenSSL::TestCase
         end
 
         client_thread = Thread.new do
+          if Thread.method_defined?(:report_on_exception=)
+            Thread.current.report_on_exception = false
+          end
+
           begin
             block.call(port)
           ensure

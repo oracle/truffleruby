@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, &block)
+  def self.new(klass_name, *attrs, keyword_init: true, &block)
     if klass_name
       if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
@@ -103,7 +103,21 @@ class Struct
   end
 
   def to_h
-    Hash[each_pair.to_a]
+    h = {}
+    each_pair.each_with_index do |elem, i|
+      elem = yield(elem) if block_given?
+      unless elem.respond_to?(:to_ary)
+        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+      end
+
+      ary = elem.to_ary
+      if ary.size != 2
+        raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
+      end
+
+      h[ary[0]] = ary[1]
+    end
+    h
   end
 
   def to_s

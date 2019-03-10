@@ -1,0 +1,2 @@
+fails:Range#% works as a Range#step
+fails:Range#% produces an arithmetic sequence with a percent sign in #inspect

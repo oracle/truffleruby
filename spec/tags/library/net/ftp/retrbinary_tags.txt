@@ -1,0 +1,1 @@
+fails:Net::FTP#retrbinary yields the received content as binary blocks of the passed size

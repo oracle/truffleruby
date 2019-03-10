@@ -1422,6 +1422,7 @@ public class CoreLibrary {
             "/core/truffle/debug.rb",
             "/core/truffle/warnings.rb",
             "/core/truffle/exception_operations.rb",
+            "/core/truffle/hash_operations.rb",
             "/core/truffle/numeric_operations.rb",
             "/core/truffle/proc_operations.rb",
             "/core/truffle/range_operations.rb",

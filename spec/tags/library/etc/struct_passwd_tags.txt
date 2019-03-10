@@ -1,4 +1,3 @@
 slow:Struct::Passwd returns user name
 slow:Struct::Passwd returns user id
-slow:Struct::Passwd returns user group id
-darwin:Struct::Passwd returns user group id
+fails:Struct::Passwd returns user group id

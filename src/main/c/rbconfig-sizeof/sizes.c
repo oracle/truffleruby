@@ -8,6 +8,7 @@
 # include <wctype.h>
 #endif
 
+extern void Init_limits(void);
 void
 Init_sizeof(void)
 {
@@ -188,6 +189,8 @@ Init_sizeof(void)
 #ifdef HAVE_TYPE___FLOAT80
     DEFINE_SIZE(__float80);
 #endif
+    OBJ_FREEZE(s);
 
 #undef DEFINE
+    Init_limits();
 }

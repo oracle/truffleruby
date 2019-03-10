@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 case ENV['JSON']
 when 'ext', nil
   if ENV['RUBY_ENGINE'] == 'jruby'
-    gemspec :name => 'json', :path => 'java'
+    gemspec :name => 'json-java'
   else
     gemspec :name => 'json'
   end

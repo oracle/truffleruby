@@ -19,7 +19,7 @@ class TestGemRequestSetGemDependencyAPI < Gem::TestCase
     @gda.instance_variable_set :@vendor_set, @vendor_set
   end
 
-  def with_engine_version name, version
+  def with_engine_version(name, version)
     engine               = RUBY_ENGINE if Object.const_defined? :RUBY_ENGINE
     engine_version_const = "#{Gem.ruby_engine.upcase}_VERSION"
     engine_version       = Object.const_get engine_version_const
@@ -627,11 +627,7 @@ end
       assert_equal [dep('a'), dep('b')], @set.dependencies
       io
     end
-    tf.close! if tf.respond_to? :close!
-  end
-
-  def test_name_typo
-    assert_same @GDA, Gem::RequestSet::GemDepedencyAPI
+    tf.close!
   end
 
   def test_pin_gem_source
@@ -753,7 +749,7 @@ end
         @gda.ruby RUBY_VERSION, :engine => 'jruby', :engine_version => '1.7.4'
       end
 
-      assert_equal 'Your ruby engine is ruby, but your gem.deps.rb requires jruby',
+      assert_equal 'Your Ruby engine is ruby, but your gem.deps.rb requires jruby',
                    e.message
     end
   end
@@ -764,7 +760,7 @@ end
         @gda.ruby RUBY_VERSION, :engine => 'jruby', :engine_version => '1.7.4'
       end
 
-      assert_equal 'Your ruby engine version is jruby 1.7.6, but your gem.deps.rb requires jruby 1.7.4',
+      assert_equal 'Your Ruby engine version is jruby 1.7.6, but your gem.deps.rb requires jruby 1.7.4',
                    e.message
     end
   end
@@ -774,7 +770,7 @@ end
       @gda.ruby RUBY_VERSION, :engine => 'jruby'
     end
 
-    assert_equal 'you must specify engine_version along with the ruby engine',
+    assert_equal 'You must specify engine_version along with the Ruby engine',
                  e.message
   end
 
@@ -828,4 +824,3 @@ end
   end
 
 end
-

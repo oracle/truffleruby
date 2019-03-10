@@ -1,26 +1,10 @@
 # frozen_string_literal: false
 require_relative 'utils'
 
-if defined?(OpenSSL::TestUtils)
+if defined?(OpenSSL) && defined?(OpenSSL::PKey::DH)
 
 class OpenSSL::TestPKeyDH < OpenSSL::PKeyTestCase
   NEW_KEYLEN = 256
-
-  def test_DEFAULT_parameters
-    list = {
-      1024 => OpenSSL::PKey::DH::DEFAULT_1024,
-      2048 => OpenSSL::PKey::DH::DEFAULT_2048,
-    }
-
-    list.each do |expected_size, dh|
-      assert_equal expected_size, dh.p.num_bits
-      assert_predicate dh.p, :prime?
-      result, remainder = (dh.p - 1) / 2
-      assert_predicate result, :prime?
-      assert_equal 0, remainder
-      assert_no_key dh
-    end
-  end
 
   def test_new
     dh = OpenSSL::PKey::DH.new(NEW_KEYLEN)

@@ -1,0 +1,1 @@
+fails:ERB::Util.u escapes tilde

@@ -34,7 +34,6 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -683,8 +682,8 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    @CoreMethod(names = "merge", required = 1, needsBlock = true)
-    public abstract static class MergeNode extends YieldingCoreMethodNode {
+    @Primitive(name = "hash_merge", needsSelf = false)
+    public abstract static class MergeNode extends PrimitiveArrayArgumentsNode {
 
         @Child private LookupEntryNode lookupEntryNode;
         @Child private SetNode setNode = SetNode.create();
@@ -694,38 +693,38 @@ public abstract class HashNodes {
         // Merge with an empty hash, without a block
 
         @Specialization(guards = {"isNullHash(hash)", "isRubyHash(other)", "isNullHash(other)"})
-        public DynamicObject mergeEmptyEmpty(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergeEmptyEmpty(DynamicObject hash, DynamicObject other) {
             return newHash(hash, null, 0, Layouts.HASH.getCompareByIdentity(hash));
         }
 
         @Specialization(guards = {"isEmptyHash(hash)", "isRubyHash(other)", "isPackedHash(other)"})
-        public DynamicObject mergeEmptyPacked(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergeEmptyPacked(DynamicObject hash, DynamicObject other) {
             final Object[] store = (Object[]) Layouts.HASH.getStore(other);
             final Object[] copy = PackedArrayStrategy.copyStore(getContext(), store);
             return newHash(hash, copy, Layouts.HASH.getSize(other), Layouts.HASH.getCompareByIdentity(hash));
         }
 
         @Specialization(guards = {"isPackedHash(hash)", "isRubyHash(other)", "isEmptyHash(other)"})
-        public DynamicObject mergePackedEmpty(DynamicObject hash, DynamicObject other, NotProvided block) {
-            return mergeEmptyPacked(other, hash, block);
+        public DynamicObject mergePackedEmpty(DynamicObject hash, DynamicObject other) {
+            return mergeEmptyPacked(other, hash);
         }
 
         @Specialization(guards = {"isEmptyHash(hash)", "isRubyHash(other)", "isBucketHash(other)"})
-        public DynamicObject mergeEmptyBuckets(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergeEmptyBuckets(DynamicObject hash, DynamicObject other) {
             final DynamicObject merged = newHash(hash, null, 0, Layouts.HASH.getCompareByIdentity(hash));
             BucketsStrategy.copyInto(getContext(), other, merged);
             return merged;
         }
 
         @Specialization(guards = {"isBucketHash(hash)", "isRubyHash(other)", "isEmptyHash(other)"})
-        public DynamicObject mergeBucketsEmpty(DynamicObject hash, DynamicObject other, NotProvided block) {
-            return mergeEmptyBuckets(other, hash, block);
+        public DynamicObject mergeBucketsEmpty(DynamicObject hash, DynamicObject other) {
+            return mergeEmptyBuckets(other, hash);
         }
 
         // Merge non-empty packed with non-empty packed, without a block
 
         @Specialization(guards = {"isPackedHash(hash)", "!isEmptyHash(hash)", "isRubyHash(other)", "isPackedHash(other)", "!isEmptyHash(other)"})
-        public DynamicObject mergePackedPacked(DynamicObject hash, DynamicObject other, NotProvided block,
+        public DynamicObject mergePackedPacked(DynamicObject hash, DynamicObject other,
                         @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
                         @Cached("createBinaryProfile()") ConditionProfile nothingFromFirstProfile,
                         @Cached("createBinaryProfile()") ConditionProfile resultIsSmallProfile) {
@@ -834,7 +833,7 @@ public abstract class HashNodes {
         // Merge non-empty buckets with non-empty buckets, without a block
 
         @Specialization(guards = {"isBucketHash(hash)", "!isEmptyHash(hash)", "isRubyHash(other)", "isBucketHash(other)", "!isEmptyHash(other)"})
-        public DynamicObject mergeBucketsBuckets(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergeBucketsBuckets(DynamicObject hash, DynamicObject other) {
             final boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
             final Entry[] newStore = new Entry[BucketsStrategy.capacityGreaterThan(Layouts.HASH.getSize(hash) + Layouts.HASH.getSize(other))];
             final DynamicObject merged = newHash(hash, newStore, 0, compareByIdentity);
@@ -854,7 +853,7 @@ public abstract class HashNodes {
         // Merge combinations of packed and buckets, without a block
 
         @Specialization(guards = {"isPackedHash(hash)", "!isEmptyHash(hash)", "isRubyHash(other)", "isBucketHash(other)", "!isEmptyHash(other)"})
-        public DynamicObject mergePackedBuckets(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergePackedBuckets(DynamicObject hash, DynamicObject other) {
             final boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
             final Entry[] newStore = new Entry[BucketsStrategy.capacityGreaterThan(Layouts.HASH.getSize(hash) + Layouts.HASH.getSize(other))];
             final DynamicObject merged = newHash(hash, newStore, 0, compareByIdentity);
@@ -877,7 +876,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = {"isBucketHash(hash)", "!isEmptyHash(hash)", "isRubyHash(other)", "isPackedHash(other)", "!isEmptyHash(other)"})
-        public DynamicObject mergeBucketsPacked(DynamicObject hash, DynamicObject other, NotProvided block) {
+        public DynamicObject mergeBucketsPacked(DynamicObject hash, DynamicObject other) {
             final boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
             final Entry[] newStore = new Entry[BucketsStrategy.capacityGreaterThan(Layouts.HASH.getSize(hash) + Layouts.HASH.getSize(other))];
             final DynamicObject merged = newHash(hash, newStore, 0, compareByIdentity);
@@ -897,66 +896,6 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
             return merged;
-        }
-
-        // Merge using a block
-
-        @Specialization(guards = "isRubyHash(other)")
-        public DynamicObject merge(DynamicObject hash, DynamicObject other, DynamicObject block,
-                                   @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("Hash#merge with a block is not yet optimized");
-
-            final boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
-
-            final int capacity = BucketsStrategy.capacityGreaterThan(Layouts.HASH.getSize(hash) + Layouts.HASH.getSize(other));
-            final DynamicObject merged = newHash(hash, new Entry[capacity], 0, compareByIdentity);
-
-            int size = 0;
-
-            for (KeyValue keyValue : HashOperations.iterableKeyValues(hash)) {
-                setNode.executeSet(merged, keyValue.getKey(), keyValue.getValue(), false);
-                size++;
-            }
-
-            if (lookupEntryNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lookupEntryNode = insert(new LookupEntryNode());
-            }
-
-            for (KeyValue keyValue : HashOperations.iterableKeyValues(other)) {
-                final HashLookupResult searchResult = lookupEntryNode.lookup(merged, keyValue.getKey());
-
-                if (searchResult.getEntry() == null) {
-                    setNode.executeSet(merged, keyValue.getKey(), keyValue.getValue(), false);
-                    size++;
-                } else {
-                    final Object oldValue = searchResult.getEntry().getValue();
-                    final Object newValue = keyValue.getValue();
-                    final Object mergedValue = yield(block, keyValue.getKey(), oldValue, newValue);
-
-                    setNode.executeSet(merged, keyValue.getKey(), mergedValue, false);
-                }
-            }
-
-            Layouts.HASH.setSize(merged, size);
-
-            assert HashOperations.verifyStore(getContext(), hash);
-            return merged;
-        }
-
-        // Merge with something that wasn't a hash
-
-        @Specialization(guards = "!isRubyHash(other)")
-        public Object merge(DynamicObject hash, Object other, Object maybeBlock,
-                @Cached("createPrivate()") CallDispatchHeadNode fallbackCallNode) {
-            final DynamicObject block;
-            if (maybeBlock == NotProvided.INSTANCE) {
-                block = null;
-            } else {
-                block = (DynamicObject) maybeBlock;
-            }
-
-            return fallbackCallNode.callWithBlock(hash, "merge_fallback", block, other);
         }
 
         private DynamicObject newHash(DynamicObject hash, Object[] store, int size, boolean compareByIdentity) {

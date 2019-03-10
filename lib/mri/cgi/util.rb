@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 class CGI
   module Util; end
   include Util
@@ -11,7 +11,7 @@ module CGI::Util
   #      # => "%27Stop%21%27+said+Fred"
   def escape(string)
     encoding = string.encoding
-    string.b.gsub(/([^ a-zA-Z0-9_.-]+)/) do |m|
+    string.b.gsub(/([^ a-zA-Z0-9_.\-~]+)/) do |m|
       '%' + m.unpack('H2' * m.bytesize).join('%').upcase
     end.tr(' ', '+').force_encoding(encoding)
   end
@@ -54,10 +54,10 @@ module CGI::Util
     string.gsub(/['&\"<>]/, TABLE_FOR_ESCAPE_HTML__)
   end
 
-  begin
-    require 'cgi/escape'
-  rescue LoadError
-  end
+  #begin
+  #  require 'cgi/escape'
+  #rescue LoadError
+  #end
 
   # Unescape a string that has been HTML-escaped
   #   CGI::unescapeHTML("Usage: foo &quot;bar&quot; &lt;baz&gt;")

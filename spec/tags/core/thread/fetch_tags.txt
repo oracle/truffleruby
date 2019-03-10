@@ -1,0 +1,5 @@
+fails:Thread#fetch raises an ArgumentError when not passed one or two arguments
+fails:Thread#fetch with 2 arguments returns the value of the fiber-local variable if value has been assigned
+fails:Thread#fetch with 2 arguments returns the default value if fiber-local variable hasn't been assigned
+fails:Thread#fetch with 1 argument raises a KeyError when the Thread does not have a fiber-local variable of the same name
+fails:Thread#fetch with 1 argument returns the value of the fiber-local variable if value has been assigned

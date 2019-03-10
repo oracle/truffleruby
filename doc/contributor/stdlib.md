@@ -33,7 +33,7 @@
 | `gdbm`                | Key-value store                                                       | C extension                         | Unsupported                                               | Unsupported                                      | MRI                                   |                                                                                          |
 | `getoptlong`          | Command-line parsing                                                  | Ruby                                | As MRI                                                    | As MRI                                           | Specs                                 |                                                                                          |
 | `io/console`          |                                                                       | C extension                         | Java extension                                            | Ruby, but limited                                | MRI                                   |                                                                                          |
-| `io/nonblock`         |                                                                       | C extension                         | Java extension                                            | Unsupported                                      | MRI                                   |                                                                                          |
+| `io/nonblock`         |                                                                       | C extension                         | Java extension                                            | Ruby                                             | MRI                                   |                                                                                          |
 | `io/wait`             |                                                                       | C extension                         | Java extension                                            | Ruby, but limited                                | MRI                                   |                                                                                          |
 | `ipaddr`              |                                                                       | Ruby                                | As MRI                                                    | As MRI                                           | Specs, MRI                            |                                                                                          |
 | `irb`                 | Interactive shell                                                     | Ruby                                | As MRI                                                    | As MRI                                           | MRI                                   |                                                                                          |
@@ -94,7 +94,6 @@
 | `tmpdir`              |                                                                       | Ruby                                | As MRI                                                    | As MRI                                           | Specs, MRI                            |                                                                                          |
 | `tracer`              | Wrapper around `set_trace_func`can be used as a command-line utility  | Ruby                                | As MRI, think it needs a command-line flag though         | As MRI                                           | MRI                                   |                                                                                          |
 | `tsort`               | Topological sorter                                                    | Ruby                                | As MRI                                                    | As MRI                                           | MRI                                   |                                                                                          |
-| `ubygems`             | `-rubygems`                                                           | Ruby                                | As MRI                                                    | As MRI                                           | MRI                                   |                                                                                          |
 | `un`                  | Unix shell command equivalents, similar to BusyBox                    | Ruby                                | As MRI                                                    | As MRI                                           | None                                  |                                                                                          |
 | `unicode_normalize`   |                                                                       | Ruby                                | As MRI                                                    | As MRI                                           | MRI                                   |                                                                                          |
 | `uri`                 |                                                                       | Ruby                                | As MRI                                                    | As MRI                                           | Specs, MRI                            |                                                                                          |
@@ -174,10 +173,10 @@ gem list | grep default:
 gems/bundled_gems
 ```
 
-* `did_you_mean` 1.1.0 (helper to suggest method names on method missing)
-* `minitest` 5.10.1 (test framework)
-* `net-telnet` 0.1.1
-* `power_assert` 0.4.1
-* `rake` 12.0.0 (hybrid bundled gem and standard library)
-* `test-unit` 3.2.3 (test framework)
-* `xmlrpc` 0.2.1 (RPC using XML)
+* `did_you_mean` 1.3.0 (helper to suggest method names on method missing)
+* `minitest` 5.11.3 (test framework)
+* `net-telnet` 0.2.0
+* `power_assert` 1.1.3
+* `rake` 12.3.2 (hybrid bundled gem and standard library)
+* `test-unit` 3.2.9 (test framework)
+* `xmlrpc` 0.3.0 (RPC using XML)

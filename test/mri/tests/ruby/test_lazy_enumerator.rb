@@ -32,7 +32,7 @@ class TestLazyEnumerator < Test::Unit::TestCase
 
     a = [1, 2, 3].lazy
     a.freeze
-    assert_raise(RuntimeError) {
+    assert_raise(FrozenError) {
       a.__send__ :initialize, [4, 5], &->(y, *v) { y << yield(*v) }
     }
   end
@@ -568,5 +568,14 @@ EOS
     assert_raise(NoMethodError) do
       [1, 2, 3].lazy.map(&:undefined).map(&:to_s).force
     end
+  end
+
+  def test_uniq
+    u = (1..Float::INFINITY).lazy.uniq do |x|
+      raise "too big" if x > 10000
+      (x**2) % 10
+    end
+    assert_equal([1, 2, 3, 4, 5, 10], u.first(6))
+    assert_equal([1, 2, 3, 4, 5, 10], u.first(6))
   end
 end

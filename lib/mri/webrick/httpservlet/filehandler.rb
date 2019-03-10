@@ -9,12 +9,11 @@
 #
 # $IPR: filehandler.rb,v 1.44 2003/06/07 01:34:51 gotoyuzo Exp $
 
-require 'thread'
 require 'time'
 
-require 'webrick/htmlutils'
-require 'webrick/httputils'
-require 'webrick/httpstatus'
+require_relative '../htmlutils'
+require_relative '../httputils'
+require_relative '../httpstatus'
 
 module WEBrick
   module HTTPServlet
@@ -56,9 +55,9 @@ module WEBrick
         else
           mtype = HTTPUtils::mime_type(@local_path, @config[:MimeTypes])
           res['content-type'] = mtype
-          res['content-length'] = st.size
+          res['content-length'] = st.size.to_s
           res['last-modified'] = mtime.httpdate
-          res.body = open(@local_path, "rb")
+          res.body = File.open(@local_path, "rb")
         end
       end
 
@@ -122,7 +121,7 @@ module WEBrick
           raise HTTPStatus::BadRequest,
             "Unrecognized range-spec: \"#{req['range']}\""
         end
-        open(filename, "rb"){|io|
+        File.open(filename, "rb"){|io|
           if ranges.size > 1
             time = Time.now
             boundary = "#{time.sec}_#{time.usec}_#{Process::pid}"
@@ -145,7 +144,7 @@ module WEBrick
             raise HTTPStatus::RequestRangeNotSatisfiable if first < 0
             res['content-type'] = mtype
             res['content-range'] = "bytes #{first}-#{last}/#{filesize}"
-            res['content-length'] = last - first + 1
+            res['content-length'] = (last - first + 1).to_s
             res.body = io.dup
           else
             raise HTTPStatus::BadRequest

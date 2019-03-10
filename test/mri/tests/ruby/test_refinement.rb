@@ -19,6 +19,10 @@ class TestRefinement < Test::Unit::TestCase
       return "Foo#a"
     end
 
+    def b
+      return "Foo#b"
+    end
+
     def call_x
       return x
     end
@@ -40,6 +44,10 @@ class TestRefinement < Test::Unit::TestCase
 
       def a
         return "FooExt#a"
+      end
+
+      private def b
+        return "FooExt#b"
       end
     end
   end
@@ -92,6 +100,18 @@ class TestRefinement < Test::Unit::TestCase
 
       def self.send_z_on(foo)
         return foo.send(:z)
+      end
+
+      def self.send_b_on(foo)
+        return foo.send(:b)
+      end
+
+      def self.public_send_z_on(foo)
+        return foo.public_send(:z)
+      end
+
+      def self.public_send_b_on(foo)
+        return foo.public_send(:b)
       end
 
       def self.method_z(foo)
@@ -179,9 +199,18 @@ class TestRefinement < Test::Unit::TestCase
     foo = Foo.new
     assert_raise(NoMethodError) { foo.send(:z) }
     assert_equal("FooExt#z", FooExtClient.send_z_on(foo))
+    assert_equal("FooExt#b", FooExtClient.send_b_on(foo))
     assert_raise(NoMethodError) { foo.send(:z) }
 
     assert_equal(true, RespondTo::Sub.new.respond_to?(:foo))
+  end
+
+  def test_public_send_should_use_refinements
+    foo = Foo.new
+    assert_raise(NoMethodError) { foo.public_send(:z) }
+    assert_equal("FooExt#z", FooExtClient.public_send_z_on(foo))
+    assert_equal("Foo#b", foo.public_send(:b))
+    assert_raise(NoMethodError) { FooExtClient.public_send_b_on(foo) }
   end
 
   def test_method_should_not_use_refinements
@@ -297,9 +326,9 @@ class TestRefinement < Test::Unit::TestCase
     end
   end
 
-  def test_respond_to_should_not_use_refinements
+  def test_respond_to_should_use_refinements
     assert_equal(false, 1.respond_to?(:foo))
-    assert_equal(false, eval_using(IntegerFooExt, "1.respond_to?(:foo)"))
+    assert_equal(true, eval_using(IntegerFooExt, "1.respond_to?(:foo)"))
   end
 
   module StringCmpExt
@@ -377,19 +406,20 @@ class TestRefinement < Test::Unit::TestCase
     end
 
     module M2
-      # refine M do
-      #   def foo
-      #     "M@M2#foo"
-      #   end
-      # 
-      #   def bar
-      #     "#{super} M@M2#bar"
-      #   end
-      # 
-      #   def baz
-      #     "#{super} M@M2#baz"
-      #   end
-      # end
+      # TODO CS 21-Feb-19 can we run this now?
+      #refine M do
+      #  def foo
+      #    "M@M2#foo"
+      #  end
+      #
+      #  def bar
+      #    "#{super} M@M2#bar"
+      #  end
+      #
+      #  def baz
+      #    "#{super} M@M2#baz"
+      #  end
+      #end
     end
 
     using M2
@@ -905,6 +935,10 @@ class TestRefinement < Test::Unit::TestCase
 
     def self.send_z_on(foo)
       return foo.send(:z)
+    end
+
+    def self.public_send_z_on(foo)
+      return foo.public_send(:z)
     end
 
     def self.method_z(foo)
@@ -1900,23 +1934,6 @@ class TestRefinement < Test::Unit::TestCase
     end
   end
 
-  def test_refined_method_alias_warning
-    c = Class.new do
-      def t; :t end
-      def f; :f end
-    end
-    Module.new do
-      refine(c) do
-        alias foo t
-      end
-    end
-    assert_warning('', '[ruby-core:82385] [Bug #13817] refined method is not redefined') do
-      c.class_eval do
-        alias foo f
-      end
-    end
-  end
-
   class ParentDefiningPrivateMethod
     private
     def some_inherited_method
@@ -1959,6 +1976,214 @@ class TestRefinement < Test::Unit::TestCase
     assert_raise_with_message(NoMethodError, /private/) do
       obj.some_method
     end
+  end
+
+  def test_refined_method_alias_warning
+    c = Class.new do
+      def t; :t end
+      def f; :f end
+    end
+    Module.new do
+      refine(c) do
+        alias foo t
+      end
+    end
+    assert_warning('', '[ruby-core:82385] [Bug #13817] refined method is not redefined') do
+      c.class_eval do
+        alias foo f
+      end
+    end
+  end
+
+  def test_using_wrong_argument
+    bug = '[ruby-dev:50270] [Bug #13956]'
+    pattern = /expected Module/
+    assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
+    bug = ""#{bug.dump}
+    pattern = /#{pattern}/
+    begin;
+      assert_raise_with_message(TypeError, pattern, bug) {
+        using(1) do end
+      }
+    end;
+    assert_separately([], "#{<<-"begin;"}\n#{<<-'end;'}")
+    bug = ""#{bug.dump}
+    pattern = /#{pattern}/
+    begin;
+      assert_raise_with_message(TypeError, pattern, bug) {
+        Module.new {using(1) {}}
+      }
+    end;
+  end
+
+  class ToString
+    c = self
+    using Module.new {refine(c) {def to_s; "ok"; end}}
+    def string
+      "#{self}"
+    end
+  end
+
+  def test_tostring
+    assert_equal("ok", ToString.new.string)
+    assert_predicate(ToString.new.taint.string, :tainted?)
+  end
+
+  class ToSymbol
+    c = self
+    using Module.new {refine(c) {def intern; "<#{upcase}>"; end}}
+    def symbol
+      :"#{@string}"
+    end
+    def initialize(string)
+      @string = string
+    end
+  end
+
+  def test_dsym_literal
+    assert_equal(:foo, ToSymbol.new("foo").symbol)
+  end
+
+  module ToProc
+    def self.call &block
+      block.call
+    end
+
+    class ReturnProc
+      c = self
+      using Module.new {
+        refine c do
+          def to_proc
+            proc { "to_proc" }
+          end
+        end
+      }
+      def call
+        ToProc.call &self
+      end
+    end
+
+    class ReturnNoProc
+      c = self
+      using Module.new {
+        refine c do
+          def to_proc
+            true
+          end
+        end
+      }
+
+      def call
+        ToProc.call &self
+      end
+    end
+
+    class PrivateToProc
+      c = self
+      using Module.new {
+        refine c do
+          private
+          def to_proc
+            proc { "private_to_proc" }
+          end
+        end
+      }
+
+      def call
+        ToProc.call &self
+      end
+    end
+
+
+    class NonProc
+      def call
+        ToProc.call &self
+      end
+    end
+
+    class MethodMissing
+      def method_missing *args
+        proc { "method_missing" }
+      end
+
+      def call
+        ToProc.call &self
+      end
+      end
+
+    class ToProcAndMethodMissing
+      def method_missing *args
+        proc { "method_missing" }
+      end
+
+      c = self
+      using Module.new {
+        refine c do
+          def to_proc
+            proc { "to_proc" }
+          end
+        end
+      }
+
+      def call
+        ToProc.call &self
+      end
+    end
+
+    class ToProcAndRefinements
+      def to_proc
+        proc { "to_proc" }
+      end
+
+      c = self
+      using Module.new {
+        refine c do
+          def to_proc
+            proc { "refinements_to_proc" }
+          end
+        end
+      }
+
+      def call
+        ToProc.call &self
+      end
+    end
+  end
+
+  def test_to_proc
+    assert_equal("to_proc", ToProc::ReturnProc.new.call)
+    assert_equal("private_to_proc", ToProc::PrivateToProc.new.call)
+    assert_raise(TypeError){ ToProc::ReturnNoProc.new.call }
+    assert_raise(TypeError){ ToProc::NonProc.new.call }
+    assert_equal("method_missing", ToProc::MethodMissing.new.call)
+    assert_equal("to_proc", ToProc::ToProcAndMethodMissing.new.call)
+    assert_equal("refinements_to_proc", ToProc::ToProcAndRefinements.new.call)
+  end
+
+  def test_unused_refinement_for_module
+    bug14068 = '[ruby-core:83613] [Bug #14068]'
+    assert_in_out_err([], <<-INPUT, ["M1#foo"], [], bug14068)
+      module M1
+        def foo
+          puts "M1#foo"
+        end
+      end
+
+      module M2
+      end
+
+      module UnusedRefinement
+        refine(M2) do
+          def foo
+            puts "M2#foo"
+          end
+        end
+      end
+
+      include M1
+      include M2
+      foo()
+    INPUT
   end
 
   def test_refining_module_repeatedly

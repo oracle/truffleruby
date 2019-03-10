@@ -1,0 +1,2 @@
+fails:Enumerator::ArithmeticSequence#inspect when Numeric#step is used returns '(begin.step(end{, step}))'
+fails:Enumerator::ArithmeticSequence#inspect when Range#step is used returns '((range).step{(step)})'

@@ -573,3 +573,9 @@ class Enumerator
     end
   end
 end
+
+class Enumerator::ArithmeticSequence < Enumerator
+end
+
+class Enumerator::Chain < Enumerator
+end

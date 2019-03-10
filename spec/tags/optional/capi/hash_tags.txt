@@ -1,0 +1,2 @@
+fails:C-API Hash function rb_hash_fetch when key is not found sets the Hash as the receiver of KeyError
+fails:C-API Hash function rb_hash_fetch when key is not found sets the unmatched key as the key of KeyError

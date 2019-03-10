@@ -219,7 +219,7 @@ class Hash
     end
 
     return default unless undefined.equal?(default)
-    raise KeyError, "key #{key} not found"
+    raise KeyError.new("key #{key} not found", :receiver => self, :key => key)
   end
 
   def fetch_values(*keys, &block)
@@ -242,22 +242,47 @@ class Hash
     self
   end
 
-  def merge!(other)
-    Truffle.check_frozen
-
-    other = Truffle::Type.coerce_to other, Hash, :to_hash
-
-    if block_given?
-      other.each_pair do |key,value|
-        if key? key
-          __store__ key, yield(key, self[key], value)
-        else
-          __store__ key, value
-        end
+  def merge(*others)
+    unless block_given?
+      current = self
+      others.each do |other|
+        other = Truffle::Type.coerce_to(other, Hash, :to_hash)
+        current = Truffle::HashOperations.hash_merge(current, other)
       end
     else
-      other.each_pair do |key,value|
-        __store__ key, value
+      current = self.dup
+      others.each do |other|
+        other.each do |k, v|
+          other = Truffle::Type.coerce_to(other, Hash, :to_hash)
+          if current.include?(k)
+            current[k] = yield(k, current[k], v)
+          else
+            current[k] = v
+          end
+        end
+      end
+    end
+    current
+  end
+
+  def merge!(*others)
+    Truffle.check_frozen
+
+    others.each do |other|
+      other = Truffle::Type.coerce_to other, Hash, :to_hash
+
+      if block_given?
+        other.each_pair do |key,value|
+          if key? key
+            __store__ key, yield(key, self[key], value)
+          else
+            __store__ key, value
+          end
+        end
+      else
+        other.each_pair do |key,value|
+          __store__ key, value
+        end
       end
     end
     self
@@ -283,6 +308,8 @@ class Hash
     selected
   end
 
+  alias_method :filter, :select
+
   def select!
     return to_enum(:select!) { size } unless block_given?
 
@@ -297,8 +324,21 @@ class Hash
     self
   end
 
+  alias_method :filter!, :select!
+
+  def slice(*keys)
+    res = {}
+    keys.each do |k|
+      v = _get_or_undefined(k)
+      res[k] = v unless undefined.equal?(v)
+    end
+    res
+  end
+
   def to_h
-    if instance_of? Hash
+    if block_given?
+      super
+    elsif instance_of? Hash
       self
     else
       Hash.allocate.replace(to_hash)
@@ -457,10 +497,6 @@ class Hash
       Truffle::Type.check_arity(args.size, 1, 1)
       proc_hash[args[0]]
     end
-  end
-
-  def merge_fallback(other, &block)
-    merge(Truffle::Type.coerce_to other, Hash, :to_hash, &block)
   end
 
   def transform_values

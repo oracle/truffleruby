@@ -239,8 +239,6 @@ class TestSetTraceFunc < Test::Unit::TestCase
     EOF
     assert_equal(["c-return", 1, :set_trace_func, Kernel],
                  events.shift)
-    assert_equal(["line", 4, __method__, self.class],
-                 events.shift)
     assert_equal(["line", 5, __method__, self.class],
                  events.shift)
     assert_equal(["c-call", 5, :raise, Kernel],
@@ -289,8 +287,8 @@ class TestSetTraceFunc < Test::Unit::TestCase
      ["line", 4, __method__, self.class],
      ["c-return", 4, :any?, Array],
      ["line", 5, __method__, self.class],
-     ["c-call", 5, :set_trace_func, Kernel]].each{|e|
-      assert_equal(e, events.shift)
+     ["c-call", 5, :set_trace_func, Kernel]].each.with_index{|e, i|
+       assert_equal(e, events.shift, "mismatch on #{i}th trace")
     }
   end
 
@@ -705,6 +703,45 @@ class TestSetTraceFunc < Test::Unit::TestCase
     assert_equal(false, trace.enabled?)
   end
 
+  def parameter_test(a, b, c)
+    yield
+  end
+
+  def test_tracepoint_parameters
+    trace = TracePoint.new(:line, :class, :end, :call, :return, :b_call, :b_return, :c_call, :c_return, :raise){|tp|
+      next if !target_thread?
+      next if tp.path != __FILE__
+      case tp.event
+      when :call, :return
+        assert_equal([[:req, :a], [:req, :b], [:req, :c]], tp.parameters)
+      when :b_call, :b_return
+        next if tp.parameters == []
+        if tp.parameters.first == [:opt, :x]
+          assert_equal([[:opt, :x], [:opt, :y], [:opt, :z]], tp.parameters)
+        else
+          assert_equal([[:req, :p], [:req, :q], [:req, :r]], tp.parameters)
+        end
+      when :c_call, :c_return
+        assert_equal([[:req]], tp.parameters) if tp.method_id == :getbyte
+      when :line, :class, :end, :raise
+        assert_raise(RuntimeError) { tp.parameters }
+      end
+    }
+    obj = Object.new
+    trace.enable{
+      parameter_test(1, 2, 3) {|x, y, z|
+      }
+      lambda {|p, q, r| }.call(4, 5, 6)
+      "".getbyte(0)
+      class << obj
+      end
+      begin
+        raise
+      rescue
+      end
+    }
+  end
+
   def method_test_tracepoint_return_value obj
     obj
   end
@@ -731,13 +768,13 @@ class TestSetTraceFunc < Test::Unit::TestCase
   end
 
   def test_tracepoint_raised_exception
-    trace = TracePoint.new(:call, :return){|tp|
+    trace = TracePoint.new(:call, :return, :raise){|tp|
       next if !target_thread?
       case tp.event
       when :call, :return
         assert_raise(RuntimeError) { tp.raised_exception }
       when :raise
-        assert_equal(XYZZYError, tp.raised_exception)
+        assert_kind_of(XYZZYException, tp.raised_exception)
       end
     }
     trace.enable{
@@ -814,14 +851,16 @@ class TestSetTraceFunc < Test::Unit::TestCase
 
   def test_tracepoint_inspect
     events = []
+    th = nil
     trace = TracePoint.new{|tp|
-      next if !target_thread?
+      next if !target_thread? && th != Thread.current
       events << [tp.event, tp.inspect]
     }
     assert_equal("#<TracePoint:disabled>", trace.inspect)
     trace.enable{
       assert_equal("#<TracePoint:enabled>", trace.inspect)
-      Thread.new{}.join
+      th = Thread.new{}
+      th.join
     }
     assert_equal("#<TracePoint:disabled>", trace.inspect)
     events.each{|(ev, str)|
@@ -854,6 +893,21 @@ class TestSetTraceFunc < Test::Unit::TestCase
   def test_tracepoint_exception_at_return
     assert_nothing_raised(Timeout::Error, 'infinite trace') do
       assert_normal_exit('def m; end; TracePoint.new(:return) {raise}.enable {m}', '', timeout: 3)
+    end
+  end
+
+  def test_tracepoint_exception_at_c_return
+    assert_nothing_raised(Timeout::Error, 'infinite trace') do
+      assert_normal_exit %q{
+        begin
+          TracePoint.new(:c_return){|tp|
+            raise
+          }.enable{
+            tap{ itself }
+          }
+        rescue
+        end
+      }, '', timeout: 3
     end
   end
 
@@ -1435,7 +1489,7 @@ class TestSetTraceFunc < Test::Unit::TestCase
     evs = []
 
     TracePoint.new(:call, :return){|tp|
-      return if Thread.current != target_th
+      next unless target_thread?
       evs << tp.event
     }.enable{
       Bug10724.new
@@ -1498,6 +1552,7 @@ class TestSetTraceFunc < Test::Unit::TestCase
   def test_tracepoint_callee_id
     events = []
     capture_events = Proc.new{|tp|
+      next unless target_thread?
       events << [tp.event, tp.method_id, tp.callee_id]
     }
 
@@ -1610,7 +1665,7 @@ class TestSetTraceFunc < Test::Unit::TestCase
 
   def tp_return_value mid
     ary = []
-    TracePoint.new(:return, :b_return){|tp| ary << [tp.event, tp.method_id, tp.return_value]}.enable{
+    TracePoint.new(:return, :b_return){|tp| next if !target_thread?; ary << [tp.event, tp.method_id, tp.return_value]}.enable{
       send mid
     }
     ary.pop # last b_return event is not required.
@@ -1687,19 +1742,15 @@ class TestSetTraceFunc < Test::Unit::TestCase
   end
 
   define_method(:f_raise_defined) do
-    begin
-      raise
-    rescue
-      return :f_raise_defined
-    end
+    raise
+  rescue
+    return :f_raise_defined
   end
 
   define_method(:f_break_in_rescue_defined) do
-    begin
-      raise
-    rescue
-      break :f_break_in_rescue_defined
-    end
+    raise
+  rescue
+    break :f_break_in_rescue_defined
   end
 
   def test_return_value_with_rescue_and_defined_methods
@@ -1771,5 +1822,297 @@ class TestSetTraceFunc < Test::Unit::TestCase
         end
       end
     }, bug13705
+  end
+
+  def test_trace_point_require_block
+    assert_raise(ArgumentError) { TracePoint.new(:return) }
+  end
+
+  def method_for_test_thread_add_trace_func
+
+  end
+
+  def test_thread_add_trace_func
+    events = []
+    base_line = __LINE__
+    q = Queue.new
+    t = Thread.new{
+      Thread.current.add_trace_func proc{|ev, file, line, *args|
+        events << [ev, line]
+      } # do not stop trace. They will be stopped at Thread termination.
+      q.push 1
+      _x = 1
+      method_for_test_thread_add_trace_func
+      _y = 2
+    }
+    q.pop
+    method_for_test_thread_add_trace_func
+    t.join
+    assert_equal ["c-return", base_line + 3], events[0]
+    assert_equal ["line", base_line + 6],     events[1]
+    assert_equal ["c-call", base_line + 6],   events[2]
+    assert_equal ["c-return", base_line + 6], events[3]
+    assert_equal ["line", base_line + 7],     events[4]
+    assert_equal ["line", base_line + 8],     events[5]
+    assert_equal ["call", base_line + -6],    events[6]
+    assert_equal ["return", base_line + -4],  events[7]
+    assert_equal ["line", base_line + 9],     events[8]
+    assert_equal nil,                         events[9]
+
+    # other thread
+    events = []
+    m2t_q = Queue.new
+
+    t = Thread.new{
+      Thread.current.abort_on_exception = true
+      assert_equal 1, m2t_q.pop
+      _x = 1
+      method_for_test_thread_add_trace_func
+      _y = 2
+      Thread.current.set_trace_func(nil)
+      method_for_test_thread_add_trace_func
+    }
+    # it is dirty hack. usually we shouldn't use such technique
+    Thread.pass until t.status == 'sleep'
+    # When MJIT thread exists, t.status becomes 'sleep' even if it does not reach m2t_q.pop.
+    # This sleep forces it to reach m2t_q.pop for --jit-wait.
+    sleep 1 if RubyVM::MJIT.enabled?
+
+    t.add_trace_func proc{|ev, file, line, *args|
+      if file == __FILE__
+        events << [ev, line]
+      end
+    }
+
+    method_for_test_thread_add_trace_func
+
+    m2t_q.push 1
+    t.join
+
+    assert_equal ["c-return", base_line + 31], events[0]
+    assert_equal ["line", base_line + 32],     events[1]
+    assert_equal ["line", base_line + 33],     events[2]
+    assert_equal ["call", base_line + -6],     events[3]
+    assert_equal ["return", base_line + -4],   events[4]
+    assert_equal ["line", base_line + 34],     events[5]
+    assert_equal ["line", base_line + 35],     events[6]
+    assert_equal ["c-call", base_line + 35],   events[7] # Thread.current
+    assert_equal ["c-return", base_line + 35], events[8] # Thread.current
+    assert_equal ["c-call", base_line + 35],   events[9] # Thread#set_trace_func
+    assert_equal nil,                          events[10]
+  end
+
+  def test_lineno_in_optimized_insn
+    actual, _, _ = EnvUtil.invoke_ruby [], <<-EOF.gsub(/^.*?: */, ""), true
+      1: class String
+      2:   def -@
+      3:     puts caller_locations(1, 1)[0].lineno
+      4:   end
+      5: end
+      6:
+      7: -""
+    EOF
+    assert_equal "7\n", actual, '[Bug #14809]'
+  end
+
+  def method_for_enable_target1
+    a = 1
+    b = 2
+    1.times{|i|
+      x = i
+    }
+    c = a + b
+  end
+
+  def method_for_enable_target2
+    a = 1
+    b = 2
+    1.times{|i|
+      x = i
+    }
+    c = a + b
+  end
+
+  def check_with_events *trace_events
+    all_events = [[:call, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:b_call, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:b_return, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:return, :method_for_enable_target1],
+                  # repeat
+                  [:call, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:b_call, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:b_return, :method_for_enable_target1],
+                  [:line, :method_for_enable_target1],
+                  [:return, :method_for_enable_target1],
+                 ]
+    events = []
+    TracePoint.new(*trace_events) do |tp|
+      next unless target_thread?
+      events << [tp.event, tp.method_id]
+    end.enable(target: method(:method_for_enable_target1)) do
+      method_for_enable_target1
+      method_for_enable_target2
+      method_for_enable_target1
+    end
+    assert_equal all_events.find_all{|(ev, m)| trace_events.include? ev}, events
+  end
+
+  def test_tracepoint_enable_target
+    check_with_events :line
+    check_with_events :call, :return
+    check_with_events :line, :call, :return
+    check_with_events :call, :return, :b_call, :b_return
+    check_with_events :line, :call, :return, :b_call, :b_return
+  end
+
+  def test_tracepoint_nested_enabled_with_target
+    code1 = proc{
+      a = 1
+    }
+    code2 = proc{
+      b = 2
+    }
+
+    ## error
+
+    # targetted TP and targetted TP
+    ex = assert_raise(ArgumentError) do
+      tp = TracePoint.new(:line){}
+      tp.enable(target: code1){
+        tp.enable(target: code2){}
+      }
+    end
+    assert_equal "can't nest-enable a targetting TracePoint", ex.message
+
+    # global TP and targetted TP
+    ex = assert_raise(ArgumentError) do
+      tp = TracePoint.new(:line){}
+      tp.enable{
+        tp.enable(target: code2){}
+      }
+    end
+    assert_equal "can't nest-enable a targetting TracePoint", ex.message
+
+    # targetted TP and global TP
+    ex = assert_raise(ArgumentError) do
+      tp = TracePoint.new(:line){}
+      tp.enable(target: code1){
+        tp.enable{}
+      }
+    end
+    assert_equal "can't nest-enable a targetting TracePoint", ex.message
+
+    # targetted TP and disable
+    ex = assert_raise(ArgumentError) do
+      tp = TracePoint.new(:line){}
+      tp.enable(target: code1){
+        tp.disable{}
+      }
+    end
+    assert_equal "can't disable a targetting TracePoint in a block", ex.message
+
+    ## success with two nesting targetting tracepoints
+    events = []
+    tp1 = TracePoint.new(:line){|tp| events << :tp1}
+    tp2 = TracePoint.new(:line){|tp| events << :tp2}
+    tp1.enable(target: code1) do
+      tp2.enable(target: code1) do
+        code1.call
+        events << :___
+      end
+    end
+    assert_equal [:tp2, :tp1, :___], events
+
+    # succss with two tracepoints (global/targetting)
+    events = []
+    tp1 = TracePoint.new(:line){|tp| events << :tp1}
+    tp2 = TracePoint.new(:line){|tp| events << :tp2}
+    tp1.enable do
+      tp2.enable(target: code1) do
+        code1.call
+        events << :___
+      end
+    end
+    assert_equal [:tp1, :tp1, :tp1, :tp1, :tp2, :tp1, :___], events
+
+    # succss with two tracepoints (targetting/global)
+    events = []
+    tp1 = TracePoint.new(:line){|tp| events << :tp1}
+    tp2 = TracePoint.new(:line){|tp| events << :tp2}
+    tp1.enable(target: code1) do
+      tp2.enable do
+        code1.call
+        events << :___
+      end
+    end
+    assert_equal [:tp2, :tp2, :tp1, :tp2, :___], events
+  end
+
+  def test_tracepoint_enable_with_target_line
+    events = []
+    line_0 = __LINE__
+    code1 = proc{
+      events << 1
+      events << 2
+      events << 3
+    }
+    tp = TracePoint.new(:line) do |tp|
+      events << :tp
+    end
+    tp.enable(target: code1, target_line: line_0 + 3) do
+      code1.call
+    end
+    assert_equal [1, :tp, 2, 3], events
+
+
+    e = assert_raise(ArgumentError) do
+      TracePoint.new(:line){}.enable(target_line: 10){}
+    end
+    assert_equal 'only target_line is specified', e.message
+
+    e = assert_raise(ArgumentError) do
+      TracePoint.new(:call){}.enable(target: code1, target_line: 10){}
+    end
+    assert_equal 'target_line is specified, but line event is not specified', e.message
+  end
+
+  def test_script_compiled
+    events = []
+    tp = TracePoint.new(:script_compiled){|tp|
+      next unless target_thread?
+      events << [tp.instruction_sequence.path,
+                 tp.eval_script]
+    }
+
+    eval_script = 'a = 1'
+    tp.enable{
+      eval(eval_script, nil, __FILE__+"/eval")
+      nil.instance_eval(eval_script, __FILE__+"/instance_eval")
+      Object.class_eval(eval_script, __FILE__+"/class_eval")
+    }
+    assert_equal [[__FILE__+"/eval", eval_script],
+                  [__FILE__+"/instance_eval", eval_script],
+                  [__FILE__+"/class_eval", eval_script],
+                 ], events
+    events.clear
+
+    # TODO: test for requires
+    return
+
+    tp.enable{
+      require ''
+      require_relative ''
+      load ''
+    }
+    assert_equal [], events
   end
 end

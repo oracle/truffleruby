@@ -71,9 +71,15 @@ rb_enc_coderange_clean_p(int cr)
 #define RB_ENC_CODERANGE_CLEAN_P(cr) rb_enc_coderange_clean_p(cr)
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
+
+#ifdef TRUFFLERUBY
+void RB_ENC_CODERANGE_SET(VALUE obj, int cr);
+#else
 #define RB_ENC_CODERANGE_SET(obj,cr) (\
 	RBASIC(obj)->flags = \
 	(RBASIC(obj)->flags & ~RUBY_ENC_CODERANGE_MASK) | (cr))
+#endif
+
 #define RB_ENC_CODERANGE_CLEAR(obj) rb_enc_coderange_clear(obj)
 
 /* assumed ASCII compatibility */
@@ -200,7 +206,11 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len, rb_enc
 unsigned int rb_enc_codepoint(const char *p, const char *e, rb_encoding *enc);
 /* overriding macro */
 #define rb_enc_codepoint(p,e,enc) rb_enc_codepoint_len((p),(e),0,(enc))
+#ifdef TRUFFLERUBY
+int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc);
+#else
 #define rb_enc_mbc_to_codepoint(p, e, enc) ONIGENC_MBC_TO_CODE((enc),(UChar*)(p),(UChar*)(e))
+#endif
 
 /* -> codelen>0 or raise exception */
 int rb_enc_codelen(int code, rb_encoding *enc);

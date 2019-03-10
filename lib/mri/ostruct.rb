@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 #
 # = ostruct.rb: OpenStruct implementation
 #
@@ -105,15 +105,28 @@ class OpenStruct
   end
 
   #
+  # call-seq:
+  #   ostruct.to_h                        -> hash
+  #   ostruct.to_h {|name, value| block } -> hash
+  #
   # Converts the OpenStruct to a hash with keys representing
   # each attribute (as symbols) and their corresponding values.
+  #
+  # If a block is given, the results of the block on each pair of
+  # the receiver will be used as pairs.
   #
   #   require "ostruct"
   #   data = OpenStruct.new("country" => "Australia", :capital => "Canberra")
   #   data.to_h   # => {:country => "Australia", :capital => "Canberra" }
+  #   data.to_h {|name, value| [name.to_s, value.upcase] }
+  #               # => {"country" => "AUSTRALIA", "capital" => "CANBERRA" }
   #
-  def to_h
-    @table.dup
+  def to_h(&block)
+    if block_given?
+      @table.to_h(&block)
+    else
+      @table.dup
+    end
   end
 
   #
@@ -156,13 +169,14 @@ class OpenStruct
     begin
       @modifiable = true
     rescue
-      raise RuntimeError, "can't modify frozen #{self.class}", caller(3)
+      exception_class = defined?(FrozenError) ? FrozenError : RuntimeError
+      raise exception_class, "can't modify frozen #{self.class}", caller(3)
     end
     @table
   end
   private :modifiable?
 
-  # ::Kernel.warn("#{caller(1, 1)[0]}: do not use OpenStruct#modifiable")
+  # ::Kernel.warn("do not use OpenStruct#modifiable", uplevel: 1)
   alias modifiable modifiable? # :nodoc:
   protected :modifiable
 
@@ -181,7 +195,7 @@ class OpenStruct
   end
   private :new_ostruct_member!
 
-  # ::Kernel.warn("#{caller(1, 1)[0]}: do not use OpenStruct#new_ostruct_member")
+  # ::Kernel.warn("do not use OpenStruct#new_ostruct_member", uplevel: 1)
   alias new_ostruct_member new_ostruct_member! # :nodoc:
   protected :new_ostruct_member
 
@@ -202,15 +216,18 @@ class OpenStruct
         raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1)
       end
       modifiable?[new_ostruct_member!(mname)] = args[0]
-    elsif len == 0
+    elsif len == 0 # and /\A[a-z_]\w*\z/ =~ mid #
       if @table.key?(mid)
         new_ostruct_member!(mid) unless frozen?
         @table[mid]
       end
     else
-      err = NoMethodError.new "undefined method `#{mid}' for #{self}", mid, args
-      err.set_backtrace caller(1)
-      raise err
+      begin
+        super
+      rescue NoMethodError => err
+        err.backtrace.shift
+        raise
+      end
     end
   end
 
@@ -291,7 +308,7 @@ class OpenStruct
   def delete_field(name)
     sym = name.to_sym
     begin
-      singleton_class.__send__(:remove_method, sym, "#{sym}=")
+      singleton_class.remove_method(sym, "#{sym}=")
     rescue NameError
     end
     @table.delete(sym) do
@@ -305,25 +322,20 @@ class OpenStruct
   # Returns a string containing a detailed summary of the keys and values.
   #
   def inspect
-    str = "#<#{self.class}"
-
     ids = (Thread.current[InspectKey] ||= [])
     if ids.include?(object_id)
-      return str << ' ...>'
-    end
-
-    ids << object_id
-    begin
-      first = true
-      for k,v in @table
-        str << "," unless first
-        first = false
-        str << " #{k}=#{v.inspect}"
+      detail = ' ...'
+    else
+      ids << object_id
+      begin
+        detail = @table.map do |key, value|
+          " #{key}=#{value.inspect}"
+        end.join(',')
+      ensure
+        ids.pop
       end
-      return str << '>'
-    ensure
-      ids.pop
     end
+    ['#<', self.class, detail, '>'].join
   end
   alias :to_s :inspect
 

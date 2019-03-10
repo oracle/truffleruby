@@ -1,0 +1,1 @@
+fails:Time#succ zone is a timezone object preserves time zone

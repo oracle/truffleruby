@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 require 'rubygems/test_case'
 require 'rubygems/security'
-require 'rubygems/fix_openssl_warnings' if RUBY_VERSION < "1.9"
 
-unless defined?(OpenSSL::SSL) then
+unless defined?(OpenSSL::SSL)
   warn 'Skipping Gem::Security tests.  openssl not found.'
 end
 
@@ -61,6 +60,7 @@ class TestGemSecurity < Gem::TestCase
     cert = @SEC.create_cert_self_signed subject, PRIVATE_KEY, 60
 
     assert_equal '/CN=nobody/DC=example', cert.issuer.to_s
+    assert_equal "sha256WithRSAEncryption", cert.signature_algorithm
   end
 
   def test_class_create_cert_email
@@ -120,6 +120,7 @@ class TestGemSecurity < Gem::TestCase
   end
 
   def test_class_re_sign
+    assert_equal "sha1WithRSAEncryption", EXPIRED_CERT.signature_algorithm
     re_signed = Gem::Security.re_sign EXPIRED_CERT, PRIVATE_KEY, 60
 
     assert_in_delta Time.now,      re_signed.not_before, 10
@@ -127,6 +128,7 @@ class TestGemSecurity < Gem::TestCase
     assert_equal EXPIRED_CERT.serial + 1, re_signed.serial
 
     assert re_signed.verify PUBLIC_KEY
+    assert_equal "sha256WithRSAEncryption", re_signed.signature_algorithm
   end
 
   def test_class_re_sign_not_self_signed
@@ -218,6 +220,8 @@ class TestGemSecurity < Gem::TestCase
     assert_in_delta Time.now,          signed.not_before, 10
     assert_in_delta Time.now + 60,     signed.not_after, 10
 
+    assert_equal "sha256WithRSAEncryption", signed.signature_algorithm
+
     assert_equal 5, signed.extensions.length,
                  signed.extensions.map { |e| e.to_a.first }
 
@@ -304,4 +308,3 @@ class TestGemSecurity < Gem::TestCase
   end
 
 end if defined?(OpenSSL::SSL)
-

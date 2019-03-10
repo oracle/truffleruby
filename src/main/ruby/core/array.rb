@@ -354,6 +354,12 @@ class Array
     self
   end
 
+  def difference(*others)
+    other = []
+    others.each { |a| other = other | a }
+    self - other
+  end
+
   def dig(idx, *more)
     result = self.at(idx)
     if result.nil? || more.empty?
@@ -494,6 +500,8 @@ class Array
 
     self
   end
+
+  alias_method :filter, :select
 
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
@@ -1120,6 +1128,8 @@ class Array
     Truffle.invoke_primitive(:steal_array_storage, self, ary) unless size == ary.size
   end
 
+  alias_method :filter!, :select!
+
   def shuffle(options = undefined)
     return dup.shuffle!(options) if instance_of? Array
     Array.new(self).shuffle!(options)
@@ -1174,7 +1184,21 @@ class Array
   end
 
   def to_h
-    super
+    h = Hash.new(size)
+    each_with_index do |elem, i|
+      elem = yield(elem) if block_given?
+      unless elem.respond_to?(:to_ary)
+        raise TypeError, "wrong element type #{elem.class} at #{i} (expected array)"
+      end
+
+      ary = elem.to_ary
+      if ary.size != 2
+        raise ArgumentError, "wrong array length at #{i} (expected 2, was #{ary.size})"
+      end
+
+      h[ary[0]] = ary[1]
+    end
+    h
   end
 
   def transpose
@@ -1199,6 +1223,12 @@ class Array
     out
   end
 
+  def union(*others)
+    res = Array.new(self).uniq
+    others.each { |other| res = res | other }
+    res
+  end
+
   def unshift(*values)
     Truffle.check_frozen
 
@@ -1206,6 +1236,8 @@ class Array
 
     self
   end
+
+  alias_method :prepend, :unshift
 
   def values_at(*args)
     out = []

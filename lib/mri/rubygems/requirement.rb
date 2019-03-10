@@ -35,22 +35,22 @@ class Gem::Requirement
     ">=" =>  lambda { |v, r| v >= r },
     "<=" =>  lambda { |v, r| v <= r },
     "~>" =>  lambda { |v, r| v >= r && v.release < r.bump }
-  }
+  }.freeze
 
   SOURCE_SET_REQUIREMENT = Struct.new(:for_lockfile).new "!" # :nodoc:
 
   quoted  = OPS.keys.map { |k| Regexp.quote k }.join "|"
-  PATTERN_RAW = "\\s*(#{quoted})?\\s*(#{Gem::Version::VERSION_PATTERN})\\s*" # :nodoc:
+  PATTERN_RAW = "\\s*(#{quoted})?\\s*(#{Gem::Version::VERSION_PATTERN})\\s*".freeze # :nodoc:
 
   ##
   # A regular expression that matches a requirement
 
-  PATTERN = /\A#{PATTERN_RAW}\z/
+  PATTERN = /\A#{PATTERN_RAW}\z/.freeze
 
   ##
   # The default requirement matches any version
 
-  DefaultRequirement = [">=", Gem::Version.new(0)]
+  DefaultRequirement = [">=", Gem::Version.new(0)].freeze
 
   ##
   # Raised when a bad requirement is encountered
@@ -64,7 +64,11 @@ class Gem::Requirement
   # If the input is "weird", the default version requirement is
   # returned.
 
-  def self.create input
+  def self.create(*inputs)
+    return new inputs if inputs.length > 1
+
+    input = inputs.shift
+
     case input
     when Gem::Requirement then
       input
@@ -73,7 +77,7 @@ class Gem::Requirement
     when '!' then
       source_set
     else
-      if input.respond_to? :to_str then
+      if input.respond_to? :to_str
         new [input.to_str]
       else
         default
@@ -107,7 +111,7 @@ class Gem::Requirement
   #     parse("1.0")                   # => ["=", Gem::Version.new("1.0")]
   #     parse(Gem::Version.new("1.0")) # => ["=,  Gem::Version.new("1.0")]
 
-  def self.parse obj
+  def self.parse(obj)
     return ["=", obj] if Gem::Version === obj
 
     unless PATTERN =~ obj.to_s
@@ -133,7 +137,7 @@ class Gem::Requirement
   # requirements are ignored. An empty set of +requirements+ is the
   # same as <tt>">= 0"</tt>.
 
-  def initialize *requirements
+  def initialize(*requirements)
     requirements = requirements.flatten
     requirements.compact!
     requirements.uniq!
@@ -142,19 +146,21 @@ class Gem::Requirement
       @requirements = [DefaultRequirement]
     else
       @requirements = requirements.map! { |r| self.class.parse r }
+      sort_requirements!
     end
   end
 
   ##
   # Concatenates the +new+ requirements onto this requirement.
 
-  def concat new
+  def concat(new)
     new = new.flatten
     new.compact!
     new.uniq!
     new = new.map { |r| self.class.parse r }
 
     @requirements.concat new
+    sort_requirements!
   end
 
   ##
@@ -192,11 +198,11 @@ class Gem::Requirement
   end
 
   def as_list # :nodoc:
-    requirements.map { |op, version| "#{op} #{version}" }.sort
+    requirements.map { |op, version| "#{op} #{version}" }
   end
 
   def hash # :nodoc:
-    requirements.sort.hash
+    requirements.hash
   end
 
   def marshal_dump # :nodoc:
@@ -205,7 +211,7 @@ class Gem::Requirement
     [@requirements]
   end
 
-  def marshal_load array # :nodoc:
+  def marshal_load(array) # :nodoc:
     @requirements = array[0]
 
     fix_syck_default_key_in_requirements
@@ -220,7 +226,7 @@ class Gem::Requirement
     fix_syck_default_key_in_requirements
   end
 
-  def init_with coder # :nodoc:
+  def init_with(coder) # :nodoc:
     yaml_initialize coder.tag, coder.map
   end
 
@@ -228,7 +234,7 @@ class Gem::Requirement
     ["@requirements"]
   end
 
-  def encode_with coder # :nodoc:
+  def encode_with(coder) # :nodoc:
     coder.add 'requirements', @requirements
   end
 
@@ -240,7 +246,7 @@ class Gem::Requirement
     requirements.any? { |r| r.last.prerelease? }
   end
 
-  def pretty_print q # :nodoc:
+  def pretty_print(q) # :nodoc:
     q.group 1, 'Gem::Requirement.new(', ')' do
       q.pp as_list
     end
@@ -249,7 +255,7 @@ class Gem::Requirement
   ##
   # True if +version+ satisfies this Requirement.
 
-  def satisfied_by? version
+  def satisfied_by?(version)
     raise ArgumentError, "Need a Gem::Version: #{version.inspect}" unless
       Gem::Version === version
     # #28965: syck has a bug with unquoted '=' YAML.loading as YAML::DefaultKey
@@ -272,8 +278,9 @@ class Gem::Requirement
     as_list.join ", "
   end
 
-  def == other # :nodoc:
-    Gem::Requirement === other and to_s == other.to_s
+  def ==(other) # :nodoc:
+    return unless Gem::Requirement === other
+    requirements == other.requirements
   end
 
   private
@@ -286,6 +293,14 @@ class Gem::Requirement
       if r[0].kind_of? Gem::SyckDefaultKey
         r[0] = "="
       end
+    end
+  end
+
+  def sort_requirements! # :nodoc:
+    @requirements.sort! do |l, r|
+      comp = l.last <=> r.last # first, sort by the requirement's version
+      next comp unless comp == 0
+      l.first <=> r.first # then, sort by the operator (for stability)
     end
   end
 end

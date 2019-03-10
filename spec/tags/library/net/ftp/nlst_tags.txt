@@ -1,0 +1,4 @@
+fails:Net::FTP#nlst when passed no arguments returns an Array containing a list of files in the current dir
+fails:Net::FTP#nlst when passed dir returns an Array containing a list of files in the passed dir
+fails:Net::FTP#nlst when the NLST command fails raises a Net::FTPTempError when the response code is 450
+fails:Net::FTP#nlst when the NLST command fails raises a Net::FTPPermError when the response code is 530

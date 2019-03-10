@@ -1,0 +1,2 @@
+fails:Enumerator::ArithmeticSequence#size for finite sequence returns the number of elements in this arithmetic sequence
+fails:Enumerator::ArithmeticSequence#size for infinite sequence returns Infinity

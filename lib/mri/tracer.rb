@@ -2,7 +2,6 @@
 #--
 # $Release Version: 0.3$
 # $Revision: 1.12 $
-require "thread"
 
 ##
 # Outputs a source level execution trace of a Ruby program.
@@ -61,6 +60,7 @@ require "thread"
 # by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #
 class Tracer
+
   class << self
     # display additional debug information (defaults to false)
     attr_accessor :verbose

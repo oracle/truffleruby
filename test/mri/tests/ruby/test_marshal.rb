@@ -568,7 +568,7 @@ class TestMarshal < Test::Unit::TestCase
     s.instance_variable_set(:@t, 42)
     t = Bug8276.new(s)
     s = Marshal.dump(t)
-    assert_raise(RuntimeError) {Marshal.load(s)}
+    assert_raise(FrozenError) {Marshal.load(s)}
   end
 
   def test_marshal_load_ivar
@@ -622,7 +622,7 @@ class TestMarshal < Test::Unit::TestCase
 
   def test_untainted_numeric
     bug8945 = '[ruby-core:57346] [Bug #8945] Numerics never be tainted'
-    b = Integer::FIXNUM_MAX + 1
+    b = RbConfig::LIMITS['FIXNUM_MAX'] + 1
     tainted = [0, 1.0, 1.72723e-77, b].select do |x|
       Marshal.load(Marshal.dump(x).taint).tainted?
     end
@@ -771,5 +771,12 @@ class TestMarshal < Test::Unit::TestCase
     assert_raise_with_message(RuntimeError, /same class instance/) do
       Marshal.dump(Bug12974.new)
     end
+  end
+
+  Bug14314 = Struct.new(:foo, keyword_init: true)
+
+  def test_marshal_keyword_init_struct
+    obj = Bug14314.new(foo: 42)
+    assert_equal obj, Marshal.load(Marshal.dump(obj))
   end
 end

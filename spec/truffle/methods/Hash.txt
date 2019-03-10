@@ -27,6 +27,8 @@ empty?
 eql?
 fetch
 fetch_values
+filter
+filter!
 flatten
 has_key?
 has_value?
@@ -52,6 +54,7 @@ select
 select!
 shift
 size
+slice
 store
 to_a
 to_h

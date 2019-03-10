@@ -71,3 +71,7 @@ fails:Public methods on IO should not include read_bom_byte
 fails:Public methods on IO should not include reset_buffering
 fails:Public methods on IO should not include strip_bom
 fails:Public methods on IO should include fdatasync
+fails:Public methods on String should not include delete_prefix
+fails:Public methods on String should not include delete_prefix!
+fails:Public methods on String should not include delete_suffix
+fails:Public methods on String should not include delete_suffix!

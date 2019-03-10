@@ -1,0 +1,1 @@
+fails:Local variable shadowing does not warn in verbose mode

@@ -1,0 +1,1 @@
+fails:CGI::Cookie#to_s escapes tilde

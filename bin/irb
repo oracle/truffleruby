@@ -17,6 +17,8 @@ exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 #!ruby
 # ^ marks start of Ruby interpretation
 
+# from libexec/irb
+
 #
 #   irb.rb - interactive ruby
 #   	$Release Version: 0.9.6 $

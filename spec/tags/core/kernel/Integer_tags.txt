@@ -1,0 +1,32 @@
+fails:Kernel.Integer raises a TypeError when to_int returns not-an-Integer object and to_i returns nil
+fails:Kernel.Integer return a result of to_i when to_int does not return an Integer
+fails:Kernel.Integer when passed exception: false and to_i returns a value that is not an Integer swallows an error
+fails:Kernel.Integer when passed exception: false and no to_int or to_i methods exist swallows an error
+fails:Kernel.Integer when passed exception: false and to_int returns nil and no to_i exists swallows an error
+fails:Kernel.Integer when passed exception: false and passed NaN swallows an error
+fails:Kernel.Integer when passed exception: false and passed Infinity swallows an error
+fails:Kernel.Integer when passed exception: false and passed nil swallows an error
+fails:Kernel.Integer when passed exception: false and passed a String that contains numbers normally parses it and returns an Integer
+fails:Kernel.Integer when passed exception: false and passed a String that can't be converted to an Integer swallows an error
+fails:Kernel.Integer when passed exception: false and multiple leading -s swallows an error
+fails:Kernel.Integer when passed exception: false and multiple trailing -s swallows an error
+fails:Kernel.Integer when passed exception: false and an argument that contains a period swallows an error
+fails:Kernel.Integer when passed exception: false and an empty string swallows an error
+fails:Kernel.Integer when passed exception: false and valid argument returns an Integer number
+fails:Kernel.Integer when passed exception: false and invalid argument swallows an error
+fails:Kernel#Integer raises a TypeError when to_int returns not-an-Integer object and to_i returns nil
+fails:Kernel#Integer return a result of to_i when to_int does not return an Integer
+fails:Kernel#Integer when passed exception: false and to_i returns a value that is not an Integer swallows an error
+fails:Kernel#Integer when passed exception: false and no to_int or to_i methods exist swallows an error
+fails:Kernel#Integer when passed exception: false and to_int returns nil and no to_i exists swallows an error
+fails:Kernel#Integer when passed exception: false and passed NaN swallows an error
+fails:Kernel#Integer when passed exception: false and passed Infinity swallows an error
+fails:Kernel#Integer when passed exception: false and passed nil swallows an error
+fails:Kernel#Integer when passed exception: false and passed a String that contains numbers normally parses it and returns an Integer
+fails:Kernel#Integer when passed exception: false and passed a String that can't be converted to an Integer swallows an error
+fails:Kernel#Integer when passed exception: false and multiple leading -s swallows an error
+fails:Kernel#Integer when passed exception: false and multiple trailing -s swallows an error
+fails:Kernel#Integer when passed exception: false and an argument that contains a period swallows an error
+fails:Kernel#Integer when passed exception: false and an empty string swallows an error
+fails:Kernel#Integer when passed exception: false and valid argument returns an Integer number
+fails:Kernel#Integer when passed exception: false and invalid argument swallows an error

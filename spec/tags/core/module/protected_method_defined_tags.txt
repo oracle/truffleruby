@@ -1,0 +1,2 @@
+fails:Module#protected_method_defined? when passed true as a second optional argument performs a lookup in ancestors
+fails:Module#protected_method_defined? when passed false as a second optional argument checks only the class itself

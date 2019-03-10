@@ -1,0 +1,4 @@
+fails:Integer#nobits? returns true iff all no bits of the argument are set in the receiver
+fails:Integer#nobits? handles negative values using two's complement notation
+fails:Integer#nobits? coerces the rhs using to_int
+fails:Integer#nobits? raises a TypeError when given a non-Integer

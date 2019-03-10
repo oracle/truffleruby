@@ -1,0 +1,4 @@
+fails:Integer#allbits? returns true iff all the bits of the argument are set in the receiver
+fails:Integer#allbits? handles negative values using two's complement notation
+fails:Integer#allbits? coerces the rhs using to_int
+fails:Integer#allbits? raises a TypeError when given a non-Integer

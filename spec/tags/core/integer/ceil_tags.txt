@@ -1,3 +1,4 @@
 fails:Integer#ceil returns self if passed a precision of zero
 fails:Integer#ceil returns itself as a float if passed a positive precision
 fails:Integer#ceil precision argument specified as part of the ceil method is negative returns the smallest integer greater than self with at least precision.abs trailing zeros
+fails:Integer#ceil returns itself if passed a positive precision

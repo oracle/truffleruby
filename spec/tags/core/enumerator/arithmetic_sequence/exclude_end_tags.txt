@@ -1,0 +1,2 @@
+fails:Enumerator::ArithmeticSequence#exclude_end? when created using Numeric#step always returns false
+fails:Enumerator::ArithmeticSequence#exclude_end? when created using Range#step mirrors range.exclude_end?

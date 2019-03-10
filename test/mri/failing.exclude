@@ -1,5 +1,7 @@
-# Explicitly unsupported stdlibs
+# Explicitly unsupported
 
+ruby/test_ast.rb
+ruby/test_jit.rb
 ruby/test_continuation.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
@@ -32,6 +34,24 @@ win32ole/test_win32ole_variant.rb
 win32ole/test_win32ole_variant_m.rb
 win32ole/test_win32ole_variant_outarg.rb
 win32ole/test_word.rb
+
+# Failing since upgrade to 2.6.1
+
+matrix/test_matrix.rb # open range
+matrix/test_vector.rb # open range
+ruby/test_arithmetic_sequence.rb # open range
+ruby/test_array.rb # open range
+ruby/test_rand.rb # open range
+ruby/test_range.rb # open range
+ruby/test_rubyoptions.rb # uses RubyVM
+test_pp.rb # uses RubyVM
+ruby/test_time_tz.rb
+ruby/test_thread_queue.rb # hangs
+monitor/test_monitor.rb # hangs
+csv/write/test_general.rb # encoding
+ruby/test_parse.rb # encoding
+rubygems/test_gem_security.rb # hangs
+io/wait/test_io_wait_uncommon.rb # unreliable in parallel
 
 # Other issues
 

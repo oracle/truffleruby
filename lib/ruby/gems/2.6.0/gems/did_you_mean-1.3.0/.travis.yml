@@ -1,0 +1,15 @@
+language: ruby
+script:   bundle exec rake
+cache:    bundler
+sudo:     false
+
+before_install:
+  - gem install bundler
+
+after_success:
+  - bundle exec rake test:accuracy
+  - bundle exec rake benchmark:memory
+
+rvm:
+  - 2.5.3
+  - ruby-head
