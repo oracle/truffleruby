@@ -1,0 +1,26 @@
+{
+  "ruby": {
+    "version": "2.6.1",
+    "revision": 66950
+  },
+
+  "gems": {
+    "default": {
+      "bundler": "1.17.2",
+      "gem": "3.0.1",
+      "irb": "1.0.0",
+      "rake": "12.3.2",
+      "rdoc": "6.1.0"
+    },
+
+    "bundled": {
+      "did_you_mean": "1.3.0",
+      "minitest": "5.11.3",
+      "net-telnet": "0.2.0",
+      "power_assert": "1.1.3",
+      "rake": "12.3.2",
+      "test-unit": "3.2.9",
+      "xmlrpc": "0.3.0"
+    }
+  }
+}
