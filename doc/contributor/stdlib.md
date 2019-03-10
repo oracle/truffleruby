@@ -123,6 +123,8 @@ originals. At the moment, we're just storing sources in our repository and
 shipping the full set as MRI does, and we'll tackle issue when they come in
 future versions of Ruby.
 
+Keep these versions in sync with `versions.json`.
+
 ### Default gems
 
 ```

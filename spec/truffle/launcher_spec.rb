@@ -9,6 +9,7 @@
 
 require_relative '../ruby/spec_helper'
 require 'benchmark'
+require 'json'
 
 describe "The launcher" do
 
@@ -22,15 +23,17 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  launchers = { bundle:      /^Bundler version 1\.17\.2$/,
-                bundler:     /^Bundler version 1\.17\.2$/,
-                gem:         /^3\.0\.1$/,
-                irb:         /^irb 1\.0\.0/,
-                rake:        /^rake, version 12\.3\.2/,
-                rdoc:        /^6\.1\.0$/,
-                ri:          /^ri 6\.1\.0$/,
-                ruby:        /truffleruby .* like ruby 2\.6\.1/,
-                truffleruby: /truffleruby .* like ruby 2\.6\.1/ }
+  versions = JSON.parse(File.read(File.join(File.dirname(__FILE__), '../../versions.json')))
+
+  launchers = { bundle:      /^Bundler version #{versions['gems']['default']['bundler']}$/,
+                bundler:     /^Bundler version #{versions['gems']['default']['bundler']}$/,
+                gem:         /^#{versions['gems']['default']['gem']}$/,
+                irb:         /^irb #{versions['gems']['default']['irb']}/,
+                rake:        /^rake, version #{versions['gems']['default']['rake']}/,
+                rdoc:        /^#{versions['gems']['default']['rdoc']}$/,
+                ri:          /^ri #{versions['gems']['default']['rdoc']}$/,
+                ruby:        /truffleruby .* like ruby #{versions['ruby']['version']}/,
+                truffleruby: /truffleruby .* like ruby #{versions['ruby']['version']}/ }
 
   launchers.each do |launcher, (test, skip_success)|
     unless [:ruby, :truffleruby].include?(launcher)

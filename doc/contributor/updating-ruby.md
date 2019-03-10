@@ -8,59 +8,46 @@ have to MRI source code while updating.
 You can re-run these instructions at any time to compare against unmodified
 MRI files.
 
-## Create a branch for the unmodified files from MRI
+## Create reference branches
+
+For both the current version of Ruby you're using, and the new version, create
+reference branches that include unmodified MRI sources.
+
+Check out the version of Ruby you want to create the branch for in `../ruby`.
+
+Then create the reference branch in the TruffleRuby repository
 
 ```
-git checkout -b mri
+$ git checkout -b vNN
+$ tool/import-mri-files.sh
+$ git commit -am 'vNN'
 ```
 
-## Import new files from MRI
-
-Then we want to create a new commit with the new, unmodified files imported from
-MRI. You need MRI checked out into `../ruby` at the version you want to import.
-Then run `tool/import-mri-files.sh`.
-
-## Create a commit with the unmodified files
-
-```
-git commit -am 'Unmodified n.n.n files'
-```
-
-## View modifications
-
-You can then view the modifications that we've made against MRI.
-
-```
-git diff mri master
-```
-
-You should get a diff of a few thousand lines.
+You can then compare between these two branches and yours. For example to see
+what changes you made on top of the old version, what's changed between the
+old version and the new version, and so on. Keep them around while you do the
+update.
 
 ## Update MRI with modifications
 
-You can apply these modifications on top of files from a new version of MRI.
+In your working branch you can import MRI files again, and you can re-apply
+old patches using the old reference branch.
 
 ```
-git checkout -b update-mri master
 tool/import-mri-files.sh
-git diff mri master | git apply -3
+git diff vNN this-branch | git apply -3
 ```
+
+You'll usually get some conflicts to work out.
 
 ## Make other changes
 
+* Update `versions.json`
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
-* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`.
-* Update version information (version, base version, and revision) in `TruffleRuby`
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
 * Update `doc/contributor/stdlib.md`
-* Search for other instances of the old version number (there are a
-  couple in tests). The version numbers may use `.` or `_` depending
-  on context, and may be escaped as regular expressions so when
-  searching it is best to use a regexp like `a\\*[._]b\\*[._]c` to try
-  and find as many cases as possible.
-* The version numbers of commands like `gem` may also have changed, so
-  perform similar searches for those.
 
 ## Update libraries from third-party repos
 
@@ -70,31 +57,26 @@ then copy the original source of `flori/json` into `lib/json`.
 ## Updating .gemspec of default gems
 
 Default gems are imported from MRI files, except the .gemspec files in
-`lib/ruby/gems/2.4.0/specifications/default`.
+`lib/ruby/gems/n.n.n/specifications/default`.
 To update those, copy the files over from an installed MRI.
 ```
-rm -rf lib/ruby/gems/2.6.0/specifications/default
-cp -r ~/.rubies/ruby-2.6.1/lib/ruby/gems/2.6.0/specifications/default lib/ruby/gems/2.6.0/specifications
+rm -rf lib/ruby/gems/n.n.n/specifications/default
+cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/ruby/gems/n.n.n/specifications
 ```
 
 ## Updating bundled gems
 
-The current list of bundled gems their versions are found at
-https://github.com/ruby/ruby/blob/ruby_a_b/gems/bundled_gems (replace `_a_b`
-with the right version branch for what you are importing). See if we need to
-update any bundled gems.
-
-```bash
-$ git diff vx_y_z va_b_c gems/bundled_gems   # in MRI
-```
-
 To update a bundled gem, follow these steps:
 
-* Remove the current gem and gemspec from `lib/ruby/gems/a.b.c/gems` and `lib/ruby/gems/a.b.c/specifications`
-* Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
-* Update the project `.gitignore` to allow the newly install gem sources and gemspec
+* Remove the current gem and gemspec from `lib/ruby/gems/a.b.c/gems` and
+  `lib/ruby/gems/a.b.c/specifications`
+* Run the gem install command with the desired version
+  `gem install rake -v 10.4.2 --no-doc`
+* Update the project `.gitignore` to allow the newly install gem sources
+  and gemspec
 * Copy from the build directory `lib` to the source `lib`
-* If the gem installs any executables like `rake` in `bin` ensure that the shebang has a format as follows:
+* If the gem installs any executables like `rake` in `bin` ensure that the
+  shebang has a format as follows:
 
 ```bash
 #!/usr/bin/env bash

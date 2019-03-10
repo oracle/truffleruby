@@ -24,6 +24,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -37,7 +38,7 @@ import java.util.List;
         name = "Ruby",
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
-        version = TruffleRuby.LANGUAGE_VERSION,
+        version = BuildInformationImpl.RUBY_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
         dependentLanguages = TruffleRuby.LLVM_ID)

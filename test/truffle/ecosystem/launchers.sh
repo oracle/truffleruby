@@ -13,18 +13,19 @@ while [ -h "$SELF_PATH" ]; do
 done
 
 source "$(dirname $SELF_PATH)/../common.sh.inc"
+QUERY="ruby $(dirname $SELF_PATH)/../../../tool/query-versions-json.rb"
 
 function check_launchers() {
     if [ -n "$2" ]
     then
-        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.6.1 ]]
-        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.6.1 ]]
+        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ `$QUERY ruby.version` ]]
+        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ `$QUERY ruby.version` ]]
     fi
-    [[ "$(${1}gem --version)" =~ ^3.0.1$ ]]
-    [[ "$(${1}irb --version)" =~ ^irb\ 1.0.0 ]]
-    [[ "$(${1}rake --version)" =~ ^rake,\ version\ 12.3.2 ]]
-    [[ "$(${1}rdoc --version)" =~ ^6.1.0$ ]]
-    [[ "$(${1}ri --version)" =~ ^ri\ 6.1.0$ ]]
+    [[ "$(${1}gem --version)" =~ ^`$QUERY gems.default.gem`$ ]]
+    [[ "$(${1}irb --version)" =~ ^irb\ `$QUERY gems.default.irb` ]]
+    [[ "$(${1}rake --version)" =~ ^rake,\ version\ `$QUERY gems.default.rake` ]]
+    [[ "$(${1}rdoc --version)" =~ ^`$QUERY gems.default.rdoc`$ ]]
+    [[ "$(${1}ri --version)" =~ ^ri\ `$QUERY gems.default.rdoc`$ ]]
 }
 
 function check_in_dir() {
@@ -83,13 +84,13 @@ echo '** Check bundled gems'
 
 # see doc/contributor/stdlib.md
 bundled_gems=(
-    "did_you_mean 1.3.0"
-    "minitest 5.11.3"
-    "net-telnet 0.2.0"
-    "power_assert 1.1.3"
-    "rake 12.3.2"
-    "test-unit 3.2.9"
-    "xmlrpc 0.3.0"
+    "did_you_mean `$QUERY gems.bundled.did_you_mean`"
+    "minitest `$QUERY gems.bundled.minitest`"
+    "net-telnet `$QUERY gems.bundled.net-telnet`"
+    "power_assert `$QUERY gems.bundled.power_assert`"
+    "rake `$QUERY gems.bundled.rake`"
+    "test-unit `$QUERY gems.bundled.test-unit`"
+    "xmlrpc `$QUERY gems.bundled.xmlrpc`"
 )
 gem_list=$(bin/gem list)
 
