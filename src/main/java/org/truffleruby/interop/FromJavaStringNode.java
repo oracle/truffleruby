@@ -28,15 +28,15 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     public abstract DynamicObject executeFromJavaString(Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    public DynamicObject fromJavaString(String value,
+    public DynamicObject doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.fromRope(cachedRope);
     }
 
-    @Specialization(replaces = "fromJavaString")
-    public DynamicObject fromJavaString(String value,
+    @Specialization(replaces = "doCached")
+    public DynamicObject doGeneric(String value,
                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
