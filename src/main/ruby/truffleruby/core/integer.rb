@@ -63,12 +63,12 @@ class Integer < Numeric
 
   def allbits?(mask)
     mask = Truffle::Type.coerce_to_int(mask)
-    return (self & mask) == mask
+    (self & mask) == mask
   end
 
   def anybits?(mask)
     mask = Truffle::Type.coerce_to_int(mask)
-    return (self & mask) != 0
+    (self & mask) != 0
   end
 
   def ceil(precision = 0)
@@ -110,12 +110,12 @@ class Integer < Numeric
 
   def nobits?(mask)
     mask = Truffle::Type.coerce_to_int(mask)
-    return (self & mask) == 0
+    (self & mask) == 0
   end
 
   def pow(e, m=undefined)
     return self ** e if undefined.equal?(m)
-    raise TypeError, "2nd argument not allowed unless all arguments are integers" unless Truffle::Type.object_kind_of?(m, Integer)
+    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Truffle::Type.object_kind_of?(m, Integer)
     (self ** e) % m
   end
 
