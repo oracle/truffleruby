@@ -39,8 +39,6 @@ Object.deprecate_constant :Fixnum, :Bignum
 
 class Integer < Numeric
 
-  alias_method :truncate, :to_i
-
   # Have a copy in Integer of the Numeric version, as MRI does
   public :remainder
 
@@ -132,6 +130,14 @@ class Integer < Numeric
     self
   end
 
+  def truncate(precision = 0)
+    if precision >= 0
+      self
+    else
+      round(precision, half: :down)
+    end
+  end
+
   def chr(enc=undefined)
     if self < 0 || (self & 0xffff_ffff) != self
       raise RangeError, "#{self} is outside of the valid character range"
@@ -180,7 +186,7 @@ class Integer < Numeric
       if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
         x = if (half == :down)
-              (x - f / 2) / f
+              (x) / f
             else
               (x + f / 2) / f
             end
