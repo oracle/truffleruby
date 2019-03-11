@@ -1,0 +1,3 @@
+fails:CVE-2019-8325 is resisted by sanitising error message components for the 'while executing' message
+fails:CVE-2019-8325 is resisted by sanitising error message components for the 'invalid option' message
+fails:CVE-2019-8325 is resisted by sanitising error message components for the 'loading command' message
