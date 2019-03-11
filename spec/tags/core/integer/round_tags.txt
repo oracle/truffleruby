@@ -1,4 +1,0 @@
-fails:Integer#round returns different rounded values depending on the half option
-fails:Integer#round returns itself as a float if passed a positive precision and the half option
-fails:Integer#round returns itself if passed a positive precision
-fails:Integer#round returns itself if passed a positive precision and the half option

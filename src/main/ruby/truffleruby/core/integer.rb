@@ -155,7 +155,7 @@ class Integer < Numeric
     String.from_codepoint self, enc
   end
 
-  def round(ndigits=undefined)
+  def round(ndigits=undefined, half: nil)
     return self if undefined.equal? ndigits
 
     if Float === ndigits && ndigits.infinite?
@@ -165,9 +165,7 @@ class Integer < Numeric
     ndigits = Truffle::Type.coerce_to_int(ndigits)
     Truffle::Type.check_int(ndigits)
 
-    if ndigits > 0
-      to_f
-    elsif ndigits == 0
+    if ndigits >= 0
       self
     else
       ndigits = -ndigits
@@ -181,7 +179,13 @@ class Integer < Numeric
 
       if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
-        x = (x + f / 2) / f * f
+        x = if (half == :down)
+              (x - f / 2) / f
+            else
+              (x + f / 2) / f
+            end
+        x = (x / 2) * 2 if half == :even
+        x = x * f
         x = -x if self < 0
         return x
       end
