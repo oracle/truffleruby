@@ -1,1 +1,0 @@
-fails:CVE-2019-8322 is resisted by sanitising owner names
