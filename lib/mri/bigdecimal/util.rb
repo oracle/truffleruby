@@ -66,6 +66,14 @@ class String
   #
   # See also BigDecimal::new.
   #
+  # TruffleRuby: MRI defines this method in C. We define it in Ruby for simplicity & clarity.
+  def to_d
+    begin
+      BigDecimal(self)
+    rescue ArgumentError
+      BigDecimal(0)
+    end
+  end
 end
 
 
