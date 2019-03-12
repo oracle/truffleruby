@@ -20,7 +20,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -99,7 +98,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "value == NEGATIVE_INFINITY || value == POSITIVE_INFINITY")
     public DynamicObject createInfinity(BigDecimalType value, DynamicObject self, Object digits,
-            @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
+            @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
@@ -121,7 +120,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "value == NAN")
     public DynamicObject createNaN(BigDecimalType value, DynamicObject self, Object digits,
-            @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
+            @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
@@ -271,10 +270,6 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     protected BigDecimalCastNode createBigDecimalCastNode() {
         return BigDecimalCastNodeGen.create(null, null);
-    }
-
-    protected BooleanCastNode createBooleanCastNode() {
-        return BooleanCastNodeGen.create(null);
     }
 
 }
