@@ -40,7 +40,7 @@ cp ../ruby/ext/pty/lib/*.rb lib/mri
 cp ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 
-cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
+cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
 rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
