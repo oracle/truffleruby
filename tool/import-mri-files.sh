@@ -20,8 +20,8 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-find lib/mri | grep '/.gemspec$' | xargs rm
-find lib/mri | grep '/.document$' | xargs rm
+find lib/mri -name '*.gemspec' -delete
+find lib/mri -name '.document' -delete
 
 # *.c
 cp ../ruby/st.c src/main/c/cext/st.c
