@@ -113,14 +113,7 @@ end
 
 Logging::message "=== Checking for OpenSSL features... ===\n"
 # compile options
-
-# Ubuntu 16.04 explicitly configures OpenSSL without SSLv2 support as it's
-# considered insecure. Therefore, we never define HAVE_SSLV2_METHOD so the
-# pre-compiled extension can be used on Ubuntu.
-unless RUBY_ENGINE == 'truffleruby'
-  have_func("SSLv2_method")
-end
-
+have_func("RAND_egd")
 engines = %w{builtin_engines openbsd_dev_crypto dynamic 4758cca aep atalla chil
              cswift nuron sureware ubsec padlock capi gmp gost cryptodev aesni}
 engines.each { |name|
