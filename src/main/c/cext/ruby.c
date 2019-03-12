@@ -495,7 +495,7 @@ int rb_obj_method_arity(VALUE object, ID id) {
 }
 
 int rb_obj_respond_to(VALUE object, ID id, int priv) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_obj_respond_to", rb_tr_unwrap(object), rb_tr_unwrap(id), priv));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_obj_respond_to", rb_tr_unwrap(object), rb_tr_unwrap(id), priv));
 }
 
 int rb_special_const_p(VALUE object) {
@@ -2640,11 +2640,11 @@ VALUE rb_get_path(VALUE object) {
 }
 
 int rb_tr_readable(int mode) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_tr_readable", mode));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_tr_readable", mode));
 }
 
 int rb_tr_writable(int mode) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_tr_writable", mode));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_tr_writable", mode));
 }
 
 MUST_INLINE
