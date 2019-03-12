@@ -187,6 +187,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return createString(value, self, 0);
     }
 
+    @TruffleBoundary
     @Specialization(guards = "isRubyString(value)")
     public DynamicObject createString(DynamicObject value, DynamicObject self, int digits) {
         return executeInitialize(getValueFromString(StringOperations.getString(value), digits), self, digits);
