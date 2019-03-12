@@ -10,16 +10,7 @@
 package org.truffleruby.interop;
 
 import java.util.Arrays;
-
-import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -33,7 +24,15 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
@@ -224,12 +223,22 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         node,
                         receiver,
                         rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+            } catch (UnsupportedTypeException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(getContext(), translate(e));
+            } catch (ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
             return foreignToRubyNode.executeConvert(foreign);
+        }
+
+        @TruffleBoundary
+        private DynamicObject translate(UnsupportedTypeException e) {
+            return coreExceptions().typeError(
+                    "Wrong arguments: " + Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", ")),
+                    this);
         }
 
     }
