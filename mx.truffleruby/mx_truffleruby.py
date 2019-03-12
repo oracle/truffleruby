@@ -58,7 +58,7 @@ def jt(*args):
 
 def build_truffleruby(args = []):
     mx.command_function('sversions')([])
-    jt("build")
+    jt('build', '--no-sforceimports')
 
 def ruby_deploy_binaries(args):
     """Deploy a binary suite for truffleruby"""
