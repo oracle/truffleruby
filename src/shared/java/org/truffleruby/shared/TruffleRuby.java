@@ -9,8 +9,6 @@
  */
 package org.truffleruby.shared;
 
-import org.graalvm.polyglot.Engine;
-
 public class TruffleRuby {
 
     public static final String FORMAL_NAME = "TruffleRuby";
@@ -27,12 +25,7 @@ public class TruffleRuby {
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
 
-    public static String getVersionString(boolean isAOT) {
-        final String implementationName;
-        try (Engine engine = Engine.create()) {
-            implementationName = engine.getImplementationName();
-        }
-
+    public static String getVersionString(String implementationName, boolean isAOT) {
         final String vm;
         if (isAOT) {
             vm = implementationName + " Native";

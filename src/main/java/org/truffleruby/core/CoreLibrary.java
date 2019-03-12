@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
@@ -711,7 +712,7 @@ public class CoreLibrary {
         setConstant(objectClass, "RUBY_ENGINE_VERSION", frozenUSASCIIString(TruffleRuby.getEngineVersion()));
         setConstant(objectClass, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         setConstant(objectClass, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
-        setConstant(objectClass, "RUBY_DESCRIPTION", frozenUSASCIIString(TruffleRuby.getVersionString(TruffleOptions.AOT)));
+        setConstant(objectClass, "RUBY_DESCRIPTION", frozenUSASCIIString(TruffleRuby.getVersionString(Truffle.getRuntime().getName(), TruffleOptions.AOT)));
         setConstant(objectClass, "RUBY_COPYRIGHT", frozenUSASCIIString(TruffleRuby.RUBY_COPYRIGHT));
 
         // BasicObject knows itself

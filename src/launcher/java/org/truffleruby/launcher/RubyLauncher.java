@@ -13,6 +13,7 @@ import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.shared.options.CommandLineOptions;
@@ -57,7 +58,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(isAOT()));
+        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -271,7 +272,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static void printPreRunInformation(CommandLineOptions config) {
         if ((boolean) config.getOption(OptionsCatalog.SHOW_VERSION)) {
-            System.out.println(TruffleRuby.getVersionString(isAOT()));
+            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
         }
 
         if ((boolean) config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
@@ -287,6 +288,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             case LONG:
                 printHelp(System.out);
                 break;
+        }
+    }
+
+    private static String getImplementationNameFromEngine() {
+        try (Engine engine = Engine.create()) {
+            return engine.getImplementationName();
         }
     }
 

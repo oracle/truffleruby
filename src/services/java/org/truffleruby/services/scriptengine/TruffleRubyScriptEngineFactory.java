@@ -107,10 +107,7 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
     }
 
     private String query(String expression) {
-        try (Context context = Context.newBuilder("ruby")
-                .option("ruby.platform.native", "false")
-                .option("ruby.rubygems", "false")
-                .build()) {
+        try (Context context = Context.create("ruby")) {
             return context.eval("ruby", expression).asString();
         }
     }
