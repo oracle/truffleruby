@@ -38,7 +38,7 @@ describe "The launcher" do
   launchers.each do |launcher, (test, skip_success)|
     unless [:ruby, :truffleruby].include?(launcher)
       it "'#{launcher}' runs as an -S command" do
-        out = ruby_exe(nil, options: "-S#{launcher} --version 2>&1")
+        out = ruby_exe(nil, options: "-S#{launcher} --version")
         out.should =~ test
         $?.success?.should == true unless skip_success
       end
@@ -52,7 +52,7 @@ describe "The launcher" do
 
     bin_dirs.each do |name, bin_dir|
       it "'#{launcher}' in `#{name}` directory runs" do
-        out = `#{bin_dir}/#{launcher} --version 2>&1`
+        out = `#{bin_dir}/#{launcher} --version`
         out.should =~ test
         $?.success?.should == true unless skip_success
       end
@@ -239,7 +239,7 @@ describe "The launcher" do
   end
 
   it "prints help containing runtime options" do
-    out = ruby_exe(nil, options: "--help", args: "2>&1")
+    out = ruby_exe(nil, options: "--help")
     $?.success?.should == true
 
     if TruffleRuby.native?
@@ -255,7 +255,7 @@ describe "The launcher" do
   end
 
   it "prints help:languages containing ruby language options" do
-    out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+    out = ruby_exe(nil, options: "--help:languages")
     $?.success?.should == true
     out.should =~ /language options/i
     out.should include("Ruby:")
@@ -264,7 +264,7 @@ describe "The launcher" do
 
   guard -> { TruffleRuby.sulong? } do
     it "prints help:languages containing llvm language options" do
-      out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+      out = ruby_exe(nil, options: "--help:languages")
       $?.success?.should == true
       out.should =~ /language options/i
       out.should include("LLVM:")
@@ -273,14 +273,14 @@ describe "The launcher" do
   end
 
   it "understands ruby polyglot options" do
-    out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE", args: "2>&1")
+    out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE")
     $?.success?.should == true
     out.should include(RUBY_DESCRIPTION)
     out.should include(':b')
   end
 
   it "understands ruby polyglot options without ruby. prefix" do
-    out = ruby_exe(nil, options: "--show_version=true --to_execute=p:b --execution_action=INLINE", args: "2>&1")
+    out = ruby_exe(nil, options: "--show_version=true --to_execute=p:b --execution_action=INLINE")
     $?.success?.should == true
     out.should include(RUBY_DESCRIPTION)
     out.should include(':b')
