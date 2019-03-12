@@ -74,7 +74,7 @@ describe "Truffle::Interop.remove" do
       it "raises an unsupported message error" do
         lambda {
           Truffle::Interop.remove("abc", 1)
-        }.should raise_error(RuntimeError, /Message unsupported/)
+        }.should raise_error(RuntimeError, /Message not supported/)
       end
     end
   end
