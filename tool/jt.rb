@@ -517,9 +517,10 @@ module Commands
           graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
               --graal     include graal compiler in the build
               --native    build native ruby image as well
-          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
+          native [--no-sulong] [--no-jvmci] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
                                                      (--no-tools to exclude chromeinspector and profiler)
+          --no-sforceimports
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1880,7 +1881,9 @@ EOS
   end
 
   def build_graalvm(*options)
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') unless ci?
+    sforceimports = !options.delete("--no-sforceimports")
+    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if !ci? && sforceimports
+
     graal = options.delete('--graal')
     native = options.delete('--native')
 
