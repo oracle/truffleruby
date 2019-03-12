@@ -589,6 +589,11 @@ module Kernel
   end
   module_function :printf
 
+  private def pp(*args)
+    require 'pp'
+    pp(*args)
+  end
+
   alias_method :trust, :untaint
   alias_method :untrust, :taint
   alias_method :untrusted?, :tainted?
