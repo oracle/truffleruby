@@ -731,7 +731,7 @@ VALUE rb_str_buf_append(VALUE, VALUE);
 VALUE rb_str_buf_cat(VALUE, const char*, long);
 VALUE rb_str_buf_cat2(VALUE, const char*);
 VALUE rb_str_buf_cat_ascii(VALUE, const char*);
-#define rb_obj_as_string(object) rb_any_to_s(object)
+VALUE rb_obj_as_string(VALUE object);
 VALUE rb_check_string_type(VALUE);
 void rb_must_asciicompat(VALUE);
 #define rb_str_dup(string) rb_obj_dup(string)

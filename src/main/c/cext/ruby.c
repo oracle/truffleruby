@@ -438,6 +438,10 @@ VALUE rb_obj_dup(VALUE object) {
   return RUBY_INVOKE(object, "dup");
 }
 
+VALUE rb_obj_as_string(VALUE object) {
+  return RUBY_CEXT_INVOKE("rb_obj_as_string", object);
+}
+
 VALUE rb_any_to_s(VALUE object) {
   return RUBY_CEXT_INVOKE("rb_any_to_s", object);
 }
