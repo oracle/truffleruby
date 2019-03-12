@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
@@ -36,33 +35,26 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
                 BigDecimalCastNodeGen.create(null, null));
     }
 
-    protected DynamicObject createBigDecimal(VirtualFrame frame, Object value) {
+    protected DynamicObject createBigDecimal(Object value) {
         if (createBigDecimal == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null, null));
         }
 
-        return createBigDecimal.executeCreate(frame, value);
+        return createBigDecimal.executeCreate(value);
     }
-
-    public abstract DynamicObject executeBigDecimal(VirtualFrame frame, RoundingMode roundingMode, Object value);
 
     @Specialization
-    public DynamicObject doBigDecimal(VirtualFrame frame, Object value, RoundingMode roundingMode, BigDecimal cast) {
-        return createBigDecimal(frame, cast);
+    public DynamicObject doBigDecimal(Object value, RoundingMode roundingMode, BigDecimal cast) {
+        return createBigDecimal(cast);
     }
 
-    @Specialization(guards = {
-            "isRubyBigDecimal(value)",
-            "isNil(cast)"
-    })
+    @Specialization(guards = { "isRubyBigDecimal(value)", "isNil(cast)" })
     public Object doBigDecimal(DynamicObject value, RoundingMode roundingMode, DynamicObject cast) {
         return value;
     }
 
-    @Specialization(guards = {
-            "!isRubyBigDecimal(value)",
-    })
+    @Specialization(guards = "!isRubyBigDecimal(value)")
     public Object notBigDecimal(Object value, RoundingMode roundingMode, DynamicObject cast) {
         return value;
     }

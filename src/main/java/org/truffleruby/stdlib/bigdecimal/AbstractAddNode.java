@@ -10,7 +10,6 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -25,28 +24,28 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
     private final ConditionProfile negInfinityProfile = ConditionProfile.createBinaryProfile();
     private final ConditionProfile aNormalProfile = ConditionProfile.createBinaryProfile();
 
-    protected Object add(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
-        return createBigDecimal(frame, addBigDecimal(a, b, new MathContext(precision, getRoundMode(frame))));
+    protected Object add(DynamicObject a, DynamicObject b, int precision) {
+        return createBigDecimal(addBigDecimal(a, b, new MathContext(precision, getRoundMode())));
     }
 
-    protected Object addSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object addSpecial(DynamicObject a, DynamicObject b, int precision) {
         final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
         final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
         if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN ||
                 (aType == BigDecimalType.POSITIVE_INFINITY && bType == BigDecimalType.NEGATIVE_INFINITY) ||
                 (aType == BigDecimalType.NEGATIVE_INFINITY && bType == BigDecimalType.POSITIVE_INFINITY))) {
-            return createBigDecimal(frame, BigDecimalType.NAN);
+            return createBigDecimal(BigDecimalType.NAN);
         }
 
         if (posInfinityProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY
                 || bType == BigDecimalType.POSITIVE_INFINITY)) {
-            return createBigDecimal(frame, BigDecimalType.POSITIVE_INFINITY);
+            return createBigDecimal(BigDecimalType.POSITIVE_INFINITY);
         }
 
         if (negInfinityProfile.profile(aType == BigDecimalType.NEGATIVE_INFINITY
                 || bType == BigDecimalType.NEGATIVE_INFINITY)) {
-            return createBigDecimal(frame, BigDecimalType.NEGATIVE_INFINITY);
+            return createBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
         }
 
         // One is NEGATIVE_ZERO and second is NORMAL

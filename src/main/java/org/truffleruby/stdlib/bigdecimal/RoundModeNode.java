@@ -10,15 +10,14 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.math.RoundingMode;
 
 public abstract class RoundModeNode extends BigDecimalCoreMethodNode {
 
     @Specialization
-    public RoundingMode doGetRoundMode(VirtualFrame frame) {
-        return getRoundMode(frame);
+    public RoundingMode doGetRoundMode() {
+        return getRoundMode();
     }
 
 }

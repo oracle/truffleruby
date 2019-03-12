@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -49,11 +48,11 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
         return a.divide(b, mathContext);
     }
 
-    protected Object div(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
-        return createBigDecimal(frame, divBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode(frame))));
+    protected Object div(DynamicObject a, DynamicObject b, int precision) {
+        return createBigDecimal(divBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode())));
     }
 
-    protected Object divNormalSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object divNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
         Object value = null;
 
         switch (Layouts.BIG_DECIMAL.getType(b)) {
@@ -100,10 +99,10 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(b));
         }
 
-        return createBigDecimal(frame, value);
+        return createBigDecimal(value);
     }
 
-    protected Object divSpecialNormal(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object divSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
         Object value = null;
 
         switch (Layouts.BIG_DECIMAL.getType(a)) {
@@ -150,35 +149,35 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
         }
 
-        return createBigDecimal(frame, value);
+        return createBigDecimal(value);
     }
 
-    protected Object divSpecialSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object divSpecialSpecial(DynamicObject a, DynamicObject b, int precision) {
         final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
         final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
         if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN ||
                 (aType == BigDecimalType.NEGATIVE_ZERO && bType == BigDecimalType.NEGATIVE_ZERO)) {
-            return createBigDecimal(frame, BigDecimalType.NAN);
+            return createBigDecimal(BigDecimalType.NAN);
         }
 
         if (aType == BigDecimalType.NEGATIVE_ZERO) {
             if (bType == BigDecimalType.POSITIVE_INFINITY) {
-                return createBigDecimal(frame, BigDecimalType.NEGATIVE_ZERO);
+                return createBigDecimal(BigDecimalType.NEGATIVE_ZERO);
             } else {
-                return createBigDecimal(frame, BigDecimalType.POSITIVE_INFINITY);
+                return createBigDecimal(BigDecimalType.POSITIVE_INFINITY);
             }
         }
 
         if (bType == BigDecimalType.NEGATIVE_ZERO) {
             if (aType == BigDecimalType.POSITIVE_INFINITY) {
-                return createBigDecimal(frame, BigDecimalType.NEGATIVE_INFINITY);
+                return createBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
             } else {
-                return createBigDecimal(frame, BigDecimalType.POSITIVE_INFINITY);
+                return createBigDecimal(BigDecimalType.POSITIVE_INFINITY);
             }
         }
 
         // a and b are only +-Infinity
-        return createBigDecimal(frame, BigDecimalType.NAN);
+        return createBigDecimal(BigDecimalType.NAN);
     }
 }

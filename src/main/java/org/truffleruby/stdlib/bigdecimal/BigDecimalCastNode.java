@@ -43,7 +43,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
@@ -62,9 +61,9 @@ import java.math.RoundingMode;
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyNode {
 
-    public abstract BigDecimal executeBigDecimal(VirtualFrame frame, Object value, RoundingMode roundingMode);
+    public abstract BigDecimal executeBigDecimal(Object value, RoundingMode roundingMode);
 
-    public abstract Object executeObject(VirtualFrame frame, Object value, RoundingMode roundingMode);
+    public abstract Object executeObject(Object value, RoundingMode roundingMode);
 
     @Specialization
     public BigDecimal doInt(long value, Object roundingMode) {
@@ -91,10 +90,7 @@ public abstract class BigDecimalCastNode extends RubyNode {
             "!isRubyBignum(value)",
             "!isRubyBigDecimal(value)"
     })
-    public Object doOther(
-            VirtualFrame frame,
-            DynamicObject value,
-            Object roundingMode,
+    public Object doOther(DynamicObject value, Object roundingMode,
             @Cached("create()") IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
             @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {
