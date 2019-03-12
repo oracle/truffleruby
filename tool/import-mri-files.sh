@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This file should pass `shellcheck tool/import-mri-files.sh`.
+
 set -x
 set -e
 
