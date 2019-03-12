@@ -475,7 +475,12 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
 }
 
 const char *rb_obj_classname(VALUE object) {
-  return RSTRING_PTR(RUBY_CEXT_INVOKE("rb_obj_classname", object));
+  VALUE str = RUBY_CEXT_INVOKE("rb_obj_classname", object);
+  if (str != Qnil) {
+    return RSTRING_PTR(str);
+  } else {
+    return NULL;
+  }
 }
 
 VALUE rb_obj_id(VALUE object) {
