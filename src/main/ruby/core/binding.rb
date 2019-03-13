@@ -20,4 +20,9 @@ class Binding
     Truffle.invoke_primitive(:local_variable_names, self).dup
   end
   Truffle::Graal.always_split(method(:local_variables))
+
+  def irb
+    require 'irb'
+    irb
+  end
 end
