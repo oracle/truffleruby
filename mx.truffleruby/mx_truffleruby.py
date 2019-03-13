@@ -153,7 +153,6 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'bin/rake',
         'bin/rdoc',
         'bin/ri',
-        'bin/testrb',
     ],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(
