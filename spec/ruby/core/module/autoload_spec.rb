@@ -217,7 +217,7 @@ describe "Module#autoload" do
     end
   end
 
-  describe "the autoload is removed when the same file is required directly without autoload" do
+  describe "the autoload is triggered when the same file is required directly" do
     before :each do
       module ModuleSpecs::Autoload
         autoload :RequiredDirectly, fixture(__FILE__, "autoload_required_directly.rb")
