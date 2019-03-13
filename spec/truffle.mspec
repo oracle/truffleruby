@@ -38,6 +38,10 @@ class MSpecScript
     spec/ruby/library/yaml
     spec/ruby/library/zlib
     spec/ruby/security/cve_2017_17742_spec.rb
+    spec/ruby/security/cve_2019_8321_spec.rb
+    spec/ruby/security/cve_2019_8322_spec.rb
+    spec/ruby/security/cve_2019_8323_spec.rb
+    spec/ruby/security/cve_2019_8325_spec.rb
   ]
 
   set :command_line, [
