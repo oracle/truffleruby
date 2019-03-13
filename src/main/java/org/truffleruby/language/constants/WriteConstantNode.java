@@ -16,6 +16,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -47,7 +48,7 @@ public class WriteConstantNode extends RubyNode {
         }
 
         final RubyConstant previous = Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);
-        if (previous != null) {
+        if (previous != null && previous.hasValue()) {
             warnAlreadyInitializedConstant((DynamicObject) moduleObject, name, previous.getSourceSection());
         }
         return value;

@@ -997,7 +997,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         public Object setConstantNoCheckName(DynamicObject module, String name, Object value) {
             final RubyConstant previous = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
-            if (previous != null) {
+            if (previous != null && previous.hasValue()) {
                 warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
             }
             return value;

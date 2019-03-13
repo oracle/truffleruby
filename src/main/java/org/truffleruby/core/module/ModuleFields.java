@@ -340,13 +340,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             final SourceSection sourceSection = currentNode != null ?  currentNode.getSourceSection() : null;
             final RubyConstant newValue = new RubyConstant(rubyModuleObject, value, isPrivate, autoload, isDeprecated, sourceSection);
 
-            if ((previous == null) ? (constants.putIfAbsent(name, newValue) == null) : constants.replace(name, previous, newValue)) {
+            if (previous == null ? constants.putIfAbsent(name, newValue) == null : constants.replace(name, previous, newValue)) {
                 newConstantsVersion();
-                if (!autoload && previous != null && !previous.isAutoload()) {
-                    return previous;
-                } else {
-                    return null;
-                }
+                return previous;
             }
         }
     }
