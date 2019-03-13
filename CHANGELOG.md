@@ -11,6 +11,7 @@ Bug fixes:
 * Combining multiple `**` arguments containing duplicate keys produced
   an incorrect hash. This has now been fixed (#1469).
 * `IO#read_nonblock` now returns the passed buffer object, if one is supplied.
+* Worked out autoloading issue (#1614).
 
 New features:
 
