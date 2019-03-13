@@ -100,7 +100,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -1372,32 +1371,10 @@ public abstract class KernelNodes {
         @Specialization(guards = "isRubyString(featureString)")
         public boolean require(DynamicObject featureString,
                 @Cached("create()") RequireNode requireNode) {
-
             String feature = StringOperations.getString(featureString);
-
-            // TODO CS 1-Mar-15 ERB will use strscan if it's there, but strscan is not yet complete, so we need to hide it
-            if (feature.equals("strscan") && callerIs("mri/erb.rb")) {
-                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
-            }
-
             return requireNode.executeRequire(feature);
         }
 
-        @TruffleBoundary
-        private boolean callerIs(String caller) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-
-            for (Activation activation : backtrace.getActivations()) {
-                final Node callNode = activation.getCallNode();
-                final Source source = callNode == null ? null : callNode.getEncapsulatingSourceSection().getSource();
-
-                if (source != null && source.getName().endsWith(caller)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 
     @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
