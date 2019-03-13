@@ -72,6 +72,7 @@ EXPERT:
 
     # Tracing loading of Ruby files and C extensions
     LOG_LOAD: [log.load, boolean, false, Log loading files]
+    LOG_AUTOLOAD: [log.autoload, boolean, false, Log autoloading]
     LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
     CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
     CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]

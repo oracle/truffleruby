@@ -76,6 +76,7 @@ public class Options {
     public final String[] CEXTS_LIBRARY_REMAP;
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
+    public final boolean LOG_AUTOLOAD;
     public final boolean LOG_FEATURE_LOCATION;
     public final boolean CEXTS_LOG_LOAD;
     public final boolean CEXTS_LOG_WARNINGS;
@@ -208,6 +209,7 @@ public class Options {
         CEXTS_LIBRARY_REMAP = options.get(OptionsCatalog.CEXTS_LIBRARY_REMAP_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
+        LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
         LOG_FEATURE_LOCATION = options.get(OptionsCatalog.LOG_FEATURE_LOCATION_KEY);
         CEXTS_LOG_LOAD = options.get(OptionsCatalog.CEXTS_LOG_LOAD_KEY);
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
@@ -392,6 +394,8 @@ public class Options {
                 return OPTIONS_LOG;
             case "ruby.log.load":
                 return LOG_LOAD;
+            case "ruby.log.autoload":
+                return LOG_AUTOLOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
             case "ruby.cexts.log.load":

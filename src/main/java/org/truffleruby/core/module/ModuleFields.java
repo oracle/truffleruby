@@ -320,6 +320,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void setAutoloadConstant(RubyContext context, Node currentNode, String name, DynamicObject filename) {
         assert RubyGuards.isRubyString(filename);
+        if (context.getOptions().LOG_AUTOLOAD) {
+            RubyLanguage.LOGGER.info(() -> String.format("%s: setting up autoload %s::%s with %s",
+                    context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
+                    getName(), name, filename));
+        }
         setConstantInternal(context, currentNode, name, filename, true);
     }
 

@@ -71,6 +71,7 @@ public class OptionsCatalog {
     public static final OptionKey<String[]> CEXTS_LIBRARY_REMAP_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_FEATURE_LOCATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
@@ -498,6 +499,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor LOG_LOAD = OptionDescriptor
             .newBuilder(LOG_LOAD_KEY, "ruby.log.load")
             .help("Log loading files")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_AUTOLOAD = OptionDescriptor
+            .newBuilder(LOG_AUTOLOAD_KEY, "ruby.log.autoload")
+            .help("Log autoloading")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1164,6 +1172,8 @@ public class OptionsCatalog {
                 return OPTIONS_LOG;
             case "ruby.log.load":
                 return LOG_LOAD;
+            case "ruby.log.autoload":
+                return LOG_AUTOLOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
             case "ruby.cexts.log.load":
@@ -1409,6 +1419,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_LOG,
             LAZY_TRANSLATION_USER,
             LOAD_PATHS,
+            LOG_AUTOLOAD,
             LOG_FEATURE_LOCATION,
             LOG_LOAD,
             METHOD_LOOKUP_CACHE,

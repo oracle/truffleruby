@@ -17,6 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -76,10 +77,22 @@ public abstract class GetConstantNode extends RubyBaseNode {
             // We found an autoload constant while we are already require-ing the autoload file,
             // consider it missing to avoid circular require warnings and calling #require twice.
             // For instance, autoload :RbConfig, "rbconfig"; require "rbconfig" causes this.
+            if (getContext().getOptions().LOG_AUTOLOAD) {
+                RubyLanguage.LOGGER.info(() -> String.format("%s: %s::%s is being treated as missing while loading %s",
+                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        Layouts.MODULE.getFields(module).getName(), name, expandedPath));
+            }
             return doMissingConstant(module, name, getSymbol(name));
         }
 
         autoloadConstant.startAutoLoad();
+
+        if (getContext().getOptions().LOG_AUTOLOAD) {
+            RubyLanguage.LOGGER.info(() -> String.format("%s: autoloading %s::%s with %s",
+                    getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                    Layouts.MODULE.getFields(autoloadConstantModule).getName(), name, autoloadConstant.getAutoloadPath()));
+        }
+
         try {
 
             // We need to notify cached lookup that we are autoloading the constant, as constant
