@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -50,15 +49,15 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return Layouts.BIG_DECIMAL.getType(value) == BigDecimalType.NAN;
     }
 
-    protected DynamicObject createBigDecimal(VirtualFrame frame, Object value) {
-        return getCreateBigDecimal().executeCreate(frame, value);
+    protected DynamicObject createBigDecimal(Object value) {
+        return getCreateBigDecimal().executeCreate(value);
     }
 
-    protected DynamicObject initializeBigDecimal(VirtualFrame frame, Object value, DynamicObject self, Object digits) {
-        return getCreateBigDecimal().executeInitialize(frame, value, self, digits);
+    protected DynamicObject initializeBigDecimal(Object value, DynamicObject self, Object digits) {
+        return getCreateBigDecimal().executeInitialize(value, self, digits);
     }
 
-    protected RoundingMode getRoundMode(VirtualFrame frame) {
+    protected RoundingMode getRoundMode() {
         return toRoundingMode(getRoundModeIntegerCast().executeCastInt(
                 // TODO (pitr 21-Jun-2015): read the actual constant
                 getRoundModeCall().call(getBigDecimalClass(), "mode", 256)));

@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -38,15 +37,15 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
         return a.multiply(b, mathContext);
     }
 
-    protected Object mult(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
-        return createBigDecimal(frame, multBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode(frame))));
+    protected Object mult(DynamicObject a, DynamicObject b, int precision) {
+        return createBigDecimal(multBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode())));
     }
 
-    protected Object multNormalSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
-        return multSpecialNormal(frame, b, a, precision);
+    protected Object multNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
+        return multSpecialNormal(b, a, precision);
     }
 
-    protected Object multSpecialNormal(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object multSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
         Object value = null;
 
         switch (Layouts.BIG_DECIMAL.getType(a)) {
@@ -95,19 +94,19 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 throw new UnsupportedOperationException("unreachable code branch");
         }
 
-        return createBigDecimal(frame, value);
+        return createBigDecimal(value);
     }
 
-    protected Object multSpecial(VirtualFrame frame, DynamicObject a, DynamicObject b, int precision) {
+    protected Object multSpecial(DynamicObject a, DynamicObject b, int precision) {
         final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
         final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
         if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN) {
-            return createBigDecimal(frame, BigDecimalType.NAN);
+            return createBigDecimal(BigDecimalType.NAN);
         } else if (aType == BigDecimalType.NEGATIVE_ZERO && bType == BigDecimalType.NEGATIVE_ZERO) {
-            return createBigDecimal(frame, BigDecimal.ZERO);
+            return createBigDecimal(BigDecimal.ZERO);
         } else if (aType == BigDecimalType.NEGATIVE_ZERO || bType == BigDecimalType.NEGATIVE_ZERO) {
-            return createBigDecimal(frame, BigDecimalType.NAN);
+            return createBigDecimal(BigDecimalType.NAN);
         }
 
         // a and b are only +-Infinity
@@ -116,13 +115,13 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
             if (bType == BigDecimalType.POSITIVE_INFINITY) {
                 return a;
             } else {
-                return createBigDecimal(frame, BigDecimalType.NEGATIVE_INFINITY);
+                return createBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
             }
         } else if (aType == BigDecimalType.NEGATIVE_INFINITY) {
             if (bType == BigDecimalType.POSITIVE_INFINITY) {
                 return a;
             } else {
-                return createBigDecimal(frame, (BigDecimalType.POSITIVE_INFINITY));
+                return createBigDecimal((BigDecimalType.POSITIVE_INFINITY));
             }
         }
 
