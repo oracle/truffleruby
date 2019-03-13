@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This file should pass `shellcheck tool/import-mri-files.sh`.
+
 set -x
 set -e
 
@@ -20,38 +22,38 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-find lib/mri | grep '/.gemspec$' | xargs rm
-find lib/mri | grep '/.document$' | xargs rm
+find lib/mri -name '*.gemspec' -delete
+find lib/mri -name '.document' -delete
 
 # *.c
 cp ../ruby/st.c src/main/c/cext/st.c
 
-# ext/, sorted alphabetically
+# Copy Ruby files in ext/, sorted alphabetically
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 
-cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
-
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
-cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
-cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
 
-rm src/main/c/openssl/*.{c,h}
-cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
 cp -r ../ruby/ext/openssl/lib/* lib/mri
-
-cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
-cp ../ruby/ext/psych/yaml/*.{c,h} src/main/c/psych/yaml
-cp ../ruby/ext/psych/yaml/LICENSE src/main/c/psych/yaml
-cp ../ruby/ext/psych/lib/psych.rb lib/mri
-cp -r ../ruby/ext/psych/lib/psych lib/mri
 
 cp ../ruby/ext/pty/lib/*.rb lib/mri
 
+cp ../ruby/ext/psych/lib/psych.rb lib/mri
+cp -r ../ruby/ext/psych/lib/psych lib/mri
+
+cp -r ../ruby/ext/syslog/lib/syslog lib/mri
+
+# Copy C extensions in ext/, sorted alphabetically
+rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
+mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
+
+cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
+cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
+cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
+cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
+cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
+cp -r ../ruby/ext/psych/yaml src/main/c/psych
 cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
-
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
-cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
-
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 
 # test/
