@@ -879,6 +879,7 @@ public abstract class ModuleNodes {
         }
 
         // Symbol
+
         @Specialization(guards = { "inherit", "isRubySymbol(name)" })
         public Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
             return getConstant(module, Layouts.SYMBOL.getString(name));
@@ -890,6 +891,7 @@ public abstract class ModuleNodes {
         }
 
         // String
+
         @Specialization(guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" }, limit = "getLimit()")
         public Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
