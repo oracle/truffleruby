@@ -244,6 +244,11 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
+    public static String formatJava(StackTraceElement stackTraceElement) {
+        return stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber() +
+                ":in `" + stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName() + "'";
+    }
+
     private String formatForeign(Node callNode, String methodName) {
         final StringBuilder builder = new StringBuilder();
         final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();

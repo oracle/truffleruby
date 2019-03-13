@@ -236,7 +236,12 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().getSystemStackErrorClass();
-        return ExceptionOperations.createRubyException(context, exceptionClass, coreStrings().STACK_LEVEL_TOO_DEEP.createInstance(), currentNode, javaThrowable);
+        StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
+        String topOfTheStack = stackTrace.length > 0 ? BacktraceFormatter.formatJava(stackTrace[0]) : "<empty Java stacktrace>";
+        final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
+        return ExceptionOperations.createRubyException(context, exceptionClass,
+                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
+                currentNode, javaThrowable);
     }
 
     // NoMemoryError
