@@ -72,9 +72,9 @@ describe "Truffle::Interop.remove" do
 
     describe "with a name that doesn't start with @" do
       it "raises an unsupported message error" do
-        lambda {
-          Truffle::Interop.remove("abc", 1)
-        }.should raise_error(RuntimeError, /Message not supported/)
+        lambda { Truffle::Interop.remove("abc", 1) }.
+            # TODO (pitr-ch 13-Mar-2019): when on Interop 2 keep the second match
+            should raise_error(RuntimeError, /Message (not supported|unsupported)/)
       end
     end
   end
