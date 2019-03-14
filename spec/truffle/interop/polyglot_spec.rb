@@ -16,10 +16,16 @@ describe Polyglot do
       Polyglot.eval("ruby", "14 + 2").should == 16
     end
 
+    it "raises an ArgumentError for unknown languages" do
+      -> {
+        Polyglot.eval("unknown-language", "code")
+      }.should raise_error(ArgumentError, /No language for id unknown-language found/)
+    end
+
     it "doesn't work with MIME types" do
       -> {
         Polyglot.eval("application/x-ruby", "14 + 2")
-      }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
+      }.should raise_error(ArgumentError, /No language for id application\/x-ruby found/)
     end
 
     it "evals code in Ruby as UTF-8" do
@@ -61,10 +67,16 @@ describe Polyglot do
       Polyglot.eval_file("ruby", fixture(__FILE__, "eval_file_value.rb")).should == 14
     end
 
+    it "raises an ArgumentError for unknown languages" do
+      -> {
+        Polyglot.eval_file("unknown-language", fixture(__FILE__, "eval_file_id.rb"))
+      }.should raise_error(ArgumentError, /No language for id unknown-language found/)
+    end
+
     it "doesn't work with MIME types" do
       -> {
         Polyglot.eval_file("application/x-ruby", fixture(__FILE__, "eval_file_id.rb"))
-      }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
+      }.should raise_error(ArgumentError, /No language for id application\/x-ruby found/)
     end
 
     it "evals code in Ruby as UTF-8" do
@@ -92,6 +104,13 @@ describe Polyglot do
     it "evals code in Ruby" do
       Polyglot.eval_file(fixture(__FILE__, "eval_file.rb"))
       $eval_file.should be_true
+    end
+
+    it "raises an ArgumentError if the language is not found" do
+      path = fixture(__FILE__, "eval_file.invalid")
+      -> {
+        Polyglot.eval_file(path)
+      }.should raise_error(ArgumentError, "Could not find language of file #{path}")
     end
 
   end

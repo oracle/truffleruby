@@ -683,9 +683,17 @@ public abstract class InteropNodes {
         protected CallTarget parse(DynamicObject mimeType, DynamicObject code) {
             final String mimeTypeString = StringOperations.getString(mimeType);
             final String codeString = StringOperations.getString(code);
-            final String lang = Source.findLanguage(mimeTypeString);
-            final Source sourceObject = Source.newBuilder(lang, codeString, "(eval)").build();
-            return getContext().getEnv().parse(sourceObject);
+            String language = Source.findLanguage(mimeTypeString);
+            if (language == null) {
+                // Give the original string to get the nice exception from Truffle
+                language = mimeTypeString;
+            }
+            final Source source = Source.newBuilder(language, codeString, "(eval)").build();
+            try {
+                return getContext().getEnv().parse(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
 
         protected int getCacheLimit() {

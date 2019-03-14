@@ -30,6 +30,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 import java.io.IOException;
 
@@ -70,7 +71,11 @@ public abstract class PolyglotNodes {
             final String idString = StringOperations.getString(id);
             final String codeString = StringOperations.getString(code);
             final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
-            return getContext().getEnv().parse(source);
+            try {
+                return getContext().getEnv().parse(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
 
         protected int getCacheLimit() {
@@ -85,24 +90,45 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(fileName)")
         public Object evalFile(DynamicObject fileName, NotProvided id) {
+            final Source source;
+            final String path = StringOperations.getString(fileName).intern();
             try {
-                final TruffleFile file = getContext().getEnv().getTruffleFile(StringOperations.getString(fileName).intern());
-                final String language = Source.findLanguage(file);
-                final Source source = Source.newBuilder(language, file).name("(eval)").build();
-                return getContext().getEnv().parse(source).call();
+                final TruffleFile file = getContext().getEnv().getTruffleFile(path);
+                String language = Source.findLanguage(file);
+                if (language == null) {
+                    throw new RaiseException(getContext(), coreExceptions().argumentError("Could not find language of file " + fileName, this));
+                }
+                source = Source.newBuilder(language, file).name("(eval)").build();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
+
+            return eval(source);
         }
 
         @TruffleBoundary
-        @Specialization(guards = {"isRubyString(id)", "isRubyString(fileName)"})
+        @Specialization(guards = { "isRubyString(id)", "isRubyString(fileName)" })
         public Object evalFile(DynamicObject id, DynamicObject fileName) {
             final String idString = StringOperations.getString(id);
+            final Source source = getSource(idString, fileName);
+            return eval(source);
+        }
+
+        private Object eval(Source source) {
+            final CallTarget callTarget;
             try {
-                final TruffleFile file = getContext().getEnv().getTruffleFile(StringOperations.getString(fileName).intern());
-                final Source source = Source.newBuilder(idString, file).build();
-                return getContext().getEnv().parse(source).call();
+                callTarget = getContext().getEnv().parse(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+            return callTarget.call();
+        }
+
+        private Source getSource(String language, DynamicObject fileName) {
+            final String path = StringOperations.getString(fileName).intern();
+            try {
+                final TruffleFile file = getContext().getEnv().getTruffleFile(path);
+                return Source.newBuilder(language, file).build();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
