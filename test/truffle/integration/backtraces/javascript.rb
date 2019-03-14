@@ -8,9 +8,7 @@
 
 require_relative 'backtraces'
 
-js = 'application/javascript'
-
-unless defined?(Truffle) && Truffle::Interop.mime_type_supported?(js)
+unless defined?(Truffle) && Truffle::Interop.mime_type_supported?('application/javascript')
   puts "JavaScript doesn't appear to be available - skipping polylgot backtrace tests"
   exit
 end
@@ -19,25 +17,25 @@ def foo
   raise 'foo-message'
 end
 
-Truffle::Interop.export_method :foo
-Truffle::Interop.eval js, "foo = Polyglot.import('foo')"
+Polyglot.export_method :foo
+Polyglot.eval 'js', "foo = Polyglot.import('foo')"
 
-Truffle::Interop.eval js, "function bar() { foo(); }"
+Polyglot.eval 'js', "function bar() { foo(); }"
 
-Truffle::Interop.eval js, "Polyglot.export('bar', bar)"
-Truffle::Interop.import_method :bar
+Polyglot.eval 'js', "Polyglot.export('bar', bar)"
+Polyglot.import_method :bar
 
 def baz
   bar(self)
 end
 
-Truffle::Interop.export_method :baz
-Truffle::Interop.eval js, "baz = Polyglot.import('baz')"
+Polyglot.export_method :baz
+Polyglot.eval 'js', "baz = Polyglot.import('baz')"
 
-Truffle::Interop.eval js, "function bob() { baz(); }"
+Polyglot.eval 'js', "function bob() { baz(); }"
 
-Truffle::Interop.eval js, "Polyglot.export('bob', bob)"
-Truffle::Interop.import_method :bob
+Polyglot.eval 'js', "Polyglot.export('bob', bob)"
+Polyglot.import_method :bob
 
 check('javascript.backtrace') do
   bob(self)
