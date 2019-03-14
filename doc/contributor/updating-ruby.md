@@ -35,14 +35,14 @@ old patches using the old reference branch.
 
 ```
 tool/import-mri-files.sh
-git diff vNN this-branch | git apply -3
+git diff vNN master | git apply -3
 ```
 
 You'll usually get some conflicts to work out.
 
 ## Make other changes
 
-* Update `versions.json`
+* Update `versions.json` and `.ruby-version`
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md`

@@ -1,6 +1,6 @@
 # 1.0 RC 14
 
-Updated to Ruby 2.6.1, with the RubyGems 3.0.3 security patch.
+Updated to Ruby 2.6.2.
 
 Bug fixes:
 

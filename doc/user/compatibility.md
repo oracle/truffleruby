@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of
-Ruby, MRI, version 2.6.1, revision 66950.
+Ruby, MRI, version 2.6.2, revision 67232.
 
 Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
 If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it to us.

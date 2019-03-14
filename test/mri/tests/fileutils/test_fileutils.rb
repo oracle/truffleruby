@@ -740,6 +740,15 @@ class TestFileUtils < Test::Unit::TestCase
     remove_entry_secure 'tmp/tmpdir/c', true
     assert_file_not_exist 'tmp/tmpdir/a'
     assert_file_not_exist 'tmp/tmpdir/c'
+
+    File.chmod(01777, 'tmp/tmpdir')
+    if File.sticky?('tmp/tmpdir')
+      Dir.mkdir 'tmp/tmpdir/d', 0
+      assert_raise(Errno::EACCES) {remove_entry_secure 'tmp/tmpdir/d'}
+      File.chmod 0777, 'tmp/tmpdir/d'
+      Dir.rmdir 'tmp/tmpdir/d'
+    end
+
     Dir.rmdir 'tmp/tmpdir'
   end
 
