@@ -1,5 +1,4 @@
 fails:Enumerator::Chain#initialize is a private method
 fails:Enumerator::Chain#initialize returns self
 fails:Enumerator::Chain#initialize accepts many arguments
-fails:Enumerator::Chain#initialize accepts arguments that are not Enumerable nor responding to :each
 fails:Enumerator::Chain#initialize on frozen instance raises a RuntimeError

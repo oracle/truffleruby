@@ -1,5 +1,4 @@
 fails:Time.at passed Numeric roundtrips a Rational produced by #to_r
-fails:Time.at passed Numeric passed BigDecimal doesn't round input value
 fails:Time.at passed [Time, Numeric, format] supports Float second argument
 fails:Time.at passed [Time, Numeric, format] :nanosecond format traits second argument as nanoseconds
 fails:Time.at passed [Time, Numeric, format] :nsec format traits second argument as nanoseconds
