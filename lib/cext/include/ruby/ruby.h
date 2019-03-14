@@ -225,8 +225,8 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 # endif
 #endif
 
-#define RUBY_FIXNUM_MAX (LONG_MAX>>1)
-#define RUBY_FIXNUM_MIN RSHIFT((long)LONG_MIN,1)
+#define RUBY_FIXNUM_MAX LONG_MAX
+#define RUBY_FIXNUM_MIN LONG_MIN
 #define FIXNUM_MAX RUBY_FIXNUM_MAX
 #define FIXNUM_MIN RUBY_FIXNUM_MIN
 
@@ -346,7 +346,7 @@ rb_fix2ulong(VALUE x)
     return RB_FIX2ULONG(x);
 }
 int RB_FIXNUM_P(VALUE value);
-#define RB_POSFIXABLE(f) ((f) < RUBY_FIXNUM_MAX+1)
+#define RB_POSFIXABLE(f) ((f) <= RUBY_FIXNUM_MAX)
 #define RB_NEGFIXABLE(f) ((f) >= RUBY_FIXNUM_MIN)
 #define RB_FIXABLE(f) (RB_POSFIXABLE(f) && RB_NEGFIXABLE(f))
 #define FIX2LONG(x) RB_FIX2LONG(x)
