@@ -1,1 +1,0 @@
-fails:Socket.getservbyport returns the service name when using a custom protocol name
