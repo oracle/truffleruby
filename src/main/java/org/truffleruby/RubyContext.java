@@ -89,8 +89,6 @@ import java.util.logging.Level;
 
 public class RubyContext {
 
-    public static RubyContext FIRST_INSTANCE = null;
-
     private final RubyLanguage language;
     @CompilationFinal private TruffleLanguage.Env env;
 
@@ -155,10 +153,6 @@ public class RubyContext {
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
-
-        if (FIRST_INSTANCE == null) {
-            FIRST_INSTANCE = this;
-        }
 
         this.preInitializing = preInitializeContexts;
         RubyContext.preInitializeContexts = false; // Only the first context is pre-initialized
