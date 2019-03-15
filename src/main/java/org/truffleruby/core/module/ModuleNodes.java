@@ -557,7 +557,7 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload?", required = 1)
-    public abstract static class AutoloadQueryNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
         public Object autoloadQuerySymbol(DynamicObject module, DynamicObject name) {
