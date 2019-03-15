@@ -9,6 +9,12 @@
  */
 package org.truffleruby.cext;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -56,11 +62,11 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
-import org.truffleruby.core.mutex.MutexOperations;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
 import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
+import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -103,12 +109,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -1471,7 +1471,7 @@ public class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                keepAliveNode.execute(frame, guardedObject);
+                keepAliveNode.execute(guardedObject);
             }
             return nil();
         }
@@ -1543,9 +1543,9 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(VirtualFrame frame, DynamicObject block,
+        public DynamicObject pushFrame(DynamicObject block,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getExtensionCallStack().push(block);
+            getDataNode.execute().getExtensionCallStack().push(block);
             return nil();
         }
     }
@@ -1554,9 +1554,9 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject popFrame(VirtualFrame frame,
+        public DynamicObject popFrame(
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getExtensionCallStack().pop();
+            getDataNode.execute().getExtensionCallStack().pop();
             return nil();
         }
     }

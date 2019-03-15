@@ -11,24 +11,27 @@ package org.truffleruby.core;
 
 import java.util.ArrayList;
 
-import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
-import org.truffleruby.language.RubyBaseNode;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
 
 public class MarkingServiceNodes {
 
-    public static abstract class KeepAliveNode extends RubyBaseNode {
+    @GenerateUncached
+    public static abstract class KeepAliveNode extends Node {
 
-        public abstract void execute(VirtualFrame frame, Object object);
+        public abstract void execute(Object object);
 
         @Specialization
-        public void keepObjectAlive(VirtualFrame frame, Object object,
+        public void keepObjectAlive(Object object,
                 @Cached("create()") GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
-            MarkerThreadLocalData data = getThreadLocalDataNode.execute(frame);
+            MarkerThreadLocalData data = getThreadLocalDataNode.execute();
             addToList(data.getExtensionCallStack().getKeptObjects(), object);
             data.getKeptObjects().keepObject(object);
         }
@@ -43,28 +46,38 @@ public class MarkingServiceNodes {
         }
     }
 
-    public static abstract class GetMarkerThreadLocalDataNode extends RubyBaseNode {
+    @GenerateUncached
+    public static abstract class GetMarkerThreadLocalDataNode extends Node {
 
-        public abstract MarkerThreadLocalData execute(VirtualFrame frame);
+        public final MarkerThreadLocalData execute() {
+            return execute(Boolean.TRUE);
+        }
 
-        @Specialization(guards = "thread == currentJavaThread(frame)", limit = "getCacheLimit()")
-        public MarkerThreadLocalData getDataOnKnownThread(VirtualFrame frame,
-                @Cached("currentJavaThread(frame)") Thread thread,
-                @Cached("getData()") MarkerThreadLocalData data) {
+        public abstract MarkerThreadLocalData execute(Object dynamicParameter);
+
+        @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
+        public MarkerThreadLocalData getDataOnKnownThread(
+                Object dynamicParameter,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+                @Cached("currentJavaThread(dynamicParameter)") Thread thread,
+                @Cached("getData(dynamicParameter, rubyContext)") MarkerThreadLocalData data) {
             return data;
         }
 
         @Specialization(replaces = "getDataOnKnownThread")
-        protected MarkerThreadLocalData getData() {
-            return getContext().getMarkingService().getThreadLocalData();
+        protected MarkerThreadLocalData getData(
+                Object dynamicParameter,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+            return rubyContext.getMarkingService().getThreadLocalData();
         }
 
-        static protected Thread currentJavaThread(VirtualFrame frame) {
+        static protected Thread currentJavaThread(Object dynamicParameter) {
             return Thread.currentThread();
         }
 
         public int getCacheLimit() {
-            return getContext().getOptions().THREAD_CACHE;
+            // TODO (pitr-ch 19-Mar-2019): is this an issue?
+            return RubyLanguage.getCurrentContext().getOptions().THREAD_CACHE;
         }
 
         public static GetMarkerThreadLocalDataNode create() {
