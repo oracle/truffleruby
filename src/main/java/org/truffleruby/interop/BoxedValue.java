@@ -9,15 +9,14 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.library.Message;
+import com.oracle.truffle.api.library.ReflectionLibrary;
 
-@MessageResolution(receiverType = BoxedValue.class)
+@ExportLibrary(ReflectionLibrary.class)
 public class BoxedValue implements TruffleObject {
 
     private final Object value;
@@ -26,40 +25,11 @@ public class BoxedValue implements TruffleObject {
         this.value = value;
     }
 
-    public Object getNumber() {
-        return value;
-    }
-
-    @CanResolve
-    public abstract static class Check extends Node {
-
-        protected static boolean test(TruffleObject receiver) {
-            return receiver instanceof BoxedValue;
-        }
-
-    }
-
-    @Resolve(message = "IS_BOXED")
-    public static abstract class IsBoxedNode extends Node {
-
-        protected Object access(VirtualFrame frame, BoxedValue number) {
-            return true;
-        }
-
-    }
-
-    @Resolve(message = "UNBOX")
-    public static abstract class UnboxNode extends Node {
-
-        protected Object access(VirtualFrame frame, BoxedValue number) {
-            return number.getNumber();
-        }
-
-    }
-
-    @Override
-    public ForeignAccess getForeignAccess() {
-        return BoxedValueForeign.ACCESS;
+    @TruffleBoundary
+    @ExportMessage
+    public Object send(Message message, Object[] args) throws Exception {
+        ReflectionLibrary reflection = ReflectionLibrary.getFactory().getUncached();
+        return reflection.send(value, message, args);
     }
 
 }
