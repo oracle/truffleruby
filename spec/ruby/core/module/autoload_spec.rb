@@ -260,7 +260,7 @@ describe "Module#autoload" do
       nested_require = -> {
         result = nil
         ScratchPad.record -> {
-          result = [@check.call, Thread.new { @check.call }.value]
+          result = @check.call
         }
         require nested
         result
@@ -269,9 +269,7 @@ describe "Module#autoload" do
 
       @check.call.should == ["constant", @path]
       require @path
-      cur, other = ScratchPad.recorded
-      cur.should == [nil, nil]
-      other.should == [nil, nil]
+      ScratchPad.recorded.should == [nil, nil]
       @check.call.should == ["constant", nil]
     end
   end
