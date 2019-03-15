@@ -9,18 +9,12 @@
  */
 package org.truffleruby.cext;
 
-import org.truffleruby.RubyContext;
-
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 
-@MessageResolution(receiverType = CapturedException.class)
+@ExportLibrary(InteropLibrary.class)
 public class CapturedException implements TruffleObject {
 
     private final Throwable exception;
@@ -33,27 +27,8 @@ public class CapturedException implements TruffleObject {
         return exception;
     }
 
-    @CanResolve
-    public abstract static class IsInstance extends Node {
-
-        protected boolean test(TruffleObject receiver) {
-            return receiver instanceof CapturedException;
-        }
+    @ExportMessage
+    public boolean isNull() {
+        return false;
     }
-
-    @Resolve(message = "IS_NULL")
-    public static abstract class IsNullNode extends Node {
-
-        @CompilationFinal private ContextReference<RubyContext> contextReference;
-
-        protected Object access(CapturedException object) {
-            return false;
-        }
-    }
-
-    @Override
-    public ForeignAccess getForeignAccess() {
-        return CapturedExceptionForeign.ACCESS;
-    }
-
 }
