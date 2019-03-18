@@ -200,6 +200,7 @@ module Process
       raise ArgumentError, "unexpected unit: #{unit}"
     end
   end
+  private_class_method :nanoseconds_to_unit
 
   ##
   # Sets the process title. Calling this method does not affect the value of
