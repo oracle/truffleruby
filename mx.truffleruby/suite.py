@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "57ab3918e063a6db7bc28b1395a3106cdaa8ee95",
+                "version": "665bb5858fd872395ac11eccc743e53ecb61da4e",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "57ab3918e063a6db7bc28b1395a3106cdaa8ee95",
+                "version": "665bb5858fd872395ac11eccc743e53ecb61da4e",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
