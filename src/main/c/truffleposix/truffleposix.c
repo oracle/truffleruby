@@ -399,6 +399,15 @@ int64_t truffleposix_clock_gettime(int clock) {
   }
   return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
 }
+
+int64_t truffleposix_clock_getres(int clock) {
+  struct timespec timespec;
+  int ret = clock_getres((clockid_t) clock, &timespec);
+  if (ret != 0) {
+    return 0;
+  }
+  return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
+}
 #endif
 
 #define CHECK(call, label) if ((error = call) != 0) { perror(#call); goto label; }
