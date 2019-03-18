@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.6
   DisabledByDefault: true
   DisplayCopNames: true
   ExtraDetails: true
@@ -174,10 +174,6 @@ Lint/InheritException:
   - standard_error
   Exclude:
   - src/main/ruby/core/exception.rb
-
-Lint/InvalidCharacterLiteral:
-  Description: Checks for invalid character literals with a non-escaped whitespace character.
-  Enabled: true
 
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
