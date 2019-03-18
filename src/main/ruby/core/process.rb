@@ -117,30 +117,30 @@ module Process
 
   def self.clock_getres(id, unit=:float_second)
     res = case id
-    when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
-         CLOCK_MONOTONIC
-      1
-    when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
-         :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
-         :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
-      1_000
-    when CLOCK_REALTIME
-      1_000_000
-    when :TIMES_BASED_CLOCK_MONOTONIC,
-         :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
-      10_000_000
-    when :TIME_BASED_CLOCK_REALTIME
-      1_000_000_000
-    when Symbol
-      raise Errno::EINVAL
-    else
-      _res = Truffle::POSIX.truffleposix_clock_getres(id)
-      if _res == 0 then
-        Errno.handle
-      else
-        _res
-      end
-    end
+          when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+               CLOCK_MONOTONIC
+            1
+          when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+               :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+               :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+            1_000
+          when CLOCK_REALTIME
+            1_000_000
+          when :TIMES_BASED_CLOCK_MONOTONIC,
+               :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
+            10_000_000
+          when :TIME_BASED_CLOCK_REALTIME
+            1_000_000_000
+          when Symbol
+            raise Errno::EINVAL
+          else
+            res_for_id = Truffle::POSIX.truffleposix_clock_getres(id)
+            if res_for_id == 0 then
+              Errno.handle
+            else
+              res_for_id
+            end
+          end
 
     if :hertz == unit then
       1.0 / nanoseconds_to_unit(res,:float_second)
