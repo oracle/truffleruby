@@ -9,9 +9,9 @@ AllCops:
     - 'lib/truffle/socket/mri.rb' # taken from MRI
     - 'lib/truffle/ffi/library.rb' # taken from FFI gem
 
-# Type 'Style' (166):
+# Type 'Layout' (166):
 # Supports --auto-correct
-Style/TrailingBlankLines:
+Layout/TrailingBlankLines:
   Description: Checks trailing blank lines and final newline.
   StyleGuide: "#newline-eof"
   Enabled: true
@@ -21,7 +21,7 @@ Style/TrailingBlankLines:
   - final_blank_line
 
 # Supports --auto-correct
-Style/TrailingWhitespace:
+Layout/TrailingWhitespace:
   Description: Avoid trailing whitespace.
   StyleGuide: "#no-trailing-whitespace"
   Enabled: true
@@ -44,7 +44,7 @@ Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
 # Supports --auto-correct
-Lint/BlockAlignment:
+Layout/BlockAlignment:
   Description: Align block ends correctly.
   Enabled: true
   EnforcedStyleAlignWith: either
@@ -58,7 +58,7 @@ Lint/CircularArgumentReference:
     should not refer back to the name of the argument.
   Enabled: true
 
-Lint/ConditionPosition:
+Layout/ConditionPosition:
   Description: Checks for condition placed in a confusing position relative to the keyword.
   StyleGuide: "#same-line-condition"
   Enabled: true
@@ -69,7 +69,7 @@ Lint/Debugger:
   Enabled: true
 
 # Supports --auto-correct
-Lint/DefEndAlignment:
+Layout/DefEndAlignment:
   Description: Align ends corresponding to defs correctly.
   Enabled: true
   EnforcedStyleAlignWith: start_of_line
@@ -122,7 +122,7 @@ Lint/EmptyWhen:
   Enabled: false
 
 # Supports --auto-correct
-Lint/EndAlignment:
+Layout/EndAlignment:
   Description: Align ends correctly.
   Enabled: true
   EnforcedStyleAlignWith: keyword
@@ -331,20 +331,20 @@ Lint/Void:
   Description: Possible use of operator/literal/variable in void context.
   Enabled: false # Triggers for any return value for #initialize and #[]=
 
-#################### Style ###########################
+#################### Layout ###########################
 
 # Supports --auto-correct
 Style/BlockDelimiters:
   Enabled: true
 
-Style/CaseIndentation:
+Layout/CaseIndentation:
   Enabled: true
   EnforcedStyle: 'end'
 
-Style/IndentationConsistency:
+Layout/IndentationConsistency:
   Enabled: true
 
-Style/IndentationWidth:
+Layout/IndentationWidth:
   Enabled: true
 
 # Supports --auto-correct
