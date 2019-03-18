@@ -372,9 +372,6 @@ suite = {
             "native": True,
             "platformDependent": True,
             "description": "TruffleRuby support distribution for the GraalVM",
-            "dependencies": [
-                "org.truffleruby.cext",
-            ],
             "layout": {
                 "./": [
                     "file:CHANGELOG.md",
@@ -404,10 +401,10 @@ suite = {
                 "lib/cext/": [
                     "file:lib/cext/patches",
                     "file:lib/cext/*.rb",
-                    "file:src/main/c/truffleposix/<lib:truffleposix>",
-                    "file:src/main/c/sulongmock/sulongmock.o",
-                    "file:src/main/c/cext/ruby.o",
-                    "file:src/main/c/cext/ruby.su",
+                    "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
+                    "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby.o",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby.su",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/ccan",
@@ -423,15 +420,15 @@ suite = {
                     "extracted-dependency:sulong:SULONG_LIBS/lib*",
                 ],
                 "lib/mri/": [
-                    "file:src/main/c/etc/etc.su",
-                    "file:src/main/c/nkf/nkf.su",
-                    "file:src/main/c/openssl/openssl.su",
-                    "file:src/main/c/psych/psych.su",
-                    "file:src/main/c/syslog/syslog.su",
-                    "file:src/main/c/zlib/zlib.su",
+                    "dependency:org.truffleruby.cext/src/main/c/etc/etc.su",
+                    "dependency:org.truffleruby.cext/src/main/c/nkf/nkf.su",
+                    "dependency:org.truffleruby.cext/src/main/c/openssl/openssl.su",
+                    "dependency:org.truffleruby.cext/src/main/c/psych/psych.su",
+                    "dependency:org.truffleruby.cext/src/main/c/syslog/syslog.su",
+                    "dependency:org.truffleruby.cext/src/main/c/zlib/zlib.su",
                 ],
                 "lib/mri/rbconfig/": [
-                    "file:src/main/c/rbconfig-sizeof/sizeof.su",
+                    "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/sizeof.su",
                 ],
                 "lib/ruby/gems/2.6.0/": [
                     "file:lib/ruby/gems/2.6.0/truffleruby_gem_dir_marker.txt",
