@@ -22,7 +22,7 @@ public abstract class ConcurrentOperations {
      * if they are no collisions in the bucket.
      * This method might execute the function multiple times, in contrast to computeIfAbsent().
      */
-    public static <V, K> V getOrCompute(Map<K, V> map, K key, Function<? super K, ? extends V> compute) {
+    public static <K, V> V getOrCompute(Map<K, V> map, K key, Function<? super K, ? extends V> compute) {
         V value = map.get(key);
         if (value != null) {
             return value;
@@ -31,6 +31,15 @@ public abstract class ConcurrentOperations {
             final V oldValue = map.putIfAbsent(key, newValue);
             return oldValue != null ? oldValue : newValue;
         }
+    }
+
+    /**
+     * Similar to {@link Map#replace(Object, Object, Object)} except that the old value can also be
+     * null (missing). Returns true if the replace succeeded, or false if it should be retried
+     * because <code>map.get(key)</code> is no longer associated to <code>oldValue</code>.
+     */
+    public static <K, V> boolean replace(Map<K, V> map, K key, V oldValue, V newValue) {
+        return oldValue == null ? map.putIfAbsent(key, newValue) == null : map.replace(key, oldValue, newValue);
     }
 
 }

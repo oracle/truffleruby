@@ -20,6 +20,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
@@ -333,18 +334,22 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context, rubyModuleObject, value);
 
-        while (true) {
-            final RubyConstant previous = constants.get(name);
-            final boolean isPrivate = previous != null && previous.isPrivate();
-            final boolean isDeprecated = previous != null && previous.isDeprecated();
-            final SourceSection sourceSection = currentNode != null ?  currentNode.getSourceSection() : null;
-            final RubyConstant newValue = new RubyConstant(rubyModuleObject, value, isPrivate, autoload, isDeprecated, sourceSection);
+        RubyConstant previous;
+        RubyConstant newConstant;
+        do {
+            previous = constants.get(name);
+            newConstant = newConstant(currentNode, value, autoload, previous);
+        } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
 
-            if (previous == null ? constants.putIfAbsent(name, newValue) == null : constants.replace(name, previous, newValue)) {
-                newConstantsVersion();
-                return previous;
-            }
-        }
+        newConstantsVersion();
+        return previous;
+    }
+
+    private RubyConstant newConstant(Node currentNode, Object value, boolean autoload, RubyConstant previous) {
+        final boolean isPrivate = previous != null && previous.isPrivate();
+        final boolean isDeprecated = previous != null && previous.isDeprecated();
+        final SourceSection sourceSection = currentNode != null ?  currentNode.getSourceSection() : null;
+        return new RubyConstant(rubyModuleObject, value, isPrivate, autoload, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
