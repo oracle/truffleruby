@@ -175,11 +175,11 @@ Lint/InheritException:
   Exclude:
   - src/main/ruby/core/exception.rb
 
-Lint/LiteralInCondition:
+Lint/LiteralAsCondition:
   Description: Checks of literals used in conditions.
   Details: >-
       Pattern `while true` is allowed, disable the cop with
-      `while true # rubocop:disable Lint/LiteralInCondition` in this case.
+      `while true # rubocop:disable Lint/LiteralAsCondition` in this case.
   Enabled: true
 
 # Supports --auto-correct
@@ -273,7 +273,7 @@ Lint/UnifiedInteger:
   Enabled: false
 
 # Supports --auto-correct
-Lint/UnneededDisable:
+Lint/UnneededCopDisableDirective:
   Description: 'Checks for rubocop:disable comments that can be removed. Note: this
     cop is not disabled when disabling all cops. It must be explicitly disabled.'
   Enabled: true

@@ -1068,7 +1068,7 @@ class Array
         spin = false
         spin_count = 0
 
-        while true # rubocop:disable Lint/LiteralInCondition
+        while true # rubocop:disable Lint/LiteralAsCondition
           j = 0
           while j < i
             if k == result[j]
