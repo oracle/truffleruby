@@ -9,15 +9,17 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
+import java.util.Arrays;
 
-@MessageResolution(receiverType = LoggingForeignObject.class)
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.library.Message;
+import com.oracle.truffle.api.library.ReflectionLibrary;
+
+@ExportLibrary(ReflectionLibrary.class)
 public class LoggingForeignObject implements TruffleObject {
 
     private final StringBuilder log = new StringBuilder();
@@ -31,233 +33,37 @@ public class LoggingForeignObject implements TruffleObject {
         return log.toString();
     }
 
-
-    @CanResolve
-    public abstract static class Check extends Node {
-
-        @TruffleBoundary
-        protected static boolean test(TruffleObject receiver) {
-            return receiver instanceof LoggingForeignObject;
+    @ExportMessage
+    @TruffleBoundary
+    Object send(Message message, Object[] args) throws Exception {
+        final Object[] flatArgs;
+        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.invokeMember")) {
+            Object[] invokeArg = (Object[]) args[1];
+            Object[] newArgs = Arrays.copyOf(args, 1 + invokeArg.length);
+            System.arraycopy(invokeArg, 0, newArgs, 1,invokeArg.length);
+            flatArgs = newArgs;
+        } else {
+            flatArgs = args;
         }
 
-    }
+        String[] a = new String[flatArgs.length];
+        Arrays.fill(a, "%s");
 
-    @Resolve(message = "IS_NULL")
-    public static abstract class IsNullNode extends Node {
+        log(message.getSimpleName() + "(" + String.join(", ", a) + ")", flatArgs);
 
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("IS_NULL");
+        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.isString")) {
+            return true;
+        }
+
+        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.asString")) {
+            return getLog();
+        }
+
+        if (message.getReturnType() == boolean.class) {
             return false;
         }
 
-    }
-
-    @Resolve(message = "HAS_SIZE")
-    public static abstract class HasSizeNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("HAS_SIZE");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "GET_SIZE")
-    public static abstract class GetSizeNode extends Node {
-
-        @TruffleBoundary
-        protected int access(LoggingForeignObject log) {
-            log.log("GET_SIZE");
-            return 0;
-        }
-
-    }
-
-    @Resolve(message = "IS_BOXED")
-    public static abstract class IsBoxedNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("IS_BOXED");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "UNBOX")
-    public static abstract class UnboxNode extends Node {
-
-        @TruffleBoundary
-        protected int access(LoggingForeignObject log) {
-            log.log("UNBOX");
-            return 0;
-        }
-
-    }
-
-    @Resolve(message = "IS_POINTER")
-    public static abstract class IsPointerNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("IS_POINTER");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "AS_POINTER")
-    public static abstract class AsPointerNode extends Node {
-
-        @TruffleBoundary
-        protected int access(LoggingForeignObject log) {
-            log.log("AS_POINTER");
-            return 0;
-        }
-
-    }
-
-    @Resolve(message = "TO_NATIVE")
-    public static abstract class ToNativeNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log) {
-            log.log("TO_NATIVE");
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "READ")
-    public static abstract class ReadNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object name) {
-            log.log("READ(%s)", name);
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "WRITE")
-    public static abstract class WriteNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object name, Object value) {
-            log.log("WRITE(%s, %s)", name, value);
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "REMOVE")
-    public static abstract class RemoveNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log, Object name) {
-            log.log("REMOVE(%s)", name);
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "HAS_KEYS")
-    public static abstract class HasKeysNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("HAS_KEYS");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "KEYS")
-    public static abstract class KeysNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, boolean internal) {
-            log.log("KEYS(%s)", internal);
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "KEY_INFO")
-    public static abstract class KeyInfoNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object name) {
-            log.log("KEY_INFO(%s)", name);
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class IsExecutableNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("IS_EXECUTABLE");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "EXECUTE")
-    public static abstract class ExecuteNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object[] arguments) {
-            log.log("EXECUTE(...)");
-            return log;
-        }
-
-    }
-
-    @Resolve(message = "INVOKE")
-    public static abstract class InvokeNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, String name, Object[] arguments) {
-            if (name.equals("log")) {
-                return log.getLog();
-            } else {
-                log.log("INVOKE(%s, ...)", name);
-                return log;
-            }
-        }
-
-    }
-
-    @Resolve(message = "IS_INSTANTIABLE")
-    public static abstract class IsInstantiableNode extends Node {
-
-        @TruffleBoundary
-        protected boolean access(LoggingForeignObject log) {
-            log.log("IS_INSTANTIABLE");
-            return false;
-        }
-
-    }
-
-    @Resolve(message = "NEW")
-    public static abstract class NewNode extends Node {
-
-        @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object[] arguments) {
-            log.log("NEW(...)");
-            return log;
-        }
-
-    }
-
-    @Override
-    public ForeignAccess getForeignAccess() {
-        return LoggingForeignObjectForeign.ACCESS;
+        throw UnsupportedMessageException.create();
     }
 
 }
