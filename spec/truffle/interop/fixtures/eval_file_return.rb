@@ -1,2 +1,2 @@
 return 14
-raise 'unreachable'
+raise 'unreachable' # rubocop:disable Lint/UnreachableCode
