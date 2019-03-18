@@ -1,3 +1,9 @@
+# 1.0 RC 15
+
+New features:
+
+* `Process.clock_getres` has been implemented.
+
 # 1.0 RC 14
 
 Updated to Ruby 2.6.2.
