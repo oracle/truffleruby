@@ -46,7 +46,6 @@ ruby/test_range.rb # open range
 ruby/test_rubyoptions.rb # uses RubyVM
 test_pp.rb # uses RubyVM
 ruby/test_time_tz.rb
-ruby/test_thread_queue.rb # hangs
 monitor/test_monitor.rb # hangs
 csv/write/test_general.rb # encoding
 ruby/test_parse.rb # encoding
@@ -229,7 +228,6 @@ ruby/enc/test_windows_1251.rb
 ruby/test_argf.rb # spawn needed for tests
 ruby/test_arity.rb
 ruby/test_backtrace.rb
-ruby/test_case.rb # uses refinements
 ruby/test_enum.rb # cannot load such file -- continuation
 ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
 ruby/test_extlibs.rb
@@ -239,7 +237,6 @@ ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/min
 ruby/test_lazy_enumerator.rb
 ruby/test_m17n_comb.rb # cannot load such file -- etc
 ruby/test_marshal.rb # including this causes error in test_objectspace.rb
-ruby/test_module.rb # test/mri/ruby/test_module.rb:96:in `private_class_method': internal implementation error - UnsupportedOperationException null org.truffleruby.nodes.core.ModuleNodes$PrivateClassMethodNode.privateClassMethod(ModuleNodes.java:1474) (RuntimeError)
 ruby/test_pipe.rb # tests not excluding
 ruby/test_rubyvm.rb
 ruby/test_settracefunc.rb # uninitialized constant TestSetTraceFunc::TracePoint
