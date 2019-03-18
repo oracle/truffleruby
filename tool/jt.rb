@@ -1961,7 +1961,10 @@ EOS
       "GEM_PATH" => gem_home,
       "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
     }
-    sh env, "ruby", "#{gem_home}/bin/rubocop", *RUBOCOP_INCLUDE_LIST, *args
+    if args.empty? or args.all? { |arg| arg.start_with?('-') }
+      args += RUBOCOP_INCLUDE_LIST
+    end
+    sh env, "ruby", "#{gem_home}/bin/rubocop", *args
   end
 
   def check_filename_length
