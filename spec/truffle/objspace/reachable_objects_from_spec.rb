@@ -73,5 +73,5 @@ describe "ObjectSpace.reachable_objects_from" do
     reachable = ObjectSpace.reachable_objects_from(object)
     reachable.should include(finalizer)
   end
-  
+
 end

@@ -9,7 +9,7 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Calling #equal? on a foreign object" do
-  
+
   it "tests reference equality" do
     a = Truffle::Debug.foreign_object
     a.equal?(a).should be_true
@@ -28,5 +28,5 @@ describe "Calling #equal? on a foreign object" do
       a.equal?(c).should be_false
     end
   end
-  
+
 end

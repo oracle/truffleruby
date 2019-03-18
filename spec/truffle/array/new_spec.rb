@@ -33,7 +33,6 @@ describe "Array.new" do
 
   it "creates arrays with the requested capacity with a value block" do
     a = Array.new(17) { 1 }
-    capacity(a).should == 17    
+    capacity(a).should == 17
   end
 end
-

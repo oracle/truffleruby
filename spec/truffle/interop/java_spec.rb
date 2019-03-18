@@ -10,21 +10,21 @@ require_relative '../../ruby/spec_helper'
 
 guard -> { TruffleRuby.native? } do
   describe "Java" do
-    
+
     it "is not defined" do
       defined?(Java).should be_nil
     end
-    
+
   end
 end
 
 guard -> { !TruffleRuby.native? } do
   describe "Java" do
-    
+
     it "is defined" do
       defined?(Java).should_not be_nil
     end
-    
+
     describe ".type" do
 
       it "returns a Java class for a known primitive name" do

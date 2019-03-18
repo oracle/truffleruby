@@ -17,13 +17,13 @@ guard -> { !TruffleRuby.native? } do
         puts BigInteger.new('1234').toString
       }).should == "1234\n"
     end
-  
+
     it "returns the imported class" do
       ruby_exe(%{
         puts Java.import('java.math.BigInteger').class.getName
       }).should == "java.math.BigInteger\n"
     end
-    
+
     it "can import classes twice" do
       ruby_exe(%{
         Java.import 'java.math.BigInteger'
@@ -31,7 +31,7 @@ guard -> { !TruffleRuby.native? } do
         puts BigInteger.new('1234').toString
       }).should == "1234\n"
     end
-    
+
     it "raises an error if the constant is already defined" do
       ruby_exe(%{
         BigInteger = '14'

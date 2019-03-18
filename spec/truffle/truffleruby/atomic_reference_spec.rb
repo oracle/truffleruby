@@ -76,4 +76,3 @@ describe "TruffleRuby::AtomicReference" do
   end
 
 end
-

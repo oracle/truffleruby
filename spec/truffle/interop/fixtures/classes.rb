@@ -18,7 +18,7 @@ module TruffleInteropSpecs
       @b = 2
       @c = 3
     end
-    
+
     def foo
       14
     end
@@ -30,11 +30,11 @@ module TruffleInteropSpecs
       @b = 2
       @c = 3
     end
-    
+
     def [](n)
       instance_variable_get(:"@#{n}")
     end
-    
+
     def foo
       14
     end
@@ -61,7 +61,7 @@ module TruffleInteropSpecs
       @key = n
       14
     end
-    
+
     def bob
       14
     end
@@ -85,7 +85,7 @@ module TruffleInteropSpecs
       @value = value
       @called = true
     end
-    
+
     def bob
       14
     end
@@ -93,7 +93,7 @@ module TruffleInteropSpecs
 
   class WriteHasIndexSetAndIndex
     attr_reader :key, :value, :called
-    
+
     def [](n)
       @value = n
     end
@@ -103,7 +103,7 @@ module TruffleInteropSpecs
       @value = value
       @called = true
     end
-    
+
     def bob
       14
     end
