@@ -41,8 +41,7 @@ module Java
     def eql?(another)
       Truffle::Interop::Java.java_eql?(@value, @value)
     end
-
-    alias_method :eql?, :==
+    alias_method :==, :eql?
 
     def equal?(another)
       nil != @value and JavaObject === another and @value.equals(another.value)

@@ -367,7 +367,7 @@ module JavaUtilities
     a_proxy = Module.new do
       define_singleton_method(:included, included_method)
       class << self
-        attr_accessor :java_class
+        attr_writer :java_class
         def java_class
           JavaUtilities::wrap_java_value(@java_class)
         end
