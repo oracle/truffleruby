@@ -438,6 +438,10 @@ VALUE rb_obj_dup(VALUE object) {
   return RUBY_INVOKE(object, "dup");
 }
 
+VALUE rb_obj_as_string(VALUE object) {
+  return RUBY_CEXT_INVOKE("rb_obj_as_string", object);
+}
+
 VALUE rb_any_to_s(VALUE object) {
   return RUBY_CEXT_INVOKE("rb_any_to_s", object);
 }
@@ -475,7 +479,12 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
 }
 
 const char *rb_obj_classname(VALUE object) {
-  return RSTRING_PTR(RUBY_CEXT_INVOKE("rb_obj_classname", object));
+  VALUE str = RUBY_CEXT_INVOKE("rb_obj_classname", object);
+  if (str != Qnil) {
+    return RSTRING_PTR(str);
+  } else {
+    return NULL;
+  }
 }
 
 VALUE rb_obj_id(VALUE object) {

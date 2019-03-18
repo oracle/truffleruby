@@ -1662,6 +1662,10 @@ module Truffle::CExt
     Truffle::Type.rb_any_to_s(object)
   end
 
+  def rb_obj_as_string(object)
+    Truffle::Type.rb_obj_as_string(object)
+  end
+
   def rb_class_inherited_p(ruby_module, object)
     if object.is_a?(Module)
       ruby_module <= object

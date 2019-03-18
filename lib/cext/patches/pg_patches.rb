@@ -15,6 +15,21 @@ class PgPatches
         case Qfalse_int_const : mybool = 0; break;
 EOF
 
+  PG_TEXT_DECODER_FREE_OLD = <<-EOF
+static VALUE
+pg_text_dec_bytea(t_pg_coder *conv, const char *val, int len, int tuple, int field, int enc_idx)
+EOF
+
+  PG_TEXT_DECODER_FREE_NEW = <<-EOF
+static VALUE pg_tr_pq_freemem(VALUE mem) {
+  PQfreemem((void *)mem);
+  return Qfalse;
+}
+
+static VALUE
+pg_text_dec_bytea(t_pg_coder *conv, const char *val, int len, int tuple, int field, int enc_idx)
+EOF
+
   PATCHES = {
     gem: 'pg',
     patches: {
@@ -23,6 +38,34 @@ EOF
           match: /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
           replacement: PG_BINARY_ENCODER_PATCH
         }
+      ],
+      'pg_result.c' => [
+        {
+          match: 'xmalloc(',
+          replacement: 'calloc(1,'
+        },
+      ],
+      'pg_tuple.c' => [
+        {
+          match: 'xmalloc(',
+          replacement: 'calloc(1,'
+        },
+      ],
+      'pg_text_decoder.c' => [
+        {
+          match: PG_TEXT_DECODER_FREE_OLD,
+          replacement: PG_TEXT_DECODER_FREE_NEW
+        },
+        {
+          match: '(VALUE(*)())PQfreemem',
+          replacement: 'pg_tr_pq_freemem'
+        }
+      ],
+      'pg_text_encoder.c' => [
+        {
+          match: 'if(TYPE(*intermediate) == T_FIXNUM)',
+          replacement: 'if(TYPE(*intermediate) == T_FIXNUM && NUM2LL(*intermediate) != -(NUM2LL(*intermediate)))'
+        },
       ],
       'pg_type_map_by_class.c' => [
         {

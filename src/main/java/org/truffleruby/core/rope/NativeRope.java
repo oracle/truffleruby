@@ -80,7 +80,7 @@ public class NativeRope extends Rope {
         pointer.writeBytes(0, this.pointer, 0, Math.min(byteLength(), newByteLength));
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
         pointer.enableAutorelease(finalizationService);
-        return new NativeRope(pointer, newByteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+        return new NativeRope(pointer, newByteLength, getEncoding(), UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class NativeRope extends Rope {
 
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        return RopeOperations.create(getBytes(), newEncoding, newCodeRange);
+        return new NativeRope(pointer, byteLength(), newEncoding, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 
     public Pointer getNativePointer() {
