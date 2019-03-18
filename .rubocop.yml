@@ -329,7 +329,7 @@ Lint/UselessSetterCall:
 
 Lint/Void:
   Description: Possible use of operator/literal/variable in void context.
-  Enabled: true
+  Enabled: false # Triggers for any return value for #initialize and #[]=
 
 #################### Style ###########################
 
