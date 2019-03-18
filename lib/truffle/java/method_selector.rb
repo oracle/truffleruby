@@ -334,7 +334,7 @@ module JavaUtilities
   class Parameters
     def initialize(params, var_args)
       @params = params.map { |t| Parameter.for_type(t) }
-      @var_args
+      @var_args = var_args
     end
 
     def [](index)
