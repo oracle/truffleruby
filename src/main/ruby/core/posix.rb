@@ -169,6 +169,7 @@ module Truffle::POSIX
   attach_function :chmod, [:string, :mode_t], :int
   attach_function :chown, [:string, :uid_t, :gid_t], :int
   attach_function :chroot, [:string], :int
+  attach_function :truffleposix_clock_getres, [:int], :int64_t, LIBTRUFFLEPOSIX
   attach_function :truffleposix_clock_gettime, [:int], :int64_t, LIBTRUFFLEPOSIX
   attach_function :close, [:int], :int
   attach_function :closedir, [:pointer], :int

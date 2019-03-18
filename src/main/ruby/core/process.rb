@@ -115,6 +115,40 @@ module Process
     const_set(key.substring(section.size, key.length), value)
   end
 
+  def self.clock_getres(id, unit=:float_second)
+    res = case id
+          when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+               CLOCK_MONOTONIC
+            1
+          when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+               :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+               :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+            1_000
+          when CLOCK_REALTIME
+            1_000_000
+          when :TIMES_BASED_CLOCK_MONOTONIC,
+               :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
+            10_000_000
+          when :TIME_BASED_CLOCK_REALTIME
+            1_000_000_000
+          when Symbol
+            raise Errno::EINVAL
+          else
+            res_for_id = Truffle::POSIX.truffleposix_clock_getres(id)
+            if res_for_id == 0 then
+              Errno.handle
+            else
+              res_for_id
+            end
+          end
+
+    if :hertz == unit then
+      1.0 / nanoseconds_to_unit(res,:float_second)
+    else
+      nanoseconds_to_unit(res,unit)
+    end
+  end
+
   def self.clock_gettime(id, unit=:float_second)
     if id.is_a?(Symbol)
       id = case id
@@ -143,25 +177,30 @@ module Process
       Errno.handle if time == 0
     end
 
+    nanoseconds_to_unit(time, unit)
+  end
+
+  def self.nanoseconds_to_unit(nanoseconds, unit)
     case unit
     when :nanosecond
-      time
+      nanoseconds
     when :microsecond
-      time / 1_000
+      nanoseconds / 1_000
     when :millisecond
-      time / 1_000_000
+      nanoseconds / 1_000_000
     when :second
-      time / 1_000_000_000
+      nanoseconds / 1_000_000_000
     when :float_microsecond
-      time / 1e3
+      nanoseconds / 1e3
     when :float_millisecond
-      time / 1e6
+      nanoseconds / 1e6
     when :float_second, nil
-      time / 1e9
+      nanoseconds / 1e9
     else
       raise ArgumentError, "unexpected unit: #{unit}"
     end
   end
+  private_class_method :nanoseconds_to_unit
 
   ##
   # Sets the process title. Calling this method does not affect the value of
