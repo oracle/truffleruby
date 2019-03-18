@@ -128,7 +128,6 @@ dtrace/test_singleton_function.rb
 dtrace/test_string.rb
 erb/test_erb_command.rb
 fiddle/test_cparser.rb
-fileutils/test_fileutils.rb # cannot load such file -- etc
 irb/test_completion.rb
 irb/test_option.rb
 irb/test_raise_no_backtrace_exception.rb
