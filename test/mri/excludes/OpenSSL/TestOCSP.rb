@@ -1,4 +1,4 @@
-exclude :test_basic_response_response_operations, "flakey timeout"
+exclude :test_basic_response_response_operations, "flaky timeout"
 exclude :test_basic_response_der, "needs investigation"
 exclude :test_basic_response_dup, "needs investigation"
 exclude :test_basic_response_sign_verify, "needs investigation"
