@@ -154,50 +154,8 @@ net/imap/test_imap.rb
 net/imap/test_imap_response_parser.rb
 open-uri/test_open-uri.rb
 open-uri/test_ssl.rb
-psych/handlers/test_recorder.rb
-psych/json/test_stream.rb
-psych/nodes/test_enumerable.rb
-psych/test_alias_and_anchor.rb
-psych/test_array.rb
-psych/test_boolean.rb
-psych/test_class.rb
-psych/test_coder.rb
-psych/test_date_time.rb
-psych/test_deprecated.rb
-psych/test_document.rb
-psych/test_emitter.rb
-psych/test_encoding.rb
-psych/test_exception.rb
-psych/test_hash.rb
-psych/test_json_tree.rb
-psych/test_merge_keys.rb
-psych/test_nil.rb
-psych/test_null.rb
-psych/test_numeric.rb
-psych/test_object.rb
-psych/test_object_references.rb
-psych/test_omap.rb
-psych/test_parser.rb
-psych/test_psych.rb
-psych/test_safe_load.rb
-psych/test_scalar.rb
-psych/test_scalar_scanner.rb
-psych/test_serialize_subclasses.rb
-psych/test_set.rb
-psych/test_stream.rb
-psych/test_string.rb
-psych/test_struct.rb
-psych/test_symbol.rb
-psych/test_tainted.rb
-psych/test_to_yaml_properties.rb
-psych/test_tree_builder.rb
-psych/test_yaml.rb
-psych/test_yamldbm.rb
-psych/test_yamlstore.rb
-psych/visitors/test_depth_first.rb
-psych/visitors/test_emitter.rb
-psych/visitors/test_to_ruby.rb
-psych/visitors/test_yaml_tree.rb
+psych/visitors/test_to_ruby.rb # test_exception fails and bypasses tag
+psych/visitors/test_yaml_tree.rb # test_exception fails and bypasses tag
 rdoc/test_rdoc_generator_darkfish.rb # TypeError: can't dup NilClass
 rdoc/test_rdoc_generator_json_index.rb # TypeError: can't dup NilClass
 rdoc/test_rdoc_generator_pot.rb # Missing pot lib files
