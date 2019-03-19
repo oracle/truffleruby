@@ -1,1 +1,1 @@
-exclude :test_respond_to_fork, "needs investigation"
+exclude :test_respond_to_fork, "assumes fork is available on Linux"
