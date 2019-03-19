@@ -25,6 +25,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.WrapNodeGen;
 import org.truffleruby.cext.WrapNode;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
@@ -85,7 +86,7 @@ public class FeatureLoader {
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constants = registeredAutoloads.computeIfAbsent(basename, k -> new HashMap<>());
+            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new HashMap<>());
             constants.put(StringOperations.getString(autoloadConstant.getAutoloadPath()), autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
