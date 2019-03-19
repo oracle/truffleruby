@@ -22,7 +22,7 @@ describe "Truffle::Binding.of_caller" do
   end
 
   it "gives read access to local variables at the call site" do
-    x = 14
+    x = 14 # rubocop:disable Lint/UselessAssignment
     binding_of_caller.local_variable_get(:x).should == 14
   end
 
@@ -33,7 +33,7 @@ describe "Truffle::Binding.of_caller" do
   end
 
   it "works through #send" do
-    x = 14
+    x = 14 # rubocop:disable Lint/UselessAssignment
     Truffle::Binding.send(:of_caller).local_variable_get(:x).should == 14
   end
 

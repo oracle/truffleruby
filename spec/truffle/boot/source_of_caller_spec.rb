@@ -26,7 +26,6 @@ describe "Truffle::Boot.source_of_caller" do
   end
 
   it "works through #send" do
-    x = 14
     Truffle::Boot.send(:source_of_caller).should == __FILE__
   end
 
