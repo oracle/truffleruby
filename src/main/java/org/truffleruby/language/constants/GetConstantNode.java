@@ -20,12 +20,10 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.loader.FeatureLoader;
 
 public abstract class GetConstantNode extends RubyBaseNode {
 
@@ -63,36 +61,28 @@ public abstract class GetConstantNode extends RubyBaseNode {
             @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
         final DynamicObject feature = autoloadConstant.getAutoloadPath();
-        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
-        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
         if (autoloadConstant.isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
             return doMissingConstant(module, name, getSymbol(name));
         }
 
-        final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final String expandedPath = featureLoader.findFeature(StringOperations.getString(feature));
-        if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
-            // We found an autoload constant while we are already require-ing the autoload file,
-            // consider it missing to avoid circular require warnings and calling #require twice.
-            // For instance, autoload :RbConfig, "rbconfig"; require "rbconfig" causes this.
-            if (getContext().getOptions().LOG_AUTOLOAD) {
-                RubyLanguage.LOGGER.info(() -> String.format("%s: %s::%s is being treated as missing while loading %s",
-                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                        Layouts.MODULE.getFields(module).getName(), name, expandedPath));
-            }
-            return doMissingConstant(module, name, getSymbol(name));
+        if (getContext().getOptions().LOG_AUTOLOAD) {
+            RubyLanguage.LOGGER.info(() -> String.format("%s: autoloading %s with %s",
+                    getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                    autoloadConstant, autoloadConstant.getAutoloadPath()));
         }
+
+        final Runnable require = () -> callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
+        return autoloadConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode, require);
+    }
+
+    @TruffleBoundary
+    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
+        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
         autoloadConstant.startAutoLoad();
-
-        if (getContext().getOptions().LOG_AUTOLOAD) {
-            RubyLanguage.LOGGER.info(() -> String.format("%s: autoloading %s::%s with %s",
-                    getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                    Layouts.MODULE.getFields(autoloadConstantModule).getName(), name, autoloadConstant.getAutoloadPath()));
-        }
-
         try {
 
             // We need to notify cached lookup that we are autoloading the constant, as constant
@@ -100,7 +90,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             // lookup ignores being-autoloaded constants).
             fields.newConstantsVersion();
 
-            callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
+            require.run();
 
             RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
 
@@ -122,7 +112,6 @@ public abstract class GetConstantNode extends RubyBaseNode {
         } finally {
             autoloadConstant.stopAutoLoad();
         }
-
     }
 
     @Specialization(

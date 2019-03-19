@@ -31,6 +31,7 @@ import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.Metrics;
@@ -47,12 +48,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FeatureLoader {
 
     private final RubyContext context;
 
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
+    /**
+     * Maps basename without extension -> autoload path -> autoload constant,
+     * to detect when require-ing a file already registered with autoload.
+     */
+    private final Map<String, Map<String, RubyConstant>> registeredAutoloads = new HashMap<>();
+    private final ReentrantLock registeredAutoloadsLock = new ReentrantLock();
 
     private final Object cextImplementationLock = new Object();
     private boolean cextImplementationLoaded = false;
@@ -69,6 +77,52 @@ public class FeatureLoader {
     public void initialize(NativeConfiguration nativeConfiguration, TruffleNFIPlatform nfi) {
         if (context.getOptions().NATIVE_PLATFORM) {
             this.getcwd = nfi.getFunction("getcwd", "(pointer," + nfi.size_t() + "):pointer");
+        }
+    }
+
+    public void addAutoload(RubyConstant autoloadConstant) {
+        final String basename = basenameWithoutExtension(StringOperations.getString(autoloadConstant.getAutoloadPath()));
+
+        registeredAutoloadsLock.lock();
+        try {
+            final Map<String, RubyConstant> constants = registeredAutoloads.computeIfAbsent(basename, k -> new HashMap<>());
+            constants.put(StringOperations.getString(autoloadConstant.getAutoloadPath()), autoloadConstant);
+        } finally {
+            registeredAutoloadsLock.unlock();
+        }
+    }
+
+    public RubyConstant isAutoloadPath(String expandedPath) {
+        final String basename = basenameWithoutExtension(expandedPath);
+        final RubyConstant[] constants;
+
+        registeredAutoloadsLock.lock();
+        try {
+            final Map<String, RubyConstant> constantsMap = registeredAutoloads.get(basename);
+            if (constantsMap == null) {
+                return null;
+            }
+            constants = constantsMap.values().toArray(new RubyConstant[0]);
+        } finally {
+            registeredAutoloadsLock.unlock();
+        }
+
+        for (RubyConstant constant : constants) {
+            final String expandedAutoloadPath = findFeature(StringOperations.getString(constant.getAutoloadPath()));
+            if (expandedPath.equals(expandedAutoloadPath)) {
+                return constant;
+            }
+        }
+        return null;
+    }
+
+    private String basenameWithoutExtension(String path) {
+        final String basename = new File(path).getName();
+        int i = basename.lastIndexOf('.');
+        if (i >= 0) {
+            return basename.substring(0, i);
+        } else {
+            return basename;
         }
     }
 

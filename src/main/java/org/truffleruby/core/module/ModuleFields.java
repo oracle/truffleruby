@@ -321,12 +321,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void setAutoloadConstant(RubyContext context, Node currentNode, String name, DynamicObject filename) {
         assert RubyGuards.isRubyString(filename);
+        RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
         if (context.getOptions().LOG_AUTOLOAD) {
-            RubyLanguage.LOGGER.info(() -> String.format("%s: setting up autoload %s::%s with %s",
+            RubyLanguage.LOGGER.info(() -> String.format("%s: setting up autoload %s with %s",
                     context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
-                    getName(), name, filename));
+                    autoloadConstant, filename));
         }
-        setConstantInternal(context, currentNode, name, filename, true);
+        context.getFeatureLoader().addAutoload(autoloadConstant);
     }
 
     private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value, boolean autoload) {
@@ -338,18 +339,18 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         RubyConstant newConstant;
         do {
             previous = constants.get(name);
-            newConstant = newConstant(currentNode, value, autoload, previous);
+            newConstant = newConstant(currentNode, name, value, autoload, previous);
         } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
 
         newConstantsVersion();
-        return previous;
+        return autoload ? newConstant : previous;
     }
 
-    private RubyConstant newConstant(Node currentNode, Object value, boolean autoload, RubyConstant previous) {
+    private RubyConstant newConstant(Node currentNode, String name, Object value, boolean autoload, RubyConstant previous) {
         final boolean isPrivate = previous != null && previous.isPrivate();
         final boolean isDeprecated = previous != null && previous.isDeprecated();
         final SourceSection sourceSection = currentNode != null ?  currentNode.getSourceSection() : null;
-        return new RubyConstant(rubyModuleObject, value, isPrivate, autoload, isDeprecated, sourceSection);
+        return new RubyConstant(rubyModuleObject, name, value, isPrivate, autoload, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary

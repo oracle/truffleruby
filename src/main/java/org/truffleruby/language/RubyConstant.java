@@ -23,6 +23,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 public class RubyConstant implements ObjectGraphNode {
 
     private final DynamicObject declaringModule;
+    private final String name;
     private final Object value;
     private final boolean isPrivate;
     private final boolean isDeprecated;
@@ -34,13 +35,14 @@ public class RubyConstant implements ObjectGraphNode {
 
     private final SourceSection sourceSection;
 
-    public RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated, SourceSection sourceSection) {
-        this(declaringModule, value, isPrivate, autoload, false, isDeprecated, sourceSection);
+    public RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated, SourceSection sourceSection) {
+        this(declaringModule, name, value, isPrivate, autoload, false, isDeprecated, sourceSection);
     }
 
-    private RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean undefined, boolean isDeprecated, SourceSection sourceSection) {
+    private RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, boolean autoload, boolean undefined, boolean isDeprecated, SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
         this.declaringModule = declaringModule;
+        this.name = name;
         this.value = value;
         this.isPrivate = isPrivate;
         this.isDeprecated = isDeprecated;
@@ -51,6 +53,10 @@ public class RubyConstant implements ObjectGraphNode {
 
     public DynamicObject getDeclaringModule() {
         return declaringModule;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean hasValue() {
@@ -78,7 +84,7 @@ public class RubyConstant implements ObjectGraphNode {
         if (isPrivate == this.isPrivate) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, undefined, isDeprecated, sourceSection);
+            return new RubyConstant(declaringModule, name, value, isPrivate, autoload, undefined, isDeprecated, sourceSection);
         }
     }
 
@@ -86,13 +92,13 @@ public class RubyConstant implements ObjectGraphNode {
         if (this.isDeprecated()) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, undefined, true, sourceSection);
+            return new RubyConstant(declaringModule, name, value, isPrivate, autoload, undefined, true, sourceSection);
         }
     }
 
     public RubyConstant undefined() {
         assert autoload;
-        return new RubyConstant(declaringModule, null, isPrivate, false, true, isDeprecated, sourceSection);
+        return new RubyConstant(declaringModule, name, null, isPrivate, false, true, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
@@ -178,6 +184,11 @@ public class RubyConstant implements ObjectGraphNode {
         if (value instanceof DynamicObject) {
             adjacent.add((DynamicObject) value);
         }
+    }
+
+    @Override
+    public String toString() {
+        return Layouts.MODULE.getFields(getDeclaringModule()).getName() + "::" + getName();
     }
 
 }
