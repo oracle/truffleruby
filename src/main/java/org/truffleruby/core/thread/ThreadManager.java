@@ -148,6 +148,7 @@ public class ThreadManager {
 
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
         final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+        assert currentGroup != null;
         final DynamicObject thread = allocateObjectNode.allocate(rubyClass,
                 packThreadFields(currentGroup, "<uninitialized>"));
         setFiberManager(thread);
@@ -156,6 +157,7 @@ public class ThreadManager {
 
     public DynamicObject createForeignThread() {
         final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
+        assert currentGroup != null;
         final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(
                 packThreadFields(currentGroup, "<foreign thread>"));
         setFiberManager(thread);
@@ -624,7 +626,8 @@ public class ThreadManager {
 
     @TruffleBoundary
     public Object[] getThreadList() {
-        return runningRubyThreads.toArray(new Object[runningRubyThreads.size()]);
+        // This must not pre-allocate an array, or it could contain null's.
+        return runningRubyThreads.toArray();
     }
 
     @TruffleBoundary
