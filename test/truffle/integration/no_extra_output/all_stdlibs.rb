@@ -38,10 +38,6 @@ stdlibs += %w[json]
 # Others fail to load
 ignore = %w[
   continuation
-  debug
-  profile
-  profiler
-  shell
 ]
 
 stdlibs -= ignore

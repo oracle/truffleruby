@@ -22,6 +22,11 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
+rm lib/mri/profile.rb
+rm lib/mri/profiler.rb
+rm lib/mri/debug.rb
+rm lib/mri/shell.rb
+rm -r lib/mri/shell
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
 
@@ -30,22 +35,16 @@ cp ../ruby/st.c src/main/c/cext/st.c
 
 # Copy Ruby files in ext/, sorted alphabetically
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
-
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
-
 cp -r ../ruby/ext/openssl/lib/* lib/mri
-
 cp ../ruby/ext/pty/lib/*.rb lib/mri
-
 cp ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
-
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
 rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
 mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
-
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
