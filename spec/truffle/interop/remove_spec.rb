@@ -27,7 +27,7 @@ describe "Truffle::Interop.remove" do
     end
 
     it "raises a NameError when the index is not an integer" do
-      lambda {
+      -> {
         Truffle::Interop.remove(@array, :b)
       }.should raise_error(NameError, /Unknown identifier: b/) { |e|
         e.receiver.should equal @array
@@ -64,7 +64,7 @@ describe "Truffle::Interop.remove" do
       end
 
       it "raises an error when the instance variable doesn't exist" do
-        lambda {
+        -> {
           Truffle::Interop.remove(@object, :@foo)
         }.should raise_error(NameError)
       end
@@ -72,7 +72,7 @@ describe "Truffle::Interop.remove" do
 
     describe "with a name that doesn't start with @" do
       it "raises an unsupported message error" do
-        lambda { Truffle::Interop.remove("abc", 1) }.
+        -> { Truffle::Interop.remove("abc", 1) }.
             # TODO (pitr-ch 13-Mar-2019): when on Interop 2 keep the second match
             should raise_error(RuntimeError, /Message (not supported|unsupported)/)
       end

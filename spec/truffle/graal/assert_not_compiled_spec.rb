@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Graal.assert_not_compiled" do
 
   it "raises a RuntimeError when called dynamically" do
-    lambda{ Truffle::Graal.send(:assert_not_compiled) }.should raise_error(RuntimeError)
+    -> { Truffle::Graal.send(:assert_not_compiled) }.should raise_error(RuntimeError)
   end
 
   unless TruffleRuby.graal?

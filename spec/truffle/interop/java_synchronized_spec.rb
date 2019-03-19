@@ -33,7 +33,7 @@ guard -> { !TruffleRuby.native? } do
 
     it "cannot be used with a primitive" do
       [true, 14, 14.2].each do |primitive|
-        lambda {
+        -> {
           Java.synchronized(primitive) { }
         }.should raise_error(TypeError)
       end

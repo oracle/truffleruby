@@ -43,11 +43,11 @@ describe "Truffle::Interop.unbox" do
   end
 
   it "is not supported for nil" do
-    lambda { Truffle::Interop.unbox(nil) }.should raise_error(ArgumentError)
+    -> { Truffle::Interop.unbox(nil) }.should raise_error(ArgumentError)
   end
 
   it "is not supported for objects which cannot be unboxed" do
-    lambda { Truffle::Interop.unbox(Object.new) }.should raise_error(ArgumentError)
+    -> { Truffle::Interop.unbox(Object.new) }.should raise_error(ArgumentError)
   end
 
   it "calls #unbox" do

@@ -16,13 +16,13 @@ describe "Foreign arrays" do
   end
 
   it "can be printed with #puts" do
-    lambda {
+    -> {
       puts Truffle::Interop.to_java_array([1, 2, 3])
     }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
   end
 
   it "can be printed with #p" do
-    lambda {
+    -> {
       p Truffle::Interop.to_java_array([1, 2, 3])
     }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
   end

@@ -21,7 +21,7 @@ describe "Truffle::Interop.invoke" do
 
   it "raises a NoMethodError when the method is not found on a foreign object" do
     foreign = Truffle::Interop.java_array(1, 2, 3)
-    lambda { foreign.foo(42) }.should raise_error(NoMethodError, /Unknown identifier: foo/) { |e|
+    -> { foreign.foo(42) }.should raise_error(NoMethodError, /Unknown identifier: foo/) { |e|
       e.receiver.equal?(foreign).should == true
       e.name.should == :foo
       e.args.should == [42]

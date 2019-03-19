@@ -23,15 +23,15 @@ describe "Truffle::Interop.execute" do
   end
 
   it "calls lambdas" do
-    Truffle::Interop.execute(lambda { |a, b| a + b }, 14, 2).should == 16
+    Truffle::Interop.execute(-> a, b { a + b }, 14, 2).should == 16
   end
 
   it "doesn't call nil" do
-    lambda { Truffle::Interop.execute(nil) }.should raise_error(TypeError)
+    -> { Truffle::Interop.execute(nil) }.should raise_error(TypeError)
   end
 
   it "doesn't call strings" do
-    lambda { Truffle::Interop.execute('hello') }.should raise_error(TypeError)
+    -> { Truffle::Interop.execute('hello') }.should raise_error(TypeError)
   end
 
 end

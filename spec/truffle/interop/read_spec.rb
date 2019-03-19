@@ -92,7 +92,7 @@ describe "Truffle::Interop.read" do
 
     it "raises UnknownIdentifierException" do
       object = Object.new
-      lambda {
+      -> {
         Truffle::Interop.read(object, :foo)
       }.should raise_error(NameError, /Unknown identifier: foo/)
     end

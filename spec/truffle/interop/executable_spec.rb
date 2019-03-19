@@ -22,7 +22,7 @@ describe "Truffle::Interop.executable?" do
   end
 
   it "returns true for lambdas" do
-    Truffle::Interop.executable?(lambda { }).should be_true
+    Truffle::Interop.executable?(-> { }).should be_true
   end
 
   it "returns false for nil" do

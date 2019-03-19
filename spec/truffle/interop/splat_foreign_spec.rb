@@ -26,11 +26,11 @@ module InteropSplatFixtures
     [x[0], x[1], x[2]]
   }
 
-  SIMPLE_LAMBDA = lambda { |a, b, c|
+  SIMPLE_LAMBDA = -> a, b, c {
     [a, b, c]
   }
 
-  RESPLAT_LAMBDA = lambda { |*x|
+  RESPLAT_LAMBDA = -> *x {
     [x[0], x[1], x[2]]
   }
 

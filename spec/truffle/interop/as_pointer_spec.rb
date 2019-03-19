@@ -12,11 +12,11 @@ require_relative 'fixtures/classes'
 describe "Truffle::Interop.as_pointer" do
 
   it "is not supported for nil" do
-    lambda { Truffle::Interop.as_pointer(nil) }.should raise_error(ArgumentError)
+    -> { Truffle::Interop.as_pointer(nil) }.should raise_error(ArgumentError)
   end
 
   it "is not supported for objects which cannot be converted to a pointer" do
-    lambda { Truffle::Interop.as_pointer(Object.new) }.should raise_error(ArgumentError)
+    -> { Truffle::Interop.as_pointer(Object.new) }.should raise_error(ArgumentError)
   end
 
   it "works on Truffle::FFI::Pointer" do

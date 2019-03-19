@@ -14,7 +14,7 @@ describe "The $SAFE variable" do
   end
 
   it "raises an error when set to 1" do
-    lambda {
+    -> {
       $SAFE = 1
     }.should raise_error(SecurityError, /Setting \$SAFE is no longer supported/)
   end

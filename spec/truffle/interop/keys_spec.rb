@@ -40,7 +40,7 @@ describe "Truffle::Interop.keys" do
   end
 
   it "returns an empty array for a lambda" do
-    Truffle::Interop.keys(lambda {}).should == []
+    Truffle::Interop.keys(-> {}).should == []
   end
 
   it "returns an empty array for a method" do

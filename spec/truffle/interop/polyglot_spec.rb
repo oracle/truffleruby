@@ -17,7 +17,7 @@ describe Polyglot do
     end
 
     it "doesn't work with MIME types" do
-      lambda {
+      -> {
         Polyglot.eval("application/x-ruby", "14 + 2")
       }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
     end
@@ -39,7 +39,7 @@ describe Polyglot do
     end
 
     it "will not allow code in Ruby to have a magic comment to change the encoding to something not a subset of UTF-8" do
-      lambda {
+      -> {
         Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name")
       }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
@@ -62,7 +62,7 @@ describe Polyglot do
     end
 
     it "doesn't work with MIME types" do
-      lambda {
+      -> {
         Polyglot.eval_file("application/x-ruby", fixture(__FILE__, "eval_file_id.rb"))
       }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
     end
@@ -80,7 +80,7 @@ describe Polyglot do
     end
 
     it "will not allow code in Ruby to have a magic comment to change the encoding" do
-      lambda {
+      -> {
         Polyglot.eval_file("ruby", fixture(__FILE__, "big5_magic.rb"))
       }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
@@ -99,7 +99,7 @@ describe Polyglot do
   describe ".as_enumerable" do
 
     it "evals code in Ruby" do
-      enumerable = lambda { Polyglot.as_enumerable([1, 2, 3]) }
+      enumerable = -> { Polyglot.as_enumerable([1, 2, 3]) }
       enumerable.call.min.should == 1
       enumerable.call.max.should == 3
     end

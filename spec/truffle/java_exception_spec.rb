@@ -11,7 +11,7 @@ require_relative '../ruby/spec_helper'
 describe "Java exceptions" do
 
   it "formats to include the source information" do
-    lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
+    -> { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
       message.lines[0].should == "message (RuntimeException)\n"
       message.lines[1].should == "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)\n"
@@ -19,9 +19,9 @@ describe "Java exceptions" do
   end
 
   it "includes the first lines of the Java stacktrace for uncaught Java exceptions" do
-    lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
+    -> { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
-message.lines[0...4].join.should == <<EOS
+      message.lines[0...4].join.should == <<EOS
 message (RuntimeException)
 \tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)
 \tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)
@@ -31,7 +31,7 @@ EOS
   end
 
   it "formats to include the source information including cause" do
-    lambda { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
+    -> { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
 
       message.should include <<EOS

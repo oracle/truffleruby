@@ -39,13 +39,13 @@ describe "Foreign strings" do
   end
 
   it "can be printed with #puts" do
-    lambda {
+    -> {
       puts Truffle::Debug.foreign_string('a')
     }.should output("a\n")
   end
 
   it "can be printed as if a Ruby string with #p" do
-    lambda {
+    -> {
       p Truffle::Debug.foreign_string('a')
     }.should output("\"a\"\n")
   end

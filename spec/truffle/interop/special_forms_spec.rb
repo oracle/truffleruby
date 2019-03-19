@@ -115,7 +115,7 @@ describe "Interop special form" do
       end
 
       it "raises a type error for a non-Java foreign object and a non-Java foreign class" do
-        lambda {
+        -> {
           Truffle::Debug.foreign_object.is_a?(Truffle::Debug.foreign_object)
         }.should raise_error(TypeError, /cannot check if a foreign object is an instance of a foreign class/)
       end

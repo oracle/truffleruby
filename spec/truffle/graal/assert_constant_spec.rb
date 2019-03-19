@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Graal.assert_constant" do
 
   it "raises a RuntimeError when called dynamically" do
-    lambda{ Truffle::Graal.send(:assert_constant, 14 + 2) }.should raise_error(RuntimeError)
+    -> { Truffle::Graal.send(:assert_constant, 14 + 2) }.should raise_error(RuntimeError)
   end
 
   unless TruffleRuby.graal?

@@ -27,7 +27,7 @@ describe "Truffle::Debug" do
   it "can add and remove breakpoints" do
     breaks = []
 
-    breakpoint = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::ADD_LINE do |binding|
+    breakpoint = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::ADD_LINE do |_binding|
       breaks << [:break]
     end
 

@@ -81,7 +81,7 @@ describe "Truffle::Interop.write" do
 
     it "raises UnknownIdentifierException" do
       object = Object.new
-      lambda {
+      -> {
         Truffle::Interop.write(object, :foo, 14)
       }.should raise_error(NameError, /Unknown identifier: foo/)
     end

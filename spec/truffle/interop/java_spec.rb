@@ -44,7 +44,7 @@ guard -> { !TruffleRuby.native? } do
       end
 
       it "throws RuntimeError for unknown class names" do
-        lambda { Java.type("does.not.Exist") }.should raise_error(RuntimeError)
+        -> { Java.type("does.not.Exist") }.should raise_error(RuntimeError)
       end
 
       it "works with symbols" do

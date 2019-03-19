@@ -32,7 +32,7 @@ describe "TruffleRuby.synchronized" do
 
   it "cannot be used with a primitive" do
     [true, 14, 14.2].each do |primitive|
-      lambda {
+      -> {
         TruffleRuby.synchronized(primitive) { }
       }.should raise_error(TypeError)
     end
