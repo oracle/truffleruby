@@ -712,7 +712,7 @@ public abstract class FloatNodes {
                 return makeStringNode.executeMake(Double.toString(value), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
             }
 
-            String str = StringUtils.format(Locale.ENGLISH, "%.15g", value);
+            String str = StringUtils.format(Locale.ENGLISH, "%.17g", value);
 
             // If no dot, add one to show it's a floating point number
             if (str.indexOf('.') == -1) {
