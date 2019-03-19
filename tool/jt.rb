@@ -36,6 +36,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   src/main/ruby
   src/test/ruby
   tool/generate-sulongmock.rb
+  spec/truffle
 ]
 
 MAC = RbConfig::CONFIG['host_os'].include?('darwin')
@@ -1961,9 +1962,7 @@ EOS
       "GEM_PATH" => gem_home,
       "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
     }
-    if i = args.index('--specs')
-      args[i..i] = %w[-c spec/ruby/.rubocop.yml spec/truffle]
-    elsif args.empty? or args.all? { |arg| arg.start_with?('-') }
+    if args.empty? or args.all? { |arg| arg.start_with?('-') }
       args += RUBOCOP_INCLUDE_LIST
     end
     sh env, "ruby", "#{gem_home}/bin/rubocop", *args
@@ -2033,7 +2032,6 @@ EOS
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
     rubocop
-    rubocop('--specs')
     sh "tool/lint.sh"
     checkstyle
     check_parser
