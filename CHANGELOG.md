@@ -4,6 +4,11 @@ New features:
 
 * `Process.clock_getres` has been implemented.
 
+Changes:
+
+* `debug`, `profile`, `profiler`, `shell`, which were already marked as
+  unsupported, have been removed.
+
 # 1.0 RC 14
 
 Updated to Ruby 2.6.2.
