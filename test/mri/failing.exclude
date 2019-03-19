@@ -198,11 +198,7 @@ test_rbconfig.rb
 test_tmpdir.rb
 test_unicode_normalize.rb
 test_weakref.rb
-testunit/test_hideskip.rb
-testunit/test_parallel.rb
-testunit/test_rake_integration.rb
-testunit/test_redefinition.rb
-testunit/test_sorting.rb
+testunit/test_parallel.rb # Relies on RubyVM.
 thread/test_sync.rb
 webrick/test_cgi.rb
 webrick/test_cookie.rb
