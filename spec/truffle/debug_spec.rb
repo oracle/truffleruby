@@ -28,34 +28,35 @@ describe "Truffle::Debug" do
     breaks = []
 
     breakpoint = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::ADD_LINE do |_binding|
-      breaks << [:break]
-    end
-
-    TruffleDebuggerSpecFixtures.subject(14, 2)
-    TruffleDebuggerSpecFixtures.subject(16, 4)
-
-    breakpoint.remove
-
-    TruffleDebuggerSpecFixtures.subject(18, 9)
-
-    breaks.should == [:break]
-  end
-
-  it "can observe local variables in a breakpoint" do
-    breaks = []
-
-    breakpoint = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::ADD_LINE do |binding|
-      breaks << [binding.local_variable_get(:a), binding.local_variable_get(:b)]
-    end
-
-    breakpoint = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::MUL_LINE do |binding|
-      breaks << [binding.local_variable_get(:c)]
+      breaks << :break
     end
 
     TruffleDebugSpecFixtures.subject(14, 2)
     TruffleDebugSpecFixtures.subject(16, 4)
 
     breakpoint.remove
+
+    TruffleDebugSpecFixtures.subject(18, 9)
+
+    breaks.should == [:break, :break]
+  end
+
+  it "can observe local variables in a breakpoint" do
+    breaks = []
+
+    breakpoint1 = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::ADD_LINE do |binding|
+      breaks << binding.local_variable_get(:a) << binding.local_variable_get(:b)
+    end
+
+    breakpoint2 = Truffle::Debug.break __FILE__, TruffleDebugSpecFixtures::MUL_LINE do |binding|
+      breaks << binding.local_variable_get(:c)
+    end
+
+    TruffleDebugSpecFixtures.subject(14, 2)
+    TruffleDebugSpecFixtures.subject(16, 4)
+
+    breakpoint1.remove
+    breakpoint2.remove
 
     TruffleDebugSpecFixtures.subject(18, 9)
 
