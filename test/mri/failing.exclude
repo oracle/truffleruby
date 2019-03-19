@@ -200,19 +200,6 @@ test_unicode_normalize.rb
 test_weakref.rb
 testunit/test_parallel.rb # Relies on RubyVM.
 thread/test_sync.rb
-webrick/test_cgi.rb
-webrick/test_cookie.rb
-webrick/test_do_not_reverse_lookup.rb
-webrick/test_filehandler.rb
-webrick/test_htmlutils.rb
-webrick/test_httpproxy.rb
-webrick/test_httprequest.rb
-webrick/test_httpresponse.rb
-webrick/test_httpserver.rb
-webrick/test_httputils.rb
-webrick/test_httpversion.rb
-webrick/test_server.rb
-webrick/test_ssl_server.rb
 xmlrpc/test_client.rb # pollutes other tests
 xmlrpc/test_cookie.rb # undefined method `http' for NilClass
 xmlrpc/test_parser.rb # `const_missing': uninitialized constant Test_REXMLStreamParser::GenericParserTest
