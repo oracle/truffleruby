@@ -40,9 +40,16 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -76,16 +83,8 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
@@ -240,6 +239,18 @@ public abstract class ThreadNodes {
             }
 
             return neverSymbol;
+        }
+
+    }
+
+    @Primitive(name = "thread_allocate")
+    public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject allocate(
+                DynamicObject rubyClass,
+                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode);
         }
 
     }
@@ -483,18 +494,6 @@ public abstract class ThreadNodes {
         public DynamicObject setAbortOnException(DynamicObject self, boolean abortOnException) {
             Layouts.THREAD.setAbortOnException(self, abortOnException);
             return nil();
-        }
-
-    }
-
-    @Primitive(name = "thread_allocate")
-    public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject allocate(
-                DynamicObject rubyClass,
-                @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode);
         }
 
     }
