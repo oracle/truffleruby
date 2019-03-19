@@ -23,7 +23,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "48e88c76418aea9bafe4ef8e1d580431bfc933f5"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8288cf66797da2e38770126d5c048bda876dd413"
 
 JDEBUG_PORT = 51819
 JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
