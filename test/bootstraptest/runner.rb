@@ -59,7 +59,12 @@ if !Dir.respond_to?(:mktmpdir)
 end
 
 def main
-  @ruby = File.expand_path('miniruby')
+  if RUBY_ENGINE == 'truffleruby'
+    require 'rbconfig'
+    @ruby = RbConfig.ruby
+  else
+    @ruby = File.expand_path('miniruby')
+  end
   @verbose = false
   $VERBOSE = false
   $stress = false
@@ -367,7 +372,7 @@ def assert_normal_exit(testsrc, *rest, timeout: nil, **opt)
 end
 
 def assert_finish(timeout_seconds, testsrc, message = '')
-  timeout_seconds *= 3 if RubyVM::MJIT.enabled? # for --jit-wait
+  timeout_seconds *= 3 if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # for --jit-wait
   newtest
   show_progress(message) {
     faildesc = nil
