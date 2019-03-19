@@ -22,13 +22,7 @@
 
 require_relative 'protocol'
 require 'uri'
-
-if RUBY_ENGINE == 'truffleruby'
-  # See tagged specs around autoload
-  require 'openssl'
-else
-  autoload :OpenSSL, 'openssl'
-end
+autoload :OpenSSL, 'openssl'
 
 module Net   #:nodoc:
 
