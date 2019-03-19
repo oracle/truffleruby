@@ -76,6 +76,12 @@ rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
 git checkout -- test/mri/tests/runner.rb
 
+# basictest/ and bootstraptest/
+rm -rf test/basictest
+cp -r ../ruby/basictest test/basictest
+rm -rf test/bootstraptest
+cp -r ../ruby/bootstraptest test/bootstraptest
+
 # Licences
 cp ../ruby/BSDL doc/legal/ruby-bsdl.txt
 cp ../ruby/COPYING doc/legal/ruby-licence.txt
