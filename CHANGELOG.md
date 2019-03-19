@@ -8,6 +8,8 @@ Changes:
 
 * `debug`, `profile`, `profiler`, `shell`, which were already marked as
   unsupported, have been removed.
+* Our experimental JRuby-compatible Java interop has been removed - use
+  `Polyglot` and `Java` instead.
 
 # 1.0 RC 14
 

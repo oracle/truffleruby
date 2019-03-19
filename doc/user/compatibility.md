@@ -233,9 +233,9 @@ understand. The process should behave identically to MRI.
 
 #### Ruby to Java interop
 
-JRuby's Java interop API is not implemented far enough to be used. We provide an
-alternate polyglot API for interoperating with multiple languages, including
-Java, instead.
+TruffleRuby does not support the same interop to Java interface as JRuby does.
+We provide [an alternate polyglot API](polyglot.md) for interoperating with
+multiple languages, including Java, instead.
 
 #### Java to Ruby interop
 

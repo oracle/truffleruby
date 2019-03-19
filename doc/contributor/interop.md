@@ -27,9 +27,6 @@ details.
 * [Notes on coercion](#notes-on-coercion)
 * [Notes on source encoding](#notes-on-source-encoding)
 
-Also see the separate document on
-[JRuby-compatible Java interop](../user/jruby-java-interop.md).
-
 ## How Ruby responds to messages
 
 ### `IS_EXECUTABLE`
