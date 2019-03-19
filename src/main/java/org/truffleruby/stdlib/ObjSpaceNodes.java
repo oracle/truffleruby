@@ -19,6 +19,10 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import java.util.Set;
 
@@ -65,7 +69,40 @@ public abstract class ObjSpaceNodes {
         public int memsize(Object object) {
             return 0;
         }
+    }
 
+    @CoreMethod(names = "has_sizer?", isModuleFunction = true, required = 1)
+    public abstract static class HasMemSizer extends CoreMethodArrayArgumentsNode {
+
+        @Child private ReadObjectFieldNode setSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
+
+        @Specialization
+        public boolean hasSizer(DynamicObject object) {
+            return setSizerNode.execute(object) != nil();
+        }
+    }
+
+    @CoreMethod(names = "sizer", isModuleFunction = true, required = 1)
+    public abstract static class GetMemSizer extends CoreMethodArrayArgumentsNode {
+
+        @Child private ReadObjectFieldNode setSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
+
+        @Specialization
+        public Object hasSizer(DynamicObject object) {
+            return setSizerNode.execute(object);
+        }
+    }
+
+    @CoreMethod(names = "define_sizer", isModuleFunction = true, required = 2)
+    public abstract static class DefineMemSizer extends CoreMethodArrayArgumentsNode {
+
+        @Child private WriteObjectFieldNode setSizerNode = WriteObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER);
+
+        @Specialization
+        public DynamicObject defineSizer(DynamicObject object, DynamicObject sizer) {
+            setSizerNode.write(object, sizer);
+            return nil();
+        }
     }
 
     @CoreMethod(names = "adjacent_objects", isModuleFunction = true, required = 1)

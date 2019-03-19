@@ -152,7 +152,11 @@ module ObjectSpace
   module_function :dump_all
 
   def memsize_of(object)
-    Truffle::ObjSpace.memsize_of(object)
+    unless Truffle::ObjSpace.has_sizer?(object)
+      Truffle::ObjSpace.memsize_of(object)
+    else
+      Truffle::ObjSpace.memsize_of(object) + Truffle::ObjSpace.sizer(object).call
+    end
   end
   module_function :memsize_of
 
