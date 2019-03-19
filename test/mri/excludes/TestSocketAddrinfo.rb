@@ -1,3 +1,4 @@
+exclude :test_error_message, "needs investigation"
 exclude :test_ipv6_address_predicates, "needs investigation"
 exclude :test_addrinfo_ip, "needs investigation"
 exclude :test_addrinfo_new_inet, "needs investigation"

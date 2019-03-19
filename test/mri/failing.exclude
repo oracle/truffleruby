@@ -193,14 +193,6 @@ rubygems/test_gem_remote_fetcher.rb # OpenSSL problems
 rubygems/test_gem_request_set_gem_dependency_api.rb # Expects TRUFFLERUBY_VERSION to exist and other problems
 scanf/test_scanf.rb # many failures / regression
 shell/test_command_processor.rb
-socket/test_addrinfo.rb
-socket/test_ancdata.rb
-socket/test_basicsocket.rb
-socket/test_nonblock.rb
-socket/test_sockopt.rb
-socket/test_tcp.rb
-socket/test_udp.rb
-socket/test_unix.rb
 test_curses.rb
 test_rbconfig.rb
 test_tmpdir.rb
