@@ -626,7 +626,8 @@ public class ThreadManager {
 
     @TruffleBoundary
     public Object[] getThreadList() {
-        return runningRubyThreads.toArray(new Object[runningRubyThreads.size()]);
+        // This must not pre-allocate an array, or it could contain null's.
+        return runningRubyThreads.toArray();
     }
 
     @TruffleBoundary
