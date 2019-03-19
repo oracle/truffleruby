@@ -23,7 +23,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8b57f6022f0fa17ace7c8d2a3af730357715e0a2"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "8288cf66797da2e38770126d5c048bda876dd413"
 
 JDEBUG_PORT = 51819
 JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -36,6 +36,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   src/main/ruby
   src/test/ruby
   tool/generate-sulongmock.rb
+  spec/truffle
 ]
 
 MAC = RbConfig::CONFIG['host_os'].include?('darwin')
@@ -1961,7 +1962,10 @@ EOS
       "GEM_PATH" => gem_home,
       "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
     }
-    sh env, "ruby", "#{gem_home}/bin/rubocop", *RUBOCOP_INCLUDE_LIST, *args
+    if args.empty? or args.all? { |arg| arg.start_with?('-') }
+      args += RUBOCOP_INCLUDE_LIST
+    end
+    sh env, "ruby", "#{gem_home}/bin/rubocop", *args
   end
 
   def check_filename_length

@@ -49,6 +49,7 @@ module Truffle
     def size
       @variables.size
     end
+    alias_method :length, :size
 
     private def lookup(key)
       value = Truffle::POSIX.getenv(StringValue(key))
@@ -230,14 +231,6 @@ module Truffle
       each { return false }
       true
     end
-
-    def length
-      sz = 0
-      each { |_k, _v| sz += 1 }
-      sz
-    end
-
-    alias_method :size, :length
 
     def rehash
       # No need to do anything, our keys are always strings

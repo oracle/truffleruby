@@ -377,7 +377,7 @@ module Kernel
     return to_enum(:loop) { Float::INFINITY } unless block_given?
 
     begin
-      while true # rubocop:disable Lint/LiteralInCondition
+      while true # rubocop:disable Lint/LiteralAsCondition
         yield
       end
     rescue StopIteration => si

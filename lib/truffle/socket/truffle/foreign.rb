@@ -166,7 +166,7 @@ module Truffle
           res = Addrinfo.new(res[:ai_next])
         end
 
-        return addrinfos
+        addrinfos
       ensure
         hints.free if hints
 
@@ -282,7 +282,7 @@ module Truffle
 
         res = Addrinfo.new(res_p.read_pointer)
 
-        return res[:ai_addr].read_string(res[:ai_addrlen])
+        res[:ai_addr].read_string(res[:ai_addrlen])
       ensure
         hints.free if hints
 

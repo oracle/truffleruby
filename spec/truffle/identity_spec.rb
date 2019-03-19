@@ -84,7 +84,7 @@ describe "Identifying features such as" do
     it "is not defined" do
       defined?(Rubinius).should be_nil
     end
-    
+
   end
 
   describe "the RubySL module" do
@@ -97,7 +97,7 @@ describe "Identifying features such as" do
     it "is not defined" do
       defined?(RubySL).should be_nil
     end
-    
+
   end
 
 end

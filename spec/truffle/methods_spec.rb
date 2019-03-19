@@ -40,10 +40,10 @@ guard -> { !defined?(SlowSpecsTagger) } do
   }
   EOR
   all_methods = {}
-  ruby_exe(code).rstrip.split("\n\n").each { |group|
+  ruby_exe(code).rstrip.split("\n\n").each do |group|
     mod, *methods = group.lines.map(&:chomp)
     all_methods[mod] = methods.map(&:to_sym)
-  }
+  end
 
   modules.each do |mod|
     describe "Public methods on #{mod.name}" do

@@ -33,7 +33,7 @@ describe "ObjectSpace.reachable_objects_from" do
   it "finds a variable captured by a block captured by #define_method" do
     captured = Object.new
     obj = Object.new
-    block = lambda {
+    block = -> {
       captured
     }
     obj.singleton_class.send(:define_method, :capturing_method, block)
@@ -73,5 +73,5 @@ describe "ObjectSpace.reachable_objects_from" do
     reachable = ObjectSpace.reachable_objects_from(object)
     reachable.should include(finalizer)
   end
-  
+
 end

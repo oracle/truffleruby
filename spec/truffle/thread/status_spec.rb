@@ -19,9 +19,9 @@ describe "Thread#status" do
     regexp = /#{'a?' * n}#{'a' * n}/
     string = 'a' * n
 
-    t = Thread.new {
+    t = Thread.new do
       regexp =~ string
-    }
+    end
 
     while status = t.status
       status.should == "run"

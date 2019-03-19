@@ -480,7 +480,7 @@ class IO
       end
 
       @to.flush if @to.kind_of? IO
-      return bytes
+      bytes
     ensure
       if @from_io
         @from.pos = saved_pos if @offset

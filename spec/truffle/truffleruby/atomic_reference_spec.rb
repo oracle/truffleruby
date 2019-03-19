@@ -72,8 +72,7 @@ describe "TruffleRuby::AtomicReference" do
     reference = TruffleRuby::AtomicReference.new(:value)
     dumped = Marshal.dump(reference)
     loaded = Marshal.load(dumped)
-    reference.get.should == :value
+    loaded.get.should == :value
   end
 
 end
-

@@ -19,13 +19,13 @@ describe "Truffle::StringOperations.truncate" do
   end
 
   it "should raise an error if the new byte length is greater than the current length" do
-    lambda do
+    -> do
       Truffle::StringOperations.truncate("abc", 10)
     end.should raise_error(ArgumentError)
   end
 
   it "should raise an error if the new byte length is negative" do
-    lambda do
+    -> do
       Truffle::StringOperations.truncate("abc", -1)
     end.should raise_error(ArgumentError)
   end

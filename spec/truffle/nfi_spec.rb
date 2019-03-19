@@ -65,7 +65,7 @@ describe "NFI with callbacks to Ruby" do
   end
 
   it "propagates exceptions from the callback" do
-    compare_function = -> a, b { raise "error in callback from native code!" }
+    compare_function = -> _a, _b { raise "error in callback from native code!" }
 
     Truffle::FFI::MemoryPointer.new(:int, 4) do |array|
       array.write_array_of_int32([1, 3, 4, 2])

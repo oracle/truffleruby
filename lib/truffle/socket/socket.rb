@@ -238,7 +238,7 @@ class Socket < BasicSocket
     _, address, port = Truffle::Socket::Foreign
       .unpack_sockaddr_in(sockaddr, false)
 
-    return port, address
+    [port, address]
   rescue SocketError => e
     if e.message =~ /ai_family not supported/
       raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr'

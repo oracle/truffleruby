@@ -51,9 +51,9 @@ guard -> { !TruffleRuby.native? } do
     end
 
     it "raises a type error if passed something that is not a Java class" do
-      lambda { Truffle::Interop.java_instanceof?(14, nil) }.should raise_error(TypeError)
-      lambda { Truffle::Interop.java_instanceof?(14, String) }.should raise_error(TypeError)
-      lambda { Truffle::Interop.java_instanceof?(14, Truffle::Debug.java_object) }.should raise_error(TypeError)
+      -> { Truffle::Interop.java_instanceof?(14, nil) }.should raise_error(TypeError)
+      -> { Truffle::Interop.java_instanceof?(14, String) }.should raise_error(TypeError)
+      -> { Truffle::Interop.java_instanceof?(14, Truffle::Debug.java_object) }.should raise_error(TypeError)
     end
 
   end

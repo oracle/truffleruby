@@ -12,9 +12,9 @@ describe "The $SAFE variable" do
   it "does not warn when set to 0 and remembers the value" do
     ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level", args: "2>&1").should == "0\n0\n"
   end
-  
+
   it "raises an error when set to 1" do
-    lambda {
+    -> {
       $SAFE = 1
     }.should raise_error(SecurityError, /Setting \$SAFE is no longer supported/)
   end
