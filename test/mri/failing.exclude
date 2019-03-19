@@ -46,7 +46,6 @@ ruby/test_range.rb # open range
 ruby/test_rubyoptions.rb # uses RubyVM
 test_pp.rb # uses RubyVM
 ruby/test_time_tz.rb
-ruby/test_thread_queue.rb # hangs
 monitor/test_monitor.rb # hangs
 csv/write/test_general.rb # encoding
 ruby/test_parse.rb # encoding
@@ -129,7 +128,6 @@ dtrace/test_singleton_function.rb
 dtrace/test_string.rb
 erb/test_erb_command.rb
 fiddle/test_cparser.rb
-fileutils/test_fileutils.rb # cannot load such file -- etc
 irb/test_completion.rb
 irb/test_option.rb
 irb/test_raise_no_backtrace_exception.rb
@@ -151,68 +149,13 @@ mkmf/test_have_macro.rb
 mkmf/test_libs.rb
 mkmf/test_signedness.rb
 mkmf/test_sizeof.rb
-net/ftp/test_buffered_socket.rb
-net/http/test_buffered_io.rb
-net/http/test_http.rb
-net/http/test_http_request.rb
-net/http/test_httpheader.rb
-net/http/test_httpresponse.rb
-net/http/test_httpresponses.rb
 net/http/test_https.rb
-net/http/test_https_proxy.rb
 net/imap/test_imap.rb
 net/imap/test_imap_response_parser.rb
-net/pop/test_pop.rb
-net/protocol/test_protocol.rb
-net/smtp/test_response.rb
-net/smtp/test_smtp.rb
-net/smtp/test_ssl_socket.rb
 open-uri/test_open-uri.rb
 open-uri/test_ssl.rb
-psych/handlers/test_recorder.rb
-psych/json/test_stream.rb
-psych/nodes/test_enumerable.rb
-psych/test_alias_and_anchor.rb
-psych/test_array.rb
-psych/test_boolean.rb
-psych/test_class.rb
-psych/test_coder.rb
-psych/test_date_time.rb
-psych/test_deprecated.rb
-psych/test_document.rb
-psych/test_emitter.rb
-psych/test_encoding.rb
-psych/test_exception.rb
-psych/test_hash.rb
-psych/test_json_tree.rb
-psych/test_merge_keys.rb
-psych/test_nil.rb
-psych/test_null.rb
-psych/test_numeric.rb
-psych/test_object.rb
-psych/test_object_references.rb
-psych/test_omap.rb
-psych/test_parser.rb
-psych/test_psych.rb
-psych/test_safe_load.rb
-psych/test_scalar.rb
-psych/test_scalar_scanner.rb
-psych/test_serialize_subclasses.rb
-psych/test_set.rb
-psych/test_stream.rb
-psych/test_string.rb
-psych/test_struct.rb
-psych/test_symbol.rb
-psych/test_tainted.rb
-psych/test_to_yaml_properties.rb
-psych/test_tree_builder.rb
-psych/test_yaml.rb
-psych/test_yamldbm.rb
-psych/test_yamlstore.rb
-psych/visitors/test_depth_first.rb
-psych/visitors/test_emitter.rb
-psych/visitors/test_to_ruby.rb
-psych/visitors/test_yaml_tree.rb
+psych/visitors/test_to_ruby.rb # test_exception fails and bypasses tag
+psych/visitors/test_yaml_tree.rb # test_exception fails and bypasses tag
 rdoc/test_rdoc_generator_darkfish.rb # TypeError: can't dup NilClass
 rdoc/test_rdoc_generator_json_index.rb # TypeError: can't dup NilClass
 rdoc/test_rdoc_generator_pot.rb # Missing pot lib files
@@ -229,7 +172,6 @@ ruby/enc/test_windows_1251.rb
 ruby/test_argf.rb # spawn needed for tests
 ruby/test_arity.rb
 ruby/test_backtrace.rb
-ruby/test_case.rb # uses refinements
 ruby/test_enum.rb # cannot load such file -- continuation
 ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
 ruby/test_extlibs.rb
@@ -239,7 +181,6 @@ ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/min
 ruby/test_lazy_enumerator.rb
 ruby/test_m17n_comb.rb # cannot load such file -- etc
 ruby/test_marshal.rb # including this causes error in test_objectspace.rb
-ruby/test_module.rb # test/mri/ruby/test_module.rb:96:in `private_class_method': internal implementation error - UnsupportedOperationException null org.truffleruby.nodes.core.ModuleNodes$PrivateClassMethodNode.privateClassMethod(ModuleNodes.java:1474) (RuntimeError)
 ruby/test_pipe.rb # tests not excluding
 ruby/test_rubyvm.rb
 ruby/test_settracefunc.rb # uninitialized constant TestSetTraceFunc::TracePoint
@@ -252,38 +193,13 @@ rubygems/test_gem_remote_fetcher.rb # OpenSSL problems
 rubygems/test_gem_request_set_gem_dependency_api.rb # Expects TRUFFLERUBY_VERSION to exist and other problems
 scanf/test_scanf.rb # many failures / regression
 shell/test_command_processor.rb
-socket/test_addrinfo.rb
-socket/test_ancdata.rb
-socket/test_basicsocket.rb
-socket/test_nonblock.rb
-socket/test_sockopt.rb
-socket/test_tcp.rb
-socket/test_udp.rb
-socket/test_unix.rb
 test_curses.rb
 test_rbconfig.rb
 test_tmpdir.rb
 test_unicode_normalize.rb
 test_weakref.rb
-testunit/test_hideskip.rb
-testunit/test_parallel.rb
-testunit/test_rake_integration.rb
-testunit/test_redefinition.rb
-testunit/test_sorting.rb
+testunit/test_parallel.rb # Relies on RubyVM.
 thread/test_sync.rb
-webrick/test_cgi.rb
-webrick/test_cookie.rb
-webrick/test_do_not_reverse_lookup.rb
-webrick/test_filehandler.rb
-webrick/test_htmlutils.rb
-webrick/test_httpproxy.rb
-webrick/test_httprequest.rb
-webrick/test_httpresponse.rb
-webrick/test_httpserver.rb
-webrick/test_httputils.rb
-webrick/test_httpversion.rb
-webrick/test_server.rb
-webrick/test_ssl_server.rb
 xmlrpc/test_client.rb # pollutes other tests
 xmlrpc/test_cookie.rb # undefined method `http' for NilClass
 xmlrpc/test_parser.rb # `const_missing': uninitialized constant Test_REXMLStreamParser::GenericParserTest

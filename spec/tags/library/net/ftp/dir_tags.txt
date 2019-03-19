@@ -1,4 +1,0 @@
-fails:Net::FTP#dir when passed a block yields each file in the list of files in the passed dir
-fails:Net::FTP#dir when passed no block returns an Array containing a list of files in the passed dir
-fails:Net::FTP#dir when the LIST command fails raises a Net::FTPPermError when the response code is 501
-fails:Net::FTP#dir when the LIST command fails raises a Net::FTPPermError when the response code is 530

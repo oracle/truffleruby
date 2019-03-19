@@ -1,2 +1,1 @@
 slow:English aliases $CHILD_STATUS to $?
-fails:English aliases $CHILD_STATUS to $?
