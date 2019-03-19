@@ -351,10 +351,6 @@ TruffleRuby provides its own scheme for Java interop that is consistent for
 use from any GraalVM language, to any other GraalVM language. This isn't
 compatible with existing JRuby Java interop, so you will need to migrate.
 
-TruffleRuby does [experimentally support](jruby-java-interop.md) some of JRuby's
-approach to Java interop, but we aren't sure how complete this will be so we do
-not recommend using it at the moment. `require 'java'` to use it.
-
 Polyglot programming in general is [documented elsewhere](polyglot.md) - this
 section describes it relative to JRuby.
 
@@ -400,9 +396,9 @@ notation.
 
 ### Require Java
 
-There is no need to `require 'java'` in TruffleRuby. However, you do need to run
-in `--jvm` mode. This is only available in GraalVM - not in the standalone
-distribution installed by Ruby version managers and installers.
+Do not `require 'java'` in TruffleRuby. However, you do need to run in `--jvm`
+mode. This is only available in GraalVM - not in the standalone distribution
+installed by Ruby version managers and installers.
 
 ### Referring to classes
 
@@ -444,7 +440,7 @@ TruffleRuby at the moment you use the `-classpath` JVM flag as normal.
 
 ### Additional Java-specific methods
 
-JRuby defines these methods on Java objects.
+JRuby defines these methods on Java objects, use these equivalents instead.
 
 `java_class` - use `class`.
 

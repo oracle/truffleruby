@@ -26,9 +26,6 @@ using the Truffle interop API, and exactly how Ruby is matched to this API.
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
-Also see the separate document on
-[JRuby-compatible Java interop](jruby-java-interop.md).
-
 ## Loading code written in foreign languages
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by

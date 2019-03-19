@@ -136,8 +136,6 @@ import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.PolyglotNodesBuiltins;
 import org.truffleruby.interop.PolyglotNodesFactory;
-import org.truffleruby.interop.java.JavaUtilitiesNodesBuiltins;
-import org.truffleruby.interop.java.JavaUtilitiesNodesFactory;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.TruffleBootNodesBuiltins;
 import org.truffleruby.language.TruffleBootNodesFactory;
@@ -180,7 +178,6 @@ public abstract class BuiltinsClasses {
         FiberNodesBuiltins.setup(coreManager, primitiveManager);
         FloatNodesBuiltins.setup(coreManager, primitiveManager);
         GCNodesBuiltins.setup(coreManager, primitiveManager);
-        JavaUtilitiesNodesBuiltins.setup(coreManager, primitiveManager);
         HashNodesBuiltins.setup(coreManager, primitiveManager);
         IntegerNodesBuiltins.setup(coreManager, primitiveManager);
         InteropNodesBuiltins.setup(coreManager, primitiveManager);
@@ -255,7 +252,6 @@ public abstract class BuiltinsClasses {
             FiberNodesFactory.getFactories(),
             FloatNodesFactory.getFactories(),
             GCNodesFactory.getFactories(),
-            JavaUtilitiesNodesFactory.getFactories(),
             HashNodesFactory.getFactories(),
             IntegerNodesFactory.getFactories(),
             InteropNodesFactory.getFactories(),

@@ -4,6 +4,11 @@ New features:
 
 * `Process.clock_getres` has been implemented.
 
+Changes:
+
+* Our experimental JRuby-compatible Java interop has been removed - use
+  `Polyglot` and `Java` instead.
+
 # 1.0 RC 14
 
 Updated to Ruby 2.6.2.

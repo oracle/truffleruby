@@ -517,7 +517,6 @@ public class CoreLibrary {
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
-        defineModule(truffleInteropModule, "Java");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");
