@@ -39,7 +39,8 @@ class UDPSocket < IPSocket
   end
 
   def bind(host, port)
-    addr   = Socket.sockaddr_in(port.to_i, host)
+    addr = Truffle::Socket::Foreign.pack_sockaddr_in(
+        host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
     status = Truffle::Socket::Foreign.bind(descriptor, addr)
 
     Errno.handle('bind(2)') if status < 0
@@ -48,8 +49,8 @@ class UDPSocket < IPSocket
   end
 
   def connect(host, port)
-    sockaddr = Truffle::Socket::Foreign
-      .pack_sockaddr_in(host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
+    sockaddr = Truffle::Socket::Foreign.pack_sockaddr_in(
+        host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
 
     status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
