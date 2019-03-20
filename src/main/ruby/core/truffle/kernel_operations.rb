@@ -37,8 +37,8 @@ module Truffle
     alias $" $LOADED_FEATURES
 
     # The runtime needs to access these values, so we want them to be set in the variable storage.
-    global_variable_set(:$LOAD_PATH, LOAD_PATH)
-    global_variable_set(:$LOADED_FEATURES, LOADED_FEATURES)
+    Truffle.invoke_primitive :global_variable_set, :$LOAD_PATH, LOAD_PATH
+    Truffle.invoke_primitive :global_variable_set, :$LOADED_FEATURES, LOADED_FEATURES
 
     define_read_only_global(:$*, -> { ARGV })
 
@@ -48,11 +48,13 @@ module Truffle
 
     define_hooked_variable(
       :$/,
-      -> { global_variable_get(:$/) },
-      -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-               raise TypeError, '$/ must be a String'
-             end
-             global_variable_set(:$/, v) })
+      -> { Truffle.invoke_primitive :global_variable_get, :$/ },
+      -> v {
+        if v && !Truffle::Type.object_kind_of?(v, String)
+          raise TypeError, '$/ must be a String'
+        end
+        Truffle.invoke_primitive :global_variable_set, :$/, v
+      })
 
     $/ = "\n".freeze
 
@@ -60,11 +62,13 @@ module Truffle
 
     define_hooked_variable(
       :'$,',
-      -> { global_variable_get(:$,) },
-      -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-               raise TypeError, '$, must be a String'
-             end
-             global_variable_set(:$,, v) })
+      -> { Truffle.invoke_primitive :global_variable_get, :$, },
+      -> v {
+        if v && !Truffle::Type.object_kind_of?(v, String)
+          raise TypeError, '$, must be a String'
+        end
+        Truffle.invoke_primitive :global_variable_set, :$,, v
+      })
 
     $, = nil # It should be defined by the time boot has finished.
 
@@ -72,13 +76,11 @@ module Truffle
 
     define_hooked_variable(
       :$VERBOSE,
-      -> { global_variable_get(:$VERBOSE) },
-      -> v { v = if v.nil?
-                   nil
-                 else
-                   !!v
-                 end
-             global_variable_set(:$VERBOSE, v) })
+      -> { Truffle.invoke_primitive :global_variable_get, :$VERBOSE },
+      -> v {
+        v = v.nil? ? nil : !!v
+        Truffle.invoke_primitive :global_variable_set, :$VERBOSE, v
+      })
 
     Truffle::Boot.redo do
       $DEBUG = Truffle::Boot.get_option 'debug'
@@ -98,17 +100,21 @@ module Truffle
 
     define_hooked_variable(
       :$stdout,
-      -> { global_variable_get(:$stdout) },
-      -> v { raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
-             global_variable_set(:$stdout, v) })
+      -> { Truffle.invoke_primitive :global_variable_get, :$stdout },
+      -> v {
+        raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        Truffle.invoke_primitive :global_variable_set, :$stdout, v
+      })
 
     alias $> $stdout
 
     define_hooked_variable(
       :$stderr,
-      -> { global_variable_get(:$stderr) },
-      -> v { raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
-             global_variable_set(:$stderr, v) })
+      -> { Truffle.invoke_primitive :global_variable_get, :$stderr },
+      -> v {
+        raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
+        Truffle.invoke_primitive :global_variable_set, :$stderr, v
+      })
 
     def self.internal_raise(exc, msg, ctx, internal)
       skip = false
