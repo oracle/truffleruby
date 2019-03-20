@@ -25,13 +25,11 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
@@ -138,7 +136,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
         public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
+            getContext().getCoreLibrary().getGlobalVariables().define(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
             return nil();
         }
 

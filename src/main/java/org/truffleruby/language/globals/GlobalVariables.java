@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -45,17 +44,19 @@ public class GlobalVariables {
         return new GlobalVariableReader(this, name);
     }
 
-    public GlobalVariableStorage put(String name, Object value) {
-        assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(value, defaultValue, null, null, null);
-        variables.put(name, storage);
-        return storage;
+    public GlobalVariableStorage define(String name, Object value) {
+        return define(name, new GlobalVariableStorage(value, defaultValue, null, null, null));
     }
 
-    public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-        assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(defaultValue, getter, setter, isDefined);
-        variables.put(name, storage);
+    public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+        return define(name, new GlobalVariableStorage(defaultValue, getter, setter, isDefined));
+    }
+
+    private GlobalVariableStorage define(String name, GlobalVariableStorage storage) {
+        final GlobalVariableStorage previous = variables.putIfAbsent(name, storage);
+        if (previous != null) {
+            throw new IllegalArgumentException("Global variable $" + name + " is already defined");
+        }
         return storage;
     }
 
