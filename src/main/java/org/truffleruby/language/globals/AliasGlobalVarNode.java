@@ -26,17 +26,8 @@ public class AliasGlobalVarNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        checkExisting();
         getContext().getCoreLibrary().getGlobalVariables().alias(oldName, newName);
         return nil();
-    }
-
-    @TruffleBoundary
-    private void checkExisting() {
-        if (getContext().getCoreLibrary().getGlobalVariables().contains(newName)) {
-            // TODO CS 4-Apr-18 This exception is non-standard
-            throw new RaiseException(getContext(), coreExceptions().notImplementedError(String.format("%s is already a global", newName), this), true);
-        }
     }
 
 }

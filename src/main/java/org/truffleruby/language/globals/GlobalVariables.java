@@ -30,7 +30,7 @@ public class GlobalVariables {
         this.defaultValue = defaultValue;
     }
 
-    public String getOriginalName(String name) {
+    private String getOriginalName(String name) {
         return aliases.getOrDefault(name, name);
     }
 
@@ -66,18 +66,21 @@ public class GlobalVariables {
     }
 
     @TruffleBoundary
-    public boolean contains(String name) {
-        return variables.containsKey(name);
-    }
-
-    @TruffleBoundary
     public void alias(String oldName, String newName) {
-        // TODO
         // Record an alias of an alias against the original.
-        oldName = aliases.getOrDefault(oldName, oldName);
+        oldName = getOriginalName(oldName);
         aliases.put(newName, oldName);
+
         final GlobalVariableStorage storage = getStorage(oldName);
-        variables.put(newName, storage);
+
+        GlobalVariableStorage previousStorage;
+        do {
+            previousStorage = variables.get(newName);
+        } while (!ConcurrentOperations.replace(variables, newName, previousStorage, storage));
+
+        if (previousStorage != null) {
+            previousStorage.getValidAssumption().invalidate();
+        }
     }
 
     @TruffleBoundary

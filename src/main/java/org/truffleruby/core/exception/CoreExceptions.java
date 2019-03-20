@@ -698,15 +698,6 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, exception);
     }
 
-    // NotImplementedError
-
-    @TruffleBoundary
-    public DynamicObject notImplementedError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getNotImplementedErrorClass();
-        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
-    }
-
     // SyntaxError
 
     @TruffleBoundary
