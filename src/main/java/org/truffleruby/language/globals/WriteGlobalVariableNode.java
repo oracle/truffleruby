@@ -28,7 +28,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         this.name = name;
     }
 
-    @Specialization(guards = "storage.isSimple()")
+    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
     public Object write(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("create(name)") WriteSimpleGlobalVariableNode simpleNode) {
@@ -36,7 +36,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity != 2" })
+    @Specialization(guards = { "storage.hasHooks()", "arity != 2" }, assumptions = "storage.getValidAssumption()")
     public Object writeHooks(VirtualFrame frame, Object value,
                              @Cached("getStorage()") GlobalVariableStorage storage,
                              @Cached("setterArity(storage)") int arity,
@@ -45,7 +45,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 2" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 2" }, assumptions = "storage.getValidAssumption()")
     public Object writeHooksWithBinding(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,

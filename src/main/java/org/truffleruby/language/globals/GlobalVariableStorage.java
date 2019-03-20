@@ -12,6 +12,7 @@ package org.truffleruby.language.globals;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.RubyContext;
@@ -21,6 +22,7 @@ public class GlobalVariableStorage {
 
     private static final Object UNSET_VALUE = NotProvided.INSTANCE;
 
+    private final Assumption validAssumption = Truffle.getRuntime().createAssumption("global variable not aliased");
     private final CyclicAssumption unchangedAssumption = new CyclicAssumption("global variable unchanged");
     private int changes = 0;
 
@@ -35,21 +37,17 @@ public class GlobalVariableStorage {
     private final DynamicObject isDefined;
 
     GlobalVariableStorage(Object defaultValue, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-        this.defaultValue = defaultValue;
-        this.value = UNSET_VALUE;
-        this.getter = getter;
-        this.setter = setter;
-        this.isDefined = isDefined;
-        assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
+        this(UNSET_VALUE, defaultValue, getter, setter, isDefined);
     }
 
     GlobalVariableStorage(Object value, Object defaultValue, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+        assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
+
         this.defaultValue = defaultValue;
         this.value = value;
         this.getter = getter;
         this.setter = setter;
         this.isDefined = isDefined;
-        assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
     }
 
     public Object getValue() {
@@ -79,6 +77,10 @@ public class GlobalVariableStorage {
 
     public DynamicObject getIsDefined() {
         return isDefined;
+    }
+
+    public Assumption getValidAssumption() {
+        return validAssumption;
     }
 
     public Assumption getUnchangedAssumption() {

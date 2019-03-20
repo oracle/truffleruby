@@ -34,11 +34,21 @@ public class GlobalVariables {
         return aliases.getOrDefault(name, name);
     }
 
+    /**
+     * The returned storage must be checked if it is still valid with
+     * {@link GlobalVariableStorage#getValidAssumption()}. A storage
+     * becomes invalid when it is aliased and therefore the storage
+     * instance needs to change.
+     */
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
         final String originalName = getOriginalName(name);
         return ConcurrentOperations.getOrCompute(variables, originalName,
                 k -> new GlobalVariableStorage(defaultValue, null, null, null));
+    }
+
+    public GlobalVariableReader getReader(String name) {
+        return new GlobalVariableReader(this, name);
     }
 
     public GlobalVariableStorage put(String name, Object value) {
@@ -62,6 +72,7 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public void alias(String oldName, String newName) {
+        // TODO
         // Record an alias of an alias against the original.
         oldName = aliases.getOrDefault(oldName, oldName);
         aliases.put(newName, oldName);

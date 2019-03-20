@@ -25,7 +25,8 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     public abstract Object execute(Object value);
 
-    @Specialization(guards = "referenceEqualNode.executeReferenceEqual(value, previousValue)", assumptions = "storage.getUnchangedAssumption()")
+    @Specialization(guards = "referenceEqualNode.executeReferenceEqual(value, previousValue)",
+                    assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
     public Object writeTryToKeepConstant(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {
@@ -35,7 +36,8 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
         return previousValue;
     }
 
-    @Specialization(guards = "storage.isAssumeConstant()", assumptions = "storage.getUnchangedAssumption()")
+    @Specialization(guards = "storage.isAssumeConstant()",
+                    assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
     public Object writeAssumeConstant(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
@@ -46,7 +48,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
         return value;
     }
 
-    @Specialization(guards = "!storage.isAssumeConstant()", replaces = "writeAssumeConstant")
+    @Specialization(guards = "!storage.isAssumeConstant()", assumptions = "storage.getValidAssumption()", replaces = "writeAssumeConstant")
     public Object write(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
