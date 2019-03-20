@@ -70,8 +70,8 @@ public class GlobalVariables {
     }
 
     @TruffleBoundary
-    public Collection<String> keys() {
-        return variables.keySet();
+    public String[] keys() {
+        return variables.keySet().toArray(new String[0]);
     }
 
     @TruffleBoundary

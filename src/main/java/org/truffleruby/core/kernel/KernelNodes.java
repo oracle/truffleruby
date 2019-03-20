@@ -1798,14 +1798,12 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject globalVariables() {
-            final Collection<String> keys = coreLibrary().getGlobalVariables().keys();
-            final Object[] store = new Object[keys.size()];
-            int i = 0;
-            for (String key : keys) {
-                store[i] = getSymbol(key);
-                i++;
+            final String[] keys = coreLibrary().getGlobalVariables().keys();
+            final Object[] store = new Object[keys.length];
+            for (int i = 0; i < keys.length; i++) {
+                store[i] = getSymbol(keys[i]);
             }
-            return createArray(store, store.length);
+            return createArray(store);
         }
 
     }
