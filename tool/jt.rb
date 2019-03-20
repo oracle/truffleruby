@@ -2109,7 +2109,7 @@ EOS
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
     distro = 'ol7'
     install_method = :public
-    public_version = '1.0.0-rc6'
+    public_version = '1.0.0-rc14'
     rebuild_images = false
     rebuild_openssl = true
     manager = :none
