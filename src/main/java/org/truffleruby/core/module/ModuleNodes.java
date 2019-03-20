@@ -560,16 +560,16 @@ public abstract class ModuleNodes {
     public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object autoloadQuerySymbol(DynamicObject module, DynamicObject name) {
-            return autoloadQuery(module, Layouts.SYMBOL.getString(name));
+        public Object isAutoloadSymbol(DynamicObject module, DynamicObject name) {
+            return isAutoload(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = "isRubyString(name)")
-        public Object autoloadQueryString(DynamicObject module, DynamicObject name) {
-            return autoloadQuery(module, StringOperations.getString(name));
+        public Object isAutoloadString(DynamicObject module, DynamicObject name) {
+            return isAutoload(module, StringOperations.getString(name));
         }
 
-        private Object autoloadQuery(DynamicObject module, String name) {
+        private Object isAutoload(DynamicObject module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
             if (constant.isAutoload() && !constant.getConstant().isAutoloadingThread()) {
