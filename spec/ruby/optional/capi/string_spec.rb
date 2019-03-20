@@ -32,6 +32,16 @@ describe "C-API String function" do
     end
   end
 
+  class ToSOrInspect
+    def to_s
+      'A string'
+    end
+
+    def inspect
+      'A different string'
+    end
+  end
+
   [Encoding::BINARY, Encoding::UTF_8].each do |enc|
     describe "rb_str_set_len on a #{enc.name} String" do
       before :each do
@@ -874,6 +884,16 @@ describe "C-API String function" do
     it "accepts multiple arguments" do
       s = "Awesome %s is here with %s"
       @s.rb_sprintf2(s, "string", "content").should == "Awesome string is here with content"
+    end
+
+    it "formats a string VALUE using to_s if sign not specified in format" do
+      s = 'Result: A string.'
+      @s.rb_sprintf3(ToSOrInspect.new).should == s
+    end
+
+    it "formats a string VALUE using to inspect if sign specified in format" do
+      s = 'Result: A different string.'
+      @s.rb_sprintf4(ToSOrInspect.new).should == s
     end
   end
 

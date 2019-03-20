@@ -18,9 +18,6 @@
 extern "C" {
 #endif
 
-#define rb_sprintf(format, ...) \
-  rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(format)), ##__VA_ARGS__))
-
 NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
 
 // Non-standard
@@ -83,13 +80,13 @@ typedef void *(*gvl_call)(void *);
 
 #define rb_warn(FORMAT, ...) do { \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
-  polyglot_invoke(rb_tr_unwrap(rb_mKernel), "warn", (VALUE) polyglot_invoke(rb_tr_unwrap(rb_mKernel), "sprintf", rb_tr_unwrap(rb_str_new_cstr(FORMAT)), ##__VA_ARGS__)); \
+  RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__));   \
 } \
 } while (0);
 
 #define rb_warning(FORMAT, ...) do { \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
-  polyglot_invoke(rb_tr_unwrap(rb_mKernel), "warn", (VALUE) polyglot_invoke(rb_tr_unwrap(rb_mKernel), "sprintf", rb_tr_unwrap(rb_str_new_cstr(FORMAT)), ##__VA_ARGS__)); \
+  RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__)); \
 } \
 } while (0);
 
@@ -153,7 +150,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 // Exceptions
 
 #define rb_raise(EXCEPTION, FORMAT, ...) \
-  rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_tr_unwrap(rb_str_new_cstr(FORMAT)), ##__VA_ARGS__))))
+  rb_exc_raise(rb_exc_new_str(EXCEPTION, rb_sprintf(FORMAT, ##__VA_ARGS__)))
 
 // Additional non-standard
 VALUE rb_java_class_of(VALUE val);
