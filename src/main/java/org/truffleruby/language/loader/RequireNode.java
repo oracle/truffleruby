@@ -9,14 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -39,9 +31,13 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
+import org.truffleruby.language.constants.GetConstantNode;
+import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -50,6 +46,14 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class RequireNode extends RubyBaseNode {
 
@@ -62,6 +66,9 @@ public abstract class RequireNode extends RubyBaseNode {
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.EXECUTE.createNode();
     @Child private WarningNode warningNode;
+
+    @Child private GetConstantNode getConstantNode;
+    @Child private LookupConstantNode lookupConstantNode;
 
     public static RequireNode create() {
         return RequireNodeGen.create();
@@ -94,16 +101,44 @@ public abstract class RequireNode extends RubyBaseNode {
     private boolean requireWithMetrics(String feature, String expandedPathRaw, DynamicObject pathString) {
         requireMetric("before-require-" + feature);
         try {
-            return doRequire(feature, expandedPathRaw, pathString);
+            return requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString);
         } finally {
             requireMetric("after-require-" + feature);
         }
     }
 
-    private boolean doRequire(String feature, String expandedPathRaw, DynamicObject pathString) {
+    private boolean requireConsideringAutoload(String feature, String expandedPath, DynamicObject pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
-        final String expandedPath = expandedPathRaw.intern();
+        final RubyConstant autoloadConstant = featureLoader.isAutoloadPath(expandedPath);
+        if (autoloadConstant != null &&
+                // Do not autoload recursively from the #require call in GetConstantNode
+                !autoloadConstant.isAutoloading()) {
+            if (getConstantNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                getConstantNode = insert(GetConstantNode.create());
+            }
+            if (lookupConstantNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                lookupConstantNode = insert(LookupConstantNode.create(true, true, true));
+            }
+
+            if (getContext().getOptions().LOG_AUTOLOAD) {
+                RubyLanguage.LOGGER.info(() -> String.format("%s: requiring %s which is registered as an autoload for %s with %s",
+                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        feature, autoloadConstant, autoloadConstant.getAutoloadPath()));
+            }
+
+            boolean[] result = new boolean[1];
+            Runnable require = () -> result[0] = doRequire(feature, expandedPath, pathString);
+            getConstantNode.autoloadConstant(LexicalScope.IGNORE, autoloadConstant.getDeclaringModule(), autoloadConstant.getName(), autoloadConstant, lookupConstantNode, require);
+            return result[0];
+        } else {
+            return doRequire(feature, expandedPath, pathString);
+        }
+    }
+
+    private boolean doRequire(String feature, String expandedPath, DynamicObject pathString) {
+        final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
         final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
         Boolean patchLoaded = patchFiles.get(feature);
         final boolean isPatched = patchLoaded != null;

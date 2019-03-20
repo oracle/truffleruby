@@ -217,7 +217,7 @@ describe "Module#autoload" do
     end
   end
 
-  describe "the autoload is removed when the same file is required directly without autoload" do
+  describe "the autoload is triggered when the same file is required directly" do
     before :each do
       module ModuleSpecs::Autoload
         autoload :RequiredDirectly, fixture(__FILE__, "autoload_required_directly.rb")
@@ -260,7 +260,7 @@ describe "Module#autoload" do
       nested_require = -> {
         result = nil
         ScratchPad.record -> {
-          result = [@check.call, Thread.new { @check.call }.value]
+          result = @check.call
         }
         require nested
         result
@@ -269,9 +269,7 @@ describe "Module#autoload" do
 
       @check.call.should == ["constant", @path]
       require @path
-      cur, other = ScratchPad.recorded
-      cur.should == [nil, nil]
-      other.should == [nil, nil]
+      ScratchPad.recorded.should == [nil, nil]
       @check.call.should == ["constant", nil]
     end
   end

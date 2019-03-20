@@ -47,7 +47,7 @@ public class WriteConstantNode extends RubyNode {
         }
 
         final RubyConstant previous = Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);
-        if (previous != null) {
+        if (previous != null && previous.hasValue()) {
             warnAlreadyInitializedConstant((DynamicObject) moduleObject, name, previous.getSourceSection());
         }
         return value;

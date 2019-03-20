@@ -952,6 +952,7 @@ module Commands
   private :mri_test_name
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options)
+    abort "No test files! (probably filtered out by failing.exclude)" if test_files.empty?
     test_files = test_files.map { |file| mri_test_name(file) }
 
     truffle_args = []

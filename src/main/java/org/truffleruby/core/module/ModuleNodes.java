@@ -557,19 +557,19 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload?", required = 1)
-    public abstract static class AutoloadQueryNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object autoloadQuerySymbol(DynamicObject module, DynamicObject name) {
-            return autoloadQuery(module, Layouts.SYMBOL.getString(name));
+        public Object isAutoloadSymbol(DynamicObject module, DynamicObject name) {
+            return isAutoload(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = "isRubyString(name)")
-        public Object autoloadQueryString(DynamicObject module, DynamicObject name) {
-            return autoloadQuery(module, StringOperations.getString(name));
+        public Object isAutoloadString(DynamicObject module, DynamicObject name) {
+            return isAutoload(module, StringOperations.getString(name));
         }
 
-        private Object autoloadQuery(DynamicObject module, String name) {
+        private Object isAutoload(DynamicObject module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
             if (constant.isAutoload() && !constant.getConstant().isAutoloadingThread()) {
@@ -997,7 +997,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         public Object setConstantNoCheckName(DynamicObject module, String name, Object value) {
             final RubyConstant previous = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
-            if (previous != null) {
+            if (previous != null && previous.hasValue()) {
                 warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
             }
             return value;
