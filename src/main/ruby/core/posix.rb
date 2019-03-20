@@ -35,7 +35,7 @@ module Truffle::POSIX
   end
 
   LIBC = LazyLibrary.new do
-    Truffle::Interop.eval('application/x-native', 'default')
+    Polyglot.eval('nfi', 'default')
   end
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
@@ -45,7 +45,7 @@ module Truffle::POSIX
       else
         libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
       end
-      Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
+      Polyglot.eval('nfi', "load '#{libtruffleposix}'")
     else
       LIBC.resolve
     end
@@ -53,7 +53,7 @@ module Truffle::POSIX
 
   LIBCRYPT = LazyLibrary.new do
     if Truffle::Platform.linux?
-      Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
+      Polyglot.eval('nfi', 'load libcrypt.so')
     else
       LIBC.resolve
     end

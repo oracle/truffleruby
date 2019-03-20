@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -72,8 +73,9 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         public Object importFile(DynamicObject fileName) {
             try {
-                final Source sourceObject = Source.newBuilder(TruffleRuby.LANGUAGE_ID, getContext().getEnv().getTruffleFile(fileName.toString().intern())).build();
-                getContext().getEnv().parse(sourceObject).call();
+                final TruffleFile file = getContext().getEnv().getTruffleFile(StringOperations.getString(fileName).intern());
+                final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
+                getContext().getEnv().parse(source).call();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
@@ -643,7 +645,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(mimeType)")
         public boolean isMimeTypeSupported(DynamicObject mimeType) {
-            return getContext().getEnv().isMimeTypeSupported(mimeType.toString());
+            return getContext().getEnv().isMimeTypeSupported(StringOperations.getString(mimeType));
         }
 
     }
@@ -678,10 +680,20 @@ public abstract class InteropNodes {
         }
 
         @TruffleBoundary
-        protected CallTarget parse(DynamicObject mimeType, DynamicObject source) {
-            final String mimeTypeString = mimeType.toString();
-            final Source sourceObject = Source.newBuilder(Source.findLanguage(mimeTypeString), source.toString(), "(eval)").build();
-            return getContext().getEnv().parse(sourceObject);
+        protected CallTarget parse(DynamicObject mimeType, DynamicObject code) {
+            final String mimeTypeString = StringOperations.getString(mimeType);
+            final String codeString = StringOperations.getString(code);
+            String language = Source.findLanguage(mimeTypeString);
+            if (language == null) {
+                // Give the original string to get the nice exception from Truffle
+                language = mimeTypeString;
+            }
+            final Source source = Source.newBuilder(language, codeString, "(eval)").build();
+            try {
+                return getContext().getEnv().parse(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
 
         protected int getCacheLimit() {
