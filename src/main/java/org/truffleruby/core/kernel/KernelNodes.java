@@ -1792,8 +1792,8 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_global_variables", needsSelf = false)
-    public abstract static class KernelGlobalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "global_variables", isModuleFunction = true)
+    public abstract static class KernelGlobalVariablesNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
