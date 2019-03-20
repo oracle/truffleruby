@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
@@ -107,33 +108,27 @@ public abstract class TruffleKernelNodes {
 
     // Only used internally with a constant literal name, does not trigger hooks
     @Primitive(name = "global_variable_set")
+    @ImportStatic(Layouts.class)
     public abstract static class WriteGlobalVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object write(DynamicObject name, Object value,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("create(getStorage(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
+                @Cached("create(SYMBOL.getString(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
             return writeNode.execute(value);
-        }
-
-        protected GlobalVariableStorage getStorage(DynamicObject name) {
-            return coreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
     }
 
     // Only used internally with a constant literal name, does not trigger hooks
     @Primitive(name = "global_variable_get")
+    @ImportStatic(Layouts.class)
     public abstract static class ReadGlobalVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object read(DynamicObject name,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("create(getStorage(cachedName))") ReadSimpleGlobalVariableNode readNode) {
+                @Cached("create(SYMBOL.getString(cachedName))") ReadSimpleGlobalVariableNode readNode) {
             return readNode.execute();
-        }
-
-        protected GlobalVariableStorage getStorage(DynamicObject name) {
-            return coreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
     }
 

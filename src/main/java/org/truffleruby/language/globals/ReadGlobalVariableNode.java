@@ -21,7 +21,7 @@ import org.truffleruby.language.yield.YieldNode;
 
 public abstract class ReadGlobalVariableNode extends RubyNode {
 
-    private final String name;
+    protected final String name;
     @Child private IsDefinedGlobalVariableNode definedNode;
 
     public ReadGlobalVariableNode(String name) {
@@ -29,8 +29,9 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = "storage.isSimple()")
-    public Object read(@Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("create(storage)") ReadSimpleGlobalVariableNode simpleNode) {
+    public Object read(
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("create(name)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 

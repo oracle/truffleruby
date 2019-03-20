@@ -22,7 +22,7 @@ import org.truffleruby.language.yield.YieldNode;
 @NodeChild(value = "value")
 public abstract class WriteGlobalVariableNode extends RubyNode {
 
-    private final String name;
+    protected final String name;
 
     public WriteGlobalVariableNode(String name) {
         this.name = name;
@@ -31,7 +31,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     @Specialization(guards = "storage.isSimple()")
     public Object write(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("create(storage)") WriteSimpleGlobalVariableNode simpleNode) {
+            @Cached("create(name)") WriteSimpleGlobalVariableNode simpleNode) {
         simpleNode.execute(value);
         return value;
     }
