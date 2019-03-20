@@ -63,11 +63,7 @@ public class GlobalVariables {
     public void alias(String oldName, String newName) {
         final GlobalVariableStorage storage = getStorage(oldName);
 
-        GlobalVariableStorage previousStorage;
-        do {
-            previousStorage = variables.get(newName);
-        } while (!ConcurrentOperations.replace(variables, newName, previousStorage, storage));
-
+        final GlobalVariableStorage previousStorage = variables.put(newName, storage);
         if (previousStorage != null) {
             previousStorage.getValidAssumption().invalidate();
         }
