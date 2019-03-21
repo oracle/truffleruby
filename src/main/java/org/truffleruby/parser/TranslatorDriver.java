@@ -37,7 +37,6 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -95,8 +94,8 @@ public class TranslatorDriver {
         parseEnvironment = new ParseEnvironment(context);
     }
 
-    public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor,
-            MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+    public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
+                              MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
 
         assert parserContext.isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame;
 
@@ -112,16 +111,7 @@ public class TranslatorDriver {
 
         final TranslatorEnvironment parentEnvironment;
 
-        if (frameDescriptor != null) {
-            for (FrameSlot slot : frameDescriptor.getSlots()) {
-                if (slot.getIdentifier() instanceof String) {
-                    final String name = (String) slot.getIdentifier();
-                    staticScope.addVariableThisScope(name.intern()); // StaticScope expects interned var names
-                }
-            }
-
-            parentEnvironment = environmentForFrameDescriptor(context, frameDescriptor);
-        } else if (parentFrame != null) {
+        if (parentFrame != null) {
             MaterializedFrame frame = parentFrame;
 
             while (frame != null) {
@@ -343,23 +333,6 @@ public class TranslatorDriver {
         }
 
         return (RootParseNode) result.getAST();
-    }
-
-    private TranslatorEnvironment environmentForFrameDescriptor(RubyContext context, FrameDescriptor frameDescriptor) {
-        final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
-                context.getCoreLibrary().getSourceSection(),
-                context.getRootLexicalScope(),
-                Arity.NO_ARGUMENTS,
-                null,
-                null,
-                0,
-                "external",
-                null,
-                false);
-            // TODO(CS): how do we know if the frame is a block or not?
-            return new TranslatorEnvironment(null, parseEnvironment,  parseEnvironment.allocateReturnID(),
-                    true, true, false,
-                    sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frameDescriptor);
     }
 
     private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame) {

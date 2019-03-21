@@ -305,7 +305,6 @@ public abstract class BasicObjectNodes {
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.EVAL,
-                    callerFrame.getFrameDescriptor(),
                     callerFrame,
                     true,
                     this);
