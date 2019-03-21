@@ -75,11 +75,11 @@ describe "Float#to_s" do
     -10000000000000000.0.to_s.should == "-1.0e+16"
   end
 
-  it "uses non-e format for a positive value with whole part having 17 significant figures" do
+  it "uses e format for a positive value with whole part having 17 significant figures" do
     1000000000000000.0.to_s.should == "1.0e+15"
   end
 
-  it "uses non-e format for a negative value with whole part having 17 significant figures" do
+  it "uses e format for a negative value with whole part having 17 significant figures" do
     -1000000000000000.0.to_s.should == "-1.0e+15"
   end
 
