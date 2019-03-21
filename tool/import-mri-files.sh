@@ -28,9 +28,6 @@ rm lib/mri/profiler.rb
 # Uses RubyVM
 rm lib/mri/debug.rb
 rm lib/mri/profile.rb
-# NPE in for
-rm lib/mri/shell.rb
-rm -r lib/mri/shell
 # Files not actually installed in MRI
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
