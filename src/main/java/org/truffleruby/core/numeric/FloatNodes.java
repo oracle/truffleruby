@@ -733,7 +733,7 @@ public abstract class FloatNodes {
                 i--;
             }
 
-            final String formatted = str.substring(0, i + 1) + str.substring(start, str.length());
+            final String formatted = str.substring(0, i + 1) + str.substring(start);
 
             return makeStringNode.executeMake(formatted, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
