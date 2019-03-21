@@ -853,7 +853,7 @@ public class BodyTranslator extends Translator {
             // Evaluate the case expression and store it in a local
 
             final String tempName = environment.allocateLocalTemp("case");
-            final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, source, sourceSection);
+            final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
             final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
 
             /*
@@ -1218,7 +1218,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDVarNode(DVarParseNode node) {
         final String name = node.getName();
-        RubyNode readNode = environment.findLocalVarNode(name, source, node.getPosition());
+        RubyNode readNode = environment.findLocalVarNode(name, node.getPosition());
 
         if (readNode == null) {
             // If we haven't seen this dvar before it's possible that it's a block local variable
@@ -1237,7 +1237,7 @@ public class BodyTranslator extends Translator {
             // the variable should be declared in a parent frame descriptor.  This is so the search can determine
             // whether to return a ReadLocalVariableNode or a ReadDeclarationVariableNode and potentially record the
             // fact that a declaration frame is needed.
-            readNode = environment.findLocalVarNode(name, source, node.getPosition());
+            readNode = environment.findLocalVarNode(name, node.getPosition());
         }
 
         return addNewlineIfNeeded(node, readNode);
@@ -1795,7 +1795,7 @@ public class BodyTranslator extends Translator {
             environment.declareVar(name);
         }
 
-        ReadLocalNode lhs = environment.findLocalVarNode(name, source, sourceSection);
+        ReadLocalNode lhs = environment.findLocalVarNode(name, sourceSection);
 
         if (lhs == null) {
             TranslatorEnvironment environmentToDeclareIn = environment;
@@ -1804,7 +1804,7 @@ public class BodyTranslator extends Translator {
             }
             environmentToDeclareIn.declareVar(name);
 
-            lhs = environment.findLocalVarNode(name, source, sourceSection);
+            lhs = environment.findLocalVarNode(name, sourceSection);
 
             if (lhs == null) {
                 throw new RuntimeException("shouldn't be here");
@@ -1831,7 +1831,7 @@ public class BodyTranslator extends Translator {
 
         final String name = node.getName();
 
-        RubyNode readNode = environment.findLocalVarNode(name, source, sourceSection);
+        RubyNode readNode = environment.findLocalVarNode(name, sourceSection);
 
         if (readNode == null) {
             /*
@@ -1846,7 +1846,7 @@ public class BodyTranslator extends Translator {
              */
 
             environment.declareVar(name);
-            readNode = environment.findLocalVarNode(name, source, sourceSection);
+            readNode = environment.findLocalVarNode(name, sourceSection);
         }
 
         return addNewlineIfNeeded(node, readNode);
@@ -1897,7 +1897,7 @@ public class BodyTranslator extends Translator {
                     setters[n] = match2NonNilSetter(node, name, tempVar);
                 }
                 final RubyNode readNode = ReadGlobalVariableNodeGen.create("$~");
-                ReadLocalNode tempVarReadNode = environment.findLocalVarNode(tempVar, source, node.getPosition());
+                ReadLocalNode tempVarReadNode = environment.findLocalVarNode(tempVar, node.getPosition());
                 RubyNode readMatchNode = tempVarReadNode.makeWriteNode(readNode);
                 ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(ret, readMatchNode, setters, nilSetters);
             }
@@ -1907,12 +1907,12 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode match2NilSetter(ParseNode node, String name) {
-        return environment.findLocalVarNode(name, source, node.getPosition()).makeWriteNode(new NilLiteralNode(true));
+        return environment.findLocalVarNode(name, node.getPosition()).makeWriteNode(new NilLiteralNode(true));
     }
 
     private RubyNode match2NonNilSetter(ParseNode node, String name, String tempVar) {
-        ReadLocalNode varNode = environment.findLocalVarNode(name, source, node.getPosition());
-        ReadLocalNode tempVarNode = environment.findLocalVarNode(tempVar, source, node.getPosition());
+        ReadLocalNode varNode = environment.findLocalVarNode(name, node.getPosition());
+        ReadLocalNode tempVarNode = environment.findLocalVarNode(tempVar, node.getPosition());
         ObjectLiteralNode symbolNode = new ObjectLiteralNode(context.getSymbolTable().getSymbol(name));
         GetIndexNode getIndexNode = GetIndexNode.create(tempVarNode, symbolNode, new ObjectLiteralNode(NotProvided.INSTANCE));
         return varNode.makeWriteNode(getIndexNode);
@@ -1996,7 +1996,7 @@ public class BodyTranslator extends Translator {
 
             for (int n = 0; n < assignedValuesCount; n++) {
                 final String tempName = environment.allocateLocalTemp("multi");
-                final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, source, sourceSection);
+                final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
                 final RubyNode assignTemp = readTemp.makeWriteNode(rhsArrayLiteral.stealNode(n));
                 final RubyNode assignFinalValue = translateDummyAssignment(preArray.get(n), NodeUtil.cloneNode(readTemp));
 
@@ -2041,7 +2041,7 @@ public class BodyTranslator extends Translator {
              */
 
             final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, source, sourceSection).makeWriteNode(rhsTranslated);
+            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, sourceSection).makeWriteNode(rhsTranslated);
             sequence.add(writeTempRHS);
 
             /*
@@ -2055,10 +2055,10 @@ public class BodyTranslator extends Translator {
              * the temp.
              */
 
-            final RubyNode splatCastNode = SplatCastNodeGen.create(translatingNextExpression ? SplatCastNode.NilBehavior.EMPTY_ARRAY : SplatCastNode.NilBehavior.ARRAY_WITH_NIL, true, environment.findLocalVarNode(tempRHSName, source, sourceSection));
+            final RubyNode splatCastNode = SplatCastNodeGen.create(translatingNextExpression ? SplatCastNode.NilBehavior.EMPTY_ARRAY : SplatCastNode.NilBehavior.ARRAY_WITH_NIL, true, environment.findLocalVarNode(tempRHSName, sourceSection));
             splatCastNode.unsafeSetSourceSection(sourceSection);
 
-            final RubyNode writeTemp = environment.findLocalVarNode(tempName, source, sourceSection).makeWriteNode(splatCastNode);
+            final RubyNode writeTemp = environment.findLocalVarNode(tempName, sourceSection).makeWriteNode(splatCastNode);
 
             sequence.add(writeTemp);
 
@@ -2067,13 +2067,13 @@ public class BodyTranslator extends Translator {
              */
 
             for (int n = 0; n < preArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, source, sourceSection), n);
+                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, sourceSection), n);
 
                 sequence.add(translateDummyAssignment(preArray.get(n), assignedValue));
             }
 
             if (node.getRest() != null) {
-                RubyNode assignedValue = ArrayGetTailNodeGen.create(preArray.size(), environment.findLocalVarNode(tempName, source, sourceSection));
+                RubyNode assignedValue = ArrayGetTailNodeGen.create(preArray.size(), environment.findLocalVarNode(tempName, sourceSection));
 
                 if (postArray != null) {
                     assignedValue = ArrayDropTailNodeGen.create(postArray.size(), assignedValue);
@@ -2086,7 +2086,7 @@ public class BodyTranslator extends Translator {
                 final List<RubyNode> smallerSequence = new ArrayList<>();
 
                 for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, source, sourceSection), node.getPreCount() + n);
+                    final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                     smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
                 }
 
@@ -2095,7 +2095,7 @@ public class BodyTranslator extends Translator {
                 final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
 
                 for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, source, sourceSection), -(postArray.size() - n));
+                    final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, sourceSection), -(postArray.size() - n));
 
                     atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
                 }
@@ -2104,14 +2104,14 @@ public class BodyTranslator extends Translator {
 
                 final RubyNode assignPost =
                         new IfElseNode(
-                                new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), environment.findLocalVarNode(tempName, source, sourceSection)),
+                                new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), environment.findLocalVarNode(tempName, sourceSection)),
                                 atLeastAsLarge,
                                 smaller);
 
                 sequence.add(assignPost);
             }
 
-            result = new ElidableResultNode(sequence(sourceSection, sequence), environment.findLocalVarNode(tempRHSName, source, sourceSection));
+            result = new ElidableResultNode(sequence(sourceSection, sequence), environment.findLocalVarNode(tempRHSName, sourceSection));
         } else if (node.getPre() == null
                 && node.getPost() == null
                 && node.getRest() instanceof StarParseNode) {
@@ -2145,27 +2145,27 @@ public class BodyTranslator extends Translator {
             }
 
             final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, source, sourceSection).makeWriteNode(rhsTranslated);
+            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, sourceSection).makeWriteNode(rhsTranslated);
             sequence.add(writeTempRHS);
 
             final SplatCastNode rhsSplatCast = SplatCastNodeGen.create(
                     nilBehavior,
-                    true, environment.findLocalVarNode(tempRHSName, source, sourceSection));
+                    true, environment.findLocalVarNode(tempRHSName, sourceSection));
 
             rhsSplatCast.unsafeSetSourceSection(sourceSection);
 
             final String tempRHSSplattedName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempSplattedRHS = environment.findLocalVarNode(tempRHSSplattedName, source, sourceSection).makeWriteNode(rhsSplatCast);
+            final RubyNode writeTempSplattedRHS = environment.findLocalVarNode(tempRHSSplattedName, sourceSection).makeWriteNode(rhsSplatCast);
             sequence.add(writeTempSplattedRHS);
 
-            sequence.add(translateDummyAssignment(node.getRest(), environment.findLocalVarNode(tempRHSSplattedName, source, sourceSection)));
+            sequence.add(translateDummyAssignment(node.getRest(), environment.findLocalVarNode(tempRHSSplattedName, sourceSection)));
 
             final RubyNode assignmentResult;
 
             if (nilBehavior == SplatCastNode.NilBehavior.CONVERT) {
-                assignmentResult = environment.findLocalVarNode(tempRHSSplattedName, source, sourceSection);
+                assignmentResult = environment.findLocalVarNode(tempRHSSplattedName, sourceSection);
             } else {
-                assignmentResult = environment.findLocalVarNode(tempRHSName, source, sourceSection);
+                assignmentResult = environment.findLocalVarNode(tempRHSName, sourceSection);
             }
 
             result = new ElidableResultNode(sequence(sourceSection, sequence), assignmentResult);
@@ -2194,7 +2194,7 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> sequence = new ArrayList<>();
 
             final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, source, sourceSection).makeWriteNode(rhsTranslated);
+            final RubyNode writeTempRHS = environment.findLocalVarNode(tempRHSName, sourceSection).makeWriteNode(rhsTranslated);
             sequence.add(writeTempRHS);
 
             /*
@@ -2209,10 +2209,10 @@ public class BodyTranslator extends Translator {
              */
 
 
-            final RubyNode splatCastNode = SplatCastNodeGen.create(translatingNextExpression ? SplatCastNode.NilBehavior.EMPTY_ARRAY : SplatCastNode.NilBehavior.ARRAY_WITH_NIL, false, environment.findLocalVarNode(tempRHSName, source, sourceSection));
+            final RubyNode splatCastNode = SplatCastNodeGen.create(translatingNextExpression ? SplatCastNode.NilBehavior.EMPTY_ARRAY : SplatCastNode.NilBehavior.ARRAY_WITH_NIL, false, environment.findLocalVarNode(tempRHSName, sourceSection));
             splatCastNode.unsafeSetSourceSection(sourceSection);
 
-            final RubyNode writeTemp = environment.findLocalVarNode(tempName, source, sourceSection).makeWriteNode(splatCastNode);
+            final RubyNode writeTemp = environment.findLocalVarNode(tempName, sourceSection).makeWriteNode(splatCastNode);
 
             sequence.add(writeTemp);
 
@@ -2221,7 +2221,7 @@ public class BodyTranslator extends Translator {
              */
 
             if (node.getRest() != null) {
-                final ArrayDropTailNode assignedValue = ArrayDropTailNodeGen.create(postArray.size(), environment.findLocalVarNode(tempName, source, sourceSection));
+                final ArrayDropTailNode assignedValue = ArrayDropTailNodeGen.create(postArray.size(), environment.findLocalVarNode(tempName, sourceSection));
 
                 sequence.add(translateDummyAssignment(node.getRest(), assignedValue));
             }
@@ -2229,7 +2229,7 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> smallerSequence = new ArrayList<>();
 
             for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, source, sourceSection), node.getPreCount() + n);
+                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                 smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
             }
 
@@ -2238,7 +2238,7 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
 
             for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, source, sourceSection), -(postArray.size() - n));
+                final RubyNode assignedValue = PrimitiveArrayNodeFactory.read(environment.findLocalVarNode(tempName, sourceSection), -(postArray.size() - n));
 
                 atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
             }
@@ -2247,13 +2247,13 @@ public class BodyTranslator extends Translator {
 
             final RubyNode assignPost =
                     new IfElseNode(
-                    new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), environment.findLocalVarNode(tempName, source, sourceSection)),
+                    new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), environment.findLocalVarNode(tempName, sourceSection)),
                             atLeastAsLarge,
                             smaller);
 
             sequence.add(assignPost);
 
-            result = new ElidableResultNode(sequence(sourceSection, sequence), environment.findLocalVarNode(tempRHSName, source, sourceSection));
+            result = new ElidableResultNode(sequence(sourceSection, sequence), environment.findLocalVarNode(tempRHSName, sourceSection));
         } else {
             throw new UnsupportedOperationException();
         }
@@ -2427,7 +2427,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            ReadLocalNode readLocal = environment.findLocalVarNode(temp, source, sourceSection);
+            ReadLocalNode readLocal = environment.findLocalVarNode(temp, sourceSection);
             body = new IfNode(
                     new NotNode(new IsNilNode(readLocal)),
                     body);

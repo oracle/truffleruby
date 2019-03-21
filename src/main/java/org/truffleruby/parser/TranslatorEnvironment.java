@@ -11,7 +11,6 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.SourceIndexLength;
@@ -109,18 +108,18 @@ public class TranslatorEnvironment {
         return getFrameDescriptor().findOrAddFrameSlot(name);
     }
 
-    public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, Source source, SourceIndexLength sourceSection) {
-        ReadLocalNode localVar = findLocalVarNode(name, source, sourceSection);
+    public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
+        ReadLocalNode localVar = findLocalVarNode(name, sourceSection);
 
         if (localVar == null) {
             declareVar(name);
-            localVar = findLocalVarNode(name, source, sourceSection);
+            localVar = findLocalVarNode(name, sourceSection);
         }
 
         return localVar;
     }
 
-    public ReadLocalNode findLocalVarNode(String name, Source source, SourceIndexLength sourceSection) {
+    public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
         TranslatorEnvironment current = this;
         int level = 0;
 

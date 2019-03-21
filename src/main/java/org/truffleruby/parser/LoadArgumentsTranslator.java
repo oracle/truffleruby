@@ -522,10 +522,10 @@ public class LoadArgumentsTranslator extends Translator {
                 final String name = ((INameNode) node.getRest()).getName();
 
                 if (node.getPreCount() == 0 && node.getPostCount() == 0) {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, source, sourceSection)
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
                             .makeWriteNode(ArrayLiteralNode.create(new RubyNode[] { new NilLiteralNode(true) })));
                 } else {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, source, sourceSection)
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
                             .makeWriteNode(ArrayLiteralNode.create(null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
@@ -542,7 +542,7 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         for (String parameterToClear : parametersToClearCollector.getParameters()) {
-            nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, source, sourceSection).makeWriteNode(nilNode(sourceSection)));
+            nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, sourceSection).makeWriteNode(nilNode(sourceSection)));
         }
 
         if (node.getPre() != null) {
