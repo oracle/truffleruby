@@ -36,18 +36,6 @@ int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
 bool rb_tr_hidden_p(VALUE value);
 
-// Handles
-
-void *rb_tr_handle_for_managed(VALUE managed);
-void *rb_tr_handle_for_managed_leaking(VALUE managed);
-void *rb_tr_handle_if_managed(VALUE managed);
-void *rb_tr_handle_if_managed_leaking(VALUE managed);
-VALUE rb_tr_managed_from_handle_or_null(void *handle);
-VALUE rb_tr_managed_from_handle(void *handle);
-VALUE rb_tr_managed_from_handle_release(void *handle);
-VALUE rb_tr_managed_if_handle(void *handle);
-void rb_tr_release_handle(void *handle);
-void rb_tr_release_if_handle(void *handle);
 
 // Managed Structs
 

@@ -2828,69 +2828,6 @@ VALUE rb_java_to_string(VALUE obj) {
   return RUBY_CEXT_INVOKE("rb_java_to_string", obj);
 }
 
-// Handles
-
-void *rb_tr_handle_for_managed(VALUE managed) {
-  return truffle_handle_for_managed(managed);
-}
-
-void *rb_tr_handle_for_managed_leaking(VALUE managed) {
-  rb_tr_log_warning("rb_tr_handle_for_managed without matching rb_tr_release_handle; handles will be leaking");
-  return rb_tr_handle_for_managed(managed);
-}
-
-void *rb_tr_handle_if_managed(VALUE pointer) {
-  if (polyglot_is_value(pointer)) {
-    return rb_tr_handle_for_managed(pointer);
-  } else {
-    return pointer;
-  }
-}
-
-void *rb_tr_handle_if_managed_leaking(VALUE pointer) {
-  if (polyglot_is_value(pointer)) {
-    return rb_tr_handle_if_managed_leaking(pointer);
-  } else {
-    return pointer;
-  }
-}
-
-VALUE rb_tr_managed_from_handle_or_null(void *handle) {
-  if (handle == NULL) {
-    return NULL;
-  } else {
-    return rb_tr_managed_from_handle(handle);
-  }
-}
-
-VALUE rb_tr_managed_if_handle(void *pointer) {
-  if (truffle_is_handle_to_managed(pointer)) {
-    return rb_tr_managed_from_handle(pointer);
-  } else {
-    return pointer;
-  }
-}
-
-VALUE rb_tr_managed_from_handle(void *handle) {
-  return truffle_managed_from_handle(handle);
-}
-
-VALUE rb_tr_managed_from_handle_release(void *handle) {
-  VALUE managed = rb_tr_managed_from_handle(handle);
-  rb_tr_release_handle(handle);
-  return managed;
-}
-
-void rb_tr_release_if_handle(void *pointer) {
-  if (truffle_is_handle_to_managed(pointer)) {
-    truffle_release_handle(pointer);
-  }
-}
-
-void rb_tr_release_handle(void *handle) {
-  truffle_release_handle(handle);
-}
-
 // Managed Structs
 
 void* rb_tr_new_managed_struct_internal(void *type) {
