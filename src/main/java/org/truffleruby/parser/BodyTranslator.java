@@ -944,8 +944,9 @@ public class BodyTranslator extends Translator {
                 returnId = environment.getParseEnvironment().allocateReturnID();
             }
 
-            final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(context, environment, environment.getParseEnvironment(),
-                            returnId, true, true, true, sharedMethodInfo, name, 0, null);
+            final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(environment, environment.getParseEnvironment(),
+                    returnId, true, true, true,
+                    sharedMethodInfo, name, 0, null, TranslatorEnvironment.newFrameDescriptor(context));
 
             final BodyTranslator moduleTranslator = new BodyTranslator(currentNode, context, this, newEnvironment, source, parserContext, false);
 
@@ -1304,7 +1305,9 @@ public class BodyTranslator extends Translator {
                 alwaysClone);
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
-                        context, environment, environment.getParseEnvironment(), environment.getParseEnvironment().allocateReturnID(), true, true, false, sharedMethodInfo, methodName, 0, null);
+                environment, environment.getParseEnvironment(), environment.getParseEnvironment().allocateReturnID(),
+                true, true, false, sharedMethodInfo, methodName,
+                0, null, TranslatorEnvironment.newFrameDescriptor(context));
 
         // ownScopeForAssignments is the same for the defined method as the current one.
 
@@ -1757,8 +1760,9 @@ public class BodyTranslator extends Translator {
         final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
-                context, environment, parseEnvironment, returnID, hasOwnScope, false,
-                false, sharedMethodInfo, environment.getNamedMethodName(), blockDepth, parseEnvironment.allocateBreakID());
+                environment, parseEnvironment, returnID, hasOwnScope, false, false,
+                sharedMethodInfo, environment.getNamedMethodName(), blockDepth, parseEnvironment.allocateBreakID(),
+                TranslatorEnvironment.newFrameDescriptor(context));
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, true, source, parserContext, argsNode);
 
         if (isProc) {

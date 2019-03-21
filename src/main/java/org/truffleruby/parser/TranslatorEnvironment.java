@@ -66,11 +66,8 @@ public class TranslatorEnvironment {
         this.breakID = breakID;
     }
 
-    public TranslatorEnvironment(RubyContext context, TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth, BreakID breakID) {
-        this(parent, parseEnvironment, returnID, ownScopeForAssignments, neverAssignInParentScope, isModuleBody, sharedMethodInfo, namedMethodName, blockDepth,
-                breakID, new FrameDescriptor(context.getCoreLibrary().getNil()));
+    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
+        return new FrameDescriptor(context.getCoreLibrary().getNil());
     }
 
     public boolean isDynamicConstantLookup() {
