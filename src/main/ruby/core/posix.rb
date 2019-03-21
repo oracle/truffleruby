@@ -117,6 +117,9 @@ module Truffle::POSIX
       string_args.freeze
 
       nfi_return_type = to_nfi_type(return_type)
+      if nfi_return_type.to_s.start_with?('uint')
+        unsigned_return_type = 1 << nfi_return_type[-2..-1].to_i
+      end
 
       bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
 
@@ -151,6 +154,12 @@ module Truffle::POSIX
           result = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
         elsif return_type == :ssize_t
           result = Truffle.invoke_primitive(:integer_lower, result)
+        elsif unsigned_return_type
+          if result >= 0
+            result
+          else
+            result += unsigned_return_type
+          end
         end
 
         result
