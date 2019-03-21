@@ -11,7 +11,6 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.SourceIndexLength;
@@ -39,6 +38,7 @@ public class TranslatorEnvironment {
     private BreakID breakID;
 
     private final boolean ownScopeForAssignments;
+    /** Whether this is a lexical scope barrier (def, module, class) */
     private final boolean neverAssignInParentScope;
     private final boolean isModuleBody;
 
@@ -67,11 +67,8 @@ public class TranslatorEnvironment {
         this.breakID = breakID;
     }
 
-    public TranslatorEnvironment(RubyContext context, TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth, BreakID breakID) {
-        this(parent, parseEnvironment, returnID, ownScopeForAssignments, neverAssignInParentScope, isModuleBody, sharedMethodInfo, namedMethodName, blockDepth,
-                breakID, new FrameDescriptor(context.getCoreLibrary().getNil()));
+    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
+        return new FrameDescriptor(context.getCoreLibrary().getNil());
     }
 
     public boolean isDynamicConstantLookup() {
@@ -109,18 +106,18 @@ public class TranslatorEnvironment {
         return getFrameDescriptor().findOrAddFrameSlot(name);
     }
 
-    public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, Source source, SourceIndexLength sourceSection) {
-        ReadLocalNode localVar = findLocalVarNode(name, source, sourceSection);
+    public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
+        ReadLocalNode localVar = findLocalVarNode(name, sourceSection);
 
         if (localVar == null) {
             declareVar(name);
-            localVar = findLocalVarNode(name, source, sourceSection);
+            localVar = findLocalVarNode(name, sourceSection);
         }
 
         return localVar;
     }
 
-    public ReadLocalNode findLocalVarNode(String name, Source source, SourceIndexLength sourceSection) {
+    public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
         TranslatorEnvironment current = this;
         int level = 0;
 
@@ -137,6 +134,11 @@ public class TranslatorEnvironment {
 
                 node.unsafeSetSourceSection(sourceSection);
                 return node;
+            }
+
+            if (current.neverAssignInParentScope) {
+                // Do not try to look above scope barriers (def, module)
+                return null;
             }
 
             current = current.parent;

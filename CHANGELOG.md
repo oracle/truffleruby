@@ -6,8 +6,8 @@ New features:
 
 Changes:
 
-* `debug`, `profile`, `profiler`, `shell`, which were already marked as
-  unsupported, have been removed.
+* `debug`, `profile`, `profiler`, which were already marked as unsupported,
+  have been removed.
 * Our experimental JRuby-compatible Java interop has been removed - use
   `Polyglot` and `Java` instead.
 
@@ -15,6 +15,9 @@ Bug fixes:
 
 * `autoload :C, "path"; require "path"` now correctly triggers the autoload.
 * Fixed `UDPSocket#bind` to specify family and socktype when resolving address.
+* The `shell` standard library can now be `require`-d.
+* Fixed a bug where `for` could result in a `NullPointerException` when trying
+  to assign the iteration variable.
 
 # 1.0 RC 14
 

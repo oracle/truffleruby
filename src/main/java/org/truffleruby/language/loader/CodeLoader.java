@@ -12,7 +12,6 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -38,25 +37,14 @@ public class CodeLoader {
         this.context = context;
     }
 
-    // Additional argument: a FrameDescriptor
     @TruffleBoundary
     public RubyRootNode parse(RubySource source,
                               ParserContext parserContext,
-                              FrameDescriptor frameDescriptor,
                               MaterializedFrame parentFrame,
                               boolean ownScopeForAssignments,
                               Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
-        return translator.parse(source, parserContext, null, frameDescriptor, parentFrame, ownScopeForAssignments, currentNode);
-    }
-
-    @TruffleBoundary
-    public RubyRootNode parse(RubySource source,
-                              ParserContext parserContext,
-                              MaterializedFrame parentFrame,
-                              boolean ownScopeForAssignments,
-                              Node currentNode) {
-        return parse(source, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
+        return translator.parse(source, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary

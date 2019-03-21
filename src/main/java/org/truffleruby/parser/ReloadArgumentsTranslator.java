@@ -129,13 +129,13 @@ public class ReloadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitArgumentNode(ArgumentParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), source, sourceSection);
+        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
     }
 
     @Override
     public RubyNode visitOptArgNode(OptArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), source, sourceSection);
+        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class ReloadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitRestArgNode(RestArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), source, sourceSection);
+        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
     }
 
     @Override
@@ -154,13 +154,13 @@ public class ReloadArgumentsTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
         final AssignableParseNode asgnNode = node.getAssignable();
         final String name = ((INameNode) asgnNode).getName();
-        return methodBodyTranslator.getEnvironment().findLocalVarNode(name, source, sourceSection);
+        return methodBodyTranslator.getEnvironment().findLocalVarNode(name, sourceSection);
     }
 
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), source, sourceSection);
+        return methodBodyTranslator.getEnvironment().findLocalVarNode(node.getName(), sourceSection);
     }
 
     @Override
