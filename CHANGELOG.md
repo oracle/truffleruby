@@ -10,9 +10,11 @@ Changes:
   unsupported, have been removed.
 * Our experimental JRuby-compatible Java interop has been removed - use
   `Polyglot` and `Java` instead.
+
 Bug fixes:
 
 * `autoload :C, "path"; require "path"` now correctly triggers the autoload.
+* Fixed `UDPSocket#bind` to specify family and socktype when resolving address.
 
 # 1.0 RC 14
 
