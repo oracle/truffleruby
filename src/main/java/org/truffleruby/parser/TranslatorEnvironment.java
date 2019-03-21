@@ -38,6 +38,7 @@ public class TranslatorEnvironment {
     private BreakID breakID;
 
     private final boolean ownScopeForAssignments;
+    /** Whether this is a lexical scope barrier (def, module, class) */
     private final boolean neverAssignInParentScope;
     private final boolean isModuleBody;
 

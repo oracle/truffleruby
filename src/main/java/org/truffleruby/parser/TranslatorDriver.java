@@ -379,7 +379,7 @@ public class TranslatorDriver {
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             // TODO(CS): how do we know if the frame is a block or not?
             return new TranslatorEnvironment(environmentForFrame(context, parent), parseEnvironment, parseEnvironment.allocateReturnID(),
-                    true, true, false,
+                    true, false, false,
                     sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frame.getFrameDescriptor());
         }
     }
