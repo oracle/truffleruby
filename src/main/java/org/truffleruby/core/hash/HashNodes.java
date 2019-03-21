@@ -427,6 +427,8 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
+        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
+
         @Specialization(guards = "isNullHash(hash)")
         public DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
             return hash;
@@ -475,7 +477,12 @@ public abstract class HashNodes {
         }
 
         private Object yieldPair(DynamicObject block, Object key, Object value) {
-            return yield(block, createArray(new Object[]{key, value}, 2));
+            // MRI behavior, see rb_hash_each_pair()
+            if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
+                return yield(block, key, value);
+            } else {
+                return yield(block, createArray(new Object[]{key, value}, 2));
+            }
         }
 
     }
