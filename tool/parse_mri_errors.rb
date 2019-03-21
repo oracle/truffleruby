@@ -8,6 +8,8 @@
 # cd test/mri
 # ruby ../../tool/parse_mri_errors.rb output.txt
 
+REASON = ENV.fetch('REASON', 'needs investigation')
+
 contents = ARGF.read
 
 load_error_output = "0 tests, 0 assertions, 0 failures, 0 errors, 0 skips"
@@ -52,7 +54,7 @@ contents.scan(t) do |class_name, test_method, result|
   unless result == "."
     FileUtils.mkdir_p(File.dirname(file))
     File.open(file, 'a') do |f|
-      f.puts "exclude #{test_method.strip.to_sym.inspect}, \"needs investigation\""
+      f.puts "exclude #{test_method.strip.to_sym.inspect}, #{REASON.inspect}"
     end
   end
 end
