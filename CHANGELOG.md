@@ -14,6 +14,11 @@ Bug fixes:
 
 * `autoload :C, "path"; require "path"` now correctly triggers the autoload.
 
+Compatibility:
+
+* Yield different number of arguments for `Hash#each` and `Hash#each_pair` based
+  on the block arity like MRI (#1629).
+
 # 1.0 RC 14
 
 Updated to Ruby 2.6.2.
