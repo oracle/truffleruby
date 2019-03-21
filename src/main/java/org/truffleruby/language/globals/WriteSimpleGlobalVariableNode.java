@@ -1,7 +1,5 @@
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
