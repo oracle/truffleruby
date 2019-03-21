@@ -556,7 +556,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + { timelimit: "40:00" },
+      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + { timelimit: "45:00" },
       "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
     } +
