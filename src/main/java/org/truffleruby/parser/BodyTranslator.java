@@ -1518,9 +1518,14 @@ public class BodyTranslator extends Translator {
         final CallParseNode callNode = new CallParseNode(node.getPosition(), receiver, "each", null, block);
         copyNewline(node, callNode);
 
-        translatingForStatement = true;
-        final RubyNode translated = callNode.accept(this);
-        translatingForStatement = false;
+        final RubyNode translated;
+        final boolean translatingForStatement = this.translatingForStatement;
+        this.translatingForStatement = true;
+        try {
+            translated = callNode.accept(this);
+        } finally {
+            this.translatingForStatement = translatingForStatement;
+        }
 
         return addNewlineIfNeeded(node, translated);
     }
