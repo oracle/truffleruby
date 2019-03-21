@@ -136,6 +136,11 @@ public class TranslatorEnvironment {
                 return node;
             }
 
+            if (current.neverAssignInParentScope) {
+                // Do not try to look above scope barriers (def, module)
+                return null;
+            }
+
             current = current.parent;
             level++;
         }
