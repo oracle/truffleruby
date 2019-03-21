@@ -9,22 +9,22 @@
 # Beware, RubyDebugTest use hard-coded line numbers from this file!
 
 def temperature_in_city(name)
-    cityArray = name.bytes
-    citySum = cityArray.reduce(0, :+)
-    weatherTemperature = citySum.modulo(36)
-    blt = true
-    blf = false
-    null = nil
-    nm1 = 1
-    nm11 = 1.111
-    nme = 35e45
-    nc = 2 + 3i
-    nr = Rational(0.3)
-    str = "A String"
-    symbol = :symbolic
-    arr = [1, '2', 3.56, blt, nil, str]
-    hash = {:a => 1, "b" => 2}
-    nme + nm1
+  cityArray = name.bytes
+  citySum = cityArray.reduce(0, :+)
+  weatherTemperature = citySum.modulo(36)
+  blt = true
+  blf = false
+  null = nil
+  nm1 = 1
+  nm11 = 1.111
+  nme = 35e45
+  nc = 2 + 3i
+  nr = Rational(0.3)
+  str = 'A String'
+  symbol = :symbolic
+  arr = [1, '2', 3.56, blt, nil, str]
+  hash = {:a => 1, 'b' => 2}
+  nme + nm1
 end
 
-temperature_in_city("Panama")
+temperature_in_city('Panama')
