@@ -1,4 +1,0 @@
-darwin:UDPSocket#send sends data in ad hoc mode
-darwin:UDPSocket#send sends data in ad hoc mode (with port given as a String)
-darwin:UDPSocket#send sends data in connection mode
-darwin:UDPSocket#send raises EMSGSIZE if data is too too big
