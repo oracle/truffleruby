@@ -188,6 +188,9 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
   ]
 
   module Kernel
+    alias_method :mspec_old_system, :system
+    private :mspec_old_system
+
     alias_method :"mspec_old_`", :`
     private :"mspec_old_`"
   end
