@@ -50,7 +50,7 @@ yaml_emitter_flush(yaml_emitter_t *emitter)
 
     if (emitter->encoding == YAML_UTF8_ENCODING)
     {
-        if (((yaml_write_handler_t *)emitter->write_handler)(truffle_managed_from_handle(emitter->write_handler_data),
+        if (emitter->write_handler(emitter->write_handler_data,
                     emitter->buffer.start,
                     emitter->buffer.last - emitter->buffer.start)) {
             emitter->buffer.last = emitter->buffer.start;
@@ -125,7 +125,7 @@ yaml_emitter_flush(yaml_emitter_t *emitter)
 
     /* Write the raw buffer. */
 
-        if (((yaml_write_handler_t *)emitter->write_handler)(truffle_managed_from_handle(emitter->write_handler_data),
+    if (emitter->write_handler(emitter->write_handler_data,
                 emitter->raw_buffer.start,
                 emitter->raw_buffer.last - emitter->raw_buffer.start)) {
         emitter->buffer.last = emitter->buffer.start;
