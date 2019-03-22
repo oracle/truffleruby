@@ -998,9 +998,11 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$0',
-  -> { Truffle::KernelOperations.global_variable_get(:'$0') },
-  -> v { v = StringValue(v)
-         Process.setproctitle(v)
-         Truffle::KernelOperations.global_variable_set(:'$0', v) })
+  -> { Truffle.invoke_primitive :global_variable_get, :'$0' },
+  -> v {
+    v = StringValue(v)
+    Process.setproctitle(v)
+    Truffle.invoke_primitive :global_variable_set, :'$0', v
+  })
 
 alias $PROGRAM_NAME $0

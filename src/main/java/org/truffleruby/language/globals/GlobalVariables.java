@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -24,54 +23,56 @@ public class GlobalVariables {
 
     private final DynamicObject defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
-    private final Map<String, String> aliases = new ConcurrentHashMap<>();
 
     public GlobalVariables(DynamicObject defaultValue) {
         this.defaultValue = defaultValue;
     }
 
-    public String getOriginalName(String name) {
-        return aliases.getOrDefault(name, name);
-    }
-
+    /**
+     * The returned storage must be checked if it is still valid with
+     * {@link GlobalVariableStorage#getValidAssumption()}. A storage
+     * becomes invalid when it is aliased and therefore the storage
+     * instance needs to change.
+     */
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
-        final String originalName = getOriginalName(name);
-        return ConcurrentOperations.getOrCompute(variables, originalName,
+        return ConcurrentOperations.getOrCompute(variables, name,
                 k -> new GlobalVariableStorage(defaultValue, null, null, null));
     }
 
-    public GlobalVariableStorage put(String name, Object value) {
-        assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(value, defaultValue, null, null, null);
-        variables.put(name, storage);
-        return storage;
+    public GlobalVariableReader getReader(String name) {
+        return new GlobalVariableReader(this, name);
     }
 
-    public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-        assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(defaultValue, getter, setter, isDefined);
-        variables.put(name, storage);
-        return storage;
+    public GlobalVariableStorage define(String name, Object value) {
+        return define(name, new GlobalVariableStorage(value, defaultValue, null, null, null));
     }
 
-    @TruffleBoundary
-    public boolean contains(String name) {
-        return variables.containsKey(name);
+    public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+        return define(name, new GlobalVariableStorage(defaultValue, getter, setter, isDefined));
+    }
+
+    private GlobalVariableStorage define(String name, GlobalVariableStorage storage) {
+        final GlobalVariableStorage previous = variables.putIfAbsent(name, storage);
+        if (previous != null) {
+            throw new IllegalArgumentException("Global variable $" + name + " is already defined");
+        }
+        return storage;
     }
 
     @TruffleBoundary
     public void alias(String oldName, String newName) {
-        // Record an alias of an alias against the original.
-        oldName = aliases.getOrDefault(oldName, oldName);
-        aliases.put(newName, oldName);
         final GlobalVariableStorage storage = getStorage(oldName);
-        variables.put(newName, storage);
+
+        final GlobalVariableStorage previousStorage = variables.put(newName, storage);
+        if (previousStorage != null) {
+            previousStorage.getValidAssumption().invalidate();
+        }
     }
 
     @TruffleBoundary
-    public Collection<String> keys() {
-        return variables.keySet();
+    public String[] keys() {
+        return variables.keySet().toArray(new String[0]);
     }
 
     @TruffleBoundary

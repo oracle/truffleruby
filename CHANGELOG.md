@@ -18,6 +18,7 @@ Bug fixes:
 * The `shell` standard library can now be `require`-d.
 * Fixed a bug where `for` could result in a `NullPointerException` when trying
   to assign the iteration variable.
+* Existing global variables can now become aliases of other global variables (#1590).
 
 # 1.0 RC 14
 

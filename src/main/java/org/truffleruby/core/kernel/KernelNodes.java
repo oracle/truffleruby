@@ -144,7 +144,6 @@ import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -1769,20 +1768,18 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_global_variables", needsSelf = false)
-    public abstract static class KernelGlobalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "global_variables", isModuleFunction = true)
+    public abstract static class KernelGlobalVariablesNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
         public DynamicObject globalVariables() {
-            final Collection<String> keys = coreLibrary().getGlobalVariables().keys();
-            final Object[] store = new Object[keys.size()];
-            int i = 0;
-            for (String key : keys) {
-                store[i] = getSymbol(key);
-                i++;
+            final String[] keys = coreLibrary().getGlobalVariables().keys();
+            final Object[] store = new Object[keys.length];
+            for (int i = 0; i < keys.length; i++) {
+                store[i] = getSymbol(keys[i]);
             }
-            return createArray(store, store.length);
+            return createArray(store);
         }
 
     }

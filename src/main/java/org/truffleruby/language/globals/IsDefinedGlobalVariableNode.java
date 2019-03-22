@@ -32,7 +32,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
 
     public abstract Object executeIsDefined(VirtualFrame frame);
 
-    @Specialization(guards = "storage.isSimple()")
+    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
     public Object executeDefined(
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (storage.isDefined()) {
@@ -42,7 +42,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" }, assumptions = "storage.getValidAssumption()")
     public Object executeDefinedHooks(
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
@@ -50,7 +50,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
         return yieldNode.dispatch(storage.getIsDefined());
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
     public Object executeDefinedHooksWithBinding(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,

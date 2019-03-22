@@ -57,7 +57,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
-import org.truffleruby.language.globals.GlobalVariableStorage;
+import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
@@ -217,12 +217,12 @@ public class CoreLibrary {
     @CompilationFinal private SharedMethodInfo kernelPublicSendInfo;
     @CompilationFinal private SharedMethodInfo truffleBootMainInfo;
 
-    @CompilationFinal private GlobalVariableStorage loadPathStorage;
-    @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
-    @CompilationFinal private GlobalVariableStorage debugStorage;
-    @CompilationFinal private GlobalVariableStorage verboseStorage;
-    @CompilationFinal private GlobalVariableStorage stdinStorage;
-    @CompilationFinal private GlobalVariableStorage stderrStorage;
+    @CompilationFinal private GlobalVariableReader loadPathReader;
+    @CompilationFinal private GlobalVariableReader loadedFeaturesReader;
+    @CompilationFinal private GlobalVariableReader debugReader;
+    @CompilationFinal private GlobalVariableReader verboseReader;
+    @CompilationFinal private GlobalVariableReader stdinReader;
+    @CompilationFinal private GlobalVariableReader stderrReader;
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
@@ -672,13 +672,12 @@ public class CoreLibrary {
     }
 
     private void findGlobalVariableStorage() {
-        GlobalVariables globals = globalVariables;
-        loadPathStorage = globals.getStorage("$LOAD_PATH");
-        loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
-        debugStorage = globals.getStorage("$DEBUG");
-        verboseStorage = globals.getStorage("$VERBOSE");
-        stdinStorage = globals.getStorage("$stdin");
-        stderrStorage = globals.getStorage("$stderr");
+        loadPathReader = globalVariables.getReader("$LOAD_PATH");
+        loadedFeaturesReader = globalVariables.getReader("$LOADED_FEATURES");
+        debugReader = globalVariables.getReader("$DEBUG");
+        verboseReader = globalVariables.getReader("$VERBOSE");
+        stdinReader = globalVariables.getReader("$stdin");
+        stderrReader = globalVariables.getReader("$stderr");
     }
 
     private void initializeConstants() {
@@ -1094,24 +1093,24 @@ public class CoreLibrary {
     }
 
     public DynamicObject getLoadPath() {
-        return (DynamicObject) loadPathStorage.getValue();
+        return (DynamicObject) loadPathReader.getValue(globalVariables);
     }
 
     public DynamicObject getLoadedFeatures() {
-        return (DynamicObject) loadedFeaturesStorage.getValue();
+        return (DynamicObject) loadedFeaturesReader.getValue(globalVariables);
     }
 
     public Object getDebug() {
-        if (debugStorage != null) {
-            return debugStorage.getValue();
+        if (debugReader != null) {
+            return debugReader.getValue(globalVariables);
         } else {
             return context.getOptions().DEBUG;
         }
     }
 
     private Object verbosity() {
-        if (verboseStorage != null) {
-            return verboseStorage.getValue();
+        if (verboseReader != null) {
+            return verboseReader.getValue(globalVariables);
         } else {
             return verbosityOption();
         }
@@ -1128,11 +1127,11 @@ public class CoreLibrary {
     }
 
     public Object getStdin() {
-        return stdinStorage.getValue();
+        return stdinReader.getValue(globalVariables);
     }
 
     public Object getStderr() {
-        return stderrStorage.getValue();
+        return stderrReader.getValue(globalVariables);
     }
 
     public DynamicObject getMainObject() {

@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
@@ -18,18 +19,17 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
@@ -104,49 +104,29 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "global_variable_set", isModuleFunction = true, required = 2)
+    // Only used internally with a constant literal name, does not trigger hooks
+    @Primitive(name = "global_variable_set")
+    @ImportStatic(Layouts.class)
     public abstract static class WriteGlobalVariableNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object write(DynamicObject name, Object value,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("create(getStorage(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
+                @Cached("create(SYMBOL.getString(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
             return writeNode.execute(value);
-        }
-
-        @Specialization(guards = "isRubySymbol(name)")
-        @TruffleBoundary
-        public Object writeGeneric(DynamicObject name, Object value,
-                @Cached("create()") WriteBarrierNode writeBarrierNode) {
-            GlobalVariableStorage storage = getStorage(name);
-            if (getContext().getSharedObjects().isSharing()) {
-                writeBarrierNode.executeWriteBarrier(value);
-            }
-            storage.setValueInternal(value);
-            return value;
-        }
-
-        protected GlobalVariableStorage getStorage(DynamicObject name) {
-            return getContext().getCoreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
     }
 
-    @CoreMethod(names = "global_variable_get", isModuleFunction = true, required = 1)
+    // Only used internally with a constant literal name, does not trigger hooks
+    @Primitive(name = "global_variable_get")
+    @ImportStatic(Layouts.class)
     public abstract static class ReadGlobalVariableNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object read(DynamicObject name,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("create(getStorage(cachedName))") ReadSimpleGlobalVariableNode readNode) {
+                @Cached("create(SYMBOL.getString(cachedName))") ReadSimpleGlobalVariableNode readNode) {
             return readNode.execute();
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(name)", replaces = "read")
-        public Object readGeneric(DynamicObject name) {
-            return getStorage(name).getValue();
-        }
-
-        protected GlobalVariableStorage getStorage(DynamicObject name) {
-            return getContext().getCoreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
     }
 
@@ -156,7 +136,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
         public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
+            getContext().getCoreLibrary().getGlobalVariables().define(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
             return nil();
         }
 

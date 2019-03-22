@@ -21,20 +21,21 @@ import org.truffleruby.language.yield.YieldNode;
 
 public abstract class ReadGlobalVariableNode extends RubyNode {
 
-    private final String name;
+    protected final String name;
     @Child private IsDefinedGlobalVariableNode definedNode;
 
     public ReadGlobalVariableNode(String name) {
         this.name = name;
     }
 
-    @Specialization(guards = "storage.isSimple()")
-    public Object read(@Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("create(storage)") ReadSimpleGlobalVariableNode simpleNode) {
+    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
+    public Object read(
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("create(name)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" }, assumptions = "storage.getValidAssumption()")
     public Object readHooks(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
@@ -42,7 +43,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
         return yieldNode.dispatch(storage.getGetter());
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
     public Object readHooksWithBinding(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
