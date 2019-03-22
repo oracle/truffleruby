@@ -9,9 +9,19 @@
  */
 package org.truffleruby.processor;
 
-import org.truffleruby.PopulateBuildInformation;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -21,13 +31,8 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.truffleruby.PopulateBuildInformation;
 
 @SupportedAnnotationTypes("org.truffleruby.PopulateBuildInformation")
 public class BuildInformationProcessor extends AbstractProcessor {
@@ -36,21 +41,51 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
     private final Set<String> processed = new HashSet<>();
 
+    private File trufflerubyHome;
     private String rubyVersion;
     private String rubyBaseVersion;
     private int rubyRevision;
     private String revision;
     private String compileDate;
 
-    public BuildInformationProcessor() {
+    @Override
+    public synchronized void init(ProcessingEnvironment env) {
+        super.init(env);
         try {
-            rubyVersion = runCommand("../../../tool/query-versions-json.rb ruby.version");
-            rubyBaseVersion = runCommand("../../../tool/query-versions-json.rb ruby.base");
-            rubyRevision = Integer.parseInt(runCommand("../../../tool/query-versions-json.rb ruby.revision"));
+            trufflerubyHome = findHome();
+            rubyVersion = runCommand("tool/query-versions-json.rb ruby.version");
+            rubyBaseVersion = runCommand("tool/query-versions-json.rb ruby.base");
+            rubyRevision = Integer.parseInt(runCommand("tool/query-versions-json.rb ruby.revision"));
             revision = runCommand("git rev-parse --short=8 HEAD");
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
-        } catch (Exception e) {
-            processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage());
+        } catch (Throwable e) {
+            env.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage());
+        }
+    }
+
+    private File findHome() throws URISyntaxException {
+        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            throw new RuntimeException("Could not find the source code for " + getClass());
+        }
+        File source = new File(codeSource.getLocation().toURI());
+        // this is probably `mxbuild/org.truffleruby.processor/bin` or `mxbuild/dists/jdk1.8/truffleruby-processor.jar`
+        // let's try to find `mxbuild`
+        while (!source.getName().equals("mxbuild")) {
+            source = source.getParentFile();
+            if (source == null) {
+                throw new RuntimeException("Could not find `mxbuild` in the source path for " + getClass() + ": " + codeSource.getLocation());
+            }
+        }
+        return source.getParentFile();
+    }
+
+    private String runCommand(String command) throws IOException {
+        final Process git = new ProcessBuilder(command.split("\\s+"))
+                        .directory(trufflerubyHome)
+                        .start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
+            return reader.readLine();
         }
     }
 
@@ -61,6 +96,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
+        assert isInitialized();
         if (!annotations.isEmpty()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(PopulateBuildInformation.class)) {
                 try {
@@ -89,14 +125,14 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
         try (PrintStream stream = new PrintStream(output.openOutputStream(), true, "UTF-8")) {
             stream.println("/*\n" +
-                    " * Copyright (c) " + Calendar.getInstance().get(Calendar.YEAR) + " Oracle and/or its affiliates. All rights reserved. This\n" +
-                    " * code is released under a tri EPL/GPL/LGPL license. You can use it,\n" +
-                    " * redistribute it and/or modify it under the terms of the:\n" +
-                    " *\n" +
-                    " * Eclipse Public License version 1.0, or\n" +
-                    " * GNU General Public License version 2, or\n" +
-                    " * GNU Lesser General Public License version 2.1.\n" +
-                    " */");
+                            " * Copyright (c) " + Calendar.getInstance().get(Calendar.YEAR) + " Oracle and/or its affiliates. All rights reserved. This\n" +
+                            " * code is released under a tri EPL/GPL/LGPL license. You can use it,\n" +
+                            " * redistribute it and/or modify it under the terms of the:\n" +
+                            " *\n" +
+                            " * Eclipse Public License version 1.0, or\n" +
+                            " * GNU General Public License version 2, or\n" +
+                            " * GNU Lesser General Public License version 2.1.\n" +
+                            " */");
             stream.println("package " + packageName + ";");
             stream.println();
             stream.println("// This file is automatically generated from versions.json");
@@ -153,14 +189,4 @@ public class BuildInformationProcessor extends AbstractProcessor {
             stream.println("}");
         }
     }
-
-    private String runCommand(String command) throws Exception {
-        final Process git = new ProcessBuilder(command.split("\\s+"))
-                .directory(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile())
-                .start();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
-            return reader.readLine();
-        }
-    }
-
 }
