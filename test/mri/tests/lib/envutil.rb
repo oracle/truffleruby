@@ -77,7 +77,7 @@ module EnvUtil
   module_function :apply_timeout_scale
 
   def invoke_ruby(args, stdin_data = "", capture_stdout = false, capture_stderr = false,
-                  encoding: nil, timeout: 15, reprieve: 1, timeout_error: Timeout::Error,
+                  encoding: nil, timeout: 20, reprieve: 1, timeout_error: Timeout::Error,
                   stdout_filter: nil, stderr_filter: nil,
                   signal: :TERM,
                   rubybin: EnvUtil.rubybin, precommand: nil,
