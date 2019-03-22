@@ -10,6 +10,9 @@ Changes:
   unsupported, have been removed.
 * Our experimental JRuby-compatible Java interop has been removed - use
   `Polyglot` and `Java` instead.
+* The Trufle handle patches applied to `psych` C extension have now been removed.
+* The `rb_tr_handle_*` functions have been removed as they are no
+  longer used in any C extension patches.
 
 Bug fixes:
 
