@@ -28,6 +28,7 @@ public class Arity {
     private final int postRequired;
     private final boolean hasKeywordsRest;
     private final String[] keywordArguments;
+    private final int arityNumber;
 
     public Arity(int preRequired, int optional, boolean hasRest) {
         this(preRequired, optional, hasRest, 0, NO_KEYWORDS, false);
@@ -41,6 +42,7 @@ public class Arity {
         this.postRequired = postRequired;
         this.keywordArguments = keywordArguments;
         this.hasKeywordsRest = hasKeywordsRest;
+        this.arityNumber = computeArityNumber();
 
         assert keywordArguments != null && preRequired >= 0 && optional >= 0 && postRequired >= 0 : toString();
     }
@@ -77,7 +79,7 @@ public class Arity {
         return hasKeywordsRest;
     }
 
-    public int getArityNumber() {
+    private int computeArityNumber() {
         int count = getRequired();
 
         if (acceptsKeywords()) {
@@ -89,6 +91,10 @@ public class Arity {
         }
 
         return count;
+    }
+
+    public int getArityNumber() {
+        return arityNumber;
     }
 
     public String[] getKeywordArguments() {

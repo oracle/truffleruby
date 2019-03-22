@@ -20,6 +20,11 @@ Bug fixes:
   to assign the iteration variable.
 * Existing global variables can now become aliases of other global variables (#1590).
 
+Compatibility:
+
+* Yield different number of arguments for `Hash#each` and `Hash#each_pair` based
+  on the block arity like MRI (#1629).
+
 # 1.0 RC 14
 
 Updated to Ruby 2.6.2.
