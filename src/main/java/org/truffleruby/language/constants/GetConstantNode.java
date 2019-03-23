@@ -60,9 +60,9 @@ public abstract class GetConstantNode extends RubyBaseNode {
     protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
-        final DynamicObject feature = autoloadConstant.getAutoloadPath();
+        final DynamicObject feature = autoloadConstant.getAutoloadConstant().getFeature();
 
-        if (autoloadConstant.isAutoloadingThread()) {
+        if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
             return doMissingConstant(module, name, getSymbol(name));
         }
@@ -70,7 +70,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         if (getContext().getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format("%s: autoloading %s with %s",
                     getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                    autoloadConstant, autoloadConstant.getAutoloadPath()));
+                    autoloadConstant, autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
 
         final Runnable require = () -> callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
@@ -82,7 +82,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
-        autoloadConstant.startAutoLoad();
+        autoloadConstant.getAutoloadConstant().startAutoLoad();
         try {
 
             // We need to notify cached lookup that we are autoloading the constant, as constant
@@ -110,7 +110,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
 
         } finally {
-            autoloadConstant.stopAutoLoad();
+            autoloadConstant.getAutoloadConstant().stopAutoLoad();
         }
     }
 

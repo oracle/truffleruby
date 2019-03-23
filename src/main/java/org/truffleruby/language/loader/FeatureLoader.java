@@ -82,7 +82,7 @@ public class FeatureLoader {
     }
 
     public void addAutoload(RubyConstant autoloadConstant) {
-        final String autoloadPath = StringOperations.getString(autoloadConstant.getAutoloadPath());
+        final String autoloadPath = autoloadConstant.getAutoloadConstant().getAutoloadPath();
         final String basename = basenameWithoutExtension(autoloadPath);
 
         registeredAutoloadsLock.lock();
@@ -110,7 +110,7 @@ public class FeatureLoader {
         }
 
         for (RubyConstant constant : constants) {
-            final String expandedAutoloadPath = findFeature(StringOperations.getString(constant.getAutoloadPath()));
+            final String expandedAutoloadPath = findFeature(constant.getAutoloadConstant().getAutoloadPath());
             if (expandedPath.equals(expandedAutoloadPath)) {
                 return constant;
             }
@@ -119,7 +119,7 @@ public class FeatureLoader {
     }
 
     public void removeAutoload(RubyConstant constant) {
-        final String autoloadPath = StringOperations.getString(constant.getAutoloadPath());
+        final String autoloadPath = constant.getAutoloadConstant().getAutoloadPath();
         final String basename = basenameWithoutExtension(autoloadPath);
 
         registeredAutoloadsLock.lock();

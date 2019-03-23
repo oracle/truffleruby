@@ -112,7 +112,7 @@ public abstract class RequireNode extends RubyBaseNode {
         final RubyConstant autoloadConstant = featureLoader.isAutoloadPath(expandedPath);
         if (autoloadConstant != null &&
                 // Do not autoload recursively from the #require call in GetConstantNode
-                !autoloadConstant.isAutoloading()) {
+                !autoloadConstant.getAutoloadConstant().isAutoloading()) {
             if (getConstantNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 getConstantNode = insert(GetConstantNode.create());
@@ -125,7 +125,7 @@ public abstract class RequireNode extends RubyBaseNode {
             if (getContext().getOptions().LOG_AUTOLOAD) {
                 RubyLanguage.LOGGER.info(() -> String.format("%s: requiring %s which is registered as an autoload for %s with %s",
                         getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                        feature, autoloadConstant, autoloadConstant.getAutoloadPath()));
+                        feature, autoloadConstant, autoloadConstant.getAutoloadConstant().getAutoloadPath()));
             }
 
             boolean[] result = new boolean[1];
