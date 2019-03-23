@@ -130,7 +130,11 @@ public abstract class RequireNode extends RubyBaseNode {
 
             boolean[] result = new boolean[1];
             Runnable require = () -> result[0] = doRequire(feature, expandedPath, pathString);
-            getConstantNode.autoloadConstant(LexicalScope.IGNORE, autoloadConstant.getDeclaringModule(), autoloadConstant.getName(), autoloadConstant, lookupConstantNode, require);
+            try {
+                getConstantNode.autoloadConstant(LexicalScope.IGNORE, autoloadConstant.getDeclaringModule(), autoloadConstant.getName(), autoloadConstant, lookupConstantNode, require);
+            } finally {
+                featureLoader.removeAutoload(autoloadConstant);
+            }
             return result[0];
         } else {
             return doRequire(feature, expandedPath, pathString);

@@ -82,12 +82,13 @@ public class FeatureLoader {
     }
 
     public void addAutoload(RubyConstant autoloadConstant) {
-        final String basename = basenameWithoutExtension(StringOperations.getString(autoloadConstant.getAutoloadPath()));
+        final String autoloadPath = StringOperations.getString(autoloadConstant.getAutoloadPath());
+        final String basename = basenameWithoutExtension(autoloadPath);
 
         registeredAutoloadsLock.lock();
         try {
             final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new HashMap<>());
-            constants.put(StringOperations.getString(autoloadConstant.getAutoloadPath()), autoloadConstant);
+            constants.put(autoloadPath, autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
         }
@@ -115,6 +116,19 @@ public class FeatureLoader {
             }
         }
         return null;
+    }
+
+    public void removeAutoload(RubyConstant constant) {
+        final String autoloadPath = StringOperations.getString(constant.getAutoloadPath());
+        final String basename = basenameWithoutExtension(autoloadPath);
+
+        registeredAutoloadsLock.lock();
+        try {
+            final Map<String, RubyConstant> constantsMap = registeredAutoloads.get(basename);
+            constantsMap.remove(autoloadPath, constant);
+        } finally {
+            registeredAutoloadsLock.unlock();
+        }
     }
 
     private String basenameWithoutExtension(String path) {
