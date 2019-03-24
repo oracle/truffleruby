@@ -76,7 +76,7 @@ archive_basename="truffleruby-$version-$os-$arch"
 
 release_home="$PREFIX/$archive_basename"
 # Rename the Ruby standalone distribution created by the vm suite
-cp -R mxbuild/$os-$arch/RUBY_STANDALONE_SVM/* "$release_home"
+cp -R mxbuild/$os-$arch/RUBY_STANDALONE_SVM*/* "$release_home"
 
 # Create archive
 cd "$PREFIX"
