@@ -52,10 +52,9 @@ cd "$PREFIX/build"
 test -d truffleruby || git clone "$original_repo" truffleruby
 
 # Shortcut when running the script locally
-if [ -d "$original_repo/../graal" ] && [ -d "$original_repo/../sulong" ]; then
+if [ -d "$original_repo/../graal" ]; then
   # Building locally (not in CI), copy from local repositories to gain time
   test -d graal || git clone "$original_repo/../graal" graal
-  test -d sulong || git clone "$original_repo/../sulong" sulong
 fi
 
 mx -p truffleruby sforceimports
@@ -77,7 +76,7 @@ archive_basename="truffleruby-$version-$os-$arch"
 
 release_home="$PREFIX/$archive_basename"
 # Rename the Ruby standalone distribution created by the vm suite
-cp -R mxbuild/$os-$arch/RUBY_STANDALONE_SVM/* "$release_home"
+cp -R mxbuild/$os-$arch/RUBY_STANDALONE_SVM*/* "$release_home"
 
 # Create archive
 cd "$PREFIX"
