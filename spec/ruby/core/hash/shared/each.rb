@@ -28,11 +28,11 @@ describe :hash_each, shared: true do
     end
 
     ScratchPad.record([])
-    { "a" => 1 }.each(&obj.method(:foo))
+    { "a" => 1 }.send(@method, &obj.method(:foo))
     ScratchPad.recorded.should == ["a", 1]
 
     ScratchPad.record([])
-    { "a" => 1 }.each(&-> key, value { ScratchPad << key << value })
+    { "a" => 1 }.send(@method, &-> key, value { ScratchPad << key << value })
     ScratchPad.recorded.should == ["a", 1]
   end
 
