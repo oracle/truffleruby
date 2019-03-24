@@ -396,17 +396,13 @@ local part_definitions = {
     },
 
     lint: {
-      downloads+: {
-        JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
-      },
       packages+: {
         ruby: ">=2.1.0",
       },
       run+: [
-        # Build with ECJ to get warnings
         ["mx", "sversions"],
       ] + self.before_build + [
-        ["mx", "build", "--jdt", "$JDT"],
+        ["mx", "build", "--warning-as-error", "--force-deprecation-as-warning"],
       ] + jt(["lint"]) + self.after_build,
     },
 
