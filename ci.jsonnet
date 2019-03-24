@@ -406,7 +406,7 @@ local part_definitions = {
         # Build with ECJ to get warnings
         ["mx", "sversions"],
       ] + self.before_build + [
-        ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
+        ["mx", "build", "--jdt", "$JDT"],
       ] + jt(["lint"]) + self.after_build,
     },
 
