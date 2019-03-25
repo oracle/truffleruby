@@ -385,7 +385,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   }
 
   if (argn < argc) {
-	rb_error_arity(argc, pre, rest ? UNLIMITED_ARGUMENTS : pre + optional);
+	rb_error_arity(argc, n_mand, rest ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
   }
 
   return argc;
