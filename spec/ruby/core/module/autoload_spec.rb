@@ -274,6 +274,29 @@ describe "Module#autoload" do
     end
   end
 
+  describe "after the autoload is triggered by require" do
+    before :each do
+      @path = tmp("autoload.rb")
+    end
+
+    after :each do
+      rm_r @path
+    end
+
+    it "the mapping feature to autoload is removed, and a new autoload with the same path is considered" do
+      ModuleSpecs::Autoload.autoload :RequireMapping1, @path
+      touch(@path) { |f| f.puts "ModuleSpecs::Autoload::RequireMapping1 = 1" }
+      ModuleSpecs::Autoload::RequireMapping1.should == 1
+
+      $LOADED_FEATURES.delete(@path)
+      ModuleSpecs::Autoload.autoload :RequireMapping2, @path[0...-3]
+      touch(@path) { |f| f.puts "ModuleSpecs::Autoload::RequireMapping2 = 2" }
+      ModuleSpecs::Autoload::RequireMapping2.should == 2
+
+      ModuleSpecs::Autoload.send :remove_const, :RequireMapping2
+    end
+  end
+
   describe "during the autoload before the constant is assigned" do
     before :each do
       @path = fixture(__FILE__, "autoload_during_autoload.rb")
