@@ -17,10 +17,12 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.WrapNodeGen;
@@ -315,6 +317,8 @@ public class FeatureLoader {
             Metrics.printTime("before-load-cext-support");
             try {
                 requireNode.executeRequire("truffle/cext");
+                final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
+                final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
                 final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
                 final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
@@ -324,7 +328,7 @@ public class FeatureLoader {
                 final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
                 final Node executeInitNode = Message.EXECUTE.createNode();
                 try {
-                    ForeignAccess.sendExecute(executeInitNode, initFunction);
+                    ForeignAccess.sendExecute(executeInitNode, initFunction, truffleCExt);
                 } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                     throw new JavaException(e);
                 }
