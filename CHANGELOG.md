@@ -1,5 +1,9 @@
 # 1.0 RC 15
 
+Bug fixes:
+
+* Improved compatibility with MRI's `Float#to_s` formatting (#1626).
+
 New features:
 
 * `Process.clock_getres` has been implemented.

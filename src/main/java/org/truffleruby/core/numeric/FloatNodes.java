@@ -708,11 +708,17 @@ public abstract class FloatNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject toS(double value) {
+            /*
+             * Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's
+             * possibly still not entirely correct. JRuby seems to be correct, but their logic is tied up in their
+             * printf implementation. Also see our FormatFloatNode, which I suspect is also deficient or under-tested.
+             */
+
             if (Double.isInfinite(value) || Double.isNaN(value)) {
                 return makeStringNode.executeMake(Double.toString(value), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
             }
 
-            String str = StringUtils.format(Locale.ENGLISH, "%.15g", value);
+            String str = StringUtils.format(Locale.ENGLISH, "%.17g", value);
 
             // If no dot, add one to show it's a floating point number
             if (str.indexOf('.') == -1) {
@@ -733,7 +739,23 @@ public abstract class FloatNodes {
                 i--;
             }
 
-            final String formatted = str.substring(0, i + 1) + str.substring(start, str.length());
+            String formatted = str.substring(0, i + 1) + str.substring(start);
+
+            int wholeDigits = 0;
+            int n = 0;
+
+            if (formatted.charAt(0) == '-') {
+                n++;
+            }
+
+            while (formatted.charAt(n) != '.') {
+                wholeDigits++;
+                n++;
+            }
+
+            if (wholeDigits >= 16) {
+                formatted = StringUtils.format(Locale.ENGLISH, "%.1e", value);
+            }
 
             return makeStringNode.executeMake(formatted, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
