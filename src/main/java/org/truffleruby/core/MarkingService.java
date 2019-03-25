@@ -79,6 +79,11 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
         @Override
         protected void processReference(ProcessingReference<?> reference) {
+            /*
+             * We need to keep all the objects that might be marked
+             * alive during the marking process itself, so we add the
+             * arrays to a list to achieve this.
+             */
             ArrayList<Object[]> keptObjectLists = new ArrayList<>();
             Object[] list;
             while (true) {
@@ -189,6 +194,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
          *    We can just copy its contents into our buffer.
          * 4. The other buffer will not fit into our buffer. We need to copy across as much as will
          *    fit, queue the now full buffer, and then copy the rest.
+         *
+         * We do this rather than simply add the threads objects to
+         * the queue because we want to avoid increasing the marking
+         * overhead unnecessarily.
          */
         public void keepObjects(MarkerKeptObjects otherObjects) {
             if (isFull()) {
@@ -273,6 +282,13 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
     public void queueForMarking(Object[] objects) {
         keptObjectQueue.add(objects);
         runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
+    }
+
+    /*
+     * Convenience method to schedule marking now. Puts an empty array on the queue.
+     */
+    public void queueMarking() {
+        queueForMarking(new Object[0]);
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {

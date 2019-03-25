@@ -109,7 +109,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject vmGCStart() {
-            getContext().getMarkingService().queueForMarking(new Object[0]);
+            getContext().getMarkingService().queueMarking();
             System.gc();
             return nil();
         }
