@@ -154,7 +154,7 @@ public class FeatureLoader {
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
         if (address == 0) {
-            throw new UnsupportedOperationException("getcwd() failed");
+            context.send(context.getCoreLibrary().getErrnoModule(), "handle");
         }
         final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
         final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();

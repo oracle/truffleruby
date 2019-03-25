@@ -1088,6 +1088,10 @@ public class CoreLibrary {
         return kernelModule;
     }
 
+    public DynamicObject getErrnoModule() {
+        return errnoModule;
+    }
+
     public GlobalVariables getGlobalVariables() {
         return globalVariables;
     }
