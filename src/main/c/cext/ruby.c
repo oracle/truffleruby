@@ -67,7 +67,7 @@ static int rb_tr_fprintf_value(FILE *stream,
 
   v = *((const VALUE *) (args[0]));
   if (info->showsign) {
-    if(RB_TYPE_P(v, T_CLASS)) {
+    if (RB_TYPE_P(v, T_CLASS)) {
       if (v == rb_cNilClass) {
         cstr = "nil";
       } else if (v == rb_cInteger) {
@@ -911,8 +911,7 @@ VALUE rb_str_buf_new(long capacity) {
   return str;
 }
 
-VALUE rb_sprintf(const char *format, ...)
-{
+VALUE rb_sprintf(const char *format, ...) {
     VALUE result;
     va_list ap;
 
