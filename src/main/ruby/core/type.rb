@@ -226,7 +226,7 @@ module Truffle
     end
 
     def self.conversion_mismatch(val, cls, meth, res)
-      raise TypeError, "can't convert #{val.class} to #{cls} (#{val.class}##{meth} gives #{res.class})"
+      raise TypeError, "can't convert #{object_class(val)} to #{cls} (#{object_class(val)}##{meth} gives #{object_class(res)})"
     end
 
     def self.fits_into_int?(val)
@@ -277,7 +277,7 @@ module Truffle
       v = convert_type(obj, cls, meth, false)
       return nil if v.nil?
       unless object_kind_of?(v, cls)
-        raise TypeError, "can't convert #{obj.class} to #{cls} (#{obj.class}##{meth} gives #{v.class})"
+        raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
       end
       v
     end
@@ -286,14 +286,14 @@ module Truffle
       return obj if object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, true)
       unless object_kind_of?(v, cls)
-        raise TypeError, "can't convert #{obj.class} to #{cls} (#{obj.class}##{meth} gives #{v.class})"
+        raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
       end
       v
     end
 
     def self.rb_check_type(obj, cls)
       unless object_kind_of?(obj, cls)
-        raise TypeError, "wrong argument type #{obj.class} (expected #{cls})"
+        raise TypeError, "wrong argument type #{object_class(obj)} (expected #{cls})"
       end
       obj
     end
@@ -302,7 +302,7 @@ module Truffle
       r = check_funcall(obj, meth)
       if undefined.equal?(r)
         if raise_on_error
-          raise TypeError, "can't convert #{obj.class} into #{cls} with #{meth}"
+          raise TypeError, "can't convert #{object_class(obj)} into #{cls} with #{meth}"
         end
         return nil
       end
@@ -439,7 +439,7 @@ module Truffle
       when nil, true, false
         raise TypeError, "can't convert #{obj.inspect} into Float"
       else
-        raise TypeError, "can't convert #{obj.class} into Float"
+        raise TypeError, "can't convert #{object_class(obj)} into Float"
       end
     end
 

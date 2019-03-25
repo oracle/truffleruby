@@ -86,7 +86,7 @@ module Kernel
       return hash
     end
 
-    raise TypeError, "can't convert #{obj.class} into Hash"
+    raise TypeError, "can't convert #{Truffle::Type.object_class(obj)} into Hash"
   end
   module_function :Hash
 
