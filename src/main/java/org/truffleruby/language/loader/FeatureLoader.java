@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -87,7 +88,7 @@ public class FeatureLoader {
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new HashMap<>());
+            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
             constants.put(autoloadPath, autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
