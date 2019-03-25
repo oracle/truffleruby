@@ -28,25 +28,24 @@ public class RubyConstant implements ObjectGraphNode {
     private final boolean isPrivate;
     private final boolean isDeprecated;
 
-    private final boolean autoload;
-    private volatile ReentrantLock autoloadLock;
+    private final AutoloadConstant autoloadConstant;
     /** A autoload constant can become "undefined" after the autoload loads the file but the constant is not defined by the file */
     private final boolean undefined;
 
     private final SourceSection sourceSection;
 
     public RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated, SourceSection sourceSection) {
-        this(declaringModule, name, value, isPrivate, autoload, false, isDeprecated, sourceSection);
+        this(declaringModule, name, value, isPrivate, autoload ? new AutoloadConstant(value) : null, false, isDeprecated, sourceSection);
     }
 
-    private RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, boolean autoload, boolean undefined, boolean isDeprecated, SourceSection sourceSection) {
+    private RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, AutoloadConstant autoloadConstant, boolean undefined, boolean isDeprecated, SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
         this.declaringModule = declaringModule;
         this.name = name;
         this.value = value;
         this.isPrivate = isPrivate;
         this.isDeprecated = isDeprecated;
-        this.autoload = autoload;
+        this.autoloadConstant = autoloadConstant;
         this.undefined = undefined;
         this.sourceSection = sourceSection;
     }
@@ -60,11 +59,11 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     public boolean hasValue() {
-        return !autoload && !undefined;
+        return !isAutoload() && !undefined;
     }
 
     public Object getValue() {
-        assert !autoload && !undefined;
+        assert hasValue();
         return value;
     }
 
@@ -84,7 +83,7 @@ public class RubyConstant implements ObjectGraphNode {
         if (isPrivate == this.isPrivate) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, name, value, isPrivate, autoload, undefined, isDeprecated, sourceSection);
+            return new RubyConstant(declaringModule, name, value, isPrivate, autoloadConstant, undefined, isDeprecated, sourceSection);
         }
     }
 
@@ -92,13 +91,13 @@ public class RubyConstant implements ObjectGraphNode {
         if (this.isDeprecated()) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, name, value, isPrivate, autoload, undefined, true, sourceSection);
+            return new RubyConstant(declaringModule, name, value, isPrivate, autoloadConstant, undefined, true, sourceSection);
         }
     }
 
     public RubyConstant undefined() {
-        assert autoload;
-        return new RubyConstant(declaringModule, name, null, isPrivate, false, true, isDeprecated, sourceSection);
+        assert isAutoload();
+        return new RubyConstant(declaringModule, name, null, isPrivate, null, true, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
@@ -142,41 +141,11 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     public boolean isAutoload() {
-        return autoload;
+        return autoloadConstant != null;
     }
 
-    public DynamicObject getAutoloadPath() {
-        assert autoload;
-        final Object feature = value;
-        assert RubyGuards.isRubyString(feature);
-        return (DynamicObject) feature;
-    }
-
-    private ReentrantLock getAutoloadLock() {
-        synchronized (this) {
-            if (autoloadLock == null) {
-                autoloadLock = new ReentrantLock();
-            }
-        }
-        return autoloadLock;
-    }
-
-    @TruffleBoundary
-    public void startAutoLoad() {
-        getAutoloadLock().lock();
-    }
-
-    @TruffleBoundary
-    public void stopAutoLoad() {
-        getAutoloadLock().unlock();
-    }
-
-    public boolean isAutoloading() {
-        return autoloadLock != null && autoloadLock.isLocked();
-    }
-
-    public boolean isAutoloadingThread() {
-        return autoloadLock != null && autoloadLock.isHeldByCurrentThread();
+    public AutoloadConstant getAutoloadConstant() {
+        return autoloadConstant;
     }
 
     @Override

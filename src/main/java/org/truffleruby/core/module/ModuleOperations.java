@@ -110,15 +110,15 @@ public abstract class ModuleOperations {
     }
 
     public static boolean isConstantDefined(RubyConstant constant) {
-        return constant != null && !constant.isAutoloadingThread();
+        return constant != null && !(constant.isAutoload() && constant.getAutoloadConstant().isAutoloadingThread());
     }
 
     private static boolean isConstantDefined(RubyConstant constant, ArrayList<Assumption> assumptions) {
         if (constant != null) {
-            if (constant.isAutoloading()) {
+            if (constant.isAutoload() && constant.getAutoloadConstant().isAutoloading()) {
                 // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
                 assumptions.add(NeverValidAssumption.INSTANCE);
-                return !constant.isAutoloadingThread();
+                return !constant.getAutoloadConstant().isAutoloadingThread();
             } else {
                 return true;
             }

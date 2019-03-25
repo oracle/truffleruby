@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -84,12 +85,13 @@ public class FeatureLoader {
     }
 
     public void addAutoload(RubyConstant autoloadConstant) {
-        final String basename = basenameWithoutExtension(StringOperations.getString(autoloadConstant.getAutoloadPath()));
+        final String autoloadPath = autoloadConstant.getAutoloadConstant().getAutoloadPath();
+        final String basename = basenameWithoutExtension(autoloadPath);
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new HashMap<>());
-            constants.put(StringOperations.getString(autoloadConstant.getAutoloadPath()), autoloadConstant);
+            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
+            constants.put(autoloadPath, autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
         }
@@ -111,12 +113,25 @@ public class FeatureLoader {
         }
 
         for (RubyConstant constant : constants) {
-            final String expandedAutoloadPath = findFeature(StringOperations.getString(constant.getAutoloadPath()));
+            final String expandedAutoloadPath = findFeature(constant.getAutoloadConstant().getAutoloadPath());
             if (expandedPath.equals(expandedAutoloadPath)) {
                 return constant;
             }
         }
         return null;
+    }
+
+    public void removeAutoload(RubyConstant constant) {
+        final String autoloadPath = constant.getAutoloadConstant().getAutoloadPath();
+        final String basename = basenameWithoutExtension(autoloadPath);
+
+        registeredAutoloadsLock.lock();
+        try {
+            final Map<String, RubyConstant> constantsMap = registeredAutoloads.get(basename);
+            constantsMap.remove(autoloadPath, constant);
+        } finally {
+            registeredAutoloadsLock.unlock();
+        }
     }
 
     private String basenameWithoutExtension(String path) {
