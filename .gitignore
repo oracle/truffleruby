@@ -44,6 +44,9 @@ src/main/c/truffleposix/truffleposix.o
 src/main/c/truffleposix/libtruffleposix.so
 src/main/c/truffleposix/libtruffleposix.dylib
 
+spec/truffle/fixtures/libtestnfi.so
+spec/truffle/fixtures/libtestnfi.dylib
+
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/*.bc
 test/truffle/cexts/**/*.su
