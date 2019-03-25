@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core;
 
+import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 
 import org.truffleruby.RubyContext;
@@ -31,6 +33,74 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         public void setNext(R next);
 
         public ReferenceProcessingService<R> service();
+    }
+
+    public abstract static class WeakProcessingReference<R extends ProcessingReference<R>, T> extends WeakReference<T> implements ProcessingReference<R> {
+
+        private R next;
+        private R previous;
+        private ReferenceProcessingService<R> service;
+
+        public WeakProcessingReference(T object, ReferenceQueue<? super Object> queue, ReferenceProcessingService<R> service) {
+            super(object, queue);
+            this.service = service;
+        }
+
+        public R getPrevious() {
+            return previous;
+        }
+
+        public void setPrevious(R previous) {
+            this.previous = previous;
+        }
+
+        public R getNext() {
+            return next;
+        }
+
+        public void setNext(R next) {
+            this.next = next;
+        }
+
+        public ReferenceProcessingService<R> service() {
+            return service;
+        }
+    }
+
+    public abstract static class PhantomProcessingReference<R extends ProcessingReference<R>, T> extends PhantomReference<T> implements ProcessingReference<R> {
+
+        /**
+         * Doubly linked list of references to keep to allow the reference service to traverse them
+         * and to keep the references alive for processing.
+         */
+        private R next;
+        private R previous;
+        private ReferenceProcessingService<R> service;
+
+        public PhantomProcessingReference(T object, ReferenceQueue<? super Object> queue, ReferenceProcessingService<R> service) {
+            super(object, queue);
+            this.service = service;
+        }
+
+        public R getPrevious() {
+            return previous;
+        }
+
+        public void setPrevious(R previous) {
+            this.previous = previous;
+        }
+
+        public R getNext() {
+            return next;
+        }
+
+        public void setNext(R next) {
+            this.next = next;
+        }
+
+        public ReferenceProcessingService<R> service() {
+            return service;
+        }
     }
 
     public static class ReferenceProcessor {

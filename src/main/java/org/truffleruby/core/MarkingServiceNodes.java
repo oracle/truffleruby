@@ -11,7 +11,7 @@ package org.truffleruby.core;
 
 import java.util.ArrayList;
 
-import org.truffleruby.core.MarkingService.MarkerStack;
+import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -27,9 +27,10 @@ public class MarkingServiceNodes {
 
         @Specialization
         public void keepObjectAlive(VirtualFrame frame, Object object,
-                @Cached("create()") GetPreservationStackNode getStackNode) {
-            addToList(getStackNode.execute(frame).get(), object);
-            getContext().getMarkingService().addToKeptObjects(object);
+                @Cached("create()") GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
+            MarkerThreadLocalData data = getThreadLocalDataNode.execute(frame);
+            addToList(data.getPreservationStack().get(), object);
+            data.getKeptObjects().keepObject(object);
         }
 
         @TruffleBoundary
@@ -42,20 +43,20 @@ public class MarkingServiceNodes {
         }
     }
 
-    public static abstract class GetPreservationStackNode extends RubyBaseNode {
+    public static abstract class GetMarkerThreadLocalDataNode extends RubyBaseNode {
 
-        public abstract MarkerStack execute(VirtualFrame frame);
+        public abstract MarkerThreadLocalData execute(VirtualFrame frame);
 
         @Specialization(guards = "thread == currentJavaThread(frame)", limit = "getCacheLimit()")
-        public MarkerStack getStackOnKnownThread(VirtualFrame frame,
+        public MarkerThreadLocalData getDataOnKnownThread(VirtualFrame frame,
                 @Cached("currentJavaThread(frame)") Thread thread,
-                @Cached("getMarkerStack()") MarkerStack stack) {
-            return stack;
+                @Cached("getData()") MarkerThreadLocalData data) {
+            return data;
         }
 
-        @Specialization(replaces = "getStackOnKnownThread")
-        protected MarkerStack getMarkerStack() {
-            return getContext().getMarkingService().getStackFromThreadLocal();
+        @Specialization(replaces = "getDataOnKnownThread")
+        protected MarkerThreadLocalData getData() {
+            return getContext().getMarkingService().getThreadLocalData();
         }
 
         static protected Thread currentJavaThread(VirtualFrame frame) {
@@ -66,8 +67,8 @@ public class MarkingServiceNodes {
             return getContext().getOptions().THREAD_CACHE;
         }
 
-        public static GetPreservationStackNode create() {
-            return MarkingServiceNodesFactory.GetPreservationStackNodeGen.create();
+        public static GetMarkerThreadLocalDataNode create() {
+            return MarkingServiceNodesFactory.GetMarkerThreadLocalDataNodeGen.create();
         }
     }
 }

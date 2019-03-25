@@ -1541,8 +1541,8 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject pushFrame(VirtualFrame frame,
-                @Cached("create()") MarkingServiceNodes.GetPreservationStackNode getStackNode) {
-            getStackNode.execute(frame).push();
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            getDataNode.execute(frame).getPreservationStack().push();
             return nil();
         }
     }
@@ -1552,8 +1552,8 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject popFrame(VirtualFrame frame,
-                @Cached("create()") MarkingServiceNodes.GetPreservationStackNode getStackNode) {
-            getStackNode.execute(frame).pop();
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            getDataNode.execute(frame).getPreservationStack().pop();
             return nil();
         }
     }

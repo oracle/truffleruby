@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core;
 
-import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.Collection;
 import java.util.Deque;
@@ -17,6 +16,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.ReferenceProcessingService.PhantomProcessingReference;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -52,38 +52,16 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
         }
     }
 
-    public static class FinalizerReference extends PhantomReference<Object> implements ReferenceProcessingService.ProcessingReference<FinalizerReference>, ObjectGraphNode {
+    public static class FinalizerReference extends PhantomProcessingReference<FinalizerReference, Object> implements ObjectGraphNode {
 
         /**
          * All accesses to this Deque must be synchronized by taking the
          * {@link FinalizationService} monitor, to avoid concurrent access.
          */
         private final Deque<Finalizer> finalizers = new LinkedList<>();
-        private final FinalizationService service;
-
-        /** The doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
-        FinalizerReference next = null;
-        FinalizerReference prev = null;
 
         private FinalizerReference(Object object, ReferenceQueue<? super Object> queue, FinalizationService service) {
-            super(object, queue);
-            this.service = service;
-        }
-
-        public FinalizerReference getPrevious() {
-            return prev;
-        }
-
-        public void setPrevious(FinalizerReference previous) {
-            prev = previous;
-        }
-
-        public FinalizerReference getNext() {
-            return next;
-        }
-
-        public void setNext(FinalizerReference next) {
-            this.next = next;
+            super(object, queue, service);
         }
 
         private void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
@@ -112,10 +90,6 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
                     roots.add(root);
                 }
             }
-        }
-
-        public ReferenceProcessingService<FinalizerReference> service() {
-            return service;
         }
 
         @Override
@@ -171,7 +145,7 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
         FinalizerReference finalizerReference = getFirst();
         while (finalizerReference != null) {
             finalizerReference.collectRoots(roots);
-            finalizerReference = finalizerReference.next;
+            finalizerReference = finalizerReference.getNext();
         }
     }
 
