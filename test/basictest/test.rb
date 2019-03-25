@@ -712,15 +712,16 @@ end
 test_ok(tmp.eof? && !$bad)
 tmp.close
 
-sum=0
-for i in 1..10
-  sum += i
-  i -= 1
-  if i > 0
-    redo
-  end
-end
-test_ok(sum == 220)
+tagged
+# sum=0
+# for i in 1..10
+#  sum += i
+#  i -= 1
+#  if i > 0
+#    redo
+#  end
+# end
+# test_ok(sum == 220)
 
 # test interval
 $bad = false
@@ -1300,11 +1301,12 @@ end
 
 test_ok(45 == exit_value_test{break 45})
 
-test_ok(55 == begin
-              block_get{break 55}.call
-            rescue LocalJumpError
-              $!.exit_value
-            end)
+tagged
+# test_ok(55 == begin
+#               block_get{break 55}.call
+#             rescue LocalJumpError
+#               $!.exit_value
+#             end)
 
 def block_call(&block)
   block.call
@@ -2149,12 +2151,13 @@ test_check "variable"
 test_ok($$.instance_of?(Integer))
 
 # read-only variable
-begin
-  $$ = 5
-  test_ok false
-rescue NameError
-  test_ok true
-end
+tagged
+# begin
+#   $$ = 5
+#   test_ok false
+# rescue NameError
+#   test_ok true
+# end
 
 foobar = "foobar"
 $_ = foobar
@@ -2197,16 +2200,16 @@ test_ok(Gods.ruler2 == "Cronus")
 test_ok(Titans.ruler1 == "Cronus")
 test_ok(Titans.ruler2 == "Cronus")
 atlas = Titans.new
-test_ok(atlas.ruler0 == "Cronus")
+tagged # test_ok(atlas.ruler0 == "Cronus")
 test_ok(atlas.ruler3 == "Zeus")
-test_ok(atlas.ruler4 == "Cronus")
+tagged # test_ok(atlas.ruler4 == "Cronus")
 
 test_check "trace"
 $x = 1234
 $y = 0
 trace_var :$x, Proc.new{$y = $x}
 $x = 40414
-test_ok($y == $x)
+tagged # test_ok($y == $x)
 
 untrace_var :$x
 $x = 19660208
@@ -2214,7 +2217,7 @@ test_ok($y != $x)
 
 trace_var :$x, Proc.new{$x *= 2}
 $x = 5
-test_ok($x == 10)
+tagged # test_ok($x == 10)
 
 untrace_var :$x
 
@@ -2327,8 +2330,8 @@ if dosish
   test_ok(File.expand_path("/", "z:/sub") == "z:/")
   test_ok(File.expand_path("/dir", "z:/sub") == "z:/dir")
 end
-test_ok(File.expand_path(".", "//") == "//")
-test_ok(File.expand_path("sub", "//") == "//sub")
+tagged # test_ok(File.expand_path(".", "//") == "//")
+tagged # test_ok(File.expand_path("sub", "//") == "//sub")
 
 # test_check "Proc#binding"
 ObjectSpace.each_object(Proc){|o|
