@@ -228,6 +228,8 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   const char *formatp = format;
   int pre = 0;
   int optional = 0;
+  int n_mand = 0;
+  int n_opt = 0;
   bool rest;
   int post = 0;
   bool kwargs;
@@ -280,6 +282,9 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   if (pre + post > argc) {
     rb_raise(rb_eArgError, "not enough arguments for required");
   }
+
+  n_mand = pre + post;
+  n_opt = optional;
 
   // Read arguments
 
@@ -360,26 +365,30 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     // Don't assign the correct v to a temporary VALUE* and then assign arg to it - this doesn't optimise well
 
     switch (valuen) {
-      case 1: *v1 = arg; break;
-      case 2: *v2 = arg; break;
-      case 3: *v3 = arg; break;
-      case 4: *v4 = arg; break;
-      case 5: *v5 = arg; break;
-      case 6: *v6 = arg; break;
-      case 7: *v7 = arg; break;
-      case 8: *v8 = arg; break;
-      case 9: *v9 = arg; break;
-      case 10: *v10 = arg; break;
+    case 1: if (v1 != NULL) { *v1 = arg; } break;
+    case 2: if (v2 != NULL) { *v2 = arg; } break;
+    case 3: if (v3 != NULL) { *v3 = arg; } break;
+    case 4: if (v4 != NULL) { *v4 = arg; } break;
+    case 5: if (v5 != NULL) { *v5 = arg; } break;
+    case 6: if (v6 != NULL) { *v6 = arg; } break;
+    case 7: if (v7 != NULL) { *v7 = arg; } break;
+    case 8: if (v8 != NULL) { *v8 = arg; } break;
+    case 9: if (v9 != NULL) { *v9 = arg; } break;
+    case 10: if (v10 != NULL) { *v10 = arg; } break;
     }
 
     valuen++;
   }
 
   if (found_kwargs) {
-    return argc - 1;
-  } else {
-    return argc;
+    argc = argc - 1;
   }
+
+  if (argn < argc) {
+	rb_error_arity(argc, pre, rest ? UNLIMITED_ARGUMENTS : pre + optional);
+  }
+
+  return argc;
 }
 
 #if defined(__cplusplus)
