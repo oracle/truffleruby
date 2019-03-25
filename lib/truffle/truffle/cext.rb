@@ -1789,5 +1789,3 @@ module Truffle::CExt
   end
 
 end
-
-Truffle::Interop.export(:ruby_cext, Truffle::CExt)

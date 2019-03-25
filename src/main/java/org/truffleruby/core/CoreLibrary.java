@@ -1349,6 +1349,10 @@ public class CoreLibrary {
         return systemCallErrorClass;
     }
 
+    public DynamicObject getTruffleModule() {
+        return truffleModule;
+    }
+
     public DynamicObject getTruffleInternalModule() {
         return truffleInternalModule;
     }

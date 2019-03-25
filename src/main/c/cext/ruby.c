@@ -33,8 +33,8 @@ void* rb_tr_nil;
 
 // Run when loading C-extension support
 
-void rb_tr_init(void) {
-  truffle_assign_managed(&rb_tr_cext, (void *)polyglot_import("ruby_cext"));
+void rb_tr_init(void *ruby_cext) {
+  truffle_assign_managed(&rb_tr_cext, ruby_cext);
   truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
   truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
   truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
