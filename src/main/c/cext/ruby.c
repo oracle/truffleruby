@@ -102,7 +102,7 @@ void rb_tr_init(void *ruby_cext) {
   truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
-  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);  
+  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);  
   #else
   register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
   #endif
