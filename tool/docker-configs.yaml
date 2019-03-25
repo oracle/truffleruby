@@ -21,8 +21,8 @@ ol7:
     - RUN yum install -y openssl-devel
   cext:
     - RUN yum install -y make
-    - RUN yum-config-manager --enable ol7_developer
-    - RUN yum-config-manager --enable ol7_software_collections
+    - RUN yum install -y oraclelinux-developer-release-el7
+    - RUN yum install -y oracle-softwarecollection-release-el7
     - RUN yum install -y llvm-toolset-7
     - ENV PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
     - ENV LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64

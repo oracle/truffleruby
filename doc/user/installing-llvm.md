@@ -12,8 +12,7 @@ For building C extensions you need to install:
 
 ```
 yum install -y make
-yum-config-manager --enable ol7_developer
-yum-config-manager --enable ol7_software_collections
+yum install -y oraclelinux-developer-release-el7 oracle-softwarecollection-release-el7
 yum install -y llvm-toolset-7
 export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
 export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
