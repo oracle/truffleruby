@@ -611,15 +611,18 @@ module Truffle
 
     def self.check_arity(arg_count, min, max)
       if arg_count < min || (max != -1 && arg_count > max)
-        error_message = case
-                        when min == max
-                          'wrong number of arguments (given %d, expected %d)' % [arg_count, min]
-                        when max == -1
-                          'wrong number of arguments (given %d, expected %d+)' % [arg_count, min]
-                        else
-                          'wrong number of arguments (given %d, expected %d..%d)' % [arg_count, min, max]
-                        end
-        raise ArgumentError, error_message
+        raise ArgumentError, arity_error_string(arg_count, min, max)
+      end
+    end
+
+    def self.arity_error_string(arg_count, min, max)
+      case
+      when min == max
+        'wrong number of arguments (given %d, expected %d)' % [arg_count, min]
+      when max == -1
+        'wrong number of arguments (given %d, expected %d+)' % [arg_count, min]
+      else
+        'wrong number of arguments (given %d, expected %d..%d)' % [arg_count, min, max]
       end
     end
 

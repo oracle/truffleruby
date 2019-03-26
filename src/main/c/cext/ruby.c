@@ -3468,6 +3468,11 @@ VALUE rb_enum_values_pack(int argc, const VALUE *argv) {
   rb_tr_error("rb_enum_values_pack not implemented");
 }
 
+
+NORETURN(void rb_error_arity(int argc, int min, int max)) {
+  rb_exc_raise(rb_exc_new3(rb_eArgError, rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_arity_error_string", argc, min, max))));
+}
+
 void rb_error_untrusted(VALUE obj) {
   rb_tr_error("rb_error_untrusted not implemented");
 }
