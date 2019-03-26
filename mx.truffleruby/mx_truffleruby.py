@@ -132,6 +132,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
+    standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=['LICENSE_TRUFFLERUBY.md'],
     third_party_license_files=['3rd_party_licenses_truffleruby.txt'],
     truffle_jars=[
