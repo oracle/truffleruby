@@ -3627,26 +3627,24 @@ public abstract class StringNodes {
         })
         public Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") BranchProfile matchFoundProfile,
-                @Cached("create()") BranchProfile noMatchProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile offsetTooLargeProfile) {
             assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
             final Rope sourceRope = rope(string);
             final int end = sourceRope.byteLength();
+
+            if (offsetTooLargeProfile.profile(byteOffset >= end)) {
+                return nil();
+            }
+
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
             final byte searchByte = bytesNode.execute(rope(pattern))[0];
 
-            for (int i = byteOffset; i < end; i++) {
-                if (sourceBytes[i] == searchByte) {
-                    matchFoundProfile.enter();
-                    return i;
-                }
-            }
+            final int index = com.oracle.truffle.api.ArrayUtils.indexOf(sourceBytes, byteOffset, end, searchByte);
 
-            noMatchProfile.enter();
-            return nil();
+            return index == -1 ? nil() : index;
         }
 
         @Specialization(guards = {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -195,15 +196,9 @@ public abstract class ByteArrayNodes {
                 start = 0;
             }
 
-            for (int i = start; i < length; i++) {
-                if (in.get(i) == searchByte) {
-                    matchFoundProfile.enter();
-                    return i + 1;
-                }
-            }
+            final int index = ArrayUtils.indexOf(in.getUnsafeBytes(), start, length, searchByte);
 
-            noMatchProfile.enter();
-            return nil();
+            return index == -1 ? nil() : index + 1;
         }
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
