@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -211,6 +212,56 @@ public class RubyDebugTest {
             run.removeFirst().run();
         });
         continueExecution();
+        performWork();
+        context.eval(source);
+        assertExecutedOK("OK");
+    }
+
+    @Ignore
+    @Test
+    public void testProperties() throws Throwable {
+        Source source = getSource("src/test/ruby/types.rb");
+        run.addLast(() -> {
+            assertNull(suspendedEvent);
+            assertNotNull(debuggerSession);
+            breakpoint = Breakpoint.newBuilder(DebuggerTester.getSourceImpl(source)).lineIs(27).build();
+            debuggerSession.install(breakpoint);
+        });
+        assertLocation(27, "nme + nm1",
+                        "name", "\"Panama\"", // Possible bug: should really the quotes be included?
+                        "cityArray", "[80, 97, 110, 97, 109, 97]",
+                        "citySum", "590",
+                        "weatherTemperature", "14",
+                        "blt", "true",
+                        "blf", "false",
+                        "null", "nil",
+                        "nm1", "1",
+                        "nm11", "1.111",
+                        "nme", "3.5e+46",
+                        "nc", "(2+3i)",
+                        "nr", "(5404319552844595/18014398509481984)",
+                        "str", "\"A String\"",
+                        "symbol", ":symbolic",
+                        "arr", "[1, \"2\", 3.56, true, nil, \"A String\"]",
+                        "hash", "{:a=>1, \"b\"=>2}");
+        run.addLast(() -> {
+            final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
+            DebugValue value = frame.getScope().getDeclaredValue("name");
+            Collection<DebugValue> properties = value.getProperties();
+            assertTrue("String has " + properties.size() + " properties.", properties.size() > 0); // BUG: String have no properties
+            value = frame.getScope().getDeclaredValue("hash");
+            properties = value.getProperties();
+            assertEquals(2, properties.size()); // 'hash' has two properties
+            try {
+                properties.iterator().next().as(String.class);
+            } catch (IllegalStateException ex) {
+                "Value is not readable".equals(ex.getMessage()); // BUG
+                Assert.fail(ex.getMessage());
+            }
+            assertNotNull(value.getProperty("a")); // == null, BUG
+            assertEquals(0, frame.getScope().getDeclaredValue("symbol").getProperties().size());
+            assertEquals(6, frame.getScope().getDeclaredValue("arr").getArray().size());
+        });
         performWork();
         context.eval(source);
         assertExecutedOK("OK");
