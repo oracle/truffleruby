@@ -872,7 +872,7 @@ public abstract class IntegerNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         public Object compare(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", coreStrings().SPACESHIP.getSymbol(), b);
+            return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
     }

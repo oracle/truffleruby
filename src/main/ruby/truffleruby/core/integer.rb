@@ -186,8 +186,8 @@ class Integer < Numeric
       if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
         x = if (half == :down)
-              (x) / f
-            else
+              x / f
+            else # :up or nil
               (x + f / 2) / f
             end
         x = (x / 2) * 2 if half == :even

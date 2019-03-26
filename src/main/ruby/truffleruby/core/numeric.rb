@@ -241,7 +241,11 @@ class Numeric
     values = other.coerce(self)
 
     unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
-      return nil
+      if error == :no_error
+        return nil
+      else
+        raise TypeError, 'coerce must return [x, y]'
+      end
     end
 
     [values[1], values[0]]
