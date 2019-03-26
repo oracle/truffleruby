@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -31,7 +31,6 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
-import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -232,12 +231,6 @@ public class RopeOperations {
 
     private static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
         return new String(bytes, byteOffset, byteLength, charset);
-    }
-
-    // MRI: get_actual_encoding
-    @TruffleBoundary
-    public static Encoding STR_ENC_GET(Rope rope) {
-        return EncodingUtils.getActualEncoding(rope.getEncoding(), rope.getBytes(), 0, rope.byteLength());
     }
 
     @TruffleBoundary

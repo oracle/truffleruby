@@ -28,6 +28,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
@@ -347,14 +348,15 @@ public abstract class RopeNodes {
             return new StringAttributes(characters, codeRange);
         }
 
+
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
         public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
                 @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
-                @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile fixedWidthProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
 
-            CodeRange codeRange = asciiCompatibleProfile.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID;
+            CodeRange codeRange = CR_VALID;
             int characters;
             int p = 0;
             final int end = bytes.length;
@@ -363,14 +365,19 @@ public abstract class RopeNodes {
                 final int lengthOfCurrentCharacter = calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
-                    if (codeRange != CR_BROKEN) {
-                        codeRange = CR_VALID;
-                    }
-
                     p += lengthOfCurrentCharacter;
                 } else {
                     codeRange = CR_BROKEN;
-                    p++;
+
+                    // If a string is detected as broken and we already know the character length due to a
+                    // fixed width encoding, there's no value in visiting any more bytes.
+                    if (fixedWidthProfile.profile(encoding.isFixedWidth())) {
+                        characters = (bytes.length + encoding.minLength() - 1) / encoding.minLength();
+
+                        return new StringAttributes(characters, CR_BROKEN);
+                    } else {
+                        p++;
+                    }
                 }
             }
 
@@ -1175,6 +1182,7 @@ public abstract class RopeNodes {
                 @Cached("create()") GetByteNode getByteNode,
                 @Cached("create()") BytesNode bytesNode,
                 @Cached("create()") CodeRangeNode codeRangeNode,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode,
                 @Cached("createBinaryProfile()") ConditionProfile singleByteCharProfile,
                 @Cached("create()") BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
@@ -1182,25 +1190,27 @@ public abstract class RopeNodes {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode);
+            return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode, getActualEncodingNode);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
         public int getCodePointMultiByte(Rope rope, int index,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") BytesNode bytesNode,
-                @Cached("create()") CodeRangeNode codeRangeNode) {
+                @Cached("create()") CodeRangeNode codeRangeNode,
+                @Cached("create()") EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
             final byte[] bytes = bytesNode.execute(rope);
             final Encoding encoding = rope.getEncoding();
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(encoding, codeRange, bytes, index, rope.byteLength());
+            final int characterLength = characterLength(actualEncoding, codeRange, bytes, index, rope.byteLength());
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
             }
 
-            return mbcToCode(encoding, bytes, index, rope.byteLength());
+            return mbcToCode(actualEncoding, bytes, index, rope.byteLength());
         }
 
         @TruffleBoundary

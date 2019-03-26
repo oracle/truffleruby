@@ -3,6 +3,9 @@
 Bug fixes:
 
 * Improved compatibility with MRI's `Float#to_s` formatting (#1626).
+* Fixed `String#inspect` when the string uses a non-UTF-8 ASCII-compatible
+  encoding and has non-ASCII characters.
+* Fixed `puts` for strings with non-ASCII-compatible encodings.
 
 New features:
 

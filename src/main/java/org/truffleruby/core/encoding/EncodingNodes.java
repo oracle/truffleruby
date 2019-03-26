@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -20,7 +20,13 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF16BEEncoding;
+import org.jcodings.specific.UTF16LEEncoding;
+import org.jcodings.specific.UTF32BEEncoding;
+import org.jcodings.specific.UTF32LEEncoding;
+import org.jcodings.unicode.UnicodeEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 import org.truffleruby.Layouts;
@@ -465,6 +471,76 @@ public abstract class EncodingNodes {
         public boolean isUnicode(DynamicObject encoding) {
             return Layouts.ENCODING.getEncoding(encoding).isUnicode();
         }
+
+    }
+
+    @Primitive(name = "get_actual_encoding", needsSelf = false)
+    public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject getActualEncoding(DynamicObject string,
+                @Cached("create()") GetActualEncodingNode getActualEncodingNode,
+                @Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
+            final Rope rope = StringOperations.rope(string);
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
+
+            return getRubyEncodingNode.executeGetRubyEncoding(actualEncoding);
+        }
+
+    }
+
+    // Port of MRI's `get_actual_encoding`.
+    public abstract static class GetActualEncodingNode extends RubyBaseNode {
+
+        protected static final Encoding UTF16Dummy = EncodingDB.getEncodings().get("UTF-16".getBytes()).getEncoding();
+        protected static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
+
+        public static GetActualEncodingNode create() {
+            return EncodingNodesFactory.GetActualEncodingNodeGen.create();
+        }
+
+        public abstract Encoding execute(Rope rope);
+
+        @Specialization(guards = "!rope.getEncoding().isDummy()")
+        public Encoding getActualEncoding(Rope rope) {
+            return rope.getEncoding();
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "rope.getEncoding().isDummy()")
+        public Encoding getActualEncodingDummy(Rope rope) {
+            final Encoding encoding = rope.getEncoding();
+
+            if (encoding instanceof UnicodeEncoding) {
+                // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
+                if (encoding == UTF16Dummy && rope.byteLength() >= 2) {
+                    int c0 = rope.get(0) & 0xff;
+                    int c1 = rope.get(1) & 0xff;
+
+                    if (c0 == 0xFE && c1 == 0xFF) {
+                        return UTF16BEEncoding.INSTANCE;
+                    } else if (c0 == 0xFF && c1 == 0xFE) {
+                        return UTF16LEEncoding.INSTANCE;
+                    }
+                    return ASCIIEncoding.INSTANCE;
+                } else if (encoding == UTF32Dummy && rope.byteLength() >= 4) {
+                    int c0 = rope.get(0) & 0xff;
+                    int c1 = rope.get(1) & 0xff;
+                    int c2 = rope.get(2) & 0xff;
+                    int c3 = rope.get(3) & 0xff;
+
+                    if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
+                        return UTF32BEEncoding.INSTANCE;
+                    } else if (c3 == 0 && c2 == 0 && c1 == 0xFE && c0 == 0xFF) {
+                        return UTF32LEEncoding.INSTANCE;
+                    }
+                    return ASCIIEncoding.INSTANCE;
+                }
+            }
+
+            return encoding;
+        }
+
 
     }
 

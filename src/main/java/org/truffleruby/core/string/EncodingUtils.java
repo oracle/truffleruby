@@ -29,14 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jcodings.Encoding;
-import org.jcodings.EncodingDB;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF16BEEncoding;
-import org.jcodings.specific.UTF16LEEncoding;
-import org.jcodings.specific.UTF32BEEncoding;
-import org.jcodings.specific.UTF32LEEncoding;
-import org.jcodings.unicode.UnicodeEncoding;
 import org.truffleruby.core.rope.CodeRange;
 
 public class EncodingUtils {
@@ -133,39 +127,6 @@ public class EncodingUtils {
         return names;
     }
 
-
-    private static final Encoding UTF16Dummy = EncodingDB.getEncodings().get("UTF-16".getBytes()).getEncoding();
-    private static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
-
-    public static Encoding getActualEncoding(Encoding enc, byte[] bytes, int p, int end) {
-        if (enc.isDummy() && enc instanceof UnicodeEncoding) {
-            // handle dummy UTF-16 and UTF-32 by scanning for BOM, as in MRI
-            if (enc == UTF16Dummy && end - p >= 2) {
-                int c0 = bytes[p] & 0xff;
-                int c1 = bytes[p + 1] & 0xff;
-
-                if (c0 == 0xFE && c1 == 0xFF) {
-                    return UTF16BEEncoding.INSTANCE;
-                } else if (c0 == 0xFF && c1 == 0xFE) {
-                    return UTF16LEEncoding.INSTANCE;
-                }
-                return ASCIIEncoding.INSTANCE;
-            } else if (enc == UTF32Dummy && end - p >= 4) {
-                int c0 = bytes[p] & 0xff;
-                int c1 = bytes[p + 1] & 0xff;
-                int c2 = bytes[p + 2] & 0xff;
-                int c3 = bytes[p + 3] & 0xff;
-
-                if (c0 == 0 && c1 == 0 && c2 == 0xFE && c3 == 0xFF) {
-                    return UTF32BEEncoding.INSTANCE;
-                } else if (c3 == 0 && c2 == 0 && c1 == 0xFE && c0 == 0xFF) {
-                    return UTF32LEEncoding.INSTANCE;
-                }
-                return ASCIIEncoding.INSTANCE;
-            }
-        }
-        return enc;
-    }
 
     // rb_enc_ascget
     public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc, CodeRange codeRange) {

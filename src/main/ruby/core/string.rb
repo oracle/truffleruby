@@ -531,12 +531,12 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |original_suffix|
-      suffix = Truffle::Type.rb_check_convert_type original_suffix, String, :to_str
-      unless suffix
-        raise TypeError, "no implicit conversion of #{original_suffix.class} into String"
-      end
+      suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
+      Truffle::Type.compatible_encoding self, suffix
+
       return true if self[-suffix.length, suffix.length] == suffix
     end
+
     false
   end
 
@@ -550,23 +550,11 @@ class String
     ascii = enc.ascii_compatible?
     unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
 
-    if unicode
-      if enc.equal? Encoding::UTF_16
-        a = getbyte 0
-        b = getbyte 1
-
-        unless (a == 0xfe and b == 0xff) or (a == 0xff and b == 0xfe)
-          unicode = false
-        end
-      elsif enc.equal? Encoding::UTF_32
-        a = getbyte 0
-        b = getbyte 1
-        c = getbyte 2
-        d = getbyte 3
-
-        unless (a == 0 and b == 0 and c == 0xfe and d == 0xfe) or (a == 0xff and b == 0xfe and c == 0 and d == 0)
-          unicode = false
-        end
+    actual_encoding = Truffle.invoke_primitive(:get_actual_encoding, self)
+    if actual_encoding != enc
+      enc = actual_encoding
+      if unicode
+        unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
       end
     end
 
@@ -578,7 +566,7 @@ class String
       char = chr_at index
 
       if char
-        index += inspect_char(ascii, unicode, index, char, array)
+        index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
       else
         array << "\\x#{getbyte(index).to_s(16)}"
         index += 1
@@ -595,10 +583,10 @@ class String
     end
 
     Truffle::Type.infect result, self
-    result.force_encoding result_encoding
+    result.force_encoding(result_encoding)
   end
 
-  def inspect_char(ascii, unicode, index, char, array)
+  def inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
     consumed = char.bytesize
 
     if (ascii or unicode) and consumed == 1
@@ -648,7 +636,7 @@ class String
       end
     end
 
-    if Truffle.invoke_primitive(:character_printable_p, char)
+    if Truffle.invoke_primitive(:character_printable_p, char) && (enc == result_encoding || (ascii && char.ascii_only?))
       array << char
     else
       code = char.ord
