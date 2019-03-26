@@ -550,7 +550,7 @@ class String
     ascii = enc.ascii_compatible?
     unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
 
-    actual_encoding = enc.dummy? ? Truffle.invoke_primitive(:get_actual_encoding, self) : enc
+    actual_encoding = Truffle.invoke_primitive(:get_actual_encoding, self)
     if actual_encoding != enc
       enc = actual_encoding
       if unicode
@@ -636,8 +636,7 @@ class String
       end
     end
 
-    if (enc == result_encoding && Truffle.invoke_primitive(:character_printable_p, char)) ||
-        (ascii && char.ascii_only? && Truffle.invoke_primitive(:character_printable_p, char))
+    if Truffle.invoke_primitive(:character_printable_p, char) && (enc == result_encoding || (ascii && char.ascii_only?))
       array << char
     else
       code = char.ord

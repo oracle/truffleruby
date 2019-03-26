@@ -365,10 +365,6 @@ public abstract class RopeNodes {
                 final int lengthOfCurrentCharacter = calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, p, end);
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
-                    if (codeRange != CR_BROKEN) {
-                        codeRange = CR_VALID;
-                    }
-
                     p += lengthOfCurrentCharacter;
                 } else {
                     codeRange = CR_BROKEN;
@@ -378,7 +374,7 @@ public abstract class RopeNodes {
                     if (fixedWidthProfile.profile(encoding.isFixedWidth())) {
                         characters = (bytes.length + encoding.minLength() - 1) / encoding.minLength();
 
-                        break;
+                        return new StringAttributes(characters, CR_BROKEN);
                     } else {
                         p++;
                     }
