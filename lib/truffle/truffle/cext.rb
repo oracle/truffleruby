@@ -365,6 +365,8 @@ module Truffle::CExt
       value.is_a?(Data)
     when T_FLOAT
       value.is_a?(Float)
+    when T_CLASS
+      value.is_a?(Class)
     else
       raise "unknown type #{type}"
     end

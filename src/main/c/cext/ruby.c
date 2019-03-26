@@ -24,12 +24,69 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <printf.h>
 
 void* rb_tr_cext;
 void* rb_tr_undef;
 void* rb_tr_true;
 void* rb_tr_false;
 void* rb_tr_nil;
+
+#ifdef __APPLE__
+static printf_domain_t printf_domain;
+
+static int rb_tr_fprintf_value_arginfo(const struct printf_info *info,
+                                       size_t n,
+                                       int *argtypes) {
+  if (n > 0) {
+    *argtypes = PA_POINTER;
+  }
+  return 1;
+}
+
+#else
+static int rb_tr_fprintf_value_arginfo(const struct printf_info *info,
+                                       size_t n,
+                                       int *argtypes, int *argsize) {
+  if (n > 0) {
+    *argtypes = PA_POINTER;
+    *argsize = sizeof(VALUE);
+  }
+  return 1;
+}
+#endif
+
+static int rb_tr_fprintf_value(FILE *stream,
+                               const struct printf_info *info,
+                               const void *const *args) {
+  char *cstr = NULL;
+  VALUE v;
+  int len;
+
+  v = *((const VALUE *) (args[0]));
+  if (info->showsign) {
+    if (RB_TYPE_P(v, T_CLASS)) {
+      if (v == rb_cNilClass) {
+        cstr = "nil";
+      } else if (v == rb_cTrueClass) {
+        cstr = "true";
+      } else if (v == rb_cFalseClass) {
+        cstr = "false";
+      }
+    }
+    if (cstr == NULL) {
+      VALUE str = rb_inspect(v);
+      len = rb_str_len(str);
+      cstr = RSTRING_PTR(str);
+    }
+  } else {
+    VALUE str = rb_obj_as_string(v);
+    len = rb_str_len(str);
+    cstr = RSTRING_PTR(str);
+  }
+  len = fprintf(stream, "%s", cstr);
+  return len;
+}
 
 // Run when loading C-extension support
 
@@ -39,6 +96,12 @@ void rb_tr_init(void *ruby_cext) {
   truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
   truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
   truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
+  #ifdef __APPLE__
+  printf_domain = new_printf_domain();
+  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);  
+  #else
+  register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
+  #endif
 }
 
 // Private helper macros just for ruby.c
@@ -842,6 +905,17 @@ VALUE rb_str_buf_new(long capacity) {
   VALUE str = rb_str_new(NULL, capacity);
   rb_str_set_len(str, 0);
   return str;
+}
+
+VALUE rb_sprintf(const char *format, ...) {
+    VALUE result;
+    va_list ap;
+
+    va_start(ap, format);
+    result = rb_vsprintf(format, ap);
+    va_end(ap);
+
+    return result;
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
@@ -2282,7 +2356,7 @@ VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
 
 out_of_range:
   if (err) {
-    rb_raise(rb_eRangeError, "%d..%s%d out of range",
+    rb_raise(rb_eRangeError, "%ld..%s%ld out of range",
              origbeg, excl ? "." : "", origend);
   }
   return Qnil;
@@ -3053,9 +3127,12 @@ VALUE rb_enc_reg_new(const char *s, long len, rb_encoding *enc, int options) {
 }
 
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
-  // TODO CS 7-May-17 this needs to use the Ruby sprintf, not C's
   char *buffer;
+  #ifdef __APPLE__
+  if (vasxprintf(&buffer, printf_domain, NULL, format, args) < 0) {
+  #else
   if (vasprintf(&buffer, format, args) < 0) {
+  #endif
     rb_tr_error("vasprintf error");
   }
   VALUE string = rb_enc_str_new_cstr(buffer, enc);
