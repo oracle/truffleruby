@@ -891,9 +891,19 @@ describe "C-API String function" do
       @s.rb_sprintf3(ToSOrInspect.new).should == s
     end
 
-    it "formats a string VALUE using to inspect if sign specified in format" do
+    it "formats a string VALUE using inspect if sign specified in format" do
       s = 'Result: A different string.'
       @s.rb_sprintf4(ToSOrInspect.new).should == s
+    end
+
+    it "formats a TrueClass VALUE as `TrueClass` if sign not specified in format" do
+      s = 'Result: TrueClass.'
+      @s.rb_sprintf3(true.class).should == s
+    end
+
+    it "formats a TrueClass VALUE as 'true' if sign specified in format" do
+      s = 'Result: true.'
+      @s.rb_sprintf4(true.class).should == s
     end
   end
 

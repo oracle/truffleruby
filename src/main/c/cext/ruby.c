@@ -32,8 +32,6 @@ void* rb_tr_true;
 void* rb_tr_false;
 void* rb_tr_nil;
 
-// Run when loading C-extension support
-
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
 
@@ -70,10 +68,6 @@ static int rb_tr_fprintf_value(FILE *stream,
     if (RB_TYPE_P(v, T_CLASS)) {
       if (v == rb_cNilClass) {
         cstr = "nil";
-      } else if (v == rb_cInteger) {
-        cstr = "Integer";
-      } else if (v == rb_cSymbol) {
-        cstr = "Symbol";
       } else if (v == rb_cTrueClass) {
         cstr = "true";
       } else if (v == rb_cFalseClass) {
@@ -93,6 +87,8 @@ static int rb_tr_fprintf_value(FILE *stream,
   len = fprintf(stream, "%s", cstr);
   return len;
 }
+
+// Run when loading C-extension support
 
 void rb_tr_init(void *ruby_cext) {
   truffle_assign_managed(&rb_tr_cext, ruby_cext);
