@@ -30,7 +30,7 @@ public class TruffleRuby {
         if (isAOT) {
             vm = implementationName + " Native";
         } else {
-            vm = implementationName;
+            vm = implementationName + " JVM";
         }
 
         return String.format(
