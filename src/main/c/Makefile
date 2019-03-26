@@ -33,6 +33,8 @@ IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && fal
 
 all:  cext/ruby.su \
       etc/etc.su \
+      json/generator/generator.su \
+      json/parser/parser.su \
       nkf/nkf.su \
       openssl/openssl.su \
       psych/psych.su \
@@ -48,6 +50,8 @@ clean_truffleposix:
 clean_cexts:
 	rm -f cext/Makefile cext/*.bc cext/ruby.o cext/ruby.su
 	rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
+	rm -f json/generator/Makefile json/generator/*.bc json/generator/generator.su
+	rm -f json/parser/Makefile json/parser/*.bc json/parser/parser.su
 	rm -f nkf/Makefile nkf/*.bc nkf/nkf.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
 	rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
@@ -89,6 +93,20 @@ etc/etc.c: etc/constdefs.h
 
 etc/constdefs.h: etc/mkconstants.rb
 	$(RUBY) $< -o $@
+
+# json/generator.su
+json/generator/Makefile: json/generator/extconf.rb $(EXTCONF_DEPS)
+	cd json/generator && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+json/generator/generator.su: json/generator/Makefile json/generator/generator.c json/generator/generator.h
+	cd json/generator && $(MAKE)
+
+# json/parser.su
+json/parser/Makefile: json/parser/extconf.rb $(EXTCONF_DEPS)
+	cd json/parser && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+json/parser/parser.su: json/parser/Makefile json/parser/parser.c json/parser/parser.h
+	cd json/parser && $(MAKE)
 
 # nkf.su
 nkf/Makefile: nkf/extconf.rb $(EXTCONF_DEPS)

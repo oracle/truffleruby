@@ -37,6 +37,8 @@ cp ../ruby/st.c src/main/c/cext/st.c
 
 # Copy Ruby files in ext/, sorted alphabetically
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
+cp -r ../ruby/ext/json/lib/json lib/mri
+cp ../ruby/ext/json/lib/json.rb lib/mri
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri
@@ -45,9 +47,12 @@ cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
-rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
-mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
+rm -r src/main/c/{etc,json,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
+mkdir src/main/c/{etc,json,json/fbuffer,json/generator,json/parser,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
+cp ../ruby/ext/json/fbuffer/fbuffer.h src/main/c/json/fbuffer
+cp ../ruby/ext/json/generator/*.{c,h,rb} src/main/c/json/generator
+cp ../ruby/ext/json/parser/*.{c,h,rb} src/main/c/json/parser
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
 cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
