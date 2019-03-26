@@ -217,6 +217,7 @@ public class RubyDebugTest {
         assertExecutedOK("OK");
     }
 
+    @Ignore
     @Test
     public void testProperties() throws Throwable {
         Source source = getSource("src/test/ruby/types.rb");
