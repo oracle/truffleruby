@@ -18,32 +18,21 @@ import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import com.oracle.truffle.api.TruffleFile;
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.parser.lexer.RubyLexer;
+import org.truffleruby.shared.TruffleRuby;
 
 public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
 
-    private static final String MIME_TYPE = "application/x-ruby";
-
-    private static final String[] KNOWN_RUBY_FILES = new String[]{ "Gemfile", "Rakefile", "Mavenfile" };
+    private static final String[] KNOWN_RUBY_FILES = new String[]{ "Gemfile", "Rakefile" };
     private static final String[] KNOWN_RUBY_SUFFIXES = new String[]{ ".rb", ".rake", ".gemspec" };
     private static final Pattern SHEBANG_REGEXP = Pattern.compile("^#! ?/usr/bin/(env +ruby|ruby).*");
 
     @Override
     public String findMimeType(TruffleFile file) throws IOException {
-        return findMimeAndEncodingImpl(file, null);
-    }
-
-    @Override
-    public Charset findEncoding(TruffleFile file) throws IOException {
-        Charset[] encodingHolder = new Charset[1];
-        findMimeAndEncodingImpl(file, encodingHolder);
-        return encodingHolder[0];
-    }
-
-    private String findMimeAndEncodingImpl(TruffleFile file, Charset[] encodingHolder) {
         final String fileName = file.getName();
 
         if (fileName == null) {
@@ -51,56 +40,61 @@ public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
         }
 
         final String lowerCaseFileName = fileName.toLowerCase(Locale.ROOT);
-        String mimeType = null;
 
         for (String candidate : KNOWN_RUBY_SUFFIXES) {
             if (lowerCaseFileName.endsWith(candidate)) {
-                mimeType = MIME_TYPE;
-                break;
+                return TruffleRuby.MIME_TYPE;
             }
         }
 
-        if (mimeType == null) {
-            for (String candidate : KNOWN_RUBY_FILES) {
-                if (fileName.equals(candidate)) {
-                    mimeType = MIME_TYPE;
-                    break;
-                }
+        for (String candidate : KNOWN_RUBY_FILES) {
+            if (fileName.equals(candidate)) {
+                return TruffleRuby.MIME_TYPE;
             }
         }
 
-        if (mimeType == null || encodingHolder != null) {
-            try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
-                final String firstLine = fileContent.readLine();
-                if (firstLine != null) {
-                    String encodingCommentLine;
-                    if (SHEBANG_REGEXP.matcher(firstLine).matches()) {
-                        mimeType = mimeType == null ? MIME_TYPE : mimeType;
-                        encodingCommentLine = encodingHolder == null ? null : fileContent.readLine();
-                    } else {
-                        encodingCommentLine = encodingHolder == null ? null : firstLine;
-                    }
-                    if (encodingCommentLine != null) {
-                        Rope encodingCommentRope = StringOperations.encodeRope(encodingCommentLine, EncodingManager.getEncoding("UTF-8"));
-                        RubyLexer.parseMagicComment(encodingCommentRope, new BiConsumer<String, Rope>() {
-                            @Override
-                            public void accept(String name, Rope value) {
-                                if (RubyLexer.isMagicEncodingComment(name)) {
-                                    Encoding encoding = EncodingManager.getEncoding(value);
-                                    if (encoding != null) {
-                                        encodingHolder[0] = encoding.getCharset();
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-            } catch (IOException | SecurityException e) {
-                // Reading random files as UTF-8 could cause all sorts of errors
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
+            final String firstLine = fileContent.readLine();
+            if (firstLine != null && SHEBANG_REGEXP.matcher(firstLine).matches()) {
+                return TruffleRuby.MIME_TYPE;
             }
+        } catch (IOException | SecurityException e) {
+            // Reading random files as UTF-8 could cause all sorts of errors
         }
-
-        return mimeType;
+        return null;
     }
 
+    @Override
+    public Charset findEncoding(TruffleFile file) throws IOException {
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
+            final String firstLine = fileContent.readLine();
+            if (firstLine != null) {
+                String encodingCommentLine;
+                if (SHEBANG_REGEXP.matcher(firstLine).matches()) {
+                    encodingCommentLine = fileContent.readLine();
+                } else {
+                    encodingCommentLine = firstLine;
+                }
+                if (encodingCommentLine != null) {
+                    Rope encodingCommentRope = StringOperations.encodeRope(encodingCommentLine, UTF8Encoding.INSTANCE);
+                    Charset[] encodingHolder = new Charset[1];
+                    RubyLexer.parseMagicComment(encodingCommentRope, new BiConsumer<String, Rope>() {
+                        @Override
+                        public void accept(String name, Rope value) {
+                            if (RubyLexer.isMagicEncodingComment(name)) {
+                                Encoding encoding = EncodingManager.getEncoding(value);
+                                if (encoding != null) {
+                                    encodingHolder[0] = encoding.getCharset();
+                                }
+                            }
+                        }
+                    });
+                    return encodingHolder[0];
+                }
+            }
+        } catch (IOException | SecurityException e) {
+            // Reading random files as UTF-8 could cause all sorts of errors
+        }
+        return null;
+    }
 }

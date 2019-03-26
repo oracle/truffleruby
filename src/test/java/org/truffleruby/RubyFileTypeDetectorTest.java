@@ -43,9 +43,9 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                     for (TestCase testCase : getTestCases()) {
                         TruffleFile file = env.getTruffleFile(testCase.path.toString());
                         if (testCase.hasRubyMimeType) {
-                            assertEquals(TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
+                            assertEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
                         } else {
-                            assertNotEquals(TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
+                            assertNotEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
                         }
                     }
                 } catch (IOException ioe) {
@@ -59,9 +59,9 @@ public class RubyFileTypeDetectorTest extends RubyTest {
     public void testIndirect() throws IOException {
         for (TestCase testCase : getTestCases()) {
             if (testCase.hasRubyMimeType) {
-                assertEquals(TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
+                assertEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
             } else {
-                assertNotEquals(TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
+                assertNotEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
             }
         }
     }
@@ -75,11 +75,9 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                 TruffleLanguage.Env env = rootNode.getContext().getEnv();
                 try {
                     for (TestCase testCase : getTestCases()) {
-                        TruffleFile file = env.getTruffleFile(testCase.path.toString());
                         if (testCase.hasRubyMimeType) {
-                            assertEquals(TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
-                        } else {
-                            assertNotEquals(TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
+                            TruffleFile file = env.getTruffleFile(testCase.path.toString());
+                            assertEquals(testCase.encoding, fileTypeDetector.findEncoding(file));
                         }
                     }
                 } catch (IOException ioe) {
@@ -99,7 +97,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
         testCases.add(new TestCase(createFile(tempDirectory, "TESTUP.RB", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "Gemfile", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "Rakefile", "puts 'hello'"), true, null));
-        testCases.add(new TestCase(createFile(tempDirectory, "Mavenfile", "puts 'hello'"), true, null));
+        testCases.add(new TestCase(createFile(tempDirectory, "Mavenfile", "puts 'hello'"), false, null));
         testCases.add(new TestCase(createFile(tempDirectory, "test.rake", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "test.gemspec", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "shebang", "#!/usr/bin/ruby\nputs 'hello'"), true, null));
