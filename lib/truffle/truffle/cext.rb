@@ -1091,7 +1091,7 @@ module Truffle::CExt
   end
 
   def rb_yield_splat(values)
-    Truffle.invoke_primitive(:interop_call_c_with_mutex, rb_block_proc, [values])
+    Truffle.invoke_primitive(:interop_call_c_with_mutex, rb_block_proc, values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
