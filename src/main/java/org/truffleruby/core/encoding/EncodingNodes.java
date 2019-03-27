@@ -676,6 +676,29 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "dummy_encoding", needsSelf = false)
+    public static abstract class DummyEncodingeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(nameObject)")
+        public DynamicObject dummyEncoding(DynamicObject nameObject) {
+            final String name = StringOperations.getString(nameObject);
+
+            final DynamicObject newEncoding = dummy(name);
+            if (newEncoding == null) {
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
+            }
+
+            final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
+            return createArray(new Object[]{ newEncoding, index }, 2);
+        }
+
+        @TruffleBoundary
+        private DynamicObject dummy(String name) {
+            return getContext().getEncodingManager().dummyEncoding(name);
+        }
+
+    }
+
     @Primitive(name = "encoding_get_encoding_by_index", needsSelf = false, lowerFixnum = 1)
     public static abstract class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
 

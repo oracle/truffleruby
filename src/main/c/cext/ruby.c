@@ -3099,7 +3099,7 @@ int rb_enc_replicate(const char *name, rb_encoding *encoding) {
 }
 
 int rb_define_dummy_encoding(const char *name) {
-  rb_tr_error("rb_define_dummy_encoding not implemented");
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_define_dummy_encoding", rb_str_new_cstr(name)));
 }
 
 #undef rb_enc_str_new_cstr
