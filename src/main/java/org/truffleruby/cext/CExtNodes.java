@@ -121,17 +121,23 @@ public class CExtNodes {
         public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = lock.isHeldByCurrentThread();
 
-                MutexOperations.lockInternal(getContext(), lock, this);
-                try {
+                if (ownedProfile.profile(!owned)) {
+                    MutexOperations.lockInternal(getContext(), lock, this);
+                    try {
+                        return execute(receiver, args, executeNode, exceptionProfile);
+                    } finally {
+                        MutexOperations.unlockInternal(lock);
+                    }
+                } else {
                     return execute(receiver, args, executeNode, exceptionProfile);
-                } finally {
-                    MutexOperations.unlockInternal(lock);
                 }
             } else {
                 return execute(receiver, args, executeNode, exceptionProfile);
@@ -158,17 +164,23 @@ public class CExtNodes {
         public Object callCWithoutMutex(TruffleObject receiver, DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = lock.isHeldByCurrentThread();
 
-                MutexOperations.unlockInternal(lock);
-                try {
+                if (ownedProfile.profile(owned)) {
+                    MutexOperations.unlockInternal(lock);
+                    try {
+                        return execute(receiver, args, executeNode, exceptionProfile);
+                    } finally {
+                        MutexOperations.lockInternal(getContext(), lock, this);
+                    }
+                } else {
                     return execute(receiver, args, executeNode, exceptionProfile);
-                } finally {
-                    MutexOperations.lockInternal(getContext(), lock, this);
                 }
             } else {
                 return execute(receiver, args, executeNode, exceptionProfile);

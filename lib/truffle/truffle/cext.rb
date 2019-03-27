@@ -1592,6 +1592,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_thread_call_with_gvl(function, data)
+    Truffle.invoke_primitive(:interop_call_c_with_mutex, function, [data])
+  end
+
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     if unblock
       unblocker = -> {
