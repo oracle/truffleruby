@@ -1415,19 +1415,22 @@ module Truffle::CExt
     object
   end
 
-  def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free)
+  def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+    Truffle::ObjSpace.define_sizer object, data_sizer(size, data_holder) unless size.nil?
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
   end
 
+  # These data function are created in separate methods to ensure they
+  # will not accidentally capture the objects they operate on, which
+  # might prevent garbage collection.
   def data_finalizer(free, data_holder)
-    # In a separate method to avoid capturing the object
     raise unless free.respond_to?(:call)
     proc {
       Truffle.invoke_primitive(:interop_call_c_with_mutex, free, [data_holder.data]) unless data_holder.data.nil?
@@ -1435,12 +1438,18 @@ module Truffle::CExt
   end
 
   def data_marker(mark, data_holder)
-    # In a separate method to avoid capturing the object
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list
       Truffle.invoke_primitive(:interop_call_c_with_mutex, mark, [data_holder.data]) unless data_holder.data.nil?
       set_mark_list_on_object(obj)
+    }
+  end
+
+  def data_sizer(sizer, data_holder)
+    raise unless sizer.respond_to?(:call)
+    proc {
+      Truffle.invoke_primitive(:interop_call_c_with_mutex, sizer, [data_holder.data])
     }
   end
 
