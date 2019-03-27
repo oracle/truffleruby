@@ -342,14 +342,6 @@ short rb_fix2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }
 
-VALUE RB_INT2FIX(long value) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "INT2FIX", value));
-}
-
-VALUE RB_LONG2FIX(long value) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "LONG2FIX", value));
-}
-
 long rb_fix2int(VALUE value) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_fix2int", value));
 }

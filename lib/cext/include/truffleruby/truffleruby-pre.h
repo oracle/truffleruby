@@ -45,13 +45,8 @@ extern void* rb_tr_cext;
 
 // Wrapping and unwrapping of values.
 
-MUST_INLINE VALUE rb_tr_wrap(VALUE object) {
-  return polyglot_invoke(RUBY_CEXT, "rb_tr_wrap", object);
-}
-
-MUST_INLINE VALUE rb_tr_unwrap(VALUE object) {
-  return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object);
-}
+#define rb_tr_wrap(object) polyglot_invoke(RUBY_CEXT, "rb_tr_wrap", object)
+#define rb_tr_unwrap(object) polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object)
 
 // Needed for GC guarding
 
