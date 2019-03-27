@@ -167,8 +167,8 @@ public class RubyObjectType extends ObjectType {
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (doesRespond.doesRespondTo(frame, "pointer?", object)) {
-                return dispatchNode.call(object, "pointer?");
+            if (doesRespond.doesRespondTo(frame, "__pointer__?", object)) {
+                return dispatchNode.call(object, "__pointer__?");
             } else {
                 return false;
             }
@@ -185,8 +185,8 @@ public class RubyObjectType extends ObjectType {
         private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (doesRespond.doesRespondTo(frame, "address", object)) {
-                Object result = dispatchNode.call(object, "address");
+            if (doesRespond.doesRespondTo(frame, "__address__", object)) {
+                Object result = dispatchNode.call(object, "__address__");
 
                 if (intProfile.profile(result instanceof Integer)) {
                     result = (long) ((int) result);

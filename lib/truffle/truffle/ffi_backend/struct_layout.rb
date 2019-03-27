@@ -117,7 +117,7 @@ module FFI
 
       def get(struct_pointer)
         string_pointer = struct_pointer.get_pointer(@offset)
-        if string_pointer.address == 0
+        if string_pointer.__address__ == 0
           nil
         else
           string_pointer.read_string

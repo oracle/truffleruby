@@ -21,7 +21,7 @@ describe "FFI::Struct#[]" do
       ptr = @struct.new[:next]
       # Note that Rubinius::FFI::Struct returns nil in such a case!
       ptr.should be_kind_of(FFI::Pointer)
-      ptr.address.should == 0
+      ptr.__address__.should == 0
     end
   end
 

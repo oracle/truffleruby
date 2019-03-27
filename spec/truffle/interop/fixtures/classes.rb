@@ -1,7 +1,11 @@
 module TruffleInteropSpecs
 
   class AsPointerClass
-    def address
+    def __pointer__?
+      true
+    end
+
+    def __address__
       0x123
     end
   end

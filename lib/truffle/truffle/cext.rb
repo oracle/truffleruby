@@ -88,7 +88,7 @@ module Truffle::CExt
       @strpointer ||= RStringPtr.new(@encoding.name)
     end
 
-    def pointer?
+    def __pointer__?
       true
     end
 
@@ -97,12 +97,12 @@ module Truffle::CExt
       self
     end
 
-    def address
+    def __address__
       @address ||= cache_address
     end
 
     def cache_address
-      addr = name.address
+      addr = name.__address__
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
       end
@@ -146,11 +146,11 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_size(@string)
     end
 
-    def pointer?
+    def __pointer__?
       true
     end
 
-    def address
+    def __address__
       @address ||= Truffle::CExt.string_pointer_to_native(@string)
     end
 
@@ -186,11 +186,11 @@ module Truffle::CExt
       @array.size
     end
 
-    def pointer?
+    def __pointer__?
       true
     end
 
-    def address
+    def __address__
       raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet'
     end
 
@@ -221,11 +221,11 @@ module Truffle::CExt
       0
     end
 
-    def pointer?
+    def __pointer__?
       true
     end
 
-    def address
+    def __address__
       @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
 

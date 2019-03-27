@@ -900,7 +900,7 @@ describe "Struct allocation" do
     expect(p.type_size).to eq(4)
     p.put_uint(4, 0xdeadbeef)
     expect(S.new(p[1])[:i]).to eq(0xdeadbeef)
-    expect(p[1].address).to eq((p[0].address + 4))
+    expect(p[1].__address__).to eq((p[0].__address__ + 4))
   end
 
   it "Buffer.new(Struct, 2)" do

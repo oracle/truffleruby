@@ -74,13 +74,13 @@ describe "Pointer" do
     it "#read_pointer" do
       memory = FFI::MemoryPointer.new :pointer
       PointerTestLib.ptr_set_pointer(memory, 0, PointerTestLib.ptr_from_address(0xdeadbeef))
-      expect(memory.read_pointer.address).to eq(0xdeadbeef)
+      expect(memory.read_pointer.__address__).to eq(0xdeadbeef)
     end
 
     it "#write_pointer" do
       memory = FFI::MemoryPointer.new :pointer
       memory.write_pointer(PointerTestLib.ptr_from_address(0xdeadbeef))
-      expect(PointerTestLib.ptr_ret_pointer(memory, 0).address).to eq(0xdeadbeef)
+      expect(PointerTestLib.ptr_ret_pointer(memory, 0).__address__).to eq(0xdeadbeef)
     end
 
     it "#read_array_of_pointer" do
@@ -91,7 +91,7 @@ describe "Pointer" do
       end
       array = memory.read_array_of_pointer(values.size)
       values.each_with_index do |address, j|
-        expect(array[j].address).to eq(address)
+        expect(array[j].__address__).to eq(address)
       end
     end
 
@@ -291,7 +291,7 @@ describe "AutoPointer" do
       aptr = ptr_class.new(FFI::Pointer.new(:int, 0xdeadbeef))
       expect(aptr.type_size).to eq(FFI.type_size(:int))
     end
-    
+
     it "[] offset should match wrapped Pointer" do
       mptr = FFI::MemoryPointer.new(:int, 1024)
       aptr = ptr_class.new(FFI::Pointer.new(:int, mptr))
