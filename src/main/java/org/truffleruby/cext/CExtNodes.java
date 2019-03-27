@@ -199,6 +199,44 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_acquire_cext_mutex")
+    public abstract static class AcquireCExtMutexNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        public boolean acquireMutex(VirtualFrame frame,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = lock.isHeldByCurrentThread();
+
+                if (ownedProfile.profile(!owned)) {
+                    MutexOperations.lockInternal(getContext(), lock, this);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    @CoreMethod(names = "rb_release_cext_mutex")
+    public abstract static class ReleaseCExtMutexNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        public boolean releaseMutex(VirtualFrame frame,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = lock.isHeldByCurrentThread();
+
+                if (ownedProfile.profile(owned)) {
+                    MutexOperations.unlockInternal(lock);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)
     public abstract static class ULong2NumNode extends CoreMethodArrayArgumentsNode {
 

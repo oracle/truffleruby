@@ -1635,14 +1635,24 @@ module Truffle::CExt
   def rb_thread_wait_fd(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    IO.select([io])
+    owned = rb_release_cext_mutex
+    begin
+      IO.select([io])
+    ensure
+      rb_acquire_cext_mutex if owned
+    end
     nil
   end
 
   def rb_thread_fd_writable(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    _r, w, _e = IO.select(nil, [io])
+    owned = rb_release_cext_mutex
+    begin
+      _r, w, _e = IO.select(nil, [io])
+    ensure
+      rb_acquire_cext_mutex if owned
+    end
     w.size
   end
 
@@ -1661,7 +1671,12 @@ module Truffle::CExt
     if tv_secs > 0 || tv_usecs > 0
       timeout = tv_secs + tv_usecs/1.0e6
     end
-    r, w, e = IO.select(read, write, error, *timeout)
+    owned = rb_release_cext_mutex
+    begin
+      r, w, e = IO.select(read, write, error, *timeout)
+    ensure
+      rb_acquire_cext_mutex if owned
+    end
     if r.nil? # timeout
       0
     else
