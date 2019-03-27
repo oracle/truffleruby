@@ -71,25 +71,14 @@ public abstract class ObjSpaceNodes {
         }
     }
 
-    @CoreMethod(names = "has_sizer?", isModuleFunction = true, required = 1)
-    public abstract static class HasMemSizer extends CoreMethodArrayArgumentsNode {
-
-        @Child private ReadObjectFieldNode setSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
-
-        @Specialization
-        public boolean hasSizer(DynamicObject object) {
-            return setSizerNode.execute(object) != nil();
-        }
-    }
-
     @CoreMethod(names = "sizer", isModuleFunction = true, required = 1)
     public abstract static class GetMemSizer extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode setSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
+        @Child private ReadObjectFieldNode readSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
 
         @Specialization
         public Object hasSizer(DynamicObject object) {
-            return setSizerNode.execute(object);
+            return readSizerNode.execute(object);
         }
     }
 
