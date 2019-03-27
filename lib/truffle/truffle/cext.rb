@@ -1427,8 +1427,10 @@ module Truffle::CExt
     object
   end
 
+  # These data function are created in separate methods to ensure they
+  # will not accidentally capture the objects they operate on, which
+  # might prevent garbage collection.
   def data_finalizer(free, data_holder)
-    # In a separate method to avoid capturing the object
     raise unless free.respond_to?(:call)
     proc {
       Truffle.invoke_primitive(:interop_call_c_with_mutex, free, [data_holder.data]) unless data_holder.data.nil?
@@ -1436,7 +1438,6 @@ module Truffle::CExt
   end
 
   def data_marker(mark, data_holder)
-    # In a separate method to avoid capturing the object
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list
@@ -1446,7 +1447,6 @@ module Truffle::CExt
   end
 
   def data_sizer(sizer, data_holder)
-    # In a separate method to avoid capturing the object
     raise unless sizer.respond_to?(:call)
     proc {
       Truffle.invoke_primitive(:interop_call_c_with_mutex, sizer, [data_holder.data])
