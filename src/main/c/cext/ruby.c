@@ -1276,7 +1276,7 @@ int rb_tr_flags(VALUE value) {
   if (OBJ_TAINTED(value)) {
     flags |= RUBY_FL_TAINT;
   }
-  if (rb_array_len(rb_obj_instance_variables(value)) > 0) {
+  if (RARRAY_LEN(rb_obj_instance_variables(value)) > 0) {
     flags |= RUBY_FL_EXIVAR;
   }
   // TODO BJF Nov-11-2017 Implement more flags
