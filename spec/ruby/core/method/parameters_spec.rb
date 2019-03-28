@@ -247,9 +247,12 @@ describe "Method#parameters" do
     "foo".method(:delete!).parameters.should == [[:rest]]
   end
 
-  it "returns [[:rest]] for core methods with optional arguments" do
+  it "returns [[:rest]] or [[:opt]] for core methods with optional arguments" do
     # pop takes 1 optional argument
-    [].method(:pop).parameters.should == [[:rest]]
+    [
+      [[:rest]],
+      [[:opt]]
+    ].should include([].method(:pop).parameters)
   end
 
   it "returns [[:req]] for each parameter for core methods with fixed-length argument lists" do
