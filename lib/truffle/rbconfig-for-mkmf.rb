@@ -72,6 +72,7 @@ warnflags = [
   '-Wno-int-to-pointer-cast',        # Same as above
   '-Wno-unused-value',               # RB_GC_GUARD leaves
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
+  '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-ferror-limit=500'
 ].join(' ')
 
