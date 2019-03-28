@@ -63,4 +63,3 @@ describe "The --enable and --disable flags" do
   end
 
 end
-

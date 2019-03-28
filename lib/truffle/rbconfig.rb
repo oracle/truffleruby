@@ -109,6 +109,7 @@ module RbConfig
   mkconfig['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
 
   ruby_home = Truffle::Boot.ruby_home
+  TOPDIR = ruby_home
 
   if ruby_home
     prefix        = ruby_home

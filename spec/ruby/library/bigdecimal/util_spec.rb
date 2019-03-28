@@ -3,9 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 
 describe "BigDecimal's util method definitions" do
-
   describe "#to_d" do
-
     it "should define #to_d on Integer" do
       42.to_d.should == BigDecimal(42)
     end
@@ -29,17 +27,16 @@ describe "BigDecimal's util method definitions" do
       Rational(22, 7).to_d(3).should == BigDecimal(3.14, 3)
     end
 
-    it "should define #to_d on nil" do
-      nil.to_d.should == BigDecimal(0)
+    ruby_version_is "2.6" do
+      it "should define #to_d on nil" do
+        nil.to_d.should == BigDecimal(0)
+      end
     end
-
   end
 
   describe "#to_digits" do
-
     it "should define #to_digits on BigDecimal" do
       BigDecimal("3.14").to_digits.should == "3.14"
     end
-
   end
 end
