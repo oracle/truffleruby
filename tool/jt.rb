@@ -1314,6 +1314,7 @@ EOS
       else
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
         options << "-T--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+        options << "-T--polyglot" # For Truffle::Interop.export specs
       end
 
       options << '-T--backtraces.hide_core_files=false'
