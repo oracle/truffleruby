@@ -70,7 +70,6 @@ warnflags = [
   '-Wno-unknown-warning-option',     # If we're on an earlier version of clang without a warning option, ignore it
   '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
   '-Wno-int-to-pointer-cast',        # Same as above
-  '-Wno-unused-value',               # RB_GC_GUARD leaves
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
   '-ferror-limit=500'
 ].join(' ')
