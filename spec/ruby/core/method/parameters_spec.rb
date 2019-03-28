@@ -243,17 +243,16 @@ describe "Method#parameters" do
   end
 
   it "returns [[:rest]] for core methods with variable-length argument lists" do
-    m = "foo"
+    # delete! takes rest args
+    "foo".method(:delete!).parameters.should == [[:rest]]
+  end
 
-    # match takes rest args
-    m.method(:match).parameters.should == [[:rest]]
-
-    # [] takes 1 to 3 args
-    m.method(:[]).parameters.should == [[:rest]]
+  it "returns [[:rest]] for core methods with optional arguments" do
+    # pop takes 1 optional argument
+    [].method(:pop).parameters.should == [[:rest]]
   end
 
   it "returns [[:req]] for each parameter for core methods with fixed-length argument lists" do
-    m = "foo"
-    m.method(:+).parameters.should == [[:req]]
+    "foo".method(:+).parameters.should == [[:req]]
   end
 end
