@@ -199,22 +199,6 @@ public class CExtNodes {
 
     }
 
-    // TODO (pitr-ch 14-Dec-2017): remove from java
-    @CoreMethod(names = "INT2FIX", onSingleton = true, required = 1)
-    public abstract static class INT2FIXNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int int2fix(int num) {
-            return num;
-        }
-
-        @Specialization
-        public long int2fix(long num) {
-            return num;
-        }
-
-    }
-
     @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)
     public abstract static class ULong2NumNode extends CoreMethodArrayArgumentsNode {
 
@@ -438,16 +422,6 @@ public class CExtNodes {
             }
 
             return fixnumOrBignum.fixnumOrBignum(num);
-        }
-
-    }
-
-    @CoreMethod(names = "LONG2FIX", onSingleton = true, required = 1)
-    public abstract static class LONG2FIXNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long long2fix(long num) {
-            return num;
         }
 
     }
