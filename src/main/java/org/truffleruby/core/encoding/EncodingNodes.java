@@ -652,8 +652,21 @@ public abstract class EncodingNodes {
 
     }
 
+    public static abstract class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
+
+        public DynamicObject setIndexOrRaiseError(String name, DynamicObject newEncoding) {
+            if (newEncoding == null) {
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
+            }
+
+            final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
+            return createArray(new Object[]{ newEncoding, index }, 2);
+        }
+
+    }
+
     @Primitive(name = "encoding_replicate")
-    public static abstract class EncodingReplicateNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
         public DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
@@ -661,12 +674,7 @@ public abstract class EncodingNodes {
             final Encoding encoding = EncodingOperations.getEncoding(self);
 
             final DynamicObject newEncoding = replicate(name, encoding);
-            if (newEncoding == null) {
-                throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
-            }
-
-            final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
-            return createArray(new Object[]{ newEncoding, index }, 2);
+            return setIndexOrRaiseError(name, newEncoding);
         }
 
         @TruffleBoundary
@@ -677,23 +685,18 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_create_dummy", needsSelf = false)
-    public static abstract class DummyEncodingeNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class DummyEncodingeNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
         public DynamicObject createDummyEncoding(DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
 
-            final DynamicObject newEncoding = dummy(name);
-            if (newEncoding == null) {
-                throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
-            }
-
-            final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
-            return createArray(new Object[]{ newEncoding, index }, 2);
+            final DynamicObject newEncoding = createDummy(name);
+            return setIndexOrRaiseError(name, newEncoding);
         }
 
         @TruffleBoundary
-        private DynamicObject dummy(String name) {
+        private DynamicObject createDummy(String name) {
             return getContext().getEncodingManager().createDummyEncoding(name);
         }
 
