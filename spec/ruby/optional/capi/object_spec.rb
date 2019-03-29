@@ -858,16 +858,18 @@ describe "CApiObject" do
       it "copies the instance variables from one object to another" do
         original = Object.new
         original.instance_variable_set(:@foo, :bar)
-        @o.rb_copy_generic_ivar(original)
-        @o.instance_variable_get(:@foo).should == :bar
+        clone = Object.new
+        @o.rb_copy_generic_ivar(clone, original)
+        clone.instance_variable_get(:@foo).should == :bar
       end
     end
 
     describe "rb_free_generic_ivar" do
       it "removes the instance variables from an object" do
-        @o.instance_variable_set(:@foo, :bar)
-        @o.rb_free_generic_ivar
-        @o.instance_variables.should == []
+        o = Object.new
+        o.instance_variable_set(:@baz, :flibble)
+        @o.rb_free_generic_ivar(o)
+        o.instance_variables.should == []
       end
     end
   end
