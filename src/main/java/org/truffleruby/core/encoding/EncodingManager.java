@@ -170,7 +170,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end, boolean dummy) {
+    private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end + "; name.length = " + name.length + ")";
 
@@ -178,7 +178,7 @@ public class EncodingManager {
         final Rope cachedRope = context.getRopeCache().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
 
-        return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string, dummy);
+        return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string);
     }
 
     public static Encoding getEncoding(String name) {
@@ -240,7 +240,7 @@ public class EncodingManager {
     public synchronized DynamicObject defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final Encoding encoding = encodingEntry.getEncoding();
         final int encodingIndex = encoding.getIndex();
-        final DynamicObject rubyEncoding = newRubyEncoding(context, encoding, name, p, end, encodingEntry.isDummy());
+        final DynamicObject rubyEncoding = newRubyEncoding(context, encoding, name, p, end);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() || ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
 

@@ -421,7 +421,7 @@ public abstract class EncodingNodes {
         protected static boolean isDummy(DynamicObject encoding) {
             assert RubyGuards.isRubyEncoding(encoding);
 
-            return Layouts.ENCODING.getDummy(encoding);
+            return Layouts.ENCODING.getEncoding(encoding).isDummy();
         }
     }
 
