@@ -734,7 +734,7 @@ module Truffle::CExt
   end
 
   def rb_define_dummy_encoding(name)
-    enc, idx = Truffle::EncodingOperations.dummy_encoding(name)
+    _, idx = Truffle::EncodingOperations.dummy_encoding(name)
     idx
   end
 
