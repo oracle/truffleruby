@@ -909,7 +909,9 @@ module Truffle::CExt
 
     ec = Encoding::Converter.new(from, to, ecopts || ecflags)
     dest = ''
-    status = ec.primitive_convert str, dest, nil, nil, ec.options
+    # This C API will (unlike primitive convert) not alter the source
+    # string, so we need to duplicate it.
+    status = ec.primitive_convert str.dup, dest, nil, nil, ec.options
     status == :finished ? dest : str
   end
 

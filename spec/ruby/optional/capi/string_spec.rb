@@ -877,6 +877,26 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_export_to_enc" do
+    it "returns a copy of an ascii string converted to the new encoding" do
+      source = "A simple string".encode(Encoding::US_ASCII)
+      result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
+      result.should == source.encode(Encoding::UTF_8)
+    end
+
+    it "returns the source string if it can not be converted" do
+      source = ["00ff"].pack("H*");
+      result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
+      result.should == source
+    end
+
+    it "does not alter the source string if it can not be converted" do
+      source = ["00ff"].pack("H*");
+      result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
+      source.bytes.should == [0, 255]
+    end
+end
+  
   describe "rb_sprintf" do
     it "replaces the parts like sprintf" do
       @s.rb_sprintf1("Awesome %s is replaced", "string").should == "Awesome string is replaced"
