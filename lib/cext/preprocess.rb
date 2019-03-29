@@ -72,7 +72,8 @@ class Preprocessor
       file_name = patched_file_name
     end
 
-    $stdout.puts "#line 1 \"#{file_name}\""
+    expanded_path = File.expand_path(file_name)
+    $stdout.puts "#line 1 \"#{expanded_path}\""
     $stdout.puts output
   end
 end
