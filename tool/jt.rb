@@ -710,6 +710,7 @@ module Commands
       case arg
       when '--native'
         native = true
+        vm_args << '--native'
       when '--no-core-load-path'
         core_load_path = false
       when '--graal'
@@ -1311,6 +1312,7 @@ EOS
       if args.delete('--native')
         verify_native_bin!
         options << '-t' << find_launcher(true)
+        options << '-T--native'
       else
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
         options << "-T--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
@@ -1747,7 +1749,7 @@ EOS
 
     run_args = []
 
-    if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
+    if args.include?('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
       benchmark_ruby ||= find_launcher(true)

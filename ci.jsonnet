@@ -252,7 +252,7 @@ local part_definitions = {
           self.svm_suite + ",truffleruby",
           "--disable-polyglot",
           "--disable-libpolyglot",
-          "--force-bash-launchers=lli,truffleruby",
+          "--force-bash-launchers=lli,native-image",
           "gate",
           "--no-warning-as-error",
           "--tags",
@@ -557,23 +557,37 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
     } +
 
-    local svm_test_platforms = {
-      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate,
-
-      linux: $.platform.linux + shared + { "$.svm.gate":: { tags: "build,ruby_debug,ruby_product" } },
-      darwin: $.platform.darwin + shared + { "$.svm.gate":: { tags: "build,darwin_ruby" } },
-    };
+    local svm_test_shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate;
     {
-      local shared = $.use.build + $.svm.core + { timelimit: "01:00:00" },
-      local tag_override = { "$.svm.gate":: { tags: "build,ruby" } },
+      local shared = $.use.build + $.svm.core + {
+        "$.svm.gate":: {
+          tags: "build,ruby"
+        },
+        environment+: {
+          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:GreyToBlackObjectVisitorDiagnosticHistory=16", # GR-9912
+        },
+        timelimit: "01:00:00",
+      },
 
-      "ruby-test-svm-graal-core-linux": shared + svm_test_platforms.linux + tag_override,
-      "ruby-test-svm-graal-core-darwin": shared + svm_test_platforms.darwin + tag_override,
+      "ruby-test-svm-graal-core-linux": $.platform.linux + svm_test_shared + shared,
+      "ruby-test-svm-graal-core-darwin": $.platform.darwin + svm_test_shared + shared,
     } + {
       local shared = $.use.build + $.svm.enterprise + { timelimit: "01:15:00" },
 
-      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux,
-      "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
+      "ruby-test-svm-graal-enterprise-linux": $.platform.linux + svm_test_shared + shared + {
+        "$.svm.gate":: {
+          tags: "build,ruby_product"
+        },
+        environment+: {
+          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:+VerifyGraalGraphs -H:+VerifyPhases -H:+AOTPriorityInline -H:+VerifyDeoptimizationEntryPoints",
+        },
+      },
+      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + svm_test_shared + shared + {
+        "$.svm.gate":: {
+          tags: "build,darwin_ruby"
+        },
+        # No extra verifications, this CI job is already slow
+      },
     },
 
   local other_rubies = {
