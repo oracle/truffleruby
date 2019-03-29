@@ -676,7 +676,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "dummy_encoding", needsSelf = false)
+    @Primitive(name = "encoding_create_dummy", needsSelf = false)
     public static abstract class DummyEncodingeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
