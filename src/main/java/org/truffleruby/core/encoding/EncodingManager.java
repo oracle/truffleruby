@@ -261,13 +261,13 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized DynamicObject dummyEncoding(String name) {
+    public synchronized DynamicObject createDummyEncoding(String name) {
         if (getRubyEncoding(name) != null) {
             return null;
         }
 
-        EncodingDB.dummy(name);
         byte[] nameBytes = name.getBytes();
+        EncodingDB.dummy(nameBytes);
         final Entry entry = EncodingDB.getEncodings().get(nameBytes);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }

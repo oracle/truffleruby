@@ -680,7 +680,7 @@ public abstract class EncodingNodes {
     public static abstract class DummyEncodingeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject dummyEncoding(DynamicObject nameObject) {
+        public DynamicObject createDummyEncoding(DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
 
             final DynamicObject newEncoding = dummy(name);
@@ -694,7 +694,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         private DynamicObject dummy(String name) {
-            return getContext().getEncodingManager().dummyEncoding(name);
+            return getContext().getEncodingManager().createDummyEncoding(name);
         }
 
     }
