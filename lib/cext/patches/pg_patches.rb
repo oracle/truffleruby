@@ -73,15 +73,6 @@ EOF
           replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(unsigned long)(rb_tr_obj_id(klass)) & 0xff] )'
         },
       ],
-      'pg_type_map.c' => [
-        # The result of rb_object_classname is used in an exception
-        # string, We turn it into a ruby string to work round a bug in
-        # our string formatting.
-        {
-          match: 'rb_obj_classname(self)',
-          replacement: 'rb_str_new_cstr(rb_obj_classname(self))'
-        }
-      ],
     }
   }
 end
