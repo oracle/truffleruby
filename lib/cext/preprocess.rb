@@ -61,7 +61,7 @@ class Preprocessor
   if __FILE__ == $0
     require 'stringio'
 
-    file_name = ARGF.filename
+    file_name = ARGV.first
     original_content = File.read(file_name)
     output = patch(file_name, original_content, Dir.pwd)
 
