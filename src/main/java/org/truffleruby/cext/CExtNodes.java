@@ -114,7 +114,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 public class CExtNodes {
 
     @ImportStatic(Message.class)
-    @Primitive(name = "interop_call_c_with_mutex")
+    @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -157,7 +157,7 @@ public class CExtNodes {
     }
 
     @ImportStatic(Message.class)
-    @Primitive(name = "interop_call_c_without_mutex")
+    @Primitive(name = "call_without_c_mutex")
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -197,44 +197,6 @@ public class CExtNodes {
             }
         }
 
-    }
-
-    @CoreMethod(names = "rb_acquire_cext_mutex")
-    public abstract static class AcquireCExtMutexNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public boolean acquireMutex(VirtualFrame frame,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
-            if (getContext().getOptions().CEXT_LOCK) {
-                final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = lock.isHeldByCurrentThread();
-
-                if (ownedProfile.profile(!owned)) {
-                    MutexOperations.lockInternal(getContext(), lock, this);
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    @CoreMethod(names = "rb_release_cext_mutex")
-    public abstract static class ReleaseCExtMutexNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public boolean releaseMutex(VirtualFrame frame,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
-            if (getContext().getOptions().CEXT_LOCK) {
-                final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = lock.isHeldByCurrentThread();
-
-                if (ownedProfile.profile(owned)) {
-                    MutexOperations.unlockInternal(lock);
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 
     @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)
