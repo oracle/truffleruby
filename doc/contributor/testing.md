@@ -206,8 +206,8 @@ and configurations that aren't tested, due to limited resources.
 
 * `UNIT` with `INT` on `J8` on Linux.
 * `UNIT` with `INT` on `J8` on macOS.
-* `SPEC` with `INT` on `J8` on Linux.
-* `SPEC` with `INT` on `J8` on macOS.
+* `BASICTEST`, `SPEC` with `INT` on `J8` on Linux.
+* `BASICTEST`, `SPEC` with `INT` on `J8` on macOS.
 * `SPEC(FAST)` with `INT` on `J11` on Linux.
 * `TCK` with `INT` on `J8` on Linux.
 * `MRI` with `INT` on `J8` on Linux.
