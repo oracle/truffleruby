@@ -61,7 +61,7 @@ class Preprocessor
   if __FILE__ == $0
     require 'stringio'
 
-    file_name = ARGF.filename
+    file_name = ARGV.first
     original_content = File.read(file_name)
     output = patch(file_name, original_content, Dir.pwd)
 
@@ -72,7 +72,8 @@ class Preprocessor
       file_name = patched_file_name
     end
 
-    $stdout.puts "#line 1 \"#{file_name}\""
+    expanded_path = File.expand_path(file_name)
+    $stdout.puts "#line 1 \"#{expanded_path}\""
     $stdout.puts output
   end
 end
