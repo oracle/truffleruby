@@ -107,7 +107,6 @@ if ruby_home
 
   $LOAD_PATH.push "#{ruby_home}/lib/truffle"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
-  $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
 end
 
 Truffle::Boot.delay do

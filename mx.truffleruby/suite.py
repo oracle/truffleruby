@@ -269,6 +269,8 @@ suite = {
                 "src/main/c/cext/ruby.o",
                 "src/main/c/cext/ruby.su",
                 "src/main/c/etc/etc.su",
+                "src/main/c/json/generator/generator.su",
+                "src/main/c/json/parser/parser.su",
                 "src/main/c/nkf/nkf.su",
                 "src/main/c/openssl/openssl.su",
                 "src/main/c/psych/psych.su",
@@ -393,7 +395,6 @@ suite = {
                     "file:doc",
                 ],
                 "lib/": [
-                    "file:lib/json",
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
@@ -426,6 +427,10 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/psych/psych.su",
                     "dependency:org.truffleruby.cext/src/main/c/syslog/syslog.su",
                     "dependency:org.truffleruby.cext/src/main/c/zlib/zlib.su",
+                ],
+                "lib/mri/json/ext/": [
+                    "dependency:org.truffleruby.cext/src/main/c/json/generator/generator.su",
+                    "dependency:org.truffleruby.cext/src/main/c/json/parser/parser.su",
                 ],
                 "lib/mri/rbconfig/": [
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/sizeof.su",
