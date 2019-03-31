@@ -85,7 +85,7 @@ module SocketSpecs
     end
   end
 
-  def self.wait_until_success(timeout = 5)
+  def self.wait_until_success(timeout = 10)
     loop_with_timeout(timeout) do
       begin
         return yield
