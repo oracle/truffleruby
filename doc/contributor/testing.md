@@ -71,7 +71,7 @@ Run MRI tests with `jt test mri`.
 MRI's basictest is a smaller set of tests for some basic control structures
 and language features. It is in `test/basictest`.
 
-Run basictest with `jt ruby test/basictest/runner.rb`.
+Run basictest with `jt test basictest`.
 
 ### MRI bootstraptest
 
@@ -79,7 +79,7 @@ MRI's bootstraptest is a smaller set of tests for functionality they require
 to bootstrap their implementation, including some tests against regressions
 and corner cases. It is in `test/bootstraptest`.
 
-Run bootstraptest with `jt ruby test/bootstraptest/runner.rb`. It's not
+Run bootstraptest with `jt test bootstraptest`. It's not
 tractable to run bootstraptest with the JVM, as it starts a new Ruby process
 for each test. Run it with a native build instead.
 

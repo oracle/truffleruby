@@ -406,7 +406,7 @@ local part_definitions = {
       ] + jt(["lint"]) + self.after_build,
     },
 
-    test_basictest: { run+: jt(["ruby", "test/basictest/runner.rb"]) },
+    test_basictest: { run+: jt(["test", "basictest"]) },
     test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },

@@ -547,6 +547,8 @@ module Commands
       jt puts 14 + 2                                 evaluate and print an expression
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests
+      jt test basictest                              run MRI's basictest suite
+      jt test bootstraptest                          run MRI's bootstraptest suite
       jt test mri                                    run mri tests
 #{MRI_TEST_MODULES.map { |k, h| format ' '*10+'%-16s%s', k, h[:help] }.join("\n")}
           --native        use native TruffleRuby image (set AOT_BIN)
@@ -879,6 +881,8 @@ module Commands
     when 'gems' then test_gems(*rest)
     when 'ecosystem' then test_ecosystem(*rest)
     when 'specs' then test_specs('run', *rest)
+    when 'basictest' then test_basictest(*rest)
+    when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
@@ -893,6 +897,27 @@ module Commands
     sh RbConfig.ruby, 'tool/jt.rb', *args
   end
   private :jt
+
+  def test_basictest(*args)
+    run_runner_test 'basictest/runner.rb', *args
+  end
+  private :test_basictest
+
+  def test_bootstraptest(*args)
+    run_runner_test 'bootstraptest/runner.rb', *args
+  end
+  private :test_bootstraptest
+
+  def run_runner_test(runner, *args)
+    double_dash_index = args.index '--'
+    if double_dash_index
+      args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
+    else
+      runner_args = []
+    end
+    run_ruby *args, "#{TRUFFLERUBY_DIR}/test/#{runner}", *runner_args
+  end
+  private :run_runner_test
 
   def test_mri(*args)
     double_dash_index = args.index '--'
