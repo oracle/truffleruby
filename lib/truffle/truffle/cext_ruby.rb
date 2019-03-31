@@ -36,9 +36,9 @@ module Truffle::CExt
         # here so that the `rb_block_*` functions will be able to find
         # it by walking the stack.
         if block
-          Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, function, args, &block))
+          Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, args, &block))
         else
-          Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, function, args))
+          Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, args))
         end
       ensure
         Truffle::CExt.pop_preserving_frame
@@ -51,7 +51,7 @@ module Truffle::CExt
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, callback, [rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)]))
+    rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, callback, [rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)]))
   end
 
   def call_with_thread_locally_stored_block(function, *args, &block)
@@ -61,7 +61,7 @@ module Truffle::CExt
     previous_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      rb_tr_unwrap(Truffle.invoke_primitive(:interop_call_c_with_mutex, function, args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }, &block))
+      rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }, &block))
     ensure
       Thread.current[:__C_BLOCK__] = previous_block
     end

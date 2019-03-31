@@ -114,7 +114,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 public class CExtNodes {
 
     @ImportStatic(Message.class)
-    @Primitive(name = "interop_call_c_with_mutex")
+    @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -157,7 +157,7 @@ public class CExtNodes {
     }
 
     @ImportStatic(Message.class)
-    @Primitive(name = "interop_call_c_without_mutex")
+    @Primitive(name = "call_without_c_mutex")
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
