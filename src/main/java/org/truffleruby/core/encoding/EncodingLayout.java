@@ -23,8 +23,7 @@ public interface EncodingLayout extends BasicObjectLayout {
 
     DynamicObject createEncoding(DynamicObjectFactory factory,
                                  Encoding encoding,
-                                 DynamicObject name,
-                                 boolean dummy);
+                                 DynamicObject name);
 
     boolean isEncoding(DynamicObject object);
     boolean isEncoding(Object object);
@@ -32,7 +31,5 @@ public interface EncodingLayout extends BasicObjectLayout {
     Encoding getEncoding(DynamicObject object);
 
     DynamicObject getName(DynamicObject object);
-
-    boolean getDummy(DynamicObject object);
 
 }

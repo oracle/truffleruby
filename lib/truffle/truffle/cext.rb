@@ -733,6 +733,11 @@ module Truffle::CExt
     Truffle.invoke_primitive :encoding_get_encoding_index, enc
   end
 
+  def rb_define_dummy_encoding(name)
+    _, idx = Truffle::EncodingOperations.dummy_encoding(name)
+    idx
+  end
+
   def rb_str_new_frozen(value)
     if value.frozen?
       value
@@ -899,7 +904,7 @@ module Truffle::CExt
   end
 
   def rb_str_conv_enc_opts(str, from, to, ecflags, ecopts)
-    if (to.ascii_compatible? && str.ascii_only?) || to == Encoding::ASCII_8BIT
+    if (to.ascii_compatible? && str.ascii_only?) || to == Encoding::ASCII_8BIT || to.dummy?
       if str.encoding != to
         str = str.dup
         str.force_encoding(to)

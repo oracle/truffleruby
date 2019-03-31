@@ -421,7 +421,7 @@ public abstract class EncodingNodes {
         protected static boolean isDummy(DynamicObject encoding) {
             assert RubyGuards.isRubyEncoding(encoding);
 
-            return Layouts.ENCODING.getDummy(encoding);
+            return Layouts.ENCODING.getEncoding(encoding).isDummy();
         }
     }
 
@@ -652,15 +652,9 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_replicate")
-    public static abstract class EncodingReplicateNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
-            final String name = StringOperations.getString(nameObject);
-            final Encoding encoding = EncodingOperations.getEncoding(self);
-
-            final DynamicObject newEncoding = replicate(name, encoding);
+        public DynamicObject setIndexOrRaiseError(String name, DynamicObject newEncoding) {
             if (newEncoding == null) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
@@ -669,9 +663,41 @@ public abstract class EncodingNodes {
             return createArray(new Object[]{ newEncoding, index }, 2);
         }
 
+    }
+
+    @Primitive(name = "encoding_replicate")
+    public static abstract class EncodingReplicateNode extends EncodingCreationNode {
+
+        @Specialization(guards = "isRubyString(nameObject)")
+        public DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
+            final String name = StringOperations.getString(nameObject);
+            final Encoding encoding = EncodingOperations.getEncoding(self);
+
+            final DynamicObject newEncoding = replicate(name, encoding);
+            return setIndexOrRaiseError(name, newEncoding);
+        }
+
         @TruffleBoundary
         private DynamicObject replicate(String name, Encoding encoding) {
             return getContext().getEncodingManager().replicateEncoding(encoding, name);
+        }
+
+    }
+
+    @Primitive(name = "encoding_create_dummy", needsSelf = false)
+    public static abstract class DummyEncodingeNode extends EncodingCreationNode {
+
+        @Specialization(guards = "isRubyString(nameObject)")
+        public DynamicObject createDummyEncoding(DynamicObject nameObject) {
+            final String name = StringOperations.getString(nameObject);
+
+            final DynamicObject newEncoding = createDummy(name);
+            return setIndexOrRaiseError(name, newEncoding);
+        }
+
+        @TruffleBoundary
+        private DynamicObject createDummy(String name) {
+            return getContext().getEncodingManager().createDummyEncoding(name);
         }
 
     }
