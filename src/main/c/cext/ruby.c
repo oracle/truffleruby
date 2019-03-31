@@ -1276,6 +1276,9 @@ int rb_tr_flags(VALUE value) {
   if (OBJ_TAINTED(value)) {
     flags |= RUBY_FL_TAINT;
   }
+  if (RARRAY_LEN(rb_obj_instance_variables(value)) > 0) {
+    flags |= RUBY_FL_EXIVAR;
+  }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
 }
@@ -4403,11 +4406,11 @@ void rb_alias_variable(ID name1, ID name2) {
 }
 
 void rb_copy_generic_ivar(VALUE clone, VALUE obj) {
-  rb_tr_error("rb_copy_generic_ivar not implemented");
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_copy_generic_ivar", clone, obj);
 }
 
 void rb_free_generic_ivar(VALUE obj) {
-  rb_tr_error("rb_free_generic_ivar not implemented");
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_free_generic_ivar", obj);
 }
 
 void rb_ivar_foreach(VALUE obj, int (*func)(ANYARGS), st_data_t arg) {
