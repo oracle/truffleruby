@@ -55,14 +55,10 @@ require 'json/common'
 module JSON
   require 'json/version'
 
-  if RUBY_ENGINE == 'truffleruby'
-    # Expose load errors
-    require 'json/ext'
-  else
-    begin
-      require 'json/ext'
-    rescue LoadError
-      require 'json/pure'
-    end
-  end
+  # TruffleRuby: we use the pure version at the moment, to avoid loading C extensions for JSON
+  #begin
+  #  require 'json/ext'
+  #rescue LoadError
+    require 'json/pure'
+  #end
 end

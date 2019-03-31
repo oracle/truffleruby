@@ -20,7 +20,6 @@ Changes:
 * The Trufle handle patches applied to `psych` C extension have now been removed.
 * The `rb_tr_handle_*` functions have been removed as they are no
   longer used in any C extension patches.
-* The native version of `json` is now being used.
 
 Bug fixes:
 

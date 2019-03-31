@@ -49,6 +49,11 @@ You'll usually get some conflicts to work out.
 * Update `doc/legal/legal.md`
 * Update `doc/contributor/stdlib.md`
 
+## Update libraries from third-party repos
+
+Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
+then copy the original source of `flori/json` into `lib/json`.
+
 ## Updating .gemspec of default gems
 
 Default gems are imported from MRI files, except the .gemspec files in
