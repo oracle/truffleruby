@@ -8,7 +8,7 @@ describe :time_now, shared: true do
 
   it "sets the current time" do
     now = TimeSpecs::MethodHolder.send(@method)
-    now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), 10.0)
+    now.to_f.should be_close(Process.clock_gettime(Process::CLOCK_REALTIME), TIME_TOLERANCE)
   end
 
   it "uses the local timezone" do
