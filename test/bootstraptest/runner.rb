@@ -167,6 +167,7 @@ End
     end
     puts "Target is #{`#{@ruby} -v`.chomp}"
     puts
+    `#{@ruby} -e '$stderr.puts "WARNING: this test will take a long time unless you run in a native configuration" if RUBY_ENGINE == "truffleruby" && !TruffleRuby.native?'`
     $stdout.flush
   end
 
