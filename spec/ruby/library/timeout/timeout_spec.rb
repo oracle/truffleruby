@@ -18,17 +18,6 @@ describe "Timeout.timeout" do
     end.should raise_error(StandardError)
   end
 
-  it "does not wait too long" do
-    before_time = Time.now
-    lambda do
-      Timeout.timeout(1, StandardError) do
-        sleep 3
-      end
-    end.should raise_error(StandardError)
-
-    (Time.now - before_time).should be_close(1.0, 0.5)
-  end
-
   it "returns back the last value in the block" do
     Timeout.timeout(1) do
       42
