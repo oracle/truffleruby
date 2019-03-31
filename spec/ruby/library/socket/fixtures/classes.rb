@@ -73,10 +73,10 @@ module SocketSpecs
 
   def self.loop_with_timeout(timeout = 5)
     require 'timeout'
-    time = Time.now
+    time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     loop do
-      if Time.now - time >= timeout
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) - time >= timeout
         raise TimeoutError, "Did not succeed within #{timeout} seconds"
       end
 
