@@ -35,7 +35,6 @@
 package org.truffleruby.launcher;
 
 import org.graalvm.options.OptionDescriptor;
-import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;

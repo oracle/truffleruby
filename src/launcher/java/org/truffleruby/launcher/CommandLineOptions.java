@@ -26,10 +26,12 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.truffleruby.shared.options;
+package org.truffleruby.launcher;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionType;
+import org.truffleruby.shared.options.RubyOptionTypes;
+import org.truffleruby.shared.options.StringArrayOptionType;
 
 import java.util.ArrayList;
 import java.util.List;

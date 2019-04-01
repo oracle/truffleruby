@@ -16,7 +16,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
-import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
