@@ -31,16 +31,9 @@ EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) sulongmock/sulongmock.o cext/ruby.o cext/r
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
-all:  cext/ruby.su \
-      etc/etc.su \
-      json/generator/generator.su \
-      json/parser/parser.su \
-      nkf/nkf.su \
-      openssl/openssl.su \
-      psych/psych.su \
-      rbconfig-sizeof/sizeof.su \
-      syslog/syslog.su \
-      zlib/zlib.su
+all: cext/ruby.su openssl/openssl.su zlib/zlib.su \
+			psych/psych.su syslog/syslog.su nkf/nkf.su \
+			etc/etc.su rbconfig-sizeof/sizeof.su
 
 clean: clean_cexts clean_truffleposix
 
@@ -48,17 +41,15 @@ clean_truffleposix:
 	rm -f $(TRUFFLE_POSIX) truffleposix/*.o
 
 clean_cexts:
-	rm -f cext/Makefile cext/*.bc cext/ruby.o cext/ruby.su
-	rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
-	rm -f json/generator/Makefile json/generator/*.bc json/generator/generator.su
-	rm -f json/parser/Makefile json/parser/*.bc json/parser/parser.su
-	rm -f nkf/Makefile nkf/*.bc nkf/nkf.su
-	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
-	rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
-	rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.bc rbconfig-sizeof/sizeof.su
 	rm -f sulongmock/sulongmock.o
-	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
+	rm -f cext/Makefile cext/*.bc cext/ruby.o cext/ruby.su
+	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
 	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
+	rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
+	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
+	rm -f nkf/Makefile nkf/*.bc nkf/nkf.su
+	rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
+	rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.bc rbconfig-sizeof/sizeof.su
 
 # truffleposix
 $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
@@ -82,6 +73,34 @@ cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 cext/ruby.su: cext/Makefile cext/*.c
 	cd cext && $(MAKE)
 
+# openssl.su
+openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
+	cd openssl && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
+	cd openssl && $(MAKE)
+
+# zlib.su
+zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
+	cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+zlib/zlib.su: zlib/Makefile zlib/zlib.c
+	cd zlib && $(MAKE)
+
+# syslog.su
+syslog/Makefile: syslog/extconf.rb $(EXTCONF_DEPS)
+	cd syslog && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+syslog/syslog.su: syslog/Makefile syslog/syslog.c
+	cd syslog && $(MAKE)
+
+# nkf.su
+nkf/Makefile: nkf/extconf.rb $(EXTCONF_DEPS)
+	cd nkf && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+nkf/nkf.su: nkf/Makefile nkf/nkf.c nkf/nkf-utf8/*.c nkf/nkf-utf8/*.h
+	cd nkf && $(MAKE)
+
 # etc.su
 etc/Makefile: etc/extconf.rb $(EXTCONF_DEPS)
 	cd etc && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
@@ -94,33 +113,12 @@ etc/etc.c: etc/constdefs.h
 etc/constdefs.h: etc/mkconstants.rb
 	$(RUBY) $< -o $@
 
-# json/generator.su
-json/generator/Makefile: json/generator/extconf.rb $(EXTCONF_DEPS)
-	cd json/generator && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+# rbconfig/sizeof.su
+rbconfig-sizeof/Makefile: rbconfig-sizeof/extconf.rb $(EXTCONF_DEPS)
+	cd rbconfig-sizeof && $(RUBY) -rmkmf extconf.rb || $(IF_EXTCONF_FAIL)
 
-json/generator/generator.su: json/generator/Makefile json/generator/generator.c json/generator/generator.h
-	cd json/generator && $(MAKE)
-
-# json/parser.su
-json/parser/Makefile: json/parser/extconf.rb $(EXTCONF_DEPS)
-	cd json/parser && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
-
-json/parser/parser.su: json/parser/Makefile json/parser/parser.c json/parser/parser.h
-	cd json/parser && $(MAKE)
-
-# nkf.su
-nkf/Makefile: nkf/extconf.rb $(EXTCONF_DEPS)
-	cd nkf && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
-
-nkf/nkf.su: nkf/Makefile nkf/nkf.c nkf/nkf-utf8/*.c nkf/nkf-utf8/*.h
-	cd nkf && $(MAKE)
-
-# openssl.su
-openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
-	cd openssl && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
-
-openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
-	cd openssl && $(MAKE)
+rbconfig-sizeof/sizeof.su: rbconfig-sizeof/Makefile rbconfig-sizeof/sizes.c
+	cd rbconfig-sizeof && $(MAKE)
 
 # psych.su
 # Always use the bundled libyaml, as we want it as bitcode and avoid extra handles
@@ -129,24 +127,3 @@ psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
 
 psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
 	cd psych && $(MAKE)
-
-# rbconfig/sizeof.su
-rbconfig-sizeof/Makefile: rbconfig-sizeof/extconf.rb $(EXTCONF_DEPS)
-	cd rbconfig-sizeof && $(RUBY) -rmkmf extconf.rb || $(IF_EXTCONF_FAIL)
-
-rbconfig-sizeof/sizeof.su: rbconfig-sizeof/Makefile rbconfig-sizeof/sizes.c
-	cd rbconfig-sizeof && $(MAKE)
-
-# syslog.su
-syslog/Makefile: syslog/extconf.rb $(EXTCONF_DEPS)
-	cd syslog && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
-
-syslog/syslog.su: syslog/Makefile syslog/syslog.c
-	cd syslog && $(MAKE)
-
-# zlib.su
-zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
-	cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
-
-zlib/zlib.su: zlib/Makefile zlib/zlib.c
-	cd zlib && $(MAKE)
