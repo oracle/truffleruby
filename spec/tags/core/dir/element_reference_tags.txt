@@ -4,9 +4,3 @@ fails:Dir.[] matches non-dotfiles with '*'
 fails:Dir.[] matches non-dotfiles in the current directory with '**'
 fails:Dir.[] recursively matches any nondot subdirectories with '**/'
 fails:Dir.[] matches dot or non-dotfiles with '{,.}*'
-fails:Dir.[] :base option passed matches entries only from within the specified directory
-fails:Dir.[] :base option passed accepts both relative and absolute paths
-fails:Dir.[] :base option passed returns [] if specified path does not exist
-fails:Dir.[] :base option passed returns [] if specified path is a file
-fails:Dir.[] :base option passed handles '' as current directory path
-fails:Dir.[] :base option passed handles nil as current directory path

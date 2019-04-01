@@ -209,14 +209,14 @@ class Dir
       PrivateFile.expand_path("~#{user}")
     end
 
-    def [](*patterns)
+    def [](*patterns, base: nil)
       if patterns.size == 1
         pattern = Truffle::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
         patterns = glob_split pattern
       end
 
-      glob patterns
+      glob patterns, base: base
     end
 
     def glob(pattern, flags=0, base: nil, &block)
