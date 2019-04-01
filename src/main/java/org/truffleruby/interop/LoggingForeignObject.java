@@ -40,7 +40,7 @@ public class LoggingForeignObject implements TruffleObject {
         if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.invokeMember")) {
             Object[] invokeArg = (Object[]) args[1];
             Object[] newArgs = Arrays.copyOf(args, 1 + invokeArg.length);
-            System.arraycopy(invokeArg, 0, newArgs, 1,invokeArg.length);
+            System.arraycopy(invokeArg, 0, newArgs, 1, invokeArg.length);
             flatArgs = newArgs;
         } else {
             flatArgs = args;

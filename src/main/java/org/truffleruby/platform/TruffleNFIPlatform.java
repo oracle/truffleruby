@@ -43,7 +43,7 @@ public class TruffleNFIPlatform {
 
     public TruffleObject lookup(TruffleObject library, String name) {
         try {
-            return (TruffleObject) InteropLibrary.getFactory().getUncached(library).readMember(library,name);
+            return (TruffleObject) InteropLibrary.getFactory().getUncached(library).readMember(library, name);
         } catch (UnknownIdentifierException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
