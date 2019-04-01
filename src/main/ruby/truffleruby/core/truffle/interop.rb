@@ -63,13 +63,13 @@ module Truffle
       [:existing, :readable, :writable, :removable, :modifiable, :insertable].each do |info_name|
         add = begin
           send "is_member_#{info_name}?", object, name
-        rescue TypeError
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
           # ignore
         end
 
         add ||= begin
           send "is_array_element_#{info_name}?", object, name
-        rescue TypeError
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
           # ignore
         end
 
@@ -79,7 +79,7 @@ module Truffle
       [:invocable, :internal].each do |info_name|
         add = begin
           send "is_member_#{info_name}?", object, name
-        rescue TypeError
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
           # ignore
         end
 
