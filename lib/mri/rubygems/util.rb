@@ -121,12 +121,11 @@ module Gem::Util
   # returning absolute paths to the matching files.
 
   def self.glob_files_in_dir(glob, base_path)
-    # TruffleRuby bug doesn't support base:, and gem tests remove RUBY_ENGINE
-    #if RUBY_VERSION >= "2.5"
-    #  Dir.glob(glob, base: base_path).map! {|f| File.expand_path(f, base_path) }
-    #else
+    if RUBY_VERSION >= "2.5"
+      Dir.glob(glob, base: base_path).map! {|f| File.expand_path(f, base_path) }
+    else
       Dir.glob(File.expand_path(glob, base_path))
-    #end
+    end
   end
 
 end
