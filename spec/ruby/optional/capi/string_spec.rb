@@ -882,12 +882,13 @@ describe "C-API String function" do
       source = "A simple string".encode(Encoding::US_ASCII)
       result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
       result.should == source.encode(Encoding::UTF_8)
+      result.encoding.should == Encoding::UTF_8
     end
 
     it "returns the source string if it can not be converted" do
       source = ["00ff"].pack("H*");
       result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
-      result.should == source
+      result.should.equal?(source)
     end
 
     it "does not alter the source string if it can not be converted" do
