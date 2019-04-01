@@ -406,6 +406,7 @@ local part_definitions = {
       ] + jt(["lint"]) + self.after_build,
     },
 
+    test_basictest: { run+: jt(["test", "basictest"]) },
     test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
@@ -536,7 +537,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + { timelimit: "35:00" },
+      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
       "ruby-test-fast-linux":  linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
       "ruby-test-mri-linux":   linux_gate + $.run.test_mri + { timelimit: "30:00" },
       "ruby-test-integration": linux_gate + $.run.test_integration,
@@ -552,7 +553,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + { timelimit: "45:00" },
+      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "45:00" },
       "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
     } +

@@ -8,6 +8,8 @@ We talk about several types of tests in TruffleRuby:
 * TCK (`TCK`)
 * Specs (`SPECS`)
 * MRI tests (`MRI`)
+* MRI basictest (`BASIC`)
+* MRI bootstraptest (`BOOT`)
 * C extension tests (`CEXT`)
 * Bundler tests (`BUN`)
 * Compiler tests (`COMP`)
@@ -63,6 +65,23 @@ flags like `--syslog`.
 MRI tests are in `test/mri`.
 
 Run MRI tests with `jt test mri`.
+
+### MRI basictest
+
+MRI's basictest is a smaller set of tests for some basic control structures
+and language features. It is in `test/basictest`.
+
+Run basictest with `jt test basictest`.
+
+### MRI bootstraptest
+
+MRI's bootstraptest is a smaller set of tests for functionality they require
+to bootstrap their implementation, including some tests against regressions
+and corner cases. It is in `test/bootstraptest`.
+
+Run bootstraptest with `jt test bootstraptest`. It's not
+tractable to run bootstraptest with the JVM, as it starts a new Ruby process
+for each test. Run it with a native build instead.
 
 ### C extension tests
 
@@ -187,8 +206,8 @@ and configurations that aren't tested, due to limited resources.
 
 * `UNIT` with `INT` on `J8` on Linux.
 * `UNIT` with `INT` on `J8` on macOS.
-* `SPEC` with `INT` on `J8` on Linux.
-* `SPEC` with `INT` on `J8` on macOS.
+* `BASICTEST`, `SPEC` with `INT` on `J8` on Linux.
+* `BASICTEST`, `SPEC` with `INT` on `J8` on macOS.
 * `SPEC(FAST)` with `INT` on `J11` on Linux.
 * `TCK` with `INT` on `J8` on Linux.
 * `MRI` with `INT` on `J8` on Linux.

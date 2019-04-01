@@ -559,7 +559,7 @@ module Kernel
   end
   module_function :trace_var
 
-  def untrace_var(name, cmd)
+  def untrace_var(name, cmd=undefined)
     # Truffle: not yet implemented
   end
   module_function :untrace_var
