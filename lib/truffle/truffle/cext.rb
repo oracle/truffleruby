@@ -1084,7 +1084,11 @@ module Truffle::CExt
   # throw it and allow normal error handling to continue.
 
   def rb_protect_with_block(function, arg)
-    res = nil
+    # We wrap nil here to avoid wrapping any result returned, as the
+    # function called will do that. In general we try not to touch the
+    # values passed in or out of protected functions as C extensions
+    # may accept or return arbitrary pointers rather than ruby VALUEs.
+    res = rb_tr_wrap(nil)
     pos = 0
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
