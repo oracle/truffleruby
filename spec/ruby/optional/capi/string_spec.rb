@@ -888,7 +888,7 @@ describe "C-API String function" do
     it "returns the source string if it can not be converted" do
       source = ["00ff"].pack("H*");
       result = @s.rb_str_export_to_enc(source, Encoding::UTF_8)
-      result.should.equal?(source)
+      result.should equal(source)
     end
 
     it "does not alter the source string if it can not be converted" do
