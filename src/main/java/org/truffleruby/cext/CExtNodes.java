@@ -28,11 +28,12 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -121,11 +122,13 @@ public class CExtNodes {
 
         public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
 
-        @Specialization
-        public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
-                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
+        @Specialization(limit = "getCacheLimit()")
+        public Object callCWithMutex(
+                TruffleObject receiver,
+                DynamicObject argsArray,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached BranchProfile exceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -136,26 +139,30 @@ public class CExtNodes {
                 if (ownedProfile.profile(!owned)) {
                     MutexOperations.lockInternal(getContext(), lock, this);
                     try {
-                        return execute(receiver, args, executeNode, exceptionProfile);
+                        return execute(receiver, args, receivers, exceptionProfile);
                     } finally {
                         MutexOperations.unlockInternal(lock);
                     }
                 } else {
-                    return execute(receiver, args, executeNode, exceptionProfile);
+                    return execute(receiver, args, receivers, exceptionProfile);
                 }
             } else {
-                return execute(receiver, args, executeNode, exceptionProfile);
+                return execute(receiver, args, receivers, exceptionProfile);
             }
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
         }
 
     }
@@ -184,10 +191,12 @@ public class CExtNodes {
     @Primitive(name = "call_without_c_mutex")
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        public Object callCWithoutMutex(TruffleObject receiver, DynamicObject argsArray,
+        @Specialization(limit = "getCacheLimit()")
+        public Object callCWithoutMutex(
+                TruffleObject receiver,
+                DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
@@ -199,26 +208,30 @@ public class CExtNodes {
                 if (ownedProfile.profile(owned)) {
                     MutexOperations.unlockInternal(lock);
                     try {
-                        return execute(receiver, args, executeNode, exceptionProfile);
+                        return execute(receiver, args, receivers, exceptionProfile);
                     } finally {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                 } else {
-                    return execute(receiver, args, executeNode, exceptionProfile);
+                    return execute(receiver, args, receivers, exceptionProfile);
                 }
             } else {
-                return execute(receiver, args, executeNode, exceptionProfile);
+                return execute(receiver, args, receivers, exceptionProfile);
             }
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
         }
 
     }
