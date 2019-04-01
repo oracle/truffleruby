@@ -272,18 +272,22 @@ describe "The launcher" do
     end
   end
 
-  it "understands ruby polyglot options" do
-    out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE")
+  it "prints the version with --version" do
+    out = ruby_exe(nil, options: "--version")
     $?.success?.should == true
     out.should include(RUBY_DESCRIPTION)
-    out.should include(':b')
+  end
+
+  it "understands ruby polyglot options" do
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--ruby.rubygems=false")
+    $?.success?.should == true
+    out.should include('false')
   end
 
   it "understands ruby polyglot options without ruby. prefix" do
-    out = ruby_exe(nil, options: "--show_version=true --to_execute=p:b --execution_action=INLINE")
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--rubygems=false")
     $?.success?.should == true
-    out.should include(RUBY_DESCRIPTION)
-    out.should include(':b')
+    out.should include('false')
   end
 
   it "does not print a Java backtrace for an -S file that's not found" do
