@@ -83,11 +83,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     ARGV_GLOBALS: [[argv_globals, -s], boolean, false, Parse options in script argv into global variables]
     IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore_lines_before_ruby_shebang, -x], boolean, false, "strip off text before #!ruby line"]
     SYNTAX_CHECK: [[syntax_check, -c], boolean, false, Do not execute just check syntax]
-    SHOW_VERSION: [[show_version, --version], boolean, false, Show version]
-    SHOW_COPYRIGHT: [[show_copyright, --copyright], boolean, false, Show copyright]
 
     # Used internally for the launcher to communicate with the RubyContext
-    SHOW_HELP: [[show_help, -h, --help], enum/show_help, none, What help should be shown]
     EXECUTION_ACTION: [[execution_action, -e, -S], enum/execution_action, none, What should be done after context is created]
     TO_EXECUTE: [[to_execute, -e, -S], string, '', "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable."]
     READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]

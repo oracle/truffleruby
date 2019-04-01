@@ -78,9 +78,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SYNTAX_CHECK_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> SHOW_VERSION_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> SHOW_COPYRIGHT_KEY = new OptionKey<>(false);
-    public static final OptionKey<ShowHelp> SHOW_HELP_KEY = new OptionKey<>(ShowHelp.NONE, EnumOptionType.optionTypeFor(ShowHelp.class, ShowHelp.NONE));
     public static final OptionKey<ExecutionAction> EXECUTION_ACTION_KEY = new OptionKey<>(ExecutionAction.NONE, EnumOptionType.optionTypeFor(ExecutionAction.class, ExecutionAction.NONE));
     public static final OptionKey<String> TO_EXECUTE_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> READ_RUBYOPT_KEY = new OptionKey<>(true);
@@ -548,27 +545,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor SYNTAX_CHECK = OptionDescriptor
             .newBuilder(SYNTAX_CHECK_KEY, "ruby.syntax_check")
             .help("Do not execute just check syntax (configured by the -c Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor SHOW_VERSION = OptionDescriptor
-            .newBuilder(SHOW_VERSION_KEY, "ruby.show_version")
-            .help("Show version (configured by the --version Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor SHOW_COPYRIGHT = OptionDescriptor
-            .newBuilder(SHOW_COPYRIGHT_KEY, "ruby.show_copyright")
-            .help("Show copyright (configured by the --copyright Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor SHOW_HELP = OptionDescriptor
-            .newBuilder(SHOW_HELP_KEY, "ruby.show_help")
-            .help("What help should be shown (configured by the -h, --help Ruby options)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1186,12 +1162,6 @@ public class OptionsCatalog {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.show_version":
-                return SHOW_VERSION;
-            case "ruby.show_copyright":
-                return SHOW_COPYRIGHT;
-            case "ruby.show_help":
-                return SHOW_HELP;
             case "ruby.execution_action":
                 return EXECUTION_ACTION;
             case "ruby.to_execute":
@@ -1453,9 +1423,6 @@ public class OptionsCatalog {
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
             SHARED_OBJECTS_SHARE_ALL,
-            SHOW_COPYRIGHT,
-            SHOW_HELP,
-            SHOW_VERSION,
             SINGLE_THREADED,
             SOURCE_ENCODING,
             STDLIB_AS_INTERNAL,

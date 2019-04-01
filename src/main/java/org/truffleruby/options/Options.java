@@ -18,7 +18,6 @@ import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
@@ -83,9 +82,6 @@ public class Options {
     public final boolean ARGV_GLOBALS;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     public final boolean SYNTAX_CHECK;
-    public final boolean SHOW_VERSION;
-    public final boolean SHOW_COPYRIGHT;
-    public final ShowHelp SHOW_HELP;
     public final ExecutionAction EXECUTION_ACTION;
     public final String TO_EXECUTE;
     public final boolean READ_RUBYOPT;
@@ -216,9 +212,6 @@ public class Options {
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = options.get(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY);
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
-        SHOW_VERSION = options.get(OptionsCatalog.SHOW_VERSION_KEY);
-        SHOW_COPYRIGHT = options.get(OptionsCatalog.SHOW_COPYRIGHT_KEY);
-        SHOW_HELP = options.get(OptionsCatalog.SHOW_HELP_KEY);
         EXECUTION_ACTION = options.get(OptionsCatalog.EXECUTION_ACTION_KEY);
         TO_EXECUTE = options.get(OptionsCatalog.TO_EXECUTE_KEY);
         READ_RUBYOPT = options.get(OptionsCatalog.READ_RUBYOPT_KEY);
@@ -408,12 +401,6 @@ public class Options {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.show_version":
-                return SHOW_VERSION;
-            case "ruby.show_copyright":
-                return SHOW_COPYRIGHT;
-            case "ruby.show_help":
-                return SHOW_HELP;
             case "ruby.execution_action":
                 return EXECUTION_ACTION;
             case "ruby.to_execute":

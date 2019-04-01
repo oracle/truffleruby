@@ -38,7 +38,6 @@ import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
 import java.io.File;
@@ -236,7 +235,7 @@ public class CommandLineParser {
                     throw notImplemented("-F");
                 case 'h':
                     disallowedInRubyOpts(argument);
-                    config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.SHORT);
+                    config.showHelp = ShowHelp.SHORT;
                     // cancel other execution actions
                     config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     break;
@@ -335,7 +334,7 @@ public class CommandLineParser {
                     break;
                 case 'v':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                    config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                    config.showVersion = true;
                     config.setOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION, DefaultExecutionAction.NONE);
                     break;
                 case 'w':
@@ -374,7 +373,7 @@ public class CommandLineParser {
                 case '-':
                     if (argument.equals("--copyright")) {
                         disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_COPYRIGHT, true);
+                        config.showCopyright = true;
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
@@ -412,7 +411,7 @@ public class CommandLineParser {
                         break FOR;
                     } else if (argument.equals("--version")) {
                         disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                        config.showVersion = true;
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;

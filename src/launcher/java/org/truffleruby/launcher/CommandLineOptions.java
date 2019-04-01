@@ -39,6 +39,11 @@ import java.util.Map;
 
 public class CommandLineOptions {
 
+    // Options which are only meaningful when using the TruffleRuby launcher (not when using the Context API)
+    boolean showVersion = false;
+    boolean showCopyright = false;
+    ShowHelp showHelp = ShowHelp.NONE;
+
     private Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;

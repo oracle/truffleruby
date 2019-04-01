@@ -21,7 +21,6 @@ import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.ShowHelp;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -270,15 +269,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
-        if ((boolean) config.getOption(OptionsCatalog.SHOW_VERSION)) {
+        if (config.showVersion) {
             System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
         }
 
-        if ((boolean) config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
+        if (config.showCopyright) {
             System.out.println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
-        switch ((ShowHelp) config.getOption(OptionsCatalog.SHOW_HELP)) {
+        switch (config.showHelp) {
             case NONE:
                 break;
             case SHORT:
