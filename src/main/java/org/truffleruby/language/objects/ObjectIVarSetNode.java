@@ -27,6 +27,10 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
         this.checkName = checkName;
     }
 
+    public static ObjectIVarSetNode create() {
+        return ObjectIVarSetNodeGen.create(false);
+    }
+
     public abstract Object executeIVarSet(DynamicObject object, Object name, Object value);
 
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
