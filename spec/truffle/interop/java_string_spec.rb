@@ -10,8 +10,8 @@ require_relative '../../ruby/spec_helper'
 
 describe "Java strings" do
 
-  it "are not boxed" do
-    Truffle::Interop.boxed?(Truffle::Interop.to_java_string('test')).should be_false
+  it "is String" do
+    Truffle::Interop.is_string?(Truffle::Interop.to_java_string('test')).should be_true
   end
 
   it "return the same object if attempted to be unboxed" do

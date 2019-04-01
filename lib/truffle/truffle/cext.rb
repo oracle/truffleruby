@@ -98,6 +98,7 @@ module Truffle::CExt
     end
 
     def __address__
+      # TODO (pitr-ch 27-Mar-2019): should be in to_native, and not return pointer? when address is nil
       @address ||= cache_address
     end
 

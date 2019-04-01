@@ -9,6 +9,10 @@
  */
 package org.truffleruby.interop;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -20,18 +24,17 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.KeyInfo;
-import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
@@ -59,11 +62,12 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 @CoreClass("Truffle::Interop")
 public abstract class InteropNodes {
+
+    // TODO (pitr-ch 27-Mar-2019): remove create()
+    // TODO (pitr-ch 27-Mar-2019): rename methods to match new messages
+    // TODO (pitr-ch 27-Mar-2019): break down to new messages
 
     @CoreMethod(names = "import_file", isModuleFunction = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
@@ -84,37 +88,54 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "executable?", isModuleFunction = true, required = 1)
-    public abstract static class IsExecutableNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean isExecutable(
-                TruffleObject receiver,
-                @Cached("IS_EXECUTABLE.createNode()") Node isExecutableNode) {
-            return ForeignAccess.sendIsExecutable(isExecutableNode, receiver);
+    private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
+        protected int getCacheLimit() {
+            return getContext().getOptions().METHOD_LOOKUP_CACHE;
         }
-
     }
 
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
-    public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
+    private abstract static class InteropPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
+        protected int getCacheLimit() {
+            return getContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
 
-        @Specialization
-        public Object executeForeignCached(TruffleObject receiver, Object[] args,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+    @CoreMethod(names = "executable?", isModuleFunction = true, required = 1)
+    public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isExecutable(
+                TruffleObject receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isExecutable(receiver);
+        }
+    }
+
+    @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
+    public abstract static class ExecuteNode extends InteropCoreMethodArrayArgumentsNode {
+
+        abstract Object execute(TruffleObject receiver, Object[] args);
+
+        public static ExecuteNode create() {
+            return InteropNodesFactory.ExecuteNodeFactory.create(null);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        public Object executeForeignCached(
+                TruffleObject receiver,
+                Object[] args,
+                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile exceptionProfile,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendExecute(
-                        executeNode,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                foreign = receivers.execute(receiver, rubyToForeignArgumentsNode.executeConvert(args));
+            } catch (UnsupportedTypeException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(getContext(), translate(e));
+            } catch (ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
@@ -122,51 +143,65 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
+        @TruffleBoundary
+        private DynamicObject translate(UnsupportedTypeException e) {
+            return coreExceptions().typeError(
+                    "Wrong arguments: " + Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(
+                            ", ")),
+                    this);
+        }
+
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "execute_without_conversion", isModuleFunction = true, required = 1, rest = true)
-    public abstract static class ExecuteWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ExecuteWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object executeWithoutConversionForeignCached(TruffleObject receiver, Object[] args,
-                @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+        @Specialization(limit = "getCacheLimit()")
+        public Object executeWithoutConversionForeignCached(
+                TruffleObject receiver,
+                Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached() BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
         }
-
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "invoke", isModuleFunction = true, required = 2, rest = true)
-    public abstract static class InvokeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InvokeNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
-                @Cached("create()") ToJavaStringNode toJavaStringNode,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("INVOKE.createNode()") Node invokeNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                @Cached("create()") BranchProfile unknownIdentifierProfile,
-                @Cached("create()") BranchProfile exceptionProfile) {
+        public static InvokeNode create() {
+            return InteropNodesFactory.InvokeNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
+
+        @Specialization(limit = "getCacheLimit()")
+        public Object invokeCached(
+                TruffleObject receiver,
+                Object identifier,
+                Object[] args,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
 
             final Object foreign;
             try {
-                foreign = ForeignAccess.sendInvoke(
-                        invokeNode,
-                        receiver,
-                        name,
-                        arguments);
+                foreign = receivers.invokeMember(receiver, name, arguments);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException e) {
@@ -176,44 +211,45 @@ public abstract class InteropNodes {
 
             return foreignToRubyNode.executeConvert(foreign);
         }
-
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "instantiable?", isModuleFunction = true, required = 1)
-    public abstract static class InstantiableNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public boolean isInstantiable(
                 TruffleObject receiver,
-                @Cached("IS_INSTANTIABLE.createNode()") Node isInstantiableNode) {
-            return ForeignAccess.sendIsInstantiable(isInstantiableNode, receiver);
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isInstantiable(receiver);
         }
 
         @Fallback
         public boolean isInstantiable(Object receiver) {
             return false;
         }
-
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
-    public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class NewNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object newCached(TruffleObject receiver, Object[] args,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("NEW.createNode()") Node newNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+        public static NewNode create() {
+            return InteropNodesFactory.NewNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object[] args);
+
+        @Specialization(limit = "getCacheLimit()")
+        public Object newCached(
+                TruffleObject receiver,
+                Object[] args,
+                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached BranchProfile exceptionProfile) {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendNew(
-                        newNode,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
+                foreign = receivers.instantiate(receiver, rubyToForeignArgumentsNode.executeConvert(args));
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException e) {
@@ -226,35 +262,33 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "size?", isModuleFunction = true, required = 1)
-    public abstract static class HasSizeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class HasSizeNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public boolean hasSize(
                 TruffleObject receiver,
-                @Cached("HAS_SIZE.createNode()") Node hasSizeNode) {
-            return ForeignAccess.sendHasSize(hasSizeNode, receiver);
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasArrayElements(receiver);
         }
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "size", isModuleFunction = true, required = 1)
-    public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class SizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object size(String receiver) {
             return receiver.length();
         }
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public Object size(
                 TruffleObject receiver,
-                @Cached("GET_SIZE.createNode()") Node getSizeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendGetSize(getSizeNode, receiver);
+                return receivers.getArraySize(receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -263,93 +297,167 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "boxed?", isModuleFunction = true, required = 1)
-    public abstract static class BoxedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean isBoxed(
-                TruffleObject receiver,
-                @Cached("IS_BOXED.createNode()") Node isBoxedNode) {
-            return ForeignAccess.sendIsBoxed(isBoxedNode, receiver);
+    @CoreMethod(names = "is_string?", isModuleFunction = true, required = 1)
+    public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isString(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isString(receiver);
         }
-
-        @Specialization(guards = "!isTruffleObject(receiver)")
-        public boolean isBoxed(Object receiver) {
-            return false;
-        }
-
     }
 
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "unbox", isModuleFunction = true, required = 1)
-    public abstract static class UnboxNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object unbox(TruffleObject receiver,
-                @Cached("UNBOX.createNode()") Node unboxNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object foreign;
-
+    @CoreMethod(names = "as_string", isModuleFunction = true, required = 1)
+    public abstract static class AsStringNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public DynamicObject asString(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached FromJavaStringNode fromJavaStringNode) {
             try {
-                foreign = ForeignAccess.sendUnbox(unboxNode, receiver);
+                return fromJavaStringNode.executeFromJavaString(receivers.asString(receiver));
             } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @Specialization
-        public DynamicObject unbox(String receiver,
-                                   @Cached("create()") FromJavaStringNode fromJavaStringNode) {
-            return fromJavaStringNode.executeFromJavaString(receiver);
-        }
-
-        @Specialization(guards = {
-                "!isTruffleObject(receiver)",
-                "!isString(receiver)"
-        })
-        public Object unbox(Object receiver) {
-            return receiver;
-        }
-
-    }
-
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "unbox_without_conversion", isModuleFunction = true, required = 1)
-    public abstract static class UnboxWithoutConversionNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object unbox(
-                TruffleObject receiver,
-                @Cached("UNBOX.createNode()") Node unboxNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendUnbox(unboxNode, receiver);
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new JavaException(e);
             }
         }
-
-        @Specialization(guards = "!isTruffleObject(receiver)")
-        public Object unbox(Object receiver) {
-            return receiver;
-        }
-
     }
 
-    @ImportStatic(Message.class)
+    // TODO (pitr-ch 01-Apr-2019): turn conversion into argument
+    @CoreMethod(names = "as_string_without_conversion", isModuleFunction = true, required = 1)
+    public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        public String asString(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.asString(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_boolean?", isModuleFunction = true, required = 1)
+    public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isBoolean(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isBoolean(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_boolean", isModuleFunction = true, required = 1)
+    public abstract static class AsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean asBoolean(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.asBoolean(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_number?", isModuleFunction = true, required = 1)
+    public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isNumber(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isNumber(receiver);
+        }
+    }
+
+    @CoreMethod(names = "fits_in_int?", isModuleFunction = true, required = 1)
+    public abstract static class FitsInIntNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean fitsInInt(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInInt(receiver);
+        }
+    }
+
+    @CoreMethod(names = "fits_in_long?", isModuleFunction = true, required = 1)
+    public abstract static class FitsInLongNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean fitsInLong(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInLong(receiver);
+        }
+    }
+
+    @CoreMethod(names = "fits_in_double?", isModuleFunction = true, required = 1)
+    public abstract static class FitsInDoubleNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean fitsInDouble(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInDouble(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_int", isModuleFunction = true, required = 1)
+    public abstract static class AsIntNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public int asInt(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.asInt(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "as_long", isModuleFunction = true, required = 1)
+    public abstract static class AsLongNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public long asLong(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.asLong(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "as_double", isModuleFunction = true, required = 1)
+    public abstract static class AsDoubleNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public double asDouble(
+                Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.asDouble(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
     @CoreMethod(names = "null?", isModuleFunction = true, required = 1)
-    public abstract static class NullNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class NullNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public boolean isNull(TruffleObject receiver,
-                @Cached("IS_NULL.createNode()") Node isNullNode) {
-            return ForeignAccess.sendIsNull(isNullNode, receiver);
+        public static NullNode create() {
+            return InteropNodesFactory.NullNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver);
+
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isNull(
+                TruffleObject receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isNull(receiver);
         }
 
         @Fallback
@@ -359,15 +467,14 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "pointer?", isModuleFunction = true, required = 1)
-    public abstract static class PointerNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public boolean isPointer(
                 TruffleObject receiver,
-                @Cached("IS_POINTER.createNode()") Node isPointerNode) {
-            return ForeignAccess.sendIsPointer(isPointerNode, receiver);
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isPointer(receiver);
         }
 
         @Fallback
@@ -377,65 +484,65 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "as_pointer", isModuleFunction = true, required = 1)
-    public abstract static class AsPointerNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public Object asPointer(
                 TruffleObject receiver,
-                @Cached("AS_POINTER.createNode()") Node asPointerNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendAsPointer(asPointerNode, receiver);
+                return receivers.asPointer(receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
         }
-
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "to_native", isModuleFunction = true, required = 1)
-    public abstract static class ToNativeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public Object toNative(
                 TruffleObject receiver,
-                @Cached("TO_NATIVE.createNode()") Node toNativeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendToNative(toNativeNode, receiver);
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-            }
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            receivers.toNative(receiver);
+            // TODO (pitr-ch 27-Mar-2019): return nil instead?
+            return receiver;
         }
 
     }
 
+    // TODO (pitr-ch 27-Mar-2019): break down
     @CoreMethod(names = "read", isModuleFunction = true, required = 2)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
-    public abstract static class ReadNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ReadNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object read(TruffleObject receiver, Object identifier,
-                @Cached("READ.createNode()") Node readNode,
-                @Cached("create()") BranchProfile unknownIdentifierProfile,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") RubyToForeignNode rubyToForeignNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object name = rubyToForeignNode.executeConvert(identifier);
+        public static ReadNode create() {
+            return InteropNodesFactory.ReadNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier);
+
+        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        public Object readMember(
+                TruffleObject receiver,
+                DynamicObject identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
             final Object foreign;
             try {
-                foreign = ForeignAccess.sendRead(
-                        readNode,
-                        receiver,
-                        name);
+                foreign = receivers.readMember(receiver, name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -444,116 +551,222 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
+        @Specialization(limit = "getCacheLimit()")
+        public Object readArrayElement(
+                TruffleObject receiver,
+                long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile,
+                @Cached ForeignToRubyNode foreignToRubyNode) {
+            final Object foreign;
+            try {
+                foreign = receivers.readArrayElement(receiver, identifier);
+            } catch (InvalidArrayIndexException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+
+            return foreignToRubyNode.executeConvert(foreign);
+        }
     }
 
+    // TODO (pitr-ch 27-Mar-2019): break down
     @CoreMethod(names = "read_without_conversion", isModuleFunction = true, required = 2)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
-    public abstract static class ReadWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ReadWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object read(TruffleObject receiver, Object identifier,
-                           @Cached("READ.createNode()") Node readNode,
-                           @Cached("create()") BranchProfile unknownIdentifierProfile,
-                           @Cached("create()") BranchProfile exceptionProfile,
-                           @Cached("create()") RubyToForeignNode rubyToForeignNode) {
-            final Object name = rubyToForeignNode.executeConvert(identifier);
+        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        public Object readMember(
+                TruffleObject receiver,
+                DynamicObject identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
             try {
-                return ForeignAccess.sendRead(
-                        readNode,
-                        receiver,
-                        name);
+                return receivers.readMember(receiver, name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
         }
 
+        @Specialization(limit = "getCacheLimit()")
+        public Object readArrayElement(
+                TruffleObject receiver,
+                long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
+            try {
+                return receivers.readArrayElement(receiver, identifier);
+            } catch (InvalidArrayIndexException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
     }
 
+    // TODO (pitr-ch 27-Mar-2019): break down
     @CoreMethod(names = "write", isModuleFunction = true, required = 3)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
-    public abstract static class WriteNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class WriteNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object write(TruffleObject receiver, Object identifier, Object value,
-                @Cached("create()") RubyToForeignNode identifierToForeignNode,
-                @Cached("create()") RubyToForeignNode valueToForeignNode,
-                @Cached("WRITE.createNode()") Node writeNode,
-                @Cached("create()") BranchProfile unknownIdentifierProfile,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object name = identifierToForeignNode.executeConvert(identifier);
-            final Object foreign;
+        public static WriteNode create() {
+            return InteropNodesFactory.WriteNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier, Object value);
+
+        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        public Object write(
+                TruffleObject receiver,
+                DynamicObject identifier,
+                Object value,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached RubyToForeignNode valueToForeignNode,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
             try {
-                foreign = ForeignAccess.sendWrite(
-                        writeNode,
-                        receiver,
-                        name,
-                        valueToForeignNode.executeConvert(value));
+                receivers.writeMember(receiver, name, valueToForeignNode.executeConvert(value));
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-
-            return foreignToRubyNode.executeConvert(foreign);
+            // TODO (pitr-ch 29-Mar-2019): is it ok to always return the value,
+            //  the write no longer returns its own value
+            return value;
         }
 
+        @Specialization(limit = "getCacheLimit()")
+        public Object write(
+                TruffleObject receiver,
+                long identifier, // TODO (pitr-ch 01-Apr-2019): allow only long? (unify other similar cases)
+                Object value,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached RubyToForeignNode valueToForeignNode,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
+            try {
+                receivers.writeArrayElement(receiver, identifier, valueToForeignNode.executeConvert(value));
+            } catch (InvalidArrayIndexException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+            } catch (UnsupportedTypeException | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+            // TODO (pitr-ch 29-Mar-2019): is it ok to always return the value,
+            //  the write no longer returns its own value
+            return value;
+        }
     }
 
+    // TODO (pitr-ch 01-Apr-2019): break down
     @CoreMethod(names = "remove", isModuleFunction = true, required = 2)
-    @ImportStatic(Message.class)
-    public abstract static class RemoveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RemoveNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public boolean remove(TruffleObject receiver, Object identifier,
-                @Cached("create()") RubyToForeignNode identifierToForeignNode,
-                @Cached("REMOVE.createNode()") Node removeNode,
-                @Cached("create()") BranchProfile unknownIdentifierProfile,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            final Object name = identifierToForeignNode.executeConvert(identifier);
-            final boolean foreign;
+        abstract Object execute(TruffleObject receiver, Object identifier);
+
+        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        public Object remove(
+                TruffleObject receiver,
+                DynamicObject identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
             try {
-                foreign = ForeignAccess.sendRemove(removeNode, receiver, name);
+                receivers.removeMember(receiver, name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
-            return foreign;
+            return true;
         }
 
+        @Specialization(limit = "getCacheLimit()")
+        public Object remove(
+                TruffleObject receiver,
+                long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached BranchProfile unknownIdentifierProfile,
+                @Cached BranchProfile exceptionProfile) {
+            try {
+                receivers.removeArrayElement(receiver, identifier);
+            } catch (InvalidArrayIndexException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+
+            // TODO (pitr-ch 29-Mar-2019): is it ok to always return true
+            //  the remove no longer returns true/false
+            return true;
+        }
+
+        // @Specialization
+        // public Object write(TruffleObject receiver, int identifier) {
+        //     // TODO (pitr-ch 01-Apr-2019): why is it needed?
+        //     return execute(receiver, (long) identifier);
+        // }
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "keys?", isModuleFunction = true, required = 1)
-    public abstract static class InteropHasKeysNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InteropHasKeysNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         public boolean hasKeys(
                 TruffleObject receiver,
-                @Cached("HAS_KEYS.createNode()") Node hasKeysNode) {
-            return ForeignAccess.sendHasKeys(hasKeysNode, receiver);
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasMembers(receiver);
         }
 
         @Specialization(guards = "!isTruffleObject(receiver)")
-        public Object hasKeys(VirtualFrame frame, Object receiver) {
+        // TODO (pitr-ch 28-Mar-2019): really?
+        public Object hasKeys(Object receiver) {
             return true;
         }
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "keys_without_conversion", isModuleFunction = true, required = 1, optional = 1)
-    public abstract static class KeysNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class KeysNode extends InteropPrimitiveArrayArgumentsNode {
 
         protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
 
@@ -562,12 +775,14 @@ public abstract class InteropNodes {
             return executeKeys(receiver, false);
         }
 
-        @Specialization
-        public Object keys(TruffleObject receiver, boolean internal,
-                @Cached("KEYS.createNode()") Node keysNode,
+        @Specialization(limit = "getCacheLimit()")
+        public Object keys(
+                TruffleObject receiver,
+                boolean internal,
+                @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendKeys(keysNode, receiver, internal);
+                return receivers.getMembers(receiver, internal);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -576,15 +791,274 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
-    @CoreMethod(names = "key_info_bits", isModuleFunction = true, required = 2)
-    public abstract static class KeyInfoBitsNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "is_member_readable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberReadable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberReadable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
 
-        @Specialization
-        public int keyInfo(VirtualFrame frame, TruffleObject receiver, Object name,
-                              @Cached("create()") RubyToForeignNode rubyToForeignNode,
-                              @Cached("KEY_INFO.createNode()") Node keyInfoNode) {
-            return ForeignAccess.sendKeyInfo(keyInfoNode, receiver, rubyToForeignNode.executeConvert(name));
+    @CoreMethod(names = "is_member_modifiable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberModifiable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberModifiable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_insertable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberInsertable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberInsertable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_removable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberRemovable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberRemovable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_invocable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberInvocable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberInvocable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_internal?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberInternal(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberInternal(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_writable?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberWritable(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberWritable(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_member_existing?", isModuleFunction = true, required = 2)
+    public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isMemberExisting(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isMemberExisting(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "has_member_read_side_effects?", isModuleFunction = true, required = 2)
+    public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean hasMemberReadSideEffects(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "has_member_write_side_effects?", isModuleFunction = true, required = 2)
+    public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean hasMemberWriteSideEffects(
+                TruffleObject receiver,
+                DynamicObject name,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_readable?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementReadable(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementReadable(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementReadable(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_modifiable?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementModifiable(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementModifiable(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementModifiable(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_insertable?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementInsertable(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementInsertable(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementInsertable(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_removable?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementRemovable(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementRemovable(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementRemovable(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_writable?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementWritable(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementWritable(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementWritable(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "is_array_element_existing?", isModuleFunction = true, required = 2)
+    public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isArrayElementExisting(
+                TruffleObject receiver,
+                long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementExisting(receiver, index);
+        }
+
+        public abstract boolean execute(TruffleObject receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
+        public boolean isArrayElementExisting(
+                TruffleObject receiver,
+                TruffleObject index,
+                @CachedLibrary("index") InteropLibrary indexes) {
+            try {
+                return execute(receiver, indexes.asLong(index));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
         }
 
     }
@@ -618,7 +1092,8 @@ public abstract class InteropNodes {
         }
 
         @Specialization
-        public Object importObject(String name,
+        public Object importObject(
+                String name,
                 @Cached("create()") BranchProfile errorProfile) {
             final Object value = doImport(name);
             if (value != null) {
@@ -670,8 +1145,9 @@ public abstract class InteropNodes {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
-        @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, replaces = "evalCached")
-        public Object evalUncached(DynamicObject mimeType, DynamicObject source,
+        @Specialization(guards = { "isRubyString(mimeType)", "isRubyString(source)" }, replaces = "evalCached")
+        public Object evalUncached(
+                DynamicObject mimeType, DynamicObject source,
                 @Cached("create()") IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), RubyNode.EMPTY_ARGUMENTS);
         }
@@ -741,7 +1217,7 @@ public abstract class InteropNodes {
 
         protected boolean isJavaClassOrInterface(TruffleObject object) {
             return getContext().getEnv().isHostObject(object)
-                && getContext().getEnv().asHostObject(object) instanceof Class<?>;
+                    && getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
 
     }
@@ -750,7 +1226,8 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object toJavaString(Object value,
+        public Object toJavaString(
+                Object value,
                 @Cached("create()") RubyToForeignNode toForeignNode) {
             return toForeignNode.executeConvert(value);
         }
@@ -761,8 +1238,9 @@ public abstract class InteropNodes {
     public abstract static class InteropFromJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object fromJavaString(Object value,
-                                     @Cached("createForeignToRubyNode()") ForeignToRubyNode foreignToRubyNode) {
+        public Object fromJavaString(
+                Object value,
+                @Cached("createForeignToRubyNode()") ForeignToRubyNode foreignToRubyNode) {
             return foreignToRubyNode.executeConvert(value);
         }
 
@@ -777,10 +1255,13 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public Object toJavaArray(DynamicObject interopModule, DynamicObject array,
+        public Object toJavaArray(
+                DynamicObject interopModule, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
-            return getContext().getEnv().asGuestValue(copyStoreNode.execute(Layouts.ARRAY.getStore(array), Layouts.ARRAY.getSize(array)));
+            return getContext().getEnv().asGuestValue(copyStoreNode.execute(
+                    Layouts.ARRAY.getStore(array),
+                    Layouts.ARRAY.getSize(array)));
         }
 
         @Specialization(guards = "!isRubyArray(object)")
@@ -795,10 +1276,13 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public Object toJavaList(DynamicObject interopModule, DynamicObject array,
+        public Object toJavaList(
+                DynamicObject interopModule, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
-            return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(Layouts.ARRAY.getStore(array), Layouts.ARRAY.getSize(array))));
+            return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(
+                    Layouts.ARRAY.getStore(array),
+                    Layouts.ARRAY.getSize(array))));
         }
 
         @Specialization(guards = "!isRubyArray(object)")
@@ -874,92 +1358,14 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "existing_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasExistingBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean readableBit(int bits) {
-            return KeyInfo.isExisting(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "readable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasReadableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean readableBit(int bits) {
-            return KeyInfo.isReadable(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "writable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasWritableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean writableBit(int bits) {
-            return KeyInfo.isWritable(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "invocable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasInvocableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean invocableBit(int bits) {
-            return KeyInfo.isInvocable(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "internal_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasInternalBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean internalBit(int bits) {
-            return KeyInfo.isInternal(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "removable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasRemovableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean removableBit(int bits) {
-            return KeyInfo.isRemovable(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "modifiable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasModifiableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean modifiableBit(int bits) {
-            return KeyInfo.isModifiable(bits);
-        }
-
-    }
-
-    @CoreMethod(names = "insertable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class HasInsertableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean insertableBit(int bits) {
-            return KeyInfo.isInsertable(bits);
-        }
-
-    }
-
+    // FIXME (pitr 01-Apr-2019): remove?
     @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 6)
     public abstract static class KeyInfoFlagsToBitsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int keyInfoFlagsToBitsNode(boolean readable, boolean invocable, boolean internal,
-                                          boolean insertable, boolean modifiable, boolean removable) {
+        public int keyInfoFlagsToBitsNode(
+                boolean readable, boolean invocable, boolean internal,
+                boolean insertable, boolean modifiable, boolean removable) {
             int keyInfo = KeyInfo.NONE;
 
             if (readable) {
@@ -1012,7 +1418,9 @@ public abstract class InteropNodes {
             final TruffleLanguage.Env env = getContext().getEnv();
 
             if (!env.isHostLookupAllowed()) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().securityError("host access is not allowed", this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().securityError("host access is not allowed", this));
             }
 
             return env.lookupHostSymbol(name);

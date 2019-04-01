@@ -56,20 +56,54 @@ module Truffle
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
 
+    # FIXME (pitr-ch 01-Apr-2019): remove
     def self.key_info(object, name)
-      key_info_flags_from_bits(key_info_bits(object, name))
+      flags = []
+
+      [:existing, :readable, :writable, :removable, :modifiable, :insertable].each do |info_name|
+        add = begin
+          send "is_member_#{info_name}?", object, name
+        rescue TypeError
+          # ignore
+        end
+
+        add ||= begin
+          send "is_array_element_#{info_name}?", object, name
+        rescue TypeError
+          # ignore
+        end
+
+        flags << info_name if add
+      end
+
+      [:invocable, :internal].each do |info_name|
+        add = begin
+          send "is_member_#{info_name}?", object, name
+        rescue TypeError
+          # ignore
+        end
+
+        flags << info_name if add
+      end
+
+      flags
     end
 
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
 
       if object.is_a?(Hash)
-        frozen = object.frozen?
-        has_key = object.has_key?(name)
-        readable = has_key
-        modifiable = has_key && !frozen
-        removable = modifiable
-        insertable = !frozen
+        if %w([] []=).include? name
+          readable = true
+          invocable = true
+        else
+          frozen = object.frozen?
+          has_key = object.has_key?(name)
+          readable = has_key
+          modifiable = has_key && !frozen
+          removable = modifiable
+          insertable = !frozen
+        end
       elsif object.is_a?(Array)
         in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
         readable = in_bounds
@@ -92,19 +126,6 @@ module Truffle
       end
 
       key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
-    end
-
-    def self.key_info_flags_from_bits(bits)
-      flags = []
-      flags << :existing    if existing_bit?(bits)
-      flags << :readable    if readable_bit?(bits)
-      flags << :writable    if writable_bit?(bits)
-      flags << :invocable   if invocable_bit?(bits)
-      flags << :internal    if internal_bit?(bits)
-      flags << :removable   if removable_bit?(bits)
-      flags << :modifiable  if modifiable_bit?(bits)
-      flags << :insertable  if insertable_bit?(bits)
-      flags
     end
 
     def self.lookup_symbol(name)
@@ -313,6 +334,39 @@ module Truffle
       else
         object
       end
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.boxed?(object)
+      is_boolean?(object) || is_string?(object) || is_number?(object)
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.unbox(object)
+      return as_boolean object if is_boolean? object
+      return as_string object if is_string? object
+
+      if is_number?(object)
+        return as_int object if fits_in_int? object
+        return as_long object if fits_in_long? object
+        return as_double object if fits_in_double? object
+      end
+
+      raise ArgumentError, "not boxed: #{object}"
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.unbox_without_conversion(object)
+      return as_boolean object if is_boolean? object
+      return as_string_without_conversion object if is_string? object
+
+      if is_number?(object)
+        return as_int object if fits_in_int? object
+        return as_long object if fits_in_long? object
+        return as_double object if fits_in_double? object
+      end
+
+      raise ArgumentError, "not boxed: #{object.inspect}"
     end
 
     def self.to_java_map(hash)
