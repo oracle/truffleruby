@@ -5,7 +5,7 @@ describe "Timeout.timeout" do
   it "raises Timeout::Error when it times out with no specified error type" do
     lambda {
       Timeout.timeout(1) do
-        sleep 3
+        sleep
       end
     }.should raise_error(Timeout::Error)
   end
@@ -13,7 +13,7 @@ describe "Timeout.timeout" do
   it "raises specified error type when it times out" do
     lambda do
       Timeout.timeout(1, StandardError) do
-        sleep 3
+        sleep
       end
     end.should raise_error(StandardError)
   end
