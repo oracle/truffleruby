@@ -16,13 +16,10 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
-import org.truffleruby.shared.options.DefaultExecutionAction;
-import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,7 +63,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         config = new CommandLineOptions(polyglotOptions);
 
         try {
-            config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
+            config.executionAction = ExecutionAction.UNSET;
 
             final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false);
             argumentCommandLineParser.processArguments();
@@ -185,28 +182,48 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
-        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
-            return 0;
+        if (config.executionAction == ExecutionAction.UNSET) {
+            switch (config.defaultExecutionAction) {
+                case NONE:
+                    return 0;
+                case STDIN:
+                    config.executionAction = ExecutionAction.STDIN;
+                    break;
+                case IRB:
+                    config.executionAction = ExecutionAction.PATH;
+                    if (System.console() != null) {
+                        System.err.println("[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
+                        config.executionAction = ExecutionAction.PATH;
+                        config.toExecute = "irb";
+                    } else {
+                        config.executionAction = ExecutionAction.STDIN;
+                    }
+                    break;
+            }
         }
 
-        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET &&
-                config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION) == DefaultExecutionAction.NONE) {
+        if (config.executionAction == ExecutionAction.NONE) {
             return 0;
         }
 
         try (Context context = createContext(contextBuilder, config)) {
             Metrics.printTime("before-run");
-            final Source source;
-            try {
-                source = Source.newBuilder(
-                        TruffleRuby.LANGUAGE_ID,
+
+            if (config.executionAction == ExecutionAction.PATH) {
+                String path = context.eval(TruffleRuby.LANGUAGE_ID,
                         // language=ruby
-                        "Truffle::Boot.main",
-                        TruffleRuby.BOOT_SOURCE_NAME).internal(true).build();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                        "-> name { Truffle::Boot.find_s_file(name) }").execute(config.toExecute).asString();
+                config.executionAction = ExecutionAction.FILE;
+                config.toExecute = path;
             }
-            final int exitCode = context.eval(source).asInt();
+
+            final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
+                    // language=ruby
+                    "-> kind, to_execute { Truffle::Boot.main(kind, to_execute) }",
+                    TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+
+            final String kind = config.executionAction.name();
+            final int exitCode = context.eval(source).execute(kind, config.toExecute).asInt();
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {

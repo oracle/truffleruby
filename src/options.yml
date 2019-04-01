@@ -85,10 +85,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     SYNTAX_CHECK: [[syntax_check, -c], boolean, false, Do not execute just check syntax]
 
     # Used internally for the launcher to communicate with the RubyContext
-    EXECUTION_ACTION: [[execution_action, -e, -S], enum/execution_action, none, What should be done after context is created]
-    TO_EXECUTE: [[to_execute, -e, -S], string, '', "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable."]
     READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
-    DEFAULT_EXECUTION_ACTION: [default_execution_action, enum/default_execution_action, irb, What should be done when no action is set]
     ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value]
     ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value)]
     BUILDING_CORE_CEXTS: [building.core.cexts, boolean, false, 'Used while building TruffleRuby to build core C extensions']

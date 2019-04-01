@@ -36,8 +36,8 @@ public class MainLoader {
         this.context = context;
     }
 
-    public RubySource loadFromCommandLineArgument() {
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, context.getOptions().TO_EXECUTE, "-e").build();
+    public RubySource loadFromCommandLineArgument(String code) {
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "-e").build();
         return new RubySource(source);
     }
 

@@ -15,8 +15,6 @@ import javax.annotation.Generated;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.shared.options.DefaultExecutionAction;
-import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.Verbosity;
 
@@ -82,10 +80,7 @@ public class Options {
     public final boolean ARGV_GLOBALS;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     public final boolean SYNTAX_CHECK;
-    public final ExecutionAction EXECUTION_ACTION;
-    public final String TO_EXECUTE;
     public final boolean READ_RUBYOPT;
-    public final DefaultExecutionAction DEFAULT_EXECUTION_ACTION;
     public final String[] ARGV_GLOBAL_VALUES;
     public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean BUILDING_CORE_CEXTS;
@@ -212,10 +207,7 @@ public class Options {
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = options.get(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY);
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
-        EXECUTION_ACTION = options.get(OptionsCatalog.EXECUTION_ACTION_KEY);
-        TO_EXECUTE = options.get(OptionsCatalog.TO_EXECUTE_KEY);
         READ_RUBYOPT = options.get(OptionsCatalog.READ_RUBYOPT_KEY);
-        DEFAULT_EXECUTION_ACTION = options.get(OptionsCatalog.DEFAULT_EXECUTION_ACTION_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
@@ -401,14 +393,8 @@ public class Options {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.execution_action":
-                return EXECUTION_ACTION;
-            case "ruby.to_execute":
-                return TO_EXECUTE;
             case "ruby.read_rubyopt":
                 return READ_RUBYOPT;
-            case "ruby.default_execution_action":
-                return DEFAULT_EXECUTION_ACTION;
             case "ruby.argv_global_values":
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":

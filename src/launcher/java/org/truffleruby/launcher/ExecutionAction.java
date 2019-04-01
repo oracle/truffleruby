@@ -7,10 +7,13 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.shared.options;
+package org.truffleruby.launcher;
 
-public enum DefaultExecutionAction {
+public enum ExecutionAction {
+    UNSET,
     NONE,
-    STDIN,
-    IRB
+    INLINE,
+    FILE,
+    PATH,
+    STDIN
 }

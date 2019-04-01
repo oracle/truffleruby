@@ -43,6 +43,12 @@ public class CommandLineOptions {
     boolean showVersion = false;
     boolean showCopyright = false;
     ShowHelp showHelp = ShowHelp.NONE;
+    /** What should be done after context is created */
+    ExecutionAction executionAction = ExecutionAction.NONE;
+    /** What should be done when no action is set */
+    DefaultExecutionAction defaultExecutionAction = DefaultExecutionAction.IRB;
+    /** A thing to be executed: a file, inline script, etc. Used by executionAction when applicable. */
+    String toExecute = "";
 
     private Map<String, String> options;
     private String[] arguments;
