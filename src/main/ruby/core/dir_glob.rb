@@ -46,12 +46,7 @@ class Dir
       end
 
       def path_join(parent, ent)
-        return ent unless parent
-        if parent == '/'
-          "/#{ent}"
-        else
-          "#{parent}#{separator}#{ent}"
-        end
+        Dir::Glob.path_join(parent, ent, separator)
       end
     end
 
@@ -61,12 +56,12 @@ class Dir
         @dir = dir
       end
 
-      def call(matches, path)
+      def call(matches, path, glob_base_dir)
         full = path_join(path, @dir)
 
         # Don't check if full exists. It just costs us time
         # and the downstream node will be able to check properly.
-        @next.call matches, full
+        @next.call matches, full, glob_base_dir
       end
     end
 
@@ -76,31 +71,31 @@ class Dir
         @name = name
       end
 
-      def call(matches, parent)
+      def call(matches, parent, glob_base_dir)
         path = path_join(parent, @name)
 
-        if File.exist? path
+        if File.exist? path_join(glob_base_dir, path)
           matches << path
         end
       end
     end
 
     class RootDirectory < Node
-      def call(matches, path)
-        @next.call matches, '/'
+      def call(matches, path, glob_base_dir)
+        @next.call matches, '/', glob_base_dir
       end
     end
 
     class RecursiveDirectories < Node
-      def call(matches, start)
-        return if !start || !File.exist?(start)
+      def call(matches, start, glob_base_dir)
+        return if !start || !File.exist?(path_join(glob_base_dir, start))
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
         # dominant one, so we fix things up to use it.
         switched = @next.dup
         switched.separator = @separator
-        switched.call matches, start
+        switched.call matches, start, glob_base_dir
 
         stack = [start]
 
@@ -109,7 +104,7 @@ class Dir
         until stack.empty?
           path = stack.pop
           begin
-            dir = Dir.new(path)
+            dir = Dir.new(path_join(glob_base_dir, path))
           rescue Errno::ENOTDIR
             next
           end
@@ -117,11 +112,11 @@ class Dir
           while ent = dir.read
             next if ent == '.' || ent == '..'
             full = path_join(path, ent)
-            mode = Truffle::POSIX.truffleposix_lstat_mode(full)
+            mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
 
             if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
-              @next.call matches, full
+              @next.call matches, full, glob_base_dir
             end
           end
           dir.close
@@ -130,7 +125,7 @@ class Dir
     end
 
     class StartRecursiveDirectories < Node
-      def call(matches, start)
+      def call(matches, start, glob_base_dir)
         raise 'invalid usage' if start
 
         # Even though the recursive entry is zero width
@@ -139,38 +134,38 @@ class Dir
         if @separator
           switched = @next.dup
           switched.separator = @separator
-          switched.call matches, start
+          switched.call matches, start, glob_base_dir
         else
-          @next.call matches, start
+          @next.call matches, start, glob_base_dir
         end
 
         stack = []
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
-        dir = Dir.new('.')
+        dir = Dir.new(path_join(glob_base_dir, '.'))
         while ent = dir.read
           next if ent == '.' || ent == '..'
-          mode = Truffle::POSIX.truffleposix_lstat_mode(ent)
+          mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, ent))
 
           if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
-            @next.call matches, ent
+            @next.call matches, ent, glob_base_dir
           end
         end
         dir.close
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.new(path)
+          dir = Dir.new(path_join(glob_base_dir, path))
           while ent = dir.read
             next if ent == '.' || ent == '..'
             full = path_join(path, ent)
-            mode = Truffle::POSIX.truffleposix_lstat_mode(full)
+            mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
 
             if Truffle::StatOperations.directory?(mode) and ent.getbyte(0) != 46  # ?.
               stack << full
-              @next.call matches, full
+              @next.call matches, full, glob_base_dir
             end
           end
           dir.close
@@ -196,16 +191,16 @@ class Dir
         @glob.gsub! '**', '*'
       end
 
-      def call(matches, path)
-        return if path and !File.exist?("#{path}/.")
+      def call(matches, path, glob_base_dir)
+        return if path and !File.exist?(path_join(glob_base_dir, "#{path}/."))
 
-        dir = Dir.new(path ? path : '.')
+        dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
         while ent = dir.read
           if match? ent
             full = path_join(path, ent)
 
-            if File.directory? full
-              @next.call matches, full
+            if File.directory? path_join(glob_base_dir, full)
+              @next.call matches, full, glob_base_dir
             end
           end
         end
@@ -214,11 +209,11 @@ class Dir
     end
 
     class EntryMatch < Match
-      def call(matches, path)
-        return if path and !File.exist?("#{path}/.")
+      def call(matches, path, glob_base_dir)
+        return if path and !File.exist?("#{path_join(glob_base_dir, path)}/.")
 
         begin
-          dir = Dir.new(path ? path : '.')
+          dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
         rescue SystemCallError
           return
         end
@@ -233,8 +228,8 @@ class Dir
     end
 
     class DirectoriesOnly < Node
-      def call(matches, path)
-        if path and File.exist?("#{path}/.")
+      def call(matches, path, glob_base_dir)
+        if path and File.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
         end
       end
@@ -322,12 +317,12 @@ class Dir
       last
     end
 
-    def self.run(node, all_matches=[])
+    def self.run(node, all_matches, glob_base_dir)
       if ConstantEntry === node
-        node.call all_matches, nil
+        node.call all_matches, nil, glob_base_dir
       else
         matches = []
-        node.call matches, nil
+        node.call matches, nil, glob_base_dir
         # Truffle: ensure glob'd files are always sorted in consistent order,
         # it avoids headaches due to platform differences (OS X is sorted, Linux not).
         matches.sort!
@@ -335,8 +330,18 @@ class Dir
       end
     end
 
-    def self.glob(pattern, flags, matches=[])
-      # Rubygems uses Dir[] as a glorified File.exist?  to check for multiple
+    def self.path_join(parent, entry, separator = '/')
+      return entry unless parent
+
+      if parent == '/'
+        "/#{entry}"
+      else
+        "#{parent}#{separator}#{entry}"
+      end
+    end
+
+    def self.glob(base_dir, pattern, flags, matches)
+      # Rubygems uses Dir[] as a glorified File.exist? to check for multiple
       # extensions. So we went ahead and sped up that specific case.
 
       if flags == 0 and m = TRAILING_BRACES.match(pattern)
@@ -349,17 +354,17 @@ class Dir
 
           braces.split(',').each do |s|
             path = "#{stem}#{s}"
-            if File.exist? path
+            if File.exist? path_join(base_dir, path)
               matches << path
             end
           end
 
           # Split strips an empty closing part, so we need to add it back in
           if braces.getbyte(-1) == 44 # ?,
-            matches << stem if File.exist? stem
+            matches << stem if File.exist? path_join(base_dir, stem)
           end
         else
-          matches << pattern if File.exist?(pattern)
+          matches << pattern if File.exist?(path_join(base_dir, pattern))
         end
 
         return matches
@@ -370,10 +375,10 @@ class Dir
         patterns = compile(pattern, left_brace_index, flags)
 
         patterns.each do |node|
-          run node, matches
+          run node, matches, base_dir
         end
       elsif node = single_compile(pattern, flags)
-        run node, matches
+        run node, matches, base_dir
       else
         matches
       end

@@ -209,17 +209,17 @@ class Dir
       PrivateFile.expand_path("~#{user}")
     end
 
-    def [](*patterns)
+    def [](*patterns, base: nil)
       if patterns.size == 1
         pattern = Truffle::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
         patterns = glob_split pattern
       end
 
-      glob patterns
+      glob patterns, base: base
     end
 
-    def glob(pattern, flags=0, &block)
+    def glob(pattern, flags=0, base: nil, &block)
       if pattern.kind_of? Array
         patterns = pattern
       else
@@ -233,10 +233,17 @@ class Dir
       matches = []
       index = 0
 
+      normalized_base = if base.nil?
+                          nil
+                        else
+                          path = Truffle::Type.coerce_to_path(base)
+                          path.empty? ? '.' : path
+                        end
+
       patterns.each do |pat|
         pat = Truffle::Type.coerce_to_path pat
         enc = Truffle::Type.ascii_compatible_encoding pat
-        Dir::Glob.glob pat, flags, matches
+        Dir::Glob.glob normalized_base, pat, flags, matches
 
         total = matches.size
         while index < total
