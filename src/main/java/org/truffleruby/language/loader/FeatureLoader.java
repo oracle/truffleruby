@@ -9,41 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
-
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.WrapNodeGen;
-import org.truffleruby.cext.WrapNode;
-import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.extra.TruffleRubyNodes;
-import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,6 +18,38 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.WrapNode;
+import org.truffleruby.cext.WrapNodeGen;
+import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
+import org.truffleruby.extra.TruffleRubyNodes;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.platform.NativeConfiguration;
+import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 public class FeatureLoader {
 
@@ -341,9 +338,8 @@ public class FeatureLoader {
                 sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
                 final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
-                final Node executeInitNode = Message.EXECUTE.createNode();
                 try {
-                    ForeignAccess.sendExecute(executeInitNode, initFunction, truffleCExt);
+                    InteropLibrary.getFactory().getUncached(initFunction).execute(initFunction, truffleCExt);
                 } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                     throw new JavaException(e);
                 }
@@ -402,7 +398,6 @@ public class FeatureLoader {
         return libraries;
     }
 
-    private final Node executeSulongLoadLibraryNode = Message.EXECUTE.createNode();
     private final WrapNode wrapNode = WrapNodeGen.create();
 
     private void loadNativeLibrary(String library) {
@@ -420,7 +415,7 @@ public class FeatureLoader {
 
         TruffleObject libraryRubyString = wrapNode.execute(StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
         try {
-            ForeignAccess.sendExecute(executeSulongLoadLibraryNode, sulongLoadLibraryFunction, libraryRubyString);
+            InteropLibrary.getFactory().getUncached(sulongLoadLibraryFunction).execute(sulongLoadLibraryFunction, libraryRubyString);
         } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
