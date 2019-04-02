@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -33,11 +32,9 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = RubyNode.class),
-        @NodeChild(value = "self", type = RubyNode.class),
-        @NodeChild(value = "digits", type = RubyNode.class)
-})
+@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "self", type = RubyNode.class)
+@NodeChild(value = "digits", type = RubyNode.class)
 @ImportStatic(BigDecimalType.class)
 public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 

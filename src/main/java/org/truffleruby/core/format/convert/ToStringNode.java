@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -30,9 +29,7 @@ import org.truffleruby.language.objects.IsTaintedNode;
 
 import java.nio.charset.StandardCharsets;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class ToStringNode extends FormatNode {
 
     protected final boolean convertNumbersToStrings;

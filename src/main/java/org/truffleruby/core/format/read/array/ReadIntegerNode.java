@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -26,9 +25,7 @@ import org.truffleruby.core.format.convert.ToIntegerNode;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 
-@NodeChildren({
-        @NodeChild(value = "source", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ReadIntegerNode extends FormatNode {
 

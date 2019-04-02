@@ -47,7 +47,6 @@ package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -58,9 +57,7 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
-@NodeChildren({
-        @NodeChild(value = "source", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBERNode extends FormatNode {
 
     @Child private FixnumOrBignumNode fixnumOrBignumNode = new FixnumOrBignumNode();

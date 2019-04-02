@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -98,11 +97,9 @@ public abstract class SizedQueueNodes {
     }
 
     @CoreMethod(names = { "push", "<<", "enq" }, required = 1, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "queue"),
-            @NodeChild(type = RubyNode.class, value = "value"),
-            @NodeChild(type = RubyNode.class, value = "nonBlocking")
-    })
+    @NodeChild(value = "queue", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyNode.class)
     public abstract static class PushNode extends CoreMethodNode {
 
         @Child PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
@@ -157,10 +154,8 @@ public abstract class SizedQueueNodes {
     }
 
     @CoreMethod(names = { "pop", "shift", "deq" }, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "queue"),
-            @NodeChild(type = RubyNode.class, value = "nonBlocking")
-    })
+    @NodeChild(value = "queue", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyNode.class)
     public abstract static class PopNode extends CoreMethodNode {
 
         @CreateCast("nonBlocking")

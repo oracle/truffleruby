@@ -46,7 +46,6 @@
 package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.USASCIIEncoding;
@@ -59,9 +58,7 @@ import org.truffleruby.core.string.StringNodes;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadHexStringNode extends FormatNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();

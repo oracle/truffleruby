@@ -43,7 +43,6 @@ package org.truffleruby.stdlib.readline;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -97,7 +96,7 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "basic_word_break_characters=", onSingleton = true, required = 1)
-    @NodeChild(type = RubyNode.class, value = "characters")
+    @NodeChild(value = "characters", type = RubyNode.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
         @CreateCast("characters") public RubyNode coerceCharactersToString(RubyNode characters) {
@@ -144,10 +143,8 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "readline", isModuleFunction = true, optional = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "prompt"),
-            @NodeChild(type = RubyNode.class, value = "addToHistory")
-    })
+    @NodeChild(value = "prompt", type = RubyNode.class)
+    @NodeChild(value = "addToHistory", type = RubyNode.class)
     public abstract static class ReadlineNode extends CoreMethodNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -214,10 +211,8 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "insert_text", constructor = true, required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "text")
-    })
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "text", type = RubyNode.class)
     public abstract static class InsertTextNode extends CoreMethodNode {
 
         @CreateCast("text") public RubyNode coerceTextToString(RubyNode text) {

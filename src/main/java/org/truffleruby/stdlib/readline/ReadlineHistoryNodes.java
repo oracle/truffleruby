@@ -43,7 +43,6 @@ package org.truffleruby.stdlib.readline;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -210,10 +209,8 @@ public abstract class ReadlineHistoryNodes {
     }
 
     @CoreMethod(names = "[]=", needsSelf = false, lowerFixnum = 1, required = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "index"),
-            @NodeChild(type = RubyNode.class, value = "line")
-    })
+    @NodeChild(value = "index", type = RubyNode.class)
+    @NodeChild(value = "line", type = RubyNode.class)
     public abstract static class SetIndexNode extends CoreMethodNode {
 
         @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {

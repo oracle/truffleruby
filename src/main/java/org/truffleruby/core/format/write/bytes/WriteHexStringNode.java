@@ -46,16 +46,13 @@
 package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatNode;
 
 import java.nio.ByteOrder;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class WriteHexStringNode extends FormatNode {
 
     private final ByteOrder byteOrder;

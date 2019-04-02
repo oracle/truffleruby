@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -96,10 +95,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "a"),
-        @NodeChild(type = RubyNode.class, value = "b")
-    })
+    @NodeChild(value = "a", type = RubyNode.class)
+    @NodeChild(value = "b", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class AddNode extends CoreMethodNode {
@@ -534,10 +531,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "at", required = 1, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "array"),
-            @NodeChild(type = RubyNode.class, value = "index")
-    })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
     public abstract static class AtNode extends CoreMethodNode {
 
         @Child private ArrayReadDenormalizedNode readNode;
@@ -658,10 +653,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "concat", required = 1, raiseIfFrozenSelf = true)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "array"),
-        @NodeChild(type = RubyNode.class, value = "other")
-    })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     public abstract static class ConcatNode extends CoreMethodNode {
 
@@ -781,10 +774,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "array"),
-            @NodeChild(type = RubyNode.class, value = "index")
-    })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
@@ -1258,10 +1249,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "from")
-    })
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "from", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
@@ -1782,10 +1771,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "array"),
-            @NodeChild(type = RubyNode.class, value = "other")
-    })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
@@ -1965,10 +1952,8 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "shift", raiseIfFrozenSelf = true, optional = 1, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "array"),
-            @NodeChild(type = RubyNode.class, value = "n")
-    })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "n", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ShiftNode extends CoreMethodNode {

@@ -11,7 +11,6 @@ package org.truffleruby.core.format.write.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -20,10 +19,8 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.format.write.OutputNode;
 
-@NodeChildren({
-        @NodeChild(value = "output", type = OutputNode.class),
-        @NodeChild(value = "value", type = Node.class)
-})
+@NodeChild(value = "output", type = OutputNode.class)
+@NodeChild(value = "value", type = FormatNode.class)
 public abstract class WriteValueNode extends FormatNode {
 
     @Specialization

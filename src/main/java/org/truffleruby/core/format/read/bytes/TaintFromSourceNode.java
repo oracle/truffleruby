@@ -12,16 +12,13 @@ package org.truffleruby.core.format.read.bytes;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.language.objects.TaintNode;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 @ImportStatic(ArrayGuards.class)
 public abstract class TaintFromSourceNode extends FormatNode {
 

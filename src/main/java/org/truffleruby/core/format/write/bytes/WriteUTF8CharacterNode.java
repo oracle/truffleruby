@@ -47,7 +47,6 @@ package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -56,9 +55,7 @@ import org.truffleruby.core.format.exceptions.RangeException;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.UTF8Operations;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class WriteUTF8CharacterNode extends FormatNode {
 
     @Specialization(guards = {"value >= 0", "value <= 0x7f"})

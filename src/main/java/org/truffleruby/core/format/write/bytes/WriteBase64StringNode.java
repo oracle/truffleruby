@@ -11,16 +11,13 @@ package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class WriteBase64StringNode extends FormatNode {
 
     private final int length;

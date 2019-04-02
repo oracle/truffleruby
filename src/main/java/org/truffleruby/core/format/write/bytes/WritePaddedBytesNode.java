@@ -10,7 +10,6 @@
 package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -19,10 +18,8 @@ import org.truffleruby.core.format.FormatNode;
 /**
  * Simply write bytes.
  */
-@NodeChildren({
-        @NodeChild(value = "width", type = FormatNode.class),
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("width")
+@NodeChild("value")
 public abstract class WritePaddedBytesNode extends FormatNode {
 
     private final ConditionProfile leftJustifiedProfile = ConditionProfile.createBinaryProfile();

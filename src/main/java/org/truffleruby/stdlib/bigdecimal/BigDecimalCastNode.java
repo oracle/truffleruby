@@ -41,7 +41,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -54,10 +53,8 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = RubyNode.class),
-        @NodeChild(value = "roundingMode", type = RubyNode.class)
-})
+@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "roundingMode", type = RubyNode.class)
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyNode {
 

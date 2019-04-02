@@ -11,7 +11,6 @@ package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -23,9 +22,7 @@ import org.truffleruby.core.string.StringNodes;
 
 import java.util.Arrays;
 
-@NodeChildren({
-        @NodeChild(value = "source", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBinaryStringNode extends FormatNode {
 
     final boolean readToEnd;

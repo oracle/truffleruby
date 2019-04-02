@@ -10,14 +10,11 @@
 package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatNode;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class WriteBinaryStringNode extends FormatNode {
 
     private final boolean pad;

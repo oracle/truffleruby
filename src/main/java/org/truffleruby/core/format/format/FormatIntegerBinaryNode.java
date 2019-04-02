@@ -11,7 +11,6 @@ package org.truffleruby.core.format.format;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -21,11 +20,9 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-@NodeChildren({
-    @NodeChild(value = "width", type = FormatNode.class),
-    @NodeChild(value = "precision", type = FormatNode.class),
-    @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("width")
+@NodeChild("precision")
+@NodeChild("value")
 public abstract class FormatIntegerBinaryNode extends FormatNode {
 
     private final char format;

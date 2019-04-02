@@ -11,7 +11,6 @@ package org.truffleruby.core.format.read.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -22,9 +21,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChildren({
-        @NodeChild(value = "source", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadHashValueNode extends FormatNode {
 
     private final Object key;
