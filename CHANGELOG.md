@@ -7,6 +7,8 @@ Bug fixes:
   encoding and has non-ASCII characters.
 * Fixed `puts` for strings with non-ASCII-compatible encodings.
 * `rb_protect` now returns `Qnil` when an error occurs.
+* Fixed a race condition when using the interpolate-once (`/o`) modifier in
+  regular expressions.
 
 New features:
 
