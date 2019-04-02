@@ -35,7 +35,11 @@ public class OnceNode extends RubyNode {
         if (value == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             synchronized (this) {
-                if (cachedValue == null) {
+                // Read `cachedValue` again to check if the value was updated by another thread while this thread
+                // was waiting on the lock. If it's still null, this thread is the first one to get the lock and
+                // must update the cache.
+                value = cachedValue;
+                if (value == null) {
                     value = cachedValue = child.execute(frame);
                     assert value != null;
                 }
