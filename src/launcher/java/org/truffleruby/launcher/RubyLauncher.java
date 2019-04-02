@@ -89,7 +89,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
-                    args.add(index, "--read_rubyopt=false");
+                    args.add(index, "--disable=rubyopt");
                     args.addAll(index + 1, rubyoptArgs);
                     args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
                 }
