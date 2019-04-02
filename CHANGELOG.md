@@ -9,6 +9,7 @@ Bug fixes:
 * `rb_protect` now returns `Qnil` when an error occurs.
 * Fixed a race condition when using the interpolate-once (`/o`) modifier in
   regular expressions.
+* Fixed a bug in include file resolution when compiling C extensions.
 
 New features:
 
