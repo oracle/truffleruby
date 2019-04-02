@@ -102,10 +102,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
             if (isAOT()) {
-                final String launcher = setRubyLauncher();
-                if (launcher != null) {
-                    polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
-                }
+                setRubyLauncher();
             }
 
         } catch (CommandLineException commandLineException) {
