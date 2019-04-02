@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -435,10 +434,8 @@ public abstract class EncodingConverterNodes {
     }
 
     @CoreMethod(names = "replacement=", required = 1)
-    @NodeChildren({
-        @NodeChild(value = "encodingConverter", type = RubyNode.class),
-        @NodeChild(value = "replacement", type = RubyNode.class)
-    })
+    @NodeChild(value = "encodingConverter", type = RubyNode.class)
+    @NodeChild(value = "replacement", type = RubyNode.class)
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
         @CreateCast("replacement")

@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
@@ -442,12 +441,10 @@ public abstract class RangeNodes {
     }
 
     @CoreMethod(names = "new", constructor = true, required = 2, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rubyClass"),
-            @NodeChild(type = RubyNode.class, value = "begin"),
-            @NodeChild(type = RubyNode.class, value = "end"),
-            @NodeChild(type = RubyNode.class, value = "excludeEnd")
-    })
+    @NodeChild(value = "rubyClass", type = RubyNode.class)
+    @NodeChild(value = "begin", type = RubyNode.class)
+    @NodeChild(value = "end", type = RubyNode.class)
+    @NodeChild(value = "excludeEnd", type = RubyNode.class)
     public abstract static class NewNode extends CoreMethodNode {
 
         protected final DynamicObject rangeClass = getContext().getCoreLibrary().getRangeClass();

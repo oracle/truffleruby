@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -716,11 +715,7 @@ public abstract class BigDecimalNodes {
     }
 
     @CoreMethod(names = { "**", "power" }, required = 1, optional = 1, lowerFixnum = { 1, 2 })
-    @NodeChildren({
-            @NodeChild(value = "self", type = RubyNode.class),
-            @NodeChild(value = "exponent", type = RubyNode.class),
-            @NodeChild(value = "precision", type = RubyNode.class),
-    })
+    @NodeChild(value = "arguments", type = RubyNode[].class)
     public abstract static class PowerNode extends BigDecimalCoreMethodNode {
 
         public abstract Object executePower(Object a, Object exponent, Object precision);
@@ -815,10 +810,7 @@ public abstract class BigDecimalNodes {
     }
 
     @CoreMethod(names = "sqrt", required = 1, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(value = "self", type = RubyNode.class),
-            @NodeChild(value = "precision", type = RubyNode.class),
-    })
+    @NodeChild(value = "arguments", type = RubyNode[].class)
     public abstract static class SqrtNode extends BigDecimalCoreMethodNode {
 
         public abstract Object executeSqrt(DynamicObject value, int precision);

@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -20,10 +19,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
-@NodeChildren({
-        @NodeChild(value = "array", type = RubyNode.class),
-        @NodeChild(value = "index", type = RubyNode.class)
-})
+@NodeChild("array")
+@NodeChild("index")
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayReadNormalizedNode extends RubyNode {

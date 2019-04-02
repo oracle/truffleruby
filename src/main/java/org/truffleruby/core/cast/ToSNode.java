@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@NodeChild(type = RubyNode.class)
+@NodeChild(value = "value", type = RubyNode.class)
 public abstract class ToSNode extends RubyNode {
 
     @Child private KernelNodes.ToSNode kernelToSNode;

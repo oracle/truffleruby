@@ -11,7 +11,6 @@ package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.collections.ByteArrayBuilder;
@@ -22,9 +21,7 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
  * Read a string that contains UU-encoded data and write as actual binary
  * data.
  */
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class WriteUUStringNode extends FormatNode {
 
     private final int length;

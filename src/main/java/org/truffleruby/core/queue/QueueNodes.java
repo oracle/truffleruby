@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -66,10 +65,8 @@ public abstract class QueueNodes {
     }
 
     @CoreMethod(names = { "pop", "shift", "deq" }, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "queue"),
-            @NodeChild(type = RubyNode.class, value = "nonBlocking")
-    })
+    @NodeChild(value = "queue", type = RubyNode.class)
+    @NodeChild(value = "nonBlocking", type = RubyNode.class)
     public abstract static class PopNode extends CoreMethodNode {
 
         @CreateCast("nonBlocking")
@@ -116,11 +113,7 @@ public abstract class QueueNodes {
 
     @NonStandard
     @CoreMethod(names = "receive_timeout", required = 1, visibility = Visibility.PRIVATE, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "queue"),
-            @NodeChild(type = RubyNode.class, value = "duration")
-    })
-    public abstract static class ReceiveTimeoutNode extends CoreMethodNode {
+    public abstract static class ReceiveTimeoutNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object receiveTimeout(DynamicObject self, int duration) {

@@ -39,7 +39,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -60,10 +59,8 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @NodeChildren({
-            @NodeChild(value = "file", type = RubyNode.class),
-            @NodeChild(value = "wrap", type = RubyNode.class)
-    })
+    @NodeChild(value = "file", type = RubyNode.class)
+    @NodeChild(value = "wrap", type = RubyNode.class)
     @CoreMethod(names = "load", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class LoadNode extends CoreMethodNode {
 

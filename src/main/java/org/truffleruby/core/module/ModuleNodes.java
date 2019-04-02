@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -296,11 +295,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, visibility = Visibility.PRIVATE)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "newName"),
-            @NodeChild(type = RubyNode.class, value = "oldName")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "newName", type = RubyNode.class)
+    @NodeChild(value = "oldName", type = RubyNode.class)
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
         @CreateCast("newName")
@@ -521,11 +518,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "autoload", required = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "filename")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "filename", type = RubyNode.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name") public RubyNode coerceNameToString(RubyNode name) {
@@ -698,10 +693,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_defined?", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -722,10 +715,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_get", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class ClassVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -750,11 +741,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ClassVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -793,10 +782,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "constants", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "inherit")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class ConstantsNode extends CoreMethodNode {
 
         @CreateCast("inherit")
@@ -829,11 +816,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_defined?", required = 1, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "inherit")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class ConstDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -856,11 +841,9 @@ public abstract class ModuleNodes {
     }
 
     @Primitive(name = "module_const_get")
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "inherit")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends PrimitiveNode {
 
@@ -947,10 +930,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_missing", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class ConstMissingNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -966,11 +947,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "const_set", required = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class ConstSetNode extends CoreMethodNode {
 
         public static ConstSetNode create() {
@@ -1015,12 +994,10 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1, visibility = Visibility.PRIVATE)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "proc"),
-            @NodeChild(type = RubyNode.class, value = "block")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "proc", type = RubyNode.class)
+    @NodeChild(value = "block", type = RubyNode.class)
     public abstract static class DefineMethodNode extends CoreMethodNode {
 
         @Child private AddMethodNode addMethodNode = AddMethodNode.create(false);
@@ -1257,10 +1234,9 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "method_defined?", required = 1, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "inherit") })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1433,10 +1409,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "public_instance_method", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1463,10 +1437,8 @@ public abstract class ModuleNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     protected abstract static class AbstractInstanceMethodsNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -1516,10 +1488,8 @@ public abstract class ModuleNodes {
     }
 
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -1569,10 +1539,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "instance_methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class InstanceMethodsNode extends CoreMethodNode {
 
         @CreateCast("includeAncestors")
@@ -1589,10 +1557,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "instance_method", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceMethodNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1674,10 +1640,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "remove_class_variable", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RemoveClassVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1695,10 +1659,8 @@ public abstract class ModuleNodes {
     }
 
     @CoreMethod(names = "remove_const", required = 1, visibility = Visibility.PRIVATE)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RemoveConstNode extends CoreMethodNode {
 
         @CreateCast("name")

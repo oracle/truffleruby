@@ -11,7 +11,6 @@ package org.truffleruby.core.format.convert;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -22,9 +21,7 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.IsTaintedNode;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class ToStringObjectNode extends FormatNode {
 
     public abstract Object executeToStringObject(VirtualFrame frame, Object object);

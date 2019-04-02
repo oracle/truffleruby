@@ -18,7 +18,6 @@ package org.truffleruby.core.format.format;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
@@ -30,11 +29,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-@NodeChildren({
-    @NodeChild(value = "width", type = FormatNode.class),
-    @NodeChild(value = "precision", type = FormatNode.class),
-    @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("width")
+@NodeChild("precision")
+@NodeChild("value")
 public abstract class FormatFloatNode extends FormatNode {
 
     private static final byte[] NAN_VALUE = {'N', 'a', 'N'};

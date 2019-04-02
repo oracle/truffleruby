@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -21,10 +20,8 @@ import org.truffleruby.language.RubyNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
-@NodeChildren({
-        @NodeChild("array"),
-        @NodeChild("value"),
-})
+@NodeChild("array")
+@NodeChild("value")
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyNode {
 

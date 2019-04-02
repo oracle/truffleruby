@@ -47,7 +47,6 @@ package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.ASCIIEncoding;
@@ -61,9 +60,7 @@ import org.truffleruby.core.string.StringNodes;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = SourceNode.class),
-})
+@NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBase64StringNode extends FormatNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();

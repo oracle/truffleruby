@@ -44,7 +44,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -180,10 +179,8 @@ public abstract class BindingNodes {
 
     @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_defined?", required = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "binding"),
-        @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "binding", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class LocalVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -223,10 +220,8 @@ public abstract class BindingNodes {
 
     @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_get", required = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "binding"),
-        @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "binding", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class LocalVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -283,11 +278,9 @@ public abstract class BindingNodes {
 
     @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_set", required = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "binding"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
+    @NodeChild(value = "binding", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class LocalVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")

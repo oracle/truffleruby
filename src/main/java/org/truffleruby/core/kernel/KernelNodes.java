@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -449,10 +448,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "clone", keywordAsOptional = "freeze")
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "freeze")
-    })
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "freeze", type = RubyNode.class)
     public abstract static class CloneNode extends CoreMethodNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
@@ -834,10 +831,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "instance_variable_defined?", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -881,10 +876,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "instance_variable_get", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -905,11 +898,9 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class InstanceVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -930,10 +921,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "remove_instance_variable", raiseIfFrozenSelf = true, required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RemoveInstanceVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -1073,8 +1062,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "method", required = 1)
-    @NodeChild(type = RubyNode.class, value = "receiver")
-    @NodeChild(type = RubyNode.class, value = "name")
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class MethodNode extends CoreMethodNode {
 
         @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(true);
@@ -1164,10 +1153,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "regular")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "regular", type = RubyNode.class)
     public abstract static class MethodsNode extends CoreMethodNode {
 
         @CreateCast("regular")
@@ -1232,10 +1219,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "private_methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
@@ -1269,10 +1254,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "protected_methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
@@ -1294,8 +1277,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "public_method", required = 1)
-    @NodeChild(type = RubyNode.class, value = "receiver")
-    @NodeChild(type = RubyNode.class, value = "name")
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class PublicMethodNode extends CoreMethodNode {
 
         @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(false);
@@ -1313,10 +1296,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "public_methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
@@ -1359,7 +1340,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "require", isModuleFunction = true, required = 1)
-    @NodeChild(type = RubyNode.class, value = "feature")
+    @NodeChild(value = "feature", type = RubyNode.class)
     public abstract static class KernelRequireNode extends CoreMethodNode {
 
         @CreateCast("feature")
@@ -1377,7 +1358,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
-    @NodeChild(type = RubyNode.class, value = "feature")
+    @NodeChild(value = "feature", type = RubyNode.class)
     public abstract static class RequireRelativeNode extends CoreMethodNode {
 
         @CreateCast("feature")
@@ -1425,11 +1406,9 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "respond_to?", required = 1, optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "includeProtectedAndPrivate")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "includeProtectedAndPrivate", type = RubyNode.class)
     public abstract static class RespondToNode extends CoreMethodNode {
 
         @Child private DoesRespondDispatchHeadNode dispatch;
@@ -1549,10 +1528,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_method", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
@@ -1583,10 +1560,8 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "singleton_methods", optional = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "includeAncestors")
-    })
+    @NodeChild(value = "object", type = RubyNode.class)
+    @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();

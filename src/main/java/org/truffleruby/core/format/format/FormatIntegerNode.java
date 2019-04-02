@@ -18,7 +18,6 @@ package org.truffleruby.core.format.format;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -29,11 +28,9 @@ import org.truffleruby.core.string.ConvertBytes;
 
 import java.math.BigInteger;
 
-@NodeChildren({
-    @NodeChild(value = "width", type = FormatNode.class),
-    @NodeChild(value = "precision", type = FormatNode.class),
-    @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("width")
+@NodeChild("precision")
+@NodeChild("value")
 public abstract class FormatIntegerNode extends FormatNode {
 
     private static final byte[] PREFIX_OCTAL = {'0'};

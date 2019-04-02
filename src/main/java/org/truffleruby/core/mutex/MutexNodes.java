@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -164,10 +163,8 @@ public abstract class MutexNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(value = "mutex", type = RubyNode.class),
-            @NodeChild(value = "duration", type = RubyNode.class)
-    })
+    @NodeChild(value = "mutex", type = RubyNode.class)
+    @NodeChild(value = "duration", type = RubyNode.class)
     @CoreMethod(names = "sleep", optional = 1)
     public abstract static class SleepNode extends CoreMethodNode {
 

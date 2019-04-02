@@ -11,13 +11,10 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import org.truffleruby.language.RubyNode;
 
-@NodeChildren({
-        @NodeChild(value = "a", type = RubyNode.class),
-        @NodeChild(value = "b", type = RubyNode.class),
-})
+@NodeChild(value = "a", type = RubyNode.class)
+@NodeChild(value = "b", type = RubyNode.class)
 public abstract class BigDecimalOpNode extends BigDecimalCoreMethodNode {
 
     @CreateCast("b")

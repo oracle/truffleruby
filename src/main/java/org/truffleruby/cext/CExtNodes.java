@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -631,11 +630,9 @@ public class CExtNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, true);
@@ -653,11 +650,9 @@ public class CExtNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, false);
@@ -675,12 +670,10 @@ public class CExtNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "module"),
-            @NodeChild(type = RubyNode.class, value = "name"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
     @CoreMethod(names = "rb_const_set", onSingleton = true, required = 3)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class RbConstSetNode extends CoreMethodNode {
 
         @CreateCast("name")

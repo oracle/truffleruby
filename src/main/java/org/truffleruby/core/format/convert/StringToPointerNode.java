@@ -11,7 +11,6 @@ package org.truffleruby.core.format.convert;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -26,9 +25,7 @@ import org.truffleruby.language.objects.TaintNode;
 import java.util.ArrayList;
 import java.util.List;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = FormatNode.class),
-})
+@NodeChild("value")
 public abstract class StringToPointerNode extends FormatNode {
 
     @Specialization(guards = "isNil(nil)")

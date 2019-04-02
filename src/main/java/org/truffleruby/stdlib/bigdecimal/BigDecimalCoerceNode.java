@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -19,12 +18,9 @@ import org.truffleruby.language.RubyNode;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@NodeChildren({
-        @NodeChild(value = "value", type = RubyNode.class),
-        @NodeChild(value = "roundingMode", type = RoundModeNode.class),
-        @NodeChild(value = "cast", type = BigDecimalCastNode.class, executeWith = {"value", "roundingMode"})
-
-})
+@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "roundingMode", type = RoundModeNode.class)
+@NodeChild(value = "cast", type = BigDecimalCastNode.class, executeWith = {"value", "roundingMode"})
 public abstract class BigDecimalCoerceNode extends RubyNode {
 
     @Child private CreateBigDecimalNode createBigDecimal;

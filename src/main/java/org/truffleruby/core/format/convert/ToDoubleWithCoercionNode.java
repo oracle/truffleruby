@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChild(value = "value", type = FormatNode.class)
+@NodeChild("value")
 public abstract class ToDoubleWithCoercionNode extends FormatNode {
 
     @Child private CallDispatchHeadNode floatNode;

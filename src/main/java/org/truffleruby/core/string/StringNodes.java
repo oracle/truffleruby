@@ -170,7 +170,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -303,10 +302,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "string"),
-        @NodeChild(type = RubyNode.class, value = "other")
-    })
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
     public abstract static class AddNode extends CoreMethodNode {
 
@@ -491,12 +488,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = { "<<", "concat" }, required = 1, taintFrom = 1, raiseIfFrozenSelf = true)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "string"),
-            @NodeChild(type = RubyNode.class, value = "other")
-    })
     @ImportStatic(StringGuards.class)
-    public abstract static class ConcatNode extends CoreMethodNode {
+    public abstract static class ConcatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(other)")
         public DynamicObject concat(DynamicObject string, DynamicObject other,
@@ -747,10 +740,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "casecmp", required = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "string"),
-        @NodeChild(type = RubyNode.class, value = "other")
-    })
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyNode.class)
     public abstract static class CaseCmpNode extends CoreMethodNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode.create();
@@ -1443,10 +1434,8 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true, taintFrom = 1)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "string"),
-        @NodeChild(type = RubyNode.class, value = "other")
-    })
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyNode.class)
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
@@ -1960,11 +1949,9 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfFrozenSelf = true, lowerFixnum = { 1, 2 })
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "string"),
-        @NodeChild(type = RubyNode.class, value = "index"),
-        @NodeChild(type = RubyNode.class, value = "value")
-    })
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
     public abstract static class SetByteNode extends CoreMethodNode {
 
@@ -2397,11 +2384,9 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr!", required = 2, raiseIfFrozenSelf = true)
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "self"),
-        @NodeChild(type = RubyNode.class, value = "fromStr"),
-        @NodeChild(type = RubyNode.class, value = "toStrNode")
-    })
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyNode.class)
+    @NodeChild(value = "toStrNode", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
@@ -2443,11 +2428,9 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "tr_s!", required = 2, raiseIfFrozenSelf = true)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "fromStr"),
-            @NodeChild(type = RubyNode.class, value = "toStrNode")
-    })
+    @NodeChild(value = "self", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyNode.class)
+    @NodeChild(value = "toStrNode", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
 
@@ -3126,18 +3109,13 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "string"),
-            @NodeChild(type = RubyNode.class, value = "index"),
-            @NodeChild(type = RubyNode.class, value = "length")
-    })
-    public static abstract class StringByteSubstringPrimitiveNode extends PrimitiveNode {
+    public static abstract class StringByteSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private SubstringNode substringNode = SubstringNode.create();
 
         public static StringByteSubstringPrimitiveNode create() {
-            return StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
+            return StringByteSubstringPrimitiveNodeFactory.create(null);
         }
 
         public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) {

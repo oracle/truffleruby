@@ -12,13 +12,12 @@ package org.truffleruby.core.array;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 
-@NodeChildren({@NodeChild(value = "array", type = RubyNode.class)})
+@NodeChild("array")
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayGetTailNode extends RubyNode {
 

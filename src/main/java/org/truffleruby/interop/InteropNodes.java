@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -591,10 +590,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "export_without_conversion", isModuleFunction = true, required = 2)
-    @NodeChildren({
-            @NodeChild(value = "name", type = RubyNode.class),
-            @NodeChild(value = "object", type = RubyNode.class)
-    })
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "object", type = RubyNode.class)
     public abstract static class ExportWithoutConversionNode extends CoreMethodNode {
 
         @CreateCast("name")

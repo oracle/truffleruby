@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -563,10 +562,8 @@ public abstract class FloatNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(value = "n", type = RubyNode.class),
-            @NodeChild(value = "ndigits", type = RubyNode.class)
-    })
+    @NodeChild(value = "n", type = RubyNode.class)
+    @NodeChild(value = "ndigits", type = RubyNode.class)
     @Primitive(name = "float_round", lowerFixnum = 1)
     public abstract static class FloatRoundPrimitiveNode extends PrimitiveNode {
 
