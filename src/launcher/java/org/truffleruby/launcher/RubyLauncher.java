@@ -101,10 +101,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
             }
 
-            if (isAOT()) {
-                setRubyLauncher();
-            }
-
         } catch (CommandLineException commandLineException) {
             System.err.println(TruffleRuby.SIMPLE_NAME + ": " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
@@ -245,6 +241,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
+        if (isAOT()) {
+            final String launcher = ProcessProperties.getExecutableName();
+            builder.option(OptionsCatalog.LAUNCHER.getName(), launcher);
+        }
+
         if (!config.isSetInPolyglotOptions(OptionsCatalog.EMBEDDED.getName())) {
             builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
         }
@@ -273,15 +274,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return new ArrayList<>(Arrays.asList(value.split(":")));
         }
         return Collections.emptyList();
-    }
-
-    private String setRubyLauncher() {
-        if (String.class.cast(config.getOption(OptionsCatalog.LAUNCHER)).isEmpty()) {
-            final String launcher = ProcessProperties.getExecutableName();
-            config.setOption(OptionsCatalog.LAUNCHER, launcher);
-            return launcher;
-        }
-        return null;
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
