@@ -22,7 +22,6 @@ module Truffle::Boot
     STDERR.puts "SyntaxError in #{e.message}"
     1
   end
-
   private_class_method :check_syntax
 
   def self.find_s_file(name)
@@ -46,8 +45,6 @@ module Truffle::Boot
     raise LoadError, "No such file or directory -- #{name}"
   end
 
-  private_class_method :find_s_file
-
   def self.find_in_environment_paths(name, env_value)
     env_value.to_s.split(File::PATH_SEPARATOR).each do |path|
       name_in_path = "#{path}/#{name}"
@@ -55,7 +52,6 @@ module Truffle::Boot
     end
     nil
   end
-
   private_class_method :find_in_environment_paths
 
 end

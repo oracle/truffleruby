@@ -7,10 +7,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.shared.options;
+package org.truffleruby.launcher;
 
-public enum ShowHelp {
+public enum DefaultExecutionAction {
     NONE,
-    SHORT,
-    LONG
+    STDIN,
+    IRB
 }

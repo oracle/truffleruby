@@ -26,16 +26,29 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.truffleruby.shared.options;
+package org.truffleruby.launcher;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionType;
+import org.truffleruby.shared.options.RubyOptionTypes;
+import org.truffleruby.shared.options.StringArrayOptionType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class CommandLineOptions {
+
+    // Options which are only meaningful when using the TruffleRuby launcher (not when using the Context API)
+    boolean showVersion = false;
+    boolean showCopyright = false;
+    ShowHelp showHelp = ShowHelp.NONE;
+    /** What should be done after context is created */
+    ExecutionAction executionAction = ExecutionAction.NONE;
+    /** What should be done when no action is set */
+    DefaultExecutionAction defaultExecutionAction = DefaultExecutionAction.IRB;
+    /** A thing to be executed: a file, inline script, etc. Used by executionAction when applicable. */
+    String toExecute = "";
 
     private Map<String, String> options;
     private String[] arguments;

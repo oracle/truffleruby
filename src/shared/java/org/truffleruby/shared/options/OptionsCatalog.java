@@ -78,13 +78,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SYNTAX_CHECK_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> SHOW_VERSION_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> SHOW_COPYRIGHT_KEY = new OptionKey<>(false);
-    public static final OptionKey<ShowHelp> SHOW_HELP_KEY = new OptionKey<>(ShowHelp.NONE, EnumOptionType.optionTypeFor(ShowHelp.class, ShowHelp.NONE));
-    public static final OptionKey<ExecutionAction> EXECUTION_ACTION_KEY = new OptionKey<>(ExecutionAction.NONE, EnumOptionType.optionTypeFor(ExecutionAction.class, ExecutionAction.NONE));
-    public static final OptionKey<String> TO_EXECUTE_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> READ_RUBYOPT_KEY = new OptionKey<>(true);
-    public static final OptionKey<DefaultExecutionAction> DEFAULT_EXECUTION_ACTION_KEY = new OptionKey<>(DefaultExecutionAction.IRB, EnumOptionType.optionTypeFor(DefaultExecutionAction.class, DefaultExecutionAction.IRB));
     public static final OptionKey<String[]> ARGV_GLOBAL_VALUES_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String[]> ARGV_GLOBAL_FLAGS_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> BUILDING_CORE_CEXTS_KEY = new OptionKey<>(false);
@@ -552,51 +546,9 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor SHOW_VERSION = OptionDescriptor
-            .newBuilder(SHOW_VERSION_KEY, "ruby.show_version")
-            .help("Show version (configured by the --version Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor SHOW_COPYRIGHT = OptionDescriptor
-            .newBuilder(SHOW_COPYRIGHT_KEY, "ruby.show_copyright")
-            .help("Show copyright (configured by the --copyright Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor SHOW_HELP = OptionDescriptor
-            .newBuilder(SHOW_HELP_KEY, "ruby.show_help")
-            .help("What help should be shown (configured by the -h, --help Ruby options)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor EXECUTION_ACTION = OptionDescriptor
-            .newBuilder(EXECUTION_ACTION_KEY, "ruby.execution_action")
-            .help("What should be done after context is created (configured by the -e, -S Ruby options)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor TO_EXECUTE = OptionDescriptor
-            .newBuilder(TO_EXECUTE_KEY, "ruby.to_execute")
-            .help("A thing to be executed: a file, inline script, etc. Used by execution_action when applicable. (configured by the -e, -S Ruby options)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor READ_RUBYOPT = OptionDescriptor
             .newBuilder(READ_RUBYOPT_KEY, "ruby.read_rubyopt")
             .help("Read RUBYOPT and TRUFFLERUBYOPT environment variables")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor DEFAULT_EXECUTION_ACTION = OptionDescriptor
-            .newBuilder(DEFAULT_EXECUTION_ACTION_KEY, "ruby.default_execution_action")
-            .help("What should be done when no action is set")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1186,20 +1138,8 @@ public class OptionsCatalog {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.show_version":
-                return SHOW_VERSION;
-            case "ruby.show_copyright":
-                return SHOW_COPYRIGHT;
-            case "ruby.show_help":
-                return SHOW_HELP;
-            case "ruby.execution_action":
-                return EXECUTION_ACTION;
-            case "ruby.to_execute":
-                return TO_EXECUTE;
             case "ruby.read_rubyopt":
                 return READ_RUBYOPT;
-            case "ruby.default_execution_action":
-                return DEFAULT_EXECUTION_ACTION;
             case "ruby.argv_global_values":
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
@@ -1377,7 +1317,6 @@ public class OptionsCatalog {
             COVERAGE_GLOBAL,
             DEBUG,
             DEFAULT_CACHE,
-            DEFAULT_EXECUTION_ACTION,
             DID_YOU_MEAN,
             DISPATCH_CACHE,
             EMBEDDED,
@@ -1391,7 +1330,6 @@ public class OptionsCatalog {
             EXCEPTIONS_TRANSLATE_ASSERT,
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
             EXCEPTIONS_WARN_STACKOVERFLOW,
-            EXECUTION_ACTION,
             EXTERNAL_ENCODING,
             FRAME_VARIABLE_ACCESS_CACHE,
             FROZEN_STRING_LITERALS,
@@ -1453,9 +1391,6 @@ public class OptionsCatalog {
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
             SHARED_OBJECTS_SHARE_ALL,
-            SHOW_COPYRIGHT,
-            SHOW_HELP,
-            SHOW_VERSION,
             SINGLE_THREADED,
             SOURCE_ENCODING,
             STDLIB_AS_INTERNAL,
@@ -1463,7 +1398,6 @@ public class OptionsCatalog {
             SYNTAX_CHECK,
             THREAD_CACHE,
             TIME_FORMAT_CACHE,
-            TO_EXECUTE,
             METHOD_TO_PROC_CACHE,
             TRACE_CALLS,
             UNPACK_CACHE,

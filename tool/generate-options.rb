@@ -118,10 +118,7 @@ import javax.annotation.Generated;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.shared.options.DefaultExecutionAction;
-import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;

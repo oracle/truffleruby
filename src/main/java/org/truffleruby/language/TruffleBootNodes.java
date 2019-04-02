@@ -21,7 +21,6 @@ import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -38,7 +37,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.io.IOException;
@@ -90,12 +88,12 @@ public abstract class TruffleBootNodes {
         }
     }
 
-    @CoreMethod(names = "main", onSingleton = true)
+    @CoreMethod(names = "main", onSingleton = true, required = 2)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public int main(
+        public int main(DynamicObject kind, DynamicObject toExecute,
                 @Cached("create()") IndirectCallNode callNode,
                 @Cached("createPrivate()") CallDispatchHeadNode findSFile,
                 @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
@@ -108,16 +106,11 @@ public abstract class TruffleBootNodes {
             try {
                 source = loadMainSourceSettingDollarZero(
                         findSFile, makeStringNode,
-                        getContext().getOptions().EXECUTION_ACTION,
-                        getContext().getOptions().TO_EXECUTE.intern());
+                        StringOperations.getString(kind),
+                        StringOperations.getString(toExecute).intern());
             } catch (RaiseException e) {
                 getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
                 return 1;
-            }
-
-            if (source == null) {
-                // EXECUTION_ACTION was set to NONE
-                return 0;
             }
 
             if (getContext().getOptions().SYNTAX_CHECK) {
@@ -177,61 +170,26 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private RubySource loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
+        private RubySource loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, String kind, String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
             try {
-                switch (executionAction) {
-                    case UNSET: {
-                        switch (getContext().getOptions().DEFAULT_EXECUTION_ACTION) {
-                            case NONE:
-                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.NONE, toExecute);
-                            case STDIN:
-                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
-                            case IRB:
-                                if (System.console() != null) {
-                                    RubyLanguage.LOGGER.warning(
-                                            "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
-                                    return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.PATH, "irb");
-                                } else {
-                                    return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
-                                }
-                            default:
-                                throw new UnsupportedOperationException("unreachable");
-                        }
-                    }
-
-                    case NONE: {
-                        source = null;
-                        dollarZeroValue = nil();
-                    } break;
-
-                    case FILE: {
+                switch (kind) {
+                    case "FILE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
 
-                    case PATH: {
-                        final DynamicObject path = (DynamicObject) findSFile.call(
-                                getContext().getCoreLibrary().getTruffleBootModule(),
-                                // language=ruby
-                                "find_s_file",
-                                makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                    case "STDIN": {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadFromFile(this, StringOperations.getString(path));
-                        dollarZeroValue = path;
-                    } break;
-
-                    case STDIN: {
-                        final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadFromStandardIn(this, toExecute);
+                        source = mainLoader.loadFromStandardIn(this, "-");
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     } break;
 
-                    case INLINE: {
+                    case "INLINE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadFromCommandLineArgument();
+                        source = mainLoader.loadFromCommandLineArgument(toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     } break;
 

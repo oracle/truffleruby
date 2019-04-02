@@ -35,11 +35,7 @@
 package org.truffleruby.launcher;
 
 import org.graalvm.options.OptionDescriptor;
-import org.truffleruby.shared.options.CommandLineOptions;
-import org.truffleruby.shared.options.DefaultExecutionAction;
-import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.options.ShowHelp;
 import org.truffleruby.shared.options.Verbosity;
 
 import java.io.File;
@@ -92,11 +88,11 @@ public class CommandLineParser {
         }
         assert lastInterpreterArgumentIndex >= 0;
 
-        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+        if (config.executionAction == ExecutionAction.UNSET) {
             if (argumentIndex < arguments.size()) {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.FILE);
+                config.executionAction = ExecutionAction.FILE;
                 //consume the file name
-                config.setOption(OptionsCatalog.TO_EXECUTE, getCurrentArgument());
+                config.toExecute = getCurrentArgument();
                 argumentIndex++;
             }
         }
@@ -165,8 +161,8 @@ public class CommandLineParser {
             // sole "-" means read from stdin and pass remaining args as ARGV
             lastInterpreterArgumentIndex = argumentIndex;
 
-            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
+            if (config.executionAction == ExecutionAction.UNSET) {
+                config.executionAction = ExecutionAction.STDIN;
             } else {
                 // if other action is set then ignore '-', just threat it as a first script argument,
                 // and stop option parsing
@@ -220,10 +216,10 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     final String nextArgument = grabValue(getArgumentError(" -e must be followed by an expression to report"));
 
-                    final ExecutionAction currentExecutionAction = config.getOption(OptionsCatalog.EXECUTION_ACTION);
+                    final ExecutionAction currentExecutionAction = config.executionAction;
                     if (currentExecutionAction == ExecutionAction.UNSET || currentExecutionAction == ExecutionAction.INLINE) {
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.INLINE);
-                        config.appendOptionValue(OptionsCatalog.TO_EXECUTE, nextArgument + "\n");
+                        config.executionAction = ExecutionAction.INLINE;
+                        config.toExecute += nextArgument + "\n";
                     } else {
                         // ignore option
                     }
@@ -237,9 +233,9 @@ public class CommandLineParser {
                     throw notImplemented("-F");
                 case 'h':
                     disallowedInRubyOpts(argument);
-                    config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.SHORT);
+                    config.showHelp = ShowHelp.SHORT;
                     // cancel other execution actions
-                    config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                    config.executionAction = ExecutionAction.NONE;
                     break;
                 case 'i':
                     disallowedInRubyOpts(argument);
@@ -321,9 +317,9 @@ public class CommandLineParser {
 
                     String scriptName = grabValue("provide a bin script to execute");
 
-                    if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
-                        config.setOption(OptionsCatalog.TO_EXECUTE, scriptName);
+                    if (config.executionAction == ExecutionAction.UNSET) {
+                        config.executionAction = ExecutionAction.PATH;
+                        config.toExecute = scriptName;
                     } else {
                         // ignore the option
                     }
@@ -336,8 +332,8 @@ public class CommandLineParser {
                     break;
                 case 'v':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                    config.setOption(OptionsCatalog.SHOW_VERSION, true);
-                    config.setOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION, DefaultExecutionAction.NONE);
+                    config.showVersion = true;
+                    config.defaultExecutionAction = DefaultExecutionAction.NONE;
                     break;
                 case 'w':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
@@ -375,9 +371,9 @@ public class CommandLineParser {
                 case '-':
                     if (argument.equals("--copyright")) {
                         disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_COPYRIGHT, true);
+                        config.showCopyright = true;
                         // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                        config.executionAction = ExecutionAction.NONE;
                         break FOR;
                     } else if (argument.startsWith("--encoding")) {
                         if (argument.equals("--encoding")) {
@@ -413,9 +409,9 @@ public class CommandLineParser {
                         break FOR;
                     } else if (argument.equals("--version")) {
                         disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                        config.showVersion = true;
                         // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                        config.executionAction = ExecutionAction.NONE;
                         break FOR;
                     } else if (argument.equals("--debug-frozen-string-literal")) {
                         warnInternalDebugTool(argument);
