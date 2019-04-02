@@ -234,7 +234,6 @@ class StringIO
   alias_method :write_nonblock, :write
 
   def close
-    raise IOError, 'closed stream' if closed?
     @readable = @writable = nil
   end
 
