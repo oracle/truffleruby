@@ -78,7 +78,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SYNTAX_CHECK_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> READ_RUBYOPT_KEY = new OptionKey<>(true);
     public static final OptionKey<String[]> ARGV_GLOBAL_VALUES_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String[]> ARGV_GLOBAL_FLAGS_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> BUILDING_CORE_CEXTS_KEY = new OptionKey<>(false);
@@ -542,13 +541,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor SYNTAX_CHECK = OptionDescriptor
             .newBuilder(SYNTAX_CHECK_KEY, "ruby.syntax_check")
             .help("Do not execute just check syntax (configured by the -c Ruby option)")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor READ_RUBYOPT = OptionDescriptor
-            .newBuilder(READ_RUBYOPT_KEY, "ruby.read_rubyopt")
-            .help("Read RUBYOPT and TRUFFLERUBYOPT environment variables")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1138,8 +1130,6 @@ public class OptionsCatalog {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.read_rubyopt":
-                return READ_RUBYOPT;
             case "ruby.argv_global_values":
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
@@ -1377,7 +1367,6 @@ public class OptionsCatalog {
             POLYGLOT_STDIO,
             PREINITIALIZATION,
             PRIMITIVE_CALLERS_ALWAYS_CLONE,
-            READ_RUBYOPT,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
             REQUIRED_LIBRARIES,

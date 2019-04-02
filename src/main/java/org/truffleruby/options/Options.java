@@ -80,7 +80,6 @@ public class Options {
     public final boolean ARGV_GLOBALS;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     public final boolean SYNTAX_CHECK;
-    public final boolean READ_RUBYOPT;
     public final String[] ARGV_GLOBAL_VALUES;
     public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean BUILDING_CORE_CEXTS;
@@ -207,7 +206,6 @@ public class Options {
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = options.get(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY);
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
-        READ_RUBYOPT = options.get(OptionsCatalog.READ_RUBYOPT_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
@@ -393,8 +391,6 @@ public class Options {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
-            case "ruby.read_rubyopt":
-                return READ_RUBYOPT;
             case "ruby.argv_global_values":
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":

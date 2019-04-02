@@ -68,7 +68,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false);
             argumentCommandLineParser.processArguments();
 
-            if ((boolean) config.getOption(OptionsCatalog.READ_RUBYOPT)) {
+            if (config.readRubyOptEnv) {
                 // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();

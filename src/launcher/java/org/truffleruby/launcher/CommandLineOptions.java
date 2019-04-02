@@ -45,6 +45,8 @@ public class CommandLineOptions {
     boolean showVersion = false;
     boolean showCopyright = false;
     ShowHelp showHelp = ShowHelp.NONE;
+    /** Read the RUBYOPT and TRUFFLERUBYOPT environment variables */
+    boolean readRubyOptEnv = true;
     /** What should be done after context is created */
     ExecutionAction executionAction = ExecutionAction.NONE;
     /** What should be done when no action is set */

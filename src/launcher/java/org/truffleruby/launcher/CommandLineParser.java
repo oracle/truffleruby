@@ -605,7 +605,7 @@ public class CommandLineParser {
                 FEATURES.get("frozen-string-literal"));
 
         FEATURES.put("rubyopt",
-                (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable));
+                (processor, enable) -> processor.config.readRubyOptEnv = enable);
     }
 
     private static Logger createLogger() {
