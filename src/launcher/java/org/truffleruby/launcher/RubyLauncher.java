@@ -241,7 +241,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        if (isAOT()) {
+        if (isAOT() && !config.isSetInPolyglotOptions(OptionsCatalog.LAUNCHER.getName())) {
             final String launcher = ProcessProperties.getExecutableName();
             builder.option(OptionsCatalog.LAUNCHER.getName(), launcher);
         }
