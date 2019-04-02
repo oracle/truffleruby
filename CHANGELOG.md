@@ -6,6 +6,7 @@ Bug fixes:
 * Fixed `String#inspect` when the string uses a non-UTF-8 ASCII-compatible
   encoding and has non-ASCII characters.
 * Fixed `puts` for strings with non-ASCII-compatible encodings.
+* `rb_protect` now returns `Qnil` when an error occurs.
 
 New features:
 
