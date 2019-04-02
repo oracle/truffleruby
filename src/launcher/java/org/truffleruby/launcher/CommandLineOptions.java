@@ -34,6 +34,8 @@ import org.truffleruby.shared.options.RubyOptionTypes;
 import org.truffleruby.shared.options.StringArrayOptionType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,8 @@ public class CommandLineOptions {
     boolean showVersion = false;
     boolean showCopyright = false;
     ShowHelp showHelp = ShowHelp.NONE;
+    /** Read the RUBYOPT and TRUFFLERUBYOPT environment variables */
+    boolean readRubyOptEnv = true;
     /** What should be done after context is created */
     ExecutionAction executionAction = ExecutionAction.NONE;
     /** What should be done when no action is set */
@@ -50,14 +54,23 @@ public class CommandLineOptions {
     /** A thing to be executed: a file, inline script, etc. Used by executionAction when applicable. */
     String toExecute = "";
 
-    private Map<String, String> options;
+    /** This should not be modified, as otherwise when exec()-ing to JVM from a native launcher,
+     * these options would be passed on the command line, which fails if they are experimental.
+     * This would also cause parsing the options twice with the current Launcher design. */
+    private final Map<String, String> polyglotOptions;
+    private final Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;
 
-    public CommandLineOptions(Map<String, String> options) {
-        this.options = options;
-        this.arguments = new String[]{};
+    public CommandLineOptions(Map<String, String> polyglotOptions) {
+        this.polyglotOptions = Collections.unmodifiableMap(polyglotOptions);
+        this.options = new HashMap<>();
+        this.arguments = new String[0];
         this.unknownArguments = new ArrayList<>();
+    }
+
+    boolean isSetInPolyglotOptions(String optionName) {
+        return polyglotOptions.containsKey(optionName);
     }
 
     public Map<String, String> getOptions() {

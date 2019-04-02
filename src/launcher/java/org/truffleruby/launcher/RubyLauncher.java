@@ -68,7 +68,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false);
             argumentCommandLineParser.processArguments();
 
-            if ((boolean) config.getOption(OptionsCatalog.READ_RUBYOPT)) {
+            if (config.readRubyOptEnv) {
                 // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
@@ -89,7 +89,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
-                    args.add(index, "--read_rubyopt=false");
+                    args.add(index, "--disable=rubyopt");
                     args.addAll(index + 1, rubyoptArgs);
                     args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
                 }
@@ -99,13 +99,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final List<String> rubyLibPaths = getPathListFromEnvVariable("RUBYLIB");
             for (String path : rubyLibPaths) {
                 config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
-            }
-
-            if (isAOT()) {
-                final String launcher = setRubyLauncher();
-                if (launcher != null) {
-                    polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
-                }
             }
 
         } catch (CommandLineException commandLineException) {
@@ -248,9 +241,16 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        if (!config.getOptions().containsKey(OptionsCatalog.EMBEDDED.getName())) {
-            builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
+        if (isAOT() && !config.isSetInPolyglotOptions(OptionsCatalog.LAUNCHER.getName())) {
+            final String launcher = ProcessProperties.getExecutableName();
+            builder.option(OptionsCatalog.LAUNCHER.getName(), launcher);
         }
+
+        if (!config.isSetInPolyglotOptions(OptionsCatalog.EMBEDDED.getName())) {
+            builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
+        }
+
+        builder.options(config.getOptions());
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
@@ -274,15 +274,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return new ArrayList<>(Arrays.asList(value.split(":")));
         }
         return Collections.emptyList();
-    }
-
-    private String setRubyLauncher() {
-        if (String.class.cast(config.getOption(OptionsCatalog.LAUNCHER)).isEmpty()) {
-            final String launcher = ProcessProperties.getExecutableName();
-            config.setOption(OptionsCatalog.LAUNCHER, launcher);
-            return launcher;
-        }
-        return null;
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {

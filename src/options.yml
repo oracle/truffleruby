@@ -85,7 +85,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     SYNTAX_CHECK: [[syntax_check, -c], boolean, false, Do not execute just check syntax]
 
     # Used internally for the launcher to communicate with the RubyContext
-    READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
     ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value]
     ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value)]
     BUILDING_CORE_CEXTS: [building.core.cexts, boolean, false, 'Used while building TruffleRuby to build core C extensions']

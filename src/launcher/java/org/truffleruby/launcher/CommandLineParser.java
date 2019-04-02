@@ -599,15 +599,13 @@ public class CommandLineParser {
                 FEATURES.get("gem"));
 
         FEATURES.put("frozen-string-literal",
-                (processor, enable) -> processor.config.setOption(
-                        OptionsCatalog.FROZEN_STRING_LITERALS,
-                        enable));
+                (processor, enable) -> processor.config.setOption(OptionsCatalog.FROZEN_STRING_LITERALS, enable));
 
         FEATURES.put("frozen_string_literal",
                 FEATURES.get("frozen-string-literal"));
 
         FEATURES.put("rubyopt",
-                (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable));
+                (processor, enable) -> processor.config.readRubyOptEnv = enable);
     }
 
     private static Logger createLogger() {
