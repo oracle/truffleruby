@@ -9,50 +9,31 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-@NodeChild(value = "value", type = RubyNode.class)
-@NodeChild(value = "roundingMode", type = RoundModeNode.class)
-@NodeChild(value = "cast", type = BigDecimalCastNode.class, executeWith = {"value", "roundingMode"})
-public abstract class BigDecimalCoerceNode extends RubyNode {
+public class BigDecimalCoerceNode extends BigDecimalCoreMethodNode {
 
-    @Child private CreateBigDecimalNode createBigDecimal;
+    @Child private RubyNode child;
+    @Child private BigDecimalCastNode bigDecimalCastNode = BigDecimalCastNodeGen.create();
+    private final ConditionProfile castProfile = ConditionProfile.createBinaryProfile();
 
-    public static BigDecimalCoerceNode create(RubyNode value) {
-        return BigDecimalCoerceNodeGen.create(value,
-                RoundModeNodeFactory.create(),
-                BigDecimalCastNodeGen.create(null, null));
+    public BigDecimalCoerceNode(RubyNode child) {
+        this.child = child;
     }
 
-    protected DynamicObject createBigDecimal(Object value) {
-        if (createBigDecimal == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null, null));
+    @Override
+    public Object execute(VirtualFrame frame) {
+        final Object value = child.execute(frame);
+        final Object castedValue = bigDecimalCastNode.execute(value, getRoundMode());
+        if (castProfile.profile(castedValue instanceof BigDecimal)) {
+            return createBigDecimal(castedValue);
+        } else {
+            return value;
         }
-
-        return createBigDecimal.executeCreate(value);
-    }
-
-    @Specialization
-    public DynamicObject doBigDecimal(Object value, RoundingMode roundingMode, BigDecimal cast) {
-        return createBigDecimal(cast);
-    }
-
-    @Specialization(guards = { "isRubyBigDecimal(value)", "isNil(cast)" })
-    public Object doBigDecimal(DynamicObject value, RoundingMode roundingMode, DynamicObject cast) {
-        return value;
-    }
-
-    @Specialization(guards = "!isRubyBigDecimal(value)")
-    public Object notBigDecimal(Object value, RoundingMode roundingMode, DynamicObject cast) {
-        return value;
     }
 
 }

@@ -70,7 +70,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public DynamicObject create(long value, DynamicObject self, int digits,
             @Cached("createBigDecimalCastNode()") BigDecimalCastNode bigDecimalCastNode) {
         Layouts.BIG_DECIMAL.setValue(self,
-                round(bigDecimalCastNode.executeBigDecimal(value, getRoundMode()), new MathContext(digits, getRoundMode())));
+                round((BigDecimal) bigDecimalCastNode.execute(value, getRoundMode()),
+                new MathContext(digits, getRoundMode())));
         return self;
     }
 
@@ -87,9 +88,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization
     public DynamicObject create(double value, DynamicObject self, int digits,
             @Cached("createBigDecimalCastNode()") BigDecimalCastNode bigDecimalCastNode) {
-        Layouts.BIG_DECIMAL.setValue(self, bigDecimalCastNode
-                .executeBigDecimal(value, getRoundMode())
-                .round(new MathContext(digits, getRoundMode())));
+        BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, getRoundMode());
+        Layouts.BIG_DECIMAL.setValue(self, bigDecimal.round(new MathContext(digits, getRoundMode())));
         return self;
     }
 
@@ -196,16 +196,15 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     })
     public DynamicObject create(DynamicObject value, DynamicObject self, int digits,
             @Cached("createBigDecimalCastNode()") BigDecimalCastNode bigDecimalCastNode,
-            @Cached("createBinaryProfile()") ConditionProfile nilProfile) {
-        final Object castedValue = bigDecimalCastNode.executeObject(value, getRoundMode());
+            @Cached("createBinaryProfile()") ConditionProfile castProfile) {
+        final Object castedValue = bigDecimalCastNode.execute(value, getRoundMode());
 
-        if (nilProfile.profile(castedValue == nil())) {
+        if (castProfile.profile(castedValue instanceof BigDecimal)) {
+            Layouts.BIG_DECIMAL.setValue(self, round((BigDecimal) castedValue, new MathContext(digits, getRoundMode())));
+            return self;
+        } else {
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantBeCastedToBigDecimal(this));
         }
-
-        Layouts.BIG_DECIMAL.setValue(self, round(((BigDecimal) castedValue), new MathContext(digits, getRoundMode())));
-
-        return self;
     }
 
     @TruffleBoundary
@@ -266,7 +265,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     protected BigDecimalCastNode createBigDecimalCastNode() {
-        return BigDecimalCastNodeGen.create(null, null);
+        return BigDecimalCastNodeGen.create();
     }
 
 }
