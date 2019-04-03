@@ -113,6 +113,12 @@ common = {
 expanded.merge!(common)
 mkconfig.merge!(common)
 
+# We use -I$(<D) (the directory portion of the prerequisite - i.e. the
+# C or C++ file) to add the file's path as the first entry on the
+# include path. This is to ensure that files from the source file's
+# directory are include in preference to others on the include path,
+# and is required because we are actually piping the file into the
+# compiler which disables this standard behaviour of the C preprocessor.
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 
