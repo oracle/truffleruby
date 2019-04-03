@@ -1778,6 +1778,7 @@ module Truffle::CExt
   end
 
   def RDATA(object)
+    rb_check_type(object, T_DATA)
     RData.new(object)
   end
 
