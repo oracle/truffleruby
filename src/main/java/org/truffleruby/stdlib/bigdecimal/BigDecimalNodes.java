@@ -715,8 +715,7 @@ public abstract class BigDecimalNodes {
     }
 
     @CoreMethod(names = { "**", "power" }, required = 1, optional = 1, lowerFixnum = { 1, 2 })
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    public abstract static class PowerNode extends BigDecimalCoreMethodNode {
+    public abstract static class PowerNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         public abstract Object executePower(Object a, Object exponent, Object precision);
 
@@ -810,8 +809,7 @@ public abstract class BigDecimalNodes {
     }
 
     @CoreMethod(names = "sqrt", required = 1, lowerFixnum = 1)
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    public abstract static class SqrtNode extends BigDecimalCoreMethodNode {
+    public abstract static class SqrtNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         public abstract Object executeSqrt(DynamicObject value, int precision);
 
