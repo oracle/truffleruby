@@ -9,6 +9,7 @@ Bug fixes:
 * `rb_protect` now returns `Qnil` when an error occurs.
 * Fixed a race condition when using the interpolate-once (`/o`) modifier in
   regular expressions.
+* Calling `StringIO#close` multiple times no longer raises an exception (#1640).
 
 New features:
 
