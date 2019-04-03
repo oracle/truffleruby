@@ -68,6 +68,14 @@ module Truffle::FFI
       end
     end
 
+    def initialize_copy(from)
+      total = from.total
+      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
+      Truffle.invoke_primitive :pointer_malloc, self, total
+      Truffle.invoke_primitive :pointer_copy_memory, address, from.address, total
+      self
+    end
+
     def inspect
       # Don't have this print the data at the location. It can crash everything.
       addr = address()
@@ -210,7 +218,7 @@ module Truffle::FFI
     end
 
     def __copy_from__(pointer, size)
-      put_bytes(0, pointer.get_bytes(0, size))
+      Truffle.invoke_primitive :pointer_copy_memory, address, pointer.address, size
     end
 
     def read_array_of_type(type, reader, length)
@@ -294,20 +302,6 @@ module Truffle::FFI
       ptr.write_string str + "\0"
 
       ptr
-    end
-
-    def copy
-      other = dup
-      Truffle.invoke_primitive :pointer_malloc, other, total
-      other.total = total
-      other.type_size = type_size
-      Truffle::POSIX.memcpy other, self, total
-
-      Truffle.privately do
-        other.initialize_copy self
-      end
-
-      other
     end
 
     # Access the MemoryPointer like a C array, accessing the +which+ number

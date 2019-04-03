@@ -259,6 +259,19 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_copy_memory")
+    public static abstract class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject copyMemory(long to, long from, long size) {
+            final Pointer ptr = new Pointer(to);
+            checkNull(ptr);
+            ptr.writeBytes(0, new Pointer(from), 0, size);
+            return nil();
+        }
+
+    }
+
     // Special reads and writes
 
     @Primitive(name = "pointer_read_string_to_null")
