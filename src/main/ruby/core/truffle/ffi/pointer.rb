@@ -109,11 +109,17 @@ module Truffle::FFI
     end
 
     def +(offset)
-      Pointer.new(address + offset)
+      ptr = Pointer.new(address + offset)
+      if total
+        ptr.total = total - offset
+      end
+      ptr
     end
 
     def slice(offset, length)
-      Pointer.new(address + offset) # TODO: track length in Pointer
+      ptr = Pointer.new(address + offset)
+      ptr.total = length
+      ptr
     end
 
     def ==(other)
