@@ -255,10 +255,12 @@ suite = {
             "buildDependencies": [
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
+                "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
                 "sulong:SULONG_LIBS", # polyglot.h
             ],
             "buildEnv": {
               "TRUFFLERUBYOPT": "--building-core-cexts",
+              "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
               "SULONG_HEADERS_DIR": "<path:SULONG_LIBS>",
               "SULONG_POLYGLOT_H": "<path:SULONG_LIBS>/polyglot.h",
             },
