@@ -1778,7 +1778,7 @@ module Truffle::CExt
   end
 
   def RDATA(object)
-    raise TypeError unless Truffle::CExt.hidden_variable_get(object, :data_holder)
+    rb_check_type(object, T_DATA)
     RData.new(object)
   end
 
