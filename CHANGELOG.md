@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed a race condition when using the interpolate-once (`/o`) modifier in
   regular expressions.
 * Calling `StringIO#close` multiple times no longer raises an exception (#1640).
+* Fixed a bug in include file resolution when compiling C extensions.
 
 New features:
 
