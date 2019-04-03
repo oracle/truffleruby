@@ -420,15 +420,9 @@ local part_definitions = {
       ],
     },
 
-    make_standalone_distribution: {
-      run+: [
-        ["tool/make-standalone-distribution.sh"],
-      ],
-    },
-
     test_make_standalone_distribution: {
       run+: [
-        ["env", "UPLOAD_URL=", "tool/make-standalone-distribution.sh"],
+        ["tool/make-standalone-distribution.sh"],
       ],
     },
   },
@@ -544,6 +538,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-linux": linux_gate + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-ecosystem":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-standalone":  linux_gate + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
@@ -717,14 +712,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         { timelimit: "02:00:00" },
     },
 
-  release_builds:
-    {
-      local shared = $.use.common + { timelimit: "40:00" },
-      "ruby-test-standalone-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_standalone_distribution,
-      "ruby-standalone-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_standalone_distribution,
-      "ruby-standalone-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_standalone_distribution,
-    },
-
   deploy_builds:
     {
       local deploy = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
@@ -735,7 +722,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     },
 
   builds:
-    local all_builds = $.test_builds + $.bench_builds + $.release_builds + $.deploy_builds;
+    local all_builds = $.test_builds + $.bench_builds + $.deploy_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
