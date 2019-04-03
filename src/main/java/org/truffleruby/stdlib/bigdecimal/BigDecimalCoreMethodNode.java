@@ -15,6 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -50,11 +51,11 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     }
 
     protected DynamicObject createBigDecimal(Object value) {
-        return getCreateBigDecimal().executeCreate(value);
+        return getCreateBigDecimal().executeCreate(value, NotProvided.INSTANCE);
     }
 
-    protected DynamicObject initializeBigDecimal(Object value, DynamicObject self, Object digits) {
-        return getCreateBigDecimal().executeInitialize(value, self, digits);
+    protected DynamicObject createBigDecimal(Object value, int digits) {
+        return getCreateBigDecimal().executeCreate(value, digits);
     }
 
     protected RoundingMode getRoundMode() {
@@ -109,7 +110,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CreateBigDecimalNode getCreateBigDecimal() {
         if (createBigDecimal == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null, null));
+            createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null));
         }
 
         return createBigDecimal;

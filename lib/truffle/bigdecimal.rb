@@ -281,11 +281,16 @@ class BigDecimal < Numeric
     end
   end
   private_class_method :boolean_mode
+
+  def self.new(*args)
+    warn 'BigDecimal.new is deprecated; use BigDecimal() method instead.'
+    BigDecimal(*args)
+  end
 end
 
 module Kernel
-  def BigDecimal(*args)
-    BigDecimal.new(*args)
+  def BigDecimal(value, precision = Truffle::UNDEFINED)
+    Truffle.invoke_primitive :bigdecimal_new, value, precision
   end
 end
 

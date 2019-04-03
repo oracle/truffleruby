@@ -23,6 +23,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -49,18 +50,19 @@ public abstract class BigDecimalNodes {
 
     // TODO (pitr 21-Jun-2015): Check for missing coerce on OpNodes
 
-    @CoreMethod(names = "initialize", required = 1, optional = 1, lowerFixnum = 2)
-    public abstract static class InitializeNode extends BigDecimalCoreMethodArrayArgumentsNode {
+    @Primitive(name = "bigdecimal_new")
+    public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object initialize(DynamicObject self, Object value, NotProvided digits) {
-            return initializeBigDecimal(value, self, digits);
+        public Object newBigDecimal(Object value, NotProvided digits) {
+            return createBigDecimal(value);
         }
 
         @Specialization
-        public Object initialize(DynamicObject self, Object value, int digits) {
-            return initializeBigDecimal(value, self, digits);
+        public Object newBigDecimal(Object value, int digits) {
+            return createBigDecimal(value, digits);
         }
+
     }
 
     @CoreMethod(names = "+", required = 1)
@@ -1525,18 +1527,6 @@ public abstract class BigDecimalNodes {
                     throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
             }
         }
-    }
-
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, BigDecimal.ZERO, BigDecimalType.NORMAL);
-        }
-
     }
 
 }
