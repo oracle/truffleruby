@@ -231,9 +231,9 @@ module Utilities
 
   def find_launcher(use_native)
     if use_native
-      ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
+      ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-native/jre/languages/ruby/bin/ruby"
     else
-      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/graalvm/jre/languages/ruby/bin/ruby"
+      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/ruby"
     end
   end
 
@@ -519,17 +519,19 @@ module Commands
 
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
-      jt build [options]                             build
+      jt build [what] [options]                      by default it builds graalvm
+          --no-sforceimports                         do not run sforceimports before building
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
-              --graal     include the GraalVM Compiler in the build
-              --native    build native ruby image as well
-          native [--no-sulong] [--no-tools] [extra mx image options]
-                                                     build a native image of TruffleRuby
-                                                     (--no-tools to exclude chromeinspector and profiler)
-          --no-sforceimports
+          graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby, 
+                                                     available by default in mxbuild/truffleruby-jvm, 
+                                                     the Ruby is symlinked into rbenv or chruby if available
+              --graal      include the GraalVM Compiler in the build
+              --native     build native ruby image as well, available in mxbuild/truffleruby-native
+              --name NAME  specify the name of the build "mxbuild/truffleruby-NAME"
+                           it is also linked in your ruby manager (if found) under the same name
+                           the named build stays until it is rebuilt or deleted manually
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1159,7 +1161,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'mxbuild/graalvm/jre/languages/ruby/lib/truffle/post_install_hook.sh')
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'mxbuild/truffleruby-jvm/jre/languages/ruby/lib/truffle/post_install_hook.sh')
 
       when 'gems'
         # Test that we can compile and run some real C extensions
@@ -1932,6 +1934,12 @@ EOS
 
     graal = options.delete('--graal')
     native = options.delete('--native')
+    name = if (i = options.index('--name'))
+             options.delete_at(i)
+             options.delete_at(i)
+           else
+             native ? 'native' : 'jvm'
+           end
 
     mx_args = ['-p', TRUFFLERUBY_DIR,
                '--dynamicimports', '/vm',
@@ -1942,34 +1950,31 @@ EOS
     mx(*mx_args, 'build')
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
-    dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
+    dest = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{name}"
+    dest_ruby = "#{dest}/jre/languages/ruby"
+    dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
 
+    # Insert native wrapper around the bash launcher
+    # since nested shebang does not work on macOS when fish shell is used.
     if MAC && !native
-      bin = "#{dest}/jre/languages/ruby/bin"
-      FileUtils.mv "#{bin}/truffleruby", "#{bin}/truffleruby.sh"
-      FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{bin}/truffleruby"
-    end
-  end
-
-  def build_native_image(*options)
-    sforceimports = !options.delete("--no-sforceimports")
-
-    mx 'sforceimports' if sforceimports
-
-    graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
-
-    mx_args = %w[--dynamicimports /substratevm,truffleruby --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-image]
-
-    puts 'Building TruffleRuby native binary'
-    chdir("#{graal}/vm") do
-      mx *mx_args, 'build'
+      FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
+      FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
 
-    local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
-    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{mx_os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
-    FileUtils.ln_sf(built_bin, local_target)
+    # Symlink builds into version manager
+    rbenv_root = ENV['RBENV_ROOT']
+    rubies_dir = File.join(rbenv_root, 'versions') if rbenv_root && File.directory?(rbenv_root)
+
+    chruby_versions = File.expand_path('~/.rubies')
+    rubies_dir = chruby_versions if File.directory?(chruby_versions)
+
+    if rubies_dir
+      link_path = "#{rubies_dir}/#{name}"
+      File.delete link_path if File.exist? link_path
+      File.symlink dest_ruby, link_path
+    end
   end
 
   def next(*args)
