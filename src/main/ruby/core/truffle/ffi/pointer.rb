@@ -241,10 +241,9 @@ module Truffle::FFI
 
     def write_array_of_type(type, writer, ary)
       size = FFI.type_size(type)
-      tmp = self
-      ary.each_with_index do|i, j|
-        tmp.send(writer, i)
-        tmp += size unless j == ary.length-1 # avoid OOB
+      ary.each_with_index do |val, i|
+        break unless i < self.size
+        self.send(writer, i * size, val)
       end
       self
     end
