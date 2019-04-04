@@ -58,14 +58,15 @@ module Truffle::FFI
     def initialize(type, address = undefined)
       if undefined.equal? address
         address = type
-        if Truffle::Interop.pointer?(address)
-          address = Truffle::Interop.as_pointer(address)
-        end
-        self.address = address
-      else
-        self.address = address
-        @type = type
+        type = nil
       end
+
+      if Truffle::Interop.pointer?(address)
+        address = Truffle::Interop.as_pointer(address)
+      end
+      self.address = address
+
+      @type = type if type
     end
 
     def initialize_copy(from)
