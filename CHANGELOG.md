@@ -43,6 +43,7 @@ Compatibility:
 * Yield different number of arguments for `Hash#each` and `Hash#each_pair` based
   on the block arity like MRI (#1629).
 * Add support for the `base` keyword argument to `Dir.{[], glob}`.
+* The `KeyError` raised from `Hash#fetch` now matches MRI's message formatting.
 
 # 1.0 RC 14
 
