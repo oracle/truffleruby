@@ -50,7 +50,7 @@ public abstract class BigDecimalNodes {
 
     // TODO (pitr 21-Jun-2015): Check for missing coerce on OpNodes
 
-    @Primitive(name = "bigdecimal_new")
+    @Primitive(name = "bigdecimal_new", lowerFixnum = 1)
     public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization
