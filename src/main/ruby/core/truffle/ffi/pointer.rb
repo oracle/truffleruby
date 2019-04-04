@@ -272,6 +272,24 @@ module Truffle::FFI
       put(type, 0, value)
     end
 
+    def get(type, offset)
+      begin
+        type = ::FFI.find_type(type)
+      rescue TypeError => e
+        raise ArgumentError, e.message
+      end
+      type.get_at(self, offset)
+    end
+
+    def put(type, offset, value)
+      begin
+        type = ::FFI.find_type(type)
+      rescue TypeError => e
+        raise ArgumentError, e.message
+      end
+      type.put_at(self, offset, value)
+    end
+
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Truffle.primitive :pointer_get_at_offset
