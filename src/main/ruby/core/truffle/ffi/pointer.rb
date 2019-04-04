@@ -185,6 +185,7 @@ module Truffle::FFI
 
     def write_string(str, len = nil)
       len = str.bytesize unless len
+      # Write the string data without NUL termination
       put_bytes(0, str, 0, len)
     end
 
@@ -312,9 +313,9 @@ module Truffle::FFI
     end
 
     def self.from_string(str)
-      ptr = new str.bytesize + 1
-      ptr.write_string str + "\0"
-
+      str = StringValue(str)
+      ptr = new(1, str.bytesize + 1, false)
+      ptr.put_string(0, str)
       ptr
     end
   end
