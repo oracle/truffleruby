@@ -45,6 +45,7 @@ Compatibility:
 * Add support for the `base` keyword argument to `Dir.{[], glob}`.
 * The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's
   message formatting.
+* Add the missing `key` and `receiver` values to `KeyError` raised from `ENV#fetch`.
 
 # 1.0 RC 14
 

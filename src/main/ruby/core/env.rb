@@ -151,7 +151,7 @@ module Truffle
       if block_given?
         return yield(key)
       elsif undefined.equal?(absent)
-        raise KeyError, "key not found: #{key.inspect}"
+        raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
       end
 
       absent
