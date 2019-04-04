@@ -132,6 +132,11 @@ module Truffle::FFI
       ptr
     end
 
+    def [](idx)
+      raise ArgumentError, 'unknown type size' unless @type_size
+      self + (idx * @type_size)
+    end
+
     def ==(other)
       return false unless other.kind_of? Pointer
       address == other.address
@@ -310,25 +315,6 @@ module Truffle::FFI
       ptr.write_string str + "\0"
 
       ptr
-    end
-
-    # Access the MemoryPointer like a C array, accessing the +which+ number
-    # element in memory. The position of the element is calculate from
-    # +@type_size+ and +which+. A new MemoryPointer object is returned, which
-    # points to the address of the element.
-    #
-    # Example:
-    #   ptr = MemoryPointer.new(:int, 20)
-    #   new_ptr = ptr[9]
-    #
-    # c-equiv:
-    #   int *ptr = (int*)malloc(sizeof(int) * 20);
-    #   int *new_ptr;
-    #   new_ptr = &ptr[9];
-    #
-    def [](which)
-      raise ArgumentError, 'unknown type size' unless @type_size
-      self + (which * @type_size)
     end
   end
 end
