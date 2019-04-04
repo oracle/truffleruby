@@ -304,7 +304,7 @@ describe "C-API IO function" do
       start = false
       thr = Thread.new do
         start = true
-        sleep 1
+        sleep 0.05
         @w_io.write "rb_io_wait_readable"
       end
 
