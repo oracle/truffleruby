@@ -138,6 +138,7 @@ module Truffle::FFI
     end
 
     def ==(other)
+      return true if nil.equal?(other) && null?
       return false unless other.kind_of? Pointer
       address == other.address
     end
