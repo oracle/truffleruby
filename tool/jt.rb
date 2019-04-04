@@ -728,7 +728,7 @@ module Commands
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
-        vm_args << '--experimental-options' << '--exceptions.print_uncaught_java=true'
+        vm_args << '--experimental-options' << '--exceptions-print-uncaught-java=true'
       when '--server'
         vm_args << '--experimental-options' << '--instrumentation_server_port=8080'
       when '--infopoints'
@@ -759,7 +759,7 @@ module Commands
     ruby_args += args
 
     if core_load_path
-      vm_args << "--experimental-options" << "--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+      vm_args << "--experimental-options" << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
     end
 
     if graal
@@ -1066,7 +1066,7 @@ module Commands
   def test_compiler(*args)
     env = {}
 
-    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions.print_java=true'].join(' ')
+    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
@@ -1275,7 +1275,7 @@ EOS
 
               options = [
                 '--experimental-options',
-                '--exceptions.print_java=true',
+                '--exceptions-print-java',
               ]
 
               gemserver_source = %w[--clear-sources --source http://localhost:8808]
@@ -1331,7 +1331,7 @@ EOS
     if args.include?('-t')
       # Running specs on another Ruby, pass no options
     else
-      # For --core.load_path and --backtraces.hide_core_files
+      # For --core-load-path and --backtraces-hide-core-files
       options << "-T--experimental-options"
 
       if args.delete('--native')
@@ -1340,11 +1340,11 @@ EOS
         options << '-T--native'
       else
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
-        options << "-T--core.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+        options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
         options << "-T--polyglot" # For Truffle::Interop.export specs
       end
 
-      options << '-T--backtraces.hide_core_files=false'
+      options << '-T--backtraces-hide-core-files=false'
     end
 
     if args.delete('--graal')
@@ -1359,7 +1359,7 @@ EOS
     end
 
     if args.delete('--jexception') || args.delete('--jexceptions')
-      options << "-T--experimental-options" << "-T--exceptions.print_uncaught_java=true"
+      options << "-T--experimental-options" << "-T--exceptions-print-uncaught-java"
     end
 
     if args.delete('--truffle-formatter')
@@ -1977,7 +1977,7 @@ EOS
       mx 'build', '--dependencies', 'org.truffleruby', '--force-javac', '-A-parameters'
       # Re-build GraalVM to run the check
       build_graalvm
-      run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy.default=false', '-e', 'exit')
+      run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy-default=false', '-e', 'exit')
     ensure
       # Revert the changes we made to the Truffle source.
       raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
@@ -2391,7 +2391,7 @@ EOS
       end
 
       configs.each do |config|
-        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true --experimental-options --basic_ops.inline=false pe/pe.rb"]
+        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true --experimental-options --basic-ops-inline=false pe/pe.rb"]
       end
     end
 

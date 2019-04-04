@@ -13,14 +13,14 @@ describe "Options" do
   describe "can correctly parse" do
 
     it "booleans" do
-      ruby_exe("p Truffle::Boot.get_option('frozen_string_literals')").should_not == "true\n"
-      ruby_exe("p Truffle::Boot.get_option('frozen_string_literals')", options: "--frozen_string_literals=true").should == "true\n"
-      ruby_exe("p Truffle::Boot.get_option('frozen_string_literals')", options: "--frozen_string_literals").should == "true\n"
+      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')").should_not == "true\n"
+      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--frozen-string-literals=true").should == "true\n"
+      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--frozen-string-literals").should == "true\n"
     end
 
     it "integers" do
-      ruby_exe("p Truffle::Boot.get_option('default_cache')").should_not == "99\n"
-      ruby_exe("p Truffle::Boot.get_option('default_cache')", options: "--default_cache=99").should == "99\n"
+      ruby_exe("p Truffle::Boot.get_option('default-cache')").should_not == "99\n"
+      ruby_exe("p Truffle::Boot.get_option('default-cache')", options: "--default-cache=99").should == "99\n"
     end
 
     it "enum values" do
@@ -45,11 +45,11 @@ describe "Options" do
   describe "handles parsing errors with" do
 
     it "booleans" do
-      ruby_exe("14", options: "--frozen_string_literals=foo", args: "2>&1").should include("Invalid boolean option value 'foo'")
+      ruby_exe("14", options: "--frozen-string-literals=foo", args: "2>&1").should include("Invalid boolean option value 'foo'")
     end
 
     it "integers" do
-      ruby_exe("14", options: "--default_cache=foo", args: "2>&1").should include("Invalid argument --default_cache=foo specified")
+      ruby_exe("14", options: "--default-cache=foo", args: "2>&1").should include("Invalid argument --default-cache=foo specified")
     end
 
     it "enum values" do

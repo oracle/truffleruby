@@ -6,9 +6,9 @@ We try to match MRI's backtrace format as closely as possible. This often means
 that we don't display extra information that we actually do have available.
 When debugging you may want to see this information.
 
-Two options to show more information are `--backtraces.hide_core_files=false`
+Two options to show more information are `--backtraces-hide-core-files=false`
 which doesn't hide methods that are used to implement the core library, and
-`--backtraces.interleave_java=true` which shows you the Java methods involved in
+`--backtraces-interleave-java=true` which shows you the Java methods involved in
 executing each Ruby method.
 
 When you are interoperating with other languages, including C extensions,

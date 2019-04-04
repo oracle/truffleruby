@@ -42,7 +42,7 @@ guard -> { TruffleRuby.native? } do
 
     it "is not used when the home is unset but was set at build time" do
       code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
-      out = ruby_exe(code, options: "--log.level=FINE --no_home_provided=true", args: "2>&1")
+      out = ruby_exe(code, options: "--log.level=FINE --no-home-provided", args: "2>&1")
       out.should include("[nil, false]\n")
       out.should include("not reusing pre-initialized context: Ruby home is unset")
     end

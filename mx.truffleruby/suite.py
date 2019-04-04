@@ -258,7 +258,7 @@ suite = {
                 "sulong:SULONG_LIBS", # polyglot.h
             ],
             "buildEnv": {
-              "TRUFFLERUBYOPT": "--building.core.cexts",
+              "TRUFFLERUBYOPT": "--building-core-cexts",
               "SULONG_HEADERS_DIR": "<path:SULONG_LIBS>",
               "SULONG_POLYGLOT_H": "<path:SULONG_LIBS>/polyglot.h",
             },

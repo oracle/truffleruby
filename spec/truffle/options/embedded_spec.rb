@@ -18,11 +18,11 @@ describe "The --embedded option" do
   end
 
   it "can be set with --ruby.embedded, even though it's set by the launcher" do
-    ruby_exe("p Truffle::Boot.get_option('embedded')", options: "--ruby.embedded=true").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('embedded')", options: "--ruby.embedded").should == "true\n"
   end
 
   it "sets dependent options when set manually" do
-    ruby_exe("p Truffle::Boot.get_option('single_threaded')", options: "--embedded").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('single-threaded')", options: "--embedded").should == "true\n"
   end
 
   it "when enabled can run basic expressions" do

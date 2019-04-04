@@ -20,9 +20,9 @@ public class ContextPermissionsTest {
         try (Context context = Context.newBuilder("ruby").build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
-            String option = "Truffle::Boot.get_option('platform.native')";
+            String option = "Truffle::Boot.get_option('platform-native')";
             Assert.assertEquals(false, context.eval("ruby", option).asBoolean());
-            option = "Truffle::Boot.get_option('single_threaded')";
+            option = "Truffle::Boot.get_option('single-threaded')";
             Assert.assertEquals(true, context.eval("ruby", option).asBoolean());
         }
     }
@@ -40,8 +40,8 @@ public class ContextPermissionsTest {
 
     @Test
     public void testThreadsNoNative() throws Throwable {
-        // The ruby.single_threaded option needs to be set because --single_threaded defaults to --embedded.
-        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).allowExperimentalOptions(true).option("ruby.single_threaded", "false").build()) {
+        // The ruby.single_threaded option needs to be set because --single-threaded defaults to --embedded.
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).allowExperimentalOptions(true).option("ruby.single-threaded", "false").build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
             Assert.assertEquals(7, context.eval("ruby", "Thread.new { 3 + 4 }.value").asInt());
@@ -53,8 +53,8 @@ public class ContextPermissionsTest {
 
     @Test
     public void testNoThreadsEnforcesSingleThreadedOption() throws Throwable {
-        try (Context context = Context.newBuilder("ruby").allowExperimentalOptions(true).option("ruby.single_threaded", "false").build()) {
-            String option = "Truffle::Boot.get_option('single_threaded')";
+        try (Context context = Context.newBuilder("ruby").allowExperimentalOptions(true).option("ruby.single-threaded", "false").build()) {
+            String option = "Truffle::Boot.get_option('single-threaded')";
             Assert.assertEquals(true, context.eval("ruby", option).asBoolean());
 
             String code = "begin; Thread.new {}.join; rescue SecurityError => e; e.message; end";

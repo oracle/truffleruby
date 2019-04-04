@@ -194,7 +194,7 @@ public class OptionsCatalog {
     }
 
     public static OptionDescriptor[] allDescriptors() {
-        return new OptionDescriptor[] {<% options.sort_by(&:name).each do |o| %>
+        return new OptionDescriptor[] {<% options.each do |o| %>
             <%= o.constant %>,<% end %>
         };
     }

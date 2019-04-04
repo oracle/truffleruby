@@ -25,6 +25,9 @@ Changes:
 * The Trufle handle patches applied to `psych` C extension have now been removed.
 * The `rb_tr_handle_*` functions have been removed as they are no
   longer used in any C extension patches.
+* Underscores and dots in options have become hyphens, so
+  `--exceptions.print_uncaught_java` is now `--exceptions-print-uncaught-java`,
+  for example
 
 Bug fixes:
 

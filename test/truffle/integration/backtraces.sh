@@ -11,5 +11,5 @@ do
 done
 
 if [ "$(jt ruby -e 'p TruffleRuby.native?')" = "false" ]; then
-  jt ruby --no-core-load-path --polyglot --experimental-options --single_threaded test/truffle/integration/backtraces/javascript.rb
+  jt ruby --no-core-load-path --polyglot --experimental-options --single-threaded test/truffle/integration/backtraces/javascript.rb
 fi

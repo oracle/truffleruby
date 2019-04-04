@@ -18,7 +18,7 @@ Gem::GemDirsVerification.install_hook
 # did_you_mean is only registered as a gem if --disable-gems was not passed, as
 # --disable-gems implies --disable-did-you-mean on MRI, i.e.,
 # MRI raises NameError for `ruby --disable-gems -e DidYouMean.formatter`.
-if Truffle::Boot.get_option 'did_you_mean' and Truffle::Boot.get_option 'rubygems'
+if Truffle::Boot.get_option 'did-you-mean' and Truffle::Boot.get_option 'rubygems'
   begin
     gem 'did_you_mean'
   rescue LoadError

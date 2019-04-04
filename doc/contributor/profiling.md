@@ -66,7 +66,7 @@ Creating the flame graph is a multi-stage process. First, we need to profile the
 with the JSON formatter:
 
 ```bash
-$ jt ruby --cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json -e 'p :hello' > simple-app.json
+$ jt ruby --cpusampler --cpusampler.SampleInternal --cpusampler.Mode=roots --cpusampler.Output=json -e 'p :hello' > simple-app.json
 ```
 
 Since we want to profile the TruffleRuby runtime itself, we use the

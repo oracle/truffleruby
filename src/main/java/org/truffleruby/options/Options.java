@@ -295,235 +295,235 @@ public class Options {
                 return EXTERNAL_ENCODING;
             case "ruby.home":
                 return HOME;
-            case "ruby.no_home_provided":
+            case "ruby.no-home-provided":
                 return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
-            case "ruby.core.load_path":
+            case "ruby.core-load-path":
                 return CORE_LOAD_PATH;
-            case "ruby.frozen_string_literals":
+            case "ruby.frozen-string-literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
-            case "ruby.lazy.default":
+            case "ruby.lazy-default":
                 return DEFAULT_LAZY;
-            case "ruby.rubygems.lazy":
+            case "ruby.rubygems-lazy":
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;
-            case "ruby.did_you_mean":
+            case "ruby.did-you-mean":
                 return DID_YOU_MEAN;
-            case "ruby.hashing.deterministic":
+            case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
             case "ruby.embedded":
                 return EMBEDDED;
-            case "ruby.platform.native":
+            case "ruby.platform-native":
                 return NATIVE_PLATFORM;
-            case "ruby.platform.native_interrupt":
+            case "ruby.platform-native-interrupt":
                 return NATIVE_INTERRUPT;
-            case "ruby.platform.handle_interrupt":
+            case "ruby.platform-handle-interrupt":
                 return HANDLE_INTERRUPT;
-            case "ruby.single_threaded":
+            case "ruby.single-threaded":
                 return SINGLE_THREADED;
-            case "ruby.polyglot.stdio":
+            case "ruby.polyglot-stdio":
                 return POLYGLOT_STDIO;
-            case "ruby.interop.host":
+            case "ruby.interop-host":
                 return HOST_INTEROP;
-            case "ruby.trace.calls":
+            case "ruby.trace-calls":
                 return TRACE_CALLS;
-            case "ruby.coverage.global":
+            case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
-            case "ruby.core_as_internal":
+            case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
-            case "ruby.stdlib_as_internal":
+            case "ruby.stdlib-as-internal":
                 return STDLIB_AS_INTERNAL;
-            case "ruby.lazy_translation.user":
+            case "ruby.lazy-translation-user":
                 return LAZY_TRANSLATION_USER;
-            case "ruby.exceptions.store_java":
+            case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
-            case "ruby.exceptions.print_java":
+            case "ruby.exceptions-print-java":
                 return EXCEPTIONS_PRINT_JAVA;
-            case "ruby.exceptions.print_uncaught_java":
+            case "ruby.exceptions-print-uncaught-java":
                 return EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
-            case "ruby.exceptions.print_ruby_for_java":
+            case "ruby.exceptions-print-ruby-for-java":
                 return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
-            case "ruby.exceptions.translate_assert":
+            case "ruby.exceptions-translate-assert":
                 return EXCEPTIONS_TRANSLATE_ASSERT;
-            case "ruby.exceptions.warn_stackoverflow":
+            case "ruby.exceptions-warn-stackoverflow":
                 return EXCEPTIONS_WARN_STACKOVERFLOW;
-            case "ruby.exceptions.warn_out_of_memory":
+            case "ruby.exceptions-warn-out-of-memory":
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
-            case "ruby.backtraces.hide_core_files":
+            case "ruby.backtraces-hide-core-files":
                 return BACKTRACES_HIDE_CORE_FILES;
-            case "ruby.backtraces.interleave_java":
+            case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
-            case "ruby.backtraces.limit":
+            case "ruby.backtraces-limit":
                 return BACKTRACES_LIMIT;
-            case "ruby.backtraces.omit_unused":
+            case "ruby.backtraces-omit-unused":
                 return BACKTRACES_OMIT_UNUSED;
-            case "ruby.backtraces.on_interrupt":
+            case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
-            case "ruby.backtraces.sigalrm":
+            case "ruby.backtraces-sigalrm":
                 return BACKTRACE_ON_SIGALRM;
-            case "ruby.backtraces.raise":
+            case "ruby.backtraces-raise":
                 return BACKTRACE_ON_RAISE;
             case "ruby.cexts":
                 return CEXTS;
-            case "ruby.cexts.lock":
+            case "ruby.cexts-lock":
                 return CEXT_LOCK;
-            case "ruby.cexts.remap":
+            case "ruby.cexts-remap":
                 return CEXTS_LIBRARY_REMAP;
-            case "ruby.options.log":
+            case "ruby.options-log":
                 return OPTIONS_LOG;
-            case "ruby.log.load":
+            case "ruby.log-load":
                 return LOG_LOAD;
-            case "ruby.log.autoload":
+            case "ruby.log-autoload":
                 return LOG_AUTOLOAD;
-            case "ruby.log.feature_location":
+            case "ruby.log-feature-location":
                 return LOG_FEATURE_LOCATION;
-            case "ruby.cexts.log.load":
+            case "ruby.cexts-log-load":
                 return CEXTS_LOG_LOAD;
-            case "ruby.cexts.log.warnings":
+            case "ruby.cexts-log-warnings":
                 return CEXTS_LOG_WARNINGS;
-            case "ruby.argv_globals":
+            case "ruby.argv-globals":
                 return ARGV_GLOBALS;
-            case "ruby.ignore_lines_before_ruby_shebang":
+            case "ruby.ignore-lines-before-ruby-shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
-            case "ruby.syntax_check":
+            case "ruby.syntax-check":
                 return SYNTAX_CHECK;
-            case "ruby.argv_global_values":
+            case "ruby.argv-global-values":
                 return ARGV_GLOBAL_VALUES;
-            case "ruby.argv_global_flags":
+            case "ruby.argv-global-flags":
                 return ARGV_GLOBAL_FLAGS;
-            case "ruby.building.core.cexts":
+            case "ruby.building-core-cexts":
                 return BUILDING_CORE_CEXTS;
-            case "ruby.lazy_translation.log":
+            case "ruby.lazy-translation-log":
                 return LAZY_TRANSLATION_LOG;
-            case "ruby.constant.dynamic_lookup.log":
+            case "ruby.constant-dynamic-lookup-log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
-            case "ruby.rope.print_intern_stats":
+            case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
                 return PREINITIALIZATION;
-            case "ruby.lazy_builtins":
+            case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
-            case "ruby.lazy_core_method_nodes":
+            case "ruby.lazy-core-method-nodes":
                 return LAZY_CORE_METHOD_NODES;
-            case "ruby.lazy_translation.core":
+            case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
-            case "ruby.basic_ops.inline":
+            case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
-            case "ruby.rope.lazy_substrings":
+            case "ruby.rope-lazy-substrings":
                 return ROPE_LAZY_SUBSTRINGS;
-            case "ruby.default_cache":
+            case "ruby.default-cache":
                 return DEFAULT_CACHE;
-            case "ruby.method_lookup.cache":
+            case "ruby.method-lookup-cache":
                 return METHOD_LOOKUP_CACHE;
-            case "ruby.dispatch.cache":
+            case "ruby.dispatch-cache":
                 return DISPATCH_CACHE;
-            case "ruby.yield.cache":
+            case "ruby.yield-cache":
                 return YIELD_CACHE;
-            case "ruby.to_proc.cache":
+            case "ruby.to-proc-cache":
                 return METHOD_TO_PROC_CACHE;
-            case "ruby.is_a.cache":
+            case "ruby.is-a-cache":
                 return IS_A_CACHE;
-            case "ruby.bind.cache":
+            case "ruby.bind-cache":
                 return BIND_CACHE;
-            case "ruby.constant.cache":
+            case "ruby.constant-cache":
                 return CONSTANT_CACHE;
-            case "ruby.instance_variable.cache":
+            case "ruby.instance-variable-cache":
                 return INSTANCE_VARIABLE_CACHE;
-            case "ruby.binding_local_variable.cache":
+            case "ruby.binding-local-variable-cache":
                 return BINDING_LOCAL_VARIABLE_CACHE;
-            case "ruby.symbol_to_proc.cache":
+            case "ruby.symbol-to-proc-cache":
                 return SYMBOL_TO_PROC_CACHE;
-            case "ruby.allocate_class.cache":
+            case "ruby.allocate-class-cache":
                 return ALLOCATE_CLASS_CACHE;
-            case "ruby.pack.cache":
+            case "ruby.pack-cache":
                 return PACK_CACHE;
-            case "ruby.unpack.cache":
+            case "ruby.unpack-cache":
                 return UNPACK_CACHE;
-            case "ruby.eval.cache":
+            case "ruby.eval-cache":
                 return EVAL_CACHE;
-            case "ruby.class.cache":
+            case "ruby.class-cache":
                 return CLASS_CACHE;
-            case "ruby.encoding_compatible_query.cache":
+            case "ruby.encoding-compatible-query-cache":
                 return ENCODING_COMPATIBLE_QUERY_CACHE;
-            case "ruby.encoding_loaded_classes.cache":
+            case "ruby.encoding-loaded-classes-cache":
                 return ENCODING_LOADED_CLASSES_CACHE;
-            case "ruby.thread.cache":
+            case "ruby.thread-cache":
                 return THREAD_CACHE;
-            case "ruby.rope_class.cache":
+            case "ruby.rope-class-cache":
                 return ROPE_CLASS_CACHE;
-            case "ruby.interop.convert.cache":
+            case "ruby.interop-convert-cache":
                 return INTEROP_CONVERT_CACHE;
-            case "ruby.interop.execute.cache":
+            case "ruby.interop-execute-cache":
                 return INTEROP_EXECUTE_CACHE;
-            case "ruby.interop.invoke.cache":
+            case "ruby.interop-invoke-cache":
                 return INTEROP_INVOKE_CACHE;
-            case "ruby.interop.new.cache":
+            case "ruby.interop-new-cache":
                 return INTEROP_NEW_CACHE;
-            case "ruby.time.format.cache":
+            case "ruby.time-format-cache":
                 return TIME_FORMAT_CACHE;
-            case "ruby.integer.pow.cache":
+            case "ruby.integer-pow-cache":
                 return POW_CACHE;
-            case "ruby.array.dup.cache":
+            case "ruby.array-dup-cache":
                 return ARRAY_DUP_CACHE;
-            case "ruby.frame.variable.access.cache":
+            case "ruby.frame-variable-access-cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
-            case "ruby.array.uninitialized_size":
+            case "ruby.array-uninitialized-size":
                 return ARRAY_UNINITIALIZED_SIZE;
-            case "ruby.array.small":
+            case "ruby.array-small":
                 return ARRAY_SMALL;
-            case "ruby.hash.packed_array.max":
+            case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
-            case "ruby.pack.unroll":
+            case "ruby.pack-unroll":
                 return PACK_UNROLL_LIMIT;
-            case "ruby.pack.recover":
+            case "ruby.pack-recover":
                 return PACK_RECOVER_LOOP_MIN;
-            case "ruby.cexts.marking.cache":
+            case "ruby.cexts-marking-cache":
                 return CEXTS_MARKING_CACHE;
-            case "ruby.rope.depth_threshold":
+            case "ruby.rope-depth-threshold":
                 return ROPE_DEPTH_THRESHOLD;
-            case "ruby.global_variable.max_invalidations":
+            case "ruby.global-variable-max-invalidations":
                 return GLOBAL_VARIABLE_MAX_INVALIDATIONS;
-            case "ruby.clone.default":
+            case "ruby.clone-default":
                 return CLONE_DEFAULT;
-            case "ruby.inline.default":
+            case "ruby.inline-default":
                 return INLINE_DEFAULT;
-            case "ruby.core.always_clone":
+            case "ruby.core-always-clone":
                 return CORE_ALWAYS_CLONE;
-            case "ruby.primitive_callers.always_clone":
+            case "ruby.primitive-callers-always-clone":
                 return PRIMITIVE_CALLERS_ALWAYS_CLONE;
-            case "ruby.always_split.honor":
+            case "ruby.always-split-honor":
                 return ALWAYS_SPLIT_HONOR;
-            case "ruby.inline_needs_caller_frame":
+            case "ruby.inline-needs-caller-frame":
                 return INLINE_NEEDS_CALLER_FRAME;
-            case "ruby.yield.always_clone":
+            case "ruby.yield-always-clone":
                 return YIELD_ALWAYS_CLONE;
-            case "ruby.yield.always_inline":
+            case "ruby.yield-always-inline":
                 return YIELD_ALWAYS_INLINE;
-            case "ruby.method_missing.always_clone":
+            case "ruby.method-missing-always-clone":
                 return METHODMISSING_ALWAYS_CLONE;
-            case "ruby.method_missing.always_inline":
+            case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
-            case "ruby.call_with_block.always_clone":
+            case "ruby.call-with-block-always-clone":
                 return CALL_WITH_BLOCK_ALWAYS_CLONE;
-            case "ruby.regexp.instrument-creation":
+            case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
-            case "ruby.regexp.instrument-match":
+            case "ruby.regexp-instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
-            case "ruby.metrics.time.parsing.file":
+            case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
-            case "ruby.metrics.time.require":
+            case "ruby.metrics-time-require":
                 return METRICS_TIME_REQUIRE;
-            case "ruby.shared.objects":
+            case "ruby.shared-objects":
                 return SHARED_OBJECTS_ENABLED;
-            case "ruby.shared.objects.debug":
+            case "ruby.shared-objects-debug":
                 return SHARED_OBJECTS_DEBUG;
-            case "ruby.shared.objects.force":
+            case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
-            case "ruby.shared.objects.share_all":
+            case "ruby.shared-objects-share-all":
                 return SHARED_OBJECTS_SHARE_ALL;
             default:
                 return null;

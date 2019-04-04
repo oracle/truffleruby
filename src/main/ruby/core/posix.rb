@@ -11,7 +11,7 @@
 module Truffle::POSIX
   Truffle::Boot.delay do
     # Used by IO#setup and post.rb
-    NATIVE = Truffle::Boot.get_option 'platform.native'
+    NATIVE = Truffle::Boot.get_option 'platform-native'
   end
 
   class LazyLibrary
@@ -40,7 +40,7 @@ module Truffle::POSIX
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
     if home = Truffle::Boot.ruby_home
-      if Truffle::Boot.get_option 'building.core.cexts'
+      if Truffle::Boot.get_option 'building-core-cexts'
         libtruffleposix = "#{home}/src/main/c/truffleposix/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
       else
         libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
@@ -478,7 +478,7 @@ module Truffle::POSIX
   # Select between native and polyglot variants
 
   Truffle::Boot.delay do
-    if Truffle::Boot.get_option('polyglot.stdio')
+    if Truffle::Boot.get_option('polyglot-stdio')
       class << self
         alias_method :read_string, :read_string_polyglot
         alias_method :write_string, :write_string_polyglot

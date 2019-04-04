@@ -244,7 +244,7 @@ are passed into Ruby.
 Ruby is designed to be a multi-threaded language and much of the ecosystem
 expects threads to be available. This may be incompatible with other Truffle
 languages which do not support threading, so you can disable the creation of
-multiple threads with the option `--single_threaded`. This option is set by
+multiple threads with the option `--single-threaded`. This option is set by
 default unless the Ruby launcher is used, as part of the embedded configuration,
 described below.
 
@@ -272,7 +272,7 @@ This can be turned off even when embedded, with the `embedded` option
 
 It's a separate option, but in an embedded configuration you may want to set
 `allowNativeAccess(false)` in your `Context.Builder`, or use the experimental
-`--platform.native=false` option, to disable use of the NFI for internal
+`--platform-native=false` option, to disable use of the NFI for internal
 functionality.
 
 Also, the experimental option `--cexts=false` can disable C extensions.
