@@ -66,7 +66,16 @@ module Truffle::FFI
       end
       self.address = address
 
-      @type = type if type
+      @type_size = case type
+                   when nil
+                     1
+                   when Integer
+                     type
+                   when Symbol
+                     Pointer.find_type_size(type)
+                   else
+                     type.size
+                   end
     end
 
     def initialize_copy(from)
@@ -274,14 +283,7 @@ module Truffle::FFI
 
   class MemoryPointer < Pointer
     def initialize(type, count = 1, clear = true)
-      if type.kind_of? Integer
-        @type_size = type
-      elsif type.kind_of? Symbol
-        @type_size = Pointer.find_type_size(type)
-      else
-        @type_size = type.size
-      end
-
+      super(type, 0)
       @total = @type_size * (count || 1)
 
       Truffle.invoke_primitive :pointer_malloc, self, @total
