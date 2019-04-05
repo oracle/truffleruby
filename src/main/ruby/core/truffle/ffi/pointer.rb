@@ -51,6 +51,10 @@ module Truffle::FFI
       Truffle.invoke_primitive :pointer_find_type_size, type
     end
 
+    def self.size
+      SIZE
+    end
+
     def initialize(type, address = undefined)
       if undefined.equal? address
         address = type
@@ -87,6 +91,11 @@ module Truffle::FFI
       self
     end
 
+    # FFI's #to_ptr conversion
+    def to_ptr
+      self
+    end
+
     def null?
       address == 0x0
     end
@@ -117,6 +126,32 @@ module Truffle::FFI
       put_char(offset + str.bytesize, 0)
     end
 
+    def read_string(len = nil)
+      if len
+        return +'' if len == 0
+        get_bytes(0, len)
+      else
+        get_string(0)
+      end
+    end
+
+    def read_string_length(len)
+      get_bytes(0, len)
+    end
+
+    def read_string_to_null
+      get_string(0)
+    end
+
+    def write_string_length(str, len)
+      put_bytes(0, str, 0, len)
+    end
+
+    def write_string(str, len = nil)
+      len = str.bytesize unless len
+      put_bytes(0, str, 0, len)
+    end
+
     def get_bytes(offset, length)
       Truffle.invoke_primitive :pointer_read_bytes, address + offset, length
     end
@@ -145,6 +180,35 @@ module Truffle::FFI
       put_bytes(0, pointer.get_bytes(0, size))
     end
 
+    def read_array_of_type(type, reader, length)
+      ary = []
+      size = FFI.type_size(type)
+      tmp = self
+      length.times do |j|
+        ary << tmp.send(reader)
+        tmp += size unless j == length-1 # avoid OOB
+      end
+      ary
+    end
+
+    def write_array_of_type(type, writer, ary)
+      size = FFI.type_size(type)
+      tmp = self
+      ary.each_with_index do|i, j|
+        tmp.send(writer, i)
+        tmp += size unless j == ary.length-1 # avoid OOB
+      end
+      self
+    end
+
+    def read(type)
+      get(type, 0)
+    end
+
+    def write(type, value)
+      put(type, 0, value)
+    end
+
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Truffle.primitive :pointer_get_at_offset
@@ -155,11 +219,6 @@ module Truffle::FFI
     def set_at_offset(offset, type, val)
       Truffle.primitive :pointer_set_at_offset
       raise PrimitiveFailure, 'FFI::Pointer#set_at_offset primitive failed'
-    end
-
-    # Number of bytes taken up by a pointer.
-    def self.size
-      8
     end
 
     SIZE = 8
