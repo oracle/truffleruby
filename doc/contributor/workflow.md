@@ -127,7 +127,7 @@ $ jt ruby --vm.Xmx1G test.rb
 ```
 
 TruffleRuby options are set with `--name=value`. For example
-`--exceptions.print_java=true` to print Java exceptions before translating them
+`--exceptions-print-java=true` to print Java exceptions before translating them
 to Ruby exceptions. You can leave off the value to set the option to `true`.
 
 To see all options run `jt ruby --help:languages`.
@@ -169,7 +169,7 @@ When you find a spec that you want to work on, it can be easier to look at the
 spec's source (for example look in `spec/ruby/core/string`) and recreate it
 as a standalone Ruby file for simplicity.
 
-Then you probably want to run with `--exceptions.print_java` if you see a Java
+Then you probably want to run with `--exceptions-print-java` if you see a Java
 exception.
 
 When the spec is fixed the `untag` command will remove the tag and you can

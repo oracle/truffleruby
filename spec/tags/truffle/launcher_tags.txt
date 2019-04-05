@@ -8,7 +8,7 @@ slow:The launcher StringArray option parses , respecting escaping
 slow:The launcher takes options from system properties set on the command line using --vm
 slow:The launcher '--vm.classpath=' adds the jar
 slow:The launcher '--vm.cp=' adds the jar
-slow:The launcher enables deterministic hashing if --hashing.deterministic is set
+slow:The launcher enables deterministic hashing if --hashing-deterministic is set
 slow:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 slow:The launcher 'irb' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 slow:The launcher 'rake' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
@@ -56,7 +56,7 @@ slow:The launcher takes --option options from RUBYOPT
 slow:The launcher takes --ruby.option options from RUBYOPT
 slow:The launcher sets the log level using --log.ruby.level=
 fails(GR-13956):The launcher prints help containing runtime options
-slow:The launcher logs options if --options.log is set
+slow:The launcher logs options if --options-log is set
 slow:The launcher sets the log level using --log.level=
 slow:The launcher ignores --jit option with a warning
 slow:The launcher ignores --jit-... options with a warning and a hint to look at Graal options

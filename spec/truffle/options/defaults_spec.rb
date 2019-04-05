@@ -11,38 +11,38 @@ require_relative '../../ruby/spec_helper'
 describe "Options" do
 
   it "have a default" do
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')").should == "8\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')").should == "false\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')").should == "8\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')").should == "false\n"
   end
 
   it "can be set explicitly back to their default value" do
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')", options: "--dispatch.cache=8").should == "8\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--polyglot.stdio=false").should == "false\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')", options: "--dispatch-cache=8").should == "8\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--polyglot-stdio=false").should == "false\n"
   end
 
   it "can be set explicitly to a value" do
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')", options: "--dispatch.cache=99").should == "99\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--polyglot.stdio=true").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')", options: "--dispatch-cache=99").should == "99\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--polyglot-stdio=true").should == "true\n"
   end
 
   it "can be set explicitly to an implicit value" do
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--polyglot.stdio").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--polyglot-stdio").should == "true\n"
   end
 
   it "can be set using a simple referenced option" do
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')", options: "--default_cache=99").should == "99\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--embedded").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')", options: "--default-cache=99").should == "99\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--embedded").should == "true\n"
   end
 
   it "can be set using a negated referenced option" do
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--platform.native=false").should == "true\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--platform-native=false").should == "true\n"
   end
 
   it "take an explicit value over a modified referenced option" do
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')", options: "--default_cache=101 --dispatch.cache=99").should == "99\n"
-    ruby_exe("p Truffle::Boot.get_option('dispatch.cache')", options: "--dispatch.cache=99 --default_cache=101").should == "99\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--embedded --polyglot.stdio=false").should == "false\n"
-    ruby_exe("p Truffle::Boot.get_option('polyglot.stdio')", options: "--polyglot.stdio=false --embedded").should == "false\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')", options: "--default-cache=101 --dispatch-cache=99").should == "99\n"
+    ruby_exe("p Truffle::Boot.get_option('dispatch-cache')", options: "--dispatch-cache=99 --default-cache=101").should == "99\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--embedded --polyglot-stdio=false").should == "false\n"
+    ruby_exe("p Truffle::Boot.get_option('polyglot-stdio')", options: "--polyglot-stdio=false --embedded").should == "false\n"
   end
 
 end

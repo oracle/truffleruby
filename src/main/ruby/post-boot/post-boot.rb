@@ -37,7 +37,7 @@ if Truffle::Boot.ruby_home
     begin
       Truffle::Boot.print_time_metric :'before-rubygems'
       begin
-        if Truffle::Boot.get_option('rubygems.lazy')
+        if Truffle::Boot.get_option('rubygems-lazy')
           require 'truffle/lazy-rubygems'
         else
           Truffle::Boot.delay do
@@ -50,7 +50,7 @@ if Truffle::Boot.ruby_home
     rescue LoadError => e
       Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
     else
-      if Truffle::Boot.get_option 'did_you_mean'
+      if Truffle::Boot.get_option 'did-you-mean'
         # Load DidYouMean here manually, to avoid loading RubyGems eagerly
         Truffle::Boot.print_time_metric :'before-did-you-mean'
         begin

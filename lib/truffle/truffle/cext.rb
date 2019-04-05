@@ -1771,7 +1771,7 @@ module Truffle::CExt
     Truffle::KernelOperations.define_hooked_variable id, getter_proc, setter_proc
   end
 
-  LOG_WARNING = Truffle::Boot.get_option 'cexts.log.warnings'
+  LOG_WARNING = Truffle::Boot.get_option 'cexts-log-warnings'
 
   def rb_tr_log_warning(message)
     Truffle::Debug.log_warning message if LOG_WARNING

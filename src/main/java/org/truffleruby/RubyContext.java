@@ -350,7 +350,7 @@ public class RubyContext {
         }
 
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue())) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "--core.load_path is set: " + newOptions.CORE_LOAD_PATH);
+            RubyLanguage.LOGGER.fine(notReusingContext + "--core-load-path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
         }
 
@@ -708,7 +708,7 @@ public class RubyContext {
     @TruffleBoundary
     private String searchRubyHome(Options options) throws IOException {
         if (options.NO_HOME_PROVIDED) {
-            RubyLanguage.LOGGER.config("--ruby.no_home_provided set");
+            RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
             return null;
         }
 

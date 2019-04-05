@@ -74,9 +74,9 @@ show_backtraces = -> {
 Truffle::Boot.delay do
   # Use vm_watch_signal directly as those should be the 'DEFAULT' handlers
 
-  if Truffle::Boot.get_option('platform.handle_interrupt')
+  if Truffle::Boot.get_option('platform-handle-interrupt')
     Truffle.invoke_primitive :vm_watch_signal, 'INT', -> do
-      if Truffle::Boot.get_option('backtraces.on_interrupt')
+      if Truffle::Boot.get_option('backtraces-on-interrupt')
         puts 'Interrupting...'
         show_backtraces.call
       end
@@ -85,7 +85,7 @@ Truffle::Boot.delay do
     end
   end
 
-  if Truffle::Boot.get_option('backtraces.sigalrm')
+  if Truffle::Boot.get_option('backtraces-sigalrm')
     Truffle.invoke_primitive :vm_watch_signal, 'ALRM', -> do
       show_backtraces.call
     end

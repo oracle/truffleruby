@@ -11,7 +11,7 @@ if RUBY_ENGINE == 'truffleruby'
     # after this file). In the case of lazy RubyGems, #gem exists but is a stub
     # while loading RubyGems, which would cause a stack overflow. Removing #gem
     # is not OK for concurrency.
-    unless defined?(gem) && Truffle::Boot.get_option('rubygems.lazy')
+    unless defined?(gem) && Truffle::Boot.get_option('rubygems-lazy')
       Gem.load_yaml
     end
   end

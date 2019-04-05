@@ -32,7 +32,7 @@ module Polyglot
 
 end
 
-if Truffle::Boot.get_option('interop.host')
+if Truffle::Boot.get_option('interop-host')
   module Java
     def self.type(name)
       Truffle::Interop.java_type(name)

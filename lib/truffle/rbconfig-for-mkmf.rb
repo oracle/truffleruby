@@ -88,7 +88,7 @@ cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
 expanded = RbConfig::CONFIG
 mkconfig = RbConfig::MAKEFILE_CONFIG
 
-if Truffle::Boot.get_option 'building.core.cexts'
+if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
   link_o_files = "#{ruby_home}/src/main/c/cext/ruby.o #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."

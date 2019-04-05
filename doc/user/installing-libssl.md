@@ -55,9 +55,9 @@ sudo port install openssl
 ## Remapping
 
 If `libssl` is in a non-standard location for your system, you can use the
-experimental `--cexts.remap` option. Let us know if you find that you need to
+experimental `--cexts-remap` option. Let us know if you find that you need to
 use this.
 
 ```
---cexts.remap=libssl.so:path/to/libssl.so
+--cexts-remap=libssl.so:path/to/libssl.so
 ```
