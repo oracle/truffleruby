@@ -111,5 +111,9 @@ describe "Float#round" do
       lambda { (-infinity_value).round(half: :down) }.should raise_error(FloatDomainError)
       lambda { nan_value.round(half: :even) }.should raise_error(FloatDomainError)
     end
+
+    it "raise for a non-existent round mode" do
+      lambda { 14.2.round(half: :nonsense) }.should raise_error(ArgumentError, "invalid rounding mode: nonsense")
+    end
   end
 end
