@@ -141,30 +141,28 @@ class Float < Numeric
   end
 
   def round(ndigits=undefined)
-    return Truffle.invoke_primitive(:float_round, self) if undefined.equal?(ndigits)
-
-    ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
-
-    if ndigits == 0
-      return self.round
-    elsif ndigits < 0
-      return truncate.round ndigits
+    if undefined.equal?(ndigits)
+      Truffle.invoke_primitive(:float_round, self)
+    else
+      ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
+      if ndigits == 0
+        Truffle.invoke_primitive(:float_round, self)
+      elsif ndigits < 0
+        truncate.round(ndigits)
+      elsif infinite? or nan?
+        self
+      else
+        _, exp = Math.frexp(self)
+        if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+          return self
+        elsif ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+          return 0.0
+        else
+          f = 10**ndigits
+          (self * f).round / f.to_f
+        end
+      end
     end
-
-    return self if infinite? or nan?
-
-    _, exp = Math.frexp(self)
-
-    if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
-      return self
-    end
-
-    if ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
-      return 0.0
-    end
-
-    f = 10**ndigits
-    (self * f).round / f.to_f
   end
 
   def coerce(other)
