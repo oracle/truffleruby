@@ -146,7 +146,7 @@ class Float < Numeric
     else
       ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
       if ndigits == 0
-        Truffle.invoke_primitive(:float_round, self)
+        round
       elsif ndigits < 0
         truncate.round(ndigits)
       elsif infinite? or nan?
