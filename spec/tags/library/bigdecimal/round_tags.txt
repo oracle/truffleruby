@@ -9,3 +9,4 @@ fails:BigDecimal#round :ceil rounds values towards +infinity
 fails:BigDecimal#round :floor rounds values towards -infinity
 fails:BigDecimal#round :half_even rounds values > 5 up, < 5 down and == 5 towards even neighbor
 fails:BigDecimal#round :banker rounds values > 5 up, < 5 down and == 5 towards even neighbor
+fails:BigDecimal#round raise for a non-existent round mode

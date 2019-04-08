@@ -227,4 +227,8 @@ describe "BigDecimal#round" do
     lambda { BigDecimal('Infinity').round(2) }.should_not raise_error(FloatDomainError)
     lambda { BigDecimal('-Infinity').round(2) }.should_not raise_error(FloatDomainError)
   end
+
+  it "raise for a non-existent round mode" do
+    lambda { @p1_50.round(0, :nonsense) }.should raise_error(ArgumentError, "invalid rounding mode")
+  end
 end
