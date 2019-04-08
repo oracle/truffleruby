@@ -563,8 +563,8 @@ public abstract class FloatNodes {
 
     }
 
-    @Primitive(name = "float_round", needsSelf = false)
-    public abstract static class FloatRoundPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "float_round_up", needsSelf = false)
+    public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
         public int roundFittingIntPositive(double n) {
@@ -617,6 +617,128 @@ public abstract class FloatNodes {
                                     @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
             double f = Math.ceil(n);
             if (f - n >= 0.5) {
+                f -= 1.0;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+    }
+
+    @Primitive(name = "float_round_even", needsSelf = false)
+    public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
+        public int roundFittingIntPositive(double n) {
+            int l = (int) n;
+            if (n - l == 0.5) {
+                l += l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInInteger(n)", "!isPositive(n)"})
+        public int roundFittingIntNegative(double n) {
+            int l = (int) n;
+            if (n - l == 0.5) {
+                l -= l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "isPositive(n)"}, replaces = "roundFittingIntPositive")
+        public long roundFittingLongPositive(double n) {
+            long l = (long) n;
+            if (n - l == 0.5) {
+                l += l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "!isPositive(n)"}, replaces = "roundFittingIntNegative")
+        public long roundFittingLongNegative(double n) {
+            long l = (long) n;
+            if (n - l == 0.5) {
+                l -= l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
+        public Object roundPositive(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.floor(n);
+            if (n - f == 0.5) {
+                f += f % 2;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
+        public Object roundNegative(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.ceil(n);
+            if (n - f == 0.5) {
+                f -= f % 2;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+    }
+
+    @Primitive(name = "float_round_down", needsSelf = false)
+    public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
+        public int roundFittingIntPositive(double n) {
+            int l = (int) n;
+            if (n - l > 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInInteger(n)", "!isPositive(n)"})
+        public int roundFittingIntNegative(double n) {
+            int l = (int) n;
+            if (l - n > 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "isPositive(n)"}, replaces = "roundFittingIntPositive")
+        public long roundFittingLongPositive(double n) {
+            long l = (long) n;
+            if (n - l > 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "!isPositive(n)"}, replaces = "roundFittingIntNegative")
+        public long roundFittingLongNegative(double n) {
+            long l = (long) n;
+            if (l - n > 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
+        public Object roundPositive(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.floor(n);
+            if (n - f > 0.5) {
+                f += 1.0;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
+        public Object roundNegative(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.ceil(n);
+            if (f - n > 0.5) {
                 f -= 1.0;
             }
             return fixnumOrBignum.fixnumOrBignum(f);

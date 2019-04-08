@@ -140,19 +140,28 @@ class Float < Numeric
     end
   end
 
-  def round(ndigits=undefined)
+  def round(ndigits=undefined, half: nil)
     if undefined.equal?(ndigits)
       if infinite?
         raise FloatDomainError, 'Infinite'
       elsif nan?
         raise FloatDomainError, 'NaN'
       else
-        Truffle.invoke_primitive(:float_round, self)
+        case half
+        when nil, :up
+          Truffle.invoke_primitive(:float_round_up, self)
+        when :even
+          Truffle.invoke_primitive(:float_round_even, self)
+        when :down
+          Truffle.invoke_primitive(:float_round_down, self)
+        else
+          raise ArgumentError, "invalid rounding mode: #{half}"
+        end
       end
     else
       ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
       if ndigits == 0
-        round
+        round(half: half)
       elsif ndigits < 0
         truncate.round(ndigits)
       elsif infinite? or nan?
@@ -165,7 +174,7 @@ class Float < Numeric
           return 0.0
         else
           f = 10**ndigits
-          (self * f).round / f.to_f
+          (self * f).round(half: half) / f.to_f
         end
       end
     end
