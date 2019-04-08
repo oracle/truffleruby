@@ -243,14 +243,14 @@ class Hash
   end
 
   def merge(*others)
+    current = self.dup
+
     unless block_given?
-      current = self
       others.each do |other|
         other = Truffle::Type.coerce_to(other, Hash, :to_hash)
         current = Truffle::HashOperations.hash_merge(current, other)
       end
     else
-      current = self.dup
       others.each do |other|
         other.each do |k, v|
           other = Truffle::Type.coerce_to(other, Hash, :to_hash)
