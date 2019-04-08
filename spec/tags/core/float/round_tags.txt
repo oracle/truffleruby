@@ -1,1 +1,3 @@
 fails:Float#round returns different rounded values depending on the half option
+fails:Float#round rounds self to an optionally given precision with a half option
+fails:Float#round raises FloatDomainError for exceptional values with a half option
