@@ -247,20 +247,32 @@ class Rational < Numeric
     Rational.new(c * p1 + p0, c * q1 + q0)
   end
 
-  def round(precision = 0)
-    return with_precision(:round, precision) unless precision == 0
+  def round(precision = 0, half: nil)
+    return with_precision(:round, precision, half: half) unless precision == 0
     return 0 if @numerator == 0
     return @numerator if @denominator == 1
+
+    # Rounding logic copied from MRI
 
     num = @numerator.abs * 2 + @denominator
     den = @denominator * 2
 
-    approx = num / den
+    case half
+    when nil, :up
+      rounded = num / den
+    when :even
+      rounded, remainder = num.divmod(den)
+      rounded = rounded & ~1 if remainder.zero?
+    when :down
+      rounded = (num - 1) / den
+    else
+      raise ArgumentError, "invalid rounding mode: #{half}"
+    end
 
     if @numerator < 0
-      -approx
+      -rounded
     else
-      approx
+      rounded
     end
   end
 
@@ -386,14 +398,19 @@ class Rational < Numeric
   end
   private :marshal_load
 
-  def with_precision(method, n)
+  def with_precision(method, n, **kwargs)
     raise TypeError, 'not an Integer' unless n.kind_of?(Integer)
 
     p = 10 ** n
     s = self * p
 
-    r = Rational(s.send(method), p)
+    if kwargs.empty?
+      wp = s.send(method)
+    else
+      wp = s.send(method, **kwargs)
+    end
 
+    r = Rational(wp, p)
     n < 1 ? r.to_i : r
   end
   private :with_precision

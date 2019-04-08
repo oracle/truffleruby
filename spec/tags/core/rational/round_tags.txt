@@ -1,3 +1,1 @@
 slow:Rational#round with a precision > 0 doesn't fail when rounding to an absurdly large positive precision
-fails:Rational#round with half option returns an Integer when precision is not passed
-fails:Rational#round with half option returns a Rational when the precision is greater than 0
