@@ -11,12 +11,17 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.string.CoreString;
+import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.math.BigDecimal;
@@ -66,6 +71,37 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
     protected DynamicObject getBigDecimalClass() {
         return coreLibrary().getBigDecimalClass();
+    }
+
+    protected static RoundingMode toRoundingMode(RubyContext context, Node currentNode, DynamicObject symbol) {
+        assert Layouts.SYMBOL.isSymbol(symbol);
+
+        final CoreStrings strings = context.getCoreStrings();
+        if (symbol == strings.UP.getSymbol()) {
+            return RoundingMode.UP;
+        } else if (symbol == strings.DOWN.getSymbol()) {
+            return RoundingMode.DOWN;
+        } else if (symbol == strings.TRUNCATE.getSymbol()) {
+            return RoundingMode.DOWN;
+        } else if (symbol == strings.HALF_UP.getSymbol()) {
+            return RoundingMode.HALF_UP;
+        } else if (symbol == strings.DEFAULT.getSymbol()) {
+            return RoundingMode.HALF_UP;
+        } else if (symbol == strings.HALF_DOWN.getSymbol()) {
+            return RoundingMode.HALF_DOWN;
+        } else if (symbol == strings.HALF_EVEN.getSymbol()) {
+            return RoundingMode.HALF_EVEN;
+        } else if (symbol == strings.BANKER.getSymbol()) {
+            return RoundingMode.HALF_EVEN;
+        } else if (symbol == strings.CEILING.getSymbol()) {
+            return RoundingMode.CEILING;
+        } else if (symbol == strings.CEIL.getSymbol()) {
+            return RoundingMode.CEILING;
+        } else if (symbol == strings.FLOOR.getSymbol()) {
+            return RoundingMode.FLOOR;
+        } else {
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("invalid rounding mode", currentNode));
+        }
     }
 
     protected static RoundingMode toRoundingMode(int constValue) {
