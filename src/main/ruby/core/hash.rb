@@ -219,7 +219,7 @@ class Hash
     end
 
     return default unless undefined.equal?(default)
-    raise KeyError.new("key #{key} not found", :receiver => self, :key => key)
+    raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
   end
 
   def fetch_values(*keys, &block)

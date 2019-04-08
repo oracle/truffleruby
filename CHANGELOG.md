@@ -1,4 +1,12 @@
-# 1.0 RC 15
+# 1.0 RC 16
+
+Compatibility:
+
+* The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's
+  message formatting (#1633).
+* Add the missing `key` and `receiver` values to `KeyError` raised from `ENV#fetch`.
+
+# 1.0 RC 15, 5 April 2019
 
 Bug fixes:
 
@@ -44,7 +52,7 @@ Compatibility:
   on the block arity like MRI (#1629).
 * Add support for the `base` keyword argument to `Dir.{[], glob}`.
 
-# 1.0 RC 14
+# 1.0 RC 14, 18 March 2019
 
 Updated to Ruby 2.6.2.
 
@@ -80,7 +88,7 @@ Changes:
 * `ripper` is still not implemented, but the module now exists and has some
   methods that are implemented as no-ops.
 
-# 1.0 RC 13
+# 1.0 RC 13, 5 March 2019
 
 Note that as TruffleRuby RC 13 is built on Ruby 2.4.4 it is still vulnerable
 to CVE-2018-16395. This will be fixed in the next release.
@@ -153,7 +161,7 @@ Performance:
   cases, by reducing conversions between native and managed strings and allowing
   for mutable metadata in native strings.
 
-# 1.0 RC 12, 4 Februrary 2019
+# 1.0 RC 12, 4 February 2019
 
 Bug fixes:
 
