@@ -566,7 +566,7 @@ public abstract class FloatNodes {
     @Primitive(name = "float_round", needsSelf = false)
     public abstract static class FloatRoundPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "doubleInIntRange(n)")
+        @Specialization(guards = "fitsInInteger(n)")
         public int roundFittingInt(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             int l = (int) n;
@@ -583,11 +583,7 @@ public abstract class FloatNodes {
             }
         }
 
-        protected boolean doubleInIntRange(double n) {
-            return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
-        }
-
-        @Specialization(guards = "doubleInLongRange(n)", replaces = "roundFittingInt")
+        @Specialization(guards = "fitsInLong(n)", replaces = "roundFittingInt")
         public long roundFittingLong(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             long l = (long) n;
@@ -602,10 +598,6 @@ public abstract class FloatNodes {
                 }
                 return l;
             }
-        }
-
-        protected boolean doubleInLongRange(double n) {
-            return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
         }
 
         @Specialization(replaces = "roundFittingLong")
