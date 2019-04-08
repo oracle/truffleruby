@@ -28,6 +28,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
@@ -562,18 +563,11 @@ public abstract class FloatNodes {
 
     }
 
-    @NodeChild(value = "n", type = RubyNode.class)
-    @NodeChild(value = "ndigits", type = RubyNode.class)
-    @Primitive(name = "float_round", lowerFixnum = 1)
-    public abstract static class FloatRoundPrimitiveNode extends PrimitiveNode {
+    @Primitive(name = "float_round", needsSelf = false)
+    public abstract static class FloatRoundPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @CreateCast("ndigits")
-        public RubyNode coerceDefault(RubyNode ndigits) {
-            return DefaultValueNodeGen.create(0, ndigits);
-        }
-
-        @Specialization(guards = { "ndigits == 0", "doubleInIntRange(n)" })
-        public int roundFittingInt(double n, int ndigits,
+        @Specialization(guards = "doubleInIntRange(n)")
+        public int roundFittingInt(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             int l = (int) n;
             if (positiveProfile.profile(n >= 0.0)) {
@@ -593,8 +587,8 @@ public abstract class FloatNodes {
             return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
         }
 
-        @Specialization(guards = { "ndigits == 0", "doubleInLongRange(n)" }, replaces = "roundFittingInt")
-        public long roundFittingLong(double n, int ndigits,
+        @Specialization(guards = "doubleInLongRange(n)", replaces = "roundFittingInt")
+        public long roundFittingLong(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             long l = (long) n;
             if (positiveProfile.profile(n >= 0.0)) {
@@ -614,8 +608,8 @@ public abstract class FloatNodes {
             return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
         }
 
-        @Specialization(guards = "ndigits == 0", replaces = "roundFittingLong")
-        public Object round(double n, int ndigits,
+        @Specialization(replaces = "roundFittingLong")
+        public Object round(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
@@ -646,16 +640,6 @@ public abstract class FloatNodes {
             }
 
             return fixnumOrBignum.fixnumOrBignum(f);
-        }
-
-        @Specialization(guards = "ndigits != 0")
-        public Object roundDigits(double n, int ndigits) {
-            return FAILURE;
-        }
-
-        @Specialization(guards = "!isInteger(ndigits)")
-        public Object roundFallback(double n, Object ndigits) {
-            return FAILURE;
         }
 
     }

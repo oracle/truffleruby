@@ -140,8 +140,8 @@ class Float < Numeric
     end
   end
 
-  def round(ndigits=0)
-    Truffle.primitive :float_round
+  def round(ndigits=undefined)
+    return Truffle.invoke_primitive(:float_round, self) if undefined.equal?(ndigits)
 
     ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
 
