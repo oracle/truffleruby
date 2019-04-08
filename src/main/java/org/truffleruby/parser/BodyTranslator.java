@@ -3020,7 +3020,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
         final ParseNode argsNode = node.getArgsNode();
-        final boolean unsplat = argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode;
+        boolean unsplat = false;
 
         final ParseNode[] arguments;
         if (argsNode == null) {
@@ -3029,6 +3029,9 @@ public class BodyTranslator extends Translator {
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
             arguments = ((ArrayParseNode) argsNode).children();
+        } else if (argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode || argsNode instanceof ArgsPushParseNode) {
+            unsplat = true;
+            arguments = new ParseNode[]{ argsNode };
         } else {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }

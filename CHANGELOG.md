@@ -1,5 +1,9 @@
 # 1.0 RC 16
 
+Bug fixes:
+
+* Fixed yield with a splat and keyword arguments (#1613). 
+
 Compatibility:
 
 * The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's
