@@ -95,7 +95,6 @@ class BigDecimal < Numeric
   def ==(o)
     (self <=> o) == 0 rescue false
   end
-
   alias_method :eql?, :==
   alias_method :===, :==
 
@@ -119,7 +118,7 @@ class BigDecimal < Numeric
     comp_helper(other, :<=)
   end
 
-  def comp_helper(other, op)
+  private def comp_helper(other, op)
     comp = (self <=> other)
     if comp
       # cmp >= 0, comp < 0, etc
@@ -132,7 +131,6 @@ class BigDecimal < Numeric
       end
     end
   end
-  private :comp_helper
 
   def nonzero?
     zero? ? nil : self
@@ -257,9 +255,7 @@ class BigDecimal < Numeric
     new(data.split(':').last)
   end
 
-  private
-
-  def add_spaces_to_s(string, reverse, space_frequency)
+  private def add_spaces_to_s(string, reverse, space_frequency)
     return string if space_frequency == 0
 
     remainder = string.size % space_frequency
@@ -284,13 +280,17 @@ class BigDecimal < Numeric
       mode key, value
     end
   end
-
   private_class_method :boolean_mode
+
+  def self.new(*args)
+    warn 'BigDecimal.new is deprecated; use BigDecimal() method instead.'
+    BigDecimal(*args)
+  end
 end
 
 module Kernel
-  def BigDecimal(*args)
-    BigDecimal.new(*args)
+  def BigDecimal(value, precision = Truffle::UNDEFINED)
+    Truffle.invoke_primitive :bigdecimal_new, value, precision
   end
 end
 

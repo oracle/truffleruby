@@ -23,19 +23,14 @@ public interface BigDecimalLayout extends BasicObjectLayout {
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createBigDecimal(
-            DynamicObjectFactory factory,
-            BigDecimal value,
-            BigDecimalType type);
+    Object[] build(BigDecimal value, BigDecimalType type);
 
     boolean isBigDecimal(Object object);
 
     boolean isBigDecimal(DynamicObject object);
 
     BigDecimal getValue(DynamicObject object);
-    void setValue(DynamicObject object, BigDecimal value);
 
     BigDecimalType getType(DynamicObject object);
-    void setType(DynamicObject object, BigDecimalType value);
 
 }

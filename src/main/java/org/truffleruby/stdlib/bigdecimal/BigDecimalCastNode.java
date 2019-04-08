@@ -38,14 +38,12 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
 
@@ -53,50 +51,55 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-@NodeChild(value = "value", type = RubyNode.class)
-@NodeChild(value = "roundingMode", type = RubyNode.class)
 @ImportStatic(BigDecimalCoreMethodNode.class)
-public abstract class BigDecimalCastNode extends RubyNode {
+public abstract class BigDecimalCastNode extends RubyBaseNode {
 
-    public abstract BigDecimal executeBigDecimal(Object value, RoundingMode roundingMode);
+    public static BigDecimalCastNode create() {
+        return BigDecimalCastNodeGen.create();
+    }
 
-    public abstract Object executeObject(Object value, RoundingMode roundingMode);
+    public abstract Object execute(Object value, RoundingMode roundingMode);
 
     @Specialization
-    public BigDecimal doInt(long value, Object roundingMode) {
+    public BigDecimal doInt(long value, RoundingMode roundingMode) {
         return BigDecimal.valueOf(value);
     }
 
     @TruffleBoundary
     @Specialization
-    public BigDecimal doDouble(double value, Object roundingMode) {
+    public BigDecimal doDouble(double value, RoundingMode roundingMode) {
         return BigDecimal.valueOf(value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public BigDecimal doBignum(DynamicObject value, Object roundingMode) {
+    public BigDecimal doBignum(DynamicObject value, RoundingMode roundingMode) {
         return new BigDecimal(Layouts.BIGNUM.getValue(value));
     }
 
     @Specialization(guards = "isNormalRubyBigDecimal(value)")
-    public BigDecimal doBigDecimal(DynamicObject value, Object roundingMode) {
+    public BigDecimal doBigDecimal(DynamicObject value, RoundingMode roundingMode) {
         return Layouts.BIG_DECIMAL.getValue(value);
     }
 
+    @Specialization(guards = "isSpecialRubyBigDecimal(value)")
+    public DynamicObject doSpecialBigDecimal(DynamicObject value, RoundingMode roundingMode) {
+        return value;
+    }
+
     @Specialization(guards = {
-            "!isRubyBignum(value)",
+            "!isRubyNumber(value)",
             "!isRubyBigDecimal(value)"
     })
-    public Object doOther(DynamicObject value, Object roundingMode,
+    public Object doOther(Object value, RoundingMode roundingMode,
             @Cached("create()") IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
             @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {
-        if (roundingMode instanceof RoundingMode && isRationalNode.executeIsA(value, coreLibrary().getRationalClass())) {
+        if (isRationalNode.executeIsA(value, coreLibrary().getRationalClass())) {
             final Object numerator = numeratorCallNode.call(value, "numerator");
             final Object denominator = denominatorCallNode.call(value, "denominator");
 
             try {
-                return toBigDecimal(numerator, denominator, (RoundingMode) roundingMode);
+                return toBigDecimal(numerator, denominator, roundingMode);
             } catch (Exception e) {
                 throw e;
             }
@@ -136,12 +139,6 @@ public abstract class BigDecimalCastNode extends RubyNode {
         } else {
             throw new UnsupportedOperationException();
         }
-    }
-
-    @Fallback
-    public Object doBigDecimalFallback(Object value, Object roundingMode) {
-        // TODO (pitr 22-Jun-2015): How to better communicate failure without throwing
-        return nil();
     }
 
 }
