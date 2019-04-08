@@ -611,18 +611,7 @@ public abstract class FloatNodes {
         @Specialization(replaces = "roundFittingLong")
         public Object round(double n,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile,
-                @Cached("create()") BranchProfile errorProfile,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
-            if (Double.isInfinite(n)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
-            }
-
-            if (Double.isNaN(n)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
-            }
-
             double f = n;
 
             if (positiveProfile.profile(f >= 0.0)) {

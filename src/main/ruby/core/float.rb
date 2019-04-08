@@ -142,7 +142,13 @@ class Float < Numeric
 
   def round(ndigits=undefined)
     if undefined.equal?(ndigits)
-      Truffle.invoke_primitive(:float_round, self)
+      if infinite?
+        raise FloatDomainError, 'Infinite'
+      elsif nan?
+        raise FloatDomainError, 'NaN'
+      else
+        Truffle.invoke_primitive(:float_round, self)
+      end
     else
       ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
       if ndigits == 0
