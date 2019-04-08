@@ -1280,7 +1280,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(value)")
-        public Object roundSpecial(DynamicObject value, NotProvided precision, Object unusedRoundingMode,
+        public Object roundSpecial(DynamicObject value, NotProvided precision, Object roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached("create()") BranchProfile negInfinityProfile,
                 @Cached("create()") BranchProfile posInfinityProfile,
@@ -1310,7 +1310,7 @@ public abstract class BigDecimalNodes {
                 "!isNormal(value)",
                 "wasProvided(precision)"
         })
-        public Object roundSpecial(DynamicObject value, Object precision, Object unusedRoundingMode) {
+        public Object roundSpecial(DynamicObject value, Object precision, Object roundingMode) {
             return value;
         }
     }
