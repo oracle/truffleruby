@@ -619,8 +619,6 @@ public abstract class FloatNodes {
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
-            // Algorithm copied from JRuby - not shared as we want to branch profile it
-
             if (Double.isInfinite(n)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
