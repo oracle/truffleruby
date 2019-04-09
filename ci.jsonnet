@@ -715,7 +715,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   deploy_builds:
     {
       local deploy = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
-                     $.run.deploy_truffleruby_binaries + { timelimit: "15:00" },
+                     $.run.deploy_truffleruby_binaries + { timelimit: "20:00" },
 
       "ruby-deploy-linux": $.platform.linux + deploy,
       "ruby-deploy-darwin": $.platform.darwin + deploy,

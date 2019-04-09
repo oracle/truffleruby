@@ -44,6 +44,7 @@ Bug fixes:
 
 Compatibility:
 
+* ERB now uses StringScanner and not the fallback, like on MRI. As a result `strscan` is required by `require 'erb'` (#1615).
 * Yield different number of arguments for `Hash#each` and `Hash#each_pair` based on the block arity like MRI (#1629).
 * Add support for the `base` keyword argument to `Dir.{[], glob}`.
 
