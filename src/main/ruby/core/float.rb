@@ -169,9 +169,9 @@ class Float < Numeric
       else
         _, exp = Math.frexp(self)
         if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
-          return self
+          self
         elsif ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
-          return 0.0
+          0.0
         else
           f = 10**ndigits
           (self * f).round(half: half) / f.to_f
@@ -181,8 +181,8 @@ class Float < Numeric
   end
 
   def coerce(other)
-    return [other, self] if other.kind_of? Float
-    [Float(other), self]
+    other = Float(other) unless other.kind_of? Float
+    [other, self]
   end
 
   alias_method :quo, :/
