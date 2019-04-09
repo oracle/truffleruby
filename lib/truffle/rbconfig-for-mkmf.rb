@@ -113,14 +113,17 @@ common = {
 expanded.merge!(common)
 mkconfig.merge!(common)
 
+# TRUFFLERUBY_PREPROCESS_RUBY must only be used for TruffleRuby development, at your own risks
+preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || RbConfig.ruby
+
 # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
 # C or C++ file) to add the file's path as the first entry on the
 # include path. This is to ensure that files from the source file's
 # directory are include in preference to others on the include path,
 # and is required because we are actually piping the file into the
 # compiler which disables this standard behaviour of the C preprocessor.
-mkconfig['COMPILE_C']   = "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['COMPILE_CXX'] = "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+mkconfig['COMPILE_C']   = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+mkconfig['COMPILE_CXX'] = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
