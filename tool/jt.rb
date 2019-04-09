@@ -678,8 +678,14 @@ module Commands
     shell['gcc -v']
     shell['clang -v']
     shell['opt -version']
-    shell['/usr/local/opt/llvm@4/bin/clang -v']
-    shell['/usr/local/opt/llvm@4/bin/opt -version']
+    shell['brew --prefix llvm@4']
+    begin
+      llvm = `brew --prefix llvm@4`.chomp
+      shell["#{llvm}/bin/clang -v"]
+      shell["#{llvm}/bin/opt -version"]
+    rescue Errno::ENOENT
+      # No Homebrew
+    end
     shell['mx version']
     sh('mx', 'sversions', continue_on_failure: true)
     shell['git --no-pager show -s --format=%H']

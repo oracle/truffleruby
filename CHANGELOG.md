@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed `Hash#merge` with no arguments to return a new copy of the receiver (#1645).
+* Fixed search for `openssl` and `llvm` to find Homebrew installed in other prefixes than `/usr/local` (#1583).
 
 Compatibility:
 
