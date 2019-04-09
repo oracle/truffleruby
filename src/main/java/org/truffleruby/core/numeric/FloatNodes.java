@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -563,6 +564,19 @@ public abstract class FloatNodes {
 
     }
 
+    protected static class FloatRoundGuards {
+
+        public static boolean fitsInInteger(double n) {
+            return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
+        }
+
+        public static boolean fitsInLong(double n) {
+            return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
+        }
+
+    }
+
+    @ImportStatic(FloatRoundGuards.class)
     @Primitive(name = "float_round_up", needsSelf = false)
     public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -624,6 +638,7 @@ public abstract class FloatNodes {
 
     }
 
+    @ImportStatic(FloatRoundGuards.class)
     @Primitive(name = "float_round_even", needsSelf = false)
     public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -685,6 +700,7 @@ public abstract class FloatNodes {
 
     }
 
+    @ImportStatic(FloatRoundGuards.class)
     @Primitive(name = "float_round_down", needsSelf = false)
     public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
 

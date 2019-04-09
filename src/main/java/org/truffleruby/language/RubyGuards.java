@@ -38,16 +38,8 @@ public abstract class RubyGuards {
         return CoreLibrary.fitsIntoInteger(value);
     }
 
-    public static boolean fitsInInteger(double n) {
-        return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
-    }
-
     public static boolean isLong(Object value) {
         return value instanceof Long;
-    }
-
-    public static boolean fitsInLong(double n) {
-        return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
     }
 
     public static boolean isFloat(Object value) {
