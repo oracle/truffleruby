@@ -562,6 +562,8 @@ public abstract class FloatNodes {
 
     protected static class FloatRoundGuards {
 
+        // These are < rather than <=, because we may offset by -1 or +1 to round in the direction that we want
+
         public static boolean fitsInInteger(double n) {
             return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
         }
