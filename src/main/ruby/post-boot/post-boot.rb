@@ -20,7 +20,6 @@ if Truffle::Boot.ruby_home
     require 'thread'
     require 'rational'
     require 'complex'
-    require 'truffle/unicode_normalize'
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   end
