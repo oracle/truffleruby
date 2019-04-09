@@ -172,6 +172,12 @@ describe "The yield call" do
     end
   end
 
+  describe "taking a splat and a keyword argument" do
+    it "passes it as an array of the values and a hash" do
+      @y.k([1, 2]) { |*a| a }.should == [1, 2, {:b=>true}]
+    end
+  end
+
   it "uses captured block of a block used in define_method" do
     @y.deep(2).should == 4
   end

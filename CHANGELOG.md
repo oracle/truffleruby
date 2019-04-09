@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed `Hash#merge` with no arguments to return a new copy of the receiver (#1645).
+* Fixed yield with a splat and keyword arguments (#1613). 
 
 Compatibility:
 

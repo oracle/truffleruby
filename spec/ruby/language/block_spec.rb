@@ -626,6 +626,12 @@ describe "A block" do
     end
   end
 
+  describe "taking |*a, b:|" do
+    it "merges the hash into the splatted array" do
+      @y.k { |*a, b:| [a, b] }.should == [[], true]
+    end
+  end
+
   describe "arguments with _" do
     it "extracts arguments with _" do
       @y.m([[1, 2, 3], 4]) { |(_, a, _), _| a }.should == 2
