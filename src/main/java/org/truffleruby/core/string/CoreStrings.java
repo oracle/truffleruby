@@ -21,6 +21,7 @@ public class CoreStrings {
     public final CoreString CLASS;
     public final CoreString CLASS_VARIABLE;
     public final CoreString CONSTANT;
+    public final CoreString DEFAULT;
     public final CoreString DIVIDE;
     public final CoreString DIVMOD;
     public final CoreString EMPTY_STRING;
@@ -29,12 +30,12 @@ public class CoreStrings {
     public final CoreString FAILED_TO_ALLOCATE_MEMORY;
     public final CoreString FALSE;
     public final CoreString GLOBAL_VARIABLE;
-    public final CoreString GREATER_THAN;
     public final CoreString GREATER_OR_EQUAL;
+    public final CoreString GREATER_THAN;
     public final CoreString INSTANCE_VARIABLE;
     public final CoreString INVALID_VALUE_FOR_FLOAT;
-    public final CoreString LESS_THAN;
     public final CoreString LESS_OR_EQUAL;
+    public final CoreString LESS_THAN;
     public final CoreString LINE;
     public final CoreString LOCAL_VARIABLE;
     public final CoreString METHOD;
@@ -51,9 +52,7 @@ public class CoreStrings {
     public final CoreString POWER;
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
-    public final CoreString UNKNOWN;
     public final CoreString SELF;
-    public final CoreString SPACESHIP;
     public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString SUPER;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
@@ -63,6 +62,8 @@ public class CoreStrings {
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TRUE;
     public final CoreString TZ;
+    public final CoreString UNKNOWN;
+    public final CoreString UP;
     public final CoreString UTC;
     public final CoreString WRONG_ARGS_ZERO_PLUS_ONE;
     public final CoreString X_OUTSIDE_OF_STRING;
@@ -77,6 +78,7 @@ public class CoreStrings {
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
         CONSTANT = new CoreString(context, "constant");
+        DEFAULT = new CoreString(context, "default");
         DIVIDE = new CoreString(context, "/");
         DIVMOD = new CoreString(context, "divmod");
         EMPTY_STRING = new CoreString(context, "");
@@ -85,12 +87,12 @@ public class CoreStrings {
         FAILED_TO_ALLOCATE_MEMORY = new CoreString(context, "failed to allocate memory");
         FALSE = new CoreString(context, "false");
         GLOBAL_VARIABLE = new CoreString(context, "global-variable");
-        GREATER_THAN = new CoreString(context, ">");
         GREATER_OR_EQUAL = new CoreString(context, ">=");
+        GREATER_THAN = new CoreString(context, ">");
         INSTANCE_VARIABLE = new CoreString(context, "instance-variable");
         INVALID_VALUE_FOR_FLOAT = new CoreString(context, "invalid value for Float()");
-        LESS_THAN = new CoreString(context, "<");
         LESS_OR_EQUAL = new CoreString(context, "<=");
+        LESS_THAN = new CoreString(context, "<");
         LINE = new CoreString(context, "line");
         LOCAL_VARIABLE = new CoreString(context, "local-variable");
         METHOD = new CoreString(context, "method");
@@ -107,9 +109,7 @@ public class CoreStrings {
         POWER = new CoreString(context, "**");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
-        UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
-        SPACESHIP = new CoreString(context, "<=>");
         STACK_LEVEL_TOO_DEEP = new CoreString(context, "stack level too deep");
         SUPER = new CoreString(context, "super");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
@@ -119,6 +119,8 @@ public class CoreStrings {
         TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
         TRUE = new CoreString(context, "true");
         TZ = new CoreString(context, "TZ");
+        UNKNOWN = new CoreString(context, "(unknown)");
+        UP = new CoreString(context, "up");
         UTC = new CoreString(context, "UTC");
         WRONG_ARGS_ZERO_PLUS_ONE = new CoreString(context, "wrong number of arguments (0 for 1+)");
         X_OUTSIDE_OF_STRING = new CoreString(context, "X outside of string");

@@ -12,8 +12,7 @@ package org.truffleruby.core.numeric;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -23,18 +22,17 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.core.cast.DefaultValueNodeGen;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -562,102 +560,203 @@ public abstract class FloatNodes {
 
     }
 
-    @NodeChild(value = "n", type = RubyNode.class)
-    @NodeChild(value = "ndigits", type = RubyNode.class)
-    @Primitive(name = "float_round", lowerFixnum = 1)
-    public abstract static class FloatRoundPrimitiveNode extends PrimitiveNode {
+    protected static class FloatRoundGuards {
 
-        @CreateCast("ndigits")
-        public RubyNode coerceDefault(RubyNode ndigits) {
-            return DefaultValueNodeGen.create(0, ndigits);
-        }
+        // These are < rather than <=, because we may offset by -1 or +1 to round in the direction that we want
 
-        @Specialization(guards = { "ndigits == 0", "doubleInIntRange(n)" })
-        public int roundFittingInt(double n, int ndigits,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
-            int l = (int) n;
-            if (positiveProfile.profile(n >= 0.0)) {
-                if (n - l >= 0.5) {
-                    l++;
-                }
-                return l;
-            } else {
-                if (l - n >= 0.5) {
-                    l--;
-                }
-                return l;
-            }
-        }
-
-        protected boolean doubleInIntRange(double n) {
+        public static boolean fitsInInteger(double n) {
             return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
         }
 
-        @Specialization(guards = { "ndigits == 0", "doubleInLongRange(n)" }, replaces = "roundFittingInt")
-        public long roundFittingLong(double n, int ndigits,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
-            long l = (long) n;
-            if (positiveProfile.profile(n >= 0.0)) {
-                if (n - l >= 0.5) {
-                    l++;
-                }
-                return l;
-            } else {
-                if (l - n >= 0.5) {
-                    l--;
-                }
-                return l;
-            }
-        }
-
-        protected boolean doubleInLongRange(double n) {
+        public static boolean fitsInLong(double n) {
             return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
         }
 
-        @Specialization(guards = "ndigits == 0", replaces = "roundFittingLong")
-        public Object round(double n, int ndigits,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile,
-                @Cached("create()") BranchProfile errorProfile,
+    }
+
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_up", needsSelf = false)
+    public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
+        public int roundFittingIntPositive(double n) {
+            int l = (int) n;
+            if (n - l >= 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInInteger(n)", "!isPositive(n)"})
+        public int roundFittingIntNegative(double n) {
+            int l = (int) n;
+            if (l - n >= 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "isPositive(n)"}, replaces = "roundFittingIntPositive")
+        public long roundFittingLongPositive(double n) {
+            long l = (long) n;
+            if (n - l >= 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "!isPositive(n)"}, replaces = "roundFittingIntNegative")
+        public long roundFittingLongNegative(double n) {
+            long l = (long) n;
+            if (l - n >= 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
+        public Object roundPositive(double n,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
-            // Algorithm copied from JRuby - not shared as we want to branch profile it
-
-            if (Double.isInfinite(n)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
+            double f = Math.floor(n);
+            if (n - f >= 0.5) {
+                f += 1.0;
             }
-
-            if (Double.isNaN(n)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
-            }
-
-            double f = n;
-
-            if (positiveProfile.profile(f >= 0.0)) {
-                f = Math.floor(f);
-
-                if (n - f >= 0.5) {
-                    f += 1.0;
-                }
-            } else {
-                f = Math.ceil(f);
-
-                if (f - n >= 0.5) {
-                    f -= 1.0;
-                }
-            }
-
             return fixnumOrBignum.fixnumOrBignum(f);
         }
 
-        @Specialization(guards = "ndigits != 0")
-        public Object roundDigits(double n, int ndigits) {
-            return FAILURE;
+        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
+        public Object roundNegative(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.ceil(n);
+            if (f - n >= 0.5) {
+                f -= 1.0;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
         }
 
-        @Specialization(guards = "!isInteger(ndigits)")
-        public Object roundFallback(double n, Object ndigits) {
-            return FAILURE;
+    }
+
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_even", needsSelf = false)
+    public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
+        public int roundFittingIntPositive(double n) {
+            int l = (int) n;
+            if (n - l == 0.5) {
+                l += l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInInteger(n)", "!isPositive(n)"})
+        public int roundFittingIntNegative(double n) {
+            int l = (int) n;
+            if (n - l == 0.5) {
+                l -= l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "isPositive(n)"}, replaces = "roundFittingIntPositive")
+        public long roundFittingLongPositive(double n) {
+            long l = (long) n;
+            if (n - l == 0.5) {
+                l += l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "!isPositive(n)"}, replaces = "roundFittingIntNegative")
+        public long roundFittingLongNegative(double n) {
+            long l = (long) n;
+            if (n - l == 0.5) {
+                l -= l % 2;
+            }
+            return l;
+        }
+
+        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
+        public Object roundPositive(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.floor(n);
+            if (n - f == 0.5) {
+                f += f % 2;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
+        public Object roundNegative(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.ceil(n);
+            if (n - f == 0.5) {
+                f -= f % 2;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+    }
+
+    @ImportStatic(FloatRoundGuards.class)
+    @Primitive(name = "float_round_down", needsSelf = false)
+    public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {"fitsInInteger(n)", "isPositive(n)"})
+        public int roundFittingIntPositive(double n) {
+            int l = (int) n;
+            if (n - l > 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInInteger(n)", "!isPositive(n)"})
+        public int roundFittingIntNegative(double n) {
+            int l = (int) n;
+            if (l - n > 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "isPositive(n)"}, replaces = "roundFittingIntPositive")
+        public long roundFittingLongPositive(double n) {
+            long l = (long) n;
+            if (n - l > 0.5) {
+                l++;
+            }
+            return l;
+        }
+
+        @Specialization(guards = {"fitsInLong(n)", "!isPositive(n)"}, replaces = "roundFittingIntNegative")
+        public long roundFittingLongNegative(double n) {
+            long l = (long) n;
+            if (l - n > 0.5) {
+                l--;
+            }
+            return l;
+        }
+
+        @Specialization(guards = "isPositive(n)", replaces = "roundFittingLongPositive")
+        public Object roundPositive(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.floor(n);
+            if (n - f > 0.5) {
+                f += 1.0;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
+        }
+
+        @Specialization(guards = "!isPositive(n)", replaces = "roundFittingLongNegative")
+        public Object roundNegative(double n,
+                                    @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
+            double f = Math.ceil(n);
+            if (f - n > 0.5) {
+                f -= 1.0;
+            }
+            return fixnumOrBignum.fixnumOrBignum(f);
         }
 
     }

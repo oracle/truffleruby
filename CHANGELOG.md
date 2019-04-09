@@ -5,6 +5,10 @@ Bug fixes:
 * Fixed `Hash#merge` with no arguments to return a new copy of the receiver (#1645).
 * Fixed yield with a splat and keyword arguments (#1613). 
 
+New features:
+
+* Rounding modes have been implemented or improved for `Float`, `Rational`, `BigDecimal` (#1509).
+
 Compatibility:
 
 * The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's message formatting (#1633).

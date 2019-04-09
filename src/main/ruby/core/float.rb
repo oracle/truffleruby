@@ -140,36 +140,49 @@ class Float < Numeric
     end
   end
 
-  def round(ndigits=0)
-    Truffle.primitive :float_round
-
-    ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
-
-    if ndigits == 0
-      return self.round
-    elsif ndigits < 0
-      return truncate.round ndigits
+  def round(ndigits=undefined, half: nil)
+    if undefined.equal?(ndigits)
+      if infinite?
+        raise FloatDomainError, 'Infinite'
+      elsif nan?
+        raise FloatDomainError, 'NaN'
+      else
+        case half
+        when nil, :up
+          Truffle.invoke_primitive(:float_round_up, self)
+        when :even
+          Truffle.invoke_primitive(:float_round_even, self)
+        when :down
+          Truffle.invoke_primitive(:float_round_down, self)
+        else
+          raise ArgumentError, "invalid rounding mode: #{half}"
+        end
+      end
+    else
+      ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
+      if ndigits == 0
+        round(half: half)
+      elsif ndigits < 0
+        truncate.round(ndigits)
+      elsif infinite? or nan?
+        self
+      else
+        _, exp = Math.frexp(self)
+        if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+          self
+        elsif ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+          0.0
+        else
+          f = 10**ndigits
+          (self * f).round(half: half) / f.to_f
+        end
+      end
     end
-
-    return self if infinite? or nan?
-
-    _, exp = Math.frexp(self)
-
-    if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
-      return self
-    end
-
-    if ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
-      return 0.0
-    end
-
-    f = 10**ndigits
-    (self * f).round / f.to_f
   end
 
   def coerce(other)
-    return [other, self] if other.kind_of? Float
-    [Float(other), self]
+    other = Float(other) unless other.kind_of? Float
+    [other, self]
   end
 
   alias_method :quo, :/

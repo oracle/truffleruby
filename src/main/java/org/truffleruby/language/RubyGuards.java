@@ -313,6 +313,10 @@ public abstract class RubyGuards {
         return Double.isInfinite(value);
     }
 
+    public static boolean isPositive(double value) {
+        return value >= 0;
+    }
+
     // Composite
 
     public static boolean isSingletonClass(DynamicObject value) {
