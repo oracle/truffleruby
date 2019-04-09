@@ -90,13 +90,21 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
+
   link_o_files = "#{ruby_home}/src/main/c/cext/ruby.o #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
+
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
   mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
+
+  # Default to the ruby in $PATH to build core C extensions faster
+  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || 'ruby'
 else
   link_o_files = "#{cext_dir}/ruby.o #{cext_dir}/sulongmock.o"
+
+  # TRUFFLERUBY_PREPROCESS_RUBY must only be used for TruffleRuby development, at your own risks
+  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || RbConfig.ruby
 end
 
 common = {
@@ -119,8 +127,8 @@ mkconfig.merge!(common)
 # directory are include in preference to others on the include path,
 # and is required because we are actually piping the file into the
 # compiler which disables this standard behaviour of the C preprocessor.
-mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+mkconfig['COMPILE_C']   = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+mkconfig['COMPILE_CXX'] = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
