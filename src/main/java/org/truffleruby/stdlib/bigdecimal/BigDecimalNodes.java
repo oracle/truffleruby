@@ -1260,8 +1260,9 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = {"isNormal(value)", "isRubySymbol(roundingMode)"})
-        public Object round(DynamicObject value, int digit, DynamicObject roundingMode) {
-            return createBigDecimal(round(value, digit, toRoundingMode(getContext(), this, roundingMode)));
+        public Object round(DynamicObject value, int digit, DynamicObject roundingMode,
+                            @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
+            return createBigDecimal(round(value, digit, toRoundingMode((int) callRoundModeFromSymbol.call(value, "round_mode_from_symbol", roundingMode))));
         }
 
         @Specialization(guards = "isNormal(value)")

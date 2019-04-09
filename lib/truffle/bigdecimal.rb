@@ -282,6 +282,28 @@ class BigDecimal < Numeric
   end
   private_class_method :boolean_mode
 
+  def round_mode_from_symbol(symbol)
+    case symbol
+    when :up
+      ROUND_UP
+    when :down, :truncate
+      ROUND_DOWN
+    when :half_up, :default
+      ROUND_HALF_UP
+    when :half_down
+      ROUND_HALF_DOWN
+    when :half_even, :banker
+      ROUND_HALF_EVEN
+    when :ceiling, :ceil
+      ROUND_CEILING
+    when :floor
+      ROUND_FLOOR
+    else
+      raise ArgumentError, 'invalid rounding mode'
+    end
+  end
+  private :round_mode_from_symbol
+
   def self.new(*args)
     warn 'BigDecimal.new is deprecated; use BigDecimal() method instead.'
     BigDecimal(*args)
