@@ -18,16 +18,10 @@ export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
 export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
 ```
 
-For using C++ extensions you also need to install:
+For building and using C++ extensions you also need to install:
 
 ```
 yum-config-manager --enable ol7_developer_EPEL
-yum install libcxx
-```
-
-And for building C++ extensions:
-
-```
 yum install libcxx-devel
 ```
 
