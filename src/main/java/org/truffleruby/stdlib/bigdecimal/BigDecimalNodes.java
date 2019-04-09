@@ -1248,21 +1248,6 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "round", optional = 2, lowerFixnum = { 1, 2 })
     public abstract static class RoundNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
-        private BigDecimal round(DynamicObject value, int digit, RoundingMode roundingMode) {
-            final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(value);
-
-            if (digit <= valueBigDecimal.scale()) {
-                return valueBigDecimal.
-                        movePointRight(digit).
-                        setScale(0, roundingMode).
-                        movePointLeft(digit);
-            } else {
-                // Do not perform rounding when not required
-                return valueBigDecimal;
-            }
-        }
-
         @Specialization(guards = "isNormal(value)")
         public Object round(DynamicObject value, NotProvided digit, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
@@ -1285,7 +1270,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(value)")
-        public Object roundSpecial(DynamicObject value, NotProvided precision, Object roundingMode,
+        public Object roundSpecial(DynamicObject value, NotProvided precision, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached("create()") BranchProfile negInfinityProfile,
                 @Cached("create()") BranchProfile posInfinityProfile,
@@ -1313,11 +1298,36 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = {
                 "!isNormal(value)",
-                "wasProvided(precision)"
+                "wasProvided(precision)",
+                "wasProvided(roundingMode)"
         })
         public Object roundSpecial(DynamicObject value, Object precision, Object roundingMode) {
             return value;
         }
+
+        @Specialization(guards = {
+                "!isNormal(value)",
+                "wasProvided(precision)"
+        })
+        public Object roundSpecial(DynamicObject value, Object precision, NotProvided roundingMode) {
+            return value;
+        }
+
+        @TruffleBoundary
+        private BigDecimal round(DynamicObject value, int digit, RoundingMode roundingMode) {
+            final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(value);
+
+            if (digit <= valueBigDecimal.scale()) {
+                return valueBigDecimal.
+                        movePointRight(digit).
+                        setScale(0, roundingMode).
+                        movePointLeft(digit);
+            } else {
+                // Do not perform rounding when not required
+                return valueBigDecimal;
+            }
+        }
+
     }
 
     @CoreMethod(names = "finite?")
