@@ -15,11 +15,8 @@ public class CoreStrings {
 
     public final CoreString AMPERSAND;
     public final CoreString ASSIGNMENT;
-    public final CoreString BANKER;
     public final CoreString CALL;
     public final CoreString CANT_COMPRESS_NEGATIVE;
-    public final CoreString CEIL;
-    public final CoreString CEILING;
     public final CoreString CIRCUMFLEX;
     public final CoreString CLASS;
     public final CoreString CLASS_VARIABLE;
@@ -27,19 +24,14 @@ public class CoreStrings {
     public final CoreString DEFAULT;
     public final CoreString DIVIDE;
     public final CoreString DIVMOD;
-    public final CoreString DOWN;
     public final CoreString EMPTY_STRING;
     public final CoreString EVAL_FILENAME_STRING;
     public final CoreString EXPRESSION;
     public final CoreString FAILED_TO_ALLOCATE_MEMORY;
     public final CoreString FALSE;
-    public final CoreString FLOOR;
     public final CoreString GLOBAL_VARIABLE;
     public final CoreString GREATER_OR_EQUAL;
     public final CoreString GREATER_THAN;
-    public final CoreString HALF_DOWN;
-    public final CoreString HALF_EVEN;
-    public final CoreString HALF_UP;
     public final CoreString INSTANCE_VARIABLE;
     public final CoreString INVALID_VALUE_FOR_FLOAT;
     public final CoreString LESS_OR_EQUAL;
@@ -61,7 +53,6 @@ public class CoreStrings {
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
     public final CoreString SELF;
-    public final CoreString SPACESHIP;
     public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString SUPER;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
@@ -70,7 +61,6 @@ public class CoreStrings {
     public final CoreString TO_STR;
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TRUE;
-    public final CoreString TRUNCATE;
     public final CoreString TZ;
     public final CoreString UNKNOWN;
     public final CoreString UP;
@@ -82,11 +72,8 @@ public class CoreStrings {
     public CoreStrings(RubyContext context) {
         AMPERSAND = new CoreString(context, "&");
         ASSIGNMENT = new CoreString(context, "assignment");
-        BANKER = new CoreString(context, "banker");
         CALL = new CoreString(context, "call");
         CANT_COMPRESS_NEGATIVE = new CoreString(context, "can't compress negative numbers");
-        CEIL = new CoreString(context, "ceil");
-        CEILING = new CoreString(context, "ceiling");
         CIRCUMFLEX = new CoreString(context, "^");
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
@@ -94,19 +81,14 @@ public class CoreStrings {
         DEFAULT = new CoreString(context, "default");
         DIVIDE = new CoreString(context, "/");
         DIVMOD = new CoreString(context, "divmod");
-        DOWN = new CoreString(context, "down");
         EMPTY_STRING = new CoreString(context, "");
         EVAL_FILENAME_STRING = new CoreString(context, "(eval)");
         EXPRESSION = new CoreString(context, "expression");
         FAILED_TO_ALLOCATE_MEMORY = new CoreString(context, "failed to allocate memory");
         FALSE = new CoreString(context, "false");
-        FLOOR = new CoreString(context, "floor");
         GLOBAL_VARIABLE = new CoreString(context, "global-variable");
         GREATER_OR_EQUAL = new CoreString(context, ">=");
         GREATER_THAN = new CoreString(context, ">");
-        HALF_DOWN = new CoreString(context, "half_down");
-        HALF_EVEN = new CoreString(context, "half_even");
-        HALF_UP = new CoreString(context, "half_up");
         INSTANCE_VARIABLE = new CoreString(context, "instance-variable");
         INVALID_VALUE_FOR_FLOAT = new CoreString(context, "invalid value for Float()");
         LESS_OR_EQUAL = new CoreString(context, "<=");
@@ -128,7 +110,6 @@ public class CoreStrings {
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
         SELF = new CoreString(context, "self");
-        SPACESHIP = new CoreString(context, "<=>");
         STACK_LEVEL_TOO_DEEP = new CoreString(context, "stack level too deep");
         SUPER = new CoreString(context, "super");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
@@ -137,7 +118,6 @@ public class CoreStrings {
         TO_STR = new CoreString(context, "to_str");
         TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
         TRUE = new CoreString(context, "true");
-        TRUNCATE = new CoreString(context, "truncate");
         TZ = new CoreString(context, "TZ");
         UNKNOWN = new CoreString(context, "(unknown)");
         UP = new CoreString(context, "up");
