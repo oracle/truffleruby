@@ -22,3 +22,5 @@ fails:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread an
 fails:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
 slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required
+slow:Kernel#require ($LOADED_FEATURES) unicode_normalize is part of core and not $LOADED_FEATURES
+slow:Kernel.require ($LOADED_FEATURES) unicode_normalize is part of core and not $LOADED_FEATURES
