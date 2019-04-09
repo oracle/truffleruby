@@ -90,13 +90,21 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
+
   link_o_files = "#{ruby_home}/src/main/c/cext/ruby.o #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
+
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
   mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
+
+  # Default to the ruby in $PATH to build core C extensions faster
+  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || 'ruby'
 else
   link_o_files = "#{cext_dir}/ruby.o #{cext_dir}/sulongmock.o"
+
+  # TRUFFLERUBY_PREPROCESS_RUBY must only be used for TruffleRuby development, at your own risks
+  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || RbConfig.ruby
 end
 
 common = {
@@ -112,9 +120,6 @@ common = {
 }
 expanded.merge!(common)
 mkconfig.merge!(common)
-
-# TRUFFLERUBY_PREPROCESS_RUBY must only be used for TruffleRuby development, at your own risks
-preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || RbConfig.ruby
 
 # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
 # C or C++ file) to add the file's path as the first entry on the
