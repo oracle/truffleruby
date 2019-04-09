@@ -61,13 +61,7 @@ For building C extensions you need to install:
 sudo dnf install make clang llvm
 ```
 
-For using C++ extensions you also need to install:
-
-```
-sudo dnf install libcxx
-```
-
-And for building C++ extensions:
+For building and using C++ extensions you also need to install:
 
 ```
 sudo dnf install libcxx-devel
