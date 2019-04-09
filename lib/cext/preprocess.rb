@@ -36,11 +36,6 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
 
-  LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
-  VALUE_LOCALS = /^(?<before>\s+)VALUE\s+(?<locals>#{LOCAL}(\s*,\s*#{LOCAL})*);(?<after>\s*(\/\/.+)?)$/
-
-  ALLOCA_LOCALS = /^(?<before>\s+)VALUE\s*\*\s*(?<var>[a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
-
   def self.patch(file, contents, directory)
     if patched_file = PATCHED_FILES[File.basename(file)]
       matched = if patched_file[:ext_dir]
