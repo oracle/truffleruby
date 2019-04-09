@@ -1,5 +1,6 @@
 all?
 any?
+chain
 chunk
 chunk_while
 collect
@@ -15,6 +16,7 @@ each_slice
 each_with_index
 each_with_object
 entries
+filter
 find
 find_all
 find_index

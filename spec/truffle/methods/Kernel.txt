@@ -40,9 +40,11 @@ singleton_methods
 taint
 tainted?
 tap
+then
 to_enum
 to_s
 trust
 untaint
 untrust
 untrusted?
+yield_self

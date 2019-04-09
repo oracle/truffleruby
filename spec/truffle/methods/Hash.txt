@@ -61,6 +61,8 @@ to_h
 to_hash
 to_proc
 to_s
+transform_keys
+transform_keys!
 transform_values
 transform_values!
 update

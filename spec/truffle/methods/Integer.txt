@@ -18,6 +18,8 @@
 []
 ^
 abs
+allbits?
+anybits?
 bit_length
 ceil
 chr
@@ -38,9 +40,11 @@ lcm
 magnitude
 modulo
 next
+nobits?
 numerator
 odd?
 ord
+pow
 pred
 rationalize
 remainder
