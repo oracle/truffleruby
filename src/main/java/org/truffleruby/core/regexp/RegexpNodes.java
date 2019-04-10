@@ -27,6 +27,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.NameEntry;
+import org.joni.Region;
 import org.joni.Regex;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -65,7 +66,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 public abstract class RegexpNodes {
 
     @TruffleBoundary
-    public static Matcher createMatcher(RubyContext context, DynamicObject regexp, Rope stringRope, byte[] stringBytes, boolean encodingConversion) {
+    public static Matcher createMatcher(RubyContext context, DynamicObject regexp, Rope stringRope, byte[] stringBytes, boolean encodingConversion, int start) {
         final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
         Regex regex = Layouts.REGEXP.getRegex(regexp);
 
@@ -74,7 +75,7 @@ public abstract class RegexpNodes {
             regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e));
         }
 
-        return regex.matcher(stringBytes, 0, stringBytes.length);
+        return regex.matcher(stringBytes, start, stringBytes.length);
     }
 
     private static Regex makeRegexpForEncoding(RubyContext context, DynamicObject regexp, final Encoding enc) {
@@ -174,9 +175,13 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isRubyString(string)")
         public Object matchOnwards(DynamicObject regexp, DynamicObject string, int startPos, boolean atStart) {
             final Rope rope = StringOperations.rope(string);
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
+            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, startPos);
             int range = rope.byteLength();
-            return matchNode.execute(regexp, string, matcher, startPos, range, atStart);
+            DynamicObject result = matchNode.execute(regexp, string, matcher, startPos, range, atStart);
+            if (result != nil()) {
+                fixupMatchDataForStart(result, startPos);
+            }
+            return result;
         }
     }
 
@@ -221,6 +226,20 @@ public abstract class RegexpNodes {
         }
     }
 
+    @TruffleBoundary
+    protected static DynamicObject fixupMatchDataForStart(DynamicObject matchData, int startPos) {
+        Region regs = Layouts.MATCH_DATA.getRegion(matchData);
+        for (int i = 0; i < regs.beg.length; i++) {
+            if (regs.beg[i] == -1) {
+                continue;
+            } else {
+                regs.beg[i] = regs.beg[i] + startPos;
+                regs.end[i] = regs.end[i] + startPos;
+            }
+        }
+        return matchData;
+    }
+
     @Primitive(name = "regexp_search_from_binary", lowerFixnum = 2)
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
@@ -230,9 +249,13 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(DynamicObject regexp, DynamicObject string, int startPos) {
             final Rope rope = StringOperations.rope(string);
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false);
+            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false, startPos);
             final int endPos = rope.byteLength();
-            return matchNode.execute(regexp, string, matcher, startPos, endPos, false);
+            DynamicObject result = matchNode.execute(regexp, string, matcher, startPos, endPos, false);
+            if (result != nil()) {
+                fixupMatchDataForStart(result, startPos);
+            }
+            return result;
         }
     }
 
@@ -417,7 +440,8 @@ public abstract class RegexpNodes {
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") TruffleRegexpNodes.MatchNode matchNode) {
             final Rope rope = StringOperations.rope(string);
-            final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
+            final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0);
+
 
             if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
