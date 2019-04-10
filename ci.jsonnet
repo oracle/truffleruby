@@ -357,10 +357,6 @@ local part_definitions = {
       targets+: ["gate"],
       notify_emails: false,
     },
-    deploy: {
-      capabilities+: self["$.cap"].normal_machine,
-      targets+: ["deploy", "post-merge"],
-    },
     bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
       is_after+:: ["$.cap.bench"],
@@ -378,10 +374,6 @@ local part_definitions = {
   },
 
   run: {
-    deploy_truffleruby_binaries: {
-      run+: [["mx", "ruby_deploy_binaries"]],
-    },
-
     test_unit_tck_specs: {
       run+: [
         ["mx", "unittest", "org.truffleruby"],
@@ -711,17 +703,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         { timelimit: "02:00:00" },
     },
 
-  deploy_builds:
-    {
-      local deploy = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
-                     $.run.deploy_truffleruby_binaries + { timelimit: "20:00" },
-
-      "ruby-deploy-linux": $.platform.linux + deploy,
-      "ruby-deploy-darwin": $.platform.darwin + deploy,
-    },
-
   builds:
-    local all_builds = $.test_builds + $.bench_builds + $.deploy_builds;
+    local all_builds = $.test_builds + $.bench_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field

@@ -60,16 +60,6 @@ def build_truffleruby(args = []):
     mx.command_function('sversions')([])
     jt('build', '--no-sforceimports')
 
-def ruby_deploy_binaries(args):
-    """Deploy a binary suite for truffleruby"""
-    assert len(args) == 0
-    deploy_binary = mx.command_function('deploy-binary')
-    # Deploy platform-independent distributions only on Linux to avoid duplicates
-    if sys.platform.startswith('linux'):
-        return deploy_binary(['--skip-existing', 'truffleruby-binary-snapshots'])
-    else:
-        return deploy_binary(['--skip-existing', '--platform-dependent', 'truffleruby-binary-snapshots'])
-
 def miniruby_for_building_cexts(args):
     jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
     mx_binary = join(mx._mx_home, 'mx')
@@ -181,7 +171,6 @@ mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
     'build_truffleruby': [build_truffleruby, ''],
     'miniruby_for_building_cexts': [miniruby_for_building_cexts, ''],
-    'ruby_deploy_binaries': [ruby_deploy_binaries, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
