@@ -1686,7 +1686,7 @@ module Truffle::CExt
     write = (events & RB_WAITFD_OUT) != 0 ? [io] : nil
     error = (events & RB_WAITFD_PRI) != 0 ? [io] : nil
     timeout = nil
-    if tv_secs > 0 || tv_usecs > 0
+    if tv_secs >= 0 || tv_usecs >= 0
       timeout = tv_secs + tv_usecs/1.0e6
     end
     r, w, e = Truffle.invoke_primitive(:call_without_c_mutex, IO.method(:select), [read, write, error, *timeout])
