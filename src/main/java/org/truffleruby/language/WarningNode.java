@@ -13,7 +13,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 /**
  * Warns only if $VERBOSE is true.
- * Corresponds to Truffle::Warnings.warning, but in Java with a given SourceSection.
+ * Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a given SourceSection.
  */
 public class WarningNode extends WarnNode {
 
