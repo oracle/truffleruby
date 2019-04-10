@@ -29,7 +29,7 @@ public class WarningNode extends RubyBaseNode {
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().isVerbose()) {
             final DynamicObject warningString = makeStringNode.executeMake(buildWarningMessage(sourceSection, message), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-            warningMethod.call(getContext().getCoreLibrary().getWarningModule(), "warn", warningString);
+            warningMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
         }
     }
 
