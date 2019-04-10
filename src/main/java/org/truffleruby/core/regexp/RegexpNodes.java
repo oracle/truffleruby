@@ -227,14 +227,16 @@ public abstract class RegexpNodes {
     }
 
     @TruffleBoundary
-    protected static DynamicObject fixupMatchDataForStart(DynamicObject matchData, int startPos) {
+    private static DynamicObject fixupMatchDataForStart(DynamicObject matchData, int startPos) {
         Region regs = Layouts.MATCH_DATA.getRegion(matchData);
-        for (int i = 0; i < regs.beg.length; i++) {
-            if (regs.beg[i] == -1) {
-                continue;
-            } else {
-                regs.beg[i] = regs.beg[i] + startPos;
-                regs.end[i] = regs.end[i] + startPos;
+        if (startPos != 0) {
+            for (int i = 0; i < regs.beg.length; i++) {
+                if (regs.beg[i] == -1) {
+                    continue;
+                } else {
+                    regs.beg[i] += startPos;
+                    regs.end[i] += startPos;
+                }
             }
         }
         return matchData;
