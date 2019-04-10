@@ -791,7 +791,7 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      Truffle::Warnings.warn 'encoding options not supported in 1.8'
+      warn 'encoding options not supported in 1.8', uplevel: 1
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -808,7 +808,7 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      Truffle::Warnings.warn 'encoding options not supported in 1.8'
+      warn 'encoding options not supported in 1.8', uplevel: 1
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -1186,7 +1186,7 @@ class IO
   #
   def initialize(fd, mode=nil, options=undefined)
     if block_given?
-      Truffle::Warnings.warn 'IO::new() does not take block; use IO::open() instead'
+      warn 'IO::new() does not take block; use IO::open() instead', uplevel: 1
     end
 
     @eof = false
@@ -2528,7 +2528,7 @@ class IO
     if @ibuffer.write_synced?
       raise IOError unless @ibuffer.empty?
     else
-      Truffle::Warnings.warn 'sysseek for buffered IO'
+      warn 'sysseek for buffered IO', uplevel: 1
     end
 
     amount = Integer(amount)

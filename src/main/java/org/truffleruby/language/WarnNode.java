@@ -20,7 +20,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 /**
  * Warns if $VERBOSE is true or false, but not nil.
- * Corresponds to Truffle::Warnings.warn, but in Java with a given SourceSection.
+ * Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a given SourceSection.
  */
 public class WarnNode extends RubyBaseNode {
 

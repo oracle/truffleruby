@@ -113,7 +113,7 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !undefined.equal?(item)
-      Truffle::Warnings.warn 'given block not used' if block_given?
+      warn 'given block not used', uplevel: 1 if block_given?
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
@@ -653,7 +653,7 @@ module Enumerable
         i += 1
       end
     else
-      Truffle::Warnings.warn 'given block not used' if block_given?
+      warn 'given block not used', uplevel: 1 if block_given?
 
       i = 0
       each do

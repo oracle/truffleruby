@@ -241,8 +241,8 @@ class Numeric
     begin
       values = other.coerce(self)
     rescue
-      Truffle::Warnings.warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
-      Truffle::Warnings.warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
+      warn 'Numerical comparison operators will no more rescue exceptions of #coerce', uplevel: 1
+      warn 'in the next release. Return nil in #coerce if the coercion is impossible.', uplevel: 1
       return math_coerce_error(other, error)
     end
 
