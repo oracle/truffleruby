@@ -18,16 +18,10 @@ export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
 export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
 ```
 
-For using C++ extensions you also need to install:
+For building and using C++ extensions you also need to install:
 
 ```
 yum-config-manager --enable ol7_developer_EPEL
-yum install libcxx
-```
-
-And for building C++ extensions:
-
-```
 yum install libcxx-devel
 ```
 
@@ -61,13 +55,7 @@ For building C extensions you need to install:
 sudo dnf install make clang llvm
 ```
 
-For using C++ extensions you also need to install:
-
-```
-sudo dnf install libcxx
-```
-
-And for building C++ extensions:
+For building and using C++ extensions you also need to install:
 
 ```
 sudo dnf install libcxx-devel
@@ -77,13 +65,26 @@ sudo dnf install libcxx-devel
 
 The tested version of LLVM for macOS 10.13 and 10.14 is 4.0.1.
 
-We need the `opt` command, so you can't just use what is installed by Xcode if
-you are on macOS. For building and using C and C++ extensions on macOS we
-recommend just installing the full `llvm` package. Make sure you have also
-installed the standard C headers from Xcode via `xcode-select --install`, and on
-Mojave make sure you have installed `macOS_SDK_headers_for_macOS_10.14.pkg`.
+### Development Tools and System Headers
 
-### Homebrew
+First, make sure you have installed the command line developer tools from Xcode:
+
+```
+xcode-select --install
+```
+
+On macOS Mojave, you also have to install headers, as macOS does not provide system headers in standard locations:
+
+```
+open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
+```
+
+### LLVM
+
+We need the `opt` and `llvm-link` commands to build C and C++ extensions, so the system `clang` is not enough on macOS.
+Therefore, it is required to install the full `llvm` package with your package manager.
+
+#### Homebrew
 
 We would recommend that you install LLVM 4 via [Homebrew](https://brew.sh).
 
@@ -91,7 +92,7 @@ We would recommend that you install LLVM 4 via [Homebrew](https://brew.sh).
 brew install llvm@4
 ```
 
-### MacPorts
+#### MacPorts
 
 MacPorts should also work but is not actively tested. Use LLVM 4.0 here as well.
 
