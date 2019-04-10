@@ -11,6 +11,18 @@
 module Truffle
   module StringOperations
 
+    class SimpleStringIO
+      attr_reader :string
+
+      def initialize
+        @string = +''
+      end
+
+      def write(*args)
+        @string.concat(*args)
+      end
+    end
+
     def self.gsub_block_set_last_match(s, pattern, &block)
       Truffle::StringOperations.gsub_internal_block(s, pattern) do |m|
         RegexpOperations.set_last_match(m, block.binding)

@@ -566,7 +566,9 @@ module Kernel
 
   def warn(*messages)
     unless $VERBOSE.nil? or messages.empty?
-      Truffle::IOOperations.puts($stderr, *messages)
+      stringio = Truffle::StringOperations::SimpleStringIO.new
+      Truffle::IOOperations.puts(stringio, *messages)
+      Warning.warn(stringio.string)
     end
     nil
   end
