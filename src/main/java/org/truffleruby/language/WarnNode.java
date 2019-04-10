@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -25,16 +27,22 @@ public class WarnNode extends RubyBaseNode {
     @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-    private Object callWarn(String warningMessage) {
-        final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        return warnMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
-    }
-
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().warningsEnabled()) {
-            final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
-            callWarn(sourceLocation + "warning: " + message);
+            callWarn(sourceSection, message);
         }
+    }
+
+    void callWarn(SourceSection sourceSection, String message) {
+        final String warningMessage = buildWarningMessage(getContext(), sourceSection, message);
+        final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        warnMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
+    }
+
+    @TruffleBoundary
+    private static String buildWarningMessage(RubyContext context, SourceSection sourceSection, String message) {
+        final String sourceLocation = sourceSection != null ? context.fileLine(sourceSection) + ": " : "";
+        return sourceLocation + "warning: " + message;
     }
 
 }
