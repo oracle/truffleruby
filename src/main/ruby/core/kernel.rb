@@ -564,9 +564,23 @@ module Kernel
   end
   module_function :untrace_var
 
-  def warn(*messages)
+  def warn(*messages, uplevel: undefined)
     unless $VERBOSE.nil? or messages.empty?
-      stringio = Truffle::StringOperations::SimpleStringIO.new
+      prefix = if undefined.equal?(uplevel)
+                 +''
+               else
+                 uplevel = Truffle::Type.coerce_to_int(uplevel)
+                 raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
+
+                 caller = caller_locations(uplevel + 1, 1)[0]
+                 if caller
+                   "#{caller.path}:#{caller.lineno}: warning: "
+                 else
+                   +'warning: '
+                 end
+               end
+
+      stringio = Truffle::StringOperations::SimpleStringIO.new(prefix)
       Truffle::IOOperations.puts(stringio, *messages)
       Warning.warn(stringio.string)
     end

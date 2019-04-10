@@ -11,11 +11,12 @@
 module Truffle
   module StringOperations
 
+    # Similar to MRI's Warning::buffer class
     class SimpleStringIO
       attr_reader :string
 
-      def initialize
-        @string = +''
+      def initialize(str)
+        @string = str
       end
 
       def write(*args)
