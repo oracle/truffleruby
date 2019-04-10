@@ -39,10 +39,12 @@ lines
 pid
 pos
 pos=
+pread
 print
 printf
 putc
 puts
+pwrite
 read
 read_nonblock
 readbyte

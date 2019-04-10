@@ -1,49 +1,33 @@
-fails:Public methods on Kernel should not include yield_self
-fails:Public methods on Range should not include clone
-fails:Public methods on Range should not include collect
-fails:Public methods on Range should not include dup
-fails:Public methods on Range should not include each_internal
-fails:Public methods on Range should not include map
-fails:Public methods on Range should not include step_internal
-fails:Public methods on Range should not include to_a
-fails:Public methods on Range should not include to_a_from_enumerable
-fails:Public methods on Range should not include to_a_internal
+fails:Public methods on Array should include all?
+fails:Public methods on Array should include none?
+fails:Public methods on Array should include one?
+fails:Public methods on Array should not include frozen?
+fails:Public methods on Complex should include to_c
+fails:Public methods on Complex should not include divide
+fails:Public methods on Complex should not include marshal_load
+fails:Public methods on Enumerable should include chain
+fails:Public methods on Enumerable should include filter
+fails:Public methods on Enumerator should include +
+fails:Public methods on File should include birthtime
+fails:Public methods on File should not include inspect
+fails:Public methods on File should not include stat
 fails:Public methods on Float should include hash
 fails:Public methods on Float should include negative?
 fails:Public methods on Float should include positive?
 fails:Public methods on Float should include zero?
-fails:Public methods on Rational should not include divide
-fails:Public methods on Rational should include -@
-fails:Public methods on Rational should include fdiv
-fails:Public methods on Rational should include magnitude
-fails:Public methods on Rational should include negative?
-fails:Public methods on Rational should include positive?
-fails:Public methods on Complex should not include divide
-fails:Public methods on Complex should not include marshal_load
-fails:Public methods on Complex should include to_c
+fails:Public methods on Hash should include any?
 fails:Public methods on Hash should not include __store__
 fails:Public methods on Hash should not include _get_or_undefined
 fails:Public methods on Hash should not include collect
 fails:Public methods on Hash should not include map
-fails:Public methods on Hash should not include merge_fallback
 fails:Public methods on Hash should not include sort
-fails:Public methods on Hash should not include transform_keys
-fails:Public methods on Hash should not include transform_keys!
-fails:Public methods on Hash should include any?
-fails:Public methods on String should not include append
-fails:Public methods on String should not include byte_append
-fails:Public methods on String should not include chr_at
-fails:Public methods on String should not include concat_internal
-fails:Public methods on String should not include find_character
-fails:Public methods on String should not include shorten!
-fails:Public methods on String should not include substring
-fails:Public methods on String should not include to_sub_replacement
-fails:Public methods on String should include casecmp?
-fails:Public methods on String should include freeze
-fails:Public methods on String should include unpack1
-fails:Public methods on File should not include inspect
-fails:Public methods on File should not include stat
-fails:Public methods on File should include birthtime
+fails:Public methods on Integer should include allbits?
+fails:Public methods on Integer should include anybits?
+fails:Public methods on Integer should include nobits?
+fails:Public methods on Integer should include pow
+fails:Public methods on IO should include fdatasync
+fails:Public methods on IO should include pread
+fails:Public methods on IO should include pwrite
 fails:Public methods on IO should not include buffer_empty?
 fails:Public methods on IO should not include descriptor
 fails:Public methods on IO should not include descriptor=
@@ -70,8 +54,34 @@ fails:Public methods on IO should not include pipe?
 fails:Public methods on IO should not include read_bom_byte
 fails:Public methods on IO should not include reset_buffering
 fails:Public methods on IO should not include strip_bom
-fails:Public methods on IO should include fdatasync
-fails:Public methods on String should not include delete_prefix
-fails:Public methods on String should not include delete_prefix!
-fails:Public methods on String should not include delete_suffix
-fails:Public methods on String should not include delete_suffix!
+fails:Public methods on Kernel should include then
+fails:Public methods on Numeric should include clone
+fails:Public methods on Numeric should include dup
+fails:Public methods on Range should include %
+fails:Public methods on Range should include entries
+fails:Public methods on Range should not include clone
+fails:Public methods on Range should not include collect
+fails:Public methods on Range should not include dup
+fails:Public methods on Range should not include each_internal
+fails:Public methods on Range should not include map
+fails:Public methods on Range should not include step_internal
+fails:Public methods on Range should not include to_a_from_enumerable
+fails:Public methods on Range should not include to_a_internal
+fails:Public methods on Rational should include -@
+fails:Public methods on Rational should include fdiv
+fails:Public methods on Rational should include magnitude
+fails:Public methods on Rational should include negative?
+fails:Public methods on Rational should include positive?
+fails:Public methods on Rational should not include divide
+fails:Public methods on String should include each_grapheme_cluster
+fails:Public methods on String should include freeze
+fails:Public methods on String should include grapheme_clusters
+fails:Public methods on String should include undump
+fails:Public methods on String should not include append
+fails:Public methods on String should not include byte_append
+fails:Public methods on String should not include chr_at
+fails:Public methods on String should not include concat_internal
+fails:Public methods on String should not include find_character
+fails:Public methods on String should not include shorten!
+fails:Public methods on String should not include substring
+fails:Public methods on String should not include to_sub_replacement

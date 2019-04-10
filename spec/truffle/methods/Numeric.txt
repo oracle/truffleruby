@@ -7,12 +7,14 @@ abs2
 angle
 arg
 ceil
+clone
 coerce
 conj
 conjugate
 denominator
 div
 divmod
+dup
 eql?
 fdiv
 finite?

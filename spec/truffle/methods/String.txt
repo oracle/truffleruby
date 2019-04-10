@@ -33,12 +33,17 @@ count
 crypt
 delete
 delete!
+delete_prefix
+delete_prefix!
+delete_suffix
+delete_suffix!
 downcase
 downcase!
 dump
 each_byte
 each_char
 each_codepoint
+each_grapheme_cluster
 each_line
 empty?
 encode
@@ -49,6 +54,7 @@ eql?
 force_encoding
 freeze
 getbyte
+grapheme_clusters
 gsub
 gsub!
 hash
@@ -110,6 +116,7 @@ tr
 tr!
 tr_s
 tr_s!
+undump
 unicode_normalize
 unicode_normalize!
 unicode_normalized?

@@ -48,6 +48,7 @@ You'll usually get some conflicts to work out.
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
 * Update `doc/contributor/stdlib.md`
+* Update method lists - see `spec/truffle/methods_spec.rb`
 
 ## Update libraries from third-party repos
 
