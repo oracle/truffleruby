@@ -8,7 +8,7 @@ Bug fixes:
 New features:
 
 * Rounding modes have been implemented or improved for `Float`, `Rational`, `BigDecimal` (#1509).
-* Fixed search for `openssl` and `llvm` to find Homebrew installed in other prefixes than `/usr/local` (#1583).
+* Support Homebrew installed in other prefixes than `/usr/local` (#1583).
 
 Compatibility:
 
