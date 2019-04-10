@@ -293,9 +293,23 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   bool erased_kwargs = false;
   bool found_kwargs = false;
 
-  if (rest && kwargs && !polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", argv[argc - 1], Qfalse))) {
-    kwargs = false;
-    erased_kwargs = true;
+  if (kwargs && (n_mand < argc)) {
+    VALUE last = argv[argc - 1];
+
+    if (NIL_P(last)) {
+      /* nil is taken as an empty option hash only if it is not
+         ambiguous; i.e. '*' is not specified and arguments are
+         given more than sufficient */
+      if (rest || n_mand + n_opt >= argc) {
+        kwargs = false;
+        erased_kwargs = true;
+      }
+    } else {
+      if (!polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", argv[argc - 1], Qfalse))) {
+        kwargs = false;
+        erased_kwargs = true;
+      }
+    }
   }
 
   int trailing = post;
