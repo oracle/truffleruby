@@ -236,6 +236,10 @@ module Truffle::FFI
       self
     end
 
+    def read_bytes(length)
+      get_bytes(0, length)
+    end
+
     def write_bytes(str, index = 0, length = nil)
       put_bytes(0, str, index, length)
     end
