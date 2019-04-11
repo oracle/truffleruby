@@ -1655,7 +1655,11 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
-  return RUBY_INVOKE(hash, "fetch", key, default_value);
+  VALUE result = RUBY_INVOKE(hash, "_get_or_undefined", key);
+  if (result == Qundef) {
+    result = default_value;
+  }
+  return result;
 }
 
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none) {
