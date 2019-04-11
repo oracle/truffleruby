@@ -216,19 +216,23 @@ module Process
     elsif Truffle::Platform.linux? && File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(title)
     elsif Truffle::Platform.darwin?
-      # When we call _NSGetArgv we seem to always get a string that looks like what we'd expect from running ps, but
-      # with a null character inserted early. I don't know where this comes from, but it means I don't know how to get
-      # the length of space available for writing in the new program name. We therefore limit to about 40 characters,
-      # which is a number without any foundation, but it at least allows the specs to pass, the functionality to be
-      # useful, and probably avoid crashing anyone's programs. I can't pretend this is great engineering.
-      name_address = Truffle::POSIX._NSGetArgv.read_pointer.read_pointer
-      name_address.write_string_length title, 40
-      title
+      setproctitle_darwin(title)
     else
       # Silently don't set the process title if we can't do it
-      title
     end
+
+    title
   end
+
+  def self.setproctitle_darwin(title)
+    argv0_address = Truffle::POSIX._NSGetArgv.read_pointer.read_pointer
+
+    @_argv0_max_length ||= argv0_address.read_string.bytesize
+
+    new_title = setproctitle_truncate_title(title, @_argv0_max_length)
+    argv0_address.write_string new_title
+  end
+  private_class_method :setproctitle_darwin
 
   # Very hacky implementation to pass the specs, since the JVM doesn't give us argv[0]
   # Overwrite *argv inplace because finding the argv pointer itself is harder.
@@ -266,20 +270,24 @@ module Process
       base + i
     end
 
-    if title.bytesize > @_argv0_max_length
-      title = title.byteslice(0, @_argv0_max_length)
-    end
-    new_title = title + "\x00" * (@_argv0_max_length - title.bytesize)
+    new_title = setproctitle_truncate_title(title, @_argv0_max_length)
 
     argv0_ptr = FFI::Pointer.new(:char, @_argv0_address)
     argv0_ptr.write_string(new_title)
 
     new_command = File.binread('/proc/self/cmdline')
     raise 'failed' unless new_command.start_with?(new_title)
-
-    title
   end
   private_class_method :setproctitle_linux_from_proc_maps
+
+  def self.setproctitle_truncate_title(title, size)
+    if title.bytesize > size
+      title.byteslice(0, size)
+    else
+      title + "\x00" * (size - title.bytesize)
+    end
+  end
+  private_class_method :setproctitle_truncate_title
 
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
     resource =  coerce_rlimit_resource(resource)
