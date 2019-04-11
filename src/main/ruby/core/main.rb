@@ -45,9 +45,7 @@ class << self
   end
 
   def define_method(*args, &block)
-    Truffle.privately do
-      Object.define_method(*args, &block)
-    end
+    Object.define_method(*args, &block)
   end
 
   def to_s

@@ -15,7 +15,7 @@ module Truffle
     def self.import_method(name)
       method = import(name.to_s)
 
-      Object.send(:define_method, name.to_sym) do |*args|
+      Object.define_method(name.to_sym) do |*args|
         Truffle::Interop.execute(method, *args)
       end
     end
