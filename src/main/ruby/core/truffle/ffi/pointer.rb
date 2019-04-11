@@ -164,7 +164,7 @@ module Truffle::FFI
 
     def read_string(len = nil)
       if len
-        return +'' if len == 0
+        return ''.b if len == 0
         get_bytes(0, len)
       else
         get_string(0)
