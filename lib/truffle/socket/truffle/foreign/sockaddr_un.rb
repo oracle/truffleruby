@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Foreign
       class SockaddrUn < ::FFI::Struct
-        config('platform.sockaddr_un', :sun_family, :sun_path)
+        Truffle::Socket.config(self, 'platform.sockaddr_un', :sun_family, :sun_path)
 
         def self.with_sockaddr(addr)
           if addr.bytesize > size

@@ -282,7 +282,7 @@ class Socket < BasicSocket
       begin
         struct.to_s
       ensure
-        struct.free
+        struct.pointer.free
       end
     end
 
@@ -292,7 +292,7 @@ class Socket < BasicSocket
       begin
         struct[:sun_path].to_s
       ensure
-        struct.free
+        struct.pointer.free
       end
     end
 

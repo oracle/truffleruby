@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Foreign
       class Msghdr < ::FFI::Struct
-        config('platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
+        Truffle::Socket.config(self, 'platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
                :msg_iovlen, :msg_control, :msg_controllen, :msg_flags)
 
         def self.with_buffers(address, io_vec)

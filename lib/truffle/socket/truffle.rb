@@ -38,6 +38,44 @@ module Truffle
       ::Socket::Constants.const_defined?(:AF_UNIX)
     end
 
+    def self.config(struct_class, base, *fields)
+      struct_class.instance_variable_set(:@size, Truffle::Config["#{base}.sizeof"])
+      layout_args = []
+
+      fields.each do |field|
+        field  = field.to_sym
+        offset = Truffle::Config["#{base}.#{field}.offset"]
+        size   = Truffle::Config["#{base}.#{field}.size"]
+        type   = Truffle::Config.lookup("#{base}.#{field}.type")
+        type   = if type == 'char_array'
+                   [:char, size]
+                 elsif type
+                   type.to_sym
+                 else
+                   ffi_type_for_size(size)
+                 end
+
+        if !(Array === type) && ::FFI.find_type(type).size != size
+          raise ArgumentError, "FFI::Type#size of #{type} (#{::FFI.find_type(type).size}) differs from config size (#{size})"
+        end
+
+        layout_args << field << type << offset
+      end
+
+      struct_class.layout(*layout_args)
+    end
+
+    def self.ffi_type_for_size(size)
+      case size
+      when 1 then :char
+      when 2 then :short
+      when 4 then :int
+      when 8 then :long
+      else
+        raise ArgumentError, "Unknown type for size #{size}"
+      end
+    end
+
     def self.aliases_for_hostname(hostname)
       pointer = Foreign.gethostbyname(hostname)
       return [] if pointer.null? # Truffle: added null check
@@ -94,7 +132,7 @@ module Truffle
 
         return socket, addrinfo
       ensure
-        sockaddr.free
+        sockaddr.pointer.free
       end
     end
     private_class_method :internal_accept

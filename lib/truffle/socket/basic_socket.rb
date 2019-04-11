@@ -137,7 +137,7 @@ class BasicSocket < IO
           bytes_sent = Truffle::Socket::Foreign
             .sendto(@descriptor, buffer, bytes, flags, addr, addr.size)
         ensure
-          addr.free
+          addr.pointer.free
         end
       else
         bytes_sent = Truffle::Socket::Foreign
@@ -230,9 +230,9 @@ class BasicSocket < IO
         return msg_buffer.read_string(msg_size), addr, header.flags
       ensure
         msg_buffer.free
-        address.free
-        io_vec.free
-        header.free
+        address.pointer.free
+        io_vec.pointer.free
+        header.pointer.free
       end
     end
 
@@ -284,9 +284,9 @@ class BasicSocket < IO
 
       num_bytes
     ensure
-      address.free if address
-      header.free
-      io_vec.free
+      address.pointer.free if address
+      header.pointer.free
+      io_vec.pointer.free
       msg_buffer.free
     end
   end

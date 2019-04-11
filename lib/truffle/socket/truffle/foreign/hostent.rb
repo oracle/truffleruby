@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Foreign
       class Hostent < ::FFI::Struct
-        config('platform.hostent', :h_name, :h_aliases, :h_addrtype,
+        Truffle::Socket.config(self, 'platform.hostent', :h_name, :h_aliases, :h_addrtype,
                :h_length, :h_addr_list)
 
         def hostname

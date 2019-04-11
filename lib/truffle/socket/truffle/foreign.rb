@@ -28,6 +28,7 @@ module Truffle
   module Socket
     module Foreign
       extend ::FFI::Library
+      ffi_lib ::FFI::Library::LIBC
 
       SIZEOF_INT = ::FFI.type_size(:int)
 
@@ -79,10 +80,10 @@ module Truffle
       attach_function :gethostbyname, [:string], :pointer
       attach_function :gethostbyaddr, [:pointer, :socklen_t, :int], :pointer
 
-      attach_function :htons, [:uint16_t], :uint16_t
-      attach_function :ntohs, [:uint16_t], :uint16_t
+      attach_function :htons, [:uint16], :uint16
+      attach_function :ntohs, [:uint16], :uint16
 
-      attach_function :inet_network, [:string], :uint32_t
+      attach_function :inet_network, [:string], :uint32
       attach_function :inet_pton, [:int, :string, :pointer], :int
 
       attach_function :_getnameinfo,
@@ -165,7 +166,7 @@ module Truffle
 
         addrinfos
       ensure
-        hints.free if hints
+        hints.pointer.free if hints
 
         if res_p
           ptr = res_p.read_pointer
@@ -281,7 +282,7 @@ module Truffle
 
         res[:ai_addr].read_string(res[:ai_addrlen])
       ensure
-        hints.free if hints
+        hints.pointer.free if hints
 
         if res_p
           ptr = res_p.read_pointer
