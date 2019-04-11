@@ -1,0 +1,1 @@
+fails:Time.now has at least microsecond precision
