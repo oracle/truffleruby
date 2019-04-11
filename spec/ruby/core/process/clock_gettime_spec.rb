@@ -2,11 +2,9 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/clocks'
 
 describe "Process.clock_gettime" do
-  if defined?(ProcessSpecs::CLOCK_CONSTANTS)
-    ProcessSpecs::CLOCK_CONSTANTS.each do |name, value|
-      it "can be called with Process::#{name}" do
-        Process.clock_gettime(value).should be_an_instance_of(Float)
-      end
+  ProcessSpecs.clock_constants.each do |name, value|
+    it "can be called with Process::#{name}" do
+      Process.clock_gettime(value).should be_an_instance_of(Float)
     end
   end
 
