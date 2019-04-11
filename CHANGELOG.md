@@ -5,6 +5,7 @@ Bug fixes:
 * Fixed `Hash#merge` with no arguments to return a new copy of the receiver (#1645).
 * Fixed yield with a splat and keyword arguments (#1613). 
 * Fixed `rb_scan_args` to correctly handle kwargs in combination with optional args.
+* Many fixes for `FFI::Pointer` to be more compatible with the `ffi` gem.
 
 New features:
 
