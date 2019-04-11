@@ -167,6 +167,10 @@ describe "C-API String function" do
       @s.rb_str_new("hello", 3).should == "hel"
     end
 
+    it "returns a non-tainted string" do
+      @s.rb_str_new("hello", 5).tainted?.should == false
+    end
+
     it "returns an empty string if len is 0" do
       @s.rb_str_new("hello", 0).should == ""
     end

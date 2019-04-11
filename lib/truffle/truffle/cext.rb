@@ -798,7 +798,7 @@ module Truffle::CExt
 
   def rb_str_new_native(pointer, length)
     raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
-    Truffle::FFI::Pointer.new(pointer).read_string(length)
+    Truffle::FFI::Pointer.new(pointer).read_string(length).untaint
   end
 
   def rb_enc_str_coderange(str)
