@@ -231,9 +231,7 @@ public abstract class RegexpNodes {
         Region regs = Layouts.MATCH_DATA.getRegion(matchData);
         if (startPos != 0) {
             for (int i = 0; i < regs.beg.length; i++) {
-                if (regs.beg[i] == -1) {
-                    continue;
-                } else {
+                if (regs.beg[i] != -1) {
                     regs.beg[i] += startPos;
                     regs.end[i] += startPos;
                 }
