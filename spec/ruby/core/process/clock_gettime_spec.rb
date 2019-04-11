@@ -1,16 +1,10 @@
 require_relative '../../spec_helper'
+require_relative 'fixtures/clocks'
 
 describe "Process.clock_gettime" do
-  platform_is_not :windows, :solaris do
-    Process.constants.select { |c|
-      c.to_s.start_with?('CLOCK_') &&
-      # These require CAP_WAKE_ALARM and are not documented in clock_gettime(),
-      # they return EINVAL if the permission is not granted.
-      c != :CLOCK_BOOTTIME_ALARM &&
-      c != :CLOCK_REALTIME_ALARM
-    }.each do |c|
-      it "can be called with Process::#{c}" do
-        value = Process.const_get(c)
+  if defined?(ProcessSpecs::CLOCK_CONSTANTS)
+    ProcessSpecs::CLOCK_CONSTANTS.each do |name, value|
+      it "can be called with Process::#{name}" do
         Process.clock_gettime(value).should be_an_instance_of(Float)
       end
     end
