@@ -225,8 +225,6 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   const char *formatp = format;
   int pre = 0;
   int optional = 0;
-  int n_mand = 0;
-  int n_opt = 0;
   bool rest;
   int post = 0;
   bool kwargs;
@@ -280,8 +278,8 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     rb_raise(rb_eArgError, "not enough arguments for required");
   }
 
-  n_mand = pre + post;
-  n_opt = optional;
+  const int n_mand = pre + post;
+  const int n_opt = optional;
 
   // Read arguments
 
@@ -300,7 +298,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
       /* nil is taken as an empty option hash only if it is not
          ambiguous; i.e. '*' is not specified and arguments are
          given more than sufficient */
-      if (rest || n_mand + n_opt >= argc) {
+      if (rest || argc <= n_mand + n_opt) {
         kwargs = false;
         erased_kwargs = true;
       }
