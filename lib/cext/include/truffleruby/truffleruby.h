@@ -288,6 +288,9 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   bool taken_rest = false;
   bool taken_block = false;
   bool taken_kwargs = false;
+  // Indicates that although the function can take kwargs they aren't
+  // actually being consumed from the provided arguments. The variable
+  // accepting them will still need to be set to Qnil in such cases.
   bool erased_kwargs = false;
   bool found_kwargs = false;
 
