@@ -27,12 +27,9 @@
 module Truffle
   module Socket
     module Foreign
-      def self.attach_function(method_name, native_name = method_name, args_types, return_type, blocking: false)
-        Truffle::POSIX.attach_function(native_name, args_types, return_type,
-                                       Truffle::POSIX::LIBC, blocking, method_name, self)
-      end
+      extend ::FFI::Library
 
-      SIZEOF_INT = Truffle::FFI.type_size(:int)
+      SIZEOF_INT = ::FFI.type_size(:int)
 
       attach_function :_bind, :bind, [:int, :pointer, :socklen_t], :int
       attach_function :_connect, :connect, [:int, :pointer, :socklen_t], :int, blocking: true
@@ -329,12 +326,12 @@ module Truffle
       end
 
       def self.memory_pointer(*args, &block)
-        Truffle::FFI::MemoryPointer.new(*args, &block)
+        ::FFI::MemoryPointer.new(*args, &block)
       end
 
       def self.pointers_of_type(current, type)
         pointers = []
-        size     = Truffle::FFI.type_size(type)
+        size     = ::FFI.type_size(type)
         pointer  = current.read_pointer
 
         until pointer.null?

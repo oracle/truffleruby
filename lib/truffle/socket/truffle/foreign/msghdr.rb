@@ -27,7 +27,7 @@
 module Truffle
   module Socket
     module Foreign
-      class Msghdr < Truffle::FFI::Struct
+      class Msghdr < ::FFI::Struct
         config('platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
                :msg_iovlen, :msg_control, :msg_controllen, :msg_flags)
 

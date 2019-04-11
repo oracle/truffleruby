@@ -27,7 +27,7 @@
 module Truffle
   module Socket
     module Foreign
-      class Hostent < Truffle::FFI::Struct
+      class Hostent < ::FFI::Struct
         config('platform.hostent', :h_name, :h_aliases, :h_addrtype,
                :h_length, :h_addr_list)
 

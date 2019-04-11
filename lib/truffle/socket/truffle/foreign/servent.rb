@@ -27,7 +27,7 @@
 module Truffle
   module Socket
     module Foreign
-      class Servent < Truffle::FFI::Struct
+      class Servent < ::FFI::Struct
         config('platform.servent', :s_name, :s_aliases, :s_port, :s_proto)
 
         def name
