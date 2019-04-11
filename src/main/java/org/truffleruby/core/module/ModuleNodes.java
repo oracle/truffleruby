@@ -993,7 +993,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "proc", type = RubyNode.class)

@@ -45,7 +45,7 @@ module Truffle::CExt
       end
     end
 
-    mod.send(:define_method, name, method_body)
+    mod.define_method(name, method_body)
   end
 
   private

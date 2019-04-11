@@ -1230,7 +1230,7 @@ module Truffle::CExt
   end
 
   def rb_define_method_undefined(mod, name)
-    mod.send(:define_method, name) do |*|
+    mod.define_method(name) do |*|
       raise NotImplementedError, "#{name}() function is unimplemented on this machine"
     end
   end
@@ -1280,7 +1280,7 @@ module Truffle::CExt
   end
 
   def rb_define_alloc_func(ruby_class, function)
-    ruby_class.singleton_class.send(:define_method, :__allocate__) do
+    ruby_class.singleton_class.define_method(:__allocate__) do
       Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, [Truffle::CExt.rb_tr_wrap(self)]))
     end
     class << ruby_class

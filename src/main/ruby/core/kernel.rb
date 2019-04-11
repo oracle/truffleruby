@@ -218,9 +218,7 @@ module Kernel
   alias_method :iterator?, :block_given?
 
   def define_singleton_method(*args, &block)
-    Truffle.privately do
-      singleton_class.define_method(*args, &block)
-    end
+    singleton_class.define_method(*args, &block)
   end
 
   def display(port=$>)

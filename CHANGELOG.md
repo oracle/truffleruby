@@ -16,6 +16,7 @@ Compatibility:
 * The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's message formatting (#1633).
 * Add the missing `key` and `receiver` values to `KeyError` raised from `ENV#fetch`.
 * `String#unicode_normalize` has been moved to the core library like in MRI.
+* `Module#define_method` is now public like in MRI.
 
 # 1.0 RC 15, 5 April 2019
 
