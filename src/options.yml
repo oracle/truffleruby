@@ -170,4 +170,3 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     SHARED_OBJECTS_ENABLED: [shared-objects, boolean, true, Enable thread-safe objects]
     SHARED_OBJECTS_DEBUG: [shared-objects-debug, boolean, false, Print information about shared objects]
     SHARED_OBJECTS_FORCE: [shared-objects-force, boolean, false, Force sharing of objects roots at startup]
-    SHARED_OBJECTS_SHARE_ALL: [shared-objects-share-all, boolean, false, Consider all objects as shared]

@@ -144,7 +144,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_ENABLED_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> SHARED_OBJECTS_DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> SHARED_OBJECTS_SHARE_ALL_KEY = new OptionKey<>(false);
     
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
             .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")
@@ -1007,13 +1006,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor SHARED_OBJECTS_SHARE_ALL = OptionDescriptor
-            .newBuilder(SHARED_OBJECTS_SHARE_ALL_KEY, "ruby.shared-objects-share-all")
-            .help("Consider all objects as shared")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static OptionDescriptor fromName(String name) {
         switch (name) {
             case "ruby.load-paths":
@@ -1262,8 +1254,6 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_DEBUG;
             case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
-            case "ruby.shared-objects-share-all":
-                return SHARED_OBJECTS_SHARE_ALL;
             default:
                 return null;
         }
@@ -1394,7 +1384,6 @@ public class OptionsCatalog {
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
-            SHARED_OBJECTS_SHARE_ALL,
         };
     }
 

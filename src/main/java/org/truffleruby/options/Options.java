@@ -146,7 +146,6 @@ public class Options {
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
     public final boolean SHARED_OBJECTS_FORCE;
-    public final boolean SHARED_OBJECTS_SHARE_ALL;
     
     public Options(Env env, OptionValues options) {
         LOAD_PATHS = options.get(OptionsCatalog.LOAD_PATHS_KEY);
@@ -272,7 +271,6 @@ public class Options {
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
-        SHARED_OBJECTS_SHARE_ALL = options.get(OptionsCatalog.SHARED_OBJECTS_SHARE_ALL_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -523,8 +521,6 @@ public class Options {
                 return SHARED_OBJECTS_DEBUG;
             case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
-            case "ruby.shared-objects-share-all":
-                return SHARED_OBJECTS_SHARE_ALL;
             default:
                 return null;
         }
