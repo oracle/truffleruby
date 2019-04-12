@@ -242,7 +242,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
-            Layouts.POINTER.getPointer(pointer).free();
+            Layouts.POINTER.getPointer(pointer).free(getContext().getFinalizationService());
             return pointer;
         }
 
