@@ -10,13 +10,16 @@
 package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.tck.InlineSnippet;
 import org.graalvm.polyglot.tck.LanguageProvider;
 import org.graalvm.polyglot.tck.ResultVerifier;
 import org.graalvm.polyglot.tck.Snippet;
 import org.graalvm.polyglot.tck.TypeDescriptor;
 import org.junit.Assert;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.io.File;
@@ -140,6 +143,39 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         });
 
         return Collections.unmodifiableList(res);
+    }
+
+    @Override
+    public Collection<? extends InlineSnippet> createInlineScripts(Context context) {
+        List<InlineSnippet> res = new ArrayList<>();
+        res.add(createInlineSnippet(
+                context,
+                getSource("src/test/ruby/lexical-context.rb"),
+                16,
+                "a + b + c",
+                14 + 2 + 6));
+        res.add(createInlineSnippet(
+                context,
+                getSource("src/test/ruby/lexical-context.rb"),
+                16,
+                "binding.local_variable_get(:a) + binding.local_variable_get(:b) + binding.local_variable_get(:c)",
+                14 + 2 + 6));
+        return Collections.unmodifiableList(res);
+    }
+
+    private InlineSnippet createInlineSnippet(Context context, Source mainSource, int line, String inlineSource, int expected) {
+        final Snippet mainSnippet = Snippet.newBuilder(mainSource.getName(), context.eval(mainSource), TypeDescriptor.ANY).build();
+
+        return InlineSnippet.newBuilder(mainSnippet, inlineSource)
+                .locationPredicate(sourceSection ->
+                        sourceSection.getSource().getName().endsWith(mainSource.getName()) && sourceSection.getStartLine() == line)
+                .resultVerifier(snippetRun -> {
+                    final PolyglotException exception = snippetRun.getException();
+                    if (exception != null) {
+                        throw exception;
+                    }
+                    Assert.assertEquals(expected, snippetRun.getResult().asInt());
+                }).build();
     }
 
     private Snippet createValueConstructor(Context context, String value, TypeDescriptor type) {
