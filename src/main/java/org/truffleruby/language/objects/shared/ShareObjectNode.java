@@ -46,16 +46,14 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     @Specialization(
             guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
+            assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
             limit = "CACHE_LIMIT")
     @ExplodeLoop
     protected void shareCached(DynamicObject object,
             @Cached("ensureSharedClasses(getContext(), object.getShape())") Shape cachedShape,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
             @Cached("createReadAndShareFieldNodes(getObjectProperties(cachedShape))") ReadAndShareFieldNode[] readAndShareFieldNodes,
-            @Cached("createSharedShape(object)") Shape sharedShape) {
-        assert !SharedObjects.isShared(getContext(), cachedShape);
-
+            @Cached("createSharedShape(cachedShape)") Shape sharedShape) {
         // Mark the object as shared first to avoid recursion
         object.setShapeAndGrow(cachedShape, sharedShape);
 
@@ -110,10 +108,12 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         return nodes;
     }
 
-    protected static Shape createSharedShape(DynamicObject object) {
-        object.updateShape();
-        final Shape oldShape = object.getShape();
-        return oldShape.makeSharedShape();
+    protected Shape createSharedShape(Shape cachedShape) {
+        if (SharedObjects.isShared(getContext(), cachedShape)) {
+            throw new UnsupportedOperationException("Thread-safety bug: the object is already shared. This means another thread marked the object as shared concurrently.");
+        } else {
+            return cachedShape.makeSharedShape();
+        }
     }
 
 }
