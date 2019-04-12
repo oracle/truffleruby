@@ -466,9 +466,17 @@ module Utilities
     end
   end
 
-  def mx(*args, java_home: nil, **kwargs)
-    mx_args = args
-    mx_args.unshift '--java-home', java_home if java_home
+  def find_java_home
+    ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
+  end
+
+  def mx(*args, **kwargs)
+    mx_args = args.dup
+
+    if java_home = find_java_home
+      mx_args.unshift '--java-home', java_home
+    end
+
     raw_sh find_mx, *mx_args, **kwargs
   end
 
@@ -518,8 +526,8 @@ module Commands
           graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
               --graal     include graal compiler in the build
               --native    build native ruby image as well
-          native [--no-sulong] [--no-jvmci] [--no-tools] [extra mx image options]
-                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java)
+          native [--no-sulong] [--no-tools] [extra mx image options]
+                                                     build a native image of TruffleRuby
                                                      (--no-tools to exclude chromeinspector and profiler)
           --no-sforceimports
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
@@ -593,7 +601,7 @@ module Commands
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt install jvmci                              install a JVMCI JDK in the parent directory
-      jt install graal [--no-jvmci]                 install Graal in the parent directory (--no-jvmci to use the system Java)
+      jt install graal                              install Graal in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
 
@@ -606,7 +614,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        JVMCI_HOME                                   Path to the JVMCI JDK used for building GraalVM
+        JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -1903,10 +1911,9 @@ EOS
 
   def install_graal(*options)
     build
-    java_home = install_jvmci unless options.include?("--no-jvmci")
 
     puts "Building graal"
-    mx "--dy", "/compiler", "build", java_home: java_home
+    mx "--dy", "/compiler", "build"
 
     puts "Running with Graal"
     run_ruby "--graal", "-e", "p TruffleRuby.graal?"
@@ -1923,15 +1930,14 @@ EOS
     graal = options.delete('--graal')
     native = options.delete('--native')
 
-    java_home = ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
     mx_args = ['-p', TRUFFLERUBY_DIR,
                '--dynamicimports', '/vm',
                *(%w[--dynamicimports /compiler] if graal),
                *(%w[--dynamicimports /substratevm --disable-libpolyglot --disable-polyglot --force-bash-launchers=lli,native-image] if native),
                *options]
 
-    mx(*mx_args, 'build', java_home: java_home)
-    build_dir = mx(*mx_args, 'graalvm-home', java_home: java_home, capture: true).lines.last.chomp
+    mx(*mx_args, 'build')
+    build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/graalvm"
     FileUtils.rm_rf dest
@@ -1945,19 +1951,17 @@ EOS
   end
 
   def build_native_image(*options)
-    jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
 
     mx 'sforceimports' if sforceimports
 
-    java_home = install_jvmci if jvmci
     graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
 
     mx_args = %w[--dynamicimports /substratevm,truffleruby --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-image]
 
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/vm") do
-      mx *mx_args, 'build', java_home: java_home
+      mx *mx_args, 'build'
     end
 
     local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
