@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,13 +15,10 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -30,18 +27,16 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.shared.Metrics;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.shared.Metrics;
 
-import java.util.List;
-
-public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNode {
+public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final TruffleLanguage.ContextReference<RubyContext> contextReference;
     private final Source source;
-    private final List<String> argumentNames;
+    private final String[] argumentNames;
 
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private DynamicObject mainObject;
@@ -49,9 +44,8 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
     @Child private DirectCallNode callNode;
 
-    public LazyRubyRootNode(RubyLanguage language, SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
-                            List<String> argumentNames) {
-        super(language, frameDescriptor, sourceSection);
+    public RubyParsingRequestNode(RubyLanguage language, Source source, String[] argumentNames) {
+        super(language, null, null);
         contextReference = language.getContextReference();
         this.source = source;
         this.argumentNames = argumentNames;
@@ -72,8 +66,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
-            final String[] argumentsArray = argumentNames.toArray(new String[argumentNames.size()]);
-            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentsArray, null, true, null);
+            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentNames, null, true, null);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
