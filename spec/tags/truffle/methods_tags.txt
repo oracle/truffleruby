@@ -85,5 +85,3 @@ fails:Public methods on String should not include find_character
 fails:Public methods on String should not include shorten!
 fails:Public methods on String should not include substring
 fails:Public methods on String should not include to_sub_replacement
-fails:Public methods on Module should include ==
-fails:Public methods on Module should include freeze

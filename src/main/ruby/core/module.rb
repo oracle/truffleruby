@@ -47,6 +47,10 @@
 #              objects.
 
 class Module
+
+  # Copy methods from Kernel that should also be defined on Module like on MRI
+  public :==, :freeze
+
   def include?(mod)
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
