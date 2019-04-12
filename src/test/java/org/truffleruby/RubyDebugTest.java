@@ -217,6 +217,26 @@ public class RubyDebugTest {
         assertExecutedOK("OK");
     }
 
+    @Test
+    public void testInlineModifiesFrame() throws Throwable {
+        Source source = getSource("src/test/ruby/modify.rb");
+        run.addLast(() -> {
+            assertNull(suspendedEvent);
+            assertNotNull(debuggerSession);
+            debuggerSession.suspendNextExecution();
+        });
+        stepOver(2);
+        run.addLast(() -> {
+            assertNotNull(suspendedEvent);
+            suspendedEvent.getTopStackFrame().eval("a = 22");
+            run.removeFirst().run();
+        });
+        continueExecution();
+        performWork();
+        Assert.assertEquals(22 + 2 + 3, context.eval(source).asInt());
+        assertExecutedOK("OK");
+    }
+
     @Ignore
     @Test
     public void testProperties() throws Throwable {
