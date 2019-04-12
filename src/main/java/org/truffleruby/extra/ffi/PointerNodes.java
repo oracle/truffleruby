@@ -279,23 +279,23 @@ public abstract class PointerNodes {
 
         @Child private AllocateObjectNode allocateObjectNode;
 
-        @Specialization(guards = "address == 0")
-        public DynamicObject readNullPointer(long address, long length) {
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+        @Specialization(guards = "limit == 0")
+        public DynamicObject readNullPointer(long address, long limit) {
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
-        @Specialization(guards = "address != 0")
-        public DynamicObject readStringToNull(long address, long length,
+        @Specialization(guards = "limit != 0")
+        public DynamicObject readStringToNull(long address, long limit,
                 @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, length);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
             final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
             return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
         }
 
-        @Specialization(guards = { "address != 0", "isNil(noLength)" })
-        public DynamicObject readStringToNull(long address, DynamicObject noLength,
+        @Specialization(guards = "isNil(noLimit)")
+        public DynamicObject readStringToNull(long address, DynamicObject noLimit,
                 @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
