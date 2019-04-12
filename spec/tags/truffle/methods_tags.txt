@@ -86,11 +86,4 @@ fails:Public methods on String should not include shorten!
 fails:Public methods on String should not include substring
 fails:Public methods on String should not include to_sub_replacement
 fails:Public methods on Module should include ==
-fails:Public methods on Module should include alias_method
-fails:Public methods on Module should include attr
-fails:Public methods on Module should include attr_accessor
-fails:Public methods on Module should include attr_reader
-fails:Public methods on Module should include attr_writer
 fails:Public methods on Module should include freeze
-fails:Public methods on Module should include remove_method
-fails:Public methods on Module should include undef_method
