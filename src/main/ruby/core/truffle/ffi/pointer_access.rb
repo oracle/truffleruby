@@ -453,31 +453,36 @@ class Truffle::FFI::Pointer
   alias :put_array_of_uint64 :put_array_of_ulong
   alias :put_array_of_ulong_long :put_array_of_ulong
 
-  # float
+  # float, float32
 
   def read_float
     Truffle.invoke_primitive :pointer_read_float, address
   end
+  alias :read_float32 :read_float
 
   def write_float(value)
     Truffle.invoke_primitive :pointer_write_float, address, value
     self
   end
+  alias :write_float32 :write_float
 
   def get_float(offset)
     Truffle.invoke_primitive :pointer_read_float, address + offset
   end
+  alias :get_float32 :get_float
 
   def put_float(offset, value)
     Truffle.invoke_primitive :pointer_write_float, address + offset, value
     self
   end
+  alias :put_float32 :put_float
 
   def read_array_of_float(length)
     Array.new(length) do |i|
       Truffle.invoke_primitive :pointer_read_float, address + (i * 4)
     end
   end
+  alias :read_array_of_float32 :read_array_of_float
 
   def write_array_of_float(ary)
     ary.each_with_index do |value, i|
@@ -485,41 +490,49 @@ class Truffle::FFI::Pointer
     end
     self
   end
+  alias :write_array_of_float32 :write_array_of_float
 
   def get_array_of_float(offset, length)
     (self + offset).read_array_of_float(length)
   end
+  alias :get_array_of_float32 :get_array_of_float
 
   def put_array_of_float(ary)
     (self + offset).write_array_of_float(ary)
     self
   end
+  alias :put_array_of_float32 :put_array_of_float
 
-  # double
+  # double, float64
 
   def read_double
     Truffle.invoke_primitive :pointer_read_double, address
   end
+  alias :read_float64 :read_double
 
   def write_double(value)
     Truffle.invoke_primitive :pointer_write_double, address, value
     self
   end
+  alias :write_float64 :write_double
 
   def get_double(offset)
     Truffle.invoke_primitive :pointer_read_double, address + offset
   end
+  alias :get_float64 :get_double
 
   def put_double(offset, value)
     Truffle.invoke_primitive :pointer_write_double, address + offset, value
     self
   end
+  alias :put_float64 :put_double
 
   def read_array_of_double(length)
     Array.new(length) do |i|
       Truffle.invoke_primitive :pointer_read_double, address + (i * 8)
     end
   end
+  alias :read_array_of_float64 :read_array_of_double
 
   def write_array_of_double(ary)
     ary.each_with_index do |value, i|
@@ -527,24 +540,41 @@ class Truffle::FFI::Pointer
     end
     self
   end
+  alias :write_array_of_float64 :write_array_of_double
 
   def get_array_of_double(offset, length)
     (self + offset).read_array_of_double(length)
   end
+  alias :get_array_of_float64 :get_array_of_double
 
   def put_array_of_double(ary)
     (self + offset).write_array_of_double(ary)
     self
   end
+  alias :put_array_of_float64 :put_array_of_double
 
   # pointer
+
+  private def get_pointer_value(value)
+    if Truffle::FFI::Pointer === value
+      value.address
+    elsif nil.equal?(value)
+      0
+    elsif Integer === value
+      value
+    elsif value.respond_to?(:to_ptr)
+      value.to_ptr.address
+    else
+      raise ArgumentError, "#{value} is not a pointer"
+    end
+  end
 
   def read_pointer
     Truffle.invoke_primitive :pointer_read_pointer, address
   end
 
   def write_pointer(value)
-    Truffle.invoke_primitive :pointer_write_pointer, address, value
+    Truffle.invoke_primitive :pointer_write_pointer, address, get_pointer_value(value)
     self
   end
 
@@ -553,7 +583,7 @@ class Truffle::FFI::Pointer
   end
 
   def put_pointer(offset, value)
-    Truffle.invoke_primitive :pointer_write_pointer, address + offset, value
+    Truffle.invoke_primitive :pointer_write_pointer, address + offset, get_pointer_value(value)
     self
   end
 
@@ -565,7 +595,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_pointer(ary)
     ary.each_with_index do |value, i|
-      Truffle.invoke_primitive :pointer_write_pointer, address + (i * 8), value
+      Truffle.invoke_primitive :pointer_write_pointer, address + (i * 8), get_pointer_value(value)
     end
     self
   end

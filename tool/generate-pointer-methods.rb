@@ -1,6 +1,8 @@
 file = 'src/main/ruby/core/truffle/ffi/pointer_access.rb'
 
 code = <<RUBY
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -55,13 +57,13 @@ SIZEOF = {
   short: ['int16'],
   int: ['int32'],
   long: ['int64', 'long_long'],
-  float: [],
-  double: [],
+  float: ['float32'],
+  double: ['float64'],
   pointer: [],
 }.each_pair do |base_type, aliases|
   [
       '',
-      *('u' if !aliases.empty?)
+      *('u' if aliases.any? { |as| as.start_with?('int') })
   ].each do |prefix|
     type = "#{prefix}#{base_type}"
     aliases = aliases.map { |as| "#{prefix}#{as}" }
@@ -75,6 +77,28 @@ SIZEOF = {
 
     code << "  # #{[type, *aliases].join(', ')}\n\n"
 
+    transform = -> value { value }
+
+    if base_type == :pointer
+      transform = -> value { "get_pointer_value(#{value})" }
+      code << <<-RUBY
+  private def get_pointer_value(value)
+    if Truffle::FFI::Pointer === value
+      value.address
+    elsif nil.equal?(value)
+      0
+    elsif Integer === value
+      value
+    elsif value.respond_to?(:to_ptr)
+      value.to_ptr.address
+    else
+      raise ArgumentError, "\#{value} is not a pointer"
+    end
+  end
+
+RUBY
+    end
+
     code << <<-RUBY
   def read_#{type}
     Truffle.invoke_primitive :pointer_read_#{type}, address
@@ -84,7 +108,7 @@ RUBY
 
     code << <<-RUBY
   def write_#{type}(value)
-    Truffle.invoke_primitive :pointer_write_#{type}, address, value
+    Truffle.invoke_primitive :pointer_write_#{type}, address, #{transform.call('value')}
     self
   end
 RUBY
@@ -99,14 +123,14 @@ RUBY
 
     code << <<-RUBY
   def put_#{type}(offset, value)
-    Truffle.invoke_primitive :pointer_write_#{type}, address + offset, value
+    Truffle.invoke_primitive :pointer_write_#{type}, address + offset, #{transform.call('value')}
     self
   end
 RUBY
     add_aliases.call(:put)
 
     # arrays
-    
+
     code << <<-RUBY
   def read_array_of_#{type}(length)
     Array.new(length) do |i|
@@ -119,7 +143,7 @@ RUBY
     code << <<-RUBY
   def write_array_of_#{type}(ary)
     ary.each_with_index do |value, i|
-      Truffle.invoke_primitive :pointer_write_#{type}, address + (i * #{SIZEOF[base_type]}), value
+      Truffle.invoke_primitive :pointer_write_#{type}, address + (i * #{SIZEOF[base_type]}), #{transform.call('value')}
     end
     self
   end
@@ -132,7 +156,7 @@ RUBY
   end
 RUBY
     add_aliases.call(:get_array_of)
-    
+
     code << <<-RUBY
   def put_array_of_#{type}(ary)
     (self + offset).write_array_of_#{type}(ary)

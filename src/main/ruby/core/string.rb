@@ -1625,7 +1625,12 @@ class String
     raise ArgumentError, 'string contains null byte' if include?("\0")
     crypted = Truffle::POSIX.crypt(self, salt)
     Errno.handle unless crypted
-    crypted.taint if tainted? || salt.tainted?
+    if tainted? || salt.tainted?
+      crypted.taint
+    else
+      # FFI taints returned strings
+      crypted.untaint
+    end
     crypted
   end
 

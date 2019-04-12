@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra.ffi;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -24,6 +25,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -31,8 +33,10 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -174,8 +178,8 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_address")
-    public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "address=", required = 1)
+    public static abstract class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public long setAddress(DynamicObject pointer, long address) {
@@ -185,8 +189,8 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_address")
-    public static abstract class PointerAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = { "address", "to_i" })
+    public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public long address(DynamicObject pointer) {
@@ -195,8 +199,18 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_autorelease")
-    public static abstract class PointerSetAutoreleasePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "autorelease?")
+    public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isAutorelease(DynamicObject pointer) {
+            return Layouts.POINTER.getPointer(pointer).isAutorelease();
+        }
+
+    }
+
+    @CoreMethod(names = "autorelease=", required = 1)
+    public static abstract class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "autorelease")
         public boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
@@ -215,22 +229,20 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_malloc")
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
         @Specialization
-        public DynamicObject malloc(DynamicObject pointerClass, long size) {
-            // TODO CS 15-Nov-17 I think this should possibly also set @total to size
-            return allocateObjectNode.allocate(pointerClass, Pointer.malloc(size));
+        public DynamicObject malloc(DynamicObject pointer, long size) {
+            Layouts.POINTER.setPointer(pointer, Pointer.malloc(size));
+            return pointer;
         }
 
     }
 
-    @Primitive(name = "pointer_free")
-    public static abstract class PointerFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "free")
+    public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
-            Layouts.POINTER.getPointer(pointer).free();
+            Layouts.POINTER.getPointer(pointer).free(getContext().getFinalizationService());
             return pointer;
         }
 
@@ -247,77 +259,99 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_add")
-    public static abstract class PointerAddPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+    @Primitive(name = "pointer_copy_memory")
+    public static abstract class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject add(DynamicObject a, long b) {
-            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(a),
-                    new Pointer(Layouts.POINTER.getPointer(a).getAddress() + b));
+        public DynamicObject copyMemory(long to, long from, long size) {
+            final Pointer ptr = new Pointer(to);
+            checkNull(ptr);
+            ptr.writeBytes(0, new Pointer(from), 0, size);
+            return nil();
         }
 
     }
 
     // Special reads and writes
 
-    @Primitive(name = "pointer_read_string", lowerFixnum = 1)
-    public static abstract class PointerReadStringPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    @Primitive(name = "pointer_read_string_to_null")
+    public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode;
+
+        @Specialization(guards = "limit == 0")
+        public DynamicObject readNullPointer(long address, long limit) {
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+        }
+
+        @Specialization(guards = "limit != 0")
+        public DynamicObject readStringToNull(long address, long limit,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
+            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+        }
+
+        @Specialization(guards = "isNil(noLimit)")
+        public DynamicObject readStringToNull(long address, DynamicObject noLimit,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
+            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+        }
+
+        private DynamicObject allocate(DynamicObject object, Object[] values) {
+            if (allocateObjectNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                allocateObjectNode = insert(AllocateObjectNode.create());
+            }
+            return allocateObjectNode.allocate(object, values);
+        }
+
+    }
+
+    @Primitive(name = "pointer_read_bytes", lowerFixnum = 1)
+    public static abstract class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject readString(DynamicObject pointer, int length,
+        public DynamicObject readBytes(long address, int length,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return makeStringNode.fromRope(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
                 ptr.readBytes(0, bytes, 0, length);
-                return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
             }
         }
 
     }
 
-    @Primitive(name = "pointer_read_string_to_null")
-    public static abstract class PointerReadStringToNullPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isNullPointer(pointer)")
-        public DynamicObject readNullPointer(DynamicObject pointer,
-                                             @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
-        }
-
-        @Specialization(guards = "!isNullPointer(pointer)")
-        public DynamicObject readStringToNull(DynamicObject pointer,
-                                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
-    @Primitive(name = "pointer_write_string", lowerFixnum = 2)
-    public static abstract class PointerWriteStringPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
+    public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+        public DynamicObject writeBytes(long address, DynamicObject string, int index, int length) {
+            final Pointer ptr = new Pointer(address);
             final Rope rope = StringOperations.rope(string);
-            final int length = Math.min(rope.byteLength(), maxLength);
+            assert index + length <= rope.byteLength();
             if (length != 0) {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
             }
 
-            ptr.writeBytes(0, rope.getBytes(), 0, length);
-            return pointer;
+            ptr.writeBytes(0, rope.getBytes(), index, length);
+            return string;
         }
 
     }
@@ -454,7 +488,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_pointer")
-    public static abstract class PointerReadPointerPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    public static abstract class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
@@ -680,7 +714,7 @@ public abstract class PointerNodes {
         public DynamicObject setAtOffsetPtr(DynamicObject pointer, int offset, int type, DynamicObject value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            ptr.writePointer(offset, Layouts.POINTER.getPointer(value));
+            ptr.writePointer(offset, Layouts.POINTER.getPointer(value).getAddress());
             return value;
         }
 
@@ -882,13 +916,13 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_pointer", lowerFixnum = 2)
-    public static abstract class PointerWritePointerPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    public static abstract class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyPointer(value)")
-        public DynamicObject address(long address, DynamicObject value) {
+        @Specialization
+        public DynamicObject writePointer(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            ptr.writePointer(0, Layouts.POINTER.getPointer(value));
+            ptr.writePointer(0, value);
             return nil();
         }
 

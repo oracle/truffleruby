@@ -117,7 +117,7 @@ public class ValueWrapperManager {
     private Runnable createFinalizer(Pointer handle) {
         return () -> {
             this.removeFromHandleMap(handle.getAddress());
-            handle.free();
+            handle.freeNoAutorelease();
         };
 
     }

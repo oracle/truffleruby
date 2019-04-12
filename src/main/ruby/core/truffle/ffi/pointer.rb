@@ -35,47 +35,55 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle::FFI
+  class AbstractMemory
+  end
 
-  ##
-  # Pointer is Rubinius's "fat" pointer class. It represents an actual
-  # pointer, in C language terms, to an address in memory. They're called
-  # fat pointers because the Pointer object is an wrapper around
-  # the actual pointer, the Rubinius runtime doesn't have direct access
-  # to the raw address.
-  #
-  # This class is used extensively in FFI usage to interface with various
-  # parts of the underlying system. It provides a number of operations
-  # for operating on the memory that is pointed to. These operations effectively
-  # give Rubinius the cast/read capabilities available in C, but using
-  # high level methods.
-  #
-  # MemoryPointer objects can be put in autorelease mode. In this mode,
-  # when the GC cleans up a MemoryPointer object, the memory it points
-  # to is passed to free(3), releasing the memory back to the OS.
-  #
-  # NOTE: MemoryPointer exposes direct, unmanaged operations on any
-  # memory. It therefore MUST be used carefully. Reading or writing to
-  # invalid address will cause bus errors and segmentation faults.
-  #
-  class Pointer
+  class Pointer < AbstractMemory
+    # Indicates how many bytes the chunk of memory that is pointed to takes up.
+    attr_accessor :total
+    alias_method :size, :total
+
+    # Indicates how many bytes the type that the pointer is cast as uses.
+    attr_accessor :type_size
+
+    # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
-      if defined?(::FFI) # Full FFI loaded
-        ::FFI.type_size(::FFI.find_type(type))
-      else
-        Truffle.invoke_primitive :pointer_find_type_size, type
-      end
+      Truffle.invoke_primitive :pointer_find_type_size, type
     end
 
-    def initialize(a1, a2=undefined)
-      if undefined.equal? a2
-        if Truffle::Interop.pointer?(a1)
-          a1 = Truffle::Interop.as_pointer(a1)
-        end
-        self.address = a1
-      else
-        @type = a1
-        self.address = a2
+    def self.size
+      SIZE
+    end
+
+    def initialize(type, address = undefined)
+      if undefined.equal? address
+        address = type
+        type = nil
       end
+
+      if Truffle::Interop.pointer?(address)
+        address = Truffle::Interop.as_pointer(address)
+      end
+      self.address = address
+
+      @type_size = case type
+                   when nil
+                     1
+                   when Integer
+                     type
+                   when Symbol
+                     Pointer.find_type_size(type)
+                   else
+                     type.size
+                   end
+    end
+
+    def initialize_copy(from)
+      total = from.total
+      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
+      Truffle.invoke_primitive :pointer_malloc, self, total
+      Truffle.invoke_primitive :pointer_copy_memory, address, from.address, total
+      self
     end
 
     def inspect
@@ -92,14 +100,6 @@ module Truffle::FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
-    # Return the address pointed to as an Integer
-    def address
-      Truffle.primitive :pointer_address
-      raise PrimitiveFailure, 'FFI::Pointer#address primitive failed'
-    end
-
-    alias_method :to_i, :address
-
     def pointer?
       true
     end
@@ -109,74 +109,189 @@ module Truffle::FFI
       self
     end
 
-    # Set the address pointed to from an Integer
-    def address=(address)
-      Truffle.primitive :pointer_set_address
-      raise PrimitiveFailure, 'FFI::Pointer#address= primitive failed'
+    # FFI's #to_ptr conversion
+    def to_ptr
+      self
     end
 
     def null?
       address == 0x0
     end
 
-    # Add +value+ to the address pointed to and return a new Pointer
-    def +(value)
-      Truffle.primitive :pointer_add
-      raise PrimitiveFailure, 'FFI::Pointer#+ primitive failed'
+    def +(offset)
+      ptr = Pointer.new(address + offset)
+      if total
+        ptr.total = total - offset
+      end
+      ptr
     end
 
-    # Indicates if +self+ and +other+ point to the same address
+    def slice(offset, length)
+      ptr = Pointer.new(address + offset)
+      ptr.total = length
+      ptr
+    end
+
+    def [](idx)
+      raise ArgumentError, 'unknown type size' unless @type_size
+      self + (idx * @type_size)
+    end
+
     def ==(other)
+      return true if nil.equal?(other) && null?
       return false unless other.kind_of? Pointer
       address == other.address
     end
 
     def network_order(start, size)
-      Truffle.primitive :pointer_network_order
-      raise PrimitiveFailure, 'FFI::Pointer#network_order primitive failed'
+      raise 'FFI::Pointer#network_order not yet implemented'
     end
 
-    # Read +len+ bytes from the memory pointed to and return them as
-    # a String
-    def read_string_length(len)
-      Truffle.primitive :pointer_read_string
-      raise PrimitiveFailure, 'FFI::Pointer#read_string_length primitive failed'
-    end
-    alias :read_bytes :read_string_length
-
-    # Read bytes from the memory pointed to until a NULL is seen, return
-    # the bytes as a String
-    def read_string_to_null
-      Truffle.primitive :pointer_read_string_to_null
-      raise PrimitiveFailure, 'FFI::Pointer#read_string_to_null primitive failed'
-    end
-
-    # Read bytes as a String from the memory pointed to
-    def read_string(len=nil)
-      if len
-        read_string_length(len)
-      else
-        read_string_to_null
+    private def check_bounds(offset, length)
+      if offset < 0 || (@total && length > @total)
+        raise IndexError, "Memory access offset=#{offset} size=#{length} is out of bounds"
       end
     end
 
-    # FFI compat methods
-    def get_bytes(offset, length)
-      (self + offset).read_string_length(length)
+    def get_string(offset, length = nil)
+      Truffle.invoke_primitive :pointer_read_string_to_null, address + offset, length
     end
 
-    # Write String +str+ as bytes into the memory pointed to. Only
-    # write up to +len+ bytes.
+    def put_string(offset, str)
+      put_bytes(offset, str)
+      put_char(offset + str.bytesize, 0)
+    end
+
+    def read_string(len = nil)
+      if len
+        return ''.b if len == 0
+        get_bytes(0, len)
+      else
+        get_string(0)
+      end
+    end
+
+    def read_string_length(len)
+      get_bytes(0, len)
+    end
+
+    def read_string_to_null
+      get_string(0)
+    end
+
     def write_string_length(str, len)
-      Truffle.primitive :pointer_write_string
-      raise PrimitiveFailure, 'FFI::Pointer#write_string_length primitive failed'
+      put_bytes(0, str, 0, len)
     end
 
-    # Write a String +str+ as bytes to the memory pointed to.
-    def write_string(str, len=nil)
+    def write_string(str, len = nil)
       len = str.bytesize unless len
+      # Write the string data without NUL termination
+      put_bytes(0, str, 0, len)
+    end
 
-      write_string_length(str, len)
+    def get_array_of_string(offset, count = nil)
+      if count
+        check_bounds(offset, count * SIZE)
+        Array.new(count) do |i|
+          ptr = get_pointer(offset + i * SIZE)
+          if ptr.null?
+            nil
+          else
+            ptr.read_string
+          end
+        end
+      else
+        check_bounds(offset, SIZE)
+        strings = []
+        i = 0
+        loop do
+          ptr = get_pointer(offset + i * SIZE)
+          if ptr.null?
+            return strings
+          else
+            strings << ptr.read_string
+          end
+          i += 1
+        end
+      end
+    end
+
+    def get_bytes(offset, length)
+      Truffle.invoke_primitive :pointer_read_bytes, address + offset, length
+    end
+
+    def put_bytes(offset, str, index = 0, length = nil)
+      raise RangeError, 'index cannot be less than zero' if index < 0
+      if length
+        if index + length > str.bytesize
+          raise RangeError, 'index+length is greater than size of string'
+        end
+      else
+        if index > str.bytesize
+          raise IndexError, 'index is greater than size of string'
+        end
+        length = str.bytesize - index
+      end
+      Truffle.invoke_primitive :pointer_write_bytes, address + offset, str, index, length
+      self
+    end
+
+    def read_bytes(length)
+      get_bytes(0, length)
+    end
+
+    def write_bytes(str, index = 0, length = nil)
+      put_bytes(0, str, index, length)
+    end
+
+    def __copy_from__(pointer, size)
+      Truffle.invoke_primitive :pointer_copy_memory, address, pointer.address, size
+    end
+
+    def read_array_of_type(type, reader, length)
+      ary = []
+      size = FFI.type_size(type)
+      tmp = self
+      length.times do |j|
+        ary << tmp.send(reader)
+        tmp += size unless j == length-1 # avoid OOB
+      end
+      ary
+    end
+
+    def write_array_of_type(type, writer, ary)
+      size = FFI.type_size(type)
+      ary.each_with_index do |val, i|
+        break unless i < self.size
+        self.send(writer, i * size, val)
+      end
+      self
+    end
+
+    def read(type)
+      get(type, 0)
+    end
+
+    def write(type, value)
+      put(type, 0, value)
+    end
+
+    def get(type, offset)
+      begin
+        type = ::FFI.find_type(type)
+      rescue TypeError => e
+        raise ArgumentError, e.message
+      end
+      type.get_at(self, offset)
+    end
+
+    def put(type, offset, value)
+      begin
+        type = ::FFI.find_type(type)
+      rescue TypeError => e
+        raise ArgumentError, e.message
+      end
+      type.put_at(self, offset, value)
     end
 
     # Read bytes from +offset+ from the memory pointed to as type +type+
@@ -191,72 +306,21 @@ module Truffle::FFI
       raise PrimitiveFailure, 'FFI::Pointer#set_at_offset primitive failed'
     end
 
-    # Number of bytes taken up by a pointer.
-    def self.size
-      8
-    end
-
-    ##
-    # If +val+ is true, this Pointer object will call
-    # free() on it's address when it is garbage collected.
-    def autorelease=(val)
-      Truffle.primitive :pointer_set_autorelease
-      raise PrimitiveFailure, 'FFI::Pointer#autorelease= primitive failed'
-    end
-
-    ##
-    # Returns true if autorelease is enabled, otherwise false.
-    def autorelease?
-      Truffle.primitive :pointer_autorelease_p
-      raise PrimitiveFailure, 'FFI::Pointer#pointer_autorelease_p primitive failed'
-    end
-
+    SIZE = 8
     NULL = Pointer.new(0x0)
   end
 
   class MemoryPointer < Pointer
+    def initialize(type, count = 1, clear = true)
+      super(type, 0)
+      @total = @type_size * (count || 1)
 
-    # call-seq:
-    #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
-    #   MemoryPointer.new(sym) => MemoryPointer instance with number
-    #                             of bytes need by FFI type <i>sym</i>
-    #   MemoryPointer.new(obj) => MemoryPointer instance with number
-    #                             of <i>obj.size</i> bytes
-    #   MemoryPointer.new(sym, count) => MemoryPointer instance with number
-    #                             of bytes need by length-<i>count</i> array
-    #                             of FFI type <i>sym</i>
-    #   MemoryPointer.new(obj, count) => MemoryPointer instance with number
-    #                             of bytes need by length-<i>count</i> array
-    #                             of <i>obj.size</i> bytes
-    #   MemoryPointer.new(arg) { |p| ... }
-    #
-    # Both forms create a MemoryPointer instance. The number of bytes to
-    # allocate is either specified directly or by passing an FFI type, which
-    # specifies the number of bytes needed for that type.
-    #
-    # The form without a block returns the MemoryPointer instance. The form
-    # with a block yields the MemoryPointer instance and frees the memory
-    # when the block returns. The value returned is the value of the block.
-    #
-    def self.new(type, count=nil, clear=true)
-      if type.kind_of? Integer
-        size = type
-      elsif type.kind_of? Symbol
-        size = Pointer.find_type_size(type)
-      else
-        size = type.size
-      end
+      Truffle.invoke_primitive :pointer_malloc, self, @total
+      Truffle.invoke_primitive :pointer_clear, self, @total if clear
+    end
 
-      if count
-        total = size * count
-      else
-        total = size
-      end
-
-      ptr = malloc total
-      ptr.total = total
-      ptr.type_size = size
-      Truffle.invoke_primitive :pointer_clear, ptr, total if clear
+    def self.new(type, count = 1, clear = true)
+      ptr = super(type, count, clear)
 
       if block_given?
         begin
@@ -270,60 +334,11 @@ module Truffle::FFI
       end
     end
 
-    def self.malloc(total)
-      Truffle.primitive :pointer_malloc
-      raise PrimitiveFailure, 'FFI::MemoryPointer.malloc primitive failed'
-    end
-
     def self.from_string(str)
-      ptr = new str.bytesize + 1
-      ptr.write_string str + "\0"
-
+      str = StringValue(str)
+      ptr = new(1, str.bytesize + 1, false)
+      ptr.put_string(0, str)
       ptr
-    end
-
-    def copy
-      other = malloc total
-      other.total = total
-      other.type_size = type_size
-      Truffle::POSIX.memcpy other, self, total
-
-      Truffle.privately do
-        other.initialize_copy self
-      end
-
-      other
-    end
-
-    # Indicates how many bytes the chunk of memory that is pointed to takes up.
-    attr_accessor :total
-
-    # Indicates how many bytes the type that the pointer is cast as uses.
-    attr_accessor :type_size
-
-    # Access the MemoryPointer like a C array, accessing the +which+ number
-    # element in memory. The position of the element is calculate from
-    # +@type_size+ and +which+. A new MemoryPointer object is returned, which
-    # points to the address of the element.
-    #
-    # Example:
-    #   ptr = MemoryPointer.new(:int, 20)
-    #   new_ptr = ptr[9]
-    #
-    # c-equiv:
-    #   int *ptr = (int*)malloc(sizeof(int) * 20);
-    #   int *new_ptr;
-    #   new_ptr = &ptr[9];
-    #
-    def [](which)
-      raise ArgumentError, 'unknown type size' unless @type_size
-      self + (which * @type_size)
-    end
-
-    # Release the memory pointed to back to the OS.
-    def free
-      Truffle.primitive :pointer_free
-      raise PrimitiveFailure, 'FFI::MemoryPointer#free primitive failed'
     end
   end
 end
