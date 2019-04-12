@@ -34,9 +34,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Truffle::MAIN = self
-
-# Truffle doesn't have a class MAIN, but it's implied by `self`, so just use that here.
+# Methods on `main`, the top-level `self`
 class << self
   def include(*mods)
     Truffle.privately do
