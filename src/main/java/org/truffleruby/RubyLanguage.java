@@ -15,12 +15,14 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -123,6 +125,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
         return Truffle.getRuntime().createCallTarget(new RubyParsingRequestNode(this, request.getSource(), request.getArgumentNames().toArray(new String[]{})));
+    }
+
+    @Override
+    protected ExecutableNode parse(InlineParsingRequest request) {
+        return new RubyInlineParsingRequestNode(this, request.getSource(), request.getFrame());
     }
 
     @SuppressWarnings("deprecation")
