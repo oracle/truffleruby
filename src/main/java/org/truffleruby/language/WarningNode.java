@@ -9,34 +9,19 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 /**
  * Warns only if $VERBOSE is true.
- * Corresponds to Truffle::Warnings.warning, but in Java with a given SourceSection.
+ * Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a given SourceSection.
  */
-public class WarningNode extends RubyBaseNode {
+public class WarningNode extends WarnNode {
 
-    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createPrivate();
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
+    @Override
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().isVerbose()) {
-            final DynamicObject warningString = makeStringNode.executeMake(buildWarningMessage(sourceSection, message), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-            warningMethod.call(getContext().getCoreLibrary().getWarningModule(), "warn", warningString);
+            callWarn(sourceSection, message);
         }
-    }
-
-    @TruffleBoundary
-    private String buildWarningMessage(SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
-        return sourceLocation + "warning: " + message;
     }
 
 }

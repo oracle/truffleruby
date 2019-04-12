@@ -9,7 +9,7 @@ Bug fixes:
 New features:
 
 * Rounding modes have been implemented or improved for `Float`, `Rational`, `BigDecimal` (#1509).
-* Fixed search for `openssl` and `llvm` to find Homebrew installed in other prefixes than `/usr/local` (#1583).
+* Support Homebrew installed in other prefixes than `/usr/local` (#1583).
 
 Compatibility:
 
@@ -18,6 +18,7 @@ Compatibility:
 * `String#unicode_normalize` has been moved to the core library like in MRI.
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
+* `Kernel#warn` now supports the `uplevel:` keyword argument.
 
 # 1.0 RC 15, 5 April 2019
 

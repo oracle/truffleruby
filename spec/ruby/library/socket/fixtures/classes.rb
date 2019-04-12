@@ -71,7 +71,7 @@ module SocketSpecs
     end
   end
 
-  def self.loop_with_timeout(timeout = 5)
+  def self.loop_with_timeout(timeout = TIME_TOLERANCE)
     require 'timeout'
     time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -85,7 +85,7 @@ module SocketSpecs
     end
   end
 
-  def self.wait_until_success(timeout = 10)
+  def self.wait_until_success(timeout = TIME_TOLERANCE)
     loop_with_timeout(timeout) do
       begin
         return yield

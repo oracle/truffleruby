@@ -158,7 +158,7 @@ class Time
   end
 
   def succ
-    Truffle::Warnings.warn 'Time#succ is obsolete'
+    warn 'Time#succ is obsolete', uplevel: 1
 
     self + 1
   end
