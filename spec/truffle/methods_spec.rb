@@ -14,6 +14,7 @@ require_relative '../ruby/spec_helper'
 
 modules = [
   BasicObject, Kernel, Object,
+  Module, Class,
   Enumerable, Enumerator, Range,
   Numeric, Integer, Float,
   Rational, Complex,
