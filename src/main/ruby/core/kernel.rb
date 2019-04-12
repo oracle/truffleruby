@@ -565,7 +565,7 @@ module Kernel
   module_function :untrace_var
 
   def warn(*messages, uplevel: undefined)
-    unless $VERBOSE.nil? or messages.empty?
+    if !$VERBOSE.nil? && !messages.empty?
       prefix = if undefined.equal?(uplevel)
                  +''
                else
