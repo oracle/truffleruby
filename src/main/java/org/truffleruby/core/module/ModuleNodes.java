@@ -294,7 +294,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "newName", type = RubyNode.class)
     @NodeChild(value = "oldName", type = RubyNode.class)
@@ -432,7 +432,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "attr", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "attr", rest = true)
     public abstract static class AttrNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
@@ -470,7 +470,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "attr_accessor", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "attr_accessor", rest = true)
     public abstract static class AttrAccessorNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
@@ -487,7 +487,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "attr_reader", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "attr_reader", rest = true)
     public abstract static class AttrReaderNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
@@ -502,7 +502,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "attr_writer", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "attr_writer", rest = true)
     public abstract static class AttrWriterNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
@@ -1684,7 +1684,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "remove_method", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "remove_method", rest = true)
     public abstract static class RemoveMethodNode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
@@ -1757,7 +1757,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "undef_method", rest = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "undef_method", rest = true)
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();

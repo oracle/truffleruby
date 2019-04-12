@@ -12,8 +12,13 @@ require_relative '../ruby/spec_helper'
 # $ jt test spec/truffle/methods_spec.rb -t ruby
 # to regenerate the files under methods/.
 
+# jt test and jt tag can be used as normal,
+# but instead of jt untag, jt purge must be used to remove tags:
+# $ jt purge spec/truffle/methods_spec.rb
+
 modules = [
   BasicObject, Kernel, Object,
+  Module, Class,
   Enumerable, Enumerator, Range,
   Numeric, Integer, Float,
   Rational, Complex,
