@@ -6,13 +6,11 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require 'ffi'
-
 module Fiddle
 
   TYPE_DOUBLE = 'DOUBLE'
 
-  SIZEOF_DOUBLE = Truffle::FFI.type_size(Truffle::FFI::TYPE_DOUBLE)
+  SIZEOF_DOUBLE = Truffle::FFI::Pointer.find_type_size(:double)
 
   def self.dlopen(name=nil)
     Handle.new(name)
