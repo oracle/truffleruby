@@ -1,7 +1,10 @@
 # Security
 
-If you find a vulnerability in TruffleRuby, please report it to
-chris.seaton@oracle.com and CC kevin.menard@oracle.com.
+Please report security vulnerabilities via the process outlined at [reporting
+vulnerabilities
+guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html),
+rather than by something public such as a GitHub issue or a Gitter
+conversation.
 
 ## Unimplemented security features
 
