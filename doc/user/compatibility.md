@@ -74,8 +74,8 @@ The following standard libraries are unsupported.
 but not enough to run anything serious.
 
 We provide our own included implementation of the interface of the `ffi` gem,
-like JRuby and Rubinius, but the implemention of this is limited at the
-moment.
+like JRuby and Rubinius. The implementation should be fairly complete and passes
+all the specs of the `ffi` gem except for some rarely-used corner cases.
 
 #### Safe levels
 
