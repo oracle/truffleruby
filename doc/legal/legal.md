@@ -177,6 +177,11 @@ licenses. We've added the licenses to the individual files.
 We do not distribute MSpec or the Ruby Specs, but they are both copyright 2008
 Engine Yard and are released under an MIT licence (see `mit.txt`).
 
+## FFI Specs
+
+We do not distribute the FFI Specs, but they are copyright 2008-2014
+Ruby-FFI contributors and are released under an MIT licence (see `mit.txt`).
+
 ## Jay
 
 TruffleRuby uses the Jay parser generator, modified from
