@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed `BigDecimal#dup` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
+* Implemented `rb_eval_string_protect`.
 
 # 1.0 RC 17
 

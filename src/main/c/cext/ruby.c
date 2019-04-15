@@ -4663,7 +4663,7 @@ VALUE rb_check_symbol(volatile VALUE *namep) {
 }
 
 VALUE rb_eval_string_protect(const char *str, int *state) {
-  rb_tr_error("rb_eval_string_protect not implemented");
+  return rb_protect((VALUE (*)(VALUE))rb_eval_string, (VALUE)str, state);
 }
 
 VALUE rb_eval_string_wrap(const char *str, int *state) {
