@@ -12,6 +12,10 @@ New features:
 * Rounding modes have been implemented or improved for `Float`, `Rational`, `BigDecimal` (#1509).
 * Support Homebrew installed in other prefixes than `/usr/local` (#1583).
 
+Changes:
+
+* Support for the Darkfish theme for RDoc generation has been removed.
+
 Compatibility:
 
 * The `KeyError` raised from `ENV#fetch` and `Hash#fetch` now matches MRI's message formatting (#1633).
