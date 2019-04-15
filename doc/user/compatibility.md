@@ -136,6 +136,13 @@ time we get them.
 `--jit` options and the `jit` feature are not supported because TruffleRuby
 uses Graal as a JIT.
 
+#### Time is limited to millisecond precision
+
+Ruby normally provides microsecond (millionths of a second) clock precision,
+but TruffleRuby is currently limited to millisecond (thousands of a second)
+precision. This applies to `Time.now` and
+`Process.clock_gettime(Process::CLOCK_REALTIME)`.
+
 #### Setting the process title doesn't always work
 
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
