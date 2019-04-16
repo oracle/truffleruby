@@ -11,6 +11,12 @@
 module Truffle
   module StringOperations
 
+    FROZEN_STRING_HASH = {}
+
+    def self.intern_string(str)
+      FROZEN_STRING_HASH[str] ||= str
+    end
+
     # Similar to MRI's Warning::buffer class
     class SimpleStringIO
       attr_reader :string

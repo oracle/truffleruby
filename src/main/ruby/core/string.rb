@@ -1590,7 +1590,8 @@ class String
   end
 
   def -@
-    frozen? ? self : dup.freeze
+    str = frozen? ? self : dup.freeze
+    Truffle::StringOperations.intern_string(str)
   end
 
   def encoding
