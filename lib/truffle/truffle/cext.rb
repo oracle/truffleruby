@@ -1640,11 +1640,7 @@ module Truffle::CExt
       }
     end
 
-    runner = -> {
-      Truffle.invoke_primitive(:call_without_c_mutex, function, [data1])
-    }
-
-    Thread.current.unblock unblocker, runner
+    Truffle.invoke_primitive(:call_without_c_mutex, ->() { Thread.current.unblock unblocker, ->(){ function.call(data1) } }, [])
   end
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
