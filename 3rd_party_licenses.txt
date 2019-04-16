@@ -257,10 +257,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-lib/rdoc/generator/template/darkfish/css/fonts.css:
-This file is licensed under the SIL Open Font License.
-http://scripts.sil.org/OFL
-
 ext/psych/yaml:
 Copyright (c) 2006 Kirill Simonov
 

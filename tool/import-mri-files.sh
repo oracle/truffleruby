@@ -19,6 +19,7 @@ topdir=$(cd ../ruby && pwd -P)
 rm -r lib/mri
 cp -r ../ruby/lib lib/mri
 rm lib/mri/racc/rdoc/grammar.en.rdoc
+rm -r lib/mri/rdoc/generator/template/darkfish
 # We have our own version under lib/truffle
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb

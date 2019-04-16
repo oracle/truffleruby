@@ -2,11 +2,10 @@
 ## Needs to be run from the jruby/test/mri directory
 ## Error console output read from stdin or the first argument
 
-## Usage
-## E.g.
-# Create txt file with MRI test output into the file and set the path above
-# cd test/mri
-# ruby ../../tool/parse_mri_errors.rb output.txt
+# Usage:
+#     ruby tool/parse_mri_errors.rb output.txt
+# or
+#     jt test test/mri/tests/rdoc/test_rdoc_token_stream.rb | ruby tool/parse_mri_errors.rb
 
 REASON = ENV.fetch('REASON', 'needs investigation')
 

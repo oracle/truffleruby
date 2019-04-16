@@ -45,9 +45,6 @@ CC0 public domain dedication, see `ccan-cc0.txt`.
 terms of 'BSD-MIT', see `ccan-bsd-mit.txt`. Despite the filename 'BSD-MIT' this
 is the conventional MIT licence.
 
-RDoc Darkfish theme fonts under `lib/mri/rdoc/generator/template/darkfish/` are
-available under the terms of the SIL Open Font License 1.1, see `ofl.txt`.
-
 The header file `lib/cext/include/ruby/onigmo.h` is part of Onigmo, available
 under the same 2-clause BSD licence as Ruby.
 

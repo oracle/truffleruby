@@ -35,6 +35,14 @@ win32ole/test_win32ole_variant_m.rb
 win32ole/test_win32ole_variant_outarg.rb
 win32ole/test_word.rb
 
+# Darkfish is unsupported
+
+rdoc/test_rdoc_generator_darkfish.rb
+rdoc/test_rdoc_generator_json_index.rb
+rdoc/test_rdoc_generator_pot.rb
+rdoc/test_rdoc_generator_pot_po.rb
+rdoc/test_rdoc_generator_pot_po_entry.rb
+
 # Failing since upgrade to 2.6.1
 
 matrix/test_matrix.rb # open range
@@ -156,11 +164,6 @@ open-uri/test_open-uri.rb
 open-uri/test_ssl.rb
 psych/visitors/test_to_ruby.rb # test_exception fails and bypasses tag
 psych/visitors/test_yaml_tree.rb # test_exception fails and bypasses tag
-rdoc/test_rdoc_generator_darkfish.rb # TypeError: can't dup NilClass
-rdoc/test_rdoc_generator_json_index.rb # TypeError: can't dup NilClass
-rdoc/test_rdoc_generator_pot.rb # Missing pot lib files
-rdoc/test_rdoc_generator_pot_po.rb # Missing pot lib files
-rdoc/test_rdoc_generator_pot_po_entry.rb # Missing pot lib files
 rdoc/test_rdoc_rubygems_hook.rb # setup raises ArgumentError: Need a Gem::Version: nil
 readline/test_readline.rb
 readline/test_readline_history.rb
