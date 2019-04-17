@@ -55,6 +55,7 @@ Compatibility:
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
 * `Kernel#warn` now supports the `uplevel:` keyword argument.
+* `String#-@` now performs string deduplication (#1608) .
 
 # 1.0 RC 15, 5 April 2019
 
