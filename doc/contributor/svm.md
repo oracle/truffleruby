@@ -46,27 +46,27 @@ startup performance than MRI.
 
 | Implementation | Real Time (s) | Max RSS (MB) |
 | -------------- | ------------: | -----------: |
-| TruffleRuby SVM | 0.024 |  65 |
-| TruffleRuby JVM | 1.890 | 333 |
-| MRI 2.5.1       | 0.043 |   9 |
-| JRuby 9.1.16.0  | 1.212 | 154 |
-| Rubinius 3.100  | 0.137 |  70 |
+| TruffleRuby SVM | 0.025 |  65 |
+| MRI 2.6.2       | 0.048 |  14 |
+| Rubinius 3.107  | 0.150 |  78 |
+| JRuby 9.2.7.0   | 1.357 | 160 |
+| TruffleRuby JVM | 1.787 | 456 |
 
 Run on Linux with an Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz with a SSD.
 
 ```bash
-$ cd graalvm-0.33
+$ cd graalvm-ce-1.0.0-rc15
 $ bin/ruby -e 'puts "Hello"'       # TruffleRuby on the SVM
 $ bin/ruby --jvm -e 'puts "Hello"' # TruffleRuby on the JVM
 
-$ chruby jruby-9.1.16.0
-$ jruby -e 'puts "Hello"'
-
-$ chruby ruby-2.5.1
+$ chruby ruby-2.6.2
 $ ruby -e 'puts "Hello"'
 
-$ chruby rbx-3.100
+$ chruby rbx-3.107
 $ rbx -e 'puts "Hello"'
+
+$ chruby jruby-9.2.7.0
+$ jruby -e 'puts "Hello"'
 ```
 
 The real time and the maximum resident set size are measured with a custom
