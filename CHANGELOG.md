@@ -6,6 +6,10 @@ Bug fixes:
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
 
+Compatibility
+
+* `String#-@` now performs string deduplication 
+
 # 1.0 RC 17
 
 Bug fixes:
