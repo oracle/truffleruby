@@ -1591,7 +1591,7 @@ class String
 
   def -@
     str = frozen? ? self : dup.freeze
-    Truffle::StringOperations.intern_string(str)
+    Truffle.invoke_primitive(:string_intern, str)
   end
 
   def encoding

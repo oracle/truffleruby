@@ -13,12 +13,10 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -72,12 +70,4 @@ public class TruffleStringNodes {
 
     }
 
-    @CoreMethod(names = "intern_string", onSingleton = true, required = 1)
-    public abstract static class InternNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject internString(DynamicObject string) {
-            return getContext().getInternedStringCache().addInCacheIfAbsent(new RopeKey(Layouts.STRING.getRope(string), getContext().getHashing(this)), string);
-        }
-    }
 }
