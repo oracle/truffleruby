@@ -46,6 +46,7 @@ import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -119,6 +120,7 @@ public class RubyContext {
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager = new ValueWrapperManager(this);
+    private final WeakValueCache<RopeKey, DynamicObject> internedStringCache = new WeakValueCache<>();
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -780,6 +782,10 @@ public class RubyContext {
 
     public ValueWrapperManager getValueWrapperManager() {
         return valueWrapperManager;
+    }
+
+    public WeakValueCache<RopeKey, DynamicObject> getInternedStringCache() {
+        return internedStringCache;
     }
 
     private static SecureRandom createRandomInstance() {
