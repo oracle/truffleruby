@@ -44,6 +44,8 @@ src/main/c/truffleposix/truffleposix.o
 src/main/c/truffleposix/libtruffleposix.so
 src/main/c/truffleposix/libtruffleposix.dylib
 
+spec/ffi/.bundle/config
+
 spec/truffle/fixtures/libtestnfi.so
 spec/truffle/fixtures/libtestnfi.dylib
 

@@ -11,6 +11,7 @@ New features:
 
 * Rounding modes have been implemented or improved for `Float`, `Rational`, `BigDecimal` (#1509).
 * Support Homebrew installed in other prefixes than `/usr/local` (#1583).
+* Added a pure-Ruby implementation of FFI which passes almost all Ruby FFI specs (#1529, #1524).
 
 Changes:
 

@@ -379,7 +379,7 @@ local part_definitions = {
         ["mx", "unittest", "org.truffleruby"],
         ["mx", "tck"],
       ] + jt(["test", "specs"] + self["$.run.specs"].test_spec_options),
-              # + jt(["test", "specs", ":next"]) disabled as it's currently empty and MSpec doesn't support empty sets of files
+      # + jt(["test", "specs", ":next"]) disabled as it's currently empty and MSpec doesn't support empty sets of files
     },
 
     test_fast: {
@@ -403,6 +403,7 @@ local part_definitions = {
     test_gems: { run+: jt(["test", "gems"]) },
     test_ecosystem: { run+: jt(["test", "ecosystem"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
+    test_ffi: { run+: [["test/truffle/ffi.sh"]] },
 
     test_cexts: {
       is_after+:: ["$.use.common"],
@@ -522,7 +523,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
+      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + $.run.test_ffi + { timelimit: "35:00" },
       "ruby-test-fast-linux":  linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
       "ruby-test-mri-linux":   linux_gate + $.run.test_mri + { timelimit: "30:00" },
       "ruby-test-integration": linux_gate + $.run.test_integration,
@@ -539,7 +540,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "45:00" },
+      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + $.run.test_ffi + { timelimit: "45:00" },
       "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
     } +

@@ -34,4 +34,4 @@ libtruffleposix.$(DLEXT): truffleposix.o Makefile
 	$(CC) -shared $(LDFLAGS) -o $@ $<
 
 truffleposix.o: truffleposix.c Makefile
-	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) $<
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(NFI_HEADERS_DIR) $<

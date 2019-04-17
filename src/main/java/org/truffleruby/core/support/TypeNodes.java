@@ -268,4 +268,14 @@ public abstract class TypeNodes {
 
     }
 
+    @CoreMethod(names = "double_to_float", onSingleton = true, required = 1)
+    public static abstract class DoubleToFloatNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        float doubleToFloat(double value) {
+            return (float) value;
+        }
+
+    }
+
 }

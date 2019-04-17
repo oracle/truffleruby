@@ -9,7 +9,7 @@ export PATH="$ruby_home/bin:$PATH"
 
 cd "$(jt gem-test-pack)/gem-testing/msgpack-ruby"
 
-# Use ruby -S to avoid the nested shebang problem on macOS
+# Use ruby -S to avoid the nested shebang problem on macOS when using GraalVM Bash launchers
 ruby -S bundle config --local cache_path ./gem-cache
 
 ruby -S bundle install --local --no-cache
