@@ -25,6 +25,7 @@ Compatibility:
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
 * `Kernel#warn` now supports the `uplevel:` keyword argument.
+* `do...end` blocks can now have `rescue/else/ensure` clauses like MRI (#1618).
 
 # 1.0 RC 15, 5 April 2019
 
