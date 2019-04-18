@@ -217,6 +217,12 @@ describe "A block" do
     it "does not raise an exception when values are yielded" do
       @y.s(0) { 1 }.should == 1
     end
+
+    ruby_version_is "2.6" do
+      it "may include a rescue clause" do
+        eval("@y.z do raise ArgumentError; rescue ArgumentError; 7; end").should == 7
+      end
+    end
   end
 
   describe "taking || arguments" do
@@ -226,6 +232,12 @@ describe "A block" do
 
     it "does not raise an exception when values are yielded" do
       @y.s(0) { || 1 }.should == 1
+    end
+
+    ruby_version_is "2.6" do
+      it "may include a rescue clause" do
+        eval('@y.z do || raise ArgumentError; rescue ArgumentError; 7; end').should == 7
+      end
     end
   end
 
@@ -251,6 +263,12 @@ describe "A block" do
 
     it "does not destructure a single Array value" do
       @y.s([1, 2]) { |a| a }.should == [1, 2]
+    end
+
+    ruby_version_is "2.6" do
+      it "may include a rescue clause" do
+        eval('@y.s(1) do |x| raise ArgumentError; rescue ArgumentError; 7; end').should == 7
+      end
     end
   end
 
