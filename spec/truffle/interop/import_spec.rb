@@ -17,8 +17,10 @@ guard -> { Truffle::Interop.polyglot_access? } do
       Truffle::Interop.import(:imports_an_object).should == object
     end
 
-    it "returns nil because Truffle::Interop.lookup_symbol returns nil if not found" do
-      Truffle::Interop.import(:not_registered_export_test).should == nil
+    it "raises NameError if not found" do
+      -> {
+        Truffle::Interop.import(:not_registered_export_test)
+      }.should raise_error(NameError, "import 'not_registered_export_test' not found")
     end
 
   end

@@ -113,7 +113,7 @@ module Truffle
       elsif Truffle::SymbolOperations.is_constant?(name) && Object.const_defined?(name)
         Object.const_get(name)
       else
-        nil
+        undefined
       end
     end
 
