@@ -8,8 +8,10 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module Truffle
+# Used by Truffle::Interop.lookup_symbol
+Truffle::Interop::MAIN = self
 
+module Truffle
   module Interop
 
     def self.import_method(name)
