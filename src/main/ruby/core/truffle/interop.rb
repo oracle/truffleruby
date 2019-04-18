@@ -8,8 +8,10 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module Truffle
+# Used by Truffle::Interop.lookup_symbol
+Truffle::Interop::MAIN = self
 
+module Truffle
   module Interop
 
     def self.import_method(name)
@@ -111,7 +113,7 @@ module Truffle
       elsif Truffle::SymbolOperations.is_constant?(name) && Object.const_defined?(name)
         Object.const_get(name)
       else
-        nil
+        undefined
       end
     end
 
