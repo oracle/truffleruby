@@ -279,15 +279,22 @@ runtime reflection.
 
 ## Spec Completeness
 
-'How many specs are there' is not a question with an easy precise answer. The
-three numbers listed below for each part of the specs are the number of
-expectations that the version of MRI we are compatible with passes, then the
-number TruffleRuby passes, and then the TruffleRuby number as a percentage of
-the MRI number. This is run on macOS. The numbers probably vary a little based
-on platform and configuration. The library and C extension specs are quite
-limited so may be misleading.
+'How many specs are there?' is not a question with an easy precise answer. The
+number of specs varies for different versions of the Ruby language, different
+platforms, different versions of the specs, and different configurations of
+the specs. The specs for the standard library and C extension API are also
+very uneven and they so can give misleading results.
 
-* Language: 3913, 3903, 99%
-* Core: 176111, 169117, 96%
-* Library (`:library` and `:openssl` on TruffleRuby): 20820, 16934, 81%
-* C extensions: 1679, 1627, 97%
+For the command line interface, the language, and the core library specs,
+which covers the bulk of what TruffleRuby reimplements, this is how many spec
+examples TruffleRuby runs successfully compared to our compatible version of
+MRI running the version of specs from TruffleRuby:
+
+<!--
+  For example `jt test :language` in TruffleRuby and `make test-spec MSPECOPT=:language`
+  in MRI, having copied our specs over theirs.
+-->
+
+* Command line 112 / 136, **82%**
+* Language 2270 / 2332, **97%**
+* Core library 19453 / 20644, **94%**
