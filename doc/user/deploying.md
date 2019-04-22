@@ -11,17 +11,17 @@ important to understand the different configurations of TruffleRuby, as each has
 different capabilities and performance characteristics. You should pick the
 execution mode that is appropriate for your application.
 
-When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
-configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
-standalone native executable. This means that you don't need a JVM installed on
-your system to use it. The advantage of the native configuration is that it
-[starts about as fast as MRI](../contributor/native-image.md), it may use less memory,
-and it becomes fast in less time than the *JVM* configuration. The disadvantage
-of the native configuration is that you can't use Java tools like VisualVM, you
-can't use Java interoperability, and *peak performance may be lower than on the
-JVM*. The native configuration is used by default, but you can also request it
-using `--native`. To use polyglot programming with the *native* configuration,
-you need to use the `--polyglot` flag.
+When distributed as part of GraalVM, TruffleRuby by default runs in the
+*native* configuration. In this configuration, TruffleRuby is ahead-of-time
+compiled to a standalone native executable. This means that you don't need a
+JVM installed on your system to use it. The advantage of the native
+configuration is that it starts about as fast as MRI, it may use less memory,
+and it becomes fast in less time than the *JVM* configuration. The
+disadvantage of the native configuration is that you can't use Java tools like
+VisualVM, you can't use Java interoperability, and *peak performance may be
+lower than on the JVM*. The native configuration is used by default, but you
+can also request it using `--native`. To use polyglot programming with the
+*native* configuration, you need to use the `--polyglot` flag.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
