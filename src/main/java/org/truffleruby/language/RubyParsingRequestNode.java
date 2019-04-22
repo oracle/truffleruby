@@ -99,6 +99,11 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         return value;
     }
 
+    @Override
+    public String getName() {
+        return "parsing-request";
+    }
+
     @TruffleBoundary
     private void printTimeMetric(String id) {
         Metrics.printTime(id);
