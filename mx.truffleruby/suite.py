@@ -395,7 +395,8 @@ suite = {
                     "file:bin/ri",
                 ],
                 "doc/": [
-                    "file:doc",
+                    "file:doc/user",
+                    "file:doc/legal",
                 ],
                 "lib/": [
                     "file:lib/json",
