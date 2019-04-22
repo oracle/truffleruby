@@ -29,8 +29,8 @@ maintained in the [ruby-versions](https://github.com/postmodern/ruby-versions) r
 
 There is a handy script in the repo that does everything needed:
 
-```
-./update.sh truffleruby $VERSION
+```bash
+$ ./update.sh truffleruby $VERSION
 ```
 
 Example PR for `1.0.0-rc12`: https://github.com/postmodern/ruby-versions/pull/39
@@ -41,8 +41,8 @@ cc `@havenwood` in the PR description.
 
 There is a script in the repo that does everything needed:
 
-```
-script/update-truffleruby $VERSION
+```bash
+$ script/update-truffleruby $VERSION
 ```
 
 Example PR for `1.0.0-rc12`: https://github.com/rbenv/ruby-build/pull/1282
@@ -56,8 +56,8 @@ cc `@hsbt` in the PR description.
 
 There is a script in the repo that does everything needed:
 
-```
-ruby update-truffleruby.rb $VERSION ../ruby-versions/pkg
+```bash
+$ ruby update-truffleruby.rb $VERSION ../ruby-versions/pkg
 ```
 
 The script must be run after running the `ruby-versions` script above.

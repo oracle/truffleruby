@@ -11,13 +11,13 @@ install Graal locally.
 Our workflow tool can install Graal automatically under the directory
 `../graal/compiler` with:
 
-```
+```bash
 $ jt install graal
 ```
 
 You can then use `jt` to run TruffleRuby with Graal.
 
-```
+```bash
 $ jt ruby --graal ...
 ```
 
@@ -32,6 +32,6 @@ You can then set the `GRAAL_HOME` environment variable to the location of the
 `compiler` directory inside the `graal` repository and use `jt` to run
 TruffleRuby.
 
-```
+```bash
 $ GRAAL_HOME=.../graal/compiler jt ruby --graal ...
 ```

@@ -5,20 +5,20 @@ found that Ruby Spec needs such a locale.
 
 ## Oracle Linux
 
-```
-export LANG=en_US.UTF-8
+```bash
+$ export LANG=en_US.UTF-8
 ```
 
 ## Ubuntu
 
-```
-apt-get install -y locales
-locale-gen en_US.UTF-8
-export LANG=en_US.UTF-8
+```bash
+$ apt-get install -y locales
+$ locale-gen en_US.UTF-8
+$ export LANG=en_US.UTF-8
 ```
 
 ## Fedora
 
-```
-export LANG=en_US.UTF-8
+```bash
+$ export LANG=en_US.UTF-8
 ```

@@ -30,6 +30,7 @@ $ ruby tool/jt.rb --help
 
 Most of us add a function to our shell profile file so that it can be run with
 just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
+
 ```bash
 $ echo 'function jt { ruby '$PWD'/tool/jt.rb "$@"; }' >> ~/.bash_profile
 ```
@@ -44,7 +45,7 @@ $ jt --help
 You can install it automatically with:
 
 ```bash
-jt mx version
+$ jt mx version
 ```
 
 ## Building
