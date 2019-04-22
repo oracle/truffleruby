@@ -13,9 +13,9 @@ If you don't need the Java interop capabilities of TruffleRuby then you could
 also install via your [Ruby manager/installer](ruby-managers.md)
 as any other implementation of Ruby.
 
-You can also use the
-[standalone distribution](doc/user/standalone-distribution.md) as a simple
-binary tarball. The binary tarball also doesn't allow for Java interop.
+You can also use the [standalone distribution](standalone-distribution.md) as
+a simple binary tarball. The binary tarball also doesn't allow for Java
+interop.
 
 ## Using Ruby from Java
 
