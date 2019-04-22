@@ -1,33 +1,16 @@
 # Profiling TruffleRuby
 
-There is no shortage of tools for profiling TruffleRuby. When running in JVM mode, we can
-use standard JVM tooling, such as VisualVM and Java Flight Recorder. When run as a native
-image we can use callgrind from the valgrind tool suite and other system tools, such as
-strace. As an instrumented Truffle language, we can also use Truffle's profiling
-capabilities. For a broad enough definition of profiling, we can also use the Ideal Graph
-Visualizer (IGV) and C1 Visualizer to inspect Graal's output.
+There is no shortage of tools for profiling TruffleRuby. When running in JVM
+mode, we can use standard JVM tooling, such as VisualVM and Java Flight
+Recorder. When run as a native image we can use callgrind from the Valgrind
+tool suite and other system tools, such as strace. As an instrumented Truffle
+language, we can also use Truffle's profiling capabilities and other [user
+tools](../user/tools.md). For a broad enough definition of profiling, we can
+also use the Ideal Graph Visualizer (IGV) and C1 Visualizer to inspect Graal's
+output.
 
 This document is less about how to use each tool and more about suggestions for extracting
 the most useful information from the tools, assuming basic knowledge of their usage.
-
-## Truffle Profiling
-
-Truffle provides both a CPU sampler and a CPU tracer. To see the full list of options, run
-`jt ruby --help:tools`. By default, the output is a histogram format that looks quite
-similar to gprof's flat profile and it is printed directly to STDOUT.
-
-### CPU Tracer
-
-The CPU tracer can be invoked via `jt ruby --cputracer`. It provides method invocation
-counts, but not elapsed time. It can be a good way to see which methods should be optimized
-or for discovering calls that are being called more frequently than expected.
-
-### CPU Sampler
-
-The CPU sampler can be invoked via `jt ruby --cpusampler`. It provides sampled execution
-times for both the total time of the method call (i.e., the method & its subcalls)
-and just the method's execution time (i.e., ignoring calls made from the method). It does
-not provide invocation counts.
 
 ### Creating a Flame Graph
 

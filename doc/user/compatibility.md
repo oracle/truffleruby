@@ -60,9 +60,9 @@ The following standard libraries are unsupported.
 * `dbm`
 * `gdbm`
 * `sdbm`
-* `debug` (could be implemented in the future) <!-- TODO CS 26 Feb 19 document alternatives -->
-* `profile` (could be implemented in the future)
-* `profiler` (could be implemented in the future)
+* `debug` (could be implemented in the future, use [`--inspect`](tools.md) instead)
+* `profile` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)
+* `profiler` (could be implemented in the future, use [`--cpusampler`](tools.md) instead)
 * `io/console` (partially implemented, could be implemented in the future)
 * `io/wait` (partially implemented, could be implemented in the future)
 * `pty` (could be implemented in the future)
