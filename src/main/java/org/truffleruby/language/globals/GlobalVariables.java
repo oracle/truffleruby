@@ -28,6 +28,10 @@ public class GlobalVariables {
         this.defaultValue = defaultValue;
     }
 
+    public boolean doesVariableExist(String name) {
+        return variables.containsKey(name);
+    }
+
     /**
      * The returned storage must be checked if it is still valid with
      * {@link GlobalVariableStorage#getValidAssumption()}. A storage

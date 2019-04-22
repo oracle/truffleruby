@@ -25,6 +25,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.RubyParsingRequestNode;
@@ -38,6 +39,8 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @TruffleLanguage.Registration(
@@ -157,12 +160,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    protected Object getLanguageGlobal(RubyContext context) {
-        return context.getCoreLibrary().getObjectClass();
-    }
-
     @Override
     protected boolean isObjectOfLanguage(Object object) {
         return object instanceof ValueWrapper || object instanceof NotProvided || RubyGuards.isRubyBasicObject(object);
@@ -257,6 +254,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected Iterable<Scope> findLocalScopes(RubyContext context, Node node, Frame frame) {
         return LexicalScope.getLexicalScopeFor(context, node, frame);
+    }
+
+    @Override
+    protected Iterable<Scope> findTopScopes(RubyContext context) {
+        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()));
     }
 
     public String getTruffleLanguageHome() {
