@@ -398,6 +398,13 @@ suite = {
                     "file:doc/user",
                     "file:doc/legal",
                 ],
+                "logo/": [
+                    "file:logo/ATTRIBUTION.md",
+                    "file:logo/LICENSE.txt",
+                ],
+                "logo/png/": [
+                    "file:logo/png/truffleruby_logo_horizontal_medium.png",
+                ],
                 "lib/": [
                     "file:lib/json",
                     "file:lib/mri",
