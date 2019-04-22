@@ -419,7 +419,7 @@ suite = {
                     "extracted-dependency:sulong:SULONG_LIBS/*.h",
                 ],
                 "lib/cext/sulong-libs/": [
-                    "extracted-dependency:sulong:SULONG_LIBS/lib*",
+                    "extracted-dependency:sulong:SULONG_LIBS/*",
                 ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/etc/etc.su",
