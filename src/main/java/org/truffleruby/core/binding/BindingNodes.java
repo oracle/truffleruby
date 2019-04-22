@@ -160,7 +160,8 @@ public abstract class BindingNodes {
     }
 
     public static boolean hiddenVariable(String name) {
-        return name.startsWith("$") || name.startsWith(TranslatorEnvironment.TEMP_PREFIX);
+        assert !name.isEmpty();
+        return name.startsWith("$") || name.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;
     }
 
     @CoreMethod(names = { "dup", "clone" })

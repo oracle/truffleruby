@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TranslatorEnvironment {
 
-    public static final String TEMP_PREFIX = "rubytruffle_temp_";
+    public static final char TEMP_PREFIX = '%';
 
     private final ParseEnvironment parseEnvironment;
 
