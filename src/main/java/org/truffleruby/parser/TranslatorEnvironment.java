@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TranslatorEnvironment {
 
+    public static final String TEMP_PREFIX = "rubytruffle_temp_";
+
     private final ParseEnvironment parseEnvironment;
 
     private final FrameDescriptor frameDescriptor;
@@ -153,7 +155,7 @@ public class TranslatorEnvironment {
     }
 
     public String allocateLocalTemp(String indicator) {
-        final String name = "rubytruffle_temp_" + indicator + "_" + tempIndex.getAndIncrement();
+        final String name = TEMP_PREFIX + indicator + "_" + tempIndex.getAndIncrement();
         declareVar(name);
         return name;
     }

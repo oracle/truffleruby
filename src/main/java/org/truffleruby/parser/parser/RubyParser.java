@@ -48,6 +48,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -154,7 +155,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 158 "-"
+// line 159 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -2567,7 +2568,7 @@ states[392] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[393] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), "rubytruffle_temp_anon_rest", support.getCurrentScope().addVariable("*"), false);
+    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, rest, null, (ArgsTailHolder) null);
     return yyVal;
 };
@@ -3474,7 +3475,7 @@ states[596] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[597] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), "rubytruffle_temp_rest", support.getCurrentScope().addVariable("*"), true);
+    yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
 states[600] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3585,7 +3586,7 @@ states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2571 "RubyParser.y"
+// line 2572 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3601,4 +3602,4 @@ states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
 }
 // CheckStyle: stop generated
-// line 10091 "-"
+// line 10092 "-"

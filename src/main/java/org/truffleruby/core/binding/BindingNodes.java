@@ -52,6 +52,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 @CoreClass("Binding")
 public abstract class BindingNodes {
@@ -159,7 +160,7 @@ public abstract class BindingNodes {
     }
 
     public static boolean hiddenVariable(String name) {
-        return name.startsWith("$") || name.startsWith("rubytruffle_temp");
+        return name.startsWith("$") || name.startsWith(TranslatorEnvironment.TEMP_PREFIX);
     }
 
     @CoreMethod(names = { "dup", "clone" })
