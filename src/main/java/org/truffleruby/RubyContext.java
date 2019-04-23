@@ -120,7 +120,6 @@ public class RubyContext {
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager = new ValueWrapperManager(this);
-    private final WeakValueCache<RopeKey, DynamicObject> internedStringCache = new WeakValueCache<>();
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -639,6 +638,10 @@ public class RubyContext {
         return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 
+    public DynamicObject getInternedString(DynamicObject string) {
+        return frozenStringLiterals.getFrozenStringLiteral(string);
+    }
+
     public Object getClassVariableDefinitionLock() {
         return classVariableDefinitionLock;
     }
@@ -782,10 +785,6 @@ public class RubyContext {
 
     public ValueWrapperManager getValueWrapperManager() {
         return valueWrapperManager;
-    }
-
-    public WeakValueCache<RopeKey, DynamicObject> getInternedStringCache() {
-        return internedStringCache;
     }
 
     private static SecureRandom createRandomInstance() {

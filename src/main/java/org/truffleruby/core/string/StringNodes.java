@@ -128,6 +128,7 @@ import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
+import org.truffleruby.core.rope.TruffleRopesNodes.FlattenRopeNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
@@ -4717,8 +4718,8 @@ public abstract class StringNodes {
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject internString(DynamicObject string) {
-            return getContext().getInternedStringCache().addInCacheIfAbsent(new RopeKey(Layouts.STRING.getRope(string), getContext().getHashing(this)), string);
+        public DynamicObject internString(VirtualFrame frame, DynamicObject string) {
+            return getContext().getInternedString(string);
         }
     }
 
