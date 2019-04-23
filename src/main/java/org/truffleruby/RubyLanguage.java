@@ -92,9 +92,17 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
         LOGGER.fine("initializeContext()");
-        Metrics.printTime("before-initialize-context");
-        context.initialize();
-        Metrics.printTime("after-initialize-context");
+
+        try {
+            Metrics.printTime("before-initialize-context");
+            context.initialize();
+            Metrics.printTime("after-initialize-context");
+        } catch (Throwable e) {
+            if (context.getOptions().EXCEPTIONS_PRINT_JAVA || context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
+                e.printStackTrace();
+            }
+            throw e;
+        }
     }
 
     @Override
