@@ -5,6 +5,7 @@ Bug fixes:
 * Fixed `BigDecimal#dup` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
+* `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 
 # 1.0 RC 17
 
