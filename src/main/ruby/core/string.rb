@@ -1591,6 +1591,7 @@ class String
 
   def -@
     str = frozen? ? self : dup.freeze
+    Truffle::Ropes.flatten_rope(str)
     Truffle.invoke_primitive(:string_intern, str)
   end
 
