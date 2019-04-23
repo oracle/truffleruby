@@ -22,7 +22,7 @@ describe "A lambda literal -> () { }" do
     -> () { }.lambda?.should be_true
   end
 
-  ruby_version_is "2.6" do
+  ruby_version_is "2.5" do
     it "may include a rescue clause" do
       eval('-> do raise ArgumentError; rescue ArgumentError; 7; end').should be_an_instance_of(Proc)
     end
@@ -311,7 +311,7 @@ describe "A lambda expression 'lambda { ... }'" do
     lambda { lambda }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is "2.6" do
+  ruby_version_is "2.5" do
     it "may include a rescue clause" do
       eval('lambda do raise ArgumentError; rescue ArgumentError; 7; end').should be_an_instance_of(Proc)
     end
