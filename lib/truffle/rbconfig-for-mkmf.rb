@@ -96,7 +96,8 @@ if Truffle::Boot.get_option 'building-core-cexts'
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
-  mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
+  truffle_h = "-DSULONG_TRUFFLE_H='\"#{ENV.fetch('SULONG_TRUFFLE_H')}\"'"
+  mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h} #{truffle_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
 
   # Default to the ruby in $PATH to build core C extensions faster
