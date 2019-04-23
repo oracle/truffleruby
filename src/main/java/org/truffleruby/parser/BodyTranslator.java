@@ -1530,7 +1530,7 @@ public class BodyTranslator extends Translator {
             this.translatingForStatement = translatingForStatement;
         }
 
-        return addNewlineIfNeeded(node, translated);
+        return addNewlineIfNeeded(node, withSourceSection(node.getPosition(), translated));
     }
 
     private final ParserSupport parserSupport;
