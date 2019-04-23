@@ -493,7 +493,7 @@ public class BodyTranslator extends Translator {
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
-            return addNewlineIfNeeded(node, Translator.withSourceSection(sourceSection, new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
+            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
         }
 
         if (receiver instanceof ConstParseNode
@@ -543,7 +543,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        return translateCallNode(node, false, false, false);
+        return addNewlineIfNeeded(node, withSourceSection(node.getPosition(), translateCallNode(node, false, false, false)));
     }
 
     protected RubyNode translatePrimitive(SourceIndexLength sourceSection, BlockParseNode body, RubyNode loadArguments) {
