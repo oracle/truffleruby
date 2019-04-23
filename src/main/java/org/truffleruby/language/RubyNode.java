@@ -91,7 +91,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
     }
 
-    protected boolean hasSource() {
+    public boolean hasSource() {
         return sourceCharIndex != NO_SOURCE;
     }
 

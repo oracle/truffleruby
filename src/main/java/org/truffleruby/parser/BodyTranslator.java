@@ -543,7 +543,15 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        return addNewlineIfNeeded(node, withSourceSection(node.getPosition(), translateCallNode(node, false, false, false)));
+        final RubyNode translated = translateCallNode(node, false, false, false);
+
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
+
+        if (!translated.hasSource()) {
+            translated.unsafeSetSourceSection(sourceSection);
+        }
+
+        return addNewlineIfNeeded(node, translated);
     }
 
     protected RubyNode translatePrimitive(SourceIndexLength sourceSection, BlockParseNode body, RubyNode loadArguments) {
@@ -1530,7 +1538,13 @@ public class BodyTranslator extends Translator {
             this.translatingForStatement = translatingForStatement;
         }
 
-        return addNewlineIfNeeded(node, withSourceSection(node.getPosition(), translated));
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
+
+        if (!translated.hasSource()) {
+            translated.unsafeSetSourceSection(node.getPosition());
+        }
+
+        return addNewlineIfNeeded(node, translated);
     }
 
     private final ParserSupport parserSupport;
