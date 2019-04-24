@@ -147,6 +147,11 @@ should read our [migration guide](doc/user/jruby-migration.md).
 
 Extensive documentation is available in [`doc`](doc).
 
+See our [source code repository](https://github.com/oracle/truffleruby) and
+[contributor
+documentation](https://github.com/oracle/truffleruby/tree/master/doc/contributor)
+to contribute to TruffleRuby.
+
 ## Contact
 
 The best way to get in touch with us is to join us in
