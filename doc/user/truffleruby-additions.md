@@ -13,7 +13,7 @@ You can use the `--version` command-line option. TruffleRuby will report for
 example:
 
 ```
-truffleruby ..., like ruby ... <Java HotSpot(TM) 64-Bit Graal VM ... with Graal> [darwin-x86_64]
+truffleruby ..., like ruby ..., GraalVM CE Native [x86_64-darwin]
 ```
 
 In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be
@@ -35,13 +35,12 @@ standard `RUBY_ENGINE_VERSION` constant.
 TruffleRuby provides these non-standard methods and classes that provide
 additional functionality in the `TruffleRuby` module.
 
-`TruffleRuby.graal?` reports if the Graal compiler is available and will be
+`TruffleRuby.graal?` reports if the GraalVM Compiler is available and will be
 used.
 
-`TruffleRuby.native?` reports if TruffleRuby has been ahead-of-time compiled.
-In practice this implies that the SubstrateVM is being used.
+`TruffleRuby.native?` reports if TruffleRuby is compiled as a native image.
 
-`TruffleRuby.sulong?` reports if TruffleRuby has the Sulong interpreter for C
+`TruffleRuby.sulong?` reports if TruffleRuby has the GraalVM LLVM Runtime for C
 extensions available.
 
 `TruffleRuby.revision` reports the source control revision used to build

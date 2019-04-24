@@ -1,7 +1,8 @@
 ![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium.png)
 
-A high performance implementation of the Ruby programming language. Built on
-[GraalVM](http://graalvm.org/) by [Oracle Labs](https://labs.oracle.com).
+TruffleRuby is the [GraalVM](http://graalvm.org/) high-performance implementation
+of the [Ruby programming language](https://www.ruby-lang.org/en/) built by
+[Oracle Labs](https://labs.oracle.com).
 
 ## Getting started
 
@@ -61,7 +62,7 @@ TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
 standalone native executable. This means that you don't need a JVM installed on
 your system to use it. The advantage of the native configuration is that it
-[starts about as fast as MRI](doc/contributor/svm.md), it may use less memory,
+[starts about as fast as MRI](doc/contributor/native-image.md), it may use less memory,
 and it becomes fast in less time. The disadvantage of the native configuration
 is that you can't use Java tools like VisualVM, you can't use Java
 interoperability, and *peak performance may be lower than on the JVM*. The
@@ -89,7 +90,7 @@ At runtime you can tell if you are using the native configuration using
 
 You won't encounter it when using TruffleRuby from the GraalVM, but there is
 also another configuration which is TruffleRuby running on the JVM but with the
-Graal compiler not available. This configuration will have much lower
+GraalVM Compiler not available. This configuration will have much lower
 performance and should normally only be used for development. `ruby --version`
 will mention `Interpreter` for this configuration.
 

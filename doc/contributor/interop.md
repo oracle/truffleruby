@@ -1,9 +1,10 @@
 # Truffle Interop
 
-TruffleRuby supports standard Truffle API interop messages. This document
-explains what it does when it receives them, how to get it to explicitly send
-them, how to get it to send them using more idiomatic Ruby, and how what
-messages it sends for normal Ruby operations on foreign objects.
+TruffleRuby supports the standard interop message system of the Truffle
+Language Implementation Framework. This document explains what it does when it
+receives them, how to get it to explicitly send them, how to get it to send
+them using more idiomatic Ruby, and how what messages it sends for normal Ruby
+operations on foreign objects.
 
 This document only explains how TruffleRuby uses messages. The messages
 themselves are explained in the

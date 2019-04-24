@@ -1,6 +1,6 @@
 # Benchmarking TruffleRuby
 
-## Benchmarking with Graal
+## Benchmarking with the GraalVM Compiler
 
 ```
 $ jt benchmark bench/classic/mandelbrot.rb --simple
@@ -9,9 +9,9 @@ $ jt benchmark bench/classic/mandelbrot.rb --simple
 Output is iterations per second, printed roughly every second (more frequently
 for the first few iterations).
 
-# Benchmarking without Graal
+# Benchmarking without the GraalVM Compiler
 
-You can turn off Graal if you want using `--no-graal`.
+You can turn off the GraalVM Compiler if you want using `--no-graal`.
 
 ```
 $ jt benchmark --no-graal bench/classic/mandelbrot.rb --simple

@@ -2,12 +2,11 @@
 
 There is no shortage of tools for profiling TruffleRuby. When running in JVM
 mode, we can use standard JVM tooling, such as VisualVM and Java Flight
-Recorder. When run as a native image we can use callgrind from the Valgrind
-tool suite and other system tools, such as strace. As an instrumented Truffle
-language, we can also use Truffle's profiling capabilities and other [user
-tools](../user/tools.md). For a broad enough definition of profiling, we can
-also use the Ideal Graph Visualizer (IGV) and C1 Visualizer to inspect Graal's
-output.
+Recorder. When run as a Native Image we can use callgrind from the Valgrind
+tool suite and other system tools, such as strace. As a GraalVM language we
+can also use other GraalVM [tools](../user/tools.md). For a broad enough
+definition of profiling, we can also use the Ideal Graph Visualizer (IGV) and
+C1 Visualizer to inspect Graal's output.
 
 This document is less about how to use each tool and more about suggestions for extracting
 the most useful information from the tools, assuming basic knowledge of their usage.
