@@ -78,11 +78,6 @@ module FFI
       end
     end
 
-    # For interop TO_NATIVE
-    def to_native
-      @pointer
-    end
-
     private def pointer=(pointer)
       unless FFI::AbstractMemory === pointer
         raise TypeError, "wrong argument type #{pointer.class} (expected Pointer or Buffer)"
