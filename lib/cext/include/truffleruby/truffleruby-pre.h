@@ -20,7 +20,11 @@ extern "C" {
 
 #define TRUFFLERUBY
 
+#ifdef SULONG_TRUFFLE_H
+#include SULONG_TRUFFLE_H
+#else
 #include <sulong/truffle.h>
+#endif
 
 #ifdef SULONG_POLYGLOT_H
 #include SULONG_POLYGLOT_H

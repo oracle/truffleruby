@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "32df1a7718df4b2f76c8cbfed505177f46165f4e",
+                "version": "636e1ca4fa50df0b7741aa1e1e12f474bee3dd5a",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "32df1a7718df4b2f76c8cbfed505177f46165f4e",
+                "version": "636e1ca4fa50df0b7741aa1e1e12f474bee3dd5a",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -256,13 +256,16 @@ suite = {
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
-                "sulong:SULONG_LIBS", # polyglot.h
+                "sulong:SULONG_HOME", # polyglot.h
+                "sulong:SULONG_LEGACY", # truffle.h
             ],
             "buildEnv": {
               "TRUFFLERUBYOPT": "--building-core-cexts",
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
-              "SULONG_HEADERS_DIR": "<path:SULONG_LIBS>",
-              "SULONG_POLYGLOT_H": "<path:SULONG_LIBS>/polyglot.h",
+              "SULONG_HEADERS_DIR": "<path:SULONG_HOME>/include",
+              "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
+              "SULONG_TRUFFLE_H": "<path:SULONG_LEGACY>/include/truffle.h",
+              "SULONG_TRUFFLE_DIR": "<path:SULONG_LEGACY>/include",
             },
             "output": ".",
             "results": [
@@ -415,11 +418,11 @@ suite = {
                     "file:lib/cext/include/*.h",
                 ],
                 "lib/cext/include/sulong/": [
-                    "file:lib/cext/include/sulong/truffle.h",
-                    "extracted-dependency:sulong:SULONG_LIBS/*.h",
+                    "extracted-dependency:sulong:SULONG_LEGACY/include/truffle.h",
+                    "link:../../sulong-libs/include/polyglot.h",
                 ],
                 "lib/cext/sulong-libs/": [
-                    "extracted-dependency:sulong:SULONG_LIBS/*",
+                    "extracted-dependency:sulong:SULONG_HOME/*",
                 ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/etc/etc.su",
