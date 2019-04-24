@@ -17,7 +17,7 @@ Check out the version of Ruby you want to create the branch for in `../ruby`.
 
 Then create the reference branch in the TruffleRuby repository
 
-```
+```bash
 $ git checkout -b vNN
 $ tool/import-mri-files.sh
 $ git commit -am 'vNN'
@@ -33,9 +33,9 @@ update.
 In your working branch you can import MRI files again, and you can re-apply
 old patches using the old reference branch.
 
-```
-tool/import-mri-files.sh
-git diff vNN master | git apply -3
+```bash
+$ tool/import-mri-files.sh
+$ git diff vNN master | git apply -3
 ```
 
 You'll usually get some conflicts to work out.

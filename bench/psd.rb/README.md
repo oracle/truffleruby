@@ -1,5 +1,4 @@
-These benchmarks are originally from
-[Bench 9000](https://github.com/jruby/bench9000).
+These benchmarks are originally from JRuby Bench 9000.
 
 We are using PSD.rb at revision `e14d652ddc705e865d8b2b897d618b25d78bcc7c`.
 We use this old revision because we know it has interesting patterns of

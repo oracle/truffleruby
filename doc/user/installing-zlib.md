@@ -5,20 +5,20 @@ library that the module uses.
 
 ## Oracle Linux
 
-```
-yum install zlib-devel
+```bash
+$ yum install zlib-devel
 ```
 
 ## Ubuntu
 
-```
-apt-get install libz-dev
+```bash
+$ apt-get install libz-dev
 ```
 
 ## Fedora
 
-```
-yum install zlib-devel
+```bash
+$ yum install zlib-devel
 ```
 
 ## macOS

@@ -10,14 +10,14 @@ message when installing TruffleRuby via `gu install` in GraalVM.
 
 ## Oracle Linux
 
-```
-sudo yum install openssl-devel
+```bash
+$ sudo yum install openssl-devel
 ```
 
 ## Ubuntu
 
-```
-apt-get install libssl-dev
+```bash
+$ apt-get install libssl-dev
 ```
 
 After installing GraalVM and Ruby you will need to rebuild `openssl` for the
@@ -28,8 +28,8 @@ version in Ubuntu - run `lib/truffle/post_install_hook.sh`.
 On Fedora 28 or more recent, the default openssl is compatible, so you only need
 to install `openssl-devel`:
 
-```
-sudo dnf install openssl-devel
+```bash
+$ sudo dnf install openssl-devel
 ```
 
 ## macOS
@@ -40,8 +40,8 @@ On macOS the system version is too old.
 
 We recommend installing libssl via [Homebrew](https://brew.sh).
 
-```
-brew install openssl
+```bash
+$ brew install openssl
 ```
 
 ### MacPorts
@@ -49,7 +49,7 @@ brew install openssl
 MacPorts should also work but is not actively tested.
 
 ```bash
-sudo port install openssl
+$ sudo port install openssl
 ```
 
 ## Remapping

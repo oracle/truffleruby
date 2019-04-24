@@ -2,7 +2,7 @@
 
 First, clone the optcarrot repository:
 
-```
+```bash
 $ git clone https://github.com/mame/optcarrot.git
 $ cd optcarrot
 ```
@@ -10,13 +10,13 @@ $ cd optcarrot
 You will need `SDL2` to be installed, then you can play Lan Master  with the
 following command.
 
-```
+```bash
 $ path/to/graalvm/bin/ruby --jvm bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 On macOS, you might need an extra flag for the GUI to appear:
 
-```
+```bash
 $ path/to/graalvm/bin/ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 ```
 

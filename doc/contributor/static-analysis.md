@@ -11,7 +11,7 @@ The [Clang Static Analyzer](https://clang-analyzer.llvm.org) finds bugs in C
 code. We occasionally run this tool locally but only take its output as a
 suggestion. We use a default configuration.
 
-```
+```bash
 $ scan-build --use-analyzer `which clang` -analyze-headers clang -c --std=c99 -Ilib/cext/include src/main/c/cext/ruby.c src/main/c/truffleposix/truffleposix.c
 $ scan-view ...as instructed by scan-build...
 ```
@@ -23,7 +23,7 @@ $ scan-view ...as instructed by scan-build...
 We have a tool to check that some use of our internal annotations and the
 Truffle DSL are correct. Passing this is enforced in our CI gate.
 
-```
+```bash
 $ jt check_dsl_usage
 ```
 
@@ -32,7 +32,7 @@ $ jt check_dsl_usage
 [CheckStyle](http://checkstyle.sourceforge.net) enforces a Java style guide.
 Passing CheckStyle is enforced in our CI gate.
 
-```
+```bash
 $ mx checkstyle
 ```
 
@@ -42,7 +42,7 @@ $ mx checkstyle
 errors. We run it with the default Graal project configuration. Passing
 SpotBugs is enforced in our CI gate.
 
-```
+```bash
 $ mx spotbugs
 ```
 
@@ -54,7 +54,7 @@ $ mx spotbugs
 It's configured in `.rubocop.yml`, and can be run locally as `jt rubocop`.
 Passing Rubocop is enforced in our CI gate.
 
-```
+```bash
 $ jt rubocop
 ```
 
@@ -64,7 +64,7 @@ $ jt rubocop
 performance improvements. We occasionally run this tool locally but only take
 its output as a suggestion. We use a default configuration.
 
-```
+```bash
 $ gem install fasterer
 $ fasterer lib/truffle lib/cext src/main
 ```
@@ -78,7 +78,7 @@ suggestion. We disable a lot of the defaults in `.reek.yml`, either because
 we're implementing a set API, because we're doing something low-level or
 outside normal Ruby semantics, or for performance reasons.
 
-```
+```bash
 $ gem install reek
 $ reek lib/truffle lib/cext src/main
 ```
@@ -89,7 +89,7 @@ $ reek lib/truffle lib/cext src/main
 check that your methods do not appear near the top of this list. We
 occasionally run this tool locally but only take its output as a suggestion.
 
-```
+```bash
 $ gem install flog
 $ flog -m -t 10 lib/truffle lib/cext src/main
 ```
@@ -100,7 +100,7 @@ $ flog -m -t 10 lib/truffle lib/cext src/main
 could potentially be factored out. We occasionally run this tool locally but
 only take its output as a suggestion.
 
-```
+```bash
 $ gem install flay
 $ flay lib/truffle lib/cext src/main
 ```
@@ -112,7 +112,7 @@ vulnerabilities. It's really designed for Rails, and many of the rules are
 specific to Rails, but we do run it ocassionally anyway and take its output as
 a suggestion.
 
-```
+```bash
 $ gem install brakeman
 $ brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/core/
 ```

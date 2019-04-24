@@ -1,7 +1,7 @@
 # Assumptions Third Party Code Makes About TruffleRuby
 
 Third-party code should never use any APIs apart from standard Ruby, and those
-listed in [TruffleRuby additions]('../user/truffleruby-additions.md').
+listed in [TruffleRuby additions](../user/truffleruby-additions.md).
 
 When third-party code uses the TruffleRuby additions, it should be listed here
 so that we know why non-standard APIs have been added.

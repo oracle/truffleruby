@@ -12,11 +12,6 @@ If you are using the native configuration, you will need to use the `--polyglot`
 flag to get access to other languages. The JVM configuration automatically has
 access to other languages.
 
-There is also [additional documentation](../contributor/interop.md) that
-describes in more depth how polyglot programming in TruffleRuby is implemented
-using the Truffle Language Implementation Framework interop API, and exactly
-how Ruby is matched to this API.
-
 * [Loading code written in foreign languages](#loading-code-written-in-foreign-languages)
 * [Exporting Ruby objects to foreign languages](#exporting-ruby-objects-to-foreign-languages)
 * [Importing foreign objects to Ruby](#importing-foreign-objects-to-ruby)

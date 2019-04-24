@@ -33,12 +33,14 @@ warm-up time for shorter running commands and benchmarks.
 $ cd graalvm
 $ otool -L jre/bin/ruby
 jre/bin/ruby:
-	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1348.28.0)
-	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1238.0.0)
-	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
+  /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1348.28.0)
+  /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1238.0.0)
+  /usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
+```
 
+```bash
 $ du -h jre/bin/ruby
-200M	jre/bin/ruby
+200M jre/bin/ruby
 ```
 
 The Native Image version of TruffleRuby has better startup performance and lower memory
@@ -81,7 +83,7 @@ There is no need to do so, but you can actually also compile your own copy of
 the Native Image version of TruffleRuby using a tool distributed as part of GraalVM and
 the Java version of TruffleRuby from GraalVM.
 
-```
+```bash
 $ native-image -H:Name=native-ruby --language:ruby
 ```
 
@@ -90,7 +92,7 @@ $ native-image -H:Name=native-ruby --language:ruby
 You can build a native build of TruffleRuby using the Native Image Tool from a
 source distribution using:
 
-```
+```bash
 $ jt build native
 ```
 

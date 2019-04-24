@@ -114,4 +114,4 @@ home location. Other options are tried until one is found that appears to be a
 correct home location. If none appears to be correct a warning will be given but
 the program will continue and you will not be able to require standard
 libraries. You can tell TruffleRuby not to try to find a home at all using the
-`no_home_provided` option.
+`no-home-provided` option.

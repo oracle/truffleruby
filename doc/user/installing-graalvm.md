@@ -44,7 +44,7 @@ After installing GraalVM you then need to install the Ruby language into it.
 This is done using the `gu` command. The Ruby package is the same for both
 editions of GraalVM and comes from GitHub.
 
-```
+```bash
 $ gu install ruby
 ```
 
@@ -67,7 +67,7 @@ To get the best performance you want to rebuild the images. Check that `ruby
 Rebuilding the executable images can take a few minutes and you should have
 about 8 GB of RAM available.
 
-```
+```bash
 $ gu rebuild-images ruby
 ```
 

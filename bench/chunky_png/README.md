@@ -1,5 +1,4 @@
-These benchmarks are originally from
-[Bench 9000](https://github.com/jruby/bench9000).
+These benchmarks are originally from JRuby Bench 9000.
 
 We are using ChunkyPNG at revision `efd61c8d0ddcabdcf09fb44f8e8c1ba709995940`.
 We use this old revision because we know it has interesting patterns of

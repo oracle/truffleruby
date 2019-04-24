@@ -14,13 +14,13 @@ TruffleRuby is supported by the 3 major Ruby installers.
 Upgrade RVM to let RVM know about the latest TruffleRuby release:
 
 ```bash
-rvm get head
+$ rvm get head
 ```
 
 Install TruffleRuby with:
 
-```
-rvm install truffleruby
+```bash
+$ rvm install truffleruby
 ```
 
 ### ruby-build and rbenv
@@ -34,13 +34,13 @@ definition. See [`ruby-build`'s instructions for upgrading](https://github.com/r
 Check the latest available version of TruffleRuby with:
 
 ```bash
-rbenv install --list | grep truffleruby
+$ rbenv install --list | grep truffleruby
 ```
 
 Then install the latest TruffleRuby with:
 
 ```bash
-rbenv install truffleruby-[LATEST_VERSION]
+$ rbenv install truffleruby-[LATEST_VERSION]
 ```
 
 ### ruby-install and chruby
@@ -49,7 +49,7 @@ First, you need at least `ruby-install` 0.7.0 to get TruffleRuby support.
 Check your version with:
 
 ```bash
-ruby-install --version
+$ ruby-install --version
 ```
 
 If it is older than `0.7.0`, you need to update to latest `ruby-install`.
@@ -60,8 +60,8 @@ installing it.
 Then install TruffleRuby with:
 
 ```bash
-ruby-install --latest
-ruby-install truffleruby
+$ ruby-install --latest
+$ ruby-install truffleruby
 ```
 
 There are also instructions on the

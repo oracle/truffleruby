@@ -33,10 +33,6 @@ There are three ways to install TruffleRuby:
 
 You can use `gem` to install Gems as normal.
 
-You can also build TruffleRuby from source, see the
-[building instructions](doc/contributor/workflow.md), and using
-[Docker](doc/contributor/docker.md).
-
 Please report any issue you might find on [GitHub](https://github.com/oracle/truffleruby/issues).
 
 ## Aim
@@ -58,18 +54,18 @@ important to understand the different configurations of TruffleRuby, as each has
 different capabilities and performance characteristics. You should pick the
 execution mode that is appropriate for your application.
 
-TruffleRuby by default runs in the *native*
-configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
-standalone native executable. This means that you don't need a JVM installed on
-your system to use it. The advantage of the native configuration is that it
-[starts about as fast as MRI](doc/contributor/native-image.md), it may use less memory,
-and it becomes fast in less time. The disadvantage of the native configuration
-is that you can't use Java tools like VisualVM, you can't use Java
-interoperability, and *peak performance may be lower than on the JVM*. The
-native configuration is used by default, but you can also request it using
-`--native`. To use polyglot programming with the *native* configuration, you
-need to use the `--polyglot` flag. To check you are using the *native*
-configuration, `ruby --version` should mention `Native`.
+TruffleRuby by default runs in the *native* configuration. In this
+configuration, TruffleRuby is ahead-of-time compiled to a standalone native
+executable. This means that you don't need a JVM installed on your system to
+use it. The advantage of the native configuration is that it starts about as
+fast as MRI, it may use less memory, and it becomes fast in less time. The
+disadvantage of the native configuration is that you can't use Java tools like
+VisualVM, you can't use Java interoperability, and *peak performance may be
+lower than on the JVM*. The native configuration is used by default, but you
+can also request it using `--native`. To use polyglot programming with the
+*native* configuration, you need to use the `--polyglot` flag. To check you
+are using the *native* configuration, `ruby --version` should mention
+`Native`.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
@@ -150,8 +146,11 @@ should read our [migration guide](doc/user/jruby-migration.md).
 ## Documentation
 
 Extensive documentation is available in [`doc`](doc).
-[`doc/user`](doc/user) documents how to use TruffleRuby and
-[`doc/contributor`](doc/contributor) documents how to develop TruffleRuby.
+
+See our [source code repository](https://github.com/oracle/truffleruby) and
+[contributor
+documentation](https://github.com/oracle/truffleruby/tree/master/doc/contributor)
+to contribute to TruffleRuby.
 
 ## Contact
 

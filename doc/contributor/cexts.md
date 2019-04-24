@@ -5,19 +5,19 @@
 Get the gem test pack.
 
 ```bash
-jt gem-test-pack
+$ jt gem-test-pack
 ```
 
 You can then test C extension support.
 
 ```bash
-jt test cexts
+$ jt test cexts
 ```
 
 You can also runs specs:
 
 ```bash
-jt test :capi
+$ jt test :capi
 ```
 
 ### OpenSSL
@@ -25,8 +25,8 @@ jt test :capi
 The `openssl` specs and tests are currently segregated and are run separately.
 
 ```bash
-jt test :openssl
-jt test mri --openssl
+$ jt test :openssl
+$ jt test mri --openssl
 ```
 
 ## Benchmarking
@@ -40,7 +40,7 @@ jt cextc bench/chunky_png/oily_png
 Then follow the instructions for benchmarking above, and then try:
 
 ```bash
-USE_CEXTS=true TRUFFLERUBYOPT=--cexts-log-load jt benchmark bench/chunky_png/chunky-color-r.rb --simple
+$ USE_CEXTS=true TRUFFLERUBYOPT=--cexts-log-load jt benchmark bench/chunky_png/chunky-color-r.rb --simple
 ```
 
 These benchmarks have Ruby fallbacks, so we should carefully check that the

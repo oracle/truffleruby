@@ -14,7 +14,7 @@ c = a.compose(b, 0, 0)
 c.save('c.png')
 ```
 
-## Profiling
+## Profiling
 
 ### CPU Tracer
 

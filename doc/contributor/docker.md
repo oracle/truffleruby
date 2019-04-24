@@ -12,7 +12,7 @@ For example, to build a Docker image called `truffleruby-test` to test
 installing the public GraalVM CE binary and the public Ruby installable,
 using rbenv, and running a basic test:
 
-```
+```bash
 $ jt docker build truffleruby-test --ubuntu1804 --public 1.0.0 --rbenv --basic-test
 ```
 
@@ -23,13 +23,13 @@ built to use TruffleRuby.
 Or, to print a Dockerfile to show how to install TruffleRuby from source on
 Fedora 28 using RVM:
 
-```
+```bash
 $ jt docker print --fedora28 --source --rvm
 ```
 
 Or, to run a full set of tests on a set of new release candidate tarballs:
 
-```
+```bash
 $ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
@@ -87,7 +87,7 @@ You may find that the Docker cache interacts badly with these Dockerfiles (such
 as repository URLs being cached that become unavailable). Therefore we recommend
 regularly clearing your Docker cache.
 
-```
+```bash
 $ docker system prune -a -f
 ```
 
