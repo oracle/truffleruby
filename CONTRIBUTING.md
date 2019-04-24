@@ -1,5 +1,9 @@
 Thank you for thinking about contributing something to TruffleRuby!
 
+You can build TruffleRuby from source - see the [building
+instructions](doc/contributor/workflow.md). You can also use
+[Docker](doc/contributor/docker.md) to get an automated build.
+
 You will need to sign the Oracle Contributor Agreement for us to able to merge
 your work.
 
