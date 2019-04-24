@@ -23,130 +23,252 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 @Generated("tool/generate-options.rb")
 public class Options {
 
+    /** --load-paths=new String[]{} */
     public final String[] LOAD_PATHS;
+    /** --required-libraries=new String[]{} */
     public final String[] REQUIRED_LIBRARIES;
+    /** --working-directory="" */
     public final String WORKING_DIRECTORY;
+    /** --debug=false */
     public final boolean DEBUG;
+    /** --verbose=Verbosity.FALSE */
     public final Verbosity VERBOSITY;
+    /** --source-encoding="" */
     public final String SOURCE_ENCODING;
+    /** --internal-encoding="" */
     public final String INTERNAL_ENCODING;
+    /** --external-encoding="" */
     public final String EXTERNAL_ENCODING;
+    /** --home="" */
     public final String HOME;
+    /** --no-home-provided=false */
     public final boolean NO_HOME_PROVIDED;
+    /** --launcher="" */
     public final String LAUNCHER;
+    /** --core-load-path="resource:/truffleruby" */
     public final String CORE_LOAD_PATH;
+    /** --frozen-string-literals=false */
     public final boolean FROZEN_STRING_LITERALS;
+    /** --rubygems=true */
     public final boolean RUBYGEMS;
+    /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
+    /** --rubygems-lazy=DEFAULT_LAZY */
     public final boolean LAZY_RUBYGEMS;
+    /** --patching=true */
     public final boolean PATCHING;
+    /** --did-you-mean=true */
     public final boolean DID_YOU_MEAN;
+    /** --hashing-deterministic=false */
     public final boolean HASHING_DETERMINISTIC;
+    /** --embedded=true */
     public final boolean EMBEDDED;
+    /** --platform-native=env.isNativeAccessAllowed() && true */
     public final boolean NATIVE_PLATFORM;
+    /** --platform-native-interrupt=NATIVE_PLATFORM */
     public final boolean NATIVE_INTERRUPT;
+    /** --platform-handle-interrupt=!EMBEDDED */
     public final boolean HANDLE_INTERRUPT;
+    /** --single-threaded=!env.isCreateThreadAllowed() || EMBEDDED */
     public final boolean SINGLE_THREADED;
+    /** --polyglot-stdio=EMBEDDED || !NATIVE_PLATFORM */
     public final boolean POLYGLOT_STDIO;
+    /** --interop-host=env.isHostLookupAllowed() && true */
     public final boolean HOST_INTEROP;
+    /** --trace-calls=true */
     public final boolean TRACE_CALLS;
+    /** --coverage-global=false */
     public final boolean COVERAGE_GLOBAL;
+    /** --core-as-internal=true */
     public final boolean CORE_AS_INTERNAL;
+    /** --stdlib-as-internal=true */
     public final boolean STDLIB_AS_INTERNAL;
+    /** --lazy-translation-user=false */
     public final boolean LAZY_TRANSLATION_USER;
+    /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
+    /** --exceptions-print-java=false */
     public final boolean EXCEPTIONS_PRINT_JAVA;
+    /** --exceptions-print-uncaught-java=false */
     public final boolean EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
+    /** --exceptions-print-ruby-for-java=false */
     public final boolean EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
+    /** --exceptions-translate-assert=true */
     public final boolean EXCEPTIONS_TRANSLATE_ASSERT;
+    /** --exceptions-warn-stackoverflow=true */
     public final boolean EXCEPTIONS_WARN_STACKOVERFLOW;
+    /** --exceptions-warn-out-of-memory=true */
     public final boolean EXCEPTIONS_WARN_OUT_OF_MEMORY;
+    /** --backtraces-hide-core-files=true */
     public final boolean BACKTRACES_HIDE_CORE_FILES;
+    /** --backtraces-interleave-java=false */
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
+    /** --backtraces-limit=9999 */
     public final int BACKTRACES_LIMIT;
+    /** --backtraces-omit-unused=true */
     public final boolean BACKTRACES_OMIT_UNUSED;
+    /** --backtraces-on-interrupt=false */
     public final boolean BACKTRACE_ON_INTERRUPT;
+    /** --backtraces-sigalrm=!EMBEDDED */
     public final boolean BACKTRACE_ON_SIGALRM;
+    /** --backtraces-raise=false */
     public final boolean BACKTRACE_ON_RAISE;
+    /** --cexts=true */
     public final boolean CEXTS;
+    /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
+    /** --cexts-remap=new String[]{} */
     public final String[] CEXTS_LIBRARY_REMAP;
+    /** --options-log=false */
     public final boolean OPTIONS_LOG;
+    /** --log-load=false */
     public final boolean LOG_LOAD;
+    /** --log-autoload=false */
     public final boolean LOG_AUTOLOAD;
+    /** --log-feature-location=false */
     public final boolean LOG_FEATURE_LOCATION;
+    /** --cexts-log-load=false */
     public final boolean CEXTS_LOG_LOAD;
+    /** --cexts-log-warnings=false */
     public final boolean CEXTS_LOG_WARNINGS;
+    /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
+    /** --ignore-lines-before-ruby-shebang=false */
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
+    /** --syntax-check=false */
     public final boolean SYNTAX_CHECK;
+    /** --argv-global-values=new String[]{} */
     public final String[] ARGV_GLOBAL_VALUES;
+    /** --argv-global-flags=new String[]{} */
     public final String[] ARGV_GLOBAL_FLAGS;
+    /** --building-core-cexts=false */
     public final boolean BUILDING_CORE_CEXTS;
+    /** --lazy-translation-log=false */
     public final boolean LAZY_TRANSLATION_LOG;
+    /** --constant-dynamic-lookup-log=false */
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
+    /** --rope-print-intern-stats=false */
     public final boolean ROPE_PRINT_INTERN_STATS;
+    /** --preinit=true */
     public final boolean PREINITIALIZATION;
+    /** --lazy-builtins=DEFAULT_LAZY */
     public final boolean LAZY_BUILTINS;
+    /** --lazy-core-method-nodes=DEFAULT_LAZY */
     public final boolean LAZY_CORE_METHOD_NODES;
+    /** --lazy-translation-core=DEFAULT_LAZY */
     public final boolean LAZY_TRANSLATION_CORE;
+    /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
+    /** --rope-lazy-substrings=true */
     public final boolean ROPE_LAZY_SUBSTRINGS;
+    /** --default-cache=8 */
     public final int DEFAULT_CACHE;
+    /** --method-lookup-cache=DEFAULT_CACHE */
     public final int METHOD_LOOKUP_CACHE;
+    /** --dispatch-cache=DEFAULT_CACHE */
     public final int DISPATCH_CACHE;
+    /** --yield-cache=DEFAULT_CACHE */
     public final int YIELD_CACHE;
+    /** --to-proc-cache=DEFAULT_CACHE */
     public final int METHOD_TO_PROC_CACHE;
+    /** --is-a-cache=DEFAULT_CACHE */
     public final int IS_A_CACHE;
+    /** --bind-cache=DEFAULT_CACHE */
     public final int BIND_CACHE;
+    /** --constant-cache=DEFAULT_CACHE */
     public final int CONSTANT_CACHE;
+    /** --instance-variable-cache=DEFAULT_CACHE */
     public final int INSTANCE_VARIABLE_CACHE;
+    /** --binding-local-variable-cache=DEFAULT_CACHE */
     public final int BINDING_LOCAL_VARIABLE_CACHE;
+    /** --symbol-to-proc-cache=DEFAULT_CACHE */
     public final int SYMBOL_TO_PROC_CACHE;
+    /** --allocate-class-cache=DEFAULT_CACHE */
     public final int ALLOCATE_CLASS_CACHE;
+    /** --pack-cache=DEFAULT_CACHE */
     public final int PACK_CACHE;
+    /** --unpack-cache=DEFAULT_CACHE */
     public final int UNPACK_CACHE;
+    /** --eval-cache=DEFAULT_CACHE */
     public final int EVAL_CACHE;
+    /** --class-cache=DEFAULT_CACHE */
     public final int CLASS_CACHE;
+    /** --encoding-compatible-query-cache=DEFAULT_CACHE */
     public final int ENCODING_COMPATIBLE_QUERY_CACHE;
+    /** --encoding-loaded-classes-cache=DEFAULT_CACHE */
     public final int ENCODING_LOADED_CLASSES_CACHE;
+    /** --thread-cache=DEFAULT_CACHE */
     public final int THREAD_CACHE;
+    /** --rope-class-cache=8 */
     public final int ROPE_CLASS_CACHE;
+    /** --interop-convert-cache=DEFAULT_CACHE */
     public final int INTEROP_CONVERT_CACHE;
+    /** --interop-execute-cache=DEFAULT_CACHE */
     public final int INTEROP_EXECUTE_CACHE;
+    /** --interop-invoke-cache=DEFAULT_CACHE */
     public final int INTEROP_INVOKE_CACHE;
+    /** --interop-new-cache=DEFAULT_CACHE */
     public final int INTEROP_NEW_CACHE;
+    /** --time-format-cache=DEFAULT_CACHE */
     public final int TIME_FORMAT_CACHE;
+    /** --integer-pow-cache=DEFAULT_CACHE */
     public final int POW_CACHE;
+    /** --array-dup-cache=3 */
     public final int ARRAY_DUP_CACHE;
+    /** --frame-variable-access-cache=5 */
     public final int FRAME_VARIABLE_ACCESS_CACHE;
+    /** --array-uninitialized-size=16 */
     public final int ARRAY_UNINITIALIZED_SIZE;
+    /** --array-small=3 */
     public final int ARRAY_SMALL;
+    /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
+    /** --pack-unroll=4 */
     public final int PACK_UNROLL_LIMIT;
+    /** --pack-recover=32 */
     public final int PACK_RECOVER_LOOP_MIN;
+    /** --cexts-marking-cache=100 */
     public final int CEXTS_MARKING_CACHE;
+    /** --rope-depth-threshold=128 */
     public final int ROPE_DEPTH_THRESHOLD;
+    /** --global-variable-max-invalidations=1 */
     public final int GLOBAL_VARIABLE_MAX_INVALIDATIONS;
+    /** --clone-default=true */
     public final boolean CLONE_DEFAULT;
+    /** --inline-default=true */
     public final boolean INLINE_DEFAULT;
+    /** --core-always-clone=CLONE_DEFAULT */
     public final boolean CORE_ALWAYS_CLONE;
+    /** --primitive-callers-always-clone=CLONE_DEFAULT */
     public final boolean PRIMITIVE_CALLERS_ALWAYS_CLONE;
+    /** --always-split-honor=CLONE_DEFAULT */
     public final boolean ALWAYS_SPLIT_HONOR;
+    /** --inline-needs-caller-frame=INLINE_DEFAULT */
     public final boolean INLINE_NEEDS_CALLER_FRAME;
+    /** --yield-always-clone=CLONE_DEFAULT */
     public final boolean YIELD_ALWAYS_CLONE;
+    /** --yield-always-inline=INLINE_DEFAULT */
     public final boolean YIELD_ALWAYS_INLINE;
+    /** --method-missing-always-clone=CLONE_DEFAULT */
     public final boolean METHODMISSING_ALWAYS_CLONE;
+    /** --method-missing-always-inline=INLINE_DEFAULT */
     public final boolean METHODMISSING_ALWAYS_INLINE;
+    /** --call-with-block-always-clone=CLONE_DEFAULT */
     public final boolean CALL_WITH_BLOCK_ALWAYS_CLONE;
+    /** --regexp-instrument-creation=false */
     public final boolean REGEXP_INSTRUMENT_CREATION;
+    /** --regexp-instrument-match=false */
     public final boolean REGEXP_INSTRUMENT_MATCH;
+    /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
+    /** --metrics-time-require=false */
     public final boolean METRICS_TIME_REQUIRE;
+    /** --shared-objects=true */
     public final boolean SHARED_OBJECTS_ENABLED;
+    /** --shared-objects-debug=false */
     public final boolean SHARED_OBJECTS_DEBUG;
+    /** --shared-objects-force=false */
     public final boolean SHARED_OBJECTS_FORCE;
-    public final boolean SHARED_OBJECTS_SHARE_ALL;
     
     public Options(Env env, OptionValues options) {
         LOAD_PATHS = options.get(OptionsCatalog.LOAD_PATHS_KEY);
@@ -272,7 +394,6 @@ public class Options {
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
-        SHARED_OBJECTS_SHARE_ALL = options.get(OptionsCatalog.SHARED_OBJECTS_SHARE_ALL_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -523,8 +644,6 @@ public class Options {
                 return SHARED_OBJECTS_DEBUG;
             case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
-            case "ruby.shared-objects-share-all":
-                return SHARED_OBJECTS_SHARE_ALL;
             default:
                 return null;
         }

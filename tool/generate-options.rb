@@ -126,7 +126,8 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 @Generated("tool/generate-options.rb")
 public class Options {
 
-    <% options.each do |o| %>public final <%= o.type %> <%= o.constant %>;
+    <% options.each do |o| %>/** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
+    public final <%= o.type %> <%= o.constant %>;
     <% end %>
     public Options(Env env, OptionValues options) {
     <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %><%=

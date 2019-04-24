@@ -107,7 +107,7 @@ public class SharedObjects {
     }
 
     public static boolean isShared(RubyContext context, Shape shape) {
-        return context.getOptions().SHARED_OBJECTS_ENABLED && (context.getOptions().SHARED_OBJECTS_SHARE_ALL || shape.isShared());
+        return context.getOptions().SHARED_OBJECTS_ENABLED && shape.isShared();
     }
 
     public static void writeBarrier(RubyContext context, Object value) {
