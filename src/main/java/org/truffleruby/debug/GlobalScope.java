@@ -87,42 +87,10 @@ public class GlobalScope {
             return false;
         }
 
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    public static class GlobalVariableNamesObject implements TruffleObject {
-
-        private final String[] names;
-
-        protected GlobalVariableNamesObject(String[] names) {
-            this.names = names;
-        }
-
         @SuppressWarnings("static-method")
         @ExportMessage
-        protected boolean hasArrayElements() {
-            return true;
-        }
-
-        @ExportMessage
-        protected long getArraySize() {
-            return names.length;
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected Object readArrayElement(long index) throws InvalidArrayIndexException {
-            if (isArrayElementReadable(index)) {
-                return names[(int) index];
-            } else {
-                throw InvalidArrayIndexException.create(index);
-            }
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected boolean isArrayElementReadable(long index) {
-            return index >= 0 && index < names.length;
+        protected boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
+            return false;
         }
 
     }

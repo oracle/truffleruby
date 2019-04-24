@@ -30,7 +30,6 @@ import org.truffleruby.parser.TranslatorEnvironment;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class LexicalScope {
 
@@ -142,7 +141,7 @@ public class LexicalScope {
         @ExportMessage
         @TruffleBoundary
         protected Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
-            return new LocalVariableNamesObject(slots.keySet());
+            return new VariableNamesObject(slots.keySet().toArray(new String[slots.size()]));
         }
 
         @ExportMessage
@@ -176,44 +175,6 @@ public class LexicalScope {
         @ExportMessage
         protected boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
             return false;
-        }
-
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    public static class LocalVariableNamesObject implements TruffleObject {
-
-        private final String[] names;
-
-        protected LocalVariableNamesObject(Set<String> names) {
-            this.names = names.toArray(new String[names.size()]);
-        }
-
-        @SuppressWarnings("static-method")
-        @ExportMessage
-        protected boolean hasArrayElements() {
-            return true;
-        }
-
-        @ExportMessage
-        protected long getArraySize() {
-            return names.length;
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected Object readArrayElement(long index) throws InvalidArrayIndexException {
-            if (isArrayElementReadable(index)) {
-                return names[(int) index];
-            } else {
-                throw InvalidArrayIndexException.create(index);
-            }
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected boolean isArrayElementReadable(long index) {
-            return index >= 0 && index < names.length;
         }
 
     }
