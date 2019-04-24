@@ -1742,13 +1742,13 @@ f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
 lambda_body     : tLAMBEG compstmt tRCURLY {
                     $$ = $2;
                 }
-                | kDO_LAMBDA compstmt kEND {
+                | kDO_LAMBDA bodystmt kEND {
                     $$ = $2;
                 }
 
 do_block        : kDO_BLOCK {
                     support.pushBlockScope();
-                } opt_block_param compstmt kEND {
+                } opt_block_param bodystmt kEND {
                     $$ = new IterParseNode($1, $3, $4, support.getCurrentScope());
                     support.popCurrentScope();
                 }
@@ -1826,7 +1826,7 @@ brace_block     : tLCURLY {
                 }
                 | kDO {
                     support.pushBlockScope();
-                } opt_block_param compstmt kEND {
+                } opt_block_param bodystmt kEND {
                     $$ = new IterParseNode($1, $3, $4, support.getCurrentScope());
                     support.popCurrentScope();
                 }
