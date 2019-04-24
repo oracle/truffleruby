@@ -1,3 +1,11 @@
+# 1.0 RC 17
+
+Bug fixes:
+
+* The debugger now sees global variables as the global scope.
+* Temporary variables are no longer visible in the debugger.
+* Setting breakpoints on some lines has been fixed.
+
 # 1.0 RC 16
 
 Bug fixes:
