@@ -45,6 +45,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -1643,7 +1644,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), "rubytruffle_temp_anon_rest", support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -2446,7 +2447,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                     $$ = new RestArgParseNode(support.arg_var(support.shadowing_lvar($2)));
                 }
                 | restarg_mark {
-                    $$ = new UnnamedRestArgParseNode(lexer.getPosition(), "rubytruffle_temp_rest", support.getCurrentScope().addVariable("*"), true);
+                    $$ = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
                 }
 
 // [!null]

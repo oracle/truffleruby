@@ -493,7 +493,7 @@ public class BodyTranslator extends Translator {
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
-            return addNewlineIfNeeded(node, Translator.withSourceSection(sourceSection, new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
+            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
         }
 
         if (receiver instanceof ConstParseNode
@@ -543,7 +543,15 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        return translateCallNode(node, false, false, false);
+        final RubyNode translated = translateCallNode(node, false, false, false);
+
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
+
+        if (!translated.hasSource()) {
+            translated.unsafeSetSourceSection(sourceSection);
+        }
+
+        return addNewlineIfNeeded(node, translated);
     }
 
     protected RubyNode translatePrimitive(SourceIndexLength sourceSection, BlockParseNode body, RubyNode loadArguments) {
@@ -1528,6 +1536,12 @@ public class BodyTranslator extends Translator {
             translated = callNode.accept(this);
         } finally {
             this.translatingForStatement = translatingForStatement;
+        }
+
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
+
+        if (!translated.hasSource()) {
+            translated.unsafeSetSourceSection(node.getPosition());
         }
 
         return addNewlineIfNeeded(node, translated);

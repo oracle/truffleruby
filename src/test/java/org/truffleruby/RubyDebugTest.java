@@ -321,8 +321,7 @@ public class RubyDebugTest {
 
             final AtomicInteger numFrameVars = new AtomicInteger(0);
             frame.getScope().getDeclaredValues().forEach(var -> { numFrameVars.incrementAndGet(); });
-            // There is (self) among the variables, hence substract 1:
-            assertEquals(expectedFrame.length / 2, numFrameVars.get() - 1);
+            assertEquals(expectedFrame.length / 2, numFrameVars.get());
 
             for (int i = 0; i < expectedFrame.length; i = i + 2) {
                 String expectedIdentifier = (String) expectedFrame[i];

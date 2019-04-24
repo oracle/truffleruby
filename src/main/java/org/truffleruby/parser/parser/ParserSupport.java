@@ -48,6 +48,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
 import org.truffleruby.parser.ast.ArgsCatParseNode;
@@ -1269,7 +1270,7 @@ public class ParserSupport {
         }
 
         if (keywordRestArgName.isEmpty()) {
-            keywordRestArgName = "rubytruffle_temp_kwrest";
+            keywordRestArgName = TranslatorEnvironment.TEMP_PREFIX + "_kwrest";
         }
 
         String restKwargsName = keywordRestArgName;

@@ -10,19 +10,24 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
+import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -34,6 +39,8 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @TruffleLanguage.Registration(
@@ -85,9 +92,17 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
         LOGGER.fine("initializeContext()");
-        Metrics.printTime("before-initialize-context");
-        context.initialize();
-        Metrics.printTime("after-initialize-context");
+
+        try {
+            Metrics.printTime("before-initialize-context");
+            context.initialize();
+            Metrics.printTime("after-initialize-context");
+        } catch (Throwable e) {
+            if (context.getOptions().EXCEPTIONS_PRINT_JAVA || context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
+                e.printStackTrace();
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -151,12 +166,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         } else {
             return implicit;
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    protected Object getLanguageGlobal(RubyContext context) {
-        return context.getCoreLibrary().getObjectClass();
     }
 
     @Override
@@ -248,6 +257,16 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         final DynamicObject rubyThread = context.getThreadManager().getForeignRubyThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
+    }
+
+    @Override
+    protected Iterable<Scope> findLocalScopes(RubyContext context, Node node, Frame frame) {
+        return LexicalScope.getLexicalScopeFor(context, node, frame);
+    }
+
+    @Override
+    protected Iterable<Scope> findTopScopes(RubyContext context) {
+        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()));
     }
 
     public String getTruffleLanguageHome() {

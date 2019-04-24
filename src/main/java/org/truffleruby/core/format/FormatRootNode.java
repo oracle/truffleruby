@@ -144,7 +144,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
 
     @Override
     public String getName() {
-        return "unpack";
+        return "format";
     }
 
     @Override
