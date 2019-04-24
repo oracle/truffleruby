@@ -524,7 +524,7 @@ module Commands
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
           graalvm [--graal] [--native]               build a minimal JVM-only GraalVM containing only TruffleRuby
-              --graal     include graal compiler in the build
+              --graal     include the GraalVM Compiler in the build
               --native    build native ruby image as well
           native [--no-sulong] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby
@@ -616,7 +616,7 @@ module Commands
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
         JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
-        AOT_BIN                                      TruffleRuby/SVM executable
+        AOT_BIN                                      TruffleRuby executable
     TXT
   end
 
@@ -1915,11 +1915,11 @@ EOS
     puts "Building graal"
     mx "--dy", "/compiler", "build"
 
-    puts "Running with Graal"
+    puts "Running with the GraalVM Compiler"
     run_ruby "--graal", "-e", "p TruffleRuby.graal?"
 
     puts
-    puts "To run TruffleRuby with Graal, use:"
+    puts "To run TruffleRuby with the GraalVM Compiler, use:"
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 

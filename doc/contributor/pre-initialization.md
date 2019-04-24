@@ -1,8 +1,9 @@
 # Context Pre-Initialization
 
-TruffleRuby supports context pre-initialization with SubstrateVM.
+TruffleRuby supports context pre-initialization with the GraalVM Native Image
+Generator.
 
-Context pre-initialization is enabled in Truffle by setting a Java property:
+Context pre-initialization is enabled by setting this Java property:
 
 ```
 -Dpolyglot.engine.PreinitializeContexts=ruby

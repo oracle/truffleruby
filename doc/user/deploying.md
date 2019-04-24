@@ -15,7 +15,7 @@ When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
 standalone native executable. This means that you don't need a JVM installed on
 your system to use it. The advantage of the native configuration is that it
-[starts about as fast as MRI](../contributor/svm.md), it may use less memory,
+[starts about as fast as MRI](../contributor/native-image.md), it may use less memory,
 and it becomes fast in less time than the *JVM* configuration. The disadvantage
 of the native configuration is that you can't use Java tools like VisualVM, you
 can't use Java interoperability, and *peak performance may be lower than on the
@@ -59,11 +59,6 @@ do with most heavily optimising virtual machines. This is done by running the
 application under load for a period of time. If you monitor the performance (by
 measuring operation time, or response time) you will see it reduce over time and
 then probably stabilise.
-
-## Tuning TruffleRuby
-
-To tune TruffleRuby you will need to consider the options of either your JVM or
-the SubstrateVM, and then Truffle, and Graal.
 
 ## Logging
 

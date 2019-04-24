@@ -71,7 +71,7 @@ options. All options all experimental and subject to change at any time.
 Options can also be set as JVM system properties, where they have a prefix
 `polyglot.ruby.`. For example `--vm.Dpolyglot.ruby.cexts.remap=true`, or via
 any other way of setting JVM system properties. Finally, options can be set as
-Graal-SDK polyglot API configuration options.
+GraalVM polyglot API configuration options.
 
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.

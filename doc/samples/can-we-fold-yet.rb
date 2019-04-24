@@ -11,7 +11,7 @@
 require 'readline'
 
 unless TruffleRuby.graal?
-  puts 'You need Graal to run this'
+  puts 'You need the GraalVM Compiler to run this'
   exit
 end
 

@@ -46,8 +46,10 @@ as their semantics fundamentally do not match the technology that we are using.
 #### Fork
 
 You cannot `fork` the TruffleRuby interpreter. The feature is unlikely to ever
-be supported when running on the JVM but could be supported in the future on
-the SVM. The correct and portable way to test if `fork` is available is:
+be supported when running on the JVM but could be supported in the future in
+the native configuration. The correct and portable way to test if `fork` is
+available is:
+
 ```ruby
 Process.respond_to?(:fork)
 ```
@@ -250,7 +252,7 @@ multiple languages, including Java, instead.
 #### Java to Ruby interop
 
 Calling Ruby code from Java is supported by the
-[Graal-SDK polyglot API](http://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/package-summary.html).
+[GraalVM polyglot API](http://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/package-summary.html).
 
 #### Java extensions
 
@@ -267,12 +269,13 @@ extensions to Ruby.
 
 * Java interop
 
-Running TruffleRuby in the native configuration is mostly the same as running on
-the JVM. There are differences in resource management, as both VMs use different
-garbage collectors. But, functionality-wise, they are essentially on par with
-one another. The big difference is support for Java interop, which currently
-relies on reflection. TruffleRuby's implementation of Java interop does not work
-with the SVM's limited support for runtime reflection.
+Running TruffleRuby in the native configuration is mostly the same as running
+on the JVM. There are differences in resource management, as both VMs use
+different garbage collectors. But, functionality-wise, they are essentially on
+par with one another. The big difference is support for Java interop, which
+currently relies on reflection. TruffleRuby's implementation of Java interop
+does not work with the GraalVM Native Image Generator's limited support for
+runtime reflection.
 
 ## Spec Completeness
 
