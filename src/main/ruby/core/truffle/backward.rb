@@ -38,4 +38,9 @@ module TruffleRuby
     cexts?
   end
 
+  def self.graal?
+    warn 'TruffleRuby.graal? has been replaced by TruffleRuby.jit? and will be removed at a future release', uplevel: 1
+    jit?
+  end
+
 end

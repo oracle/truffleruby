@@ -10,7 +10,7 @@
 
 require 'readline'
 
-unless TruffleRuby.graal?
+unless TruffleRuby.jit?
   puts 'You need the GraalVM Compiler to run this'
   exit
 end

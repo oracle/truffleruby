@@ -29,7 +29,7 @@ import org.truffleruby.shared.BuildInformationImpl;
 @CoreClass("TruffleRuby")
 public abstract class TruffleRubyNodes {
 
-    @CoreMethod(names = "graal?", onSingleton = true)
+    @CoreMethod(names = "jit?", onSingleton = true)
     public abstract static class GraalNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

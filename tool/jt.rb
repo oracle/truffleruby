@@ -1916,7 +1916,7 @@ EOS
     mx "--dy", "/compiler", "build"
 
     puts "Running with the GraalVM Compiler"
-    run_ruby "--graal", "-e", "p TruffleRuby.graal?"
+    run_ruby "--graal", "-e", "p TruffleRuby.jit?"
 
     puts
     puts "To run TruffleRuby with the GraalVM Compiler, use:"

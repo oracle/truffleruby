@@ -298,7 +298,7 @@ describe "The launcher" do
     out.should_not include('RubyLauncher.main')
   end
 
-  guard -> { TruffleRuby.graal? } do
+  guard -> { TruffleRuby.jit? } do
     it "applies Truffle options" do
       options = [
         "--vm.Dgraal.TraceTruffleCompilation=true",
