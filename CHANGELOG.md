@@ -6,7 +6,11 @@ Bug fixes:
 * Temporary variables are no longer visible in the debugger.
 * Setting breakpoints on some lines has been fixed.
 
-# 1.0 RC 16
+Compatibility:
+
+* `do...end` blocks can now have `rescue/else/ensure` clauses like MRI (#1618).
+
+# 1.0 RC 16, 19 April 2019
 
 Bug fixes:
 
@@ -33,7 +37,6 @@ Compatibility:
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
 * `Kernel#warn` now supports the `uplevel:` keyword argument.
-* `do...end` blocks can now have `rescue/else/ensure` clauses like MRI (#1618).
 
 # 1.0 RC 15, 5 April 2019
 
