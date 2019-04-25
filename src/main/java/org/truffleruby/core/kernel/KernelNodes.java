@@ -313,11 +313,11 @@ public abstract class KernelNodes {
     }
 
     @ImportStatic(KernelNodes.class)
-    public abstract static class GetBlockNode extends Node {
+    public abstract static class GetBlockNode extends RubyBaseNode {
 
         public abstract Object execute(MaterializedFrame frame);
 
-        @Specialization(guards = { "getFrameDescriptor(frame) == cachedDescriptor" } )
+        @Specialization(guards = { "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" } )
         public Object getBlock(MaterializedFrame frame,
                                @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
                                @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
@@ -325,11 +325,23 @@ public abstract class KernelNodes {
             return readNode.executeRead(frame);
         }
 
+        @Specialization(guards = { "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" } )
+        public Object getBlockNull(MaterializedFrame frame,
+                               @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
+                               @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
+                               @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
+            return nil();
+        }
+
         @Specialization
         @TruffleBoundary
         public Object getBlockSlow(MaterializedFrame frame) {
             FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(getSlotName(), frame);
-            return RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth).getValue(slotAndDepth.slot);
+            if (slotAndDepth == null) {
+                return nil();
+            } else {
+                return RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth).getValue(slotAndDepth.slot);
+            }
         }
 
         protected static String getSlotName() {
