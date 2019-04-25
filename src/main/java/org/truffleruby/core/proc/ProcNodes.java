@@ -222,7 +222,7 @@ public abstract class ProcNodes {
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
                     ProcOperations.getSelf(proc),
-                    Layouts.PROC.getBlock(proc),
+                    null,
                     args);
         }
 

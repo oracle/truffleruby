@@ -86,6 +86,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     private final boolean isProc;
+    private final boolean hasImplicitBlock;
     private final BodyTranslator methodBodyTranslator;
     private final Deque<ArraySlot> arraySlotStack = new ArrayDeque<>();
 
@@ -104,9 +105,10 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean hasImplicitBlock, BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
+        this.hasImplicitBlock = hasImplicitBlock;
         this.methodBodyTranslator = methodBodyTranslator;
         this.argsNode = argsNode;
         this.required = argsNode.getRequiredCount();
@@ -255,6 +257,9 @@ public class LoadArgumentsTranslator extends Translator {
         if (argsNode.getBlock() != null) {
             sequence.add(argsNode.getBlock().accept(this));
         }
+        if (hasImplicitBlock) {
+            sequence.add(visitUnnamedBlockArg());
+        }
 
         return sequence(sourceSection, sequence);
     }
@@ -331,6 +336,12 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    public RubyNode visitUnnamedBlockArg() {
+        final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__");
         return new WriteLocalVariableNode(slot, readNode);
     }
 

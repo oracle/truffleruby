@@ -19,6 +19,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.ReadLocalNode;
 
 public class YieldExpressionNode extends RubyNode {
 
@@ -27,13 +28,15 @@ public class YieldExpressionNode extends RubyNode {
     @Children private final RubyNode[] arguments;
     @Child private YieldNode yieldNode;
     @Child private ArrayToObjectArrayNode unsplatNode;
+    @Child private ReadLocalNode readBlockNode;
 
     private final BranchProfile useCapturedBlock = BranchProfile.create();
     private final BranchProfile noCapturedBlock = BranchProfile.create();
 
-    public YieldExpressionNode(boolean unsplat, RubyNode[] arguments) {
+    public YieldExpressionNode(boolean unsplat, RubyNode[] arguments, ReadLocalNode readBlockNode) {
         this.unsplat = unsplat;
         this.arguments = arguments;
+        this.readBlockNode = readBlockNode;
     }
 
     @ExplodeLoop
@@ -45,9 +48,9 @@ public class YieldExpressionNode extends RubyNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        DynamicObject block = RubyArguments.getBlock(frame);
+        DynamicObject block = (DynamicObject)readBlockNode.execute(frame);
 
-        if (block == null) {
+        if (block == nil()) {
             useCapturedBlock.enter();
 
             block = RubyArguments.getMethod(frame).getCapturedBlock();

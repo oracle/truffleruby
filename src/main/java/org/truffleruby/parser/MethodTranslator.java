@@ -100,7 +100,7 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         final boolean isProc = type == ProcType.PROC;
-        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, this).translate();
+        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, false, this).translate();
 
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
@@ -110,7 +110,7 @@ public class MethodTranslator extends BodyTranslator {
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
             final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);
 
-            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, this);
+            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, false, this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
             final RubyNode newDestructureArguments = destructureArgumentsTranslator.translate();
 
@@ -225,7 +225,7 @@ public class MethodTranslator extends BodyTranslator {
         declareArguments();
         final Arity arity = argsNode.getArity();
 
-        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, this).translate();
+        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, true, this).translate();
         
         final boolean isPrimitive = callsPrimitive(bodyNode);
 
