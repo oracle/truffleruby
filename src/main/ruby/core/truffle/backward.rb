@@ -30,3 +30,12 @@ module Truffle
   end
 
 end
+
+module TruffleRuby
+
+  def self.sulong?
+    warn 'TruffleRuby.sulong? has been replaced by TruffleRuby.cexts? and will be removed at a future release', uplevel: 1
+    cexts?
+  end
+
+end

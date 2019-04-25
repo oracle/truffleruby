@@ -262,7 +262,7 @@ describe "The launcher" do
     out.should include("--ruby.load-paths=")
   end
 
-  guard -> { TruffleRuby.sulong? } do
+  guard -> { TruffleRuby.cexts? } do
     it "prints help:languages containing llvm language options" do
       out = ruby_exe(nil, options: "--help:languages")
       $?.success?.should == true

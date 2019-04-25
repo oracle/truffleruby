@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "TruffleRuby.sulong?" do
+describe "TruffleRuby.cexts?" do
 
   it "returns a Boolean value" do
-    TruffleRuby.sulong?.should be_true_or_false
+    TruffleRuby.cexts?.should be_true_or_false
   end
 
 end

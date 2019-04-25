@@ -40,7 +40,7 @@ used.
 
 `TruffleRuby.native?` reports if TruffleRuby is compiled as a native image.
 
-`TruffleRuby.sulong?` reports if TruffleRuby has the GraalVM LLVM Runtime for C
+`TruffleRuby.cexts?` reports if TruffleRuby has the GraalVM LLVM Runtime for C
 extensions available.
 
 `TruffleRuby.revision` reports the source control revision used to build

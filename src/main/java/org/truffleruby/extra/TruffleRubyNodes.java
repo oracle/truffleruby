@@ -50,7 +50,7 @@ public abstract class TruffleRubyNodes {
 
     }
 
-    @CoreMethod(names = "sulong?", onSingleton = true)
+    @CoreMethod(names = "cexts?", onSingleton = true)
     public abstract static class SulongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
