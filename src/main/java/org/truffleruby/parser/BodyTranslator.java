@@ -722,7 +722,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength enclosingSourceSection = enclosing(sourceSection, children.toArray(RubyNode.EMPTY_ARRAY));
 
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, methodName, argumentsAndBlock.getBlock(), argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted(), privately || ignoreVisibility, isVCall, node.isLazy(), isAttrAssign);
-        RubyNode translated = Translator.withSourceSection(enclosingSourceSection, context.getCoreMethods().createCallNode(callParameters));
+        RubyNode translated = Translator.withSourceSection(enclosingSourceSection, context.getCoreMethods().createCallNode(callParameters, environment));
 
         translated = wrapCallWithLiteralBlock(argumentsAndBlock, translated);
 
@@ -2379,7 +2379,7 @@ public class BodyTranslator extends Translator {
             default: {
                 final SourceIndexLength sourceSection = node.getPosition();
                 final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(lhs, node.getOperator(), null, new RubyNode[] { rhs }, false, true);
-                final RubyNode opNode = context.getCoreMethods().createCallNode(callParameters);
+                final RubyNode opNode = context.getCoreMethods().createCallNode(callParameters, environment);
                 final RubyNode ret = ((ReadConstantNode) lhs).makeWriteNode(opNode);
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);
