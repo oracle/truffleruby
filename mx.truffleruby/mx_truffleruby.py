@@ -65,6 +65,7 @@ def miniruby_for_building_cexts(args):
     mx_binary = join(mx._mx_home, 'mx')
     options = [
         '--experimental-options',
+        '--building-core-cexts',
         '--home=' + root,
         '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
         '--disable-gems'

@@ -260,7 +260,6 @@ suite = {
                 "sulong:SULONG_LEGACY", # truffle.h
             ],
             "buildEnv": {
-              "TRUFFLERUBYOPT": "--building-core-cexts",
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
               "SULONG_HEADERS_DIR": "<path:SULONG_HOME>/include",
               "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
