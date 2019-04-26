@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "TruffleRuby.graal?" do
+describe "TruffleRuby.jit?" do
 
   it "returns a Boolean value" do
-    TruffleRuby.graal?.should be_true_or_false
+    TruffleRuby.jit?.should be_true_or_false
   end
 
 end

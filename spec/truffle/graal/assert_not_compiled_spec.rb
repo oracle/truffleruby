@@ -14,7 +14,7 @@ describe "Truffle::Graal.assert_not_compiled" do
     -> { Truffle::Graal.send(:assert_not_compiled) }.should raise_error(RuntimeError)
   end
 
-  unless TruffleRuby.graal?
+  unless TruffleRuby.jit?
     it "returns nil" do
       Truffle::Graal.assert_not_compiled.should be_nil
     end
