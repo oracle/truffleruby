@@ -70,7 +70,6 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.GetBlockNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
@@ -112,6 +111,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -284,87 +284,6 @@ public abstract class KernelNodes {
 
     }
 
-    protected static class FrameSlotAndDepth {
-        private final FrameSlot slot;
-        private final int depth;
-
-        public FrameSlotAndDepth(FrameSlot slot, int depth) {
-            this.slot = slot;
-            this.depth = depth;
-        }
-
-        public FrameSlot getSlot() {
-            return slot;
-        }
-    }
-
-    public static FrameSlotAndDepth findFrameSlotOrNull(String identifier, MaterializedFrame frame) {
-        int depth = 0;
-        while (frame != null) {
-            final FrameSlot frameSlot = frame.getFrameDescriptor().findFrameSlot(identifier);
-            if (frameSlot != null) {
-                return new FrameSlotAndDepth(frameSlot, depth);
-            }
-
-            frame = RubyArguments.getDeclarationFrame(frame);
-            depth++;
-        }
-        return null;
-    }
-
-    @ImportStatic(KernelNodes.class)
-    public abstract static class GetBlockNode extends RubyBaseNode {
-
-        public abstract Object execute(MaterializedFrame frame);
-
-        @Specialization(guards = {"getFrameDescriptor(frame) == cachedDescriptor", "readNode != null"})
-        public Object getBlock(MaterializedFrame frame,
-                               @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
-                               @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
-                               @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
-            return readNode.executeRead(frame);
-        }
-
-        @Specialization(guards = {"getFrameDescriptor(frame) == cachedDescriptor", "readNode == null"})
-        public Object getBlockNull(MaterializedFrame frame,
-                               @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
-                               @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
-                               @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
-            return nil();
-        }
-
-        @Specialization
-        @TruffleBoundary
-        public Object getBlockSlow(MaterializedFrame frame) {
-            FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(getSlotName(), frame);
-            if (slotAndDepth == null) {
-                return nil();
-            } else {
-                return RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth).getValue(slotAndDepth.slot);
-            }
-        }
-
-        protected static String getSlotName() {
-            return TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__";
-        }
-
-        protected static FrameDescriptor getFrameDescriptor(Frame frame) {
-            return frame.getFrameDescriptor();
-        }
-
-        protected ReadFrameSlotNode createReadNode(FrameSlotAndDepth frameSlot) {
-            if (frameSlot == null) {
-                return null;
-            } else {
-                return ReadFrameSlotNodeGen.create(frameSlot.slot);
-            }
-        }
-
-        public static GetBlockNode create() {
-            return GetBlockNodeGen.create();
-        }
-    }
-
     @CoreMethod(names = "block_given?", isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
@@ -372,10 +291,10 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean blockGiven(VirtualFrame frame,
-                @Cached("create()") GetBlockNode getBlockNode,
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-            return getBlockNode.execute(callerFrame) != nil();
+            return readNode.execute(callerFrame, TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__") != nil();
         }
     }
 
