@@ -317,7 +317,7 @@ public abstract class KernelNodes {
 
         public abstract Object execute(MaterializedFrame frame);
 
-        @Specialization(guards = { "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" } )
+        @Specialization(guards = {"getFrameDescriptor(frame) == cachedDescriptor", "readNode != null"})
         public Object getBlock(MaterializedFrame frame,
                                @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
                                @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
@@ -325,7 +325,7 @@ public abstract class KernelNodes {
             return readNode.executeRead(frame);
         }
 
-        @Specialization(guards = { "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" } )
+        @Specialization(guards = {"getFrameDescriptor(frame) == cachedDescriptor", "readNode == null"})
         public Object getBlockNull(MaterializedFrame frame,
                                @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
                                @Cached("findFrameSlotOrNull(getSlotName(), frame)") FrameSlotAndDepth slotAndDepth,
