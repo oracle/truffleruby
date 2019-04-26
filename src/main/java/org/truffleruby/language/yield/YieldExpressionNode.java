@@ -28,12 +28,12 @@ public class YieldExpressionNode extends RubyNode {
     @Children private final RubyNode[] arguments;
     @Child private YieldNode yieldNode;
     @Child private ArrayToObjectArrayNode unsplatNode;
-    @Child private ReadLocalNode readBlockNode;
+    @Child private RubyNode readBlockNode;
 
     private final BranchProfile useCapturedBlock = BranchProfile.create();
     private final BranchProfile noCapturedBlock = BranchProfile.create();
 
-    public YieldExpressionNode(boolean unsplat, RubyNode[] arguments, ReadLocalNode readBlockNode) {
+    public YieldExpressionNode(boolean unsplat, RubyNode[] arguments, RubyNode readBlockNode) {
         this.unsplat = unsplat;
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
@@ -48,7 +48,7 @@ public class YieldExpressionNode extends RubyNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        DynamicObject block = (DynamicObject)readBlockNode.execute(frame);
+        DynamicObject block = (DynamicObject) readBlockNode.execute(frame);
 
         if (block == nil()) {
             useCapturedBlock.enter();

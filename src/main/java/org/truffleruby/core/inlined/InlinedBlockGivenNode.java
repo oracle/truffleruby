@@ -10,10 +10,9 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.parser.ReadLocalNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -23,29 +22,19 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "block_given?";
-    @Child protected ReadLocalNode readNode;
+    @Child protected RubyNode readNode;
 
-    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters, ReadLocalNode readNode) {
+    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters, RubyNode readNode) {
         super(callNodeParameters);
         this.readNode = readNode;
     }
 
     @Specialization(guards = {
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().BLOCK_GIVEN",
-            "readNode != null"
     }, assumptions = "assumptions", limit = "1")
     boolean blockGiven(VirtualFrame frame, Object self,
             @Cached("createIgnoreVisibility()") LookupMethodNode lookupNode) {
         return readNode.execute(frame) != nil();
-    }
-
-    @Specialization(guards = {
-            "lookupNode.lookup(frame, self, METHOD) == coreMethods().BLOCK_GIVEN",
-            "readNode == null"
-    }, assumptions = "assumptions", limit = "1")
-    boolean noBlockGiven(VirtualFrame frame, Object self,
-            @Cached("createIgnoreVisibility()") LookupMethodNode lookupNode) {
-        return false;
     }
 
     @Fallback

@@ -18,6 +18,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -172,10 +173,9 @@ public class CoreMethods {
                     break;
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
+                        RubyNode readBlockNode = environment.findLocalVarOrNilNode( TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__", null);
                         return InlinedBlockGivenNodeGen.create(context, callParameters,
-                                       environment.findLocalVarNode(
-                                               TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__",
-                                               null),
+                                       readBlockNode,
                                        self);
                     }
                     break;
