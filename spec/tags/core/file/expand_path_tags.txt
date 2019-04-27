@@ -20,3 +20,5 @@ slow:File.expand_path raises an Encoding::CompatibilityError if the external enc
 slow:File.expand_path does not modify the string argument
 slow:File.expand_path does not modify a HOME string argument
 slow:File.expand_path returns a String when passed a String subclass
+fails:File.expand_path when HOME is not set uses the user database when passed '~' if HOME is nil
+fails:File.expand_path when HOME is not set uses the user database when passed '~/' if HOME is nil
