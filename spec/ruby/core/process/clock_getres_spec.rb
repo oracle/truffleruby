@@ -37,8 +37,10 @@ describe "Process.clock_getres" do
     Process.clock_getres(:TIME_BASED_CLOCK_REALTIME, :nanosecond).should == 1_000_000_000
   end
 
-  it "with :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID reports 1 microsecond" do
-    Process.clock_getres(:GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID, :nanosecond).should == 1_000
+  platform_is_not :windows do
+    it "with :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID reports 1 microsecond" do
+      Process.clock_getres(:GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID, :nanosecond).should == 1_000
+    end
   end
 
   # These are observed
