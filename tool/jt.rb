@@ -1318,6 +1318,7 @@ EOS
   def test_specs(command, *args)
     env_vars = {}
     options = []
+    running_local_build = false
 
     case command
     when 'run'
@@ -1353,6 +1354,7 @@ EOS
         options << '-t' << find_launcher(true)
         options << '-T--native'
       else
+        running_local_build = true
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
         options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
         options << "-T--polyglot" # For Truffle::Interop.export specs
@@ -1384,8 +1386,9 @@ EOS
       options += %w[--format specdoc]
     end
 
-    if args.any? { |arg| arg.include? 'optional/capi' } or
-        args.include?(':capi') or args.include?(':truffle_capi') or args.include?(':library_cext')
+    if running_local_build && (
+        args.any? { |arg| arg.include? 'optional/capi' } ||
+        !(args & %w[:capi :truffle_capi :library_cext]).empty?)
       build("cexts")
     end
 
