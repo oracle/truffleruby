@@ -12,12 +12,11 @@ Compatibility:
 
 * `do...end` blocks can now have `rescue/else/ensure` clauses like MRI (#1618).
 
-# 1.0 RC 16, 19 April 2019
 Changes:
 
 * `TruffleRuby.sulong?` has been replaced by `TruffleRuby.cexts?`, and `TruffleRuby.graal?` has been replaced by `TruffleRuby.jit?`. The old methods will continue to work for now, but will produce warnings, and will be removed at a future release.
 
-# 1.0 RC 16
+# 1.0 RC 16, 19 April 2019
 
 Bug fixes:
 
