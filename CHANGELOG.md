@@ -5,6 +5,7 @@ Bug fixes:
 * The debugger now sees global variables as the global scope.
 * Temporary variables are no longer visible in the debugger.
 * Setting breakpoints on some lines has been fixed.
+* Initialize `$0` when not run from the 'ruby' launcher, which is needed to `require` gems (#1653).
 
 Compatibility:
 
