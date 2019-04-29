@@ -849,6 +849,10 @@ public class CoreLibrary {
         assert Layouts.CLASS.isClass(eagainWaitWritable);
 
         findGlobalVariableStorage();
+
+        // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
+        DynamicObject dollarZeroValue = StringOperations.createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
     }
 
     @TruffleBoundary
