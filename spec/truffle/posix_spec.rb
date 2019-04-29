@@ -12,7 +12,7 @@ describe "Trffle::POSIX returns the correct value for an identity function retur
   before :all do
     src = fixture __FILE__, "libtestnfi.c"
     lib = src[0...-1] + RbConfig::CONFIG['NATIVE_DLEXT']
-    unless system "cc", "-shared", "-o", lib, src
+    unless system "clang", "-shared", "-o", lib, src
       abort "Could not compile libtestnfi"
     end
 
