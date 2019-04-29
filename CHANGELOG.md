@@ -19,6 +19,10 @@ Changes:
 
 * `TruffleRuby.sulong?` has been replaced by `TruffleRuby.cexts?`, and `TruffleRuby.graal?` has been replaced by `TruffleRuby.jit?`. The old methods will continue to work for now, but will produce warnings, and will be removed at a future release.
 
+Changes:
+
+* `TruffleRuby.sulong?` has been replaced by `TruffleRuby.cexts?`, and `TruffleRuby.graal?` has been replaced by `TruffleRuby.jit?`. The old methods will continue to work for now, but will produce warnings, and will be removed at a future release.
+
 # 1.0 RC 16
 
 Bug fixes:

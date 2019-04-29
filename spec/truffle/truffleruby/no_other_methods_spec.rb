@@ -12,7 +12,7 @@ describe "TruffleRuby" do
 
   it "contains no other public methods" do
     (TruffleRuby.methods - Module.new.methods).sort.should == %i{
-      full_memory_barrier graal? native? revision sulong? synchronized
+      full_memory_barrier graal? jit? native? revision sulong? cexts? synchronized
     }.sort
   end
 

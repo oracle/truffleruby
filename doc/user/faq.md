@@ -89,7 +89,7 @@ chris.seaton@oracle.com.
 
 `ruby --version` will report `GraalVM CE` or `EE`.
 
-`TruffleRuby.graal?` will tell you if you are also running with the GraalVM
+`TruffleRuby.jit?` will tell you if you are also running with the GraalVM
 Compiler.
 
 ### How do I know that I'm using the Community Edition of GraalVM?
