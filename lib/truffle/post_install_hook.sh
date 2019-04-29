@@ -26,13 +26,8 @@ elif [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "true" ]; then
   echo "Recompiling the OpenSSL C extension (TRUFFLERUBY_RECOMPILE_OPENSSL=true)"
   recompile_openssl
 else
-  check=$("$root/bin/truffleruby" -ropenssl -e 'print OpenSSL' 2>&1 || echo FAILED)
-  if [ "$check" == "OpenSSL" ]; then
-    echo "Using the precompiled OpenSSL C extension"
-  else
-    echo "Recompiling the OpenSSL C extension (libssl version is incompatible)"
-    recompile_openssl
-  fi
+  echo "Recompiling the OpenSSL C extension (against the installed libssl)"
+  recompile_openssl
 fi
 
 echo "TruffleRuby was successfully installed in $root"
