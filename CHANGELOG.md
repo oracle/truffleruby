@@ -8,6 +8,16 @@ Bug fixes:
 * Temporary variables are no longer visible in the debugger.
 * Setting breakpoints on some lines has been fixed.
 * The OpenSSL C extension is now always recompiled, fixing various bugs when using the extension (e.g., when using Bundler in TravisCI) (#1676, #1627, #1632).
+* Initialize `$0` when not run from the 'ruby' launcher, which is needed to `require` gems (#1653).
+
+Compatibility:
+
+* `do...end` blocks can now have `rescue/else/ensure` clauses like MRI (#1618).
+
+# 1.0 RC 16, 19 April 2019
+Changes:
+
+* `TruffleRuby.sulong?` has been replaced by `TruffleRuby.cexts?`, and `TruffleRuby.graal?` has been replaced by `TruffleRuby.jit?`. The old methods will continue to work for now, but will produce warnings, and will be removed at a future release.
 
 # 1.0 RC 16
 
