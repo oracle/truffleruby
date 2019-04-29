@@ -5,6 +5,7 @@ Bug fixes:
 * The debugger now sees global variables as the global scope.
 * Temporary variables are no longer visible in the debugger.
 * Setting breakpoints on some lines has been fixed.
+* The OpenSSL C extension is now always recompiled, fixing various bugs when using the extension (e.g., when using Bundler in TravisCI) (#1676, #1627, #1632).
 
 # 1.0 RC 16
 
