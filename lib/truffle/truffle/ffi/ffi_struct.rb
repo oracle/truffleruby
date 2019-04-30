@@ -256,9 +256,19 @@ module Truffle::FFI
       @pointer
     end
 
-    # For interop TO_NATIVE
+    # Every IS_POINTER object should also have TO_NATIVE
     def to_native
-      @pointer
+      self
+    end
+
+    # For NFI, to implement IS_POINTER
+    def pointer?
+      true
+    end
+
+    # For NFI, to implement AS_POINTER
+    def address
+      @pointer.address
     end
 
     def free
