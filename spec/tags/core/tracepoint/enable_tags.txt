@@ -23,3 +23,8 @@ fails:TracePoint#enable target_line: option raises ArgumentError if :target_line
 fails:TracePoint#enable target_line: option raises TypeError if :target_line value couldn't be coerced to Integer
 fails:TracePoint#enable target_line: option raises ArgumentError if :target_line value is negative
 fails:TracePoint#enable target_line: option excepts value that could be coerced to Integer
+fails:TracePoint#enable target: option raises ArgumentError if passed not Method/UnboundMethod/Proc
+fails:TracePoint#enable target: option option value accepts Method
+fails:TracePoint#enable target: option option value accepts UnboundMethod
+fails:TracePoint#enable target: option option value accepts Proc
+fails:TracePoint#enable target_line: option accepts value that could be coerced to Integer

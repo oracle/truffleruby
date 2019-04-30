@@ -901,7 +901,7 @@ describe "C-API String function" do
       source.bytes.should == [0, 255]
     end
 end
-  
+
   describe "rb_sprintf" do
     it "replaces the parts like sprintf" do
       @s.rb_sprintf1("Awesome %s is replaced", "string").should == "Awesome string is replaced"

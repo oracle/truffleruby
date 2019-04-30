@@ -62,10 +62,10 @@ describe "BigDecimal#round" do
     @n2_49.round(0).should == @neg_two
   end
 
-  ["BigDecimal::ROUND_UP", ":up"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_UP", ":up"].each do |way|
+    describe way do
       it "rounds values away from zero" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @two
         @p1_51.round(0, mode).should == @two
@@ -84,10 +84,10 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_DOWN", ":down", ":truncate"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_DOWN", ":down", ":truncate"].each do |way|
+    describe way do
       it "rounds values towards zero" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @one
         @p1_51.round(0, mode).should == @one
@@ -106,10 +106,10 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_HALF_UP", ":half_up", ":default"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_HALF_UP", ":half_up", ":default"].each do |way|
+    describe way do
       it "rounds values >= 5 up, otherwise down" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @two
         @p1_51.round(0, mode).should == @two
@@ -128,10 +128,10 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_HALF_DOWN", ":half_down"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_HALF_DOWN", ":half_down"].each do |way|
+    describe way do
       it "rounds values > 5 up, otherwise down" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @one
         @p1_51.round(0, mode).should == @two
@@ -150,10 +150,10 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_CEILING", ":ceiling", ":ceil"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_CEILING", ":ceiling", ":ceil"].each do |way|
+    describe way do
       it "rounds values towards +infinity" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @two
         @p1_51.round(0, mode).should == @two
@@ -172,11 +172,11 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_FLOOR", ":floor"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_FLOOR", ":floor"].each do |way|
+    describe way do
       it "rounds values towards -infinity" do
-        mode = eval(mode)
-        
+        mode = eval(way)
+
         @p1_50.round(0, mode).should == @one
         @p1_51.round(0, mode).should == @one
         @p1_49.round(0, mode).should == @one
@@ -194,10 +194,10 @@ describe "BigDecimal#round" do
     end
   end
 
-  ["BigDecimal::ROUND_HALF_EVEN", ":half_even", ":banker"].each do |mode|
-    describe mode do
+  ["BigDecimal::ROUND_HALF_EVEN", ":half_even", ":banker"].each do |way|
+    describe way do
       it "rounds values > 5 up, < 5 down and == 5 towards even neighbor" do
-        mode = eval(mode)
+        mode = eval(way)
 
         @p1_50.round(0, mode).should == @two
         @p1_51.round(0, mode).should == @two
