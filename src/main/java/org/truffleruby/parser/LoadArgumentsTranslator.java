@@ -157,6 +157,12 @@ public class LoadArgumentsTranslator extends Translator {
             }
         }
 
+        // Do this before handling optional arguments as one might get
+        // its default value via a `yield`.
+        if (hasImplicitBlock) {
+            sequence.add(visitUnnamedBlockArg());
+        }
+
         final int optArgCount = argsNode.getOptionalArgsCount();
         if (optArgCount > 0) {
             // (BlockParseNode 0, (OptArgParseNode:a 0, (LocalAsgnParseNode:a 0, (FixnumParseNode 0))), ...)
@@ -256,9 +262,6 @@ public class LoadArgumentsTranslator extends Translator {
 
         if (argsNode.getBlock() != null) {
             sequence.add(argsNode.getBlock().accept(this));
-        }
-        if (hasImplicitBlock) {
-            sequence.add(visitUnnamedBlockArg());
         }
 
         return sequence(sourceSection, sequence);
