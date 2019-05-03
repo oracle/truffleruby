@@ -382,8 +382,6 @@ suite = {
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
                 ],
-                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
-                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
                 "bin/": [
                     "file:bin/bundle",
                     "file:bin/bundler",
@@ -481,6 +479,16 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
             ],
+        },
+
+        "TRUFFLERUBY_GRAALVM_LICENSES": {
+            "native": True,
+            "platformDependent": True,
+            "description": "TruffleRuby support distribution for the GraalVM license files",
+            "layout": {
+                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
+                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
+            },
         },
 
         "TRUFFLERUBY-TEST": {
