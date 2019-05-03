@@ -119,12 +119,26 @@ def ruby_testdownstream_sulong(args):
 
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     suite=_suite,
+    name='TruffleRuby license files',
+    short_name='rbyl',
+    dir_name='ruby',
+    license_files=['LICENSE_TRUFFLERUBY.md'],
+    third_party_license_files=['3rd_party_licenses_truffleruby.txt'],
+    truffle_jars=[],
+    support_distributions=[
+        'truffleruby:TRUFFLERUBY_GRAALVM_LICENSES',
+    ],
+    priority=5,
+))
+
+mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+    suite=_suite,
     name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
     standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
-    license_files=['LICENSE_TRUFFLERUBY.md'],
-    third_party_license_files=['3rd_party_licenses_truffleruby.txt'],
+    license_files=[],
+    third_party_license_files=[],
     truffle_jars=[
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',
