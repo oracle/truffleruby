@@ -195,7 +195,7 @@ However, when run on the JVM, TruffleRuby is unable to trap `USR1` or `QUIT`,
 as these are reserved by the JVM itself. Any code that relies on being able to
 trap those signals will need to fallover to another available signal. Additionally,
 `FPE`, `ILL`, `KILL`, `SEGV`, `STOP`, and `VTALRM` cannot be trapped, but these
-signals are also unavailable on MRI. 
+signals are also unavailable on MRI.
 
 When TruffleRuby is run as part of a polyglot application, any signals that are
 handled by another language become unavailable for TruffleRuby to trap.
