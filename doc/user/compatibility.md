@@ -182,6 +182,24 @@ streams do not provide a way to detect this.
 Error message strings will sometimes differ from MRI, as these are not generally
 covered by the Ruby Specification suite or tests.
 
+#### Signals
+
+The set of signals that TruffleRuby can handle is different from MRI. When
+launched as a GraalVM Native Image, TruffleRuby allows trapping all the same
+signals that MRI does, as well as a few that MRI doesn't. The only signals
+that can't be trapped are `KILL`, `STOP`, and `VTALRM`. Consequently, any
+signal handling code that runs on MRI can run on TruffleRuby without modification
+in the GraalVM Native Image.
+
+However, when run on the JVM, TruffleRuby is unable to trap `USR1` or `QUIT`,
+as these are reserved by the JVM itself. Any code that relies on being able to
+trap those signals will need to fallover to another available signal. Additionally,
+`FPE`, `ILL`, `KILL`, `SEGV`, `STOP`, and `VTALRM` cannot be trapped, but these
+signals are also unavailable on MRI.
+
+When TruffleRuby is run as part of a polyglot application, any signals that are
+handled by another language become unavailable for TruffleRuby to trap.
+
 ## Features with very low performance
 
 #### `ObjectSpace`
