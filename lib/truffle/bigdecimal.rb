@@ -79,6 +79,10 @@ class BigDecimal < Numeric
     end
   end
 
+  def dup
+    self
+  end
+
   # TODO (pitr 20-jun-2015): remove when lazy setup is added
   def self.name
     'BigDecimal'

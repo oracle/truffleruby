@@ -1,3 +1,9 @@
+# 1.0 RC 18
+
+Bug fixes:
+
+* Fixed `BigDecimal#dup` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
+
 # 1.0 RC 17
 
 Bug fixes:
