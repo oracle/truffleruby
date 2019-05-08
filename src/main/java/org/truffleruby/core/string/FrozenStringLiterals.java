@@ -36,6 +36,7 @@ public class FrozenStringLiterals {
     }
 
     public DynamicObject getFrozenStringLiteral(DynamicObject string) {
+        assert Layouts.STRING.getFrozen(string) == true;
         final Rope rope = Layouts.STRING.getRope(string);
         final RopeKey key = new RopeKey(rope, context.getHashing(values));
         return values.addInCacheIfAbsent(key, string);
