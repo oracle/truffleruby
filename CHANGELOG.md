@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed `BigDecimal#dup` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
+* Fixed creating `BigDecimal` instances from non-finite `Float` values (#1685).
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
 

@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -68,16 +69,33 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization
-    public DynamicObject create(double value, NotProvided digits) {
-        throw new RaiseException(getContext(), coreExceptions().argumentErrorCantOmitPrecision(this));
+    public DynamicObject create(double value, NotProvided digits,
+            @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
+            @Cached("create()") BranchProfile nanProfile,
+            @Cached("create()") BranchProfile positiveInfinityProfile,
+            @Cached("create()") BranchProfile negativeInfinityProfile) {
+        if (finiteValueProfile.profile(Double.isFinite(value))) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantOmitPrecision(this));
+        } else {
+            return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
+        }
     }
 
     @Specialization
     public DynamicObject create(double value, int digits,
-            @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
-        final RoundingMode roundMode = getRoundMode();
-        final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
-        return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
+            @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
+            @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
+            @Cached("create()") BranchProfile nanProfile,
+            @Cached("create()") BranchProfile positiveInfinityProfile,
+            @Cached("create()") BranchProfile negativeInfinityProfile) {
+        if (finiteValueProfile.profile(Double.isFinite(value))) {
+            final RoundingMode roundMode = getRoundMode();
+            final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+
+            return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
+        } else {
+            return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
+        }
     }
 
     @Specialization(guards = "type == NEGATIVE_INFINITY || type == POSITIVE_INFINITY")
@@ -246,6 +264,22 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             }
 
             throw e;
+        }
+    }
+
+    private DynamicObject createNonFiniteBigDecimal(double value, BranchProfile nanProfile,
+            BranchProfile positiveInfinityProfile, BranchProfile negativeInfinityProfile) {
+        if (Double.isNaN(value)) {
+            nanProfile.enter();
+            return createSpecialBigDecimal(BigDecimalType.NAN);
+        } else {
+            if (value == Double.POSITIVE_INFINITY) {
+                positiveInfinityProfile.enter();
+                return createSpecialBigDecimal(BigDecimalType.POSITIVE_INFINITY);
+            } else {
+                negativeInfinityProfile.enter();
+                return createSpecialBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
+            }
         }
     }
 
