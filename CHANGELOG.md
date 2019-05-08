@@ -14,6 +14,7 @@ Compatibility
 
 * `String#-@` now performs string deduplication 
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
+* Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 
 # 1.0 RC 17
 
