@@ -245,7 +245,7 @@ class BigDecimal < Numeric
   end
 
   def inspect
-    to_s.downcase
+    finite? ? to_s.downcase : to_s
   end
 
   def _dump(level=nil)
