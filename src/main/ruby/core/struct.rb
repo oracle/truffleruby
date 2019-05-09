@@ -266,12 +266,21 @@ class Struct
     self
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from classhing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0xa1982d79
+
+  private_constant :CLASS_SALT
+
   def hash
-    hash_val = size
-    return _attrs.size if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| hash_val ^= instance_variable_get(:"@#{var}").hash }
+    val = CLASS_SALT
+    val = Truffle.invoke_primitive(:vm_hash_update, val, size)
+    return val if Thread.detect_outermost_recursion self do
+      _attrs.each { |var| Truffle.invoke_primitive(:vm_hash_update, val, instance_variable_get(:"@#{var}").hash) }
     end
-    hash_val
+    val
   end
 
   def length

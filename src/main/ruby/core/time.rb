@@ -112,8 +112,19 @@ class Time
     end
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from classhing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0xf39684d6
+
+  private_constant :CLASS_SALT
+
   def hash
-    tv_sec ^ tv_nsec
+    val = CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_update, val, tv_sec
+    val = Truffle.invoke_primitive :vm_hash_update, val, tv_nsec
+    val
   end
 
   def eql?(other)

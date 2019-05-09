@@ -1467,24 +1467,6 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "integer_memhash")
-    public static abstract class IntegerMemhashNode extends PrimitiveArrayArgumentsNode {
-
-        private static final int CLASS_SALT = 94974697; // random number, stops hashes for similar
-                                                        // values but different classes being the
-                                                        // same, static because we want
-                                                        // deterministic hashes
-
-        @Specialization
-        public long memhashLongLong(long a, long b) {
-            long h = getContext().getHashing(this).start(CLASS_SALT);
-            h = Hashing.update(h, a);
-            h = Hashing.update(h, b);
-            return Hashing.end(h);
-        }
-
-    }
-
     @Primitive(name = "integer_fits_into_int")
     public static abstract class FixnumFitsIntoIntNode extends PrimitiveArrayArgumentsNode {
 

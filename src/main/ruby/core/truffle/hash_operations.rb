@@ -10,6 +10,7 @@
 
 module Truffle
   module HashOperations
+
     def self.hash_merge(current, other)
       new_hash = current.dup
       other.each_pair do |k, v|
