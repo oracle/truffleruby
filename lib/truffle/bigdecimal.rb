@@ -46,7 +46,7 @@ class BigDecimal < Numeric
     Truffle::Type.check_long(key)
 
     if key == ROUND_MODE
-      Thread.current[:'BigDecimal.rounding_mode'] ||= 3
+      Thread.current[:'BigDecimal.rounding_mode'] ||= ROUND_HALF_UP
       if value
         Thread.current[:'BigDecimal.rounding_mode'] = value
       else
