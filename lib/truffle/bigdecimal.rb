@@ -83,9 +83,10 @@ class BigDecimal < Numeric
     end
   end
 
-  def dup
+  def clone
     self
   end
+  alias_method :dup, :clone
 
   # TODO (pitr 20-jun-2015): remove when lazy setup is added
   def self.name
