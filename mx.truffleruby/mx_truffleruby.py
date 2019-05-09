@@ -122,7 +122,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     name='TruffleRuby license files',
     short_name='rbyl',
     dir_name='ruby',
-    license_files=['LICENSE_TRUFFLERUBY.md'],
+    license_files=['LICENSE_TRUFFLERUBY.txt'],
     third_party_license_files=['3rd_party_licenses_truffleruby.txt'],
     truffle_jars=[],
     support_distributions=[
