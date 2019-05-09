@@ -486,7 +486,7 @@ suite = {
             "platformDependent": True,
             "description": "TruffleRuby support distribution for the GraalVM license files",
             "layout": {
-                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
+                "LICENSE_TRUFFLERUBY.txt": "file:LICENCE.md",
                 "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
             },
         },
