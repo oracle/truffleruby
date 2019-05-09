@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -11,7 +11,11 @@ BigDecimal = Truffle::BigDecimal
 class BigDecimal < Numeric
   include Comparable
 
-  BASE = 10_000
+  VERSION = '1.4.1'
+
+  BASE = 1_000_000_000
+  INFINITY = Float::INFINITY
+  NAN = Float::NAN
 
   SIGN_NEGATIVE_INFINITE = -3
   SIGN_NEGATIVE_FINITE   = -2
@@ -42,7 +46,7 @@ class BigDecimal < Numeric
     Truffle::Type.check_long(key)
 
     if key == ROUND_MODE
-      Thread.current[:'BigDecimal.rounding_mode'] ||= 3
+      Thread.current[:'BigDecimal.rounding_mode'] ||= ROUND_HALF_UP
       if value
         Thread.current[:'BigDecimal.rounding_mode'] = value
       else
