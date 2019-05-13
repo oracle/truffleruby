@@ -4718,7 +4718,7 @@ public abstract class StringNodes {
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject internString(VirtualFrame frame, DynamicObject string) {
+        public DynamicObject internString(DynamicObject string) {
             return getContext().getInternedString(string);
         }
     }
