@@ -125,8 +125,10 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
+import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
+import org.truffleruby.core.rope.TruffleRopesNodes.FlattenRopeNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
@@ -4710,6 +4712,15 @@ public abstract class StringNodes {
             return getContext().getEnv().asGuestValue(null);
         }
 
+    }
+
+    @Primitive(name = "string_intern", needsSelf = false)
+    public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject internString(DynamicObject string) {
+            return getContext().getInternedString(string);
+        }
     }
 
 }

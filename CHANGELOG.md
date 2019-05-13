@@ -10,6 +10,10 @@ Bug fixes:
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
 * Calling `Kernel#raise` with a raised exception will no longer set the cause of the exception to itself (#1682).
 
+Compatibility
+
+* `String#-@` now performs string deduplication 
+
 # 1.0 RC 17
 
 Bug fixes:
@@ -55,6 +59,7 @@ Compatibility:
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
 * `Kernel#warn` now supports the `uplevel:` keyword argument.
+* `String#-@` now performs string deduplication (#1608) .
 
 # 1.0 RC 15, 5 April 2019
 

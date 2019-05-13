@@ -1590,7 +1590,11 @@ class String
   end
 
   def -@
-    frozen? ? self : dup.freeze
+    str = frozen? ? self : dup.freeze
+    unless str.tainted? || !(str.instance_variables).empty?
+      Truffle::Ropes.flatten_rope(str)
+      Truffle.invoke_primitive(:string_intern, str)
+    end
   end
 
   def encoding

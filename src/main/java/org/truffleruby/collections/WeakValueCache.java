@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 import org.truffleruby.core.hash.ReHashable;
 
 /**
@@ -65,6 +67,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
      * Returns the value in the cache (existing or added).
      * Similar to a putIfAbsent() but always return the value in the cache.
      */
+    @TruffleBoundary
     public Value addInCacheIfAbsent(Key key, Value newValue) {
         removeStaleEntries();
 
