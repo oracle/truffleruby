@@ -8,6 +8,7 @@ Bug fixes:
 * Added missing `BigDecimal` constant definitions (#1684).
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
+* Calling `Kernel#raise` with a raised exception will no longer set the cause of the exception to itself (#1682).
 
 # 1.0 RC 17
 
