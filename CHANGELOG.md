@@ -13,6 +13,7 @@ Bug fixes:
 Compatibility
 
 * `String#-@` now performs string deduplication 
+* `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 
 # 1.0 RC 17
 
