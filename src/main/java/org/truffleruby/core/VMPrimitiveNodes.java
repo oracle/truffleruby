@@ -445,7 +445,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_update", needsSelf = false, lowerFixnum = { 1, 2 })
-    public abstract static class VMHashCombine extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public long updateHash(long hash, long value) {
