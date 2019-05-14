@@ -215,10 +215,10 @@ class Rational < Numeric
   private_constant :CLASS_SALT
 
   def hash
-    val = CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
     val = Truffle.invoke_primitive :vm_hash_update, val, @numerator.hash
     val = Truffle.invoke_primitive :vm_hash_update, val, @denominator.hash
-    val
+    Truffle.invoke_primitive :vm_hash_end, val
   end
 
   def inspect

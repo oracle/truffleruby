@@ -121,10 +121,10 @@ class Time
   private_constant :CLASS_SALT
 
   def hash
-    val = CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
     val = Truffle.invoke_primitive :vm_hash_update, val, tv_sec
     val = Truffle.invoke_primitive :vm_hash_update, val, tv_nsec
-    val
+    Truffle.invoke_primitive :vm_hash_end, val
   end
 
   def eql?(other)

@@ -275,12 +275,12 @@ class Struct
   private_constant :CLASS_SALT
 
   def hash
-    val = CLASS_SALT
+    val = Truffle.invoke_primitive(:vm_hash_start, CLASS_SALT)
     val = Truffle.invoke_primitive(:vm_hash_update, val, size)
     return val if Thread.detect_outermost_recursion self do
       _attrs.each { |var| Truffle.invoke_primitive(:vm_hash_update, val, instance_variable_get(:"@#{var}").hash) }
     end
-    val
+    Truffle.invoke_primitive(:vm_hash_end, val)
   end
 
   def length

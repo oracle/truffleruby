@@ -191,10 +191,11 @@ class Range
   private_constant :CLASS_SALT
 
   def hash
-    val = CLASS_SALT
+    val = Truffle.invoke_primitive(:vm_hash_start, CLASS_SALT)
     val = Truffle.invoke_primitive(:vm_hash_update, val, exclude_end? ? 1 : 0)
     val = Truffle.invoke_primitive(:vm_hash_update, val, self.begin.hash)
     val = Truffle.invoke_primitive(:vm_hash_update, val, self.end.hash)
+    Truffle.invoke_primitive(:vm_hash_end, val)
   end
 
   def include?(value)
