@@ -444,12 +444,30 @@ public abstract class VMPrimitiveNodes {
 
     }
 
+    @Primitive(name = "vm_hash_start", needsSelf = false, lowerFixnum = 1)
+    public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long startHash(long salt) {
+            return getContext().getHashing(this).start(salt);
+        }
+    }
+
     @Primitive(name = "vm_hash_update", needsSelf = false, lowerFixnum = { 1, 2 })
     public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public long updateHash(long hash, long value) {
             return Hashing.update(hash, value);
+        }
+    }
+
+    @Primitive(name = "vm_hash_end", needsSelf = false, lowerFixnum = 1)
+    public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long endHash(long hash) {
+            return Hashing.end(hash);
         }
     }
 }
