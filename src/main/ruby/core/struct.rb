@@ -267,7 +267,7 @@ class Struct
   end
 
   # Random number for hash codes. Stops hashes for similar values in
-  # different classes from classhing, but defined as a constant so
+  # different classes from clashing, but defined as a constant so
   # that hashes will be deterministic.
 
   CLASS_SALT = 0xa1982d79
