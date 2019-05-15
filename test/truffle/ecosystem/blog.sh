@@ -69,6 +69,6 @@ test "$(curl -s "$url")" = '[]'
 kill_server
 
 # put back the original bin/rake, as it gets overwritten by bundle install
-cp $repo/bin/rake $repo/mxbuild/graalvm/bin/rake
-cp $repo/bin/rake $repo/mxbuild/graalvm/jre/bin/rake
-cp $repo/bin/rake $repo/mxbuild/graalvm/jre/languages/ruby/bin/rake
+cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/bin/rake
+cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/bin/rake
+cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/rake

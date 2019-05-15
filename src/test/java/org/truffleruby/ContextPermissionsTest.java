@@ -30,7 +30,7 @@ public class ContextPermissionsTest {
     @Test
     public void testNativeNoThreads() throws Throwable {
         // TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
-        String home = System.getProperty("user.dir") + "/mxbuild/graalvm/jre/languages/ruby";
+        String home = System.getProperty("user.dir") + "/mxbuild/truffleruby-jvm/jre/languages/ruby";
         try (Context context = Context.newBuilder("ruby").allowNativeAccess(true).allowExperimentalOptions(true).option("ruby.home", home).build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
