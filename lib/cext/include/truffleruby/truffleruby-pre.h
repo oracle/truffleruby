@@ -20,11 +20,7 @@ extern "C" {
 
 #define TRUFFLERUBY
 
-#ifdef SULONG_POLYGLOT_H
-#include SULONG_POLYGLOT_H
-#else
-#include <sulong/polyglot.h>
-#endif
+#include <polyglot.h>
 
 #include <ctype.h> // isdigit
 

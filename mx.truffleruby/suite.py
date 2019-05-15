@@ -265,7 +265,6 @@ suite = {
             ],
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
-              "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
             },
             "output": ".",
             "results": [

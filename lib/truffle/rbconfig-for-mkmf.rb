@@ -46,9 +46,7 @@ if Truffle::Boot.get_option 'building-core-cexts'
   try_link_libs = "#{ruby_home}/src/main/c/cext/ruby.#{dlext} -lpolyglot-mock"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
-  polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
-  mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
-  expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
+  expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
 else
   try_link_libs = "#{cext_dir}/ruby.#{dlext} -lpolyglot-mock"
 end
