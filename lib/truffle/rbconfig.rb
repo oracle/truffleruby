@@ -56,7 +56,6 @@ module RbConfig
 
   arch     = "#{host_cpu}-#{host_os}"
   libs     = ''
-  dlext    = Truffle::Platform::NATIVE_DLEXT
 
   # Sorted alphabetically using sort(1)
   CONFIG = {
@@ -70,7 +69,7 @@ module RbConfig
     'CPPOUTFILE'        => '-o conftest.i',
     'DLDFLAGS'          => '',
     'DLDLIBS'           => '',
-    'DLEXT'             => dlext,
+    'DLEXT'             => Truffle::Platform::DLEXT,
     'ENABLE_SHARED'     => 'yes',
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
@@ -87,9 +86,8 @@ module RbConfig
     'LIBRUBYARG'        => '',
     'LIBRUBYARG_SHARED' => '',
     'LIBRUBYARG_STATIC' => '',
-    'LIBRUBY_SO'        => "cext/ruby.#{dlext}",
+    'LIBRUBY_SO'        => "cext/ruby.#{Truffle::Platform::DLEXT}",
     'LIBS'              => libs,
-    'NATIVE_DLEXT'      => dlext,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
     'OUTFLAG'           => '-o ',
@@ -101,6 +99,7 @@ module RbConfig
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
     'ruby_version'      => ruby_abi_version,
+    'SOEXT'             => Truffle::Platform::SOEXT,
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
   }

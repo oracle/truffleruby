@@ -26,9 +26,11 @@ module Truffle::Platform
   IS_BSD = HOST_OS == 'freebsd' || HOST_OS == 'netbsd' || HOST_OS == 'openbsd'
   IS_WINDOWS = HOST_OS == 'mswin32'
 
+  SOEXT = IS_DARWIN ? 'dylib' : 'so'
+
   # NOTE (15-May-2019 eregon): this should maybe be 'bundle' on Darwin like MRI, but that needs a special linking flag,
   # and .bundle do not seem to support dlopen(), which would likely need Sulong support.
-  NATIVE_DLEXT = IS_DARWIN ? 'dylib' : 'so'
+  DLEXT = SOEXT
 
   def self.linux?
     IS_LINUX

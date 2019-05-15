@@ -3,7 +3,7 @@ require 'mkmf'
 # Compile a real native library
 # Commands from src/main/c/truffleposix/Makefile
 
-so = RbConfig::CONFIG['NATIVE_DLEXT']
+so = RbConfig::CONFIG['SOEXT']
 cc = ENV['CC'] || 'cc'
 
 dir = File.expand_path('../..', __FILE__)
