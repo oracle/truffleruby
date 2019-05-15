@@ -1129,11 +1129,11 @@ module Commands
   end
 
   private def test_cexts(*args)
-    all_tests = %w(tools openssl minimum method module globals backtraces xopenssl postinstallhook gems)
+    all_tests = %w(tools minimum method module globals backtraces xopenssl postinstallhook gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
-    tests -= %w[openssl xopenssl] if no_openssl
+    tests -= %w[xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
     if ENV['TRUFFLERUBY_CI'] && ON_MAC
@@ -1148,21 +1148,6 @@ module Commands
       when 'tools'
         # Test tools
         run_ruby 'test/truffle/cexts/test-preprocess.rb'
-
-      when 'openssl'
-        # Test that we can compile and run some basic C code that uses openssl
-        if ENV['OPENSSL_PREFIX']
-          openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SOEXT}"
-        else
-          openssl_cflags = []
-          openssl_lib = "libssl.#{SOEXT}"
-        end
-
-        sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-        mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
-        out = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
-        raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
         # Test that we can compile and run some very basic C extensions
