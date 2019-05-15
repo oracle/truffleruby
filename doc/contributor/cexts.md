@@ -50,11 +50,6 @@ C extension is actually being used by looking for these log lines.
 [ruby] INFO loading cext module ...
 ```
 
-## Tools
-
-The `tool/cext-compile-explore.rb` script can be used to show the output of
-stages of the C preprocessor and LLVM IR.
-
 ## Implementation
 
 We run Ruby C extensions using Sulong, running any dynamically linked libraries
