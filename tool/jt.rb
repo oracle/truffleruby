@@ -49,6 +49,7 @@ ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
 ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
 SOEXT = ON_MAC ? 'dylib' : 'so'
+DLEXT = SOEXT # See core/truffle/platform.rb
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -860,7 +861,7 @@ module Commands
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
-    target = "#{cext_dir}/lib/#{name}/#{name}.su"
+    target = "#{cext_dir}/lib/#{name}/#{name}.#{DLEXT}"
     compile_cext(name, ext_dir, target, clang_opts)
   end
 
@@ -872,7 +873,7 @@ module Commands
       run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exist?('Makefile')
         raw_sh('make')
-        FileUtils::Verbose.cp("#{name}.su", target) if target
+        FileUtils::Verbose.cp("#{name}.#{DLEXT}", target) if target
       else
         STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
       end
@@ -1201,7 +1202,7 @@ EOS
           gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
           ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
+          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
 
           next if gem_name == 'psd_native' # psd_native is excluded just for running
           run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },

@@ -25,7 +25,7 @@ module Truffle::Patching::RakeExtensionTaskOverridePatterns
   def init(name = nil, gem_spec = nil)
     super
     @source_pattern = "*.{c,cc,cpp}"
-    @compiled_pattern = "*.{bc,su}"
+    @compiled_pattern = "*.{#{RbConfig::CONFIG['OBJEXT']},#{RbConfig::CONFIG['DLEXT']}}"
   end
 end
 

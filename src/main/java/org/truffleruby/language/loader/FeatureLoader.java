@@ -338,7 +338,7 @@ public class FeatureLoader {
                 final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
-                final String rubyLibPath = context.getRubyHome() + "/lib/cext/ruby.su";
+                final String rubyLibPath = context.getRubyHome() + "/lib/cext/ruby" + RubyLanguage.CEXT_EXTENSION;
                 final TruffleObject library = loadCExtLibRuby(rubyLibPath, feature);
 
                 final TruffleObject initFunction = requireNode
@@ -366,12 +366,13 @@ public class FeatureLoader {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().loadError(
-                            "this TruffleRuby distribution does not have the C extension implementation file ruby.su",
+                            "this TruffleRuby distribution does not have the C extension implementation file " +
+                                    rubyLibPath,
                             feature,
                             null));
         }
 
-        return loadCExtLibrary("ruby.su", rubyLibPath);
+        return loadCExtLibrary("ruby.so", rubyLibPath);
     }
 
     @TruffleBoundary

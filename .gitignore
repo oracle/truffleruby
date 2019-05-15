@@ -19,60 +19,38 @@ nbproject
 .metadata
 
 # C extensions
+*.o
+*.so
+*.dylib
 /.ext
+conftest
+conftest.c
+Info.plist
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile
-bench/chunky_png/oily_png/ext/oily_png/*.o
-bench/chunky_png/oily_png/ext/oily_png/*.su
-bench/chunky_png/oily_png/lib/oily_png/oily_png.su
 
 bench/psd.rb/psd_native/ext/psd_native/Makefile
-bench/psd.rb/psd_native/ext/psd_native/*.o
-bench/psd.rb/psd_native/ext/psd_native/*.su
-bench/psd.rb/psd_native/lib/psd_native/psd_native.su
 
 src/main/c/*/Makefile
 !src/main/c/spawn-helper/Makefile
 !src/main/c/truffleposix/Makefile
-src/main/c/*/*.o
-src/main/c/*/*.su
 src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
-src/main/c/cext/ruby.o
 src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
 src/main/c/sulongmock/sulongmock.c
-src/main/c/sulongmock/sulongmock.o
-src/main/c/truffleposix/truffleposix.o
-src/main/c/truffleposix/libtruffleposix.so
-src/main/c/truffleposix/libtruffleposix.dylib
 
 spec/ffi/.bundle/config
 
-spec/truffle/fixtures/libtestnfi.so
-spec/truffle/fixtures/libtestnfi.dylib
-
 test/truffle/cexts/**/Makefile
-test/truffle/cexts/**/*.o
-test/truffle/cexts/**/*.su
 test/truffle/cexts/**/extconf.h
 test/truffle/cexts/**/mkmf.log
-test/truffle/cexts/**/*.o
-test/truffle/cexts/**/*.so
-test/truffle/cexts/**/*.dylib
 test/truffle/ecosystem/hello-world/*.gem
 
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/depend
-test/mri/tests/cext-c/**/*.o
-test/mri/tests/cext-c/**/*.su
 test/mri/tests/cext-c/**/extconf.h
 test/mri/tests/cext-c/**/mkmf.log
-test/mri/tests/cext-c/**/*.o
-
-conftest
-conftest.c
-Info.plist
 
 # mx
 /mx.truffleruby/.pydevproject
@@ -107,7 +85,6 @@ profiles/
 /time_metrics_flamegraph.svg
 
 # Jay
-tool/jay/*.o
 tool/jay/jay
 
 # Ignore .rb files at the root, it's temporary files to debug some issue

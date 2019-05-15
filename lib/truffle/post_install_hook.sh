@@ -17,7 +17,7 @@ function recompile_openssl() {
   cd src/main/c/openssl
   "$root/bin/truffleruby" -w extconf.rb
   make
-  cp openssl.su "$root/lib/mri"
+  cp "openssl.$(ruby -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
 }
 
 if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "false" ]; then

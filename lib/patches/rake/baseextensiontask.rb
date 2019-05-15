@@ -3,9 +3,9 @@ require 'rake/baseextensiontask'
 module Truffle::Patching::RakeBaseExtensionTaskOverrideBinaryExt
   def binary(platform = nil)
     if Gem.loaded_specs["rake-compiler"].version < Gem::Version.new('1.0')
-      "#{File.basename(@name)}.su"
+      "#{File.basename(@name)}.#{RbConfig::CONFIG['DLEXT']}"
     else
-      "#{@name}.su"
+      "#{@name}.#{RbConfig::CONFIG['DLEXT']}"
     end
   end
 end

@@ -20,7 +20,7 @@ glob("#{RbConfig::CONFIG['rubylibdir']}/*.rb").each { |file|
   stdlibs << File.basename(file, '.*')
 }
 
-glob("#{RbConfig::CONFIG['archdir']}/*.su").each { |file|
+glob("#{RbConfig::CONFIG['archdir']}/*.#{RbConfig::CONFIG['DLEXT']}").each { |file|
   stdlibs << File.basename(file, '.*')
 }
 
