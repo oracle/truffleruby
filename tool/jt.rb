@@ -572,7 +572,7 @@ module Commands
       jt test integration                            runs all integration tests
       jt test integration [TESTS]                    runs the given integration tests
       jt test bundle [--jdebug]                      tests using bundler
-      jt test gems                                   tests using gems
+      jt test gems [TESTS]                           tests using gems 
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)

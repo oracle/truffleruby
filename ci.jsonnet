@@ -403,7 +403,6 @@ local part_definitions = {
     test_gems: { run+: jt(["test", "gems"]) },
     test_ecosystem: { run+: jt(["test", "ecosystem"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
-    test_ffi: { run+: [["test/truffle/ffi.sh"]] },
 
     test_cexts: {
       is_after+:: ["$.use.common"],
@@ -523,14 +522,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-linux": linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + $.run.test_ffi + { timelimit: "35:00" },
-      "ruby-test-fast-linux":  linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
-      "ruby-test-mri-linux":   linux_gate + $.run.test_mri + { timelimit: "30:00" },
-      "ruby-test-integration": linux_gate + $.run.test_integration,
-      "ruby-test-cexts-linux": linux_gate + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone":  linux_gate + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
+      "ruby-test-specs-linux":       linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
+      "ruby-test-fast-linux":        linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
+      "ruby-test-mri-linux":         linux_gate + $.run.test_mri + { timelimit: "30:00" },
+      "ruby-test-integration-linux": linux_gate + $.run.test_integration,
+      "ruby-test-cexts-linux":       linux_gate + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems-linux":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem-linux":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-standalone-linux":  linux_gate + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
@@ -540,9 +539,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
 
-      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + $.run.test_ffi + { timelimit: "45:00" },
+      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "45:00" },
       "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems-darwin":  darwin_gate + $.use.gem_test_pack + $.run.test_gems,
     } +
 
     local svm_test_shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate;
