@@ -41,9 +41,11 @@ module Truffle
     end
 
     def self.object_keys(object, internal)
+      # TODO (pitr-ch 23-May-2019): add assert that called methods are in members list
       if object.is_a?(Hash)
-        keys = object.keys
-      elsif object.respond_to?(:[])
+        keys = object.keys # FIXME (pitr-ch 11-May-2019): no return methods
+      elsif object.respond_to?(:[]) && !object.is_a?(Array)
+        # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else
         keys = object.methods.map(&:to_s)
@@ -51,6 +53,7 @@ module Truffle
           keys += object.instance_variables
             .map(&:to_s)
             .select { |ivar| ivar.start_with?('@') }
+          keys += object.private_methods.map(&:to_s)
         end
       end
       keys.map { |s| Truffle::Interop.to_java_string(s) }
@@ -89,41 +92,61 @@ module Truffle
       flags
     end
 
+    HASH_PUBLIC_METHODS = Hash.public_instance_methods.map(&:to_s)
+    private_constant :HASH_PUBLIC_METHODS
+
+    # FIXME (pitr-ch 11-May-2019): breakdown
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
 
       if object.is_a?(Hash)
-        if %w([] []=).include? name
+        if HASH_PUBLIC_METHODS.include? name
+          # all the methods have to be readable and invocable otherwise they cannot be invoked from C
           readable = true
           invocable = true
         else
           frozen = object.frozen?
           has_key = object.has_key?(name)
-          readable = has_key
+          readable = true # has_key # TODO (pitr-ch 13-May-2019): do not allow to read non existing keys
           modifiable = has_key && !frozen
-          removable = modifiable
+          removable = !frozen # modifiable # TODO (pitr-ch 22-May-2019): do not have removal of non-existing key as a noop
           insertable = !frozen
         end
-      elsif object.is_a?(Array)
-        in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
-        readable = in_bounds
-        insertable = in_bounds && !object.frozen?
-        modifiable = insertable
+      elsif object.is_a?(Array) && name.is_a?(Integer)
+        in_bounds = name >= 0 && name < object.size
+        frozen = object.frozen?
+        readable = true # in_bounds # FIXME (pitr-ch 13-May-2019): should be readable only when in bounds
+        modifiable = in_bounds && !frozen
+        removable = !frozen # TODO (pitr-ch 22-May-2019): should not allow to remove non existing elements as noop
+        insertable = !frozen
       elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
         exists = object.instance_variable_defined?(name)
-        readable = exists
-        insertable = !frozen
+        readable = true # exists # FIXME (pitr-ch 13-May-2019): should be readable only when defined
+        insertable = !exists && !frozen
         modifiable = exists && !frozen
         removable = modifiable
         internal = true
       else
-        method = object.respond_to?(name)
-        readable = method || object.respond_to?(:[])
-        insertable = object.respond_to?(:[]=)
-        modifiable = insertable
-        invocable = method
+        # TODO (pitr-ch 11-May-2019): method should be removable?
+        if name.is_a?(String) && object.respond_to?(name)
+          invocable = readable = true
+          modifiable = insertable = false
+        elsif name.is_a?(String) && object.private_methods.include?(name.to_sym)
+          invocable = readable = true
+          modifiable = insertable = false
+          internal = true
+        else
+          unless object.is_a?(Array)
+            # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
+            readable = object.respond_to?(:[])
+            modifiable = insertable = object.respond_to?(:[]=)
+            invocable = false
+          end
+        end
       end
+
+      # p object: object, name: name, readable: readable, invocable: invocable, internal: internal, insertable: insertable, modifiable: modifiable, removable: removable
 
       key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
     end

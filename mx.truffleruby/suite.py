@@ -175,6 +175,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
+                "sulong:SULONG",
                 "JONI",
                 "JCODINGS",
             ],
@@ -337,6 +338,7 @@ suite = {
                 "truffle:TRUFFLE_NFI",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
+                "sulong:SULONG"
             ],
             "description": "TruffleRuby",
             "license": [

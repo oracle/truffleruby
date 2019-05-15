@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.language.RubyBaseNode;
@@ -23,21 +23,21 @@ public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseNode {
 
     @Child private IsStringLikeNode isStringLikeNode;
 
-    public abstract Object executeStringCachingHelper(VirtualFrame frame, DynamicObject receiver, Object name, Object value);
+    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name, Object value) throws UnknownIdentifierException;
 
     @Specialization(guards = "isStringLike(name)")
-    public Object cacheStringLikeAndForward(VirtualFrame frame, DynamicObject receiver, Object name, Object value,
+    public Object cacheStringLikeAndForward(DynamicObject receiver, Object name, Object value,
             @Cached("create()") ToJavaStringNode toJavaStringNode,
-            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) {
+            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(name);
         boolean isIVar = isIVar(nameAsJavaString);
-        return nextHelper.executeStringCachedHelper(frame, receiver, name, nameAsJavaString, isIVar, value);
+        return nextHelper.executeStringCachedHelper(receiver, name, nameAsJavaString, isIVar, value);
     }
 
     @Specialization(guards = "!isStringLike(name)")
-    public Object passThroughNonString(VirtualFrame frame, DynamicObject receiver, Object name, Object value,
-            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) {
-        return nextHelper.executeStringCachedHelper(frame, receiver, name, null, false, value);
+    public Object passThroughNonString(DynamicObject receiver, Object name, Object value,
+            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
+        return nextHelper.executeStringCachedHelper(receiver, name, null, false, value);
     }
 
     protected boolean isStringLike(Object value) {

@@ -12,10 +12,8 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -29,12 +27,11 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
 
-    public abstract Object executeStringCachedHelper(VirtualFrame frame, DynamicObject receiver, Object name,
-            Object stringName, boolean isIVar, Object value);
+    public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name,
+            Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
 
     @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
     public Object writeArrayHash(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -63,10 +60,9 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+            "methodDefined(receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object index(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -78,16 +74,15 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+            "!methodDefined(receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object unknownIdentifier(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
-            Object value) {
-        throw UnknownIdentifierException.raise(toString(name));
+            Object value) throws UnknownIdentifierException {
+        throw UnknownIdentifierException.create(toString(name));
     }
 
     @CompilerDirectives.TruffleBoundary
@@ -106,12 +101,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     // TODO CS 9-Aug-17 test method defined once and then run specialisations
 
-    protected boolean methodDefined(VirtualFrame frame, DynamicObject receiver, Object stringName,
+    protected boolean methodDefined(DynamicObject receiver, Object stringName,
                                     DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {
-            return definedNode.doesRespondTo(frame, stringName, receiver);
+            return definedNode.doesRespondTo(null, stringName, receiver);
         }
     }
 

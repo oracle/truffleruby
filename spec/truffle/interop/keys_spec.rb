@@ -28,7 +28,7 @@ describe "Truffle::Interop.keys" do
   end
 
   it "returns an empty array for an array" do
-    Truffle::Interop.keys([1, 2, 3]).should == []
+    Truffle::Interop.keys([1, 2, 3]).should include(*([].public_methods.map(&:to_s)))
   end
 
   it "returns an empty array for a big integer" do

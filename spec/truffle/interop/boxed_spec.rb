@@ -18,18 +18,6 @@ describe "Truffle::Interop.boxed?" do
     Truffle::Interop.boxed?(:test).should be_true
   end
 
-  it "returns true for Truffle::FFI::Pointer objects" do
-    Truffle::Interop.boxed?(Truffle::FFI::Pointer.new(0)).should be_true
-  end
-
-  it "returns true for objects that respond to #unbox" do
-    unboxable = Object.new
-    def unboxable.unbox
-      1
-    end
-    Truffle::Interop.boxed?(unboxable).should be_true
-  end
-
   it "returns false for other objects" do
     Truffle::Interop.boxed?(Object.new).should be_false
   end

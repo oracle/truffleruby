@@ -13,10 +13,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -31,11 +29,10 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
     protected final static String INDEX_METHOD_NAME = "[]";
     protected final static String METHOD_NAME = "method";
 
-    public abstract Object executeStringCachedHelper(VirtualFrame frame, DynamicObject receiver, Object name, Object stringName, boolean isIVar);
+    public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name, Object stringName, boolean isIVar) throws UnknownIdentifierException;
 
     @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
     public Object readArrayHash(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -56,10 +53,9 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)",
-            "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+            "methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object callIndex(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -70,11 +66,10 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
-            "methodDefined(frame, receiver, stringName, getDefinedNode())"
+            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
+            "methodDefined(receiver, stringName, getDefinedNode())"
     })
     public Object getBoundMethod(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -85,16 +80,15 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
-            "!methodDefined(frame, receiver, stringName, getDefinedNode())"
+            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
+            "!methodDefined(receiver, stringName, getDefinedNode())"
     })
     public Object unknownIdentifier(
-            VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
-            boolean isIVar) {
-        throw UnknownIdentifierException.raise(toString(name));
+            boolean isIVar) throws UnknownIdentifierException {
+        throw UnknownIdentifierException.create(toString(name));
     }
 
     @TruffleBoundary
@@ -120,12 +114,12 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
         return indexDefinedNode;
     }
 
-    protected boolean methodDefined(VirtualFrame frame, DynamicObject receiver, Object stringName,
+    protected boolean methodDefined(DynamicObject receiver, Object stringName,
                                     DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {
-            return definedNode.doesRespondTo(frame, stringName, receiver);
+            return definedNode.doesRespondTo(null, stringName, receiver);
         }
     }
 
