@@ -16,6 +16,9 @@ Compatibility
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 
 # 1.0 RC 17
+# 19.0.0, May 2019
+
+*Ruby is an experimental language in the GraalVM 19.0.0 release*
 
 Bug fixes:
 
