@@ -67,7 +67,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
-    public static final OptionKey<String[]> CEXTS_LIBRARY_REMAP_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
@@ -468,13 +467,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor CEXT_LOCK = OptionDescriptor
             .newBuilder(CEXT_LOCK_KEY, "ruby.cexts-lock")
             .help("Use a Global Lock when running C extensions")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor CEXTS_LIBRARY_REMAP = OptionDescriptor
-            .newBuilder(CEXTS_LIBRARY_REMAP_KEY, "ruby.cexts-remap")
-            .help("Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1093,8 +1085,6 @@ public class OptionsCatalog {
                 return CEXTS;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
-            case "ruby.cexts-remap":
-                return CEXTS_LIBRARY_REMAP;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":
@@ -1297,7 +1287,6 @@ public class OptionsCatalog {
             BACKTRACE_ON_RAISE,
             CEXTS,
             CEXT_LOCK,
-            CEXTS_LIBRARY_REMAP,
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_AUTOLOAD,

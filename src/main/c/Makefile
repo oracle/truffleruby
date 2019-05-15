@@ -32,7 +32,7 @@ PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) sulongmock/sulongmock.o cext/ruby.o cext/ruby.su
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) sulongmock/sulongmock.o cext/ruby-mock.o cext/ruby.su
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
@@ -47,7 +47,7 @@ clean_truffleposix:
 
 clean_cexts:
 	$(Q) rm -f sulongmock/sulongmock.o
-	$(Q) rm -f cext/Makefile cext/*.bc cext/ruby.o cext/ruby.su
+	$(Q) rm -f cext/Makefile cext/*.bc cext/ruby-mock.o cext/ruby.su
 	$(Q) rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
 	$(Q) rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
 	$(Q) rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
@@ -71,8 +71,8 @@ sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS) $(TRUFFLE_POS
 sulongmock/sulongmock.o: sulongmock/sulongmock.c
 	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include -I$(SULONG_HEADERS_DIR) $<
 
-# ruby.o
-cext/ruby.o: cext/*.c $(RUBY_HEADERS)
+# ruby-mock.o
+cext/ruby-mock.o: cext/*.c $(RUBY_HEADERS)
 	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -DSULONG_POLYGLOT_H=\"$(SULONG_POLYGLOT_H)\" -I$(ROOT)/lib/cext/include cext/ruby.c
 
 # ruby.su

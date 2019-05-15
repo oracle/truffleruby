@@ -259,6 +259,8 @@ suite = {
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
+                "sulong:SULONG", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "sulong:SULONG_BOOTSTRAP_TOOLCHAIN", # graalvm-native-clang
                 "sulong:SULONG_HOME", # polyglot.h
             ],
             "buildEnv": {
@@ -271,7 +273,7 @@ suite = {
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/sulongmock/sulongmock.o",
-                "src/main/c/cext/ruby.o",
+                "src/main/c/cext/ruby-mock.o",
                 "src/main/c/cext/ruby.su",
                 "src/main/c/etc/etc.su",
                 "src/main/c/nkf/nkf.su",
@@ -350,9 +352,9 @@ suite = {
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
+                "sulong:SULONG_API",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "sulong:SULONG",
             ],
             "description": "TruffleRuby",
             "license": [
@@ -419,7 +421,7 @@ suite = {
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby.o",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby-mock.o",
                     "dependency:org.truffleruby.cext/src/main/c/cext/ruby.su",
                 ],
                 "lib/cext/include/": [

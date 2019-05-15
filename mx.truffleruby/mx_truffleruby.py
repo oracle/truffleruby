@@ -39,14 +39,14 @@ def build_truffleruby(args):
     jt('build', '--no-sforceimports', '--no-ee-checkout')
 
 def miniruby_for_building_cexts(args):
-    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
+    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])
     mx_binary = join(mx._mx_home, 'mx')
     options = [
         '--experimental-options',
         '--building-core-cexts',
         '--home=' + root,
         '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
-        '--disable-gems'
+        '--disable-gems',
     ]
     mx.run_java(jvm_args + ['org.truffleruby.launcher.RubyLauncher'] + options + args)
 

@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -252,7 +251,7 @@ public abstract class RequireNode extends RubyBaseNode {
     private void requireCExtension(String feature, String expandedPath) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
-        final List<TruffleObject> libraries;
+        final TruffleObject library;
 
         try {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
@@ -262,7 +261,7 @@ public abstract class RequireNode extends RubyBaseNode {
                         .info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            libraries = featureLoader.loadCExtLibrary(feature, expandedPath);
+            library = featureLoader.loadCExtLibrary(feature, expandedPath);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
@@ -270,7 +269,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
         final String initFunctionName = "Init_" + getBaseName(expandedPath);
 
-        final TruffleObject initFunction = findFunctionInLibraries(libraries, initFunctionName, expandedPath);
+        final TruffleObject initFunction = findFunctionInLibrary(library, initFunctionName, expandedPath);
 
         InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
         if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
@@ -289,43 +288,38 @@ public abstract class RequireNode extends RubyBaseNode {
         }
     }
 
-    TruffleObject findFunctionInLibraries(List<TruffleObject> libraries, String functionName, String path) {
-        Object initObject = null;
-
-        for (TruffleObject library : libraries) {
-            try {
-                initObject = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
-            } catch (UnknownIdentifierException e) {
-                // TODO CS 18-Mar-18 it's not ideal that we're catching and throwing an exception when we don't find Init_ in each file
-                continue;
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-
-            if (initObject != null) {
-                break;
-            }
-        }
-
-        if (initObject == null) {
+    TruffleObject findFunctionInLibrary(TruffleObject library, String functionName, String path) {
+        final Object function;
+        try {
+            function = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
+        } catch (UnknownIdentifierException e) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+        } catch (UnsupportedMessageException e) {
+            throw new JavaException(e);
         }
 
-        if (!(initObject instanceof TruffleObject)) {
+        if (function == null) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions()
+                            .loadError(String.format("%s() not found (READ returned null)", functionName), path, null));
+        }
+
+        if (!(function instanceof TruffleObject)) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().loadError(
                             String.format(
                                     "%s() was a %s rather than a TruffleObject",
                                     functionName,
-                                    initObject.getClass().getSimpleName()),
+                                    function.getClass().getSimpleName()),
                             path,
                             null));
         }
 
-        return (TruffleObject) initObject;
+        return (TruffleObject) function;
     }
 
     @TruffleBoundary
