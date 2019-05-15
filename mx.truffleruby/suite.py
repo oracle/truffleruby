@@ -273,7 +273,6 @@ suite = {
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/sulongmock/sulongmock.o",
-                "src/main/c/cext/ruby-mock.o",
                 "src/main/c/cext/<libsuffix:ruby>",
                 "src/main/c/etc/<libsuffix:etc>",
                 "src/main/c/nkf/<libsuffix:nkf>",
@@ -421,7 +420,6 @@ suite = {
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby-mock.o",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<libsuffix:ruby>",
                 ],
                 "lib/cext/include/": [

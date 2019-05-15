@@ -35,20 +35,22 @@ cxxflags = "#{cflags} -stdlib=libc++"
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
 
+dlext = RbConfig::CONFIG['DLEXT']
+
 expanded = RbConfig::CONFIG
 mkconfig = RbConfig::MAKEFILE_CONFIG
 
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  link_o_files = "#{ruby_home}/src/main/c/cext/ruby-mock.o #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
+  link_o_files = "#{ruby_home}/src/main/c/cext/ruby.#{dlext} #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
   mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
 else
-  link_o_files = "#{cext_dir}/ruby-mock.o #{cext_dir}/sulongmock.o"
+  link_o_files = "#{cext_dir}/ruby.#{dlext} #{cext_dir}/sulongmock.o"
 end
 
 common = {
