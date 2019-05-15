@@ -425,16 +425,14 @@ enum ruby_special_consts {
     RUBY_SPECIAL_SHIFT  = 8
 };
 
-extern void* rb_tr_undef;
-extern void* rb_tr_true;
-extern void* rb_tr_false;
-extern void* rb_tr_nil;
-
-#define Qfalse ((VALUE)(&rb_tr_false))
-#define Qtrue ((VALUE)(&rb_tr_true))
-#define Qnil ((VALUE)(&rb_tr_nil))
-#define Qundef ((VALUE)(&rb_tr_undef))
-
+#define RUBY_Qfalse ((VALUE)RUBY_Qfalse)
+#define RUBY_Qtrue  ((VALUE)RUBY_Qtrue)
+#define RUBY_Qnil   ((VALUE)RUBY_Qnil)
+#define RUBY_Qundef ((VALUE)RUBY_Qundef)	/* undefined value for placeholder */
+#define Qfalse RUBY_Qfalse
+#define Qtrue  RUBY_Qtrue
+#define Qnil   RUBY_Qnil
+#define Qundef RUBY_Qundef
 #define IMMEDIATE_MASK RUBY_IMMEDIATE_MASK
 #define FIXNUM_FLAG RUBY_FIXNUM_FLAG
 #if USE_FLONUM

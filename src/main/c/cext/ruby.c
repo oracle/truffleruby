@@ -27,10 +27,6 @@
 #include <printf.h>
 
 void* rb_tr_cext;
-void* rb_tr_undef;
-void* rb_tr_true;
-void* rb_tr_false;
-void* rb_tr_nil;
 
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
@@ -92,10 +88,6 @@ static int rb_tr_fprintf_value(FILE *stream,
 
 void rb_tr_init(void *ruby_cext) {
   truffle_assign_managed(&rb_tr_cext, ruby_cext);
-  truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
-  truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
-  truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
-  truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
   register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);  
