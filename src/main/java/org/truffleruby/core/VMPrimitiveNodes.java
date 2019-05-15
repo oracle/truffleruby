@@ -445,7 +445,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_hash_start", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "vm_hash_start", needsSelf = false)
     public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -454,7 +454,7 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "vm_hash_update", needsSelf = false, lowerFixnum = { 1, 2 })
+    @Primitive(name = "vm_hash_update", needsSelf = false)
     public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -488,7 +488,7 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "vm_hash_end", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "vm_hash_end", needsSelf = false)
     public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
 
         @Specialization
