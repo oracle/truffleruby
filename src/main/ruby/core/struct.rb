@@ -364,6 +364,10 @@ class Struct
       hashes << "#{vars[-1]}.hash"
     end
 
+    hash_calculation = hashes.map do |calc|
+      "hash = Truffle.invoke_primitive :vm_hash_update, hash, #{calc}"
+    end.join("\n")
+
     code = <<-CODE
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
@@ -371,13 +375,14 @@ class Struct
       end
 
       def hash
-        hash = #{hashes.size}
+        hash = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+        hash = Truffle.invoke_primitive :vm_hash_update, hash, #{hashes.size}
 
         return hash if Thread.detect_outermost_recursion(self) do
-          hash = hash ^ #{hashes.join(' ^ ')}
+          #{hash_calculation}
         end
 
-        hash
+        Truffle.invoke_primitive :vm_hash_end, hash
       end
 
       def to_a
