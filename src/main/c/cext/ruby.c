@@ -2815,6 +2815,7 @@ static RUBY_DATA_FUNC rb_tr_free_function(RUBY_DATA_FUNC dfree) {
   return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? free : dfree;
 }
 
+#undef rb_data_object_wrap
 VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap",
                                             rb_tr_unwrap(klass), data, dmark, rb_tr_free_function(dfree) ));
