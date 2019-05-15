@@ -90,7 +90,7 @@ module RbConfig
     'LIBS'              => libs,
     'NATIVE_DLEXT'      => Truffle::Platform::NATIVE_DLEXT,
     'NULLCMD'           => ':',
-    'OBJEXT'            => 'bc',
+    'OBJEXT'            => 'o',
     'OUTFLAG'           => '-o ',
     'optflags'          => '',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR,

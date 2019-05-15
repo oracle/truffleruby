@@ -47,14 +47,14 @@ clean_truffleposix:
 
 clean_cexts:
 	$(Q) rm -f sulongmock/sulongmock.o
-	$(Q) rm -f cext/Makefile cext/*.bc cext/ruby-mock.o cext/ruby.su
-	$(Q) rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
-	$(Q) rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
-	$(Q) rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
-	$(Q) rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
-	$(Q) rm -f nkf/Makefile nkf/*.bc nkf/nkf.su
-	$(Q) rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
-	$(Q) rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.bc rbconfig-sizeof/sizeof.su
+	$(Q) rm -f cext/Makefile cext/*.o cext/ruby.su
+	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.su
+	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.su
+	$(Q) rm -f psych/Makefile psych/*.o psych/yaml/*.o psych/psych.su
+	$(Q) rm -f syslog/Makefile syslog/*.o syslog/syslog.su
+	$(Q) rm -f nkf/Makefile nkf/*.o nkf/nkf.su
+	$(Q) rm -f etc/Makefile etc/*.o etc/etc.su etc/constdefs.h
+	$(Q) rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.o rbconfig-sizeof/sizeof.su
 
 # spawn-helper
 $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c

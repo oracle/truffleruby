@@ -568,7 +568,7 @@ module Commands
       jt clean                                       clean
       jt env                                         prints the current environment
       jt rebuild [build options]                     clean, sforceimports, and build
-      jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
+      jt dis <file>                                  finds the bitcode file in the project, disassembles, and returns new filename
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)

@@ -70,7 +70,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
-    public static final String CEXT_BITCODE_EXTENSION = "bc";
 
     public static final String RESOURCE_SCHEME = "resource:";
     public static final String RUBY_HOME_SCHEME = "rubyHome:";
