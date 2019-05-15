@@ -1594,6 +1594,8 @@ class String
     unless str.tainted? || !(str.instance_variables).empty?
       Truffle::Ropes.flatten_rope(str)
       Truffle.invoke_primitive(:string_intern, str)
+    else
+      str
     end
   end
 
