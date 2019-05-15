@@ -38,7 +38,6 @@ src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
 src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
-src/main/c/sulongmock/sulongmock.c
 
 spec/ffi/.bundle/config
 

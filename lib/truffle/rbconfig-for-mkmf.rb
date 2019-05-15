@@ -43,14 +43,14 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  link_o_files = "#{ruby_home}/src/main/c/cext/ruby.#{dlext} #{ruby_home}/src/main/c/sulongmock/sulongmock.o"
+  try_link_libs = "#{ruby_home}/src/main/c/cext/ruby.#{dlext} -lpolyglot-mock"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
   mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
 else
-  link_o_files = "#{cext_dir}/ruby.#{dlext} #{cext_dir}/sulongmock.o"
+  try_link_libs = "#{cext_dir}/ruby.#{dlext} -lpolyglot-mock"
 end
 
 common = {
@@ -101,7 +101,7 @@ begin
 end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{try_link_libs} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }

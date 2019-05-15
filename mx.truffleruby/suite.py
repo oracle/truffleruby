@@ -265,14 +265,12 @@ suite = {
             ],
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
-              "SULONG_HEADERS_DIR": "<path:SULONG_HOME>/include",
               "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
             },
             "output": ".",
             "results": [
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
-                "src/main/c/sulongmock/sulongmock.o",
                 "src/main/c/cext/<libsuffix:ruby>",
                 "src/main/c/etc/<libsuffix:etc>",
                 "src/main/c/nkf/<libsuffix:nkf>",
@@ -419,7 +417,6 @@ suite = {
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
-                    "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<libsuffix:ruby>",
                 ],
                 "lib/cext/include/": [

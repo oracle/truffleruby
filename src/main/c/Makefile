@@ -22,8 +22,6 @@ LDFLAGS := -m64
 
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(DLEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
-SULONG_HEADERS := $(SULONG_POLYGLOT_H)
-GENERATE_SULONG_MOCK := $(ROOT)/tool/generate-sulongmock.rb
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
@@ -32,7 +30,7 @@ PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) sulongmock/sulongmock.o cext/ruby.$(DLEXT)
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) cext/ruby.$(DLEXT)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
@@ -46,7 +44,6 @@ clean_truffleposix:
 	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
 
 clean_cexts:
-	$(Q) rm -f sulongmock/sulongmock.o
 	$(Q) rm -f cext/Makefile cext/*.o cext/ruby.$(DLEXT)
 	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT)
 	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.$(DLEXT)
@@ -63,13 +60,6 @@ $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
 # truffleposix
 $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
 	$(Q) cd truffleposix && $(MAKE)
-
-# sulongmock.o
-sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS) $(TRUFFLE_POSIX)
-	$(Q) $(RUBY) $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS)
-
-sulongmock/sulongmock.o: sulongmock/sulongmock.c
-	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include -I$(SULONG_HEADERS_DIR) $<
 
 # ruby
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
