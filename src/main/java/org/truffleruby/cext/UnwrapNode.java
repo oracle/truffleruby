@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -32,7 +31,7 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
-@ImportStatic({ Message.class, ValueWrapperManager.class })
+@ImportStatic({ ValueWrapperManager.class })
 public abstract class UnwrapNode extends RubyBaseNode {
 
     @ImportStatic(ValueWrapperManager.class)
@@ -129,7 +128,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
-    @ImportStatic({ Message.class, ValueWrapperManager.class })
+    @ImportStatic({ ValueWrapperManager.class })
     public static abstract class ToWrapperNode extends RubyBaseNode {
 
         public abstract ValueWrapper execute(TruffleObject value);

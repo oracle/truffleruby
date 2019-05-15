@@ -24,12 +24,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -61,7 +59,6 @@ public abstract class RequireNode extends RubyBaseNode {
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
     @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createPrivate();
 
-    @Child private Node readNode = Message.READ.createNode();
     @Child private WarningNode warningNode;
 
     @Child private GetConstantNode getConstantNode;

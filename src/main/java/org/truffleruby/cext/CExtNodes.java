@@ -21,7 +21,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -29,7 +28,6 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
@@ -116,7 +114,6 @@ import static org.truffleruby.core.string.StringOperations.rope;
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
@@ -167,7 +164,6 @@ public class CExtNodes {
 
     }
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
@@ -187,7 +183,6 @@ public class CExtNodes {
         }
     }
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_without_c_mutex")
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
