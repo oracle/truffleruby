@@ -720,7 +720,6 @@ public class CoreLibrary {
         setConstant(objectClass, "ARGV", argv);
 
         setConstant(truffleModule, "UNDEFINED", supportUndefined);
-        setConstant(truffleModule, "LIBC", frozenUSASCIIString(Platform.LIBC));
 
         setConstant(encodingConverterClass, "INVALID_MASK", EConvFlags.INVALID_MASK);
         setConstant(encodingConverterClass, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
