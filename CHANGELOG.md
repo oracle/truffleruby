@@ -12,7 +12,7 @@ Bug fixes:
 
 Compatibility
 
-* `String#-@` now performs string deduplication 
+* `String#-@` now performs string deduplication (#1608).
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 
 # 1.0 RC 17
@@ -38,7 +38,7 @@ Changes:
 Bug fixes:
 
 * Fixed `Hash#merge` with no arguments to return a new copy of the receiver (#1645).
-* Fixed yield with a splat and keyword arguments (#1613). 
+* Fixed yield with a splat and keyword arguments (#1613).
 * Fixed `rb_scan_args` to correctly handle kwargs in combination with optional args.
 * Many fixes for `FFI::Pointer` to be more compatible with the `ffi` gem.
 
@@ -60,7 +60,6 @@ Compatibility:
 * `StringScanner` will now match a regexp beginning with `^` even when not scanning from the start of the string.
 * `Module#define_method` is now public like in MRI.
 * `Kernel#warn` now supports the `uplevel:` keyword argument.
-* `String#-@` now performs string deduplication (#1608) .
 
 # 1.0 RC 15, 5 April 2019
 
