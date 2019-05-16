@@ -25,13 +25,15 @@ lines.each do |line|
   break if line.start_with?('#ifdef DOXYGEN')
   next if line.start_with?('//') || line.start_with?(' *')
 
-  match = /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(line)
+  match = /^(\S.+?)\b(polyglot|__polyglot)(.+)\)(?=;)/.match(line)
   if match
     signature, return_type = match[0], match[1]
     return_value = types.fetch(return_type.gsub(' ', ''), '0')
     methods << [signature, return_value]
   end
 end
+
+methods << ['void truffle_load_library(const char *string)', nil]
 
 File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 /*
@@ -49,7 +51,7 @@ File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 
 #include <stdio.h>
 #include <stdint.h>
-#include <truffle.h>
+#include <stdlib.h>
 #include <polyglot.h>
 
 void rb_tr_mock() {

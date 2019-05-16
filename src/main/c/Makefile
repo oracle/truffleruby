@@ -17,7 +17,7 @@ CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
 LDFLAGS := -m64
 
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(DLEXT)
-SULONG_HEADERS := $(SULONG_TRUFFLE_H) $(SULONG_POLYGLOT_H)
+SULONG_HEADERS := $(SULONG_POLYGLOT_H)
 GENERATE_SULONG_MOCK := $(ROOT)/tool/generate-sulongmock.rb
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
@@ -60,11 +60,11 @@ sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS) $(TRUFFLE_POS
 	$(RUBY) $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS)
 
 sulongmock/sulongmock.o: sulongmock/sulongmock.c
-	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include -I$(SULONG_TRUFFLE_DIR) -I$(SULONG_HEADERS_DIR) $<
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include -I$(SULONG_HEADERS_DIR) $<
 
 # ruby.o
 cext/ruby.o: cext/*.c $(RUBY_HEADERS)
-	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -DSULONG_TRUFFLE_H=\"$(SULONG_TRUFFLE_H)\" -DSULONG_POLYGLOT_H=\"$(SULONG_POLYGLOT_H)\" -I$(ROOT)/lib/cext/include cext/ruby.c
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -DSULONG_POLYGLOT_H=\"$(SULONG_POLYGLOT_H)\" -I$(ROOT)/lib/cext/include cext/ruby.c
 
 # ruby.su
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)

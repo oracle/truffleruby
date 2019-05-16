@@ -2904,6 +2904,9 @@ void* rb_tr_new_managed_struct_internal(void *type) {
   return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct", type);
 }
 
+// Deprecated truffle LLVM intrinsic only used internally here
+void truffle_load_library(const char *string);
+
 void rb_tr_load_library(VALUE library) {
   truffle_load_library(RSTRING_PTR(library));
 }
