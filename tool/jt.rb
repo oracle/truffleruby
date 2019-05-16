@@ -791,7 +791,6 @@ module Commands
 
     case path
     when nil
-      ENV['HAS_REDIS'] = 'true'
       %w[specs mri bundle cexts integration gems ecosystem compiler].each do |kind|
         jt('test', kind)
       end
