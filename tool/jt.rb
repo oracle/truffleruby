@@ -1862,6 +1862,16 @@ EOS
     rubies_dir = chruby_versions if File.directory?(chruby_versions)
 
     if rubies_dir
+      Dir.glob(rubies_dir + "/*").each do |link|
+        if File.symlink?(link)
+          target = File.readlink(link)
+          unless File.exist?(target)
+            File.delete link
+            puts "Deleted old link: #{link} -> #{target}"
+          end
+        end
+      end
+
       link_path = "#{rubies_dir}/#{name}"
       File.delete link_path if File.exist? link_path
       File.symlink dest_ruby, link_path
