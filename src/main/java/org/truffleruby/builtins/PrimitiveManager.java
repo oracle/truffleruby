@@ -13,7 +13,6 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.support.UndefinedPrimitiveNodesFactory.UndefinedPrimitiveNodeFactory;
 import org.truffleruby.language.RubyNode;
 
 import java.util.Map;
@@ -28,14 +27,6 @@ public class PrimitiveManager {
 
     private final Map<String, PrimitiveNodeConstructor> primitives = new ConcurrentHashMap<>();
 
-    private final PrimitiveNodeConstructor undefinedPrimitive;
-
-    public PrimitiveManager() {
-        final NodeFactory<? extends RubyNode> nodeFactory = UndefinedPrimitiveNodeFactory.getInstance();
-        final Primitive annotation = nodeFactory.getNodeClass().getAnnotation(Primitive.class);
-        undefinedPrimitive = new PrimitiveNodeConstructor(annotation, nodeFactory);
-    }
-
     public PrimitiveNodeConstructor getPrimitive(String name) {
         final PrimitiveNodeConstructor constructor = primitives.get(name);
         if (constructor != null) {
@@ -49,7 +40,7 @@ public class PrimitiveManager {
             }
         }
 
-        return undefinedPrimitive;
+        throw new Error("Primitive :" + name + " not found");
     }
 
     public void addLazyPrimitive(String primitive, String nodeFactoryClass) {
