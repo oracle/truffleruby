@@ -48,7 +48,7 @@ typedef VALUE ID;
 // Support
 
 extern void* rb_tr_cext;
-#define RUBY_CEXT ((void *)(&rb_tr_cext))
+#define RUBY_CEXT rb_tr_cext
 
 #define MUST_INLINE __attribute__((always_inline)) inline
 
