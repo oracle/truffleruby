@@ -37,7 +37,6 @@ extern "C" {
 // Value types
 
 typedef void *VALUE;
-typedef long SIGNED_VALUE;
 typedef VALUE ID;
 
 // Support
