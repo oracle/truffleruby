@@ -504,6 +504,8 @@ module Commands
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
+      jt test unit                                   run Java unittests
+      jt test tck                                    run tck tests
       jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
       jt tag spec/ruby/language                      tag failing specs in this directory
@@ -805,6 +807,8 @@ module Commands
     when 'basictest' then test_basictest(*rest)
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
+    when 'unit', 'unittest' then mx 'unittest', 'org.truffleruby'
+    when 'tck' then mx 'tck'
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
