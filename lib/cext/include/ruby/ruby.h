@@ -415,7 +415,6 @@ VALUE rb_id2sym(ID);
 #define ID2SYM(x) RB_ID2SYM(x)
 #define SYM2ID(x) RB_SYM2ID(x)
 
-
 #ifndef USE_FLONUM
 #if SIZEOF_VALUE >= SIZEOF_DOUBLE
 #define USE_FLONUM 1
@@ -479,8 +478,8 @@ enum ruby_special_consts {
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
 int RTEST(VALUE value);
-#define NIL_P RB_NIL_P
 int RB_NIL_P(VALUE value); /* Defined as a function in TruffleRuby. */
+#define NIL_P(v) RB_NIL_P(v)
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))
 
@@ -561,11 +560,22 @@ MUST_INLINE int RB_FLOAT_TYPE_P(VALUE obj);
 
 bool RB_TYPE_P(VALUE value, int type);
 
+#ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
-        volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
-        rb_gc_guarded_ptr;                              \
+	volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
+	rb_gc_guarded_ptr; \
     }))
+#elif defined _MSC_VER
+#pragma optimize("", off)
+static inline volatile VALUE *rb_gc_guarded_ptr(volatile VALUE *ptr) {return ptr;}
+#pragma optimize("", on)
+#define RB_GC_GUARD(v) (*rb_gc_guarded_ptr(&(v)))
+#else
+volatile VALUE *rb_gc_guarded_ptr_val(volatile VALUE *ptr, VALUE val);
+#define HAVE_RB_GC_GUARDED_PTR_VAL 1
+#define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
+#endif
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))
