@@ -25,8 +25,6 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class UNIXSocket < BasicSocket
-  include IO::TransferIO
-
   def self.socketpair(type = Socket::SOCK_STREAM, protocol = 0)
     family = Socket::AF_UNIX
     type   = Truffle::Socket.socket_type(type)
@@ -79,20 +77,12 @@ class UNIXSocket < BasicSocket
     ['AF_UNIX', path]
   end
 
+  def send_io(io)
+    raise NotImplementedError, 'IO#send_io not yet implemented'
+  end
+
   def recv_io(klass = IO, mode = nil)
-    begin
-      fd = recv_fd
-    rescue PrimitiveFailure
-      raise SocketError, 'file descriptor was not passed'
-    end
-
-    return fd unless klass
-
-    if klass.is_a?(BasicSocket)
-      klass.for_fd(fd)
-    else
-      klass.for_fd(fd, mode)
-    end
+    raise NotImplementedError, 'IO#recv_io not yet implemented'
   end
 
   def local_address

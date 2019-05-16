@@ -39,18 +39,6 @@ class IO
 
   include Enumerable
 
-  module TransferIO
-    def send_io
-      Truffle.primitive :io_send_io
-      raise PrimitiveFailure, 'IO#send_io failed'
-    end
-
-    def recv_fd
-      Truffle.primitive :io_recv_fd
-      raise PrimitiveFailure, 'IO#recv_fd failed'
-    end
-  end
-
   module WaitReadable; end
   module WaitWritable; end
 
