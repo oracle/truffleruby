@@ -1940,6 +1940,7 @@ EOS
            else
              native ? 'native' : 'jvm'
            end
+    name = "truffleruby-#{name}"
 
     mx_args = ['-p', TRUFFLERUBY_DIR,
                '--dynamicimports', '/vm',
@@ -1950,7 +1951,7 @@ EOS
     mx(*mx_args, 'build')
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
-    dest = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{name}"
+    dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     dest_ruby = "#{dest}/jre/languages/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
