@@ -170,6 +170,9 @@ module FFI
       elsif FFI::Type::Builtin === type and type.unsigned?
         # TODO: NFI workaround
         type.signed2unsigned(value)
+      elsif FFI::FunctionType === type
+        ptr = FFI::Pointer.new(Truffle::Interop.as_pointer(value))
+        FFI::Function.new(type, nil, ptr)
       else
         value
       end
