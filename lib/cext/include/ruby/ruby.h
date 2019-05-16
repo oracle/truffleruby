@@ -154,16 +154,28 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #endif
 
 #define RUBY_PRI_VALUE_MARK "\v"
-#define PRI_VALUE_PREFIX        "l"
-#define PRI_LONG_PREFIX         "l"
-#define PRI_64_PREFIX           PRI_LONG_PREFIX
-#define PRIdVALUE               PRI_VALUE_PREFIX"d"
-#define PRIoVALUE               PRI_VALUE_PREFIX"o"
-#define PRIuVALUE               PRI_VALUE_PREFIX"u"
-#define PRIxVALUE               PRI_VALUE_PREFIX"x"
-#define PRIXVALUE               PRI_VALUE_PREFIX"X"
-#define PRIsVALUE               "Y"
-
+#if defined PRIdPTR && !defined PRI_VALUE_PREFIX
+#define PRIdVALUE PRIdPTR
+#define PRIoVALUE PRIoPTR
+#define PRIuVALUE PRIuPTR
+#define PRIxVALUE PRIxPTR
+#define PRIXVALUE PRIXPTR
+#define PRIsVALUE PRIiPTR"" RUBY_PRI_VALUE_MARK
+#else
+#define PRIdVALUE PRI_VALUE_PREFIX"d"
+#define PRIoVALUE PRI_VALUE_PREFIX"o"
+#define PRIuVALUE PRI_VALUE_PREFIX"u"
+#define PRIxVALUE PRI_VALUE_PREFIX"x"
+#define PRIXVALUE PRI_VALUE_PREFIX"X"
+#ifdef TRUFFLERUBY
+#define PRIsVALUE "Y"
+#else
+#define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
+#endif
+#endif
+#ifndef PRI_VALUE_PREFIX
+# define PRI_VALUE_PREFIX ""
+#endif
 
 #ifndef PRI_TIMET_PREFIX
 # if SIZEOF_TIME_T == SIZEOF_INT
