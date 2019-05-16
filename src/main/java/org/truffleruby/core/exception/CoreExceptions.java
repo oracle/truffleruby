@@ -13,6 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -661,8 +662,8 @@ public class CoreExceptions {
                 context.getSymbolTable().getSymbol("<unknown>")));
     }
 
-    public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, Object name, Object[] args, UnknownIdentifierException exception, Node currentNode) {
-        return noMethodError(exception.getMessage(), receiver, name.toString(), args, currentNode);
+    public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, String name, Object[] args, InteropException exception, Node currentNode) {
+        return noMethodError(exception.getMessage(), receiver, name, args, currentNode);
     }
 
     // LoadError

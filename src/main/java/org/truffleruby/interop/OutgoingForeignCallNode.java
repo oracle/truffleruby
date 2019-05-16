@@ -488,12 +488,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         receiver,
                         name,
                         arguments);
-            } catch (UnknownIdentifierException e) {
+            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (UnsupportedTypeException | ArityException e) {
+                argumentErrorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
 
             return foreignToRubyNode.executeConvert(foreign);

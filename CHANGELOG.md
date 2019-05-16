@@ -9,6 +9,7 @@ Bug fixes:
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
 * Calling `Kernel#raise` with a raised exception will no longer set the cause of the exception to itself (#1682).
+* Convert to intuitive Ruby exceptions when INVOKE fails (#1690).
 
 Compatibility
 
