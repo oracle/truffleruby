@@ -264,7 +264,7 @@ public class CoreMethodNodeManager {
             argumentsNodes.add(new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode()));
         }
 
-        RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
+        RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes.toArray(RubyNode.EMPTY_ARRAY));
 
         final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
 
@@ -274,7 +274,7 @@ public class CoreMethodNodeManager {
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, List<RubyNode> argumentsNodes) {
+    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, RubyNode[] argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;
@@ -283,12 +283,11 @@ public class CoreMethodNodeManager {
         if (signature.size() == 0) {
             return nodeFactory.createNode();
         } else {
-            final RubyNode[] argumentsArray = argumentsNodes.toArray(RubyNode.EMPTY_ARRAY);
             if (signature.size() == 1 && signature.get(0) == RubyNode[].class) {
-                Object args = argumentsArray;
+                Object args = argumentsNodes;
                 return nodeFactory.createNode(args);
             } else {
-                Object[] args = argumentsArray;
+                Object[] args = argumentsNodes;
                 return nodeFactory.createNode(args);
             }
         }

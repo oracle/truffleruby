@@ -45,17 +45,19 @@ public class PrimitiveNodeConstructor {
     }
 
     public RubyNode createCallPrimitiveNode(SourceIndexLength sourceSection, RubyNode fallback) {
+        final RubyNode[] arguments = new RubyNode[getPrimitiveArity()];
         int argumentsCount = getPrimitiveArity();
-        final List<RubyNode> arguments = new ArrayList<>(argumentsCount);
+        int start = 0;
 
         if (annotation.needsSelf()) {
-            arguments.add(transformArgument(ProfileArgumentNodeGen.create(new ReadSelfNode()), 0));
+            arguments[0] = transformArgument(ProfileArgumentNodeGen.create(new ReadSelfNode()), 0);
+            start++;
             argumentsCount--;
         }
 
         for (int n = 0; n < argumentsCount; n++) {
             RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
-            arguments.add(transformArgument(readArgumentNode, n + 1));
+            arguments[start + n] = transformArgument(readArgumentNode, n + 1);
         }
 
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
@@ -73,20 +75,7 @@ public class PrimitiveNodeConstructor {
             arguments[n] = transformArgument(arguments[n], nthArg);
         }
 
-        final List<List<Class<?>>> signatures = factory.getNodeSignatures();
-
-        assert signatures.size() == 1;
-        final List<Class<?>> signature = signatures.get(0);
-
-        final RubyNode primitiveNode;
-
-        if (signature.get(0) == SourceSection.class) {
-            primitiveNode = factory.createNode(sourceSection.toSourceSection(source), arguments);
-        } else if (signature.get(0) == SourceIndexLength.class) {
-            primitiveNode = factory.createNode(sourceSection, arguments);
-        } else {
-            primitiveNode = factory.createNode(new Object[] { arguments });
-        }
+        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
 
         return Translator.withSourceSection(sourceSection, new InvokePrimitiveNode(primitiveNode));
     }

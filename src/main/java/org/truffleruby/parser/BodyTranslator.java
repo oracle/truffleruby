@@ -614,16 +614,15 @@ public class BodyTranslator extends Translator {
         final String primitiveName = ((SymbolParseNode) firstArgNode).getName();
         final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
-        final List<RubyNode> arguments = new ArrayList<>();
 
         final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
         // The first argument was the symbol so we ignore it
+        final RubyNode[] arguments = new RubyNode[args.size() - 1];
         for (int n = 1; n < args.size(); n++) {
-            RubyNode readArgumentNode = args.get(n).accept(this);
-            arguments.add(readArgumentNode);
+            arguments[n - 1] = args.get(n).accept(this);
         }
 
-        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(RubyNode.EMPTY_ARRAY));
+        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
     }
 
     private ParseNode extractFirstArgumentNode(ParseNode argsNode) {
