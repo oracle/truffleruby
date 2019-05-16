@@ -34,6 +34,12 @@ extern "C" {
 
 #include <ctype.h> // isdigit
 
+// Configuration
+
+// We disable USE_FLONUM, as we do not use pointer tagging for Float.
+// Enabling USE_FLONUM also changes the value of Qtrue/Qnil/Qundef.
+#define USE_FLONUM 0
+
 // Value types
 
 typedef void *VALUE;
