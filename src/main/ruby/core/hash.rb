@@ -354,11 +354,11 @@ class Hash
   private_constant :CLASS_SALT
 
   def hash
-    val = Truffle.invoke_primitive :vm_hash_start, size
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_update, val, size
     Thread.detect_outermost_recursion self do
       each_pair do |key,value|
-        entry_val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
-        entry_val = Truffle.invoke_primitive :vm_hash_update, entry_val, key.hash
+        entry_val = Truffle.invoke_primitive :vm_hash_start, key.hash
         entry_val = Truffle.invoke_primitive :vm_hash_update, entry_val, value.hash
         # We have to combine these with xor as the hash must not depend on hash order.
         val ^= Truffle.invoke_primitive :vm_hash_end, entry_val
