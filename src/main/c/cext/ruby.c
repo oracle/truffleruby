@@ -26,6 +26,12 @@
 #include <fcntl.h>
 #include <printf.h>
 
+/*
+ * Note that some functions are #undef'd just before declaration.
+ * This is needed because these functions are declared by MRI as macros in e.g., ruby.h,
+ * and so would produce invalid syntax when using the function name for definition.
+ */
+
 void* rb_tr_cext;
 
 #ifdef __APPLE__
@@ -1289,7 +1295,6 @@ bool rb_tr_hidden_p(VALUE value) {
   return false;
 }
 
-// Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
