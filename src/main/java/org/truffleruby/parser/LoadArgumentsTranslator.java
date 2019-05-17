@@ -86,7 +86,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     private final boolean isProc;
-    private final boolean hasMethodBlock;
+    private final boolean isMethod;
     private final BodyTranslator methodBodyTranslator;
     private final Deque<ArraySlot> arraySlotStack = new ArrayDeque<>();
 
@@ -108,7 +108,7 @@ public class LoadArgumentsTranslator extends Translator {
     public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean hasMethodBlock, BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
-        this.hasMethodBlock = hasMethodBlock;
+        this.isMethod = hasMethodBlock;
         this.methodBodyTranslator = methodBodyTranslator;
         this.argsNode = argsNode;
         this.required = argsNode.getRequiredCount();
@@ -159,8 +159,8 @@ public class LoadArgumentsTranslator extends Translator {
 
         // Do this before handling optional arguments as one might get
         // its default value via a `yield`.
-        if (hasMethodBlock) {
-            sequence.add(visitMethodBlockArg());
+        if (isMethod) {
+            sequence.add(saveMethodBlockArg());
         }
 
         final int optArgCount = argsNode.getOptionalArgsCount();
@@ -342,7 +342,7 @@ public class LoadArgumentsTranslator extends Translator {
         return new WriteLocalVariableNode(slot, readNode);
     }
 
-    public RubyNode visitMethodBlockArg() {
+    public RubyNode saveMethodBlockArg() {
         final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
         return new WriteLocalVariableNode(slot, readNode);
