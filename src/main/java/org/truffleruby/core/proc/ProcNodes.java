@@ -77,7 +77,7 @@ public abstract class ProcNodes {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameAccess.MATERIALIZE).materialize();
 
-            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__");
+            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.IMPLICIT_BLOCK_NAME);
 
             if (parentBlock == nil()) {
                 parentBlock = tryParentBlockForCExts();

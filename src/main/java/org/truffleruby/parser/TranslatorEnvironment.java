@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TranslatorEnvironment {
 
     public static final char TEMP_PREFIX = '%';
+    public static final String IMPLICIT_BLOCK_NAME = TEMP_PREFIX + "__unnamed_block_arg__";
 
     private final ParseEnvironment parseEnvironment;
 

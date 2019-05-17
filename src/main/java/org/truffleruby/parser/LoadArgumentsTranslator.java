@@ -344,7 +344,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     public RubyNode visitUnnamedBlockArg() {
         final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.TEMP_PREFIX + "__unnamed_block_arg__");
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.IMPLICIT_BLOCK_NAME);
         return new WriteLocalVariableNode(slot, readNode);
     }
 
