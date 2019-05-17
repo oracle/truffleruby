@@ -999,11 +999,12 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject lambda(NotProvided block) {
-            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.READ_ONLY);
-            final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
+        public DynamicObject lambda(NotProvided block,
+                                    @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.MATERIALIZE).materialize();
+            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == null) {
+            if (parentBlock == nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("tried to create Proc object without a block", this));
             } else {
                 warnProcWithoutBlock();
