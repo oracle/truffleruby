@@ -22,11 +22,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "block_given?";
-    @Child protected RubyNode readNode;
+
+    @Child protected RubyNode readMethodBlockNode;
 
     public InlinedBlockGivenNode(RubyCallNodeParameters callNodeParameters,  TranslatorEnvironment environment) {
         super(callNodeParameters);
-        this.readNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
+        this.readMethodBlockNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
     }
 
     @Specialization(guards = {
@@ -34,7 +35,7 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
     }, assumptions = "assumptions", limit = "1")
     boolean blockGiven(VirtualFrame frame, Object self,
             @Cached("createIgnoreVisibility()") LookupMethodNode lookupNode) {
-        return readNode.execute(frame) != nil();
+        return readMethodBlockNode.execute(frame) != nil();
     }
 
     @Specialization
