@@ -20,7 +20,7 @@ describe "The yield call" do
       @y.ze { 42 }.should == 42
     end
 
-    it "passes nil as a named block" do
+    it "does not pass a named block to the block being yielded to" do
       @y.z() { |&block| block == nil }.should == true
     end
   end

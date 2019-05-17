@@ -200,6 +200,7 @@ describe "Proc.new without a block" do
       prc = some_method { "hello" }
 
       prc.call.should == "hello"
+      prc.call { "fail" }.should == "hello"
     end
   end
 
