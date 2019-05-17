@@ -173,10 +173,7 @@ public class CoreMethods {
                     break;
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
-                        RubyNode readBlockNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.IMPLICIT_BLOCK_NAME, null);
-                        return InlinedBlockGivenNodeGen.create(context, callParameters,
-                                       readBlockNode,
-                                       self);
+                        return InlinedBlockGivenNodeGen.create(context, callParameters, environment, self);
                     }
                     break;
                 case "nil?":

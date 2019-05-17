@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -24,9 +25,9 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "block_given?";
     @Child protected RubyNode readNode;
 
-    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters, RubyNode readNode) {
+    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters,  TranslatorEnvironment environment) {
         super(callNodeParameters);
-        this.readNode = readNode;
+        this.readNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.IMPLICIT_BLOCK_NAME, null);
     }
 
     @Specialization(guards = {
