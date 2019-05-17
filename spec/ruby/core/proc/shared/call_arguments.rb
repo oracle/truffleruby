@@ -5,7 +5,7 @@ describe :proc_call_block_args, shared: true do
     proc {|&b| b.send(@method)}.send(@method) {1 + 1}.should == 2
   end
 
-  it "Yield to the block given at declaration and not to the block argument" do
+  it "yields to the block given at declaration and not to the block argument" do
     proc_creator = Object.new
     def proc_creator.create
       Proc.new do |&b|
@@ -13,10 +13,10 @@ describe :proc_call_block_args, shared: true do
       end
     end
     a_proc = proc_creator.create { 7 }
-    a_proc.call { 3 }.should == 7
+    a_proc.send(@method) { 3 }.should == 7
   end
 
-  it "Can call its block argument declared with a block argument" do
+  it "can call its block argument declared with a block argument" do
     proc_creator = Object.new
     def proc_creator.create(method_name)
       Proc.new do |&b|
