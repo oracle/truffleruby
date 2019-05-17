@@ -9,11 +9,7 @@ function test_server {
   serverpid=$!
   echo "Server PID: $serverpid"
 
-  ports=""
-  while [ -z "$ports" ]; do
-    ports=$(lsof -P -i 4 -a -p $serverpid -Fn | grep nlocalhost | cut -d ':' -f 2)
-    sleep 1
-  done
+  ports=$(jt find_ports_for_pid "$serverpid")
 
   if [[ $(echo "$ports" | wc -l) -gt 1 ]]; then
     echo "More than one port opened!" >&2
