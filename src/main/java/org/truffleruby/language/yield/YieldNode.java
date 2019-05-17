@@ -24,7 +24,7 @@ public class YieldNode extends Node {
                 Layouts.PROC.getDeclarationContext(block),
                 block,
                 ProcOperations.getSelf(block),
-                Layouts.PROC.getBlock(block),
+                null,
                 argumentsObjects);
     }
 
