@@ -24,7 +24,7 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "block_given?";
     @Child protected RubyNode readNode;
 
-    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters,  TranslatorEnvironment environment) {
+    public InlinedBlockGivenNode(RubyCallNodeParameters callNodeParameters,  TranslatorEnvironment environment) {
         super(callNodeParameters);
         this.readNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.IMPLICIT_BLOCK_NAME, null);
     }
