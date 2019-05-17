@@ -12,7 +12,6 @@ package org.truffleruby.cext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
 public class CapturedException implements TruffleObject {
@@ -27,8 +26,4 @@ public class CapturedException implements TruffleObject {
         return exception;
     }
 
-    @ExportMessage
-    public boolean isNull() {
-        return false;
-    }
 }
