@@ -105,10 +105,10 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean hasMethodBlock, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod, BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
-        this.isMethod = hasMethodBlock;
+        this.isMethod = isMethod;
         this.methodBodyTranslator = methodBodyTranslator;
         this.argsNode = argsNode;
         this.required = argsNode.getRequiredCount();
