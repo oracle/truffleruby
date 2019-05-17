@@ -622,6 +622,10 @@ module Commands
     TXT
   end
 
+  def truffle_version
+    puts super
+  end
+
   def mx(*args)
     super(*args)
   end
