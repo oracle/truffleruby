@@ -195,12 +195,11 @@ describe "Proc.new without a block" do
       def some_method
         proc do |&block|
           Proc.new
-        end.call
+        end.call { "failing" }
       end
       prc = some_method { "hello" }
 
       prc.call.should == "hello"
-      prc.call { "fail" }.should == "hello"
     end
   end
 
