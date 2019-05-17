@@ -15,6 +15,10 @@ Compatibility
 * `String#-@` now performs string deduplication 
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 
+Changes:
+
+* Hash code calculation has been improved to reduce hash collisions for `Hash` and other cases.
+
 # 1.0 RC 17
 
 Bug fixes:
