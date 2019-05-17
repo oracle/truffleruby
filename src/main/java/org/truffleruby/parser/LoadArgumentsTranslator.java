@@ -86,7 +86,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     private final boolean isProc;
-    private final boolean hasImplicitBlock;
+    private final boolean hasMethodBlock;
     private final BodyTranslator methodBodyTranslator;
     private final Deque<ArraySlot> arraySlotStack = new ArrayDeque<>();
 
@@ -105,10 +105,10 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean hasImplicitBlock, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean hasMethodBlock, BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
-        this.hasImplicitBlock = hasImplicitBlock;
+        this.hasMethodBlock = hasMethodBlock;
         this.methodBodyTranslator = methodBodyTranslator;
         this.argsNode = argsNode;
         this.required = argsNode.getRequiredCount();
@@ -159,8 +159,8 @@ public class LoadArgumentsTranslator extends Translator {
 
         // Do this before handling optional arguments as one might get
         // its default value via a `yield`.
-        if (hasImplicitBlock) {
-            sequence.add(visitUnnamedBlockArg());
+        if (hasMethodBlock) {
+            sequence.add(visitMethodBlockArg());
         }
 
         final int optArgCount = argsNode.getOptionalArgsCount();
@@ -342,9 +342,9 @@ public class LoadArgumentsTranslator extends Translator {
         return new WriteLocalVariableNode(slot, readNode);
     }
 
-    public RubyNode visitUnnamedBlockArg() {
+    public RubyNode visitMethodBlockArg() {
         final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.IMPLICIT_BLOCK_NAME);
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
         return new WriteLocalVariableNode(slot, readNode);
     }
 

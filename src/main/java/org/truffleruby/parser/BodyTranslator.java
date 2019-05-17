@@ -3056,7 +3056,7 @@ public class BodyTranslator extends Translator {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
 
-        RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.IMPLICIT_BLOCK_NAME, node.getPosition());
+        RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
         final RubyNode ret = new YieldExpressionNode(unsplat, argumentsTranslated, readBlock);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);

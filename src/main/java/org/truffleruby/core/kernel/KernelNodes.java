@@ -294,7 +294,7 @@ public abstract class KernelNodes {
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-            return blockProfile.profile(readNode.execute(callerFrame, TranslatorEnvironment.IMPLICIT_BLOCK_NAME) != nil());
+            return blockProfile.profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil());
         }
     }
 
