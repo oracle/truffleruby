@@ -9,12 +9,12 @@ Bug fixes:
 * Implemented `rb_eval_string_protect`.
 * Fixed `rb_get_kwargs` to correctly handle optional and rest arguments.
 * Calling `Kernel#raise` with a raised exception will no longer set the cause of the exception to itself (#1682).
+* Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 
 Compatibility
 
 * `String#-@` now performs string deduplication 
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
-* Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 
 # 1.0 RC 17
 
