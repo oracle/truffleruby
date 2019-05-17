@@ -16,7 +16,6 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
@@ -38,7 +37,7 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
         return readNode.execute(frame) != nil();
     }
 
-    @Fallback
+    @Specialization
     Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
