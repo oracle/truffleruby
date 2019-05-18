@@ -1,0 +1,7 @@
+exclude :test_yydebug_equals, "noop implementation"
+exclude :test_regexp_with_option, "noop implementation"
+exclude :test_regexp_enc_error, "noop implementation"
+exclude :test_filename, "noop implementation"
+exclude :test_encoding, "noop implementation"
+exclude :test_dedent_string, "noop implementation"
+exclude :test_end_seen_eh, "noop implementation"

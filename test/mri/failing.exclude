@@ -13,7 +13,6 @@ ripper/test_files.rb
 ripper/test_filter.rb
 ripper/test_lexer.rb
 ripper/test_parser_events.rb
-ripper/test_ripper.rb
 ripper/test_scanner_events.rb
 ripper/test_sexp.rb
 win32ole/test_err_in_callback.rb
