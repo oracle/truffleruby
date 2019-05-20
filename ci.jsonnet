@@ -138,7 +138,6 @@ local part_definitions = {
       is_after+:: ["$.use.build"],
       setup+: [
         ["cd", "../graal/compiler"],
-        ["mx", "sversions"],
         ["mx", "build"],
         ["cd", "../../main"],
       ],
@@ -159,18 +158,20 @@ local part_definitions = {
     },
 
     enterprise: {
-      # Otherwise the TruffleRuby build will change the runtime Truffle version
       is_after+:: ["$.use.build"],
-      setup+: [
-        [
-          "git",
-          "clone",
-          ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
-          "../graal-enterprise",
-        ],
+
+      clone::
+      local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
+            repo = "../graal-enterprise",
+            suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
+            find_commit_importing_truffle = ["git", "-C", repo, "log", "--reverse", "--pretty=%H", "-m", "-S"] + jt(["truffle_version"]) + ["--grep=PullRequest:", suite_file, "|", "head", "-1"];
+      [
+        ["git", "clone", url, repo],
+        ["git", "-C", repo, "checkout", find_commit_importing_truffle],
+      ],
+
+      setup+: self.clone + [
         ["cd", "../graal-enterprise/graal-enterprise"],
-        ["mx", "sforceimports"],
-        ["mx", "sversions"],
         ["mx", "build"],
         ["cd", "../../main"],
       ],
@@ -198,13 +199,6 @@ local part_definitions = {
 
       svm_suite:: "/substratevm",
 
-      setup+: [
-        ["cd", "../graal/substratevm"],
-        ["mx", "sforceimports"],
-        ["mx", "sversions"],
-        ["cd", "../../main"],
-      ],
-
       environment+: {
         HOST_VM_CONFIG: "graal-core",
         GRAAL_HOME: "$BUILD_DIR/graal/compiler",
@@ -213,23 +207,11 @@ local part_definitions = {
     },
 
     enterprise: {
-      # Otherwise the TruffleRuby build will change the runtime Truffle version
       is_after+:: ["$.use.build"],
 
       svm_suite:: "/substratevm-enterprise",
 
-      setup+: [
-        [
-          "git",
-          "clone",
-          ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
-          "../graal-enterprise",
-        ],
-        ["cd", "../graal-enterprise/substratevm-enterprise"],
-        ["mx", "sforceimports"],
-        ["mx", "sversions"],
-        ["cd", "../../main"],
-      ],
+      setup+: $.graal.enterprise.clone,
 
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
