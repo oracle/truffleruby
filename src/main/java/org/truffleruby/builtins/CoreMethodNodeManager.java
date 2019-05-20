@@ -225,13 +225,14 @@ public class CoreMethodNodeManager {
     }
 
     public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
-        final List<RubyNode> argumentsNodes = new ArrayList<>();
+        final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
+        int i = 0;
 
         final boolean needsSelf = needsSelf(method);
 
         if (needsSelf) {
             RubyNode readSelfNode = ProfileArgumentNodeGen.create(new ReadSelfNode());
-            argumentsNodes.add(transformArgument(method, readSelfNode, 0));
+            argumentsNodes[i++] = transformArgument(method, readSelfNode, 0);
         }
 
         final int required = method.required();
@@ -245,15 +246,15 @@ public class CoreMethodNodeManager {
 
         for (int n = 0; n < nArgs; n++) {
             RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
-            argumentsNodes.add(transformArgument(method, readArgumentNode, n + 1));
+            argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 
         if (method.rest()) {
-            argumentsNodes.add(new ReadRemainingArgumentsNode(nArgs));
+            argumentsNodes[i++] = new ReadRemainingArgumentsNode(nArgs);
         }
 
         if (method.needsBlock()) {
-            argumentsNodes.add(new ReadBlockNode(NotProvided.INSTANCE));
+            argumentsNodes[i++] = new ReadBlockNode(NotProvided.INSTANCE);
         }
 
         if (!method.keywordAsOptional().isEmpty()) {
@@ -261,7 +262,7 @@ public class CoreMethodNodeManager {
                 throw new UnsupportedOperationException("core method has been declared with both optional arguments and a keyword-as-optional argument");
             }
 
-            argumentsNodes.add(new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode()));
+            argumentsNodes[i++] = new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode());
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
@@ -274,7 +275,7 @@ public class CoreMethodNodeManager {
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, List<RubyNode> argumentsNodes) {
+    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, RubyNode[] argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;
@@ -283,12 +284,11 @@ public class CoreMethodNodeManager {
         if (signature.size() == 0) {
             return nodeFactory.createNode();
         } else {
-            final RubyNode[] argumentsArray = argumentsNodes.toArray(RubyNode.EMPTY_ARRAY);
             if (signature.size() == 1 && signature.get(0) == RubyNode[].class) {
-                Object args = argumentsArray;
+                Object args = argumentsNodes;
                 return nodeFactory.createNode(args);
             } else {
-                Object[] args = argumentsArray;
+                Object[] args = argumentsNodes;
                 return nodeFactory.createNode(args);
             }
         }
