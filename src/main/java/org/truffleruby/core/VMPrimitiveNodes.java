@@ -67,6 +67,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
@@ -444,4 +445,79 @@ public abstract class VMPrimitiveNodes {
 
     }
 
+    @Primitive(name = "vm_hash_start", needsSelf = false)
+    public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long startHash(long salt) {
+            return getContext().getHashing(this).start(salt);
+        }
+
+        @Specialization(guards = "isRubyBignum(salt)")
+        public long startHashBigNum(DynamicObject salt) {
+            return getContext().getHashing(this).start(Layouts.BIGNUM.getValue(salt).hashCode());
+        }
+
+        @Specialization(guards = "!isRubyNumber(salt)")
+        public Object startHashNotNumber(Object salt,
+                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+            Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", salt);
+            if (isIntegerProfile.profile(result instanceof Integer)) {
+                return getContext().getHashing(this).start((int) result);
+            } else if (isLongProfile.profile(result instanceof Long)) {
+                return getContext().getHashing(this).start((long) result);
+            } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
+                return getContext().getHashing(this).start(Layouts.BIGNUM.getValue((DynamicObject) result).hashCode());
+            } else {
+                throw new UnsupportedOperationException();
+            }
+
+        }
+    }
+
+    @Primitive(name = "vm_hash_update", needsSelf = false)
+    public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long updateHash(long hash, long value) {
+            return Hashing.update(hash, value);
+        }
+
+        @Specialization(guards = "isRubyBignum(value)")
+        public long updateHash(long hash, DynamicObject value) {
+            return Hashing.update(hash, Layouts.BIGNUM.getValue(value).hashCode());
+        }
+
+
+        @Specialization(guards = "!isRubyNumber(value)")
+        public Object updateHash(long hash, Object value,
+                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+            Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", value);
+            if (isIntegerProfile.profile(result instanceof Integer)) {
+                return Hashing.update(hash, (int) result);
+            } else if (isLongProfile.profile(result instanceof Long)) {
+                return Hashing.update(hash, (long) result);
+            } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
+                return Hashing.update(hash, Layouts.BIGNUM.getValue((DynamicObject) result).hashCode());
+            } else {
+                throw new UnsupportedOperationException();
+            }
+
+        }
+    }
+
+    @Primitive(name = "vm_hash_end", needsSelf = false)
+    public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long endHash(long hash) {
+            return Hashing.end(hash);
+        }
+    }
 }

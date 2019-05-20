@@ -345,16 +345,27 @@ class Hash
     end
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from clashing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0xC5F7D8
+
+  private_constant :CLASS_SALT
+
   def hash
-    val = size
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_update, val, size
     Thread.detect_outermost_recursion self do
       each_pair do |key,value|
-        val ^= key.hash
-        val ^= value.hash
+        entry_val = Truffle.invoke_primitive :vm_hash_start, key.hash
+        entry_val = Truffle.invoke_primitive :vm_hash_update, entry_val, value.hash
+        # We have to combine these with xor as the hash must not depend on hash order.
+        val ^= Truffle.invoke_primitive :vm_hash_end, entry_val
       end
     end
 
-    val
+    Truffle.invoke_primitive :vm_hash_end, val
   end
 
   def delete_if(&block)

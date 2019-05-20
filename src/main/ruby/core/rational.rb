@@ -206,8 +206,19 @@ class Rational < Numeric
     end
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from clashing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0x3c654ce9
+
+  private_constant :CLASS_SALT
+
   def hash
-    @numerator.hash ^ @denominator.hash
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_update, val, @numerator.hash
+    val = Truffle.invoke_primitive :vm_hash_update, val, @denominator.hash
+    Truffle.invoke_primitive :vm_hash_end, val
   end
 
   def inspect

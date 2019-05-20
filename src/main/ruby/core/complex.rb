@@ -334,8 +334,19 @@ class Complex < Numeric
     result
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from clashing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0x37f7c8ee
+
+  private_constant :CLASS_SALT
+
   def hash
-    Truffle.invoke_primitive :integer_memhash, @real.hash, @imag.hash
+    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+    val = Truffle.invoke_primitive :vm_hash_update, val, @real.hash
+    val = Truffle.invoke_primitive :vm_hash_update, val, @imag.hash
+    Truffle.invoke_primitive :vm_hash_end, val
   end
 
   def inspect

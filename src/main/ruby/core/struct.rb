@@ -266,12 +266,21 @@ class Struct
     self
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from clashing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0xa1982d79
+
+  private_constant :CLASS_SALT
+
   def hash
-    hash_val = size
-    return _attrs.size if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| hash_val ^= instance_variable_get(:"@#{var}").hash }
+    val = Truffle.invoke_primitive(:vm_hash_start, CLASS_SALT)
+    val = Truffle.invoke_primitive(:vm_hash_update, val, size)
+    return val if Thread.detect_outermost_recursion self do
+      _attrs.each { |var| Truffle.invoke_primitive(:vm_hash_update, val, instance_variable_get(:"@#{var}").hash) }
     end
-    hash_val
+    Truffle.invoke_primitive(:vm_hash_end, val)
   end
 
   def length
@@ -355,6 +364,10 @@ class Struct
       hashes << "#{vars[-1]}.hash"
     end
 
+    hash_calculation = hashes.map do |calc|
+      "hash = Truffle.invoke_primitive :vm_hash_update, hash, #{calc}"
+    end.join("\n")
+
     code = <<-CODE
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
@@ -362,13 +375,14 @@ class Struct
       end
 
       def hash
-        hash = #{hashes.size}
+        hash = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
+        hash = Truffle.invoke_primitive :vm_hash_update, hash, #{hashes.size}
 
         return hash if Thread.detect_outermost_recursion(self) do
-          hash = hash ^ #{hashes.join(' ^ ')}
+          #{hash_calculation}
         end
 
-        hash
+        Truffle.invoke_primitive :vm_hash_end, hash
       end
 
       def to_a

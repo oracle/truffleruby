@@ -182,14 +182,20 @@ class Range
     super
   end
 
+  # Random number for hash codes. Stops hashes for similar values in
+  # different classes from clashing, but defined as a constant so
+  # that hashes will be deterministic.
+
+  CLASS_SALT = 0xb36df84d
+
+  private_constant :CLASS_SALT
+
   def hash
-    excl = exclude_end? ? 1 : 0
-    hash = excl
-    hash ^= self.begin.hash << 1
-    hash ^= self.end.hash << 9
-    hash ^= excl << 24;
-    # Are we throwing away too much here for a good hash value distribution?
-    hash & Truffle::Platform::LONG_MAX
+    val = Truffle.invoke_primitive(:vm_hash_start, CLASS_SALT)
+    val = Truffle.invoke_primitive(:vm_hash_update, val, exclude_end? ? 1 : 0)
+    val = Truffle.invoke_primitive(:vm_hash_update, val, self.begin.hash)
+    val = Truffle.invoke_primitive(:vm_hash_update, val, self.end.hash)
+    Truffle.invoke_primitive(:vm_hash_end, val)
   end
 
   def include?(value)
