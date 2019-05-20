@@ -204,14 +204,10 @@ module Truffle
     end
 
     def self.rb_to_int(val)
-      rb_to_integer(val, :to_int);
-    end
-
-    def self.rb_to_integer(val, meth)
       return val if object_kind_of?(val, Integer)
-      res = convert_type(val, Integer, meth, true)
+      res = convert_type(val, Integer, :to_int, true)
       unless object_kind_of?(res, Integer)
-        conversion_mismatch(val, Integer, meth, res)
+        conversion_mismatch(val, Integer, :to_int, res)
       end
       res
     end
