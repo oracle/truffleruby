@@ -86,6 +86,11 @@ module Truffle::FFI
       self
     end
 
+    def clear
+      raise RuntimeError, 'cannot clear unbounded memory area' unless @total
+      Truffle.invoke_primitive :pointer_clear, self, @total
+    end
+
     def inspect
       # Don't have this print the data at the location. It can crash everything.
       addr = address()
