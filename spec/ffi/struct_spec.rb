@@ -129,6 +129,19 @@ describe "Struct tests" do
     expect(s[:string]).to be_nil
   end
 
+  it "Struct#clear sets the memory to zero" do
+    klass = Class.new(FFI::Struct) do
+      layout :a, :int, :b, :long
+    end
+
+    s = klass.new
+    s[:a] = 1
+    s[:b] = 2
+    s.clear
+    expect(s[:a]).to eq(0)
+    expect(s[:b]).to eq(0)
+  end
+
   it "Struct#layout works with :name, :type pairs" do
     class PairLayout < FFI::Struct
       layout :a, :int, :b, :long_long
