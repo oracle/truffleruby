@@ -21,7 +21,6 @@ Changes:
 
 * Hash code calculation has been improved to reduce hash collisions for `Hash` and other cases.
 
-# 1.0 RC 17
 # 19.0.0, May 2019
 
 *Ruby is an experimental language in the GraalVM 19.0.0 release*
