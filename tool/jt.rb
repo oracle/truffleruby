@@ -1303,10 +1303,8 @@ EOS
 
               options = %w[--experimental-options --exceptions-print-java]
 
-              # There seems to be no other way to configure the port for Bundler, so we change the Gemfile
-              lines = File.readlines("Gemfile").reject { |line| line.start_with?('source ') }
-              lines.unshift "source 'http://localhost:#{port}'"
-              File.write("Gemfile", lines.join("\n"))
+              run_ruby(environment, *args, *options,
+                '-Sbundle', 'config', '--local', 'mirror.http://localhost:8808', "http://localhost:#{port}")
 
               run_ruby(environment, *args, *options,
                 '-Sbundle', 'install', '-V', *install_flags)
