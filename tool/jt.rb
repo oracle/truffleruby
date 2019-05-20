@@ -1257,6 +1257,14 @@ EOS
   end
   private :test_ecosystem
 
+  def find_ports_for_pid(pid)
+    while (ports = `lsof -P -i 4 -a -p #{pid} -Fn | grep nlocalhost | cut -d ':' -f 2`.strip).empty?
+      sleep 1
+    end
+    puts ports
+    ports
+  end
+
   def test_bundle(*args)
     require 'tmpdir'
 
@@ -1267,8 +1275,12 @@ EOS
     ]
     gems = %w[algebrick]
 
-    gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-d', "#{gem_test_pack}/gems")
+    gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     begin
+      ports = find_ports_for_pid(gem_server)
+      raise "More than one port opened" if ports.lines.size > 1
+      port = Integer(ports)
+
       bundle_install_flags.each do |install_flags|
         puts "Testing Bundler with install flags: #{install_flags}"
         gems.each do |gem_name|
@@ -1289,12 +1301,10 @@ EOS
                 # add bin from gem_home to PATH
                 'PATH' => ["#{gem_home}/bin", ENV['PATH']].join(File::PATH_SEPARATOR))
 
-              options = [
-                '--experimental-options',
-                '--exceptions-print-java',
-              ]
+              options = %w[--experimental-options --exceptions-print-java]
 
-              gemserver_source = %w[--clear-sources --source http://localhost:8808]
+              run_ruby(environment, *args, *options,
+                '-Sbundle', 'config', '--local', 'mirror.http://localhost:8808', "http://localhost:#{port}")
 
               run_ruby(environment, *args, *options,
                 '-Sbundle', 'install', '-V', *install_flags)
