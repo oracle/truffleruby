@@ -1,4 +1,4 @@
-# 1.0 RC 18
+# 20.0.0 beta 1
 
 Bug fixes:
 
