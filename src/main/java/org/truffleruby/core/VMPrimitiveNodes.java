@@ -452,6 +452,30 @@ public abstract class VMPrimitiveNodes {
         public long startHash(long salt) {
             return getContext().getHashing(this).start(salt);
         }
+
+        @Specialization(guards = "isRubyBignum(salt)")
+        public long startHashBigNum(DynamicObject salt) {
+            return getContext().getHashing(this).start(Layouts.BIGNUM.getValue(salt).hashCode());
+        }
+
+        @Specialization(guards = "!isRubyNumber(salt)")
+        public Object startHashNotNumber(Object salt,
+                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+            Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", salt);
+            if (isIntegerProfile.profile(result instanceof Integer)) {
+                return getContext().getHashing(this).start((int) result);
+            } else if (isLongProfile.profile(result instanceof Long)) {
+                return getContext().getHashing(this).start((long) result);
+            } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
+                return getContext().getHashing(this).start(Layouts.BIGNUM.getValue((DynamicObject) result).hashCode());
+            } else {
+                throw new UnsupportedOperationException();
+            }
+
+        }
     }
 
     @Primitive(name = "vm_hash_update", needsSelf = false)
