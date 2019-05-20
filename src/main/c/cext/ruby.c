@@ -26,11 +26,13 @@
 #include <fcntl.h>
 #include <printf.h>
 
+/*
+ * Note that some functions are #undef'd just before declaration.
+ * This is needed because these functions are declared by MRI as macros in e.g., ruby.h,
+ * and so would produce invalid syntax when using the function name for definition.
+ */
+
 void* rb_tr_cext;
-void* rb_tr_undef;
-void* rb_tr_true;
-void* rb_tr_false;
-void* rb_tr_nil;
 
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
@@ -91,11 +93,8 @@ static int rb_tr_fprintf_value(FILE *stream,
 // Run when loading C-extension support
 
 void rb_tr_init(void *ruby_cext) {
-  truffle_assign_managed(&rb_tr_cext, ruby_cext);
-  truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
-  truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
-  truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
-  truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
+  rb_tr_cext = ruby_cext;
+
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
   register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);  
@@ -1296,7 +1295,6 @@ bool rb_tr_hidden_p(VALUE value) {
   return false;
 }
 
-// Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
@@ -2822,6 +2820,7 @@ static RUBY_DATA_FUNC rb_tr_free_function(RUBY_DATA_FUNC dfree) {
   return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? free : dfree;
 }
 
+#undef rb_data_object_wrap
 VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap",
                                             rb_tr_unwrap(klass), data, dmark, rb_tr_free_function(dfree) ));
@@ -2910,6 +2909,9 @@ VALUE rb_java_to_string(VALUE obj) {
 void* rb_tr_new_managed_struct_internal(void *type) {
   return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct", type);
 }
+
+// Deprecated truffle LLVM intrinsic only used internally here
+void truffle_load_library(const char *string);
 
 void rb_tr_load_library(VALUE library) {
   truffle_load_library(RSTRING_PTR(library));

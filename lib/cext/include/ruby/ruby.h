@@ -94,6 +94,31 @@ void *alloca();
 # endif	/* HAVE_ALLOCA_H */
 #endif /* __GNUC__ */
 
+#if defined HAVE_UINTPTR_T && 0
+typedef uintptr_t VALUE;
+typedef uintptr_t ID;
+# define SIGNED_VALUE intptr_t
+# define SIZEOF_VALUE SIZEOF_UINTPTR_T
+# undef PRI_VALUE_PREFIX
+#elif SIZEOF_LONG == SIZEOF_VOIDP
+#ifndef TRUFFLERUBY
+typedef unsigned long VALUE;
+typedef unsigned long ID;
+#endif
+# define SIGNED_VALUE long
+# define SIZEOF_VALUE SIZEOF_LONG
+# define PRI_VALUE_PREFIX "l"
+#elif SIZEOF_LONG_LONG == SIZEOF_VOIDP
+typedef unsigned LONG_LONG VALUE;
+typedef unsigned LONG_LONG ID;
+# define SIGNED_VALUE LONG_LONG
+# define LONG_LONG_VALUE 1
+# define SIZEOF_VALUE SIZEOF_LONG_LONG
+# define PRI_VALUE_PREFIX PRI_LL_PREFIX
+#else
+# error ---->> ruby requires sizeof(void*) == sizeof(long) or sizeof(LONG_LONG) to be compiled. <<----
+#endif
+
 typedef char ruby_check_sizeof_int[SIZEOF_INT == sizeof(int) ? 1 : -1];
 typedef char ruby_check_sizeof_long[SIZEOF_LONG == sizeof(long) ? 1 : -1];
 #ifdef HAVE_LONG_LONG
@@ -129,16 +154,28 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #endif
 
 #define RUBY_PRI_VALUE_MARK "\v"
-#define PRI_VALUE_PREFIX        "l"
-#define PRI_LONG_PREFIX         "l"
-#define PRI_64_PREFIX           PRI_LONG_PREFIX
-#define PRIdVALUE               PRI_VALUE_PREFIX"d"
-#define PRIoVALUE               PRI_VALUE_PREFIX"o"
-#define PRIuVALUE               PRI_VALUE_PREFIX"u"
-#define PRIxVALUE               PRI_VALUE_PREFIX"x"
-#define PRIXVALUE               PRI_VALUE_PREFIX"X"
-#define PRIsVALUE               "Y"
-
+#if defined PRIdPTR && !defined PRI_VALUE_PREFIX
+#define PRIdVALUE PRIdPTR
+#define PRIoVALUE PRIoPTR
+#define PRIuVALUE PRIuPTR
+#define PRIxVALUE PRIxPTR
+#define PRIXVALUE PRIXPTR
+#define PRIsVALUE PRIiPTR"" RUBY_PRI_VALUE_MARK
+#else
+#define PRIdVALUE PRI_VALUE_PREFIX"d"
+#define PRIoVALUE PRI_VALUE_PREFIX"o"
+#define PRIuVALUE PRI_VALUE_PREFIX"u"
+#define PRIxVALUE PRI_VALUE_PREFIX"x"
+#define PRIXVALUE PRI_VALUE_PREFIX"X"
+#ifdef TRUFFLERUBY
+#define PRIsVALUE "Y"
+#else
+#define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
+#endif
+#endif
+#ifndef PRI_VALUE_PREFIX
+# define PRI_VALUE_PREFIX ""
+#endif
 
 #ifndef PRI_TIMET_PREFIX
 # if SIZEOF_TIME_T == SIZEOF_INT
@@ -378,7 +415,6 @@ VALUE rb_id2sym(ID);
 #define ID2SYM(x) RB_ID2SYM(x)
 #define SYM2ID(x) RB_SYM2ID(x)
 
-
 #ifndef USE_FLONUM
 #if SIZEOF_VALUE >= SIZEOF_DOUBLE
 #define USE_FLONUM 1
@@ -425,16 +461,14 @@ enum ruby_special_consts {
     RUBY_SPECIAL_SHIFT  = 8
 };
 
-extern void* rb_tr_undef;
-extern void* rb_tr_true;
-extern void* rb_tr_false;
-extern void* rb_tr_nil;
-
-#define Qfalse ((VALUE)(&rb_tr_false))
-#define Qtrue ((VALUE)(&rb_tr_true))
-#define Qnil ((VALUE)(&rb_tr_nil))
-#define Qundef ((VALUE)(&rb_tr_undef))
-
+#define RUBY_Qfalse ((VALUE)RUBY_Qfalse)
+#define RUBY_Qtrue  ((VALUE)RUBY_Qtrue)
+#define RUBY_Qnil   ((VALUE)RUBY_Qnil)
+#define RUBY_Qundef ((VALUE)RUBY_Qundef)	/* undefined value for placeholder */
+#define Qfalse RUBY_Qfalse
+#define Qtrue  RUBY_Qtrue
+#define Qnil   RUBY_Qnil
+#define Qundef RUBY_Qundef
 #define IMMEDIATE_MASK RUBY_IMMEDIATE_MASK
 #define FIXNUM_FLAG RUBY_FIXNUM_FLAG
 #if USE_FLONUM
@@ -444,8 +478,8 @@ extern void* rb_tr_nil;
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
 int RTEST(VALUE value);
-#define NIL_P RB_NIL_P
 int RB_NIL_P(VALUE value); /* Defined as a function in TruffleRuby. */
+#define NIL_P(v) RB_NIL_P(v)
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))
 
@@ -526,11 +560,22 @@ MUST_INLINE int RB_FLOAT_TYPE_P(VALUE obj);
 
 bool RB_TYPE_P(VALUE value, int type);
 
+#ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
-        volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
-        rb_gc_guarded_ptr;                              \
+	volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
+	rb_gc_guarded_ptr; \
     }))
+#elif defined _MSC_VER
+#pragma optimize("", off)
+static inline volatile VALUE *rb_gc_guarded_ptr(volatile VALUE *ptr) {return ptr;}
+#pragma optimize("", on)
+#define RB_GC_GUARD(v) (*rb_gc_guarded_ptr(&(v)))
+#else
+volatile VALUE *rb_gc_guarded_ptr_val(volatile VALUE *ptr, VALUE val);
+#define HAVE_RB_GC_GUARDED_PTR_VAL 1
+#define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
+#endif
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))

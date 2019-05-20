@@ -31,22 +31,9 @@ import org.truffleruby.shared.BasicPlatform;
 
 public abstract class Platform extends BasicPlatform {
 
-    public static final String LIBPREFIX = OS == OS_TYPE.WINDOWS ? "" : "lib";
     public static final String LIBSUFFIX = determineLibExt();
-    public static final String LIBC = determineLibC();
 
     public static final boolean IS_WINDOWS = OS == OS_TYPE.WINDOWS;
-
-    private static final String determineLibC() {
-        switch (OS) {
-            case WINDOWS:
-                return "msvcrt.dll";
-            case LINUX:
-                return "libc.so.6";
-            default:
-                return LIBPREFIX + "c." + LIBSUFFIX;
-        }
-    }
 
     private static final String determineLibExt() {
         switch (OS) {

@@ -20,12 +20,6 @@ extern "C" {
 
 #define TRUFFLERUBY
 
-#ifdef SULONG_TRUFFLE_H
-#include SULONG_TRUFFLE_H
-#else
-#include <sulong/truffle.h>
-#endif
-
 #ifdef SULONG_POLYGLOT_H
 #include SULONG_POLYGLOT_H
 #else
@@ -34,16 +28,21 @@ extern "C" {
 
 #include <ctype.h> // isdigit
 
+// Configuration
+
+// We disable USE_FLONUM, as we do not use pointer tagging for Float.
+// Enabling USE_FLONUM also changes the value of Qtrue/Qnil/Qundef.
+#define USE_FLONUM 0
+
 // Value types
 
 typedef void *VALUE;
-typedef long SIGNED_VALUE;
 typedef VALUE ID;
 
 // Support
 
 extern void* rb_tr_cext;
-#define RUBY_CEXT ((void *)(&rb_tr_cext))
+#define RUBY_CEXT rb_tr_cext
 
 #define MUST_INLINE __attribute__((always_inline)) inline
 

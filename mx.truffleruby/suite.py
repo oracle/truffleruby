@@ -257,14 +257,11 @@ suite = {
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
                 "sulong:SULONG_HOME", # polyglot.h
-                "sulong:SULONG_LEGACY", # truffle.h
             ],
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
               "SULONG_HEADERS_DIR": "<path:SULONG_HOME>/include",
               "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
-              "SULONG_TRUFFLE_H": "<path:SULONG_LEGACY>/include/truffle.h",
-              "SULONG_TRUFFLE_DIR": "<path:SULONG_LEGACY>/include",
             },
             "output": ".",
             "results": [
@@ -425,7 +422,6 @@ suite = {
                     "file:lib/cext/include/*.h",
                 ],
                 "lib/cext/include/sulong/": [
-                    "extracted-dependency:sulong:SULONG_LEGACY/include/truffle.h",
                     "link:../../sulong-libs/include/polyglot.h",
                 ],
                 "lib/cext/sulong-libs/": [
