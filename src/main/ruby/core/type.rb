@@ -200,7 +200,12 @@ module Truffle
     end
 
     def self.rb_to_f(val)
-      rb_to_float(val, :to_f);
+      return val if object_kind_of?(val, Float)
+      res = convert_type(val, Float, :to_f, true)
+      unless object_kind_of?(res, Float)
+        conversion_mismatch(val, Float, :to_f, res)
+      end
+      res
     end
 
     def self.rb_to_int(val)
@@ -208,15 +213,6 @@ module Truffle
       res = convert_type(val, Integer, :to_int, true)
       unless object_kind_of?(res, Integer)
         conversion_mismatch(val, Integer, :to_int, res)
-      end
-      res
-    end
-
-    def self.rb_to_float(val, meth)
-      return val if object_kind_of?(val, Float)
-      res = convert_type(val, Float, meth, true)
-      unless object_kind_of?(res, Float)
-        conversion_mismatch(val, Float, meth, res)
       end
       res
     end
