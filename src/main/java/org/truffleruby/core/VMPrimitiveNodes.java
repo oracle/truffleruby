@@ -468,7 +468,7 @@ public abstract class VMPrimitiveNodes {
         }
 
 
-        @Specialization(guards = "isRubyNumber(value)")
+        @Specialization(guards = "!isRubyNumber(value)")
         public Object updateHash(long hash, Object value,
                                  @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
                                  @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
