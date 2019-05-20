@@ -16,6 +16,7 @@ Compatibility
 
 * `String#-@` now performs string deduplication (#1608).
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
+* Coerce values given to `FFI::Pointer` methods.
 
 Changes:
 
