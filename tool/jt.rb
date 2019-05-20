@@ -129,7 +129,7 @@ module Utilities
       end
     else
       ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
-      unless /JAVA_HOME: \{\n\s*name: "oraclejdk",\n\s*version: "8u(\d+)-(jvmci-\d+-b\d+)",/ =~ ci
+      unless /JAVA_HOME: \{\n\s*name: "openjdk",\n\s*version: "8u(\d+)-(jvmci-.+)",/ =~ ci
         raise "JVMCI version not found in ci.jsonnet: #{ci[0, 1000]}"
       end
     end
