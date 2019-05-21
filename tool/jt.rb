@@ -415,13 +415,7 @@ module Utilities
     end
   end
 
-  def mspec(command, *args)
-    env_vars = {}
-    if command.is_a?(Hash)
-      env_vars = command
-      command, *args = args
-    end
-
+  def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
 
     if i = args.index('-t')
@@ -1237,7 +1231,7 @@ EOS
   end
 
   def mspec(*args)
-    super(*args)
+    run_mspec({}, *args)
   end
 
   def test_specs(command, *args)
@@ -1314,7 +1308,7 @@ EOS
       build("cexts")
     end
 
-    mspec env_vars, command, *options, *args
+    run_mspec env_vars, command, *options, *args
   end
   private :test_specs
 
