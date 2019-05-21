@@ -118,7 +118,7 @@ module Truffle::POSIX
 
       nfi_return_type = to_nfi_type(return_type)
       if nfi_return_type.to_s.start_with?('uint')
-        unsigned_return_type = 1 << nfi_return_type[-2..-1].to_i
+        unsigned_return_type = 1 << nfi_return_type.to_s[-2..-1].to_i
       end
 
       bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
