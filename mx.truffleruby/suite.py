@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "e7df682fc26830b5e5df74996c948a087c23b3be",
+                "version": "5dc4d8b4f772e90475a00c2093846cf11b2fd480",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "e7df682fc26830b5e5df74996c948a087c23b3be",
+                "version": "5dc4d8b4f772e90475a00c2093846cf11b2fd480",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -379,8 +379,6 @@ suite = {
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
                 ],
-                "LICENSE_TRUFFLERUBY.md": "file:LICENCE.md",
-                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
                 "bin/": [
                     "file:bin/bundle",
                     "file:bin/bundler",
@@ -477,6 +475,16 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
             ],
+        },
+
+        "TRUFFLERUBY_GRAALVM_LICENSES": {
+            "native": True,
+            "platformDependent": True,
+            "description": "TruffleRuby support distribution for the GraalVM license files",
+            "layout": {
+                "LICENSE_TRUFFLERUBY.txt": "file:LICENCE.md",
+                "3rd_party_licenses_truffleruby.txt": "file:3rd_party_licenses.txt",
+            },
         },
 
         "TRUFFLERUBY-TEST": {
