@@ -38,6 +38,9 @@ Truffle::Boot.delay do
       autoload :RbConfig, 'rbconfig'
       # Defined by RbConfig
       autoload :CROSS_COMPILING, 'rbconfig'
+
+      # StringIO is required by RubyGems
+      autoload :StringIO, 'stringio'
     end
   end
 end
