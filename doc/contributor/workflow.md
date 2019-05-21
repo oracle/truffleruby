@@ -140,8 +140,8 @@ Ruby command line options and arguments can also be set in `RUBYOPT`.
 
 ## Running with Graal
 
-See the document on [build graal](building-graal.md), and then run `jt ruby`
-with the `--graal` option.
+See the document on [building graal](building-graal.md), and then run `jt ruby`
+as normal.
 
 We have flags in `jt` to set some options, such as `--trace` for
 `--vm.Dgraal.TraceTruffleCompilation=true` and `--igv` for

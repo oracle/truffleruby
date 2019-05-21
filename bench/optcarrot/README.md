@@ -9,7 +9,7 @@ The code is imported from revision `898783836dfcec04d25a8e7d4b1ce3ce3bbcebdd`.
 
 The emulator can be run with the SDL2 GUI with:
 ```
-$ jt install graal
+$ jt build --graal
 
-$ jt ruby --graal bench/optcarrot/bin/optcarrot --sdl2 --audio=none bench/optcarrot/examples/Lan_Master.nes
+$ jt ruby bench/optcarrot/bin/optcarrot --sdl2 --audio=none bench/optcarrot/examples/Lan_Master.nes
 ```

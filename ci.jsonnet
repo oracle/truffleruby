@@ -136,14 +136,9 @@ local part_definitions = {
   graal: {
     core: {
       is_after+:: ["$.use.build"],
-      setup+: [
-        ["cd", "../graal/compiler"],
-        ["mx", "build"],
-        ["cd", "../../main"],
-      ],
+      setup+: jt(["build", "--graal"]),
 
       environment+: {
-        GRAAL_HOME: "../graal/compiler",
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-core",
       },
@@ -153,7 +148,6 @@ local part_definitions = {
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "default",
-        MX_NO_GRAAL: "true",
       },
     },
 
@@ -170,14 +164,9 @@ local part_definitions = {
         ["git", "-C", repo, "checkout", find_commit_importing_truffle],
       ],
 
-      setup+: self.clone + [
-        ["cd", "../graal-enterprise/graal-enterprise"],
-        ["mx", "build"],
-        ["cd", "../../main"],
-      ],
+      setup+: self.clone + jt(["build", "--dy", "/graal-enterprise"]),
 
       environment+: {
-        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
       },
@@ -201,7 +190,6 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-core",
-        GRAAL_HOME: "$BUILD_DIR/graal/compiler",
         VM_SUITE_HOME: "$BUILD_DIR/graal/vm",
       },
     },
@@ -215,7 +203,6 @@ local part_definitions = {
 
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
-        GRAAL_HOME: "$BUILD_DIR/graal-enterprise/graal-enterprise",
         VM_SUITE_HOME: "$BUILD_DIR/graal-enterprise/vm-enterprise",
       },
     },
@@ -441,9 +428,9 @@ local part_definitions = {
     compiler_metrics: {
       # Run all metrics benchmarks: hello and compile-mandelbrot
       benchmarks+:: [
-        ["allocation", "--", "--graal"],
-        ["minheap", "--", "--graal"],
-        ["time", "--", "--graal"],
+        "allocation",
+        "minheap",
+        "time",
       ]
     },
 

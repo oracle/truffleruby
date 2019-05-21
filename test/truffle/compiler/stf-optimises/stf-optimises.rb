@@ -6,13 +6,15 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+
 def foo
   var = 14
   var * 2
 end
 
 set_trace_func proc { |event, file, line, id, binding, classname|
-  if event == 'line' && file == __FILE__ && line == 11
+  if event == 'line' && file == __FILE__ && line == 13
     binding.local_variable_set(:var, 100)
   end
 }

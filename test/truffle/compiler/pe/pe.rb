@@ -26,10 +26,7 @@
 #
 #   jt ruby --graal --vm.Dgraal.TraceTruffleCompilation=true --vm.Dgraal.TruffleCompilationExceptionsAreFatal=true --vm.Dgraal.TruffleIterativePartialEscape=true test.rb
 
-unless TruffleRuby.jit?
-  puts 'not running the GraalVM Compiler'
-  exit 1
-end
+abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
 
 TIMEOUT = 10
 

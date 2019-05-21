@@ -2,7 +2,7 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby --graal --vm.Dgraal.TruffleIterativePartialEscape=true doc/samples/can-we-fold-yet.rb < test/truffle/compiler/can-we-fold-yet/input.txt > actual.txt
+jt ruby --vm.Dgraal.TruffleIterativePartialEscape=true doc/samples/can-we-fold-yet.rb < test/truffle/compiler/can-we-fold-yet/input.txt > actual.txt
 
 if ! cmp test/truffle/compiler/can-we-fold-yet/expected.txt actual.txt
 then
