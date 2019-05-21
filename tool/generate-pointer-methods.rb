@@ -61,9 +61,10 @@ SIZEOF = {
   double: ['float64'],
   pointer: [],
 }.each_pair do |base_type, aliases|
+  integer_type = aliases.any? { |as| as.start_with?('int') }
   [
       '',
-      *('u' if aliases.any? { |as| as.start_with?('int') })
+      *('u' if integer_type)
   ].each do |prefix|
     type = "#{prefix}#{base_type}"
     aliases = aliases.map { |as| "#{prefix}#{as}" }
@@ -97,6 +98,10 @@ SIZEOF = {
   end
 
 RUBY
+    elsif integer_type
+      transform = -> value { "Truffle::Type.rb_to_int(#{value})" }
+    else
+      transform = -> value { "Truffle::Type.rb_to_f(#{value})" }
     end
 
     code << <<-RUBY

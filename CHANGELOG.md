@@ -11,11 +11,13 @@ Bug fixes:
 * Calling `Kernel#raise` with a raised exception will no longer set the cause of the exception to itself (#1682).
 * Return a `FFI::Function` correctly for functions returning a callback.
 * Convert to intuitive Ruby exceptions when INVOKE fails (#1690).
+* Implemented `FFI::Pointer#clear` (#1687).
 
 Compatibility
 
 * `String#-@` now performs string deduplication (#1608).
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
+* Coerce values given to `FFI::Pointer` methods.
 
 Changes:
 

@@ -129,6 +129,19 @@ describe "Struct tests" do
     expect(s[:string]).to be_nil
   end
 
+  it "Struct#clear sets the memory to zero" do
+    klass = Class.new(FFI::Struct) do
+      layout :a, :int, :b, :long
+    end
+
+    s = klass.new
+    s[:a] = 1
+    s[:b] = 2
+    s.clear
+    expect(s[:a]).to eq(0)
+    expect(s[:b]).to eq(0)
+  end
+
   it "Struct#layout works with :name, :type pairs" do
     class PairLayout < FFI::Struct
       layout :a, :int, :b, :long_long
@@ -326,6 +339,17 @@ describe "Struct tests" do
     expect(s.pointer.send("get_#{type.to_s}", 0)).to eq(v)
     s.pointer.send("put_#{type.to_s}", 0, 0)
     expect(s[:v]).to eq(0)
+
+    # Test coercion
+    obj = double("coerce")
+    expect(obj).to receive(:to_int).and_return(v)
+    s[:v] = obj
+    expect(s.pointer.send("get_#{type.to_s}", 0)).to eq(v)
+
+    zero = double("zero")
+    expect(zero).to receive(:to_int).and_return(0)
+    s.pointer.send("put_#{type.to_s}", 0, zero)
+    expect(s[:v]).to eq(0)
   end
   def self.int_field_test(type, values)
     values.each do |v|
@@ -358,6 +382,15 @@ describe "Struct tests" do
     value = 1.23456
     s[:v] = value
     expect((s.pointer.get_float(0) - value).abs).to be < 0.0001
+
+    # Test coercion
+    obj = double("coerce")
+    expect(obj).to receive(:to_f).and_return(42.0)
+    s[:v] = obj
+    expect((s.pointer.get_float(0) - 42.0).abs).to be < 0.0001
+
+    s.pointer.put_float(0, 1.0)
+    expect(s.pointer.get_float(0)).to eq(1.0)
   end
 
   it ":double field r/w" do
@@ -368,6 +401,15 @@ describe "Struct tests" do
     value = 1.23456
     s[:v] = value
     expect((s.pointer.get_double(0) - value).abs).to be < 0.0001
+
+    # Test coercion
+    obj = double("coerce")
+    expect(obj).to receive(:to_f).and_return(42.0)
+    s[:v] = obj
+    expect((s.pointer.get_double(0) - 42.0).abs).to be < 0.0001
+
+    s.pointer.put_double(0, 1.0)
+    expect(s.pointer.get_double(0)).to eq(1.0)
   end
   module EnumFields
     extend FFI::Library
