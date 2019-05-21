@@ -579,8 +579,12 @@ module Commands
       mx 'clean', '--dependencies', 'org.truffleruby.cext'
     when nil
       mx 'clean'
-      sh 'rm', '-rf', 'mxbuild'
       sh 'rm', '-rf', 'spec/ruby/ext'
+      Dir.glob("#{TRUFFLERUBY_DIR}/mxbuild/{*,.*}") do |path|
+        next if File.basename(path).start_with?('truffleruby-')
+        next if %w(. ..).include? File.basename(path)
+        sh 'rm', '-rf', path
+      end
     else
       raise ArgumentError, project
     end
