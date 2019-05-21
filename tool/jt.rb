@@ -137,81 +137,6 @@ module Utilities
     [update, jvmci]
   end
 
-  def find_graal_javacmd_and_options
-    graalvm = ENV['GRAALVM_BIN']
-    jvmci = ENV['JVMCI_BIN']
-    graal_home = ENV['GRAAL_HOME']
-
-    raise "More than one of GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME defined!" if [graalvm, jvmci, graal_home].compact.count > 1
-
-    if graalvm
-      javacmd = File.expand_path(graalvm, TRUFFLERUBY_DIR)
-      vm_args = []
-      options = []
-    elsif jvmci
-      javacmd = File.expand_path(jvmci, TRUFFLERUBY_DIR)
-      jvmci_graal_home = ENV['JVMCI_GRAAL_HOME']
-      raise "Also set JVMCI_GRAAL_HOME if you set JVMCI_BIN" unless jvmci_graal_home
-      jvmci_graal_home = File.expand_path(jvmci_graal_home, TRUFFLERUBY_DIR)
-      vm_args = [
-        '-d64',
-        '-XX:+UnlockExperimentalVMOptions',
-        '-XX:+EnableJVMCI',
-        '--add-exports=java.base/jdk.internal.module=com.oracle.graal.graal_core',
-        "--module-path=#{jvmci_graal_home}/../truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:#{jvmci_graal_home}/mxbuild/modules/com.oracle.graal.graal_core.jar"
-      ]
-      options = ['--no-bootclasspath']
-    elsif graal_home
-      graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      output = mx('-v', '-p', graal_home, 'vm', '-version', capture: true, :err => :out)
-      command_line = output.lines.select { |line| line.include? '-version' }
-      if command_line.size == 1
-        command_line = command_line[0]
-      else
-        $stderr.puts "Error in mx for setting up Graal:"
-        $stderr.puts output
-        abort
-      end
-      vm_args = command_line.split
-      vm_args.pop # Drop "-version"
-      javacmd = vm_args.shift
-      options = []
-    elsif graal_home = find_auto_graal_home
-      javacmd = "#{find_graal_java_home(graal_home)}/bin/java"
-      graal_jars = [
-        "#{graal_home}/mxbuild/dists/jdk1.8/graal.jar",
-        "#{graal_home}/mxbuild/dists/jdk1.8/graal-management.jar"
-      ]
-      vm_args = [
-        '-XX:+UnlockExperimentalVMOptions',
-        '-XX:+EnableJVMCI',
-        "-Djvmci.class.path.append=#{graal_jars.join(':')}",
-        # No -Xbootclasspath for sdk & Truffle, it's already added by the normal launcher
-      ]
-      options = []
-    else
-      raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
-    end
-    [javacmd, vm_args.map { |arg| "--vm.#{arg[1..-1]}" } + options]
-  end
-
-  def find_auto_graal_home
-    sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
-    return nil unless Dir.exist?(sibling_compiler)
-    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/jdk1.8/graal-compiler.jar")
-    sibling_compiler
-  end
-
-  def find_graal_java_home(graal_home)
-    env_file = "#{graal_home}/mx.compiler/env"
-    graal_env = File.exist?(env_file) ? File.read(env_file) : ""
-    if java_home = graal_env[/^JAVA_HOME=(.+)$/, 1]
-      java_home.gsub(/\$(\w+)/) { ENV.fetch($1) }
-    else
-      ENV.fetch("JAVA_HOME") { raise "Could not find JAVA_HOME of graal in #{env_file} or in ENV" }
-    end
-  end
-
   def which(binary)
     ENV["PATH"].split(File::PATH_SEPARATOR).each do |dir|
       path = "#{dir}/#{binary}"
@@ -539,11 +464,10 @@ module Commands
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
-          --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --asm           show assembly (implies --graal)
+          --asm           show assembly
           --server        run an instrumentation server on port 8080
-          --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
+          --igv           make sure IGV is running and dump Graal graphs after partial escape
           --igv-full      show all phases, not just up to the Truffle partial escape
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
@@ -562,7 +486,6 @@ module Commands
       jt test mri                                    run mri tests
 #{MRI_TEST_MODULES.map { |k, h| format ' '*10+'%-16s%s', k, h[:help] }.join("\n")}
           --native        use native TruffleRuby image (set AOT_BIN)
-          --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
@@ -570,7 +493,7 @@ module Commands
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
       jt test spec/ruby/language/while_spec.rb       run specs in this file
-      jt test compiler                               run compiler tests (uses the same logic as --graal to find Graal)
+      jt test compiler                               run compiler tests
       jt test integration                            runs all integration tests
       jt test integration [TESTS]                    runs the given integration tests
       jt test bundle [--jdebug]                      tests using bundler
@@ -593,8 +516,7 @@ module Commands
       jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
-      jt benchmark [options] args...                 run benchmark-interface (implies --graal)
-          --no-graal                   don't imply --graal
+      jt benchmark [options] args...                 run benchmark-interface
           JT_BENCHMARK_RUBY=ruby       benchmark some other Ruby, like MRI
                                        note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
@@ -603,7 +525,6 @@ module Commands
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt install jvmci                              install a JVMCI JDK in the parent directory
-      jt install graal                              install Graal in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
 
@@ -612,10 +533,6 @@ module Commands
       recognised environment variables:
 
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
-        GRAALVM_BIN                                  GraalVM executable (java command)
-        GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
-        JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
-        JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
         JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby executable
@@ -677,9 +594,9 @@ module Commands
 
   def env
     puts "Environment"
-    env_vars = %w[JAVA_HOME PATH RUBY_BIN GRAALVM_BIN
-                  GRAAL_HOME TRUFFLERUBY_RESILIENT_GEM_HOME
-                  JVMCI_BIN JVMCI_GRAAL_HOME OPENSSL_PREFIX
+    env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN
+                  TRUFFLERUBY_RESILIENT_GEM_HOME
+                  OPENSSL_PREFIX
                   AOT_BIN TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
@@ -723,7 +640,6 @@ module Commands
     raise ArgumentError, args.inspect + ' has non-String values' if args.any? { |v| not v.is_a? String }
 
     native = false
-    graal = false
     core_load_path = true
     ruby_args = []
     vm_args = []
@@ -736,14 +652,12 @@ module Commands
       when '--no-core-load-path'
         core_load_path = false
       when '--graal'
-        graal = true
+        abort "jt ruby --graal no longer works, instead build with graal 'jt build --graal' and then use 'jt ruby'"
       when '--stress'
-        graal = true
         vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
         vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
         vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
       when '--asm'
-        graal = true
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
         vm_args << JDEBUG
@@ -757,10 +671,8 @@ module Commands
       when '--fg'
         vm_args << "--vm.Dgraal.TruffleBackgroundCompilation=false"
       when '--trace'
-        graal = true
         vm_args << "--vm.Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
-        graal = true
         vm_args << (arg == '--igv-full' ? "--vm.Dgraal.Dump=:2" : "--vm.Dgraal.Dump=TruffleTree,PartialEscape:2")
         vm_args << "--vm.Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "--vm.Dgraal.PrintBackendCFG=false"
@@ -780,16 +692,6 @@ module Commands
 
     if core_load_path
       vm_args << "--experimental-options" << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
-    end
-
-    if graal
-      if ENV["RUBY_BIN"] || native
-        # Assume that Graal is automatically set up if RUBY_BIN is set or using a native image.
-      else
-        javacmd, javacmd_options = find_graal_javacmd_and_options
-        env_vars["JAVACMD"] = javacmd
-        vm_args.push(*javacmd_options)
-      end
     end
 
     ruby_bin = find_launcher(native)
@@ -1380,10 +1282,7 @@ EOS
     end
 
     if args.delete('--graal')
-      javacmd, javacmd_options = find_graal_javacmd_and_options
-      env_vars["JAVACMD"] = javacmd
-      options.concat %w[--excl-tag graalvm]
-      options.concat javacmd_options.map { |o| "-T#{o}" }
+      abort "'jt test --graal' no longer works, instead build with graal 'jt build --graal' and then use 'jt test'"
     end
 
     if args.delete('--jdebug')
@@ -1818,7 +1717,6 @@ EOS
     end
 
     unless benchmark_ruby
-      run_args.push '--graal' unless args.delete('--no-graal') || args.include?('list')
       run_args.push '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
@@ -1915,31 +1813,6 @@ EOS
 
     puts java_home
     java_home
-  end
-
-  def checkout_or_update_graal_repo(sforceimports: true)
-    graal = find_or_clone_repo('https://github.com/oracle/graal.git')
-
-    if sforceimports
-      Remotes.try_fetch(graal)
-      raw_sh "git", "-C", graal, "checkout", truffle_version
-    end
-
-    graal
-  end
-
-  def install_graal(*options)
-    build
-
-    puts "Building graal"
-    mx "--dy", "/compiler", "build"
-
-    puts "Running with the GraalVM Compiler"
-    run_ruby "--graal", "-e", "p TruffleRuby.jit?"
-
-    puts
-    puts "To run TruffleRuby with the GraalVM Compiler, use:"
-    puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
   def build_graalvm(*options)

@@ -6,6 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+
 timeout = Time.now + 30
 
 begin

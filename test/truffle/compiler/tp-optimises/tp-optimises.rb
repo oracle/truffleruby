@@ -6,13 +6,15 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+
 def foo
   var = 14
   var * 2
 end
 
 tp = TracePoint.new(:line) do |tp|
-  if tp.path == __FILE__ && tp.lineno == 11
+  if tp.path == __FILE__ && tp.lineno == 13
     tp.binding.local_variable_set(:var, 100)
   end
 end
