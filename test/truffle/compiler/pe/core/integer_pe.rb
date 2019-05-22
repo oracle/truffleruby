@@ -24,3 +24,7 @@ example "14 / 2.0", 7.0
 counter example "14 / rand"
 
 example "14 <=> 2", 1
+
+example "x = 0; 1.times { x = 14 }; x", 14
+
+example "sum = 0; 3.times { sum += 14 }; sum", 42

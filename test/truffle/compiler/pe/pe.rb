@@ -70,7 +70,7 @@ else
   require_relative 'language/defined_pe.rb'
   require_relative 'language/global_pe.rb'
   require_relative 'core/truefalse_pe.rb'
-  require_relative 'core/fixnum_pe.rb'
+  require_relative 'core/integer_pe.rb'
   require_relative 'core/float_pe.rb'
   require_relative 'core/symbol_pe.rb'
   require_relative 'core/method_pe.rb'

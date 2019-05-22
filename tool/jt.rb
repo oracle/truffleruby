@@ -2297,7 +2297,7 @@ EOS
       end
 
       configs.each do |config|
-        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true --experimental-options --basic-ops-inline=false pe/pe.rb"]
+        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"]
       end
     end
 

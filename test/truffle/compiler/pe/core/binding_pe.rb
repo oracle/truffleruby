@@ -6,6 +6,12 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+module BindingFixtures
+  def self.yielder
+    yield
+  end
+end
+
 # Kernel#binding
 example "x = 14; binding.local_variable_get(:x)", 14
 
@@ -23,13 +29,13 @@ example "b = binding; b.local_variable_set(:x, 14); b.local_variable_get(:x)", 1
 example "b = binding.dup; b.local_variable_set(:x, 14); b.local_variable_get(:x)", 14
 
 # get (2 levels)
-example "x = 14; y = nil; 1.times { y = binding.local_variable_get(:x) }; y", 14
+example "x = 14; y = nil; BindingFixtures.yielder { y = binding.local_variable_get(:x) }; y", 14
 
 # set (2 levels)
-example "x = nil; 1.times { binding.local_variable_set(:x, 15) }; x", 15
+example "x = nil; BindingFixtures.yielder { binding.local_variable_set(:x, 15) }; x", 15
 
 # get + set (2 levels)
-example "x = 14; y = nil; 1.times { binding.local_variable_set(:x, 15); y = binding.local_variable_get(:x) }; y", 15
+example "x = 14; y = nil; BindingFixtures.yielder { binding.local_variable_set(:x, 15); y = binding.local_variable_get(:x) }; y", 15
 
 # defined
 
