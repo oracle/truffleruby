@@ -18,8 +18,10 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 /**
  * We inline basic operations as it makes little sense to compile them in isolation without the
@@ -138,7 +140,7 @@ public class CoreMethods {
         return method;
     }
 
-    public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
+    public RubyNode createCallNode(RubyCallNodeParameters callParameters, TranslatorEnvironment environment) {
         if (!context.getOptions().BASICOPS_INLINE ||
                 callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
@@ -171,7 +173,7 @@ public class CoreMethods {
                     break;
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
-                        return InlinedBlockGivenNodeGen.create(context, callParameters, self);
+                        return InlinedBlockGivenNodeGen.create(callParameters, environment, self);
                     }
                     break;
                 case "nil?":

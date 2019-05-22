@@ -109,6 +109,9 @@ import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
+import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -137,6 +140,7 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -283,15 +287,15 @@ public abstract class KernelNodes {
     @CoreMethod(names = "block_given?", isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
         @Specialization
         public boolean blockGiven(VirtualFrame frame,
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            Frame callerFrame = callerFrameNode.execute(frame);
-            return blockProfile.profile(RubyArguments.getBlock(callerFrame) != null);
+            MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            return blockProfile.profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil());
         }
-
     }
 
     @CoreMethod(names = "__callee__", isModuleFunction = true)
@@ -995,11 +999,12 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject lambda(NotProvided block) {
-            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.READ_ONLY);
-            final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
+        public DynamicObject lambda(NotProvided block,
+                                    @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.MATERIALIZE).materialize();
+            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == null) {
+            if (parentBlock == nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("tried to create Proc object without a block", this));
             } else {
                 warnProcWithoutBlock();

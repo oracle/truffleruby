@@ -24,15 +24,19 @@ import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.ReadBlockNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -68,17 +72,18 @@ public abstract class ProcNodes {
                 Object block);
 
         @Specialization
-        public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block) {
-            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameAccess.READ_ONLY);
+        public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
+                                  @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
+                    .getFrame(FrameAccess.MATERIALIZE).materialize();
 
-            DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
+            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == null) {
+            if (parentBlock == nil()) {
                 parentBlock = tryParentBlockForCExts();
             }
 
-            if (parentBlock == null) {
+            if (parentBlock == nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             }
 
@@ -86,14 +91,23 @@ public abstract class ProcNodes {
         }
 
         @TruffleBoundary
-        private static DynamicObject tryParentBlockForCExts() {
+        protected static void debug(String str) {
+            System.err.println(str);
+        }
+
+        protected static ReadBlockNode createReadBlock() {
+            return new ReadBlockNode(null);
+        }
+
+        @TruffleBoundary
+        protected DynamicObject tryParentBlockForCExts() {
             /*
              * TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
              * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally
              * went into C and get the block from there.
              */
 
-            return null;
+            return nil();
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
@@ -222,7 +236,7 @@ public abstract class ProcNodes {
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
                     ProcOperations.getSelf(proc),
-                    Layouts.PROC.getBlock(proc),
+                    null,
                     args);
         }
 

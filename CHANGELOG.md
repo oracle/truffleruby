@@ -12,6 +12,7 @@ Bug fixes:
 * Return a `FFI::Function` correctly for functions returning a callback.
 * Convert to intuitive Ruby exceptions when INVOKE fails (#1690).
 * Implemented `FFI::Pointer#clear` (#1687).
+* Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 
 Compatibility
 

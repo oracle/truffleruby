@@ -13,9 +13,11 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadDeclarationVariableNode;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -28,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TranslatorEnvironment {
 
     public static final char TEMP_PREFIX = '%';
+    public static final String METHOD_BLOCK_NAME = TEMP_PREFIX + "__method_block_arg__";
 
     private final ParseEnvironment parseEnvironment;
 
@@ -117,6 +120,15 @@ public class TranslatorEnvironment {
         }
 
         return localVar;
+    }
+
+    public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
+        RubyNode node = findLocalVarNode(name, sourceSection);
+        if (node == null) {
+            node = new NilLiteralNode(true);
+            node.unsafeSetSourceSection(sourceSection);
+        }
+        return node;
     }
 
     public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {

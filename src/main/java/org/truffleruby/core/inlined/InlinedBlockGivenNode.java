@@ -10,9 +10,10 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -22,8 +23,11 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "block_given?";
 
-    public InlinedBlockGivenNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    @Child protected RubyNode readMethodBlockNode;
+
+    public InlinedBlockGivenNode(RubyCallNodeParameters callNodeParameters,  TranslatorEnvironment environment) {
         super(callNodeParameters);
+        this.readMethodBlockNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
     }
 
     @Specialization(guards = {
@@ -31,7 +35,7 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
     }, assumptions = "assumptions", limit = "1")
     boolean blockGiven(VirtualFrame frame, Object self,
             @Cached("createIgnoreVisibility()") LookupMethodNode lookupNode) {
-        return RubyArguments.getBlock(frame) != null;
+        return readMethodBlockNode.execute(frame) != nil();
     }
 
     @Specialization
