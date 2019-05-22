@@ -158,10 +158,11 @@ local part_definitions = {
       local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
             repo = "../graal-enterprise",
             suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
-            find_commit_importing_truffle = ["git", "-C", repo, "log", "--reverse", "--pretty=%H", "-m", "-S"] + jt(["truffle_version"]) + ["--grep=PullRequest:", suite_file, "|", "head", "-1"];
+            merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
+            graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
       [
         ["git", "clone", url, repo],
-        ["git", "-C", repo, "checkout", find_commit_importing_truffle],
+        ["git", "-C", repo, "checkout", graal_enterprise_commit],
       ],
 
       setup+: self.clone + jt(["build", "--dy", "/graal-enterprise"]),
