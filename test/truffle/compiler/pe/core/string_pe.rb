@@ -48,7 +48,7 @@ example "ABC_ROPE_USASCII == 'abc'", true
 
 example "'A' == String.from_codepoint(65, Encoding::US_ASCII)", true
 example "'A' == 65.chr", true
-example "'A'.ord == 65", true
+tagged example "'A'.ord == 65", true
 
 example "'aba'[0] == 'aca'[-1]", true
 
@@ -66,8 +66,8 @@ example "'こにちわ'.empty?", false
 
 example "x = 'abc'; y = 'xyz'; x.replace(y) == y", true
 
-example "'abc'.getbyte(0) == 97", true
-example "'abc'.getbyte(-1) == 99", true
+tagged example "'abc'.getbyte(0) == 97", true
+tagged example "'abc'.getbyte(-1) == 99", true
 example "'abc'.getbyte(10_000) == nil", true
 
 example "14.to_s.length", 2
