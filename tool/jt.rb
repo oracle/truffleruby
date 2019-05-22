@@ -1860,14 +1860,14 @@ EOS
     rubies_dir = chruby_versions if File.directory?(chruby_versions)
 
     if rubies_dir
-      Dir.glob(rubies_dir + "/*").each do |link|
-        if File.symlink?(link)
-          target = File.readlink(link)
-          unless File.exist?(target)
-            File.delete link
-            puts "Deleted old link: #{link} -> #{target}"
-          end
-        end
+      Dir.glob(rubies_dir + "/truffleruby-*").each do |link|
+        next unless File.symlink?(link)
+        next if File.exist?(link)
+        target = File.readlink(link)
+        next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
+
+        File.delete link
+        puts "Deleted old link: #{link} -> #{target}"
       end
 
       link_path = "#{rubies_dir}/#{name}"
