@@ -205,7 +205,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @ExportMessage
-    static boolean isArrayElementModifiable(DynamicObject receiver, long index,
+    public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return KeyInfo.isModifiable((int) dispatchNode.call(
@@ -216,7 +216,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @ExportMessage
-    static boolean isArrayElementInsertable(DynamicObject receiver, long index,
+    public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return KeyInfo.isInsertable((int) dispatchNode.call(
@@ -227,7 +227,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     @ExportMessage
-    static boolean isArrayElementRemovable(DynamicObject receiver, long index,
+    public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return KeyInfo.isRemovable((int) dispatchNode.call(
