@@ -148,11 +148,6 @@ if MSpecScript.child_process?
   elsif ARGV.include? ":next"
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.7.0")
   end
-
-  # We do not use Ruby 2.5's FrozenError yet
-  def frozen_error_class
-    RuntimeError
-  end
 end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?

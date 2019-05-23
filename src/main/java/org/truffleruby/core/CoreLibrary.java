@@ -106,6 +106,7 @@ public class CoreLibrary {
     private final DynamicObjectFactory fiberFactory;
     private final DynamicObject floatClass;
     private final DynamicObject floatDomainErrorClass;
+    private final DynamicObject frozenErrorClass;
     private final DynamicObject hashClass;
     private final DynamicObjectFactory hashFactory;
     private final DynamicObject integerClass;
@@ -346,10 +347,13 @@ public class CoreLibrary {
         ioErrorClass = defineClass(standardErrorClass, "IOError");
         localJumpErrorClass = defineClass(standardErrorClass, "LocalJumpError");
         regexpErrorClass = defineClass(standardErrorClass, "RegexpError");
-        runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
         threadErrorClass = defineClass(standardErrorClass, "ThreadError");
         typeErrorClass = defineClass(standardErrorClass, "TypeError");
         zeroDivisionErrorClass = defineClass(standardErrorClass, "ZeroDivisionError");
+
+        // StandardError > RuntimeError
+        runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
+        frozenErrorClass = defineClass(runtimeErrorClass, "FrozenError");
 
         // StandardError > RangeError
         rangeErrorClass = defineClass(standardErrorClass, "RangeError");
@@ -1303,6 +1307,10 @@ public class CoreLibrary {
 
     public DynamicObject getSyntaxErrorClass() {
         return syntaxErrorClass;
+    }
+
+    public DynamicObject getFrozenErrorClass() {
+        return frozenErrorClass;
     }
 
     public DynamicObject getFloatDomainErrorClass() {

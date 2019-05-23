@@ -1,1 +1,0 @@
-fails:StandardError is a superclass of FrozenError
