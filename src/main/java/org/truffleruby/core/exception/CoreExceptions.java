@@ -198,13 +198,22 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, StringOperations.createString(context, message), currentNode, javaThrowable);
     }
 
-    // RuntimeError
+    // FrozenError
 
     @TruffleBoundary
     public DynamicObject frozenError(Object object, Node currentNode) {
         String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
-        return runtimeError(StringUtils.format("can't modify frozen %s", className), currentNode);
+        return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode);
     }
+
+    @TruffleBoundary
+    public DynamicObject frozenError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getFrozenErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    // RuntimeError
 
     public DynamicObject runtimeErrorNotConstant(Node currentNode) {
         return runtimeError("Truffle::Graal.assert_constant can only be called lexically", currentNode);
