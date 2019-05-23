@@ -1,3 +1,4 @@
 slow:RubyGems is not loaded until needed
 slow:RubyGems is loaded when accessing Gem
 slow:RubyGems is loaded by a failing require
+slow:Lazy RubyGems defines StringIO like RubyGems which requires it eagerly

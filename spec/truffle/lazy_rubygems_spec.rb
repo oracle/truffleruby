@@ -26,3 +26,10 @@ describe "RubyGems" do
     $?.success?.should == true
   end
 end
+
+describe "Lazy RubyGems" do
+  # See https://github.com/rubygems/rubygems/issues/2772
+  it "defines StringIO like RubyGems which requires it eagerly" do
+    ruby_exe('puts StringIO').should == "StringIO\n"
+  end
+end
