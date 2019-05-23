@@ -19,14 +19,12 @@ public class PropagateTaintNode extends Node {
     @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
     @Child private TaintNode taintNode;
 
-    private final ConditionProfile taintProfile = ConditionProfile.createBinaryProfile();
-
     public static PropagateTaintNode create() {
         return new PropagateTaintNode();
     }
 
     public void propagate(DynamicObject source, Object target) {
-        if (taintProfile.profile(isTaintedNode.executeIsTainted(source))) {
+        if (isTaintedNode.executeIsTainted(source)) {
             taint(target);
         }
     }
