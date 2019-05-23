@@ -41,6 +41,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
@@ -516,16 +517,20 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block) {
+        public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
+                                        @Cached("create()") PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
             Layouts.HASH.setDefaultValue(hash, nil());
+            propagateSharingNode.propagate(hash, block);
             Layouts.HASH.setDefaultBlock(hash, block);
             return hash;
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block) {
+        public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
+                                        @Cached("create()") PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
+            propagateSharingNode.propagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, nil());
             return hash;
@@ -542,6 +547,8 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
+
         public static InitializeCopyNode create() {
             return InitializeCopyNodeFactory.create(null);
         }
@@ -553,6 +560,8 @@ public abstract class HashNodes {
             if (self == from) {
                 return self;
             }
+
+            propagateSharingNode.propagate(self, from);
 
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
             Layouts.HASH.setStore(self, null);
@@ -571,11 +580,13 @@ public abstract class HashNodes {
                 return self;
             }
 
+            propagateSharingNode.propagate(self, from);
+
             final Object[] store = (Object[]) Layouts.HASH.getStore(from);
-            Object store1 = PackedArrayStrategy.copyStore(getContext(), store);
+            Object storeCopy = PackedArrayStrategy.copyStore(getContext(), store);
             int size = Layouts.HASH.getSize(from);
-            assert HashOperations.verifyStore(getContext(), store1, size, null, null);
-            Layouts.HASH.setStore(self, store1);
+            assert HashOperations.verifyStore(getContext(), storeCopy, size, null, null);
+            Layouts.HASH.setStore(self, storeCopy);
             Layouts.HASH.setSize(self, size);
             Layouts.HASH.setFirstInSequence(self, null);
             Layouts.HASH.setLastInSequence(self, null);
@@ -593,6 +604,8 @@ public abstract class HashNodes {
             if (self == from) {
                 return self;
             }
+
+            propagateSharingNode.propagate(self, from);
 
             BucketsStrategy.copyInto(getContext(), from, self);
             copyOtherFields(self, from);
@@ -692,7 +705,10 @@ public abstract class HashNodes {
     public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyProc(defaultProc)")
-        public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc) {
+        public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
+                                            @Cached("create()") PropagateSharingNode propagateSharingNode) {
+            propagateSharingNode.propagate(hash, defaultProc);
+
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, defaultProc);
             return defaultProc;
@@ -711,7 +727,10 @@ public abstract class HashNodes {
     public abstract static class SetDefaultValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object setDefault(DynamicObject hash, Object defaultValue) {
+        public Object setDefault(DynamicObject hash, Object defaultValue,
+                                 @Cached("create()") PropagateSharingNode propagateSharingNode) {
+            propagateSharingNode.propagate(hash, defaultValue);
+
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, nil());
             return defaultValue;
