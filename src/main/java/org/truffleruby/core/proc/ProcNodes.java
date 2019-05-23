@@ -24,8 +24,6 @@ import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
-import org.truffleruby.language.arguments.ReadBlockNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
@@ -38,7 +36,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -93,10 +90,6 @@ public abstract class ProcNodes {
         @TruffleBoundary
         protected static void debug(String str) {
             System.err.println(str);
-        }
-
-        protected static ReadBlockNode createReadBlock() {
-            return new ReadBlockNode(null);
         }
 
         @TruffleBoundary
