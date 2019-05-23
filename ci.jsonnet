@@ -473,7 +473,7 @@ local part_definitions = {
 
     cext_chunky: {
       environment+: {
-        TRUFFLERUBYOPT: "--cexts-log-load=true",
+        TRUFFLERUBYOPT: "--experimental-options --cexts-log-load",
         USE_CEXTS: "true",
       },
       setup+:
