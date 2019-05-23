@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -23,13 +24,20 @@ public class PropagateSharingNode extends Node {
 
     public PropagateSharingNode() {
         isSharedNode = IsSharedNodeGen.create();
-        writeBarrierNode = WriteBarrierNode.create();
     }
 
     public void propagate(DynamicObject source, Object value) {
         if (isSharedNode.executeIsShared(source)) {
-            writeBarrierNode.executeWriteBarrier(value);
+            writeBarrier(value);
         }
+    }
+
+    private void writeBarrier(Object value) {
+        if (writeBarrierNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            writeBarrierNode = insert(WriteBarrierNode.create());
+        }
+        writeBarrierNode.executeWriteBarrier(value);
     }
 
 }
