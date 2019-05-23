@@ -70,6 +70,7 @@ import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
@@ -1004,8 +1005,11 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+                @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+                @Cached("create()") PropagateSharingNode propagateSharingNode) {
             final Object value = args[0];
+            propagateSharingNode.propagate(array, value);
+
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
             for (int i = 0; i < size; i++) {
@@ -1154,9 +1158,11 @@ public abstract class ArrayNodes {
                 @Cached("forValue(value)") ArrayStrategy strategy,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
-                @Cached("createBinaryProfile()") ConditionProfile needsFill) {
+                @Cached("createBinaryProfile()") ConditionProfile needsFill,
+                @Cached("create()") PropagateSharingNode propagateSharingNode) {
             final Object store = newStoreNode.execute(size);
             if (needsFill.profile(!strategy.isDefaultValue(value))) {
+                propagateSharingNode.propagate(array, value);
                 for (int i = 0; i < size; i++) {
                     setNode.execute(store, i, value);
                 }
@@ -1175,13 +1181,16 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "size >= 0")
         public Object initializeBlock(DynamicObject array, int size, Object unusedValue, DynamicObject block,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                @Cached("create()") ArrayBuilderNode arrayBuilder,
+                @Cached("create()") PropagateSharingNode propagateSharingNode) {
             Object store = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; n < size; n++) {
-                    store = arrayBuilder.appendValue(store, n, yield(block, n));
+                    final Object value = yield(block, n);
+                    propagateSharingNode.propagate(array, value);
+                    store = arrayBuilder.appendValue(store, n, value);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -1777,6 +1786,8 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
+        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
+
         public abstract DynamicObject executeReplace(DynamicObject array, DynamicObject other);
 
         @CreateCast("other")
@@ -1789,6 +1800,8 @@ public abstract class ArrayNodes {
                         @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
+            propagateSharingNode.propagate(array, other);
+
             final int size = getSize(other);
             final Object copy = extractRangeCopyOnWriteNode.execute(other, 0, size);
             arrayStrategy.setStoreAndSize(array, copy, size);
@@ -2143,7 +2156,10 @@ public abstract class ArrayNodes {
         @Specialization(guards = {"array != other", "strategy.matches(array)", "otherStrategy.matches(other)"}, limit = "ARRAY_STRATEGIES")
         public DynamicObject stealStorage(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("of(other)") ArrayStrategy otherStrategy) {
+                @Cached("of(other)") ArrayStrategy otherStrategy,
+                @Cached("create()") PropagateSharingNode propagateSharingNode) {
+            propagateSharingNode.propagate(array, other);
+
             final int size = getSize(other);
             final Object store = getStore(other);
             strategy.setStoreAndSize(array, store, size);

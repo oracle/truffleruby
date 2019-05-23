@@ -20,9 +20,12 @@ import org.truffleruby.language.RubyBaseNode;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendManyNode extends RubyBaseNode {
+
+    @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
     public abstract DynamicObject executeAppendMany(DynamicObject array, DynamicObject other);
 
@@ -43,8 +46,9 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
         final int newSize = oldSize + otherSize;
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
-
         final int length = capacityNode.execute(store);
+
+        propagateSharingNode.propagate(array, other);
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
             Object newStore = copyStoreNode.execute(store, capacity);
@@ -67,14 +71,15 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
             @Cached("generalized.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
             @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
-            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode otherCopyToNode,
-            @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
+            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode otherCopyToNode) {
         final int oldSize = strategy.getSize(array);
         final int otherSize = otherStrategy.getSize(other);
         final int newSize = oldSize + otherSize;
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
         final Object newStore = newStoreNode.execute(newSize);
+
+        propagateSharingNode.propagate(array, other);
         copyToNode.execute(store, newStore, 0, 0, oldSize);
         otherCopyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
         generalized.setStoreAndSize(array, newStore, newSize);

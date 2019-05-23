@@ -33,7 +33,7 @@ public class ArrayOperationNodes {
 
     public static abstract class ArraySetNode extends RubyBaseNode {
 
-        public abstract void execute(Object store, int index, Object vvalue);
+        public abstract void execute(Object store, int index, Object value);
     }
 
     public static abstract class ArrayNewStoreNode extends RubyBaseNode {

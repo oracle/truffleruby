@@ -17,6 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
@@ -24,6 +25,8 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 @NodeChild("value")
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyNode {
+
+    @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
     public static ArrayAppendOneNode create() {
         return ArrayAppendOneNodeGen.create(null, null);
@@ -44,6 +47,8 @@ public abstract class ArrayAppendOneNode extends RubyNode {
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
         final int length = capacityNode.execute(store);
+
+        propagateSharingNode.propagate(array, value);
 
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
@@ -79,6 +84,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
         final int newCapacity = newSize > oldCapacity ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity) : oldCapacity;
         final Object newStore = newStoreNode.execute(newCapacity);
         copyToNode.execute(currentStore, newStore, 0, 0, oldSize);
+        propagateSharingNode.propagate(array, value);
         setNode.execute(newStore, oldSize, value);
         generalizedStrategy.setStore(array, newStore);
         setSize(array, newSize);
