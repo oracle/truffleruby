@@ -158,10 +158,14 @@ local part_definitions = {
       local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
             repo = "../graal-enterprise",
             suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
-            find_commit_importing_truffle = ["git", "-C", repo, "log", "--reverse", "--pretty=%H", "-m", "-S"] + jt(["truffle_version"]) + ["--grep=PullRequest:", suite_file, "|", "head", "-1"];
+            # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
+            merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
+            # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
+            # The suite file is automatically updated on every graal PR merged.
+            graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
       [
         ["git", "clone", url, repo],
-        ["git", "-C", repo, "checkout", find_commit_importing_truffle],
+        ["git", "-C", repo, "checkout", graal_enterprise_commit],
       ],
 
       setup+: self.clone + jt(["build", "--dy", "/graal-enterprise"]),
