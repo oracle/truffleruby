@@ -16,13 +16,13 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
-public class ReadBlockNode extends RubyNode {
+public class ReadBlockFromCurrentFrameArgumentsNode extends RubyNode {
 
     private final Object valueIfAbsent;
 
     private final ConditionProfile nullProfile = ConditionProfile.createBinaryProfile();
 
-    public ReadBlockNode(Object valueIfAbsent) {
+    public ReadBlockFromCurrentFrameArgumentsNode(Object valueIfAbsent) {
         this.valueIfAbsent = valueIfAbsent;
     }
 

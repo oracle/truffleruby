@@ -34,7 +34,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.NotProvidedNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
-import org.truffleruby.language.arguments.ReadBlockNode;
+import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
@@ -254,7 +254,7 @@ public class CoreMethodNodeManager {
         }
 
         if (method.needsBlock()) {
-            argumentsNodes[i++] = new ReadBlockNode(NotProvided.INSTANCE);
+            argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode(NotProvided.INSTANCE);
         }
 
         if (!method.keywordAsOptional().isEmpty()) {
