@@ -1388,8 +1388,8 @@ EOS
 
   def build_stats_native_build_time(*args)
     log = File.read('aot-build.log')
-    log =~ /\[total\]: (?<build_time>.+) ms/m
-    Float($~[:build_time].gsub(',', '')) / 1000.0
+    build_time = log[/\[truffleruby.*\].*\[total\]:\s*([0-9,.]+)\s*ms/, 1]
+    Float(build_time.gsub(',', '')) / 1000.0
   end
 
   def build_stats_native_runtime_compilable_methods(*args)
