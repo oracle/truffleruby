@@ -35,6 +35,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @CoreClass("ObjectSpace")
 public abstract class ObjectSpaceNodes {
@@ -175,8 +176,14 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
+                if (getContext().getSharedObjects().isSharing()) {
+                    // Share the finalizer, as it might run on a different Thread
+                    writeBarrierNode.executeWriteBarrier(finalizer);
+                }
+
                 defineFinalizer(object, finalizer);
                 Object[] objects = new Object[] { 0, finalizer };
                 return createArray(objects, objects.length);
