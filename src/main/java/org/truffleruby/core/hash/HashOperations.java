@@ -28,10 +28,11 @@ public abstract class HashOperations {
     }
 
     public static boolean verifyStore(RubyContext context, DynamicObject hash) {
-        return verifyStore(context, Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash), Layouts.HASH.getFirstInSequence(hash), Layouts.HASH.getLastInSequence(hash));
-    }
+        final Object store = Layouts.HASH.getStore(hash);
+        final int size = Layouts.HASH.getSize(hash);
+        final Entry firstInSequence = Layouts.HASH.getFirstInSequence(hash);
+        final Entry lastInSequence = Layouts.HASH.getLastInSequence(hash);
 
-    public static boolean verifyStore(RubyContext context, Object store, int size, Entry firstInSequence, Entry lastInSequence) {
         assert store == null || store.getClass() == Object[].class || store instanceof Entry[];
 
         if (store == null) {

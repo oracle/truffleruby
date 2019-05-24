@@ -49,7 +49,6 @@ public abstract class SetNode extends RubyBaseNode {
         propagateSharingValueNode.propagate(hash, value);
 
         Object store = PackedArrayStrategy.createStore(getContext(), hashed, key, value);
-        assert HashOperations.verifyStore(getContext(), store, 1, null, null);
         Layouts.HASH.setStore(hash, store);
         Layouts.HASH.setSize(hash, 1);
         Layouts.HASH.setFirstInSequence(hash, null);

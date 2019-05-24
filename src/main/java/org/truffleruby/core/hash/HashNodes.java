@@ -253,12 +253,10 @@ public abstract class HashNodes {
         @Specialization(guards = "!isNullHash(hash)")
         public DynamicObject empty(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
-            assert HashOperations.verifyStore(getContext(), null, 0, null, null);
             Layouts.HASH.setStore(hash, null);
             Layouts.HASH.setSize(hash, 0);
             Layouts.HASH.setFirstInSequence(hash, null);
             Layouts.HASH.setLastInSequence(hash, null);
-
             assert HashOperations.verifyStore(getContext(), hash);
             return hash;
         }
@@ -510,7 +508,7 @@ public abstract class HashNodes {
 
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
-            assert HashOperations.verifyStore(getContext(), null, 0, null, null);
+            assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
             return hash;
@@ -519,7 +517,7 @@ public abstract class HashNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
                                         @Cached("create()") PropagateSharingNode propagateSharingNode) {
-            assert HashOperations.verifyStore(getContext(), null, 0, null, null);
+            assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
             propagateSharingNode.propagate(hash, block);
             Layouts.HASH.setDefaultBlock(hash, block);
@@ -529,7 +527,7 @@ public abstract class HashNodes {
         @Specialization(guards = "wasProvided(defaultValue)")
         public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
                                         @Cached("create()") PropagateSharingNode propagateSharingNode) {
-            assert HashOperations.verifyStore(getContext(), null, 0, null, null);
+            assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.propagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, nil());
@@ -563,7 +561,6 @@ public abstract class HashNodes {
 
             propagateSharingNode.propagate(self, from);
 
-            assert HashOperations.verifyStore(getContext(), null, 0, null, null);
             Layouts.HASH.setStore(self, null);
             Layouts.HASH.setSize(self, 0);
             Layouts.HASH.setFirstInSequence(self, null);
@@ -571,6 +568,7 @@ public abstract class HashNodes {
 
             copyOtherFields(self, from);
 
+            assert HashOperations.verifyStore(getContext(), self);
             return self;
         }
 
@@ -585,7 +583,6 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) Layouts.HASH.getStore(from);
             Object storeCopy = PackedArrayStrategy.copyStore(getContext(), store);
             int size = Layouts.HASH.getSize(from);
-            assert HashOperations.verifyStore(getContext(), storeCopy, size, null, null);
             Layouts.HASH.setStore(self, storeCopy);
             Layouts.HASH.setSize(self, size);
             Layouts.HASH.setFirstInSequence(self, null);
@@ -594,7 +591,6 @@ public abstract class HashNodes {
             copyOtherFields(self, from);
 
             assert HashOperations.verifyStore(getContext(), self);
-
             return self;
         }
 
@@ -611,7 +607,6 @@ public abstract class HashNodes {
             copyOtherFields(self, from);
 
             assert HashOperations.verifyStore(getContext(), self);
-
             return self;
         }
 
