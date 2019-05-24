@@ -111,12 +111,12 @@ public abstract class ObjectGraph {
         }
 
         for (Property property : object.getShape().getPropertyListInternal(false)) {
-            final Object propertyValue = property.get(object, object.getShape());
+            final Object value = property.get(object, object.getShape());
 
-            if (propertyValue instanceof DynamicObject) {
-                reachable.add((DynamicObject) propertyValue);
-            } else if (propertyValue instanceof Entry[]) {
-                for (Entry bucket : (Entry[]) propertyValue) {
+            if (value instanceof DynamicObject) {
+                reachable.add((DynamicObject) value);
+            } else if (value instanceof Entry[]) {
+                for (Entry bucket : (Entry[]) value) {
                     while (bucket != null) {
                         if (bucket.getKey() instanceof DynamicObject) {
                             reachable.add((DynamicObject) bucket.getKey());
@@ -129,8 +129,8 @@ public abstract class ObjectGraph {
                         bucket = bucket.getNextInLookup();
                     }
                 }
-            } else if (propertyValue instanceof Object[]) {
-                for (Object element : (Object[]) propertyValue) {
+            } else if (value instanceof Object[]) {
+                for (Object element : (Object[]) value) {
                     // Needed to get wrappers set by Truffle::CExt.set_mark_list_on_object.
                     if (element instanceof ValueWrapper) {
                         element = ((ValueWrapper) element).getObject();
@@ -139,28 +139,28 @@ public abstract class ObjectGraph {
                         reachable.add((DynamicObject) element);
                     }
                 }
-            } else if (propertyValue instanceof Collection<?>) {
-                for (Object element : ((Collection<?>) propertyValue)) {
+            } else if (value instanceof Collection<?>) {
+                for (Object element : ((Collection<?>) value)) {
                     if (element instanceof DynamicObject) {
                         reachable.add((DynamicObject) element);
                     }
                 }
-            } else if (propertyValue instanceof SizedQueue) {
-                for (Object element : ((SizedQueue) propertyValue).getContents()) {
+            } else if (value instanceof SizedQueue) {
+                for (Object element : ((SizedQueue) value).getContents()) {
                     if (element instanceof DynamicObject) {
                         reachable.add((DynamicObject) element);
                     }
                 }
-            } else if (propertyValue instanceof UnsizedQueue) {
-                for (Object element : ((UnsizedQueue) propertyValue).getContents()) {
+            } else if (value instanceof UnsizedQueue) {
+                for (Object element : ((UnsizedQueue) value).getContents()) {
                     if (element instanceof DynamicObject) {
                         reachable.add((DynamicObject) element);
                     }
                 }
-            } else if (propertyValue instanceof Frame) {
-                reachable.addAll(getObjectsInFrame((Frame) propertyValue));
-            } else if (propertyValue instanceof ObjectGraphNode) {
-                ((ObjectGraphNode) propertyValue).getAdjacentObjects(reachable);
+            } else if (value instanceof Frame) {
+                reachable.addAll(getObjectsInFrame((Frame) value));
+            } else if (value instanceof ObjectGraphNode) {
+                ((ObjectGraphNode) value).getAdjacentObjects(reachable);
             }
         }
 
