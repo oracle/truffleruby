@@ -18,6 +18,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -135,7 +136,7 @@ public class SharedObjects {
             return false;
         }
 
-        object.updateShape();
+        ShapeCachingGuards.updateShape(object);
         final Shape oldShape = object.getShape();
         final Shape newShape = oldShape.makeSharedShape();
         object.setShapeAndGrow(oldShape, newShape);
