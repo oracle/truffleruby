@@ -63,6 +63,16 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         for (ReadAndShareFieldNode readAndShareFieldNode : readAndShareFieldNodes) {
             readAndShareFieldNode.executeReadFieldAndShare(object);
         }
+
+        assert allFieldsAreShared(object);
+    }
+
+    private boolean allFieldsAreShared(DynamicObject object) {
+        for (DynamicObject value : ObjectGraph.getAdjacentObjects(object)) {
+             assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
+        }
+
+        return true;
     }
 
     @Specialization(guards = "updateShape(object)")
