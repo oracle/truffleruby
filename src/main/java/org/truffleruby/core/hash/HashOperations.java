@@ -95,11 +95,8 @@ public abstract class HashOperations {
 
             final Object[] packedStore = (Object[]) store;
 
-            for (int n = 0; n < context.getOptions().HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    assert packedStore[n * 2] != null;
-                    assert packedStore[n * 2 + 1] != null;
-                }
+            for (int i = 0; i < size * PackedArrayStrategy.ELEMENTS_PER_ENTRY; i++) {
+                assert packedStore[i] != null;
             }
 
             assert firstInSequence == null;
