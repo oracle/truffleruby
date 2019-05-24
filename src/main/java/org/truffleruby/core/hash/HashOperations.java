@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -52,6 +53,9 @@ public abstract class HashOperations {
                 Entry entry = entryStore[n];
 
                 while (entry != null) {
+                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
+                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
+
                     foundSizeBuckets++;
 
                     if (entry == firstInSequence) {
@@ -97,6 +101,14 @@ public abstract class HashOperations {
 
             for (int i = 0; i < size * PackedArrayStrategy.ELEMENTS_PER_ENTRY; i++) {
                 assert packedStore[i] != null;
+            }
+
+            for (int n = 0; n < size; n++) {
+                final Object key = PackedArrayStrategy.getKey(packedStore, n);
+                final Object value = PackedArrayStrategy.getValue(packedStore, n);
+
+                assert SharedObjects.assertPropagateSharing(context, hash, key) : "unshared key in shared Hash: " + key;
+                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " + value;
             }
 
             assert firstInSequence == null;

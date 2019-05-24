@@ -110,6 +110,14 @@ public class SharedObjects {
         return context.getOptions().SHARED_OBJECTS_ENABLED && shape.isShared();
     }
 
+    public static boolean assertPropagateSharing(RubyContext context, DynamicObject source, Object value) {
+        if (isShared(context, source) && value instanceof DynamicObject) {
+            return isShared(context, (DynamicObject) value);
+        } else {
+            return true;
+        }
+    }
+
     public static void writeBarrier(RubyContext context, Object value) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject && !isShared(context, (DynamicObject) value)) {
             shareObject(context, value);
