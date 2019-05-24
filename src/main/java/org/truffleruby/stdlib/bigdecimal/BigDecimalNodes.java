@@ -1566,7 +1566,7 @@ public abstract class BigDecimalNodes {
         public Object hashSpecial(DynamicObject value) {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
 
-            return getContext().getHashing(this).hash(CLASS_SALT, System.identityHashCode(type));
+            return getContext().getHashing(this).hash(CLASS_SALT, type.hashCode());
         }
 
     }
