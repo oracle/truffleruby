@@ -102,6 +102,7 @@ public abstract class ArrayStrategy {
 
     /** Whether {@code this} is the strategy of {@code array}. */
     public final boolean matches(DynamicObject array) {
+        assert ArrayOperations.verifyStore(array);
         return matchesStore(Layouts.ARRAY.getStore(array));
     }
 
