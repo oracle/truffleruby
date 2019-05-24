@@ -175,6 +175,18 @@ describe "Sharing is correctly propagated for" do
     shared?(new_ary).should == true
   end
 
+  it "Array#shift with copy-on-write DelegatedArrayStorage" do
+    ary = [Object.new, Object.new, Object.new]
+    ary.shift
+    @share = ary
+    shared?(ary).should == true
+    ary.each { |e| shared?(e).should == true }
+
+    wb = Object.new
+    ary[0] = wb
+    ary.each { |e| shared?(e).should == true }
+  end
+
   it "Hash" do
     initial = Object.new
     hsh = { initial => Object.new }

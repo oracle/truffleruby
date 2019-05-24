@@ -46,6 +46,23 @@ describe "ObjectSpace.reachable_objects_from" do
     reachable.should include(captured)
   end
 
+  it "finds an object stored in an Array" do
+    obj = Object.new
+    ary = [obj]
+    reachable = ObjectSpace.reachable_objects_from(ary)
+    reachable.should include(obj)
+  end
+
+  it "finds an object stored in a copy-on-write Array" do
+    removed = Object.new
+    obj = Object.new
+    ary = [removed, obj]
+    ary.shift
+    reachable = ObjectSpace.reachable_objects_from(ary)
+    reachable.should include(obj)
+    reachable.should_not include(removed)
+  end
+
   it "finds an object stored in a Queue" do
     require 'thread'
     o = Object.new
