@@ -1,0 +1,1 @@
+fails:ObjectSpace.reachable_objects_from returns nil for nil

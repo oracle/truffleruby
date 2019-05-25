@@ -12,12 +12,10 @@ require_relative '../../ruby/spec_helper'
 
 describe "ObjectSpace.reachable_objects_from" do
 
-  # This is a standard method, but our implementation returns more objects so we keep this spec here
+  # This is a standard method, but our implementation returns more objects so we add extra specs here
 
-  it "enumerates objects directly reachable from a given object" do
+  it "returns [NilClass] for nil" do
     ObjectSpace.reachable_objects_from(nil).should == [NilClass]
-    ObjectSpace.reachable_objects_from(['a', 'b', 'c']).should include(Array, 'a', 'b', 'c')
-    ObjectSpace.reachable_objects_from(Object.new).should == [Object]
   end
 
   it "finds the superclass and included/prepended modules of a class" do
@@ -44,43 +42,6 @@ describe "ObjectSpace.reachable_objects_from" do
 
     reachable = reachable + reachable.flat_map { |r| ObjectSpace.reachable_objects_from(r) }
     reachable.should include(captured)
-  end
-
-  it "finds an object stored in an Array" do
-    obj = Object.new
-    ary = [obj]
-    reachable = ObjectSpace.reachable_objects_from(ary)
-    reachable.should include(obj)
-  end
-
-  it "finds an object stored in a copy-on-write Array" do
-    removed = Object.new
-    obj = Object.new
-    ary = [removed, obj]
-    ary.shift
-    reachable = ObjectSpace.reachable_objects_from(ary)
-    reachable.should include(obj)
-    reachable.should_not include(removed)
-  end
-
-  it "finds an object stored in a Queue" do
-    require 'thread'
-    o = Object.new
-    q = Queue.new
-    q << o
-
-    reachable = ObjectSpace.reachable_objects_from(q)
-    reachable.should include(o)
-  end
-
-  it "finds an object stored in a SizedQueue" do
-    require 'thread'
-    o = Object.new
-    q = SizedQueue.new(3)
-    q << o
-
-    reachable = ObjectSpace.reachable_objects_from(q)
-    reachable.should include(o)
   end
 
   it "finds finalizers" do
