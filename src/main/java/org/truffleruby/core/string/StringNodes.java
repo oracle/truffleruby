@@ -162,6 +162,8 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -1320,6 +1322,9 @@ public abstract class StringNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
+        @Child private WriteObjectFieldNode writeAssociatedNode;
+
         @Specialization(guards = "self == from")
         public Object initializeCopySelfIsSameAsFrom(DynamicObject self, DynamicObject from) {
             return self;
@@ -1329,15 +1334,27 @@ public abstract class StringNodes {
         @Specialization(guards = { "self != from", "isRubyString(from)", "!isNativeRope(from)" })
         public Object initializeCopy(DynamicObject self, DynamicObject from) {
             StringOperations.setRope(self, rope(from));
-
+            copyAssociated(self, from);
             return self;
         }
 
         @Specialization(guards = { "self != from", "isRubyString(from)", "isNativeRope(from)" })
         public Object initializeCopyFromNative(DynamicObject self, DynamicObject from) {
             StringOperations.setRope(self, ((NativeRope) rope(from)).makeCopy(getContext().getFinalizationService()));
-
+            copyAssociated(self, from);
             return self;
+        }
+
+        private void copyAssociated(DynamicObject self, DynamicObject from) {
+            final Object associated = readAssociatedNode.execute(from);
+            if (associated != null) {
+                if (writeAssociatedNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                }
+
+                writeAssociatedNode.write(self, associated);
+            }
         }
 
         protected boolean isNativeRope(DynamicObject other) {

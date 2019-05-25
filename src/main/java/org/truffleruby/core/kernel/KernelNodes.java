@@ -411,12 +411,6 @@ public abstract class KernelNodes {
                 }
             }
 
-            final Property associatedProperty = shape.getProperty(Layouts.ASSOCIATED_IDENTIFIER);
-
-            if (associatedProperty != null) {
-                copiedProperties.add(associatedProperty);
-            }
-
             return copiedProperties.toArray(new Property[copiedProperties.size()]);
         }
 
