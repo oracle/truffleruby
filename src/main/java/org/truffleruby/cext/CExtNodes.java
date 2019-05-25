@@ -1127,6 +1127,11 @@ public class CExtNodes {
             return iVarGetNode.executeIVarGet(object, name);
         }
 
+        @Specialization(guards = { "!isDynamicObject(object)", "isRubySymbol(name)" })
+        public Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
+            return nil();
+        }
+
         protected ObjectIVarGetNode createObjectIVarGetNode() {
             return ObjectIVarGetNodeGen.create(false);
         }
