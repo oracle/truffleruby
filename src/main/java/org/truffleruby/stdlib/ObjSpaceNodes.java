@@ -11,6 +11,7 @@ package org.truffleruby.stdlib;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -84,6 +85,11 @@ public abstract class ObjSpaceNodes {
         public DynamicObject adjacentObjects(DynamicObject object) {
             final Set<DynamicObject> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
+        }
+
+        @Fallback
+        public DynamicObject adjacentObjectsPrimitive(Object object) {
+            return nil();
         }
 
     }
