@@ -98,13 +98,13 @@ public abstract class Layouts {
     // These must appear before the generated layout list so the identifiers have been initialized by the time
     // the layout singletons are created.
 
-    public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id");
-    public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?");
-    public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?");
-    public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated");
-    public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef");
-    public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects");
-    public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper");
+    public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id"); // long
+    public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?"); // boolean
+    public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?"); // boolean
+    public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated"); // Pointer[]
+    public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef"); // FinalizerReference
+    public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects"); // Object[]
+    public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper"); // ValueWrapper
 
     // Generated layouts
 
