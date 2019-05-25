@@ -34,6 +34,11 @@ public abstract class ObjSpaceNodes {
 
         @Child private ValuesNode matchDataValues = ValuesNode.create();
 
+        @Specialization(guards = "isNil(object)")
+        public int memsizeOfNil(DynamicObject object) {
+            return 0;
+        }
+
         @Specialization(guards = "isRubyArray(object)")
         public int memsizeOfArray(DynamicObject object) {
             return memsizeOfObject(object) + Layouts.ARRAY.getSize(object);
