@@ -62,10 +62,6 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     protected void noWriteBarrier(Object value) {
     }
 
-    protected static boolean isDynamicObject(Object value) {
-        return value instanceof DynamicObject;
-    }
-
     protected boolean isShared(Shape shape) {
         return SharedObjects.isShared(getContext(), shape);
     }
