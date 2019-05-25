@@ -104,7 +104,6 @@ public abstract class Layouts {
     public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated");
     public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef");
     public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects");
-    public static final HiddenKey MEMSIZER_IDENTIFIER = new HiddenKey("memsizer");
     public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper");
 
     // Generated layouts

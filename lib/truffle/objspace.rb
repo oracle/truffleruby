@@ -154,7 +154,12 @@ module ObjectSpace
   def memsize_of(object)
     size = Truffle::ObjSpace.memsize_of(object)
 
-    size + Truffle::ObjSpace.sizer(object).call unless Truffle::ObjSpace.sizer(object).nil?
+    memsizer = Truffle::CExt.hidden_variable_get object, :data_memsizer
+    if memsizer
+      size + memsizer.call
+    else
+      size
+    end
   end
   module_function :memsize_of
 
