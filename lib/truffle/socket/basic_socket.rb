@@ -25,10 +25,10 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class BasicSocket < IO
-  def self.for_fd(fixnum)
+  def self.for_fd(fd)
     sock = allocate
 
-    IO.setup(sock, fixnum, nil, true)
+    IO.setup(sock, fd, nil, true)
     sock.binmode
     # TruffleRuby: start
     sock.do_not_reverse_lookup = do_not_reverse_lookup

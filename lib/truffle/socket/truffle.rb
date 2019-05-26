@@ -81,10 +81,7 @@ module Truffle
 
         Error.read_error('accept(2)', source) if fd < 0
 
-        socket = new_class.allocate
-
-        ::IO.setup(socket, fd, nil, true)
-        socket.binmode
+        socket = new_class.for_fd(fd)
 
         socktype = source.getsockopt(:SOCKET, :TYPE).int
         addrinfo = Addrinfo.new(sockaddr.to_s, sockaddr.family, socktype)
