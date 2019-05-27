@@ -313,8 +313,6 @@ module Utilities
       end
     end
 
-    result = status.success?
-
     if capture
       pipe_r.close
     end
