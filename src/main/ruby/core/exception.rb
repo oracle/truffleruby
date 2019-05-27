@@ -391,9 +391,7 @@ class SystemCallError < StandardError
         end
       end
 
-      error = self.allocate
-      Truffle.privately { error.initialize(*args) }
-      error
+      super(*args)
     end
   end
 
