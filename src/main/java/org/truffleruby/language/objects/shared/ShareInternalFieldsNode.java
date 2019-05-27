@@ -18,6 +18,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -52,11 +54,25 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "!isObjectArray(array)"},
+            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isDelegatedObjectArray(array)"},
+            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    protected void shareCachedDelegatedArray(DynamicObject array,
+                                          @Cached("array.getShape()") Shape cachedShape,
+                                          @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
+        final DelegatedArrayStorage delegated = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
+        final Object[] store = (Object[]) delegated.storage;
+        for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
+            writeBarrierNode.executeWriteBarrier(store[i]);
+        }
+    }
+
+    @Specialization(
+            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "!isObjectArray(array)", "!isDelegatedObjectArray(array)"},
             assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedOtherArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape) {
         /* null, int[], long[] or double[] storage */
+        assert ArrayOperations.isPrimitiveStorage(array);
     }
 
     @Specialization(
@@ -82,9 +98,14 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         /* No internal fields */
     }
 
-    @Specialization(replaces = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
+    @Specialization(replaces = { "shareCachedObjectArray", "shareCachedDelegatedArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
     protected void shareUncached(DynamicObject object) {
         SharedObjects.shareInternalFields(getContext(), object);
+    }
+
+    protected static boolean isDelegatedObjectArray(DynamicObject array) {
+        final Object store = Layouts.ARRAY.getStore(array);
+        return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {

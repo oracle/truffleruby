@@ -187,7 +187,6 @@ public abstract class BucketsStrategy {
         int size = Layouts.HASH.getSize(hash);
         Entry firstInSequence = Layouts.HASH.getFirstInSequence(hash);
         Entry lastInSequence = Layouts.HASH.getLastInSequence(hash);
-        assert HashOperations.verifyStore(context, newEntries, size, firstInSequence, lastInSequence);
         Layouts.HASH.setStore(hash, newEntries);
         Layouts.HASH.setSize(hash, size);
         Layouts.HASH.setFirstInSequence(hash, firstInSequence);
@@ -268,12 +267,11 @@ public abstract class BucketsStrategy {
         }
 
         int size = Layouts.HASH.getSize(from);
-        assert HashOperations.verifyStore(context, newEntries, size, firstInSequence, lastInSequence);
         Layouts.HASH.setStore(to, newEntries);
         Layouts.HASH.setSize(to, size);
         Layouts.HASH.setFirstInSequence(to, firstInSequence);
         Layouts.HASH.setLastInSequence(to, lastInSequence);
-
+        assert HashOperations.verifyStore(context, to);
     }
 
     private static int hashKey(RubyContext context, Object key) {

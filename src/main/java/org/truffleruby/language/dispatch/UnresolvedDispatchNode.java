@@ -18,6 +18,7 @@ import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
@@ -57,10 +58,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
 
         // Make sure to have an up-to-date Shape.
         if (receiverObject instanceof DynamicObject) {
-            boolean updated = ((DynamicObject) receiverObject).updateShape();
-            if (updated) {
-                assert !SharedObjects.isShared(getContext(), (DynamicObject) receiverObject);
-            }
+            ShapeCachingGuards.updateShape((DynamicObject) receiverObject);
         }
 
         final DispatchNode dispatch = atomic(() -> {

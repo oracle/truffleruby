@@ -21,10 +21,13 @@ import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
+
+    @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
     public abstract Object executeWrite(DynamicObject array, int index, Object value);
 
@@ -36,6 +39,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeWithin(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+        propagateSharingNode.propagate(array, value);
         setNode.execute(Layouts.ARRAY.getStore(array), index, value);
         return value;
     }
@@ -58,6 +62,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         final Object store = Layouts.ARRAY.getStore(array);
         final Object newStore = newStoreNode.execute(capacityNode.execute(store));
         copyToNode.execute(store, newStore, 0, 0, size);
+        propagateSharingNode.propagate(array, value);
         setNode.execute(newStore, index, value);
         generalizedStrategy.setStore(array, newStore);
         return value;
@@ -85,6 +90,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         for (int n = strategy.getSize(array); n < index; n++) {
             objectStore[n] = nil();
         }
+        propagateSharingNode.propagate(array, value);
         objectStore[index] = value;
         strategy.setStoreAndSize(array, objectStore, newSize);
         return value;
@@ -103,6 +109,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
         for (int n = strategy.getSize(array); n < index; n++) {
             setNode.execute(store, n, nil());
         }
+        propagateSharingNode.propagate(array, value);
         setNode.execute(store, index, value);
         setSize(array, index + 1);
         return value;

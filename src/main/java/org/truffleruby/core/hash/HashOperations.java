@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -28,10 +29,11 @@ public abstract class HashOperations {
     }
 
     public static boolean verifyStore(RubyContext context, DynamicObject hash) {
-        return verifyStore(context, Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash), Layouts.HASH.getFirstInSequence(hash), Layouts.HASH.getLastInSequence(hash));
-    }
+        final Object store = Layouts.HASH.getStore(hash);
+        final int size = Layouts.HASH.getSize(hash);
+        final Entry firstInSequence = Layouts.HASH.getFirstInSequence(hash);
+        final Entry lastInSequence = Layouts.HASH.getLastInSequence(hash);
 
-    public static boolean verifyStore(RubyContext context, Object store, int size, Entry firstInSequence, Entry lastInSequence) {
         assert store == null || store.getClass() == Object[].class || store instanceof Entry[];
 
         if (store == null) {
@@ -51,6 +53,9 @@ public abstract class HashOperations {
                 Entry entry = entryStore[n];
 
                 while (entry != null) {
+                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
+                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
+
                     foundSizeBuckets++;
 
                     if (entry == firstInSequence) {
@@ -94,11 +99,16 @@ public abstract class HashOperations {
 
             final Object[] packedStore = (Object[]) store;
 
-            for (int n = 0; n < context.getOptions().HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    assert packedStore[n * 2] != null;
-                    assert packedStore[n * 2 + 1] != null;
-                }
+            for (int i = 0; i < size * PackedArrayStrategy.ELEMENTS_PER_ENTRY; i++) {
+                assert packedStore[i] != null;
+            }
+
+            for (int n = 0; n < size; n++) {
+                final Object key = PackedArrayStrategy.getKey(packedStore, n);
+                final Object value = PackedArrayStrategy.getValue(packedStore, n);
+
+                assert SharedObjects.assertPropagateSharing(context, hash, key) : "unshared key in shared Hash: " + key;
+                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " + value;
             }
 
             assert firstInSequence == null;

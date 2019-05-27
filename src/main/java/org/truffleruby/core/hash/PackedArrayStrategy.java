@@ -117,7 +117,6 @@ public abstract class PackedArrayStrategy {
             }
         }
 
-        assert HashOperations.verifyStore(context, buckets, size, firstInSequence, lastInSequence);
         Layouts.HASH.setStore(hash, buckets);
         Layouts.HASH.setSize(hash, size);
         Layouts.HASH.setFirstInSequence(hash, firstInSequence);

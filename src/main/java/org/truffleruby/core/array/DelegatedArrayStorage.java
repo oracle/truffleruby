@@ -9,7 +9,13 @@
  */
 package org.truffleruby.core.array;
 
-public class DelegatedArrayStorage {
+import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.objects.ObjectGraphNode;
+
+import java.util.Set;
+
+public final class DelegatedArrayStorage implements ObjectGraphNode {
+
     public final Object storage;
     public final int offset;
     public final int length;
@@ -21,4 +27,23 @@ public class DelegatedArrayStorage {
         this.offset = offset;
         this.length = length;
     }
+
+    public boolean hasObjectArrayStorage() {
+        return storage != null && storage.getClass() == Object[].class;
+    }
+
+    @Override
+    public void getAdjacentObjects(Set<DynamicObject> reachable) {
+        if (hasObjectArrayStorage()) {
+            final Object[] objectArray = (Object[]) storage;
+
+            for (int i = offset; i < offset + length; i++) {
+                final Object value = objectArray[i];
+                if (value instanceof DynamicObject) {
+                    reachable.add((DynamicObject) value);
+                }
+            }
+        }
+    }
+
 }

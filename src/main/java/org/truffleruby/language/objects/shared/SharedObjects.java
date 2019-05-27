@@ -18,6 +18,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -110,6 +111,14 @@ public class SharedObjects {
         return context.getOptions().SHARED_OBJECTS_ENABLED && shape.isShared();
     }
 
+    public static boolean assertPropagateSharing(RubyContext context, DynamicObject source, Object value) {
+        if (isShared(context, source) && value instanceof DynamicObject) {
+            return isShared(context, (DynamicObject) value);
+        } else {
+            return true;
+        }
+    }
+
     public static void writeBarrier(RubyContext context, Object value) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject && !isShared(context, (DynamicObject) value)) {
             shareObject(context, value);
@@ -127,7 +136,7 @@ public class SharedObjects {
             return false;
         }
 
-        object.updateShape();
+        ShapeCachingGuards.updateShape(object);
         final Shape oldShape = object.getShape();
         final Shape newShape = oldShape.makeSharedShape();
         object.setShapeAndGrow(oldShape, newShape);

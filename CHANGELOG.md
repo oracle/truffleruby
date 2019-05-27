@@ -14,6 +14,7 @@ Bug fixes:
 * Implemented `FFI::Pointer#clear` (#1687).
 * Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 * Fixed problems with calling POSIX methods if `Symbol#[]` is redefined (#1665).
+* Fixed sharing of `Array` and `Hash` elements for thread-safety of objects (#1601).
 
 Compatibility
 

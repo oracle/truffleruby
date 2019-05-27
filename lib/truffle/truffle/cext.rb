@@ -1449,8 +1449,10 @@ module Truffle::CExt
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
+    hidden_variable_set object, :data_memsizer, data_sizer(size, data_holder) unless size.nil?
+
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
-    Truffle::ObjSpace.define_sizer object, data_sizer(size, data_holder) unless size.nil?
+
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
   end

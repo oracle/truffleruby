@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyBaseNode {
@@ -26,6 +27,8 @@ public abstract class SetNode extends RubyBaseNode {
     @Child private LookupEntryNode lookupEntryNode;
     @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
+    @Child private PropagateSharingNode propagateSharingKeyNode = PropagateSharingNode.create();
+    @Child private PropagateSharingNode propagateSharingValueNode = PropagateSharingNode.create();
     private final ConditionProfile byIdentityProfile = ConditionProfile.createBinaryProfile();
 
     public static SetNode create() {
@@ -42,8 +45,10 @@ public abstract class SetNode extends RubyBaseNode {
 
         final int hashed = hashNode.hash(key, compareByIdentity);
 
+        propagateSharingKeyNode.propagate(hash, key);
+        propagateSharingValueNode.propagate(hash, value);
+
         Object store = PackedArrayStrategy.createStore(getContext(), hashed, key, value);
-        assert HashOperations.verifyStore(getContext(), store, 1, null, null);
         Layouts.HASH.setStore(hash, store);
         Layouts.HASH.setSize(hash, 1);
         Layouts.HASH.setFirstInSequence(hash, null);
@@ -62,6 +67,9 @@ public abstract class SetNode extends RubyBaseNode {
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
         final int hashed = hashNode.hash(key, compareByIdentity);
+
+        propagateSharingKeyNode.propagate(hash, key);
+        propagateSharingValueNode.propagate(hash, value);
 
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         final int size = Layouts.HASH.getSize(hash);
@@ -102,6 +110,9 @@ public abstract class SetNode extends RubyBaseNode {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
+
+        propagateSharingKeyNode.propagate(hash, key);
+        propagateSharingValueNode.propagate(hash, value);
 
         final HashLookupResult result = lookup(hash, key);
         final Entry entry = result.getEntry();

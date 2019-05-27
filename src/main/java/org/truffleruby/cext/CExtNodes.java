@@ -1127,6 +1127,11 @@ public class CExtNodes {
             return iVarGetNode.executeIVarGet(object, name);
         }
 
+        @Specialization(guards = { "!isDynamicObject(object)", "isRubySymbol(name)" })
+        public Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
+            return nil();
+        }
+
         protected ObjectIVarGetNode createObjectIVarGetNode() {
             return ObjectIVarGetNodeGen.create(false);
         }
@@ -1453,7 +1458,7 @@ public class CExtNodes {
         }
 
         @Fallback
-        public DynamicObject addToMarkList(VirtualFrame frmae, Object guardedObject) {
+        public DynamicObject addToMarkList(Object guardedObject) {
             // Do nothing for unexpected objects, no matter how unexpected. This can occur inside
             // macros that guard a variable which may not have been initialized.
             return nil();
@@ -1468,9 +1473,9 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject setMarkList(VirtualFrame frame, DynamicObject structOwwer,
+        public DynamicObject setMarkList(DynamicObject structOwner,
                 @Cached("createWriter()") WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwwer, getArray());
+            writeMarkedNode.write(structOwner, getArray());
             return nil();
         }
 

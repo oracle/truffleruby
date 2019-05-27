@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
@@ -62,6 +63,16 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         for (ReadAndShareFieldNode readAndShareFieldNode : readAndShareFieldNodes) {
             readAndShareFieldNode.executeReadFieldAndShare(object);
         }
+
+        assert allFieldsAreShared(object);
+    }
+
+    private boolean allFieldsAreShared(DynamicObject object) {
+        for (DynamicObject value : ObjectGraph.getAdjacentObjects(object)) {
+             assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
+        }
+
+        return true;
     }
 
     @Specialization(guards = "updateShape(object)")
@@ -83,13 +94,11 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         return shape;
     }
 
-    private static final Object SOME_OBJECT = new Object();
-
     protected static List<Property> getObjectProperties(Shape shape) {
         final List<Property> objectProperties = new ArrayList<>();
         // User properties only, ShareInternalFieldsNode do the rest
         for (Property property : shape.getProperties()) {
-            if (property.getLocation().canStore(SOME_OBJECT)) {
+            if (property.getLocation() instanceof ObjectLocation) {
                 objectProperties.add(property);
             }
         }

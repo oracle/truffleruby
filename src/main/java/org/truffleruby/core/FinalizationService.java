@@ -104,7 +104,6 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
     }
 
     public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference, Class<?> owner, Runnable action, DynamicObject root) {
-
         if (finalizerReference == null) {
             finalizerReference = new FinalizerReference(object, referenceProcessor.processingQueue, this);
             add(finalizerReference);

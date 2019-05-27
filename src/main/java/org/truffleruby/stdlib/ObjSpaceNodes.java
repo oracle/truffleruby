@@ -10,6 +10,8 @@
 package org.truffleruby.stdlib;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -32,7 +34,10 @@ public abstract class ObjSpaceNodes {
     @CoreMethod(names = "memsize_of", isModuleFunction = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ValuesNode matchDataValues = ValuesNode.create();
+        @Specialization(guards = "isNil(object)")
+        public int memsizeOfNil(DynamicObject object) {
+            return 0;
+        }
 
         @Specialization(guards = "isRubyArray(object)")
         public int memsizeOfArray(DynamicObject object) {
@@ -50,7 +55,8 @@ public abstract class ObjSpaceNodes {
         }
 
         @Specialization(guards = "isRubyMatchData(object)")
-        public int memsizeOfMatchData(DynamicObject object) {
+        public int memsizeOfMatchData(DynamicObject object,
+                                      @Cached("create()") ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
 
@@ -71,29 +77,6 @@ public abstract class ObjSpaceNodes {
         }
     }
 
-    @CoreMethod(names = "sizer", isModuleFunction = true, required = 1)
-    public abstract static class GetMemSizer extends CoreMethodArrayArgumentsNode {
-
-        @Child private ReadObjectFieldNode readSizerNode = ReadObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER, nil());
-
-        @Specialization
-        public Object hasSizer(DynamicObject object) {
-            return readSizerNode.execute(object);
-        }
-    }
-
-    @CoreMethod(names = "define_sizer", isModuleFunction = true, required = 2)
-    public abstract static class DefineMemSizer extends CoreMethodArrayArgumentsNode {
-
-        @Child private WriteObjectFieldNode setSizerNode = WriteObjectFieldNodeGen.create(Layouts.MEMSIZER_IDENTIFIER);
-
-        @Specialization
-        public DynamicObject defineSizer(DynamicObject object, DynamicObject sizer) {
-            setSizerNode.write(object, sizer);
-            return nil();
-        }
-    }
-
     @CoreMethod(names = "adjacent_objects", isModuleFunction = true, required = 1)
     public abstract static class AdjacentObjectsNode extends CoreMethodArrayArgumentsNode {
 
@@ -101,7 +84,12 @@ public abstract class ObjSpaceNodes {
         @Specialization
         public DynamicObject adjacentObjects(DynamicObject object) {
             final Set<DynamicObject> objects = ObjectGraph.getAdjacentObjects(object);
-            return createArray(objects.toArray(), objects.size());
+            return createArray(objects.toArray());
+        }
+
+        @Fallback
+        public DynamicObject adjacentObjectsPrimitive(Object object) {
+            return nil();
         }
 
     }
@@ -113,7 +101,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         public DynamicObject rootObjects() {
             final Set<DynamicObject> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
-            return createArray(objects.toArray(), objects.size());
+            return createArray(objects.toArray());
         }
 
     }
