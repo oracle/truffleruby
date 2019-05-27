@@ -98,12 +98,7 @@ SUBPROCESSES = []
 [:SIGINT, :SIGTERM].each do |signal|
   trap(signal) do
     SUBPROCESSES.each do |pid|
-      puts "\nSending #{signal} to process #{pid}"
-      begin
-        Process.kill(signal, pid)
-      rescue Errno::ESRCH
-        # Already killed
-      end
+      Utilities.send_signal(signal, pid)
     end
     # Keep running jt which will wait for the subprocesses termination
   end
@@ -136,6 +131,17 @@ module Utilities
     update, jvmci = $1, $2
     [update, jvmci]
   end
+
+  def send_signal(signal, pid)
+    STDERR.puts "\nSending #{signal} to process #{pid}"
+    begin
+      Process.kill(signal, pid)
+    rescue Errno::ESRCH
+      # Already killed
+      nil
+    end
+  end
+  module_function :send_signal
 
   def which(binary)
     ENV["PATH"].split(File::PATH_SEPARATOR).each do |dir|
@@ -259,7 +265,10 @@ module Utilities
           yield
         end
       rescue Timeout::Error
-        Process.kill('TERM', pid)
+        if send_signal(:SIGTERM, pid)
+          sleep 1
+          send_signal(:SIGKILL, pid)
+        end
         yield # Wait and read the pipe if capture: true
         :timeout
       end
