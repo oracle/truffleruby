@@ -391,8 +391,7 @@ class SystemCallError < StandardError
         end
       end
 
-      error = allocate
-      Truffle::Internal::Unsafe.set_class error, self
+      error = self.allocate
       Truffle.privately { error.initialize(*args) }
       error
     end
