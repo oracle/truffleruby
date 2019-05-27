@@ -51,7 +51,7 @@ else
   ruby_so = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
 
-librubyarg = "-L#{File.dirname(ruby_so)} -ltruffleruby"
+librubyarg = "-L#{File.dirname(ruby_so)} -ltruffleruby -lpolyglot-mock"
 
 common = {
   'CC' => cc,
