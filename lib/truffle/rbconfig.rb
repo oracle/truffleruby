@@ -70,7 +70,7 @@ module RbConfig
     'DLDFLAGS'          => '',
     'DLDLIBS'           => '',
     'DLEXT'             => Truffle::Platform::DLEXT,
-    'ENABLE_SHARED'     => 'yes',
+    'ENABLE_SHARED'     => 'yes', # We use a dynamic library for libruby
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
     'EXEEXT'            => '',
@@ -83,8 +83,6 @@ module RbConfig
     'LIBEXT'            => 'a',
     'LIBRUBY'           => '',
     'LIBRUBY_A'         => '',
-    'LIBRUBYARG'        => '',
-    'LIBRUBYARG_SHARED' => '',
     'LIBRUBYARG_STATIC' => '',
     'LIBRUBY_SO'        => "cext/ruby.#{Truffle::Platform::DLEXT}",
     'LIBS'              => libs,

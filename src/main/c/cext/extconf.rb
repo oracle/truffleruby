@@ -18,4 +18,7 @@ $CFLAGS << " -DRUBY_EXPORT"
 # otherwise compilation of ruby.so fails with "Undefined symbols" on macOS.
 $LIBS += " -lpolyglot-mock"
 
+# Do no link against libruby for libruby itself
+$LIBRUBYARG = ""
+
 create_makefile('ruby')

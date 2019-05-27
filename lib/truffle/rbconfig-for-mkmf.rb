@@ -43,12 +43,12 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  try_link_libs = "#{ruby_home}/src/main/c/cext/ruby.#{dlext}"
+  ruby_so = "#{ruby_home}/src/main/c/cext/ruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
 else
-  try_link_libs = "#{cext_dir}/ruby.#{dlext}"
+  ruby_so = "#{cext_dir}/ruby.#{dlext}"
 end
 
 common = {
@@ -57,6 +57,8 @@ common = {
   'CXX' => cxx,
   'LDSHARED' => "#{cc} -shared",
   'LDSHAREDXX' => "#{cxx} -shared",
+  'LIBRUBYARG' => ruby_so,
+  'LIBRUBYARG_SHARED' => ruby_so,
   'debugflags' => debugflags,
   'warnflags' => warnflags,
   'CFLAGS' => cflags,
@@ -99,7 +101,7 @@ begin
 end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{try_link_libs} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{ruby_so} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
