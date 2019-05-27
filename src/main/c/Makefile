@@ -30,11 +30,11 @@ PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) cext/ruby.$(DLEXT)
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) cext/libtruffleruby.$(DLEXT)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
-all: cext/ruby.$(DLEXT) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
+all: cext/libtruffleruby.$(DLEXT) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
 			etc/etc.$(DLEXT) rbconfig-sizeof/sizeof.$(DLEXT)
 
@@ -44,7 +44,7 @@ clean_truffleposix:
 	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
 
 clean_cexts:
-	$(Q) rm -f cext/Makefile cext/*.o cext/ruby.$(DLEXT)
+	$(Q) rm -f cext/Makefile cext/*.o cext/libtruffleruby.$(DLEXT)
 	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT)
 	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.$(DLEXT)
 	$(Q) rm -f psych/Makefile psych/*.o psych/yaml/*.o psych/psych.$(DLEXT)
@@ -61,12 +61,12 @@ $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
 $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
 	$(Q) cd truffleposix && $(MAKE)
 
-# ruby
+# libtruffleruby
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-cext/ruby.$(DLEXT): cext/Makefile cext/*.c
-	$(Q) cd cext && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+cext/libtruffleruby.$(DLEXT): cext/Makefile cext/*.c
+	$(Q) cd cext && $(MAKE)
 
 # openssl
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)

@@ -84,7 +84,7 @@ module RbConfig
     'LIBRUBY'           => '',
     'LIBRUBY_A'         => '',
     'LIBRUBYARG_STATIC' => '',
-    'LIBRUBY_SO'        => "cext/ruby.#{Truffle::Platform::DLEXT}",
+    'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::DLEXT}",
     'LIBS'              => libs,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',

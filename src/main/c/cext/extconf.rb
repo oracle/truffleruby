@@ -21,4 +21,4 @@ $LIBS += " -lpolyglot-mock"
 # Do no link against libruby for libruby itself
 $LIBRUBYARG = ""
 
-create_makefile('ruby')
+create_makefile('libtruffleruby')

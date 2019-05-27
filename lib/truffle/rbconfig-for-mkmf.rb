@@ -43,13 +43,15 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  ruby_so = "#{ruby_home}/src/main/c/cext/ruby.#{dlext}"
+  ruby_so = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
 else
-  ruby_so = "#{cext_dir}/ruby.#{dlext}"
+  ruby_so = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
+
+librubyarg = "-L#{File.dirname(ruby_so)} -ltruffleruby"
 
 common = {
   'CC' => cc,
@@ -57,8 +59,8 @@ common = {
   'CXX' => cxx,
   'LDSHARED' => "#{cc} -shared",
   'LDSHAREDXX' => "#{cxx} -shared",
-  'LIBRUBYARG' => ruby_so,
-  'LIBRUBYARG_SHARED' => ruby_so,
+  'LIBRUBYARG' => librubyarg,
+  'LIBRUBYARG_SHARED' => librubyarg,
   'debugflags' => debugflags,
   'warnflags' => warnflags,
   'CFLAGS' => cflags,

@@ -270,7 +270,7 @@ suite = {
             "results": [
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
-                "src/main/c/cext/<libsuffix:ruby>",
+                "src/main/c/cext/<lib:truffleruby>",
                 "src/main/c/etc/<libsuffix:etc>",
                 "src/main/c/nkf/<libsuffix:nkf>",
                 "src/main/c/openssl/<libsuffix:openssl>",
@@ -416,7 +416,7 @@ suite = {
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/<libsuffix:ruby>",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/ccan",

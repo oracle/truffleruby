@@ -338,7 +338,8 @@ public class FeatureLoader {
                 final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
-                final String rubyLibPath = context.getRubyHome() + "/lib/cext/ruby" + RubyLanguage.CEXT_EXTENSION;
+                final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" +
+                        RubyLanguage.CEXT_EXTENSION;
                 final TruffleObject library = loadCExtLibRuby(rubyLibPath, feature);
 
                 final TruffleObject initFunction = requireNode
@@ -372,7 +373,7 @@ public class FeatureLoader {
                             null));
         }
 
-        return loadCExtLibrary("ruby.so", rubyLibPath);
+        return loadCExtLibrary("libtruffleruby", rubyLibPath);
     }
 
     @TruffleBoundary
