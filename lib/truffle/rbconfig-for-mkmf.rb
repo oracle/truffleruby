@@ -43,12 +43,12 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  try_link_libs = "#{ruby_home}/src/main/c/cext/ruby.#{dlext} -lpolyglot-mock"
+  try_link_libs = "#{ruby_home}/src/main/c/cext/ruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
 else
-  try_link_libs = "#{cext_dir}/ruby.#{dlext} -lpolyglot-mock"
+  try_link_libs = "#{cext_dir}/ruby.#{dlext}"
 end
 
 common = {

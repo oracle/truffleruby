@@ -14,4 +14,8 @@ $srcs = %w[ruby.c internal.c st.c]
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
 
+# We need ruby.so to link against libpolyglot-mock,
+# otherwise compilation of ruby.so fails with "Undefined symbols" on macOS.
+$LIBS += " -lpolyglot-mock"
+
 create_makefile('ruby')
