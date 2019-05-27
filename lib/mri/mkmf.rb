@@ -500,7 +500,7 @@ MSG
   end
 
   def link_command(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
-    librubyarg = $extmk ? $LIBRUBYARG_STATIC : "$(LIBRUBYARG)"
+    librubyarg = "$(LIBRUBYARG)"
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote,
                                   'src' => "#{CONFTEST_C}",
                                   'arch_hdrdir' => $arch_hdrdir.quote,
