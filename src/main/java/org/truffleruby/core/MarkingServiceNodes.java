@@ -29,7 +29,7 @@ public class MarkingServiceNodes {
         public void keepObjectAlive(VirtualFrame frame, Object object,
                 @Cached("create()") GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
             MarkerThreadLocalData data = getThreadLocalDataNode.execute(frame);
-            addToList(data.getPreservationStack().get(), object);
+            addToList(data.getExtensionCallStack().getKeptObjects(), object);
             data.getKeptObjects().keepObject(object);
         }
 

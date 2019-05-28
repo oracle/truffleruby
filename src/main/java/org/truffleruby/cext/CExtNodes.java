@@ -590,31 +590,11 @@ public class CExtNodes {
     @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
-        // TODO (pitr-ch 04-Dec-2017): needs optimising
-        @TruffleBoundary
         @Specialization
-        public DynamicObject blockProc() {
-            return Truffle.getRuntime().iterateFrames(frameInstance -> {
-                final Node callNode = frameInstance.getCallNode();
-
-                if (callNode != null) {
-                    final RootNode rootNode = callNode.getRootNode();
-                    // Skip Ruby frames in cext.rb file since they are implementing methods which are implemented
-                    // with C in MRI, and therefore are also implicitly skipped when when looking up the block passed
-                    // to a C API function.
-                    if (rootNode instanceof RubyRootNode &&
-                            rootNode.getSourceSection().isAvailable() &&
-                            !rootNode.getSourceSection().getSource().getName().endsWith("truffle/cext.rb")) {
-
-                        final DynamicObject block = RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
-                        return block == null ? nil() : block;
-                    }
-                }
-
-                return null;
-            });
+        public DynamicObject block(VirtualFrame frame,
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }
-
     }
 
     @CoreMethod(names = "rb_check_frozen", onSingleton = true, required = 1)
@@ -1520,24 +1500,24 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "push_preserving_frame", onSingleton = true, required = 0)
+    @CoreMethod(names = "push_extension_call_frame", onSingleton = true, required = 1)
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(VirtualFrame frame,
+        public DynamicObject pushFrame(VirtualFrame frame, DynamicObject block,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getPreservationStack().push();
+            getDataNode.execute(frame).getExtensionCallStack().push(block);
             return nil();
         }
     }
 
-    @CoreMethod(names = "pop_preserving_frame", onSingleton = true, required = 0)
+    @CoreMethod(names = "pop_extension_call_frame", onSingleton = true, required = 0)
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject popFrame(VirtualFrame frame,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getPreservationStack().pop();
+            getDataNode.execute(frame).getExtensionCallStack().pop();
             return nil();
         }
     }

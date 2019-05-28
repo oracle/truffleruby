@@ -30,7 +30,7 @@ module Truffle::CExt
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
-      Truffle::CExt.push_preserving_frame
+      Truffle::CExt.push_extension_call_frame(block)
       begin
         # We must call explicitly with the block argument if given
         # here so that the `rb_block_*` functions will be able to find
@@ -41,7 +41,7 @@ module Truffle::CExt
           Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, args))
         end
       ensure
-        Truffle::CExt.pop_preserving_frame
+        Truffle::CExt.pop_extension_call_frame
       end
     end
 
@@ -51,19 +51,27 @@ module Truffle::CExt
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, callback, [rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)]))
+    Truffle::CExt.push_extension_call_frame(block)
+    begin
+      rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, callback, [rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg)]))
+    ensure
+      Truffle::CExt.pop_extension_call_frame
+    end
   end
 
   def call_with_thread_locally_stored_block(function, *args, &block)
     # MRI puts the block to a thread local th->passed_block and later rb_funcall reads it,
     # we have to do the same
     # TODO (pitr-ch 14-Dec-2017): This is fixed just for rb_iterate with a rb_funcall in it combination
+
     previous_block = Thread.current[:__C_BLOCK__]
+    Truffle::CExt.push_extension_call_frame(block)
     begin
       Thread.current[:__C_BLOCK__] = block
       rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }, &block))
     ensure
       Thread.current[:__C_BLOCK__] = previous_block
+      Truffle::CExt.pop_extension_call_frame
     end
   end
 

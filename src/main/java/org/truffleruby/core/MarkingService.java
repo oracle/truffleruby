@@ -126,10 +126,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     public static class MarkerThreadLocalData {
         private final MarkerKeptObjects keptObjects;
-        private final MarkerStack preservationStack;
+        private final ExtensionCallStack extensionCallStack;
 
         public MarkerThreadLocalData(MarkingService service) {
-            this.preservationStack = new MarkerStack();
+            this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().getNil());
             this.keptObjects = new MarkerKeptObjects(service);
         }
 
@@ -137,8 +137,8 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             return keptObjects;
         }
 
-        public MarkerStack getPreservationStack() {
-            return preservationStack;
+        public ExtensionCallStack getExtensionCallStack() {
+            return extensionCallStack;
         }
     }
 
@@ -226,28 +226,38 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
 
     }
 
-    protected static class MarkerStackEntry {
-        protected final MarkerStackEntry previous;
-        protected final ArrayList<Object> entries = new ArrayList<>();
+    protected static class ExtensionCallStackEntry {
+        protected final ExtensionCallStackEntry previous;
+        protected final ArrayList<Object> preservedObjects = new ArrayList<>();
+        protected final DynamicObject block;
 
-        protected MarkerStackEntry(MarkerStackEntry previous) {
+        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, DynamicObject block) {
             this.previous = previous;
+            this.block = block;
         }
     }
 
-    public static class MarkerStack {
-        protected MarkerStackEntry current = new MarkerStackEntry(null);
+    public static class ExtensionCallStack {
+        protected ExtensionCallStackEntry current;
 
-        public ArrayList<Object> get() {
-            return current.entries;
+        public ExtensionCallStack(DynamicObject block) {
+            current  = new ExtensionCallStackEntry(null, block);
+        }
+
+        public ArrayList<Object> getKeptObjects() {
+            return current.preservedObjects;
         }
 
         public void pop() {
             current = current.previous;
         }
 
-        public void push() {
-            current = new MarkerStackEntry(current);
+        public void push(DynamicObject block) {
+            current = new ExtensionCallStackEntry(current, block);
+        }
+
+        public DynamicObject getBlock() {
+            return current.block;
         }
     }
 

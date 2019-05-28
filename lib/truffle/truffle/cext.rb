@@ -962,7 +962,7 @@ module Truffle::CExt
 
   def rb_funcall(recv, meth, n, *args)
     # see #call_with_thread_locally_stored_block
-    thread_local_block           = Thread.current[:__C_BLOCK__]
+    thread_local_block = Thread.current[:__C_BLOCK__]
     Thread.current[:__C_BLOCK__] = nil
     recv.__send__(meth, *args, &thread_local_block)
   ensure
