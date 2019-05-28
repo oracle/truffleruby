@@ -659,21 +659,24 @@ module Marshal
       obj
     end
 
+    ARRAY_ALLOCATE = Array.method(:__allocate__).unbind
     ARRAY_APPEND = Array.instance_method(:<<)
 
     def construct_array
-      obj = []
-      store_unique_object obj
-
       if @user_class
         cls = get_user_class()
         if cls < Array
-          Truffle::Internal::Unsafe.set_class obj, cls
+          obj = ARRAY_ALLOCATE.bind(cls).call
         else
           # This is what MRI does, it's weird.
-          return cls.allocate
+          obj = cls.allocate
+          store_unique_object obj
+          return obj
         end
+      else
+        obj = []
       end
+      store_unique_object obj
 
       construct_integer.times do |_i|
         ARRAY_APPEND.bind(obj).call(construct)
