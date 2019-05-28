@@ -1,0 +1,1 @@
+fails:Exception#backtrace returns the same array after duping
