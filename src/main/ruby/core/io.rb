@@ -1149,7 +1149,7 @@ class IO
     end
 
     # Close old descriptor if there was already one associated
-    io.close if io.descriptor
+    io.close if io.descriptor != -1
 
     io.descriptor = fd
     io.mode       = mode || cur_mode
