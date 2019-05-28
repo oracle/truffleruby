@@ -2207,7 +2207,8 @@ class IO
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
-        Truffle::Internal::Unsafe.set_class self, io.class
+        Truffle.invoke_primitive :vm_set_class, self, io.class
+
         if io.respond_to?(:path)
           @path = io.path
         end

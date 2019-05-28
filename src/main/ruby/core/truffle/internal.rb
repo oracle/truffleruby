@@ -35,19 +35,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle::Internal
-
-  module Unsafe
-    def self.set_class(obj, cls)
-      Truffle.primitive :vm_set_class
-
-      if obj.kind_of? ImmediateValue
-        raise TypeError, 'Can not change the class of an immediate'
-      end
-
-      raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"
-    end
-  end
-
   def self.get_data(path, offset)
     file = File.open(path)
     file.seek(offset)
