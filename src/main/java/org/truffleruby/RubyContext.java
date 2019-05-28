@@ -262,7 +262,7 @@ public class RubyContext {
 
         // Share once everything is loaded
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
-            sharedObjects.startSharing();
+            sharedObjects.startSharing(OptionsCatalog.SHARED_OBJECTS_FORCE.getName() + " being true");
         }
 
         if (isPreInitializing()) {

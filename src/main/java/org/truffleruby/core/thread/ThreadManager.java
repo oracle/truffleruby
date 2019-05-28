@@ -229,7 +229,7 @@ public class ThreadManager {
     }
 
     public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
-        startSharing(rubyThread);
+        startSharing(rubyThread, "creating Ruby Thread " + info);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 
@@ -308,16 +308,16 @@ public class ThreadManager {
     }
 
     // Share the Ruby Thread before it can be accessed concurrently, and before it is added to Thread.list
-    public void startSharing(DynamicObject rubyThread) {
+    public void startSharing(DynamicObject rubyThread, String reason) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
             // TODO (eregon, 22 Sept 2017): no need if singleThreaded in isThreadAccessAllowed()
-            context.getSharedObjects().startSharing();
+            context.getSharedObjects().startSharing(reason);
             SharedObjects.writeBarrier(context, rubyThread);
         }
     }
 
     public void startForeignThread(DynamicObject rubyThread, Thread javaThread) {
-        startSharing(rubyThread);
+        startSharing(rubyThread, "creating a foreign thread");
         start(rubyThread, javaThread);
     }
 
