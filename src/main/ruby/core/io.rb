@@ -871,7 +871,7 @@ class IO
 
     if readable and writable
       pipe = pa_read
-      pipe.set_pipe_info(pa_write)
+      pipe.instance_variable_set(:@write, pa_write)
     elsif readable
       pipe = pa_read
     elsif writable
@@ -2651,11 +2651,6 @@ class IO
 end
 
 class IO::BidirectionalPipe < IO
-
-  def set_pipe_info(write)
-    @write = write
-    @sync = true
-  end
 
   ##
   # Closes ios and flushes any pending writes to the
