@@ -2656,9 +2656,7 @@ class IO::BidirectionalPipe < IO
   # Closes ios and flushes any pending writes to the
   # operating system. The stream is unavailable for
   # any further data operations; an IOError is raised
-  # if such an attempt is made. I/O streams are
-  # automatically closed when they are claimed by
-  # the garbage collector.
+  # if such an attempt is made.
   #
   # If ios is opened by IO.popen, close sets $?.
   def close
