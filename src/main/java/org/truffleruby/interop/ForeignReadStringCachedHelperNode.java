@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
@@ -31,7 +32,11 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name, Object stringName, boolean isIVar) throws UnknownIdentifierException;
 
-    @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
+    protected static boolean arrayIndex(DynamicObject receiver, Object stringName) {
+        return RubyGuards.isRubyArray(receiver) && stringName == null;
+    }
+
+    @Specialization(guards = "arrayIndex(receiver, stringName) || isRubyHash(receiver)")
     public Object readArrayHash(
             DynamicObject receiver,
             Object name,
@@ -41,7 +46,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
         return getCallNode().call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
-    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
+    @Specialization(guards = {"!isRubyHash(receiver)", "isIVar"})
     public Object readInstanceVariable(
             DynamicObject receiver,
             Object name,
@@ -65,8 +70,8 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
     }
 
     @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
+            "!isRubyHash(receiver)", "!isIVar",
+            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || (isRubyArray(receiver) || isRubyProc(receiver))",
             "methodDefined(receiver, stringName, getDefinedNode())"
     })
     public Object getBoundMethod(
@@ -80,7 +85,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
+            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || (isRubyArray(receiver) || isRubyProc(receiver))",
             "!methodDefined(receiver, stringName, getDefinedNode())"
     })
     public Object unknownIdentifier(

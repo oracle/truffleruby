@@ -9,12 +9,8 @@
  */
 package org.truffleruby;
 
-import org.junit.Test;
-import org.truffleruby.fixtures.FluidForce;
-import org.truffleruby.services.scriptengine.TruffleRubyScriptEngine;
-import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
-import org.truffleruby.shared.TruffleRuby;
-
+import java.util.Map;
+import java.util.function.Function;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -22,8 +18,11 @@ import javax.script.Invocable;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import java.util.List;
-import java.util.Map;
+import org.junit.Test;
+import org.truffleruby.fixtures.FluidForce;
+import org.truffleruby.services.scriptengine.TruffleRubyScriptEngine;
+import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
+import org.truffleruby.shared.TruffleRuby;
 
 import static org.junit.Assert.assertEquals;
 
@@ -76,7 +75,7 @@ public class JSR223InteropTest {
     public void testAccessingArrays() throws ScriptException {
         final ScriptEngineManager m = new ScriptEngineManager();
         try (TruffleRubyScriptEngine scriptEngine = (TruffleRubyScriptEngine) m.getEngineByName(TruffleRuby.LANGUAGE_ID)){
-            assertEquals(4, ((List<Object>) scriptEngine.eval("[3, 4, 5]")).get(1));
+            assertEquals(4, ((Function<Object[], Object>) ((Map<String, Object>) scriptEngine.eval("[3, 4, 5]")).get("[]")).apply(new Integer[]{1}));
         }
     }
 

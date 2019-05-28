@@ -21,6 +21,10 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@array, 1).should == 2
     end
 
+    it "reads a method of given name that exists" do
+      Truffle::Interop.read(@array, "[]").should == @array.method(:[])
+    end
+
     it "returns nil for an index that doesn't exist" do
       Truffle::Interop.read(@array, 100).should be_nil
     end
