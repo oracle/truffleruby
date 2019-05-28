@@ -223,11 +223,17 @@ module Marshal
       end
     end
 
-    def construct_string
-      obj = get_byte_sequence
-      Truffle::Internal::Unsafe.set_class(obj, get_user_class) if @user_class
+    STRING_ALLOCATE = String.method(:__allocate__).unbind
 
-      set_object_encoding(obj, Encoding::ASCII_8BIT)
+    def construct_string
+      bytes = get_byte_sequence.force_encoding(Encoding::ASCII_8BIT)
+
+      if @user_class
+        obj = STRING_ALLOCATE.bind(get_user_class).call
+        Truffle.invoke_primitive(:string_initialize, obj, bytes, Encoding::ASCII_8BIT)
+      else
+        obj = bytes
+      end
 
       store_unique_object obj
     end
