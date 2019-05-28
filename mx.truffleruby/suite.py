@@ -109,7 +109,8 @@ suite = {
                 "test/truffle/ecosystem/blog",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
-                "test/truffle/offline"
+                "test/truffle/offline",
+                "rubyspec_temp"
             ]
         },
     },
