@@ -415,13 +415,7 @@ module Utilities
     end
   end
 
-  def mspec(command, *args)
-    env_vars = {}
-    if command.is_a?(Hash)
-      env_vars = command
-      command, *args = args
-    end
-
+  def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
 
     if i = args.index('-t')
@@ -504,6 +498,8 @@ module Commands
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
+      jt test unit                                   run Java unittests
+      jt test tck                                    run tck tests
       jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
       jt tag spec/ruby/language                      tag failing specs in this directory
@@ -577,8 +573,12 @@ module Commands
       mx 'clean', '--dependencies', 'org.truffleruby.cext'
     when nil
       mx 'clean'
-      sh 'rm', '-rf', 'mxbuild'
       sh 'rm', '-rf', 'spec/ruby/ext'
+      Dir.glob("#{TRUFFLERUBY_DIR}/mxbuild/{*,.*}") do |path|
+        next if File.basename(path).start_with?('truffleruby-')
+        next if %w(. ..).include? File.basename(path)
+        sh 'rm', '-rf', path
+      end
     else
       raise ArgumentError, project
     end
@@ -791,7 +791,6 @@ module Commands
 
     case path
     when nil
-      ENV['HAS_REDIS'] = 'true'
       %w[specs mri bundle cexts integration gems ecosystem compiler].each do |kind|
         jt('test', kind)
       end
@@ -806,6 +805,8 @@ module Commands
     when 'basictest' then test_basictest(*rest)
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
+    when 'unit', 'unittest' then mx 'unittest', 'org.truffleruby'
+    when 'tck' then mx 'tck'
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
@@ -1230,7 +1231,7 @@ EOS
   end
 
   def mspec(*args)
-    super(*args)
+    run_mspec({}, *args)
   end
 
   def test_specs(command, *args)
@@ -1307,7 +1308,7 @@ EOS
       build("cexts")
     end
 
-    mspec env_vars, command, *options, *args
+    run_mspec env_vars, command, *options, *args
   end
   private :test_specs
 
@@ -1859,6 +1860,16 @@ EOS
     rubies_dir = chruby_versions if File.directory?(chruby_versions)
 
     if rubies_dir
+      Dir.glob(rubies_dir + "/truffleruby-*").each do |link|
+        next unless File.symlink?(link)
+        next if File.exist?(link)
+        target = File.readlink(link)
+        next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
+
+        File.delete link
+        puts "Deleted old link: #{link} -> #{target}"
+      end
+
       link_path = "#{rubies_dir}/#{name}"
       File.delete link_path if File.exist? link_path
       File.symlink dest_ruby, link_path
