@@ -1545,4 +1545,30 @@ public abstract class BigDecimalNodes {
         }
     }
 
+    @CoreMethod(names = "hash")
+    public abstract static class HashNode extends BigDecimalCoreMethodArrayArgumentsNode {
+
+        private static final int CLASS_SALT = 1468180038; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes.
+
+        @TruffleBoundary
+        @Specialization(guards = "isNormal(value)")
+        public Object hashNormal(DynamicObject value) {
+            // Ruby treats trailing zeroes as insignificant for hash calculation. Java's BigDecimal, however,
+            // may return different hash values for two numerically equivalent values with a different number
+            // of trailing zeroes. Stripping them away avoids the issue.
+            final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value).stripTrailingZeros();
+
+            return getContext().getHashing(this).hash(CLASS_SALT, bigDecimalValue.hashCode());
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "!isNormal(value)")
+        public Object hashSpecial(DynamicObject value) {
+            final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
+
+            return getContext().getHashing(this).hash(CLASS_SALT, type.hashCode());
+        }
+
+    }
+
 }
