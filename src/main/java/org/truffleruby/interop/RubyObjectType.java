@@ -72,8 +72,12 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
-        return RubyGuards.isRubyArray(receiver) || respondNode.doesRespondTo(null, "[]", receiver) &&
-                !RubyGuards.isRubyHash(receiver) && !RubyGuards.isRubyString(receiver);
+        return RubyGuards.isRubyArray(receiver) ||
+                (respondNode.doesRespondTo(null, "[]", receiver) &&
+                        !RubyGuards.isRubyHash(receiver) &&
+                        !RubyGuards.isRubyString(receiver) &&
+                        !RubyGuards.isRubyInteger(receiver) &&
+                        !RubyGuards.isRubyProc(receiver));
     }
 
     @ExportMessage()
