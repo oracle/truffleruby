@@ -66,7 +66,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     public void writeExistingField(DynamicObject object, Object value, boolean generalize,
             @Cached("getLocation(object, value)") Location location,
             @Cached("object.getShape()") Shape cachedShape,
-            @Cached("createAssumption(cachedShape)") Assumption validLocation,
+            @Cached("createAssumption(cachedShape, location)") Assumption validLocation,
             @Cached("isShared(cachedShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
             @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
@@ -114,7 +114,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape oldShape,
             @Cached("defineProperty(oldShape, value, generalize)") Shape newShape,
             @Cached("getNewLocation(newShape)") Location newLocation,
-            @Cached("createAssumption(oldShape)") Assumption validLocation,
+            @Cached("createAssumption(oldShape, newLocation)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
             @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
@@ -196,7 +196,9 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return newShape.getProperty(name).getLocation();
     }
 
-    protected Assumption createAssumption(Shape shape) {
+    // The location is passed here even though it's not used,
+    // to make sure the DSL checks this Assumption after all lookups are done in executeAndSpecialize().
+    protected Assumption createAssumption(Shape shape, Location location) {
         if (!shape.isValid()) {
             return NeverValidAssumption.INSTANCE;
         }
