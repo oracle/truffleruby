@@ -114,7 +114,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape oldShape,
             @Cached("defineProperty(oldShape, value, generalize)") Shape newShape,
             @Cached("getNewLocation(newShape)") Location newLocation,
-            @Cached("createAssumption(oldShape, newLocation)") Assumption validLocation,
+            @Cached("createAssumption(oldShape, newShape, newLocation)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
             @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
@@ -200,6 +200,15 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     // to make sure the DSL checks this Assumption after all lookups are done in executeAndSpecialize().
     protected Assumption createAssumption(Shape shape, Location location) {
         if (!shape.isValid()) {
+            return NeverValidAssumption.INSTANCE;
+        }
+        return Truffle.getRuntime().createAssumption("object location is valid");
+    }
+
+    // The location is passed here even though it's not used,
+    // to make sure the DSL checks this Assumption after all lookups are done in executeAndSpecialize().
+    protected Assumption createAssumption(Shape oldShape, Shape newShape, Location location) {
+        if (!oldShape.isValid() || !newShape.isValid()) {
             return NeverValidAssumption.INSTANCE;
         }
         return Truffle.getRuntime().createAssumption("object location is valid");
