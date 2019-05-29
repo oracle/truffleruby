@@ -51,8 +51,8 @@ module Truffle
         keys = object.methods.map(&:to_s)
         if internal
           keys += object.instance_variables
-            .map(&:to_s)
-            .select { |ivar| ivar.start_with?('@') }
+                      .map(&:to_s)
+                      .select { |ivar| ivar.start_with?('@') }
           keys += object.private_methods.map(&:to_s)
         end
       end
@@ -146,9 +146,31 @@ module Truffle
         end
       end
 
-      # p object: object, name: name, readable: readable, invocable: invocable, internal: internal, insertable: insertable, modifiable: modifiable, removable: removable
+      [readable, invocable, internal, insertable, modifiable, removable]
+    end
 
-      key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
+    def self.object_key_readable?(object, name)
+      object_key_info(object, name)[0]
+    end
+
+    def self.object_key_invocable?(object, name)
+      object_key_info(object, name)[1]
+    end
+
+    def self.object_key_internal?(object, name)
+      object_key_info(object, name)[2]
+    end
+
+    def self.object_key_insertable?(object, name)
+      object_key_info(object, name)[3]
+    end
+
+    def self.object_key_modifiable?(object, name)
+      object_key_info(object, name)[4]
+    end
+
+    def self.object_key_removable?(object, name)
+      object_key_info(object, name)[5]
     end
 
     def self.lookup_symbol(name)
@@ -335,6 +357,7 @@ module Truffle
     rescue RuntimeError
       false
     end
+
     private_class_method :is_java_map?
 
     def self.pairs_from_java_map(map)

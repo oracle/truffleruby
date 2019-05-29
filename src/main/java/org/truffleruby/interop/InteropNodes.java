@@ -27,7 +27,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.KeyInfo;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -1354,45 +1353,6 @@ public abstract class InteropNodes {
         @Specialization
         public Object metaObject(Object value) {
             return getContext().getLanguage().findMetaObject(getContext(), value);
-        }
-
-    }
-
-    // FIXME (pitr 01-Apr-2019): remove?
-    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 6)
-    public abstract static class KeyInfoFlagsToBitsNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int keyInfoFlagsToBitsNode(
-                boolean readable, boolean invocable, boolean internal,
-                boolean insertable, boolean modifiable, boolean removable) {
-            int keyInfo = KeyInfo.NONE;
-
-            if (readable) {
-                keyInfo |= KeyInfo.READABLE;
-            }
-
-            if (invocable) {
-                keyInfo |= KeyInfo.INVOCABLE;
-            }
-
-            if (internal) {
-                keyInfo |= KeyInfo.INTERNAL;
-            }
-
-            if (insertable) {
-                keyInfo |= KeyInfo.INSERTABLE;
-            }
-
-            if (modifiable) {
-                keyInfo |= KeyInfo.MODIFIABLE;
-            }
-
-            if (removable) {
-                keyInfo |= KeyInfo.REMOVABLE;
-            }
-
-            return keyInfo;
         }
 
     }

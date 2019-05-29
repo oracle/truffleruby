@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.KeyInfo;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -204,45 +203,45 @@ public class RubyObjectType extends ObjectType {
     public static boolean isArrayElementReadable(
             DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
-        return KeyInfo.isReadable((int) dispatchNode.call(
+            @Shared("object_key_readable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_readable?",
                 receiver,
-                index));
+                index);
     }
 
     @ExportMessage
     public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
-        return KeyInfo.isModifiable((int) dispatchNode.call(
+            @Shared("object_key_modifiable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_modifiable?",
                 receiver,
-                index));
+                index);
     }
 
     @ExportMessage
     public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
-        return KeyInfo.isInsertable((int) dispatchNode.call(
+            @Shared("object_key_insertable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_insertable?",
                 receiver,
-                index));
+                index);
     }
 
     @ExportMessage
     public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
-        return KeyInfo.isRemovable((int) dispatchNode.call(
+            @Shared("object_key_removable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_removable?",
                 receiver,
-                index));
+                index);
     }
 
     @ExportMessage
@@ -347,15 +346,15 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_readable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isReadable((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_readable?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
@@ -363,15 +362,15 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_modifiable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isModifiable((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_modifiable?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
@@ -379,15 +378,15 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_insertable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isInsertable((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_insertable?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
@@ -395,15 +394,15 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_removable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isRemovable((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_removable?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
@@ -411,15 +410,15 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isInvocable((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_invocable?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
@@ -427,47 +426,27 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.isInternal((int) dispatchNode.call(
+        return (boolean) dispatchNode.call(
                 rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
+                "object_key_internal?",
                 receiver,
-                convertedName));
+                convertedName);
     }
 
     @ExportMessage
-    public static boolean hasMemberReadSideEffects(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.hasReadSideEffects((int) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
-                receiver,
-                convertedName));
+    public static boolean hasMemberReadSideEffects(DynamicObject receiver, String name) {
+        // TODO (pitr-ch 29-May-2019): is that true?
+        return false;
     }
 
     @ExportMessage
-    public static boolean hasMemberWriteSideEffects(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
-            @Shared("object_key_info") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return KeyInfo.hasWriteSideEffects((int) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
-                "object_key_info",
-                receiver,
-                convertedName));
+    public static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name) {
+        // TODO (pitr-ch 29-May-2019): is that true?
+        return false;
     }
 
     @ExportMessage
