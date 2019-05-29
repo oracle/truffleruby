@@ -33,8 +33,6 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes;
-import org.truffleruby.language.locals.ReadFrameSlotNode;
-import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;

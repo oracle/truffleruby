@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;

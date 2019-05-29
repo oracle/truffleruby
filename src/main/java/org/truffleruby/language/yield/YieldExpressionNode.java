@@ -19,7 +19,6 @@ import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.ReadLocalNode;
 
 public class YieldExpressionNode extends RubyNode {
 

@@ -19,7 +19,6 @@ import org.graalvm.polyglot.tck.ResultVerifier;
 import org.graalvm.polyglot.tck.Snippet;
 import org.graalvm.polyglot.tck.TypeDescriptor;
 import org.junit.Assert;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.io.File;

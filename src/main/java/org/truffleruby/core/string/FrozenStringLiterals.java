@@ -9,12 +9,9 @@
  */
 package org.truffleruby.core.string;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeKey;

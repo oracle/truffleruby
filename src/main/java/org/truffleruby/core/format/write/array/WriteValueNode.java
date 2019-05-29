@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
