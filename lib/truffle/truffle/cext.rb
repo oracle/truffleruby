@@ -200,11 +200,11 @@ module Truffle::CExt
     end
 
     def [](index)
-      Truffle::CExt.rb_tr_wrap(array[index])
+      Truffle.invoke_primitive( :cext_wrap, array[index])
     end
 
     def []=(index, value)
-      array[index] = Truffle::CExt.rb_tr_unwrap(value)
+      array[index] = Truffle.invoke_primitive( :cext_unwrap, value)
     end
 
     def native?
@@ -1055,8 +1055,8 @@ module Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      Truffle::CExt.rb_tr_unwrap(
-        Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle::CExt.rb_tr_wrap(arg) }))
+      Truffle.invoke_primitive( :cext_unwrap,
+        Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }))
     end
   end
 
@@ -1281,7 +1281,7 @@ module Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.define_method(:__allocate__) do
-      Truffle::CExt.rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex, function, [Truffle::CExt.rb_tr_wrap(self)]))
+      Truffle.invoke_primitive( :cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, function, [Truffle.invoke_primitive( :cext_wrap, self)]))
     end
     class << ruby_class
       private :__allocate__
@@ -1835,6 +1835,14 @@ module Truffle::CExt
     f = f.gsub('%ld', '%d')
 
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
+  end
+
+  def rb_tr_wrap(obj)
+    Truffle.invoke_primitive :cext_wrap, obj
+  end
+
+  def rb_tr_unwrap(wrapper)
+    Truffle.invoke_primitive :cext_unwrap, wrapper
   end
 
 end

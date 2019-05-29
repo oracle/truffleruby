@@ -47,6 +47,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -142,6 +143,55 @@ public class CExtNodes {
                 return execute(receiver, args, executeNode, exceptionProfile);
             }
 
+        }
+
+        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+    }
+
+    @ImportStatic(Message.class)
+    @Primitive(name = "call_with_c_mutex_and_frame")
+    public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
+                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached("EXECUTE.createNode()") Node executeNode,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile ownedProfile,
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
+            extensionStack.push(block);
+
+            try {
+                if (getContext().getOptions().CEXT_LOCK) {
+                    final ReentrantLock lock = getContext().getCExtensionsLock();
+                    boolean owned = lock.isHeldByCurrentThread();
+
+                    if (ownedProfile.profile(!owned)) {
+                        MutexOperations.lockInternal(getContext(), lock, this);
+                        try {
+                            return execute(receiver, args, executeNode, exceptionProfile);
+                        } finally {
+                            MutexOperations.unlockInternal(lock);
+                        }
+                    } else {
+                        return execute(receiver, args, executeNode, exceptionProfile);
+                    }
+                } else {
+                    return execute(receiver, args, executeNode, exceptionProfile);
+                }
+            } finally {
+                extensionStack.pop();
+            }
         }
 
         private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
@@ -1335,8 +1385,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_wrap", onSingleton = true, required = 1)
-    public abstract static class WrapValueNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "cext_wrap", needsSelf = false)
+    public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public TruffleObject wrapInt(Object value,
@@ -1349,8 +1399,8 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_tr_unwrap", onSingleton = true, required = 1)
-    public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "cext_unwrap", needsSelf = false)
+    public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public Object unwrap(TruffleObject value,
