@@ -97,7 +97,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException | FinalLocationException e) {
             // remove this entry
-            validLocation.invalidate();
+            validLocation.invalidate("for " + location + " for existing ivar " + name + " at " + getEncapsulatingSourceSection());
             // Generalization is handled by Shape#defineProperty as the field already exists
             executeWithGeneralize(object, value, generalize);
         }
@@ -137,7 +137,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException e) {
             // remove this entry
-            validLocation.invalidate();
+            validLocation.invalidate("for " + location + " for new ivar " + name + " at " + getEncapsulatingSourceSection());
             // Make sure to generalize when adding a new field and the value is incompatible.
             // So writing an int and then later a double generalizes to adding an Object field.
             executeWithGeneralize(object, value, true);
