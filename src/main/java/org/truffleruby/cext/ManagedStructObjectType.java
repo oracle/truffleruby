@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -27,6 +26,7 @@ import org.truffleruby.language.objects.ObjectIVarSetNode;
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class ManagedStructObjectType extends ObjectType {
 
+    @Override
     public Class<?> dispatch() {
         return ManagedStructObjectType.class;
     }
@@ -84,8 +84,8 @@ public class ManagedStructObjectType extends ObjectType {
     public static Object getMembers(
             DynamicObject receiver,
             boolean includeInternal,
-            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
-        return dispatchNode.call(receiver,"instance_variables");
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
+        return dispatchNode.call(receiver, "instance_variables");
     }
 
     @ExportMessage
