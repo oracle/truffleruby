@@ -129,8 +129,44 @@ mkconfig.merge!(common)
 # directory are include in preference to others on the include path,
 # and is required because we are actually piping the file into the
 # compiler which disables this standard behaviour of the C preprocessor.
-mkconfig['COMPILE_C']   = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['COMPILE_CXX'] = "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | $(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+begin
+  with_conditional_preprocessing = proc do |command1, command2|
+    <<-EOF
+$(if $(or\\
+ $(and\\
+ $(findstring nokogiri, $(realpath $(<))),\\
+ $(or\\
+ $(findstring xml_node_set.c, $(<)),\\
+ $(findstring xslt_stylesheet.c, $(<)),\\
+ $(findstring xml_document.c, $(<)),\\
+ $(findstring xml_sax_parser.c, $(<)),\\
+ $(findstring xml_xpath_context.c, $(<)))),\\
+ $(and\\
+ $(findstring pg, $(realpath $(<))),\\
+ $(or\\
+ $(findstring pg_binary_encoder.c, $(<)),\\
+ $(findstring pg_result.c, $(<)),\\
+ $(findstring pg_tuple.c, $(<)),\\
+ $(findstring pg_text_decoder.c, $(<)),\\
+ $(findstring pg_text_encoder.c, $(<)),\\
+ $(findstring pg_type_map_by_class.c, $(<)))),\\
+ $(and\\
+ $(findstring json, $(realpath $(<))),\\
+ $(or\\
+ $(findstring parser.c, $(<))))\\
+),\\
+ #{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1},\\
+ #{command2})
+EOF
+  end
+
+  mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
+    "$(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+    "$(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ <$(<) && #{opt} #{opt_passes} $@ -o $@")
+  mkconfig['COMPILE_CXX'] = with_conditional_preprocessing.call(
+    "$(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+    "$(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ <$(<) && #{opt} #{opt_passes} $@ -o $@")
+end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
