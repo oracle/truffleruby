@@ -750,12 +750,12 @@ public abstract class InteropNodes {
             return receivers.hasMembers(receiver);
         }
 
+        // TODO (pitr-ch 28-Mar-2019): delete this specialization and fix failing tests
+        //   or rather implement members for primitive types, so Ruby Integer methods can be invoked on long
         @Specialization(guards = "!isTruffleObject(receiver)")
-        // TODO (pitr-ch 28-Mar-2019): really?
         public Object hasKeys(Object receiver) {
             return true;
         }
-
     }
 
     @CoreMethod(names = "keys_without_conversion", isModuleFunction = true, required = 1, optional = 1)

@@ -74,6 +74,7 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
+        //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
         return RubyGuards.isRubyArray(receiver) ||
                 (respondNode.doesRespondTo(null, "[]", receiver) &&
                         !RubyGuards.isRubyHash(receiver) &&
@@ -319,7 +320,7 @@ public class RubyObjectType extends ObjectType {
         }
 
         // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
-        // TODO (pitr-ch 19-Mar-2019): use Unsupported on name not starting with @?
+        // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
         throw UnknownIdentifierException.create(name);
     }
 
@@ -439,13 +440,13 @@ public class RubyObjectType extends ObjectType {
 
     @ExportMessage
     public static boolean hasMemberReadSideEffects(DynamicObject receiver, String name) {
-        // TODO (pitr-ch 29-May-2019): is that true?
+        // TODO (pitr-ch 29-May-2019): is that always true?
         return false;
     }
 
     @ExportMessage
     public static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name) {
-        // TODO (pitr-ch 29-May-2019): is that true?
+        // TODO (pitr-ch 29-May-2019): is that always true?
         return false;
     }
 
