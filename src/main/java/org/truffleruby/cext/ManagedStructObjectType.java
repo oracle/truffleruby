@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -92,11 +93,11 @@ public class ManagedStructObjectType extends ObjectType {
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            // TODO (pitr-ch 15-Mar-2019): generate uncached on the class instead
-            @Cached(allowUncached = true) ObjectIVarGetNode readObjectFieldNode) {
+            @Cached(allowUncached = true) ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
 
-        // TODO (pitr-ch 15-Mar-2019): instead of assertion throw UnknownIdentifierException ?
-        assert receiver.containsKey(name) : receiver + " does not have key " + name;
+        if (!receiver.containsKey(name)) {
+            throw UnknownIdentifierException.create(name);
+        }
         return readObjectFieldNode.executeIVarGet(receiver, name);
     }
 
