@@ -738,12 +738,6 @@ public abstract class InteropNodes {
             //  the remove no longer returns true/false
             return true;
         }
-
-        // @Specialization
-        // public Object write(TruffleObject receiver, int identifier) {
-        //     // TODO (pitr-ch 01-Apr-2019): why is it needed?
-        //     return execute(receiver, (long) identifier);
-        // }
     }
 
     @CoreMethod(names = "keys?", isModuleFunction = true, required = 1)
