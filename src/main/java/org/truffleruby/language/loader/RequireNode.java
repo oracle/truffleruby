@@ -259,13 +259,14 @@ public abstract class RequireNode extends RubyBaseNode {
 
         final TruffleObject initFunction = findFunctionInLibraries(libraries, initFunctionName, expandedPath);
 
-        if (!InteropLibrary.getFactory().getUncached(initFunction).isExecutable(initFunction)) {
+        InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
+        if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
             throw new RaiseException(getContext(), coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
         requireMetric("before-execute-" + feature);
         try {
-            InteropLibrary.getFactory().getUncached(initFunction).execute(initFunction);
+            initFunctionInteropLibrary.execute(initFunction);
         } catch (InteropException e) {
             throw new JavaException(e);
         } finally {
