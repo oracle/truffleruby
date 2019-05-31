@@ -165,8 +165,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Specialization(guards = "args.length == 2")
         protected Object call(
                 TruffleObject receiver, Object[] args,
-                @Cached InteropNodes.WriteNode readNode) {
-            return readNode.execute(receiver, args[0], args[1]);
+                @Cached InteropNodes.WriteNode writeNode) {
+            return writeNode.execute(receiver, args[0], args[1]);
         }
 
         @Specialization(guards = "args.length != 2")
