@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -39,6 +40,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -186,6 +189,7 @@ public abstract class InteropNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile unknownIdentifierProfile,
                 @Cached BranchProfile exceptionProfile) {
@@ -195,16 +199,12 @@ public abstract class InteropNodes {
             final Object foreign;
             try {
                 foreign = receivers.invokeMember(receiver, name, arguments);
-            } catch (UnknownIdentifierException e) {
+            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
-            } catch (UnsupportedTypeException
-                    | ArityException
-                    | UnsupportedMessageException e) {
+                throw new RaiseException(rubyContext, rubyContext.getCoreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+            } catch (UnsupportedTypeException | ArityException e) {
                 exceptionProfile.enter();
-                throw new JavaException(e);
+                throw new RaiseException(rubyContext, rubyContext.getCoreExceptions().argumentError(e.getMessage(), this));
             }
 
             return foreignToRubyNode.executeConvert(foreign);
