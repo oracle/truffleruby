@@ -16,6 +16,7 @@ Bug fixes:
 * Procs will now yield to the block in their declaration context even when called with a block argument (#1657).
 * Fixed problems with calling POSIX methods if `Symbol#[]` is redefined (#1665).
 * Fixed sharing of `Array` and `Hash` elements for thread-safety of objects (#1601).
+* Fixed concurrent modifications of `Gem::Specification::LOAD_CACHE` (#1601).
 * Fix `TCPServer#accept` to set `#do_not_reverse_lookup` correctly on the created `TCPSocket`.
 
 Compatibility
