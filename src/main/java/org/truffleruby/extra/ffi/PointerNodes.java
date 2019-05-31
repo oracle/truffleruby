@@ -188,7 +188,7 @@ public abstract class PointerNodes {
 
     }
 
-    @CoreMethod(names = { "__address__", "to_i" })
+    @CoreMethod(names = { "address", "__address__", "to_i" })
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

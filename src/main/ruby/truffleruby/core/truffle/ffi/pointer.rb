@@ -82,7 +82,7 @@ module Truffle::FFI
       total = from.total
       raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
       Truffle.invoke_primitive :pointer_malloc, self, total
-      Truffle.invoke_primitive :pointer_copy_memory, __address__, from.__address__, total
+      Truffle.invoke_primitive :pointer_copy_memory, address, from.address, total
       self
     end
 
@@ -93,7 +93,7 @@ module Truffle::FFI
 
     def inspect
       # Don't have this print the data at the location. It can crash everything.
-      addr = __address__()
+      addr = address()
 
       if addr < 0
         sign = '-'
@@ -109,10 +109,6 @@ module Truffle::FFI
       true
     end
 
-    def address
-      raise 'use __address__'
-    end
-
     # Every IS_POINTER object should also have TO_NATIVE
     def to_native
       self
@@ -124,11 +120,11 @@ module Truffle::FFI
     end
 
     def null?
-      __address__ == 0x0
+      address == 0x0
     end
 
     def +(offset)
-      ptr = Pointer.new(__address__ + offset)
+      ptr = Pointer.new(address + offset)
       if total
         ptr.total = total - offset
       end
@@ -136,7 +132,7 @@ module Truffle::FFI
     end
 
     def slice(offset, length)
-      ptr = Pointer.new(__address__ + offset)
+      ptr = Pointer.new(address + offset)
       ptr.total = length
       ptr
     end
@@ -149,7 +145,7 @@ module Truffle::FFI
     def ==(other)
       return true if nil.equal?(other) && null?
       return false unless other.kind_of? Pointer
-      __address__ == other.__address__
+      address == other.address
     end
 
     def network_order(start, size)
@@ -163,7 +159,7 @@ module Truffle::FFI
     end
 
     def get_string(offset, length = nil)
-      Truffle.invoke_primitive :pointer_read_string_to_null, __address__ + offset, length
+      Truffle.invoke_primitive :pointer_read_string_to_null, address + offset, length
     end
 
     def put_string(offset, str)
@@ -226,7 +222,7 @@ module Truffle::FFI
     end
 
     def get_bytes(offset, length)
-      Truffle.invoke_primitive :pointer_read_bytes, __address__ + offset, length
+      Truffle.invoke_primitive :pointer_read_bytes, address + offset, length
     end
 
     def put_bytes(offset, str, index = 0, length = nil)
@@ -241,7 +237,7 @@ module Truffle::FFI
         end
         length = str.bytesize - index
       end
-      Truffle.invoke_primitive :pointer_write_bytes, __address__ + offset, str, index, length
+      Truffle.invoke_primitive :pointer_write_bytes, address + offset, str, index, length
       self
     end
 
@@ -254,7 +250,7 @@ module Truffle::FFI
     end
 
     def __copy_from__(pointer, size)
-      Truffle.invoke_primitive :pointer_copy_memory, __address__, pointer.__address__, size
+      Truffle.invoke_primitive :pointer_copy_memory, address, pointer.address, size
     end
 
     def read_array_of_type(type, reader, length)

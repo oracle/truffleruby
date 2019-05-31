@@ -85,13 +85,13 @@ SIZEOF = {
       code << <<-RUBY
   private def get_pointer_value(value)
     if Truffle::FFI::Pointer === value
-      value.__address__
+      value.address
     elsif nil.equal?(value)
       0
     elsif Integer === value
       value
     elsif value.respond_to?(:to_ptr)
-      value.to_ptr.__address__
+      value.to_ptr.address
     else
       raise ArgumentError, "\#{value} is not a pointer"
     end
@@ -106,14 +106,14 @@ RUBY
 
     code << <<-RUBY
   def read_#{type}
-    Truffle.invoke_primitive :pointer_read_#{type}, __address__
+    Truffle.invoke_primitive :pointer_read_#{type}, address
   end
 RUBY
     add_aliases.call(:read)
 
     code << <<-RUBY
   def write_#{type}(value)
-    Truffle.invoke_primitive :pointer_write_#{type}, __address__, #{transform.call('value')}
+    Truffle.invoke_primitive :pointer_write_#{type}, address, #{transform.call('value')}
     self
   end
 RUBY
@@ -121,14 +121,14 @@ RUBY
 
     code << <<-RUBY
   def get_#{type}(offset)
-    Truffle.invoke_primitive :pointer_read_#{type}, __address__ + offset
+    Truffle.invoke_primitive :pointer_read_#{type}, address + offset
   end
 RUBY
     add_aliases.call(:get)
 
     code << <<-RUBY
   def put_#{type}(offset, value)
-    Truffle.invoke_primitive :pointer_write_#{type}, __address__ + offset, #{transform.call('value')}
+    Truffle.invoke_primitive :pointer_write_#{type}, address + offset, #{transform.call('value')}
     self
   end
 RUBY
@@ -139,7 +139,7 @@ RUBY
     code << <<-RUBY
   def read_array_of_#{type}(length)
     Array.new(length) do |i|
-      Truffle.invoke_primitive :pointer_read_#{type}, __address__ + (i * #{SIZEOF[base_type]})
+      Truffle.invoke_primitive :pointer_read_#{type}, address + (i * #{SIZEOF[base_type]})
     end
   end
 RUBY
@@ -148,7 +148,7 @@ RUBY
     code << <<-RUBY
   def write_array_of_#{type}(ary)
     ary.each_with_index do |value, i|
-      Truffle.invoke_primitive :pointer_write_#{type}, __address__ + (i * #{SIZEOF[base_type]}), #{transform.call('value')}
+      Truffle.invoke_primitive :pointer_write_#{type}, address + (i * #{SIZEOF[base_type]}), #{transform.call('value')}
     end
     self
   end

@@ -271,7 +271,7 @@ describe "Callback" do
   it "returning a callback function" do
     ret = LibTest.testCallbackReturningFunction { FFI::Pointer.new(42) }
     expect(ret).to be_kind_of(FFI::Function)
-    expect(ret.__address__).to eq(42)
+    expect(ret.address).to eq(42)
   end
 
   it "returning struct by value" do

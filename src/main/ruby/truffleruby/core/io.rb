@@ -1695,7 +1695,7 @@ class IO
       buffer_size = 4096 if buffer_size < 4096
       buffer = FFI::MemoryPointer.new(buffer_size)
       buffer.write_string(arg, arg.bytesize)
-      real_arg = buffer.__address__
+      real_arg = buffer.address
     else
       real_arg = Truffle::Type.coerce_to_int(arg)
     end

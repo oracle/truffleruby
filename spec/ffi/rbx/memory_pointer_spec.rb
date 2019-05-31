@@ -176,7 +176,7 @@ describe "MemoryPointer" do
     m = FFI::MemoryPointer.new(:long_long)
     magic = 0x12345678
     m.write_long(magic)
-    expect(m.read_pointer.__address__).to eq(magic)
+    expect(m.read_pointer.address).to eq(magic)
   end
 
   it "MemoryPointer#null? returns true for zero value" do
