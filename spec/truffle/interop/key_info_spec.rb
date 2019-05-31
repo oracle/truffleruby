@@ -81,11 +81,11 @@ describe "Truffle::Interop.key_info" do
 
         it "for instance variables that exist" do
           @array.instance_variable_set :@foo, 14
-          Truffle::Interop.key_info(@array, :@foo).should include_any_of(:insertable, :modifiable)
+          Truffle::Interop.key_info(@array, :@foo).should include(:modifiable)
         end
 
         it "for instance variables that don't exist" do
-          Truffle::Interop.key_info(@array, :@foo).should include_any_of(:insertable, :modifiable)
+          Truffle::Interop.key_info(@array, :@foo).should include(:insertable)
         end
 
         it "for a method" do
