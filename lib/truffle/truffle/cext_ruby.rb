@@ -19,14 +19,14 @@ module Truffle::CExt
 
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1 # (int argc, VALUE *argv, VALUE obj)
-        args = [args.size, Truffle::CExt.RARRAY_PTR(args), Truffle.invoke_primitive( :cext_wrap, self)]
+        args = [args.size, Truffle::CExt.RARRAY_PTR(args), Truffle.invoke_primitive(:cext_wrap, self)]
       elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
-        args = [Truffle.invoke_primitive( :cext_wrap, self), Truffle.invoke_primitive( :cext_wrap, args)]
+        args = [Truffle.invoke_primitive(:cext_wrap, self), Truffle.invoke_primitive(:cext_wrap, args)]
       elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
         if args.size != argc
           raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
         end
-        args = [Truffle.invoke_primitive( :cext_wrap, self), *args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }]
+        args = [Truffle.invoke_primitive(:cext_wrap, self), *args.map! { |arg| Truffle.invoke_primitive(:cext_wrap, arg) }]
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
@@ -34,7 +34,7 @@ module Truffle::CExt
       # We must set block argument if given here so that the
       # `rb_block_*` functions will be able to find it by walking the
       # stack.
-      Truffle.invoke_primitive( :cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex_and_frame, function, args, block))
+      Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex_and_frame, function, args, block))
     end
 
     mod.define_method(name, method_body)
@@ -54,7 +54,7 @@ module Truffle::CExt
     previous_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex_and_frame, function, args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }, block))
+      rb_tr_unwrap(Truffle.invoke_primitive(:call_with_c_mutex_and_frame, function, args.map! { |arg| Truffle.invoke_primitive(:cext_wrap, arg) }, block))
     ensure
       Thread.current[:__C_BLOCK__] = previous_block
     end

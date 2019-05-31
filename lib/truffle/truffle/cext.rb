@@ -200,11 +200,11 @@ module Truffle::CExt
     end
 
     def [](index)
-      Truffle.invoke_primitive( :cext_wrap, array[index])
+      Truffle.invoke_primitive(:cext_wrap, array[index])
     end
 
     def []=(index, value)
-      array[index] = Truffle.invoke_primitive( :cext_unwrap, value)
+      array[index] = Truffle.invoke_primitive(:cext_unwrap, value)
     end
 
     def native?
@@ -1055,7 +1055,7 @@ module Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      Truffle.invoke_primitive( :cext_unwrap,
+      Truffle.invoke_primitive(:cext_unwrap,
         Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }))
     end
   end

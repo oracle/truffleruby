@@ -241,7 +241,7 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
         protected ExtensionCallStackEntry current;
 
         public ExtensionCallStack(DynamicObject block) {
-            current  = new ExtensionCallStackEntry(null, block);
+            current = new ExtensionCallStackEntry(null, block);
         }
 
         public ArrayList<Object> getKeptObjects() {
