@@ -110,7 +110,7 @@ suite = {
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
                 "test/truffle/offline",
-                "rubyspec_temp"
+                "rubyspec_temp",
             ]
         },
     },
@@ -339,7 +339,7 @@ suite = {
                 "truffle:TRUFFLE_NFI",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "sulong:SULONG"
+                "sulong:SULONG",
             ],
             "description": "TruffleRuby",
             "license": [
