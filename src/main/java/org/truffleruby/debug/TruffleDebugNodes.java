@@ -514,6 +514,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
+            @TruffleBoundary
             public Object getMembers(
                     boolean includeInternal,
                     @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
