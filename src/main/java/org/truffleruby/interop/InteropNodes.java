@@ -144,10 +144,9 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         private DynamicObject translate(UnsupportedTypeException e) {
-            return coreExceptions().typeError(
-                    "Wrong arguments: " + Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(
-                            ", ")),
-                    this);
+            String message = "Wrong arguments: " +
+                    Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", "));
+            return coreExceptions().typeError(message,this);
         }
 
     }
@@ -907,6 +906,8 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_readable?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
 
+        public abstract boolean execute(TruffleObject receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         public boolean isArrayElementReadable(
                 TruffleObject receiver,
@@ -914,8 +915,6 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementReadable(receiver, index);
         }
-
-        public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         public boolean isArrayElementReadable(
