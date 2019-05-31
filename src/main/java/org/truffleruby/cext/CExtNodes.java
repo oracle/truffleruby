@@ -44,7 +44,9 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
+import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory.CallCWithMutexNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
@@ -117,6 +119,8 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
+        public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
+
         @Specialization
         public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -160,49 +164,20 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
+
         @Specialization
         public Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
-                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile ownedProfile,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
 
             try {
-                if (getContext().getOptions().CEXT_LOCK) {
-                    final ReentrantLock lock = getContext().getCExtensionsLock();
-                    boolean owned = lock.isHeldByCurrentThread();
-
-                    if (ownedProfile.profile(!owned)) {
-                        MutexOperations.lockInternal(getContext(), lock, this);
-                        try {
-                            return execute(receiver, args, executeNode, exceptionProfile);
-                        } finally {
-                            MutexOperations.unlockInternal(lock);
-                        }
-                    } else {
-                        return execute(receiver, args, executeNode, exceptionProfile);
-                    }
-                } else {
-                    return execute(receiver, args, executeNode, exceptionProfile);
-                }
+                return callCextNode.execute(receiver, argsArray);
             } finally {
                 extensionStack.pop();
             }
         }
-
-        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
     }
 
     @ImportStatic(Message.class)
