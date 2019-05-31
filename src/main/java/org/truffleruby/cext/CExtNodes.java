@@ -44,9 +44,12 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
+import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory.CallCWithMutexNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -116,6 +119,8 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
+        public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
+
         @Specialization
         public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -153,6 +158,26 @@ public class CExtNodes {
             }
         }
 
+    }
+
+    @ImportStatic(Message.class)
+    @Primitive(name = "call_with_c_mutex_and_frame")
+    public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
+
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
+
+        @Specialization
+        public Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
+            extensionStack.push(block);
+
+            try {
+                return callCextNode.execute(receiver, argsArray);
+            } finally {
+                extensionStack.pop();
+            }
+        }
     }
 
     @ImportStatic(Message.class)
@@ -590,31 +615,11 @@ public class CExtNodes {
     @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
-        // TODO (pitr-ch 04-Dec-2017): needs optimising
-        @TruffleBoundary
         @Specialization
-        public DynamicObject blockProc() {
-            return Truffle.getRuntime().iterateFrames(frameInstance -> {
-                final Node callNode = frameInstance.getCallNode();
-
-                if (callNode != null) {
-                    final RootNode rootNode = callNode.getRootNode();
-                    // Skip Ruby frames in cext.rb file since they are implementing methods which are implemented
-                    // with C in MRI, and therefore are also implicitly skipped when when looking up the block passed
-                    // to a C API function.
-                    if (rootNode instanceof RubyRootNode &&
-                            rootNode.getSourceSection().isAvailable() &&
-                            !rootNode.getSourceSection().getSource().getName().endsWith("truffle/cext.rb")) {
-
-                        final DynamicObject block = RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
-                        return block == null ? nil() : block;
-                    }
-                }
-
-                return null;
-            });
+        public DynamicObject block(VirtualFrame frame,
+                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }
-
     }
 
     @CoreMethod(names = "rb_check_frozen", onSingleton = true, required = 1)
@@ -1355,8 +1360,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_wrap", onSingleton = true, required = 1)
-    public abstract static class WrapValueNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "cext_wrap", needsSelf = false)
+    public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public TruffleObject wrapInt(Object value,
@@ -1369,8 +1374,8 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_tr_unwrap", onSingleton = true, required = 1)
-    public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "cext_unwrap", needsSelf = false)
+    public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public Object unwrap(TruffleObject value,
@@ -1520,24 +1525,24 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "push_preserving_frame", onSingleton = true, required = 0)
+    @CoreMethod(names = "push_extension_call_frame", onSingleton = true, required = 1)
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(VirtualFrame frame,
+        public DynamicObject pushFrame(VirtualFrame frame, DynamicObject block,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getPreservationStack().push();
+            getDataNode.execute(frame).getExtensionCallStack().push(block);
             return nil();
         }
     }
 
-    @CoreMethod(names = "pop_preserving_frame", onSingleton = true, required = 0)
+    @CoreMethod(names = "pop_extension_call_frame", onSingleton = true, required = 0)
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject popFrame(VirtualFrame frame,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getPreservationStack().pop();
+            getDataNode.execute(frame).getExtensionCallStack().pop();
             return nil();
         }
     }
