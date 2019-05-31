@@ -39,6 +39,21 @@ public class ContextPermissionsTest {
     }
 
     @Test
+    public void testRequireGem() {
+        // TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
+        String home = System.getProperty("user.dir") + "/mxbuild/truffleruby-jvm/jre/languages/ruby";
+        try (Context context = Context.newBuilder("ruby")
+                .allowIO(true)
+                .allowNativeAccess(true)
+                .allowExperimentalOptions(true)
+                .option("ruby.home", home)
+                .build()) {
+            // NOTE: rake is a bundled gem, so it needs RubyGems to be required
+            Assert.assertEquals("Rake", context.eval("ruby", "require 'rake'; Rake.to_s").asString());
+        }
+    }
+
+    @Test
     public void testThreadsNoNative() throws Throwable {
         // The ruby.single_threaded option needs to be set because --single-threaded defaults to --embedded.
         try (Context context = Context.newBuilder("ruby").allowCreateThread(true).allowExperimentalOptions(true).option("ruby.single-threaded", "false").build()) {
