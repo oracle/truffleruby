@@ -133,30 +133,30 @@ begin
   with_conditional_preprocessing = proc do |command1, command2|
     <<-EOF
 $(if $(or\\
+  $(and\\
+    $(findstring nokogiri, $(realpath $(<))),\\
+    $(or\\
+      $(findstring xml_node_set.c, $(<)),\\
+      $(findstring xslt_stylesheet.c, $(<)),\\
+      $(findstring xml_document.c, $(<)),\\
+      $(findstring xml_sax_parser.c, $(<)),\\
+      $(findstring xml_xpath_context.c, $(<)))),\\
  $(and\\
- $(findstring nokogiri, $(realpath $(<))),\\
- $(or\\
- $(findstring xml_node_set.c, $(<)),\\
- $(findstring xslt_stylesheet.c, $(<)),\\
- $(findstring xml_document.c, $(<)),\\
- $(findstring xml_sax_parser.c, $(<)),\\
- $(findstring xml_xpath_context.c, $(<)))),\\
- $(and\\
- $(findstring pg, $(realpath $(<))),\\
- $(or\\
- $(findstring pg_binary_encoder.c, $(<)),\\
- $(findstring pg_result.c, $(<)),\\
- $(findstring pg_tuple.c, $(<)),\\
- $(findstring pg_text_decoder.c, $(<)),\\
- $(findstring pg_text_encoder.c, $(<)),\\
- $(findstring pg_type_map_by_class.c, $(<)))),\\
- $(and\\
- $(findstring json, $(realpath $(<))),\\
- $(or\\
- $(findstring parser.c, $(<))))\\
-),\\
- #{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1},\\
- #{command2})
+    $(findstring pg, $(realpath $(<))),\\
+    $(or\\
+      $(findstring pg_binary_encoder.c, $(<)),\\
+      $(findstring pg_result.c, $(<)),\\
+      $(findstring pg_tuple.c, $(<)),\\
+      $(findstring pg_text_decoder.c, $(<)),\\
+      $(findstring pg_text_encoder.c, $(<)),\\
+      $(findstring pg_type_map_by_class.c, $(<)))),\\
+  $(and\\
+    $(findstring json, $(realpath $(<))),\\
+  $(or\\
+    $(findstring parser.c, $(<))))\\
+  ),\\
+  #{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1},\\
+  #{command2})
 EOF
   end
 
