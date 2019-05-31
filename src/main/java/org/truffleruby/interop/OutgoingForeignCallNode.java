@@ -149,7 +149,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             return readNode.execute(receiver, args[0]);
         }
 
-        @Specialization
+        @Specialization(guards = "args.length != 1")
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
@@ -169,7 +169,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             return readNode.execute(receiver, args[0], args[1]);
         }
 
-        @Specialization
+        @Specialization(guards = "args.length != 2")
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
@@ -304,7 +304,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             return nullNode.execute(receiver);
         }
 
-        @Specialization
+        @Specialization(guards = "args.length != 0")
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
@@ -397,7 +397,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             }
         }
 
-        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInDouble(receiver)" },
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInLong(receiver)", "receivers.fitsInDouble(receiver)" },
                 limit = "getCacheLimit()")
         public Object callDouble(
                 TruffleObject receiver,
