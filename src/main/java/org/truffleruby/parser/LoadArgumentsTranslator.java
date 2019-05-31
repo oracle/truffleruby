@@ -25,7 +25,7 @@ import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
-import org.truffleruby.language.arguments.ReadBlockNode;
+import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadKeywordRestArgumentNode;
 import org.truffleruby.language.arguments.ReadOptionalArgumentNode;
@@ -343,14 +343,14 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     public RubyNode saveMethodBlockArg() {
-        final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().getNil());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
         return new WriteLocalVariableNode(slot, readNode);
     }
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNil());
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().getNil());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }

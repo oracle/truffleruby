@@ -27,7 +27,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
-import org.truffleruby.language.arguments.ReadBlockNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
 import org.truffleruby.language.control.AndNode;
@@ -319,7 +318,7 @@ public class MethodTranslator extends BodyTranslator {
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(sourceSection, node.getIterNode(), node.getArgsNode(), environment.getNamedMethodName());
 
         final RubyNode arguments = new ReadSuperArgumentsNode(argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted());
-        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock());
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
         RubyNode callNode = new SuperCallNode(arguments, block);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
@@ -354,7 +353,7 @@ public class MethodTranslator extends BodyTranslator {
         final RubyNode arguments = new ReadZSuperArgumentsNode(
                 reloadTranslator.getRestParameterIndex(),
                 reloadSequence.getSequence());
-        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock());
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
         RubyNode callNode = new SuperCallNode(arguments, block);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
@@ -362,11 +361,11 @@ public class MethodTranslator extends BodyTranslator {
         return withSourceSection(sourceSection, callNode);
     }
 
-    private RubyNode executeOrInheritBlock(RubyNode blockNode) {
+    private RubyNode executeOrInheritBlock(RubyNode blockNode, ParseNode callNode) {
         if (blockNode != null) {
             return blockNode;
         } else {
-            return new ReadBlockNode(context.getCoreLibrary().getNil());
+            return environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, callNode.getPosition());
         }
     }
 
