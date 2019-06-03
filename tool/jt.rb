@@ -1984,12 +1984,24 @@ EOS
   def lint(*args)
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
+
+    # Style
     rubocop
     sh "tool/lint.sh"
     checkstyle
+    mx 'pylint', '--primary'
+
     check_parser
     check_documentation_urls
     mx 'spotbugs'
+
+    # mx sanity checks
+    mx 'gate', '--tags', 'always'
+    mx 'verifymultireleaseprojects'
+    mx 'canonicalizeprojects'
+    mx 'verifysourceinproject'
+    mx 'checkoverlap'
+    mx 'verifylibraryurls'
   end
 
   def verify_native_bin!
