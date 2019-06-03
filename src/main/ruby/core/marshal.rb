@@ -229,7 +229,19 @@ module Marshal
       bytes = get_byte_sequence.force_encoding(Encoding::ASCII_8BIT)
 
       if @user_class
-        obj = STRING_ALLOCATE.bind(get_user_class).call
+        cls = get_user_class
+        if cls < String
+          obj = STRING_ALLOCATE.bind(cls).call
+        else
+          allocate = cls.method(:__allocate__)
+          if allocate.unbind == STRING_ALLOCATE
+            # For example, String.clone falls in this case
+            obj = allocate.call
+          else
+            raise ArgumentError, 'dump format error (user class)'
+          end
+        end
+
         Truffle.invoke_primitive(:string_initialize, obj, bytes, Encoding::ASCII_8BIT)
       else
         obj = bytes
