@@ -307,7 +307,7 @@ describe "Callback" do
     expect(s2[:f32]).to be_within(0.0000001).of 1.234567
   end
 
-
+  
   it "global variable" do
     proc = Proc.new { 0x1e }
     LibTest.cbVrS8 = proc
@@ -350,7 +350,7 @@ describe "Callback" do
         callback :cb_return_type, [ :int ], :int
         callback :cb_lookup, [ ], :cb_return_type
         attach_function :testReturnsCallback, :testReturnsClosure, [ :cb_lookup, :int ], :int
-      end
+      end      
 
       lookup_proc_called = false
       return_proc_called = false
@@ -406,7 +406,7 @@ describe "Callback" do
         callback :cb_argument, [ :int ], :int
         callback :cb_with_cb_argument, [ :cb_argument, :int ], :int
         attach_function :testCallbackAsArgument, :testArgumentClosure, [ :cb_with_cb_argument, :cb_argument, :int ], :int
-      end
+      end   
       callback_arg_called = false
       callback_with_callback_arg_called = false
       callback_arg = Proc.new do |val|
