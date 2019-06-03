@@ -230,7 +230,7 @@ suite = {
 
         "org.truffleruby.test": {
             "dir": "src/test",
-            "sourceDirs": ["java"],
+            "sourceDirs": ["java", "ruby"],
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.services",
@@ -239,13 +239,6 @@ suite = {
             ],
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
-        },
-
-        "org.truffleruby.test-ruby": {
-            "class": "ArchiveProject",
-            "outputDir": "src/test/ruby",
-            "prefix": "src/test/ruby",
             "license": ["EPL-1.0"],
         },
 
@@ -488,9 +481,9 @@ suite = {
         },
 
         "TRUFFLERUBY-TEST": {
+            "testDistribution": True,
             "dependencies": [
                 "org.truffleruby.test",
-                "org.truffleruby.test-ruby",
             ],
             "exclude": [
                 "mx:HAMCREST",

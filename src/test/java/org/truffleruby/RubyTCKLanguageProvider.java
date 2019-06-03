@@ -121,7 +121,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     public Collection<? extends Snippet> createScripts(Context context) {
         final List<Snippet> res = new ArrayList<>();
 
-        Snippet.newBuilder("array of points", context.eval(getSource("src/test/ruby/points.rb")), array(OBJECT)).resultVerifier(run -> {
+        Snippet.newBuilder("array of points", context.eval(getSource("points.rb")), array(OBJECT)).resultVerifier(run -> {
             ResultVerifier.getDefaultResultVerifier().accept(run);
             final Value result = run.getResult();
             Assert.assertEquals("array size", 2, result.getArraySize());
@@ -133,7 +133,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
             Assert.assertEquals("res[1].y", 7, p2.getMember("y").asInt());
         });
 
-        Snippet.newBuilder("recursion", context.eval(getSource("src/test/ruby/recursion.rb")), array(NUMBER)).resultVerifier(run -> {
+        Snippet.newBuilder("recursion", context.eval(getSource("recursion.rb")), array(NUMBER)).resultVerifier(run -> {
             ResultVerifier.getDefaultResultVerifier().accept(run);
             final Value result = run.getResult();
             Assert.assertEquals("array size", 3, result.getArraySize());
@@ -150,13 +150,13 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         List<InlineSnippet> res = new ArrayList<>();
         res.add(createInlineSnippet(
                 context,
-                getSource("src/test/ruby/lexical-context.rb"),
+                getSource("lexical-context.rb"),
                 16,
                 "a + b + c",
                 14 + 2 + 6));
         res.add(createInlineSnippet(
                 context,
-                getSource("src/test/ruby/lexical-context.rb"),
+                getSource("lexical-context.rb"),
                 16,
                 "binding.local_variable_get(:a) + binding.local_variable_get(:b) + binding.local_variable_get(:c)",
                 14 + 2 + 6));

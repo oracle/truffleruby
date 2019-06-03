@@ -86,7 +86,7 @@ public class RubyDebugTest {
             suspendedEvent = null;
         });
 
-        context.eval(getSource("src/test/ruby/init.rb"));
+        context.eval(getSource("init.rb"));
 
         run.clear();
     }
@@ -185,7 +185,7 @@ public class RubyDebugTest {
 
     @Test
     public void testEvalThrow() throws Throwable {
-        Source source = getSource("src/test/ruby/raise_ex.rb");
+        Source source = getSource("raise_ex.rb");
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
@@ -219,7 +219,7 @@ public class RubyDebugTest {
 
     @Test
     public void testInlineModifiesFrame() throws Throwable {
-        Source source = getSource("src/test/ruby/modify.rb");
+        Source source = getSource("modify.rb");
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
@@ -240,7 +240,7 @@ public class RubyDebugTest {
     @Ignore
     @Test
     public void testProperties() throws Throwable {
-        Source source = getSource("src/test/ruby/types.rb");
+        Source source = getSource("types.rb");
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
@@ -352,7 +352,7 @@ public class RubyDebugTest {
     }
 
     private static Source createFactorial() {
-        return getSource("src/test/ruby/factorial.rb");
+        return getSource("factorial.rb");
     }
 
     private final String getErr() {
