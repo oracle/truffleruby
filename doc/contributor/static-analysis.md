@@ -114,5 +114,5 @@ a suggestion.
 
 ```bash
 $ gem install brakeman
-$ brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/core/
+$ brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/truffleruby/
 ```

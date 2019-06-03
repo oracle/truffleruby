@@ -33,7 +33,7 @@ DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpu
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
-  src/main/ruby
+  src/main/ruby/truffleruby
   src/test/ruby
   tool/generate-sulongmock.rb
   spec/truffle
@@ -698,7 +698,7 @@ module Commands
     ruby_args += args
 
     if core_load_path
-      vm_args << "--experimental-options" << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+      vm_args << "--experimental-options" << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
     ruby_bin = find_launcher(native)
@@ -1282,7 +1282,7 @@ EOS
       else
         running_local_build = true
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
-        options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+        options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
         options << "-T--polyglot" # For Truffle::Interop.export specs
       end
 

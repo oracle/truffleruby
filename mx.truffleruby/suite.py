@@ -95,7 +95,7 @@ suite = {
                 "lib/mri",
                 "lib/truffle",
             ],
-            "load_path": ["src/main/ruby/core"],
+            "load_path": ["src/main/ruby/truffleruby/core"],
             "test": ["spec", "test"],
             "excluded": [
                 "bench",
@@ -169,7 +169,7 @@ suite = {
 
         "org.truffleruby": {
             "dir": "src/main",
-            "sourceDirs": ["java"],
+            "sourceDirs": ["java", "ruby"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
@@ -196,7 +196,7 @@ suite = {
             "externalProjects": {
                 "ruby-core": {
                     "type": "ruby",
-                    "path": "ruby",
+                    "path": "ruby/truffleruby",
                     "source": ["core", "post-boot"],
                     "load_path": ["core"]
                 }
@@ -216,16 +216,6 @@ suite = {
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
-        },
-
-        "org.truffleruby.core": {
-            "class": "ArchiveProject",
-            "outputDir": "src/main/ruby",
-            "prefix": "truffleruby",
-            "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
-                "BSD-new",          # Rubinius
-            ],
         },
 
         "org.truffleruby.test": {
@@ -330,7 +320,6 @@ suite = {
             "mainClass": "org.truffleruby.launcher.RubyLauncher",
             "dependencies": [
                 "org.truffleruby",
-                "org.truffleruby.core",
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
