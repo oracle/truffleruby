@@ -498,6 +498,7 @@ suite = {
             ],
             "distDependencies": [
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-SERVICES",
                 "truffle:TRUFFLE_TCK"
             ],
             "license": ["EPL-1.0"],
