@@ -128,13 +128,6 @@ class MSpecScript
     set :xtags, (get(:xtags) || []) + ['solaris']
   end
 
-  # Enable features
-  MSpec.enable_feature :fiber
-  MSpec.enable_feature :fiber_library
-  MSpec.disable_feature :fork
-  MSpec.enable_feature :encoding
-  MSpec.enable_feature :readline
-
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
   # All specs, including specs needing C-extensions support.
