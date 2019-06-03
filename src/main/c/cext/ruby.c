@@ -879,13 +879,22 @@ ID rb_intern_str(VALUE string) {
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
-  polyglot_invoke(rb_tr_unwrap(string), "concat", rb_tr_unwrap(rb_enc_str_new(to_concat, length, STR_ENC_GET(string))));
+  if (length == 0) {
+    return string;
+  }
+  if (length < 0) {
+	rb_raise(rb_eArgError, "negative string size (or size too big)");
+  }
+  int old_length = RSTRING_LEN(string);
+  rb_str_resize(string, old_length + length);
+  // Resizing the string will clear out the code range, so there is no
+  // need to do it explicitly.
+  memcpy(RSTRING_PTR(string) + old_length, to_concat, length);
   return string;
 }
 
 VALUE rb_str_cat2(VALUE string, const char *to_concat) {
-  polyglot_invoke(rb_tr_unwrap(string), "concat", rb_tr_unwrap(rb_str_new_cstr(to_concat)));
-  return string;
+  return rb_str_cat(string, to_concat, strlen(to_concat));
 }
 
 VALUE rb_str_to_str(VALUE string) {
