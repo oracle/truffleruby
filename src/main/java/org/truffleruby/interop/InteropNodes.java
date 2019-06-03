@@ -149,7 +149,7 @@ public abstract class InteropNodes {
         private DynamicObject translate(UnsupportedTypeException e) {
             String message = "Wrong arguments: " +
                     Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", "));
-            return coreExceptions().typeError(message,this);
+            return coreExceptions().typeError(message, this);
         }
 
     }
