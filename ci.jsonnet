@@ -362,6 +362,7 @@ local part_definitions = {
     lint: {
       packages+: {
         ruby: ">=2.1.0",
+        "pip:pylint": "==1.9.0",
       },
       run+: [
         ["mx", "sversions"],
