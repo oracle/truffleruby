@@ -6,19 +6,14 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-import glob
 import os
-from os.path import exists, join, dirname, basename, isdir
-import shutil
-import sys
+from os.path import join
 
 import mx
-import mx_subst
-import mx_unittest
 import mx_sdk
 
 if 'RUBY_BENCHMARKS' in os.environ:
-    import mx_truffleruby_benchmark
+    import mx_truffleruby_benchmark  # pylint: disable=unused-import
 
 _suite = mx.suite('truffleruby')
 root = _suite.dir
@@ -27,7 +22,7 @@ root = _suite.dir
 
 class ArchiveProject(mx.ArchivableProject):
     def __init__(self, suite, name, deps, workingSets, theLicense, **args):
-        mx.ArchivableProject.__init__(self, suite, name, deps, workingSets, theLicense)
+        mx.ArchivableProject.__init__(self, suite, name, deps, workingSets, theLicense, **args)
         assert 'prefix' in args
         assert 'outputDir' in args
 
@@ -56,7 +51,7 @@ def jt(*args):
     mx.log("\n$ " + ' '.join(['jt'] + list(args)) + "\n")
     mx.run(['ruby', join(root, 'tool/jt.rb')] + list(args))
 
-def build_truffleruby(args = []):
+def build_truffleruby(args):
     mx.command_function('sversions')([])
     jt('build', '--no-sforceimports')
 
@@ -84,7 +79,7 @@ def ruby_run_specs(args):
 
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
-    build_truffleruby()
+    build_truffleruby([])
     jt('ruby', '-e', 'puts "Hello Ruby!"')
 
 def ruby_testdownstream_aot(args):
@@ -93,11 +88,10 @@ def ruby_testdownstream_aot(args):
         mx.abort("Incorrect argument count: mx ruby_testdownstream_aot <aot_bin> [<format>] [<build_type>]")
 
     aot_bin = args[0]
-    format = args[1] if len(args) >= 2 else 'dot'
-    debug_build = args[2] == 'debug' if len(args) >= 3 else False
+    spec_format = args[1] if len(args) >= 2 else 'dot'
 
     fast = ['--excl-tag', 'slow']
-    mspec_args = ['--native', '--format', format, '--excl-tag', 'ci']
+    mspec_args = ['--native', '--format', spec_format, '--excl-tag', 'ci']
 
     os.environ['AOT_BIN'] = aot_bin
     ruby_run_specs(mspec_args)
@@ -107,7 +101,7 @@ def ruby_testdownstream_aot(args):
 
 def ruby_testdownstream_sulong(args):
     """Run C extension tests"""
-    build_truffleruby()
+    build_truffleruby([])
     # Ensure Sulong is available
     mx.suite('sulong')
 

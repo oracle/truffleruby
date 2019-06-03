@@ -300,7 +300,7 @@ local part_definitions = {
       packages+: {
         git: ">=1.8.3",
         mercurial: ">=3.2.4",
-        ruby: ">=2.0.0",
+        ruby: ">=2.1.0",
         llvm: "==3.8",
       },
     },
@@ -361,7 +361,7 @@ local part_definitions = {
 
     lint: {
       packages+: {
-        ruby: ">=2.1.0",
+        "pip:pylint": "==1.9.0",
       },
       run+: [
         ["mx", "sversions"],

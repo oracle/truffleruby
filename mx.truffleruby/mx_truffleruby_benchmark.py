@@ -23,10 +23,7 @@ import mx_benchmark
 _suite = mx.suite('truffleruby')
 rubyDir = _suite.dir
 
-def log(msg):
-    print >> sys.stderr, msg
-
-def jt(args, suite=None, nonZeroIsFatal=True, out=None, err=None, timeout=None, env=None, cwd=None):
+def jt(args, nonZeroIsFatal=True, out=None, err=None, timeout=None, env=None, cwd=None):
     jt = join(rubyDir, 'tool', 'jt.rb')
     return mx.run(['ruby', jt] + args, nonZeroIsFatal=nonZeroIsFatal, out=out, err=err, timeout=timeout, env=env, cwd=cwd)
 
@@ -43,7 +40,7 @@ class BackgroundServerTask:
         self.process = subprocess.Popen(self.args, preexec_fn=preexec_fn, creationflags=creationflags)
         mx._addSubprocess(self.process, self.args)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
         self.process.send_signal(signal.SIGINT)
         self.process.wait()
 
@@ -226,11 +223,11 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
         jt(['metrics', 'time', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
 
         lines = [line for line in out.data.split('\n') if len(line) > 0]
-        print('\n'.join(lines[0:-1]))
+        mx.log('\n'.join(lines[0:-1]))
 
         json_data = lines[-1]
-        print('JSON:')
-        print(json_data)
+        mx.log('JSON:')
+        mx.log(json_data)
         data = json.loads(json_data)
 
         return [{
@@ -262,7 +259,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
             try:
                 data.append(float(line))
             except ValueError:
-                log(line)
+                mx.log_error(line)
         if len(data) % 3 != 0:
             raise AssertionError("Number of values not a multiple of 3")
         return data
@@ -290,7 +287,6 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
 
             data = self.filterLines(lines)
             elapsed = [d for n, d in enumerate(data) if n % 3 == 0]
-            iterations = [d for n, d in enumerate(data) if n % 3 == 1]
             samples = [d for n, d in enumerate(data) if n % 3 == 2]
 
             if lines[-1] == 'optimised away':
@@ -303,7 +299,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'metric.iteration': n,
                     'extra.metric.warmedup': 'false',
                     'extra.metric.elapsed-num': e
-                } for n, (e, i, sample) in enumerate(zip(elapsed, iterations, samples))] + [{
+                } for n, (e, sample) in enumerate(zip(elapsed, samples))] + [{
                     'benchmark': benchmark,
                     'metric.name': 'throughput',
                     'metric.value': 2147483647, # arbitrary high value (--simple won't run more than this many ips)
@@ -315,13 +311,6 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'error': 'optimised away'
                 }]
             else:
-                if len(samples) > 1:
-                    warmed_up_samples = [sample for n, sample in enumerate(samples) if n / float(len(samples)) >= 0.5]
-                else:
-                    warmed_up_samples = samples
-
-                warmed_up_mean = sum(warmed_up_samples) / float(len(warmed_up_samples))
-
                 return [{
                     'benchmark': benchmark,
                     'metric.name': 'throughput',
@@ -331,7 +320,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'metric.iteration': n,
                     'extra.metric.warmedup': 'true' if n / float(len(samples)) >= 0.5 else 'false',
                     'extra.metric.elapsed-num': e
-                } for n, (e, i, sample) in enumerate(zip(elapsed, iterations, samples))]
+                } for n, (e, sample) in enumerate(zip(elapsed, samples))]
         else:
             sys.stderr.write(out.data)
 
@@ -537,7 +526,7 @@ class MicroBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def benchmarks(self):
         ruby_benchmarks = join(rubyDir, 'bench')
         benchmarks = []
-        for root, dirs, files in os.walk(join(ruby_benchmarks, 'micro')):
+        for root, _, files in os.walk(join(ruby_benchmarks, 'micro')):
             for name in files:
                 if name.endswith('.rb'):
                     benchmark_file = join(root, name)[len(ruby_benchmarks)+1:]
@@ -598,7 +587,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
                     out=out,
                     nonZeroIsFatal=False) == 0 and server.is_running():
                 samples = [float(s) for s in out.data.split('\n')[0:-1]]
-                print samples
+                mx.log(samples)
                 half_samples = len(samples) / 2
                 used_samples = samples[len(samples)-half_samples-1:]
                 ips = sum(used_samples) / float(len(used_samples))
