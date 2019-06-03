@@ -22,7 +22,7 @@ root = _suite.dir
 
 class ArchiveProject(mx.ArchivableProject):
     def __init__(self, suite, name, deps, workingSets, theLicense, **args):
-        mx.ArchivableProject.__init__(self, suite, name, deps, workingSets, theLicense)
+        mx.ArchivableProject.__init__(self, suite, name, deps, workingSets, theLicense, **args)
         assert 'prefix' in args
         assert 'outputDir' in args
 
