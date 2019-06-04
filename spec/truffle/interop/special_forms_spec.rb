@@ -15,29 +15,29 @@ describe "Interop special form" do
   end
 
   it "#[] sends readMember(*)" do
-    @object[:foo] rescue nil
-    @object['bar'] rescue nil
+    -> { @object[:foo] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object['bar'] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("readMember(foo)")
     @object.to_s.should include("readMember(bar)")
   end
 
   it "#[]= sends writeMember(*)" do
-    (@object[:foo] = 1) rescue nil
-    (@object['bar'] = 2) rescue nil
+    -> { (@object[:foo] = 1) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { (@object['bar'] = 2) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("writeMember(foo, 1)")
     @object.to_s.should include("writeMember(bar, 2)")
   end
 
   # FIXME (pitr-ch 18-Mar-2019): break down
   it "#delete(name) sends removeMember(*) or removeArrayElement(*)" do
-    @object.delete :foo rescue nil
-    @object.delete 14 rescue nil
+    -> { @object.delete :foo }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.delete 14 }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("removeMember(foo)")
     @object.to_s.should include("removeArrayElement(14)")
   end
 
   it "#call sends execute(*)" do
-    @object.call(1, 2, 3) rescue nil
+    -> { @object.call(1, 2, 3) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("execute(1, 2, 3)")
   end
 
@@ -47,12 +47,12 @@ describe "Interop special form" do
   end
 
   it "#size sends getArraySize()" do
-    @object.size rescue nil
+    -> { @object.size }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("getArraySize()")
   end
 
   it "#keys sends getMembers(false)" do
-    @object.keys rescue nil
+    -> { @object.keys }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("getMembers(false)")
   end
 
@@ -63,14 +63,14 @@ describe "Interop special form" do
   end
 
   it "#name sends invokeMember(*)" do
-    @object.foo rescue nil
-    @object.bar(1, 2, 3) rescue nil
+    -> { @object.foo }.should raise_error(NoMethodError)
+    -> { @object.bar(1, 2, 3) }.should raise_error(NoMethodError)
     @object.to_s.should include("invokeMember(foo)")
     @object.to_s.should include("invokeMember(bar, 1, 2, 3)")
   end
 
   it "#new sends instantiate()" do
-    @object.new rescue nil
+    -> { @object.new }.should raise_error(RuntimeError, /UnsupportedMessageException/)
     @object.to_s.should include("instantiate()")
   end
 
