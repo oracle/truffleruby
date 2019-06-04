@@ -27,6 +27,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
@@ -145,18 +146,12 @@ public class RubyObjectType extends ObjectType {
     public static long asPointer(
             DynamicObject receiver,
             @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached(value = "createPrivate()", allowUncached = true)
-                    CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
+            @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
         if (respondNode.doesRespondTo(null, "__address__", receiver)) {
-            // TODO (pitr-ch 18-Mar-2019): cast to long with a node
-            Object result = dispatchNode.call(receiver, "__address__");
-            if (result instanceof Integer) {
-                // TODO (pitr-ch 18-Mar-2019): missing comment
-                result = (long) ((int) result);
-            }
-            return (long) result;
+            return longCastNode.executeCastLong(dispatchNode.call(receiver, "__address__"));
         } else {
             throw UnsupportedMessageException.create();
         }
