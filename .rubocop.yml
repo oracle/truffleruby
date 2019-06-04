@@ -369,3 +369,8 @@ Style/StringLiterals:
   - single_quotes
   - double_quotes
   ConsistentQuotesInMultiline: false
+
+# Supports --auto-correct
+Style/UnlessElse:
+  Description: Checks for unless expressions with else clauses.
+  Enabled: true

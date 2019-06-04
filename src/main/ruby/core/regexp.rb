@@ -166,10 +166,10 @@ class Regexp
     str = ''.encode(enc)
 
     patterns = patterns.map do |pat|
-      unless pat.kind_of? Regexp
-        StringValue(pat)
-      else
+      if pat.kind_of? Regexp
         pat
+      else
+        StringValue(pat)
       end
     end
 

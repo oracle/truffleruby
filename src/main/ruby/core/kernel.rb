@@ -231,14 +231,14 @@ module Kernel
     str = str.to_str unless str.class == String
     file = file.to_str unless file.class == String
     line = line.to_i unless line.is_a?(Integer)
-    unless a_binding
-      receiver = self
-      a_binding = Truffle.invoke_primitive(:caller_binding)
-    else
+    if a_binding
       unless a_binding.class == Binding
         raise TypeError, "Wrong argument type #{a_binding.class} (expected binding)"
       end
       receiver = a_binding.receiver
+    else
+      receiver = self
+      a_binding = Truffle.invoke_primitive(:caller_binding)
     end
 
     Truffle.invoke_primitive(:kernel_eval, receiver, str, a_binding, file, line)
