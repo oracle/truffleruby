@@ -223,11 +223,29 @@ module Marshal
       end
     end
 
-    def construct_string
-      obj = get_byte_sequence
-      Truffle::Internal::Unsafe.set_class(obj, get_user_class) if @user_class
+    STRING_ALLOCATE = String.method(:__allocate__).unbind
 
-      set_object_encoding(obj, Encoding::ASCII_8BIT)
+    def construct_string
+      bytes = get_byte_sequence.force_encoding(Encoding::ASCII_8BIT)
+
+      if @user_class
+        cls = get_user_class
+        if cls < String
+          obj = STRING_ALLOCATE.bind(cls).call
+        else
+          allocate = cls.method(:__allocate__)
+          if allocate.unbind == STRING_ALLOCATE
+            # For example, String.clone falls in this case
+            obj = allocate.call
+          else
+            raise ArgumentError, 'dump format error (user class)'
+          end
+        end
+
+        Truffle.invoke_primitive(:string_initialize, obj, bytes, Encoding::ASCII_8BIT)
+      else
+        obj = bytes
+      end
 
       store_unique_object obj
     end
@@ -653,21 +671,24 @@ module Marshal
       obj
     end
 
+    ARRAY_ALLOCATE = Array.method(:__allocate__).unbind
     ARRAY_APPEND = Array.instance_method(:<<)
 
     def construct_array
-      obj = []
-      store_unique_object obj
-
       if @user_class
         cls = get_user_class()
         if cls < Array
-          Truffle::Internal::Unsafe.set_class obj, cls
+          obj = ARRAY_ALLOCATE.bind(cls).call
         else
           # This is what MRI does, it's weird.
-          return cls.allocate
+          obj = cls.allocate
+          store_unique_object obj
+          return obj
         end
+      else
+        obj = []
       end
+      store_unique_object obj
 
       construct_integer.times do |_i|
         ARRAY_APPEND.bind(obj).call(construct)

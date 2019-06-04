@@ -805,27 +805,8 @@ class IO
     ret
   end
 
-  def self.pipe(external=nil, internal=nil, options=nil)
-    fds = FFI::MemoryPointer.new(:int, 2) do |ptr|
-      r = Truffle::POSIX.pipe(ptr)
-      Errno.handle if r == -1
-      ptr.read_array_of_int(2)
-    end
-
-    lhs = self.new(fds[0], RDONLY)
-    rhs = self.new(fds[1], WRONLY)
-
-    lhs.close_on_exec = true
-    rhs.close_on_exec = true
-
-    lhs.set_encoding external || Encoding.default_external,
-                     internal || Encoding.default_internal, options
-
-    lhs.sync = true
-    rhs.sync = true
-
-    lhs.pipe = true
-    rhs.pipe = true
+  def self.pipe(external = nil, internal = nil, options = nil)
+    lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal, options)
 
     if block_given?
       begin
@@ -881,18 +862,16 @@ class IO
       readable = true
     end
 
-    pa_read, ch_write = pipe if readable
+    # We only need the Bidirectional pipe if we're reading and writing.
+    # Otherwise, we can just return the IO object for the proper half.
+    read_class = (readable && writable) ? IO::BidirectionalPipe : self
+
+    pa_read, ch_write = Truffle::IOOperations.create_pipe(read_class, self) if readable
     ch_read, pa_write = pipe if writable
 
-    # We only need the Bidirectional pipe if we're reading and writing.
-    # If we're only doing one, we can just return the IO object for
-    # the proper half.
     if readable and writable
-      # Transmogrify pa_read into a BidirectionalPipe object,
-      # and then tell it about its pid and pa_write
-      Truffle::Internal::Unsafe.set_class pa_read, IO::BidirectionalPipe
       pipe = pa_read
-      pipe.set_pipe_info(pa_write)
+      pipe.instance_variable_set(:@write, pa_write)
     elsif readable
       pipe = pa_read
     elsif writable
@@ -1149,7 +1128,7 @@ class IO
     end
 
     # Close old descriptor if there was already one associated
-    io.close if io.descriptor
+    io.close if io.descriptor != -1
 
     io.descriptor = fd
     io.mode       = mode || cur_mode
@@ -2228,7 +2207,8 @@ class IO
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
-        Truffle::Internal::Unsafe.set_class self, io.class
+        Truffle.invoke_primitive :vm_set_class, self, io.class
+
         if io.respond_to?(:path)
           @path = io.path
         end
@@ -2673,18 +2653,11 @@ end
 
 class IO::BidirectionalPipe < IO
 
-  def set_pipe_info(write)
-    @write = write
-    @sync = true
-  end
-
   ##
   # Closes ios and flushes any pending writes to the
   # operating system. The stream is unavailable for
   # any further data operations; an IOError is raised
-  # if such an attempt is made. I/O streams are
-  # automatically closed when they are claimed by
-  # the garbage collector.
+  # if such an attempt is made.
   #
   # If ios is opened by IO.popen, close sets $?.
   def close

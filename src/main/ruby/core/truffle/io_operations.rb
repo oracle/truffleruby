@@ -13,10 +13,12 @@ module Truffle
     def self.last_line(a_binding)
       Truffle::KernelOperations.frame_local_variable_get(:$_, a_binding)
     end
+    Truffle::Graal.always_split(method(:last_line))
 
     def self.set_last_line(value, a_binding)
       Truffle::KernelOperations.frame_local_variable_set(:$_, a_binding, value)
     end
+    Truffle::Graal.always_split(method(:set_last_line))
 
     def self.print(io, args, last_line_binding)
       if args.empty?
@@ -96,7 +98,27 @@ module Truffle
       end
     end
 
-    Truffle::Graal.always_split(method(:last_line))
-    Truffle::Graal.always_split(method(:set_last_line))
+    def self.pipe_end_setup(io)
+      io.close_on_exec = true
+      io.sync = true
+      io.pipe = true
+      io
+    end
+
+    def self.create_pipe(read_class, write_class, external = nil, internal = nil, options = nil)
+      fds = Truffle::FFI::MemoryPointer.new(:int, 2) do |ptr|
+        res = Truffle::POSIX.pipe(ptr)
+        Errno.handle if res == -1
+        ptr.read_array_of_int(2)
+      end
+
+      lhs = pipe_end_setup(read_class.new(fds[0], IO::RDONLY))
+      rhs = pipe_end_setup(write_class.new(fds[1], IO::WRONLY))
+
+      lhs.set_encoding external || Encoding.default_external,
+                       internal || Encoding.default_internal, options
+
+      [lhs, rhs]
+    end
   end
 end
