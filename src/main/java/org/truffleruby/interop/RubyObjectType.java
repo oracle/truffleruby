@@ -80,6 +80,7 @@ public class RubyObjectType extends ObjectType {
                         !RubyGuards.isRubyHash(receiver) &&
                         !RubyGuards.isRubyString(receiver) &&
                         !RubyGuards.isRubyInteger(receiver) &&
+                        !RubyGuards.isRubyMethod(receiver) &&
                         !RubyGuards.isRubyProc(receiver));
     }
 
