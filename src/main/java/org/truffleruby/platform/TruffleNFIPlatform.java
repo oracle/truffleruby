@@ -49,15 +49,6 @@ public class TruffleNFIPlatform {
         }
     }
 
-    private static Object execute(TruffleObject function, Object... args) {
-        try {
-            // TODO (pitr-ch 21-Mar-2019): check call hierarchy, there might be a boundary missing, or it should be fast path
-            return InteropLibrary.getFactory().getUncached(function).execute(function, args);
-        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
-            throw new JavaException(e);
-        }
-    }
-
     private static Object invoke(TruffleObject receiver, String identifier, Object... args) {
         try {
             return InteropLibrary.getFactory().getUncached(receiver).invokeMember(receiver, identifier, args);
@@ -66,13 +57,13 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public TruffleObject bind(TruffleObject function, String signature) {
+    private TruffleObject bind(TruffleObject function, String signature) {
         return (TruffleObject) invoke(function, "bind", signature);
     }
 
-    public long asPointer(TruffleObject function) {
+    public long asPointer(TruffleObject truffleObject) {
         try {
-            return InteropLibrary.getFactory().getUncached(function).asPointer(function);
+            return InteropLibrary.getFactory().getUncached(truffleObject).asPointer(truffleObject);
         } catch (UnsupportedMessageException e) {
             throw new JavaException(e);
         }
@@ -123,13 +114,19 @@ public class TruffleNFIPlatform {
     public static class NativeFunction {
 
         private final TruffleObject function;
+        private final InteropLibrary functionInteropLibrary;
 
         private NativeFunction(TruffleObject function) {
             this.function = function;
+            this.functionInteropLibrary = InteropLibrary.getFactory().getUncached(this.function);
         }
 
         public Object call(Object... arguments) {
-            return execute(function, arguments);
+            try {
+                return functionInteropLibrary.execute(function, arguments);
+            } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
+                throw new JavaException(e);
+            }
         }
 
     }
