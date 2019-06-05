@@ -106,7 +106,7 @@ public class ManagedStructObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             Object value,
-            @Cached(allowUncached = true) ObjectIVarSetNode writeObjectFieldNode) {
+            @Cached ObjectIVarSetNode writeObjectFieldNode) {
 
         writeObjectFieldNode.executeIVarSet(receiver, name, value);
     }

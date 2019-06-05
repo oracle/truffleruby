@@ -1165,14 +1165,9 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubySymbol(name)")
         public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
-                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
+                @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, name, value);
         }
-
-        protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(false);
-        }
-
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)

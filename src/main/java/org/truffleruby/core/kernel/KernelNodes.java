@@ -893,14 +893,9 @@ public abstract class KernelNodes {
 
         @Specialization
         public Object instanceVariableSet(DynamicObject object, String name, Object value,
-                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name, value);
+                @Cached ObjectIVarSetNode iVarSetNode) {
+            return iVarSetNode.executeIVarSet(object, SymbolTable.checkInstanceVariableName(getContext(), name, object, this), value);
         }
-
-        protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(true);
-        }
-
     }
 
     @CoreMethod(names = "remove_instance_variable", raiseIfFrozenSelf = true, required = 1)
