@@ -1757,6 +1757,7 @@ public abstract class IntegerNodes {
         public Object pow(DynamicObject a, double b) {
             double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
             if (Double.isNaN(doublePow)) {
+                // Instead of returning NaN, run the fallback code which can create a complex result
                 return FAILURE;
             } else {
                 return doublePow;
