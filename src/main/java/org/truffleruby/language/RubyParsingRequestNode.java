@@ -90,8 +90,9 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 frame.getArguments());
         final Object value = callNode.call(arguments);
 
-        // The return value will be leaked to Java, share it.
-        if (context.getOptions().SHARED_OBJECTS_ENABLED) {
+        // The return value will be leaked to Java, so share it if the Context API is used.
+        // We share conditionally on EMBEDDED to avoid sharing return values used in RubyLauncher.
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && context.getOptions().EMBEDDED) {
             SharedObjects.writeBarrier(context, value);
         }
 
