@@ -228,8 +228,8 @@ public class ThreadManager {
         pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
-    public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
-        startSharing(rubyThread, "creating Ruby Thread " + info);
+    public void initialize(DynamicObject rubyThread, Node currentNode, String info, String sharingReason, Supplier<Object> task) {
+        startSharing(rubyThread, sharingReason);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 

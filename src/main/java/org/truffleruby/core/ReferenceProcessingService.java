@@ -113,7 +113,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.context = context;
         }
 
-        protected void processReferenceQueue() {
+        protected void processReferenceQueue(Class<?> owner) {
             if (context.getOptions().SINGLE_THREADED) {
 
                 drainReferenceQueue();
@@ -132,18 +132,19 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                  */
 
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
-                    createProcessingThread();
+                    createProcessingThread(owner);
                 }
 
             }
         }
 
-        protected void createProcessingThread() {
+        protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
             processingThread = threadManager.createBootThread(threadName());
             context.send(processingThread, "internal_thread_initialize");
+            final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
 
-            threadManager.initialize(processingThread, null, threadName(), () -> {
+            threadManager.initialize(processingThread, null, threadName(), sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager.runUntilResult(null, processingQueue::remove);
 
