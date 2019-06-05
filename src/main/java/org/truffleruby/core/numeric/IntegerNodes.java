@@ -106,12 +106,7 @@ public abstract class IntegerNodes {
 
         public abstract Object executeAdd(Object a, Object b);
 
-        @Specialization(guards = "b == 1", rewriteOn = ArithmeticException.class)
-        public int incInt(int a, int b) {
-            return Math.incrementExact(a);
-        }
-
-        @Specialization(rewriteOn = ArithmeticException.class, replaces = "incInt")
+        @Specialization(rewriteOn = ArithmeticException.class)
         public int add(int a, int b) {
             return Math.addExact(a, b);
         }
