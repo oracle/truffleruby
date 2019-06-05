@@ -14,7 +14,7 @@ module BenchmarkInterface
     def initialize
       @benchmarks = []
       @counter = 0
-      @@current = self
+      Thread.current[:benchmark_interface_benchmark_set] = self
       @iterations = 1
     end
 
@@ -81,10 +81,8 @@ module BenchmarkInterface
       benchmarks([name]).first
     end
 
-    @@current = nil
-
     def self.current
-      @@current
+      Thread.current[:benchmark_interface_benchmark_set]
     end
 
   end
