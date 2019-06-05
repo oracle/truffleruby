@@ -10,25 +10,27 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 /**
  * Casts a value into an int.
  */
-@ImportStatic(CoreLibrary.class)
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class IntegerCastNode extends RubyNode {
+@GenerateUncached
+@ImportStatic(RubyGuards.class)
+public abstract class IntegerCastNode extends Node {
 
     public static IntegerCastNode create() {
-        return IntegerCastNodeGen.create(null);
+        return IntegerCastNodeGen.create();
     }
 
     public abstract int executeCastInt(Object value);
@@ -38,19 +40,27 @@ public abstract class IntegerCastNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = "fitsIntoInteger(value)")
+    @Specialization(guards = "fitsInInteger(value)")
     public int doLong(long value) {
         return (int) value;
     }
 
-    @Fallback
-    public int doBasicObject(Object object) {
-        throw new RaiseException(getContext(), notAFixnum(object));
+    @Specialization(guards = "!fitsInInteger(value)")
+    public int doLongToBig(long value,
+            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+        throw new RaiseException(rubyContext, notAFixnum(rubyContext, value));
+    }
+
+    @Specialization(guards = {"!isBasicInteger(value)"})
+    public int doBasicObject(Object value,
+            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+        throw new RaiseException(rubyContext, notAFixnum(rubyContext, value));
     }
 
     @TruffleBoundary
-    private DynamicObject notAFixnum(Object object) {
-        return coreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
+    private DynamicObject notAFixnum(RubyContext rubyContext, Object object) {
+        return rubyContext.getCoreExceptions().
+                typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
     }
 
 }

@@ -89,7 +89,7 @@ public class RubyObjectType extends ObjectType {
     public static long getArraySize(
             DynamicObject receiver,
             @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
-            @Cached(allowUncached = true) IntegerCastNode integerCastNode,
+            @Cached IntegerCastNode integerCastNode,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
         if (RubyGuards.isRubyArray(receiver)) {
