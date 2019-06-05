@@ -175,7 +175,7 @@ Lint/InheritException:
   - runtime_error
   - standard_error
   Exclude:
-  - src/main/ruby/core/exception.rb
+  - src/main/ruby/truffleruby/core/exception.rb
 
 Lint/LiteralAsCondition:
   Description: Checks of literals used in conditions.

@@ -79,7 +79,7 @@ now be out of date.
 # Rubinius
 
 TruffleRuby contains code from Rubinius 2.11, including core library
-implementation in `truffleruby/core/src/main/ruby/core`. This is in some cases
+implementation in `src/main/ruby/truffleruby/core`. This is in some cases
 copyright 2011 Evan Phoenix, and in other cases copyright 2007-2015 Evan Phoenix
 and contributors, and released under the 3-clause BSD license. We have included
 licence headers in these files which weren't in the original ones.

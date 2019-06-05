@@ -18,23 +18,6 @@ if 'RUBY_BENCHMARKS' in os.environ:
 _suite = mx.suite('truffleruby')
 root = _suite.dir
 
-# Project classes
-
-class ArchiveProject(mx.ArchivableProject):
-    def __init__(self, suite, name, deps, workingSets, theLicense, **args):
-        mx.ArchivableProject.__init__(self, suite, name, deps, workingSets, theLicense, **args)
-        assert 'prefix' in args
-        assert 'outputDir' in args
-
-    def output_dir(self):
-        return join(self.dir, self.outputDir)
-
-    def archive_prefix(self):
-        return self.prefix
-
-    def getResults(self):
-        return mx.ArchivableProject.walk(self.output_dir())
-
 # Utilities
 
 class VerboseMx:

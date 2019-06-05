@@ -1,4 +1,4 @@
-file = 'src/main/ruby/core/truffle/ffi/pointer_access.rb'
+file = 'src/main/ruby/truffleruby/core/truffle/ffi/pointer_access.rb'
 
 code = <<RUBY
 # frozen_string_literal: true
