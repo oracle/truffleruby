@@ -274,7 +274,7 @@ describe "Sharing is correctly propagated for" do
 
     obj = Object.new
     thread.thread_variable_set(:sharing_spec, obj)
-    shared?(obj).should == true # current non-ideal behavior
+    shared?(obj).should == true # TODO (eregon, 5 Jun 2019): this is the current non-ideal behavior
   end
 
   it "classes and constants and they are not shared until sharing is started" do
