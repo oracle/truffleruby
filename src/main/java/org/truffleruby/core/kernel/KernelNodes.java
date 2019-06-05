@@ -875,14 +875,9 @@ public abstract class KernelNodes {
 
         @Specialization
         public Object instanceVariableGetSymbol(DynamicObject object, String name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name);
+                @Cached ObjectIVarGetNode iVarGetNode) {
+            return iVarGetNode.executeIVarGet(object, SymbolTable.checkInstanceVariableName(getContext(), name, object, this));
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(true);
-        }
-
     }
 
     @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)

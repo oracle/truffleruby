@@ -93,7 +93,7 @@ public class ManagedStructObjectType extends ObjectType {
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Cached(allowUncached = true) ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
+            @Cached ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
 
         if (!receiver.containsKey(name)) {
             throw UnknownIdentifierException.create(name);

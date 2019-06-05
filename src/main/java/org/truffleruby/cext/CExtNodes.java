@@ -1150,7 +1150,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubySymbol(name)")
         public Object hiddenVariableGet(DynamicObject object, DynamicObject name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
+                @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, name);
         }
 
@@ -1158,11 +1158,6 @@ public class CExtNodes {
         public Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
             return nil();
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false);
-        }
-
     }
 
     @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)

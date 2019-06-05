@@ -165,14 +165,9 @@ public abstract class TypeNodes {
 
         @Specialization
         public Object ivarGet(DynamicObject object, DynamicObject name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
+                @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, Layouts.SYMBOL.getString(name));
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false);
-        }
-
     }
 
     @Primitive(name = "object_ivar_set")

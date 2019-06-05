@@ -52,7 +52,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("create()") ObjectIVarGetNode readObjectFieldNode) {
+            @Cached ObjectIVarGetNode readObjectFieldNode) {
         return readObjectFieldNode.executeIVarGet(receiver, stringName);
     }
 
