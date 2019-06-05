@@ -388,7 +388,6 @@ suite = {
                     "file:lib/truffle",
                 ],
                 "lib/cext/": [
-                    "file:lib/cext/patches",
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",

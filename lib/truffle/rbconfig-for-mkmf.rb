@@ -10,6 +10,7 @@
 # clang, opt and llvm-link versions.
 
 require 'rbconfig'
+require_relative 'truffle/cext_preprocessor.rb'
 
 search_paths = {}
 if Truffle::Platform.darwin?
@@ -131,33 +132,7 @@ mkconfig.merge!(common)
 # compiler which disables this standard behaviour of the C preprocessor.
 begin
   with_conditional_preprocessing = proc do |command1, command2|
-    <<-EOF
-$(if $(or\\
-  $(and\\
-    $(findstring nokogiri, $(realpath $(<))),\\
-    $(or\\
-      $(findstring xml_node_set.c, $(<)),\\
-      $(findstring xslt_stylesheet.c, $(<)),\\
-      $(findstring xml_document.c, $(<)),\\
-      $(findstring xml_sax_parser.c, $(<)),\\
-      $(findstring xml_xpath_context.c, $(<)))),\\
- $(and\\
-    $(findstring pg, $(realpath $(<))),\\
-    $(or\\
-      $(findstring pg_binary_encoder.c, $(<)),\\
-      $(findstring pg_result.c, $(<)),\\
-      $(findstring pg_tuple.c, $(<)),\\
-      $(findstring pg_text_decoder.c, $(<)),\\
-      $(findstring pg_text_encoder.c, $(<)),\\
-      $(findstring pg_type_map_by_class.c, $(<)))),\\
-  $(and\\
-    $(findstring json, $(realpath $(<))),\\
-  $(or\\
-    $(findstring parser.c, $(<))))\\
-  ),\\
-  #{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1},\\
-  #{command2})
-EOF
+    Truffle::CExt::Preprocessor.makefile_matcher("#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1}", command2)
   end
 
   mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
