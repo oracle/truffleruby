@@ -281,4 +281,8 @@ describe "Sharing is correctly propagated for" do
     ruby_exe("p Truffle::Debug.shared?(Object)").should == "false\n"
   end
 
+  it "thread-local IO buffers which should not trigger sharing" do
+    ruby_exe("File.read(#{__FILE__.inspect}); p Truffle::Debug.shared?(Object)").should == "false\n"
+  end
+
 end

@@ -183,6 +183,7 @@ public class ThreadManager {
                 null,
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
+                Pointer.NULL,
                 currentGroup,
                 info,
                 nil());
@@ -335,6 +336,8 @@ public class ThreadManager {
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
         fiberManager.shutdown(javaThread);
+
+        Layouts.THREAD.getIoBuffer(thread).freeNoAutorelease();
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);

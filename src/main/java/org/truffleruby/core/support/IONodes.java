@@ -477,8 +477,6 @@ public abstract class IONodes {
     @Primitive(name = "io_get_thread_buffer", needsSelf = false)
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
-        private static final ThreadLocal<Pointer> THREAD_BUFFER_THREAD_LOCAL = ThreadLocal.withInitial(() -> Pointer.NULL);
-
         @Specialization
         public DynamicObject getThreadBuffer(long size,
                 @Cached("create()") AllocateObjectNode allocateObjectNode) {
@@ -487,13 +485,15 @@ public abstract class IONodes {
 
         @TruffleBoundary
         public static Pointer getBuffer(RubyContext context, long size) {
-            final Pointer buffer = THREAD_BUFFER_THREAD_LOCAL.get();
+            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+            final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
+
             if (buffer.getSize() >= size) {
                 return buffer;
             } else {
+                buffer.freeNoAutorelease();
                 final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
-                newBuffer.enableAutorelease(context.getFinalizationService());
-                THREAD_BUFFER_THREAD_LOCAL.set(newBuffer);
+                Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
                 return newBuffer;
             }
         }
