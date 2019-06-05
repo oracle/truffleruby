@@ -277,4 +277,8 @@ describe "Sharing is correctly propagated for" do
     shared?(obj).should == true # current non-ideal behavior
   end
 
+  it "classes and constants and they are not shared until sharing is started" do
+    ruby_exe("p Truffle::Debug.shared?(Object)").should == "false\n"
+  end
+
 end
