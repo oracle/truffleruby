@@ -858,19 +858,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        public Object compare(int a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare_no_error", b);
-        }
-
-        @Specialization(guards = "!isRubyNumber(b)")
-        public Object compare(long a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare_no_error", b);
-        }
-
-        @Specialization(guards = "!isRubyNumber(b)")
-        public Object compare(DynamicObject a, Object b,
+        public Object compare(Object a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
