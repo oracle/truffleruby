@@ -12,7 +12,6 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class PropagateTaintNode extends Node {
 

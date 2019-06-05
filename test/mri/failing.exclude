@@ -60,6 +60,10 @@ ruby/test_parse.rb # encoding
 rubygems/test_gem_security.rb # hangs
 io/wait/test_io_wait_uncommon.rb # unreliable in parallel
 
+# Too slow
+
+test_extlibs.rb
+
 # Other issues
 
 bigdecimal/test_bigdecimal.rb
@@ -177,7 +181,6 @@ ruby/test_arity.rb
 ruby/test_backtrace.rb
 ruby/test_enum.rb # cannot load such file -- continuation
 ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
-ruby/test_extlibs.rb
 ruby/test_file.rb
 ruby/test_iseq.rb
 ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/minitest/unit.rb:1417:in `sort': internal implementation error - NullPointerException null org.truffleruby.runtime.subsystems.TraceManager$4.probeTaggedAs(TraceManager.java:117) (RuntimeError)

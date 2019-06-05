@@ -46,7 +46,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
-import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory.CallCWithMutexNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;

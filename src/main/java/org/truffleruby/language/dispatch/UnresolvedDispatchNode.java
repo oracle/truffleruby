@@ -19,7 +19,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ShapeCachingGuards;
-import org.truffleruby.language.objects.shared.SharedObjects;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
 

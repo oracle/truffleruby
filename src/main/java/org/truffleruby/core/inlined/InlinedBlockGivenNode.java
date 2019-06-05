@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
