@@ -161,7 +161,7 @@ class Integer < Numeric
     String.from_codepoint self, enc
   end
 
-  def round(ndigits=undefined, half: nil)
+  def round(ndigits=undefined, half: :up)
     return self if undefined.equal? ndigits
 
     if Float === ndigits && ndigits.infinite?
@@ -172,7 +172,12 @@ class Integer < Numeric
     Truffle::Type.check_int(ndigits)
 
     if ndigits >= 0
-      self
+      case half
+      when :up, nil, :down, :even
+        self
+      else
+        raise ArgumentError, "invalid rounding mode: #{half}"
+      end
     else
       ndigits = -ndigits
 
@@ -185,12 +190,17 @@ class Integer < Numeric
 
       if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
-        x = if (half == :down)
-              x / f
-            else # :up or nil
-              (x + f / 2) / f
-            end
-        x = (x / 2) * 2 if half == :even
+        case half
+        when :up, nil
+          x = (x + (f / 2)) / f
+        when :down
+          x = x / f
+        when :even
+          x = (x + (f / 2)) / f
+          x = (x / 2) * 2
+        else
+          raise ArgumentError, "invalid rounding mode: #{half}"
+        end
         x = x * f
         x = -x if self < 0
         return x
