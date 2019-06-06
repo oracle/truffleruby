@@ -1742,17 +1742,23 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public double pow(DynamicObject a, double b) {
-            return powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
+        public Object pow(DynamicObject a, double b) {
+            double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
+            if (Double.isNaN(doublePow)) {
+                // Instead of returning NaN, run the fallback code which can create a complex result
+                return FAILURE;
+            } else {
+                return doublePow;
+            }
         }
 
         @Specialization(guards = "isRubyBignum(b)")
-        public Void pow(DynamicObject a, DynamicObject b) {
-            throw new UnsupportedOperationException();
+        public Object pow(DynamicObject a, DynamicObject b) {
+            return FAILURE;
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object pow(long a, Object b) {
+        public Object pow(Object a, Object b) {
             return FAILURE;
         }
 

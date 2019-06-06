@@ -3,6 +3,11 @@
 Bug fixes:
 
 * Sharing for thread-safety of objects is now triggered later as intended, e.g., when a second `Thread` is started.
+Compatibility:
+
+* Exceptions from `coerce` are no longer rescued, like MRI.
+* Implemented `Integer#{allbits?,anybits?,nobits?}`.
+* `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
 
 # 20.0.0 beta 1
 

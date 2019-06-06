@@ -1,1 +1,0 @@
-fails:Integer#<=> bignum with an Object lets the exception go through if #coerce raises an exception

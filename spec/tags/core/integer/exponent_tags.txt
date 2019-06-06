@@ -1,2 +1,0 @@
-fails:Integer#** bignum switch to a Float when the values is too big
-fails:Integer#** bignum returns a complex number when negative and raised to a fractional power

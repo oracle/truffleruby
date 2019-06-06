@@ -39,20 +39,18 @@ Object.deprecate_constant :Fixnum, :Bignum
 
 class Integer < Numeric
 
-  alias_method :truncate, :to_i
-  alias_method :ceil, :to_i
-  alias_method :floor, :to_i
-
   # Have a copy in Integer of the Numeric version, as MRI does
   public :remainder
 
   def **(o)
     Truffle.primitive :integer_pow
 
-    if o.is_a?(Float) && self < 0 && o != o.round
+    if (o.is_a?(Float) || o.is_a?(Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
     elsif o.is_a?(Integer) && o < 0
       return Rational.new(self, 1) ** o
+    elsif o.is_a?(Integer) && o > 0
+      return self ** o.to_f
     end
 
     redo_coerced :**, o
@@ -61,6 +59,22 @@ class Integer < Numeric
   def [](index)
     index = Truffle::Type.coerce_to_int(index)
     index < 0 ? 0 : (self >> index) & 1
+  end
+
+  def allbits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    (self & mask) == mask
+  end
+
+  def anybits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    (self & mask) != 0
+  end
+
+  def ceil(precision = 0)
+    return self unless precision < 0
+    x = 10 ** precision.abs
+    ((self / x) + 1) * x
   end
 
   def coerce(other)
@@ -88,6 +102,23 @@ class Integer < Numeric
     end
   end
 
+  def floor(precision = 0)
+    return self unless precision < 0
+    x = 10 ** precision.abs
+    (self / x) * x
+  end
+
+  def nobits?(mask)
+    mask = Truffle::Type.coerce_to_int(mask)
+    (self & mask) == 0
+  end
+
+  def pow(e, m=undefined)
+    return self ** e if undefined.equal?(m)
+    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Truffle::Type.object_kind_of?(m, Integer)
+    (self ** e) % m
+  end
+
   def times
     return to_enum(:times) { self } unless block_given?
 
@@ -97,6 +128,14 @@ class Integer < Numeric
       i += 1
     end
     self
+  end
+
+  def truncate(precision = 0)
+    if precision >= 0
+      self
+    else
+      round(precision, half: :down)
+    end
   end
 
   def chr(enc=undefined)
@@ -122,7 +161,7 @@ class Integer < Numeric
     String.from_codepoint self, enc
   end
 
-  def round(ndigits=undefined)
+  def round(ndigits=undefined, half: :up)
     return self if undefined.equal? ndigits
 
     if Float === ndigits && ndigits.infinite?
@@ -132,10 +171,13 @@ class Integer < Numeric
     ndigits = Truffle::Type.coerce_to_int(ndigits)
     Truffle::Type.check_int(ndigits)
 
-    if ndigits > 0
-      to_f
-    elsif ndigits == 0
-      self
+    if ndigits >= 0
+      case half
+      when :up, nil, :down, :even
+        self
+      else
+        raise ArgumentError, "invalid rounding mode: #{half}"
+      end
     else
       ndigits = -ndigits
 
@@ -148,7 +190,18 @@ class Integer < Numeric
 
       if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
-        x = (x + f / 2) / f * f
+        case half
+        when :up, nil
+          x = (x + (f / 2)) / f
+        when :down
+          x = x / f
+        when :even
+          x = (x + (f / 2)) / f
+          x = (x / 2) * 2
+        else
+          raise ArgumentError, "invalid rounding mode: #{half}"
+        end
+        x = x * f
         x = -x if self < 0
         return x
       end

@@ -1,4 +1,0 @@
-fails:Integer#truncate returns self if passed a precision of zero
-fails:Integer#truncate returns itself as a float if passed a positive precision
-fails:Integer#truncate precision argument specified as part of the truncate method is negative returns an integer with at least precision.abs trailing zeros
-fails:Integer#truncate returns itself if passed a positive precision

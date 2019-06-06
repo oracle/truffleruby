@@ -238,13 +238,7 @@ class Numeric
     other = Truffle::Interop.unbox_if_needed(other)
     return math_coerce_error(other, error) unless other.respond_to? :coerce
 
-    begin
-      values = other.coerce(self)
-    rescue
-      warn 'Numerical comparison operators will no more rescue exceptions of #coerce', uplevel: 1
-      warn 'in the next release. Return nil in #coerce if the coercion is impossible.', uplevel: 1
-      return math_coerce_error(other, error)
-    end
+    values = other.coerce(self)
 
     unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
       if error == :no_error
@@ -286,6 +280,7 @@ class Numeric
 
   def redo_compare(meth, right)
     b, a = math_coerce(right, :compare_error)
+    return nil unless b
     a.__send__ meth, b
   end
   private :redo_compare
