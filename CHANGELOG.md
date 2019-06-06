@@ -1,3 +1,9 @@
+# 20.0.0 beta 2
+
+Bug fixes:
+
+* Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
+
 # 20.0.0 beta 1
 
 Bug fixes:
