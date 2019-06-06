@@ -8,6 +8,7 @@ Compatibility:
 * Exceptions from `coerce` are no longer rescued, like MRI.
 * Implemented `Integer#{allbits?,anybits?,nobits?}`.
 * `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
+* Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
 
 # 20.0.0 beta 1
 

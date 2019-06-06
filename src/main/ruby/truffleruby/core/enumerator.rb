@@ -379,6 +379,7 @@ class Enumerator
       end
     end
     alias_method :find_all, :select
+    alias_method :filter, :select
 
     def reject
       raise ArgumentError, 'Lazy#reject requires a block' unless block_given?

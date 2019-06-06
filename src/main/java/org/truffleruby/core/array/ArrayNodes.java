@@ -1928,7 +1928,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "select", needsBlock = true, enumeratorSize = "size")
+    @CoreMethod(names = { "select", "filter" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class SelectNode extends YieldingCoreMethodNode {
