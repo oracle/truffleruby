@@ -51,18 +51,23 @@ public abstract class ObjectIVarGetNode extends Node {
             @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
         return ReadObjectFieldNode.read(
                 object,
-                checkName(rubyContext, object, name, checkName),
+                checkName(this, rubyContext, object, name, checkName),
                 rubyContext.getCoreLibrary().getNil());
     }
 
     protected ReadObjectFieldNode createReadFieldNode(RubyContext context, DynamicObject object, Object name, boolean checkName) {
         return ReadObjectFieldNodeGen.create(
-                checkName(context, object, name, checkName),
+                checkName(this, context, object, name, checkName),
                 context.getCoreLibrary().getNil());
     }
 
-    protected Object checkName(RubyContext context, DynamicObject object, Object name, boolean checkName) {
-        return checkName ? SymbolTable.checkInstanceVariableName(context, (String) name, object, this) : name;
+    public static Object checkName(
+            Node currentNode,
+            RubyContext context,
+            DynamicObject object,
+            Object name,
+            boolean checkName) {
+        return checkName ? SymbolTable.checkInstanceVariableName(context, (String) name, object, currentNode) : name;
     }
 
     protected int getCacheLimit() {

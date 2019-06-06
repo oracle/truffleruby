@@ -892,7 +892,7 @@ public abstract class KernelNodes {
         @Specialization
         public Object instanceVariableSet(DynamicObject object, String name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, SymbolTable.checkInstanceVariableName(getContext(), name, object, this), value);
+            return iVarSetNode.executeIVarSet(object, SymbolTable.checkInstanceVariableName(getContext(), name, object, this), value, true);
         }
     }
 

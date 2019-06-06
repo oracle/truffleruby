@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -29,29 +30,40 @@ public abstract class ObjectIVarSetNode extends Node {
         return ObjectIVarSetNodeGen.create();
     }
 
-    public abstract Object executeIVarSet(DynamicObject object, Object name, Object value);
+    public abstract Object executeIVarSet(DynamicObject object, Object name, Object value, boolean checkName);
+
+    public final Object executeIVarSet(DynamicObject object, Object name, Object value) {
+        return executeIVarSet(object, name, value, false);
+    }
 
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-    public Object ivarSetCached(DynamicObject object, Object name, Object value,
+    public Object ivarSetCached(DynamicObject object, Object name, Object value, boolean checkName,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("name") Object cachedName,
-            @Cached("create(cachedName)") WriteObjectFieldNode writeObjectFieldNode) {
+            @Cached("createWriteFieldNode(context, object, cachedName, checkName)") WriteObjectFieldNode writeObjectFieldNode) {
+        CompilerAsserts.partialEvaluationConstant(cachedName);
         writeObjectFieldNode.write(object, value);
         return value;
     }
 
     @TruffleBoundary
     @Specialization(replaces = "ivarSetCached")
-    public Object ivarSetUncached(DynamicObject object, Object name, Object value,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
-        if (SharedObjects.isShared(rubyContext, object)) {
-            SharedObjects.writeBarrier(rubyContext, value);
+    public Object ivarSetUncached(DynamicObject object, Object name, Object value, boolean checkName,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        if (SharedObjects.isShared(context, object)) {
+            SharedObjects.writeBarrier(context, value);
             synchronized (object) {
-                object.define(name, value);
+                object.define(ObjectIVarGetNode.checkName(this, context, object, name, checkName), value);
             }
         } else {
-            object.define(name, value);
+            object.define(ObjectIVarGetNode.checkName(this, context, object, name, checkName), value);
         }
         return value;
+    }
+
+    protected WriteObjectFieldNode createWriteFieldNode(RubyContext context, DynamicObject object, Object name, boolean checkName) {
+        return WriteObjectFieldNodeGen.create(
+                ObjectIVarGetNode.checkName(this, context, object, name, checkName));
     }
 
     protected int getCacheLimit() {
