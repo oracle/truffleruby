@@ -47,13 +47,13 @@ public abstract class LongCastNode extends Node {
     @Specialization(guards = "!isBasicInteger(value)")
     public long doBasicObject(
             Object value,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
-        throw new RaiseException(rubyContext, notAFixnum(rubyContext, value));
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        throw new RaiseException(context, notAFixnum(context, value));
     }
 
     @TruffleBoundary
-    private DynamicObject notAFixnum(RubyContext rubyContext, Object object) {
-        return rubyContext.getCoreExceptions().typeErrorIsNotA(
+    private DynamicObject notAFixnum(RubyContext context, Object object) {
+        return context.getCoreExceptions().typeErrorIsNotA(
                 object.toString(),
                 "Fixnum (fitting in long)", this);
     }

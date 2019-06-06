@@ -51,10 +51,10 @@ public abstract class BooleanCastNode extends RubyNode {
 
         public abstract boolean executeToBoolean(Object value);
 
-        @Specialization(guards = "isRubyNil(rubyContext, nil)")
+        @Specialization(guards = "isRubyNil(context, nil)")
         public boolean doNil(
                 Object nil,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             return false;
         }
 
@@ -78,10 +78,10 @@ public abstract class BooleanCastNode extends RubyNode {
             return true;
         }
 
-        @Specialization(guards = "!isRubyNil(rubyContext, object)")
+        @Specialization(guards = "!isRubyNil(context, object)")
         public boolean doBasicObject(
                 DynamicObject object,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             return true;
         }
 

@@ -230,18 +230,18 @@ public abstract class StringNodes {
         @Specialization
         protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
                 @Cached @Shared("allocate") AllocateObjectNode allocateObject,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
-            return allocateObject.allocate(rubyContext.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return allocateObject.allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization
         protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange,
                 @Cached @Shared("allocate") AllocateObjectNode allocateObject,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
-            return allocateObject.allocate(rubyContext.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+            return allocateObject.allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization(guards = "is7Bit(codeRange)")

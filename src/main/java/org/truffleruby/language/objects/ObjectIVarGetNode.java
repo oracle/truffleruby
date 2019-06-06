@@ -48,11 +48,11 @@ public abstract class ObjectIVarGetNode extends Node {
     @TruffleBoundary
     @Specialization(replaces = "ivarGetCached")
     public Object ivarGetUncached(DynamicObject object, Object name, boolean checkName,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return ReadObjectFieldNode.read(
                 object,
-                checkName(this, rubyContext, object, name, checkName),
-                rubyContext.getCoreLibrary().getNil());
+                checkName(this, context, object, name, checkName),
+                context.getCoreLibrary().getNil());
     }
 
     protected ReadObjectFieldNode createReadFieldNode(RubyContext context, DynamicObject object, Object name, boolean checkName) {

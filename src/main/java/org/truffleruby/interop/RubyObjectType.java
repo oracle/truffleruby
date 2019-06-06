@@ -66,8 +66,8 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static boolean isNull(
             DynamicObject object,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
-        return object == rubyContext.getCoreLibrary().getNil();
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return object == context.getCoreLibrary().getNil();
     }
 
     @ExportMessage
@@ -199,10 +199,10 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static boolean isArrayElementReadable(
             DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_readable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_readable?",
                 receiver,
                 index);
@@ -210,10 +210,10 @@ public class RubyObjectType extends ObjectType {
 
     @ExportMessage
     public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_modifiable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_modifiable?",
                 receiver,
                 index);
@@ -221,10 +221,10 @@ public class RubyObjectType extends ObjectType {
 
     @ExportMessage
     public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_insertable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_insertable?",
                 receiver,
                 index);
@@ -232,10 +232,10 @@ public class RubyObjectType extends ObjectType {
 
     @ExportMessage
     public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_removable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_removable?",
                 receiver,
                 index);
@@ -329,10 +329,10 @@ public class RubyObjectType extends ObjectType {
     public static Object getMembers(
             DynamicObject receiver,
             boolean internal,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_keys",
                 receiver,
                 internal);
@@ -342,13 +342,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberReadable(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_readable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_readable?",
                 receiver,
                 convertedName);
@@ -358,13 +358,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberModifiable(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_modifiable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_modifiable?",
                 receiver,
                 convertedName);
@@ -374,13 +374,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberInsertable(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_insertable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_insertable?",
                 receiver,
                 convertedName);
@@ -390,13 +390,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberRemovable(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_removable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_removable?",
                 receiver,
                 convertedName);
@@ -406,13 +406,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberInvocable(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_invocable?",
                 receiver,
                 convertedName);
@@ -422,13 +422,13 @@ public class RubyObjectType extends ObjectType {
     public static boolean isMemberInternal(
             DynamicObject receiver,
             String name,
-            @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                rubyContext.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().getTruffleInteropModule(),
                 "object_key_internal?",
                 receiver,
                 convertedName);

@@ -277,8 +277,8 @@ public abstract class RubyGuards {
         return isBasicNumber(object) || isRubyBignum(object);
     }
 
-    public static boolean isRubyNil(RubyContext rubyContext, Object object) {
-        return object == rubyContext.getCoreLibrary().getNil();
+    public static boolean isRubyNil(RubyContext context, Object object) {
+        return object == context.getCoreLibrary().getNil();
     }
 
     // Internal types

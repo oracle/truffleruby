@@ -153,10 +153,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
-                    rubyContext,
-                    rubyContext.getCoreExceptions().argumentError(args.length, 1, this));
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 1, this));
         }
     }
 
@@ -173,10 +173,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
-                    rubyContext,
-                    rubyContext.getCoreExceptions().argumentError(args.length, 2, this));
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 2, this));
         }
     }
 
@@ -308,10 +308,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callWithBadArguments(
                 TruffleObject receiver,
                 Object[] args,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
-                    rubyContext,
-                    rubyContext.getCoreExceptions().argumentError(args.length, 0, this));
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 0, this));
         }
     }
 

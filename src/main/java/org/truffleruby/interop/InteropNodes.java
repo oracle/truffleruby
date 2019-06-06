@@ -189,7 +189,7 @@ public abstract class InteropNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedContext(RubyLanguage.class) RubyContext rubyContext,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached BranchProfile unknownIdentifierProfile,
                 @Cached BranchProfile exceptionProfile) {
@@ -201,10 +201,10 @@ public abstract class InteropNodes {
                 foreign = receivers.invokeMember(receiver, name, arguments);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(rubyContext, rubyContext.getCoreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(context, context.getCoreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException | ArityException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(rubyContext, rubyContext.getCoreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this));
             }
 
             return foreignToRubyNode.executeConvert(foreign);
