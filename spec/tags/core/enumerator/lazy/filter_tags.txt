@@ -1,8 +1,0 @@
-fails:Enumerator::Lazy#filter returns a new instance of Enumerator::Lazy
-fails:Enumerator::Lazy#filter sets #size to nil
-fails:Enumerator::Lazy#filter calls the block with a gathered array when yield with multiple arguments
-fails:Enumerator::Lazy#filter raises an ArgumentError when not given a block
-fails:Enumerator::Lazy#filter works with an infinite enumerable
-fails:Enumerator::Lazy#filter when the returned lazy enumerator is evaluated by Enumerable#first stops after specified times
-fails:Enumerator::Lazy#filter on a nested Lazy sets #size to nil
-fails:Enumerator::Lazy#filter on a nested Lazy when the returned lazy enumerator is evaluated by Enumerable#first stops after specified times
