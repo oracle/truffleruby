@@ -36,11 +36,14 @@ public abstract class ObjectIVarGetNode extends Node {
         return executeIVarGet(object, name, false);
     }
 
-    @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
+    @Specialization(guards = {"name == cachedName", "context == cachedContext"}, limit = "getCacheLimit()")
     public Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
             @Cached("name") Object cachedName,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("createReadFieldNode(context, object, cachedName, checkName)") ReadObjectFieldNode readObjectFieldNode) {
+            // TODO (pitr-ch 06-Jun-2019): instead of caching context since nil is context dependent,
+            //  the nil() method should be turned into a node to always get the correct nil
+            @Cached("context") RubyContext cachedContext,
+            @Cached("createReadFieldNode(cachedContext, object, cachedName, checkName)") ReadObjectFieldNode readObjectFieldNode) {
         CompilerAsserts.partialEvaluationConstant(checkName);
         return readObjectFieldNode.execute(object);
     }
