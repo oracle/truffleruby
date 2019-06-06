@@ -642,6 +642,7 @@ module Enumerable
   end
 
   alias_method :select, :find_all
+  alias_method :filter, :find_all
 
   def find_index(value=undefined)
     if undefined.equal? value
