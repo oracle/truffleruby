@@ -26,7 +26,7 @@ public abstract class RescueNode extends RubyNode {
     @Child private RubyNode rescueBody;
 
     @Child private CallDispatchHeadNode callTripleEqualsNode;
-    @Child private BooleanCastNode booleanCastNode;
+    @Child private BooleanCastNode.Childless booleanCastNode;
 
     private final BranchProfile errorProfile = BranchProfile.create();
 
@@ -53,7 +53,7 @@ public abstract class RescueNode extends RubyNode {
         }
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            booleanCastNode = insert(BooleanCastNodeGen.create(null));
+            booleanCastNode = insert(BooleanCastNodeGen.Childless.create());
         }
 
         final Object matches = callTripleEqualsNode.call(handlingClass, "===", exception);

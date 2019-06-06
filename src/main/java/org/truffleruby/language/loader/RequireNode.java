@@ -56,7 +56,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createPrivate();
-    @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
+    @Child private BooleanCastNode.Childless booleanCastNode = BooleanCastNode.Childless.create();
     @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createPrivate();
 
     @Child private WarningNode warningNode;
