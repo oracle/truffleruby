@@ -10,6 +10,29 @@
 
 class Ripper
 
+  def initialize(src, filename = "(ripper)", lineno = 1)
+  end
+
+  def parse
+  end
+
+  def column
+  end
+
+  def state
+  end
+
+  def yydebug
+    false
+  end
+
+  def end_seen?
+    false
+  end
+
+  def lineno
+  end
+
   class Filter
 
     def initialize(src, filename='-', lineno=1)
