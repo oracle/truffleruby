@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.dsl.Volatile;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             @Nullable @Volatile Object value,
             AtomicBoolean wakeUp,
             @Volatile int priority,
+            Pointer ioBuffer,
             DynamicObject threadGroup,
             String sourceLocation,
             DynamicObject name);
@@ -84,6 +86,9 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     int getPriority(DynamicObject object);
     void setPriority(DynamicObject object, int value);
+
+    Pointer getIoBuffer(DynamicObject object);
+    void setIoBuffer(DynamicObject object, Pointer value);
 
     DynamicObject getThreadGroup(DynamicObject object);
     void setThreadGroup(DynamicObject object, DynamicObject value);

@@ -1,3 +1,9 @@
+# 20.0.0 beta 2
+
+Bug fixes:
+
+* Sharing for thread-safety of objects is now triggered later as intended, e.g., when a second `Thread` is started.
+
 # 20.0.0 beta 1
 
 Bug fixes:

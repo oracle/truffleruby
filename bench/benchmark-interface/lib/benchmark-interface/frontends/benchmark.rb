@@ -34,10 +34,6 @@ module Benchmark
   def self.benchmark(caption='', label_width=nil, format=nil, *labels)
     yield BenchmarkInterface::BenchmarkContext.new
   end
-
-  def self.realtime(name=nil, &block)
-    BenchmarkInterface.benchmark name, &block
-  end
   
   def self.bm(label_width=0, *labels)
     yield BenchmarkInterface::BenchmarkContext.new

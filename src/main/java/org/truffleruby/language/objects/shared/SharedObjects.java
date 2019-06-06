@@ -37,9 +37,12 @@ public class SharedObjects {
         return sharing;
     }
 
-    public void startSharing() {
+    public void startSharing(String reason) {
         if (!sharing) {
             sharing = true;
+            if (context.getOptions().SHARED_OBJECTS_DEBUG) {
+                RubyLanguage.LOGGER.info("starting sharing due to " + reason);
+            }
             shareContextRoots(context);
         }
     }

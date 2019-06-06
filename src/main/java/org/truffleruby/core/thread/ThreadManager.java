@@ -183,6 +183,7 @@ public class ThreadManager {
                 null,
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
+                Pointer.NULL,
                 currentGroup,
                 info,
                 nil());
@@ -228,8 +229,8 @@ public class ThreadManager {
         pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
-    public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
-        startSharing(rubyThread);
+    public void initialize(DynamicObject rubyThread, Node currentNode, String info, String sharingReason, Supplier<Object> task) {
+        startSharing(rubyThread, sharingReason);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 
@@ -308,16 +309,16 @@ public class ThreadManager {
     }
 
     // Share the Ruby Thread before it can be accessed concurrently, and before it is added to Thread.list
-    public void startSharing(DynamicObject rubyThread) {
+    public void startSharing(DynamicObject rubyThread, String reason) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
             // TODO (eregon, 22 Sept 2017): no need if singleThreaded in isThreadAccessAllowed()
-            context.getSharedObjects().startSharing();
+            context.getSharedObjects().startSharing(reason);
             SharedObjects.writeBarrier(context, rubyThread);
         }
     }
 
     public void startForeignThread(DynamicObject rubyThread, Thread javaThread) {
-        startSharing(rubyThread);
+        startSharing(rubyThread, "creating a foreign thread");
         start(rubyThread, javaThread);
     }
 
@@ -335,6 +336,8 @@ public class ThreadManager {
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
         fiberManager.shutdown(javaThread);
+
+        Layouts.THREAD.getIoBuffer(thread).freeNoAutorelease();
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);

@@ -255,4 +255,34 @@ describe "Sharing is correctly propagated for" do
     shared?(new_hash).should == true
   end
 
+  it "Fiber local variables which do not share the value" do
+    thread = Thread.current
+    shared?(thread).should == true
+
+    obj = Object.new
+    thread[:sharing_spec] = obj
+    begin
+      shared?(obj).should == false
+    ensure
+      thread[:sharing_spec] = nil
+    end
+  end
+
+  it "Thread local variables which share the value (probably they should not)" do
+    thread = Thread.current
+    shared?(thread).should == true
+
+    obj = Object.new
+    thread.thread_variable_set(:sharing_spec, obj)
+    shared?(obj).should == true # TODO (eregon, 5 Jun 2019): this is the current non-ideal behavior
+  end
+
+  it "classes and constants and they are not shared until sharing is started" do
+    ruby_exe("p Truffle::Debug.shared?(Object)").should == "false\n"
+  end
+
+  it "thread-local IO buffers which should not trigger sharing" do
+    ruby_exe("File.read(#{__FILE__.inspect}); p Truffle::Debug.shared?(Object)").should == "false\n"
+  end
+
 end

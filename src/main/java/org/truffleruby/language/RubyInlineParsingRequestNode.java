@@ -26,7 +26,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
@@ -88,14 +87,9 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 RubyArguments.getBlock(frame),
                 new Object[]{});
 
-        final Object value = callNode.call(arguments);
-
-        // The return value will be leaked to Java, share it.
-        if (context.getOptions().SHARED_OBJECTS_ENABLED) {
-            SharedObjects.writeBarrier(context, value);
-        }
-
-        return value;
+        // No need to share the returned value here, InlineParsingRequest is not exposed to the Context API
+        // and is only used by instruments (e.g., the debugger) or the RubyLanguage itself.
+        return callNode.call(arguments);
     }
 
 }

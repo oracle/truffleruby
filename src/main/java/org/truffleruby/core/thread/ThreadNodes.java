@@ -276,15 +276,17 @@ public abstract class ThreadNodes {
         public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
                 @Cached("of(arguments)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
+            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+            final String info = getContext().fileLine(sourceSection);
+            final Object[] args = boxedCopyNode.execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
+            final String sharingReason = "creating Ruby Thread " + info;
+
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
-                getContext().getThreadManager().startSharing(thread);
+                getContext().getThreadManager().startSharing(thread, sharingReason);
                 SharedObjects.shareDeclarationFrame(getContext(), block);
             }
 
-            final Object[] args = boxedCopyNode.execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
-            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            final String info = getContext().fileLine(sourceSection);
-            getContext().getThreadManager().initialize(thread, this, info,
+            getContext().getThreadManager().initialize(thread, this, info, sharingReason,
                     () -> ProcOperations.rootCall(block, args));
             return nil();
         }

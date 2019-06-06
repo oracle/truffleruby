@@ -66,7 +66,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     public void writeExistingField(DynamicObject object, Object value, boolean generalize,
             @Cached("getLocation(object, value)") Location location,
             @Cached("object.getShape()") Shape cachedShape,
-            @Cached("createAssumption(cachedShape)") Assumption validLocation,
+            @Cached("createAssumption(cachedShape, location)") Assumption validLocation,
             @Cached("isShared(cachedShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
             @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
@@ -97,7 +97,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException | FinalLocationException e) {
             // remove this entry
-            validLocation.invalidate();
+            validLocation.invalidate("for " + location + " for existing ivar " + name + " at " + getEncapsulatingSourceSection());
             // Generalization is handled by Shape#defineProperty as the field already exists
             executeWithGeneralize(object, value, generalize);
         }
@@ -114,7 +114,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape oldShape,
             @Cached("defineProperty(oldShape, value, generalize)") Shape newShape,
             @Cached("getNewLocation(newShape)") Location newLocation,
-            @Cached("createAssumption(oldShape)") Assumption validLocation,
+            @Cached("createAssumption(oldShape, newShape, newLocation)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
             @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
@@ -137,7 +137,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException e) {
             // remove this entry
-            validLocation.invalidate();
+            validLocation.invalidate("for " + location + " for new ivar " + name + " at " + getEncapsulatingSourceSection());
             // Make sure to generalize when adding a new field and the value is incompatible.
             // So writing an int and then later a double generalizes to adding an Object field.
             executeWithGeneralize(object, value, true);
@@ -196,8 +196,19 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return newShape.getProperty(name).getLocation();
     }
 
-    protected Assumption createAssumption(Shape shape) {
+    // The location is passed here even though it's not used,
+    // to make sure the DSL checks this Assumption after all lookups are done in executeAndSpecialize().
+    protected Assumption createAssumption(Shape shape, Location location) {
         if (!shape.isValid()) {
+            return NeverValidAssumption.INSTANCE;
+        }
+        return Truffle.getRuntime().createAssumption("object location is valid");
+    }
+
+    // The location is passed here even though it's not used,
+    // to make sure the DSL checks this Assumption after all lookups are done in executeAndSpecialize().
+    protected Assumption createAssumption(Shape oldShape, Shape newShape, Location location) {
+        if (!oldShape.isValid() || !newShape.isValid()) {
             return NeverValidAssumption.INSTANCE;
         }
         return Truffle.getRuntime().createAssumption("object location is valid");

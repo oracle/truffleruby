@@ -111,7 +111,7 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
 
         finalizerReference.addFinalizer(owner, action, root);
 
-        referenceProcessor.processReferenceQueue();
+        referenceProcessor.processReferenceQueue(owner);
         return finalizerReference;
     }
 

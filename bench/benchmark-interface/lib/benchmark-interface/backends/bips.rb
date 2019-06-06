@@ -13,7 +13,7 @@ module BenchmarkInterface
       LONG_ITERATION_THRESHOLD = 0.1 # seconds
       
       def self.run(benchmark_set, names, options)
-        BeckhmarkInterface.require_rubygems
+        BenchmarkInterface.require_rubygems
         benchmark_interface_original_require 'benchmark/ips'
 
         unless options['--no-scale']

@@ -14,8 +14,8 @@ module BenchmarkInterface
         unless names.size == 1
           abort 'The deep backend only works when you run just one benchmark at a time - specify the name on the command line'
         end
-        
-        BeckhmarkInterface.require_rubygems
+
+        BenchmarkInterface.require_rubygems
         benchmark_interface_original_require 'deep-bench/backend'
         
         benchmark = benchmark_set.benchmark(names.first)

@@ -1786,8 +1786,6 @@ EOS
     case name
     when "jvmci"
       install_jvmci
-    when "graal", "graal-core"
-      install_graal *options
     else
       raise "Unknown how to install #{what}"
     end
