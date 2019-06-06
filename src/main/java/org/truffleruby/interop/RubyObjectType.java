@@ -127,7 +127,7 @@ public class RubyObjectType extends ObjectType {
             // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
             @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Cached(allowUncached = true) BooleanCastNode booleanCastNode) {
+            @Cached BooleanCastNode.Childless booleanCastNode) {
 
         // TODO (pitr-ch 18-Mar-2019): branchProfile?
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module

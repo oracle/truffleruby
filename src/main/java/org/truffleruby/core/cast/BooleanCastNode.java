@@ -9,11 +9,19 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 /**
@@ -32,43 +40,59 @@ public abstract class BooleanCastNode extends RubyNode {
     /** Execute with given value */
     public abstract boolean executeToBoolean(Object value);
 
-    @Specialization(guards = "isNil(nil)")
-    public boolean doNil(Object nil) {
-        return false;
+    @Specialization boolean doObject(
+            Object object,
+            @Cached Childless childless) {
+        return childless.executeToBoolean(object);
     }
 
-    @Specialization
-    public boolean doBoolean(boolean value) {
-        return value;
-    }
+    @GenerateUncached
+    @ImportStatic(RubyGuards.class)
+    public abstract static class Childless extends Node {
+        public abstract boolean executeToBoolean(Object value);
 
-    @Specialization
-    public boolean doInt(int value) {
-        return true;
-    }
+        @Specialization(guards = "isRubyNil(rubyContext, nil)")
+        public boolean doNil(
+                Object nil,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+            return false;
+        }
 
-    @Specialization
-    public boolean doLong(long value) {
-        return true;
-    }
+        @Specialization
+        public boolean doBoolean(boolean value) {
+            return value;
+        }
 
-    @Specialization
-    public boolean doFloat(double value) {
-        return true;
-    }
+        @Specialization
+        public boolean doInt(int value) {
+            return true;
+        }
 
-    @Specialization(guards = "!isNil(object)")
-    public boolean doBasicObject(DynamicObject object) {
-        return true;
-    }
+        @Specialization
+        public boolean doLong(long value) {
+            return true;
+        }
 
-    @Specialization(guards = "isForeignObject(object)")
-    public boolean doForeignObject(TruffleObject object) {
-        return true;
-    }
+        @Specialization
+        public boolean doFloat(double value) {
+            return true;
+        }
 
-    @Specialization(guards = {"!isTruffleObject(object)", "!isBoxedPrimitive(object)"})
-    public boolean doOther(Object object) {
-        return true;
+        @Specialization(guards = "!isRubyNil(rubyContext, object)")
+        public boolean doBasicObject(
+                DynamicObject object,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+            return true;
+        }
+
+        @Specialization(guards = "isForeignObject(object)")
+        public boolean doForeignObject(TruffleObject object) {
+            return true;
+        }
+
+        @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
+        public boolean doOther(Object object) {
+            return true;
+        }
     }
 }
