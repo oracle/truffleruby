@@ -501,8 +501,6 @@ class Array
     self
   end
 
-  alias_method :filter, :select
-
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
 
