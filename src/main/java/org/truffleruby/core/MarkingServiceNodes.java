@@ -76,7 +76,6 @@ public class MarkingServiceNodes {
         }
 
         public int getCacheLimit() {
-            // TODO (pitr-ch 19-Mar-2019): is this an issue?
             return RubyLanguage.getCurrentContext().getOptions().THREAD_CACHE;
         }
 

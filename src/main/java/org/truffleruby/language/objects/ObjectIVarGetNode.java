@@ -71,7 +71,6 @@ public abstract class ObjectIVarGetNode extends Node {
     }
 
     protected int getCacheLimit() {
-        // TODO (pitr-ch 05-Jun-2019): ok?
         return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
     }
 

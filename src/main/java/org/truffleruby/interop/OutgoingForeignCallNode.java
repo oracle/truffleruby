@@ -134,8 +134,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         public abstract Object executeCall(TruffleObject receiver, Object[] args);
 
         protected int getCacheLimit() {
-            // TODO (pitr-ch 30-Mar-2019): is usage of RubyLanguage.getCurrentContext here ok?
-            //  Could it break when shared with more contexts?
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
 

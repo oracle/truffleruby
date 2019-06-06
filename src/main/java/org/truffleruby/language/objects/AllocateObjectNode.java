@@ -150,7 +150,6 @@ public abstract class AllocateObjectNode extends Node {
     }
 
     protected int getCacheLimit() {
-        // TODO (pitr-ch 06-Jun-2019): ok?
         return RubyLanguage.getCurrentContext().getOptions().ALLOCATE_CLASS_CACHE;
     }
 
