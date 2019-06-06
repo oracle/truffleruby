@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Sharing for thread-safety of objects is now triggered later as intended, e.g., when a second `Thread` is started.
+
 Compatibility:
 
 * Exceptions from `coerce` are no longer rescued, like MRI.
