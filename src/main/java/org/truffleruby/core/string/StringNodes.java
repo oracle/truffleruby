@@ -76,7 +76,10 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -85,6 +88,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -167,6 +171,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -183,10 +188,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreClass("String")
 public abstract class StringNodes {
 
-    public abstract static class MakeStringNode extends RubyBaseNode {
-
-        @Child private AllocateObjectNode allocateObjectNode;
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+    @GenerateUncached
+    public abstract static class MakeStringNode extends Node {
 
         public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
 
@@ -225,37 +228,34 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange) {
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
+                @Cached @Shared("allocate") AllocateObjectNode allocateObject,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
+            return allocateObject.allocate(rubyContext.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization
-        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange,
+                @Cached @Shared("allocate") AllocateObjectNode allocateObject,
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @CachedContext(RubyLanguage.class) RubyContext rubyContext) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
-        }
-
-        private DynamicObject allocate(DynamicObject object, Object[] values) {
-            if (allocateObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateObjectNode = insert(AllocateObjectNode.create());
-            }
-            return allocateObjectNode.allocate(object, values);
+            return allocateObject.allocate(rubyContext.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
         protected DynamicObject makeAsciiStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
 
-            return makeStringFromBytes(bytes, encoding, codeRange);
+            return executeMake(bytes, encoding, codeRange);
         }
 
         @Specialization(guards = "!is7Bit(codeRange)")
         protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = StringOperations.encodeBytes(string, encoding);
 
-            return makeStringFromBytes(bytes, encoding, codeRange);
+            return executeMake(bytes, encoding, codeRange);
         }
 
         protected static boolean is7Bit(CodeRange codeRange) {

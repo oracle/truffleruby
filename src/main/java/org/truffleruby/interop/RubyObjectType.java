@@ -247,7 +247,7 @@ public class RubyObjectType extends ObjectType {
             long index,
             Object value,
             @Shared("writeHelperNode") @Cached(allowUncached = true) ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
@@ -262,7 +262,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             Object value,
             @Shared("writeHelperNode") @Cached(allowUncached = true) ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
     }
@@ -291,7 +291,7 @@ public class RubyObjectType extends ObjectType {
     public static void removeMember(
             DynamicObject receiver,
             String name,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true)
                     CallDispatchHeadNode hashDeleteNode,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true)
@@ -344,7 +344,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Shared("object_key_readable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
@@ -360,7 +360,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Shared("object_key_modifiable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
@@ -376,7 +376,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Shared("object_key_insertable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
@@ -392,7 +392,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Shared("object_key_removable") @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
@@ -408,7 +408,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
@@ -424,7 +424,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             @CachedContext(RubyLanguage.class) RubyContext rubyContext,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
