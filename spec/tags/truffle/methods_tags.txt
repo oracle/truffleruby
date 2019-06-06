@@ -6,7 +6,6 @@ fails:Public methods on Complex should include to_c
 fails:Public methods on Complex should not include divide
 fails:Public methods on Complex should not include marshal_load
 fails:Public methods on Enumerable should include chain
-fails:Public methods on Enumerable should include filter
 fails:Public methods on Enumerator should include +
 fails:Public methods on File should include birthtime
 fails:Public methods on File should not include inspect
