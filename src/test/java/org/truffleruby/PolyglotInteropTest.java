@@ -189,4 +189,22 @@ public class PolyglotInteropTest {
         }
     }
 
+    @Test
+    public void testLocalVariablesAreNotSharedBetweenInteractiveAndNonInteractive() {
+        try (Context polyglot = Context.newBuilder()
+                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
+                .allowAllAccess(true)
+                .build()) {
+            polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(false).buildLiteral());
+            polyglot.eval(Source.newBuilder("ruby", "b = 2", "test").interactive(true).buildLiteral());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral()).asBoolean());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(false).buildLiteral()).asBoolean());
+            assertFalse(polyglot.eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(true).buildLiteral()).asBoolean());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test").interactive(false).buildLiteral()).asBoolean());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test").interactive(false).buildLiteral()).asBoolean());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test").interactive(true).buildLiteral()).asBoolean());
+            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test").interactive(true).buildLiteral()).asBoolean());
+        }
+    }
+
 }
