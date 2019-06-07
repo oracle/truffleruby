@@ -203,11 +203,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("before-run");
 
             if (config.executionAction == ExecutionAction.PATH) {
-                String path = context.eval(TruffleRuby.LANGUAGE_ID,
+                final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
                         // language=ruby
-                        "-> name { Truffle::Boot.find_s_file(name) }").execute(config.toExecute).asString();
+                        "-> name { Truffle::Boot.find_s_file(name) }",
+                        TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+
                 config.executionAction = ExecutionAction.FILE;
-                config.toExecute = path;
+                config.toExecute = context.eval(source).execute(config.toExecute).asString();
             }
 
             final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
