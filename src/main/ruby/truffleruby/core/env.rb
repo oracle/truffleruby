@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -245,6 +245,7 @@ module Truffle
       return to_enum { size } unless block_given?
       to_hash.select(&blk)
     end
+    alias_method :filter, :select
 
     def to_a
       ary = []
@@ -292,6 +293,7 @@ module Truffle
       return to_enum(:select!) { size } unless block_given?
       reject! { |k, v| !yield(k, v) }
     end
+    alias_method :filter!, :select!
 
     def assoc(key)
       key = StringValue(key)
