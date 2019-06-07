@@ -1182,7 +1182,7 @@ class Array
   end
 
   def to_h
-    h = Hash.new(size)
+    h = Hash.new
     each_with_index do |elem, i|
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)

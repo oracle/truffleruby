@@ -1,1 +1,0 @@
-fails:Array#to_h produces a hash that returns nil for a missing element
