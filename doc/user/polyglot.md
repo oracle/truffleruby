@@ -37,6 +37,9 @@ code will not be re-parsed with the modified binding. You may even find that
 you create a race condition, or parse against a binding in a state during the
 execution of another source.
 
+To complicate this - Ruby parsing in TruffleRuby is lazy. Your code won't be
+parsed until it is executed for the first time.
+
 ## Loading code written in foreign languages
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by
