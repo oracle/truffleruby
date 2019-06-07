@@ -64,7 +64,13 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
 
             // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
 
-            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.INLINE, null, currentFrame, false, null);
+            final RubyRootNode rootNode = translator.parse(
+                    new RubySource(source),
+                    ParserContext.INLINE,
+                    null,
+                    currentFrame,
+                    false,
+                    null);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

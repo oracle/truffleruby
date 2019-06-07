@@ -66,7 +66,13 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
-            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentNames, null, true, null);
+            final RubyRootNode rootNode = translator.parse(
+                    new RubySource(source),
+                    ParserContext.TOP_LEVEL,
+                    argumentNames,
+                    null,
+                    true,
+                    null);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -80,15 +86,14 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     sharedMethodInfo.getName(), context.getCoreLibrary().getObjectClass(), Visibility.PUBLIC, callTarget);
         }
 
-        Object[] arguments = RubyArguments.pack(
+        final Object value = callNode.call(RubyArguments.pack(
                 null,
                 null,
                 method,
                 null,
                 mainObject,
                 null,
-                frame.getArguments());
-        final Object value = callNode.call(arguments);
+                frame.getArguments()));
 
         // The return value will be leaked to Java, so share it if the Context API is used.
         // We share conditionally on EMBEDDED to avoid sharing return values used in RubyLauncher.
