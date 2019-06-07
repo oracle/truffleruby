@@ -17,10 +17,10 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
@@ -44,7 +44,7 @@ public abstract class BooleanCastNode extends RubyNode {
 
     @GenerateUncached
     @ImportStatic(RubyGuards.class)
-    public abstract static class Childless extends Node {
+    public abstract static class Childless extends RubyBaseWithoutContextNode {
         public static Childless create() {
             return BooleanCastNodeGen.ChildlessNodeGen.create();
         }

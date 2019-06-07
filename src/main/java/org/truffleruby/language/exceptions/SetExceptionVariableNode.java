@@ -12,16 +12,16 @@ package org.truffleruby.language.exceptions;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNodeGen;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class SetExceptionVariableNode extends Node {
+public class SetExceptionVariableNode extends RubyBaseWithoutContextNode {
 
     @Child private GetCurrentRubyThreadNode getCurrentThreadNode;
 

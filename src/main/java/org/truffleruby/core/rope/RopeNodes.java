@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -36,6 +35,7 @@ import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -264,7 +264,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(RopeGuards.class)
     @GenerateUncached
-    public abstract static class CalculateAttributesNode extends Node {
+    public abstract static class CalculateAttributesNode extends RubyBaseWithoutContextNode {
 
         public static CalculateAttributesNode create() {
             return RopeNodesFactory.CalculateAttributesNodeGen.create();
@@ -624,7 +624,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(RopeGuards.class)
     @GenerateUncached
-    public abstract static class MakeLeafRopeNode extends Node {
+    public abstract static class MakeLeafRopeNode extends RubyBaseWithoutContextNode {
 
         public static MakeLeafRopeNode create() {
             return RopeNodesFactory.MakeLeafRopeNodeGen.create();
@@ -1556,7 +1556,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(CodeRange.class)
     @GenerateUncached
-    public abstract static class CalculateCharacterLengthNode extends Node {
+    public abstract static class CalculateCharacterLengthNode extends RubyBaseWithoutContextNode {
 
         public static CalculateCharacterLengthNode create() {
             return RopeNodesFactory.CalculateCharacterLengthNodeGen.create();

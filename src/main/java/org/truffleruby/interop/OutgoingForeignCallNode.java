@@ -19,11 +19,11 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -125,7 +125,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return getContext().getOptions().INTEROP_EXECUTE_CACHE;
     }
 
-    protected abstract static class OutgoingNode extends Node {
+    protected abstract static class OutgoingNode extends RubyBaseWithoutContextNode {
 
         protected final BranchProfile argumentErrorProfile = BranchProfile.create();
         protected final BranchProfile exceptionProfile = BranchProfile.create();

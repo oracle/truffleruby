@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
@@ -21,11 +20,12 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
-public abstract class FromJavaStringNode extends Node {
+public abstract class FromJavaStringNode extends RubyBaseWithoutContextNode {
 
     public static FromJavaStringNode create() {
         return FromJavaStringNodeGen.create();

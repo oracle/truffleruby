@@ -14,11 +14,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 
 @ImportStatic(RubyGuards.class)
-public abstract class WriteFrameSlotNode extends Node {
+public abstract class WriteFrameSlotNode extends RubyBaseWithoutContextNode {
 
     private final FrameSlot frameSlot;
 

@@ -10,14 +10,14 @@
 package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public abstract class ReadAndShareFieldNode extends Node {
+public abstract class ReadAndShareFieldNode extends RubyBaseWithoutContextNode {
 
     private final Property property;
-    
+
     @Child private WriteBarrierNode writeBarrierNode;
 
     public static final ReadAndShareFieldNode[] EMPTY_ARRAY = new ReadAndShareFieldNode[]{};

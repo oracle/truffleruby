@@ -14,11 +14,11 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
@@ -27,7 +27,7 @@ import org.truffleruby.language.control.RaiseException;
  */
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
-public abstract class IntegerCastNode extends Node {
+public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
 
     public static IntegerCastNode create() {
         return IntegerCastNodeGen.create();

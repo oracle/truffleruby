@@ -10,12 +10,12 @@
 package org.truffleruby.language.yield;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public class YieldNode extends Node {
+public class YieldNode extends RubyBaseWithoutContextNode {
 
     @Child private CallBlockNode callBlockNode;
 

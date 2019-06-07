@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
@@ -29,12 +28,13 @@ import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class AllocateObjectNode extends Node {
+public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
 
     public static AllocateObjectNode create() {
         return AllocateObjectNodeGen.create();

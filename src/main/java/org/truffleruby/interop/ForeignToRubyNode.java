@@ -13,13 +13,13 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
-public abstract class ForeignToRubyNode extends Node {
+public abstract class ForeignToRubyNode extends RubyBaseWithoutContextNode {
 
     public static ForeignToRubyNode create() {
         return ForeignToRubyNodeGen.create();

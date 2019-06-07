@@ -21,10 +21,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class ObjectIVarGetNode extends Node {
+public abstract class ObjectIVarGetNode extends RubyBaseWithoutContextNode {
 
     public static ObjectIVarGetNode create() {
         return ObjectIVarGetNodeGen.create();

@@ -7,15 +7,13 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.locals;
+package org.truffleruby.language;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
+import com.oracle.truffle.api.nodes.Node;
 
-public abstract class FlipFlopStateNode extends RubyBaseWithoutContextNode {
-
-    public abstract boolean getState(VirtualFrame frame);
-
-    public abstract void setState(VirtualFrame frame, boolean state);
-
+@TypeSystemReference(RubyTypes.class)
+@ImportStatic(RubyGuards.class)
+public abstract class RubyBaseWithoutContextNode extends Node {
 }

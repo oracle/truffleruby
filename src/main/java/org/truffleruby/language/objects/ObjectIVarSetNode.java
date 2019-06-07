@@ -16,15 +16,15 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class ObjectIVarSetNode extends Node {
+public abstract class ObjectIVarSetNode extends RubyBaseWithoutContextNode {
 
     public static ObjectIVarSetNode create() {
         return ObjectIVarSetNodeGen.create();

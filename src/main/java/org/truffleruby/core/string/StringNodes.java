@@ -79,7 +79,6 @@ import java.nio.charset.StandardCharsets;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
-import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -152,6 +151,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNo
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -189,7 +189,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class StringNodes {
 
     @GenerateUncached
-    public abstract static class MakeStringNode extends Node {
+    public abstract static class MakeStringNode extends RubyBaseWithoutContextNode {
 
         public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
 
