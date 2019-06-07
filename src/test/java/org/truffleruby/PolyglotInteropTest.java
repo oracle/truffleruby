@@ -12,6 +12,7 @@ package org.truffleruby;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.shared.TruffleRuby;
@@ -171,6 +172,20 @@ public class PolyglotInteropTest {
             assertFalse(polyglot.eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral()).asBoolean());
             polyglot.eval(Source.newBuilder("ruby", "b = 2", "test").interactive(true).buildLiteral());
             assertEquals(16, polyglot.eval(Source.newBuilder("ruby", "a + b", "test").interactive(true).buildLiteral()).asInt());
+        }
+    }
+
+    @Ignore
+    @Test
+    public void testLocalVariablesSharedBetweenInteractiveEvalChangesParsing() {
+        try (Context polyglot = Context.newBuilder()
+                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
+                .allowAllAccess(true)
+                .build()) {
+            polyglot.eval(Source.newBuilder("ruby", "def foo; 12; end", "test").interactive(true).buildLiteral());
+            assertEquals(12, polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
+            polyglot.eval(Source.newBuilder("ruby", "foo = 42", "test").interactive(true).buildLiteral());
+            assertEquals(42, polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
         }
     }
 
