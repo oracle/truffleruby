@@ -12,6 +12,10 @@ Compatibility:
 * Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
 * Implement more `Ripper` methods as no-ops (#1694).
 
+Changes:
+
+* Interactive sources (like the GraalVM polyglot shell) now all share the same binding (#1695).
+
 # 20.0.0 beta 1
 
 Bug fixes:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
@@ -21,6 +22,8 @@ import java.util.function.BiFunction;
 import java.util.function.IntConsumer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class PolyglotInteropTest {
 
@@ -144,6 +147,30 @@ public class PolyglotInteropTest {
                 .build()) {
             final Value parsedOnce = polyglot.eval("ruby", "lambda { 14 }");
             assertEquals(14, parsedOnce.execute().asInt());
+        }
+    }
+
+    @Test
+    public void testLocalVariablesNotSharedBetweenNonInteractiveEval() {
+        try (Context polyglot = Context.newBuilder()
+                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
+                .allowAllAccess(true)
+                .build()) {
+            polyglot.eval("ruby", "a = 14");
+            assertTrue(polyglot.eval("ruby", "defined?(a).nil?").asBoolean());
+        }
+    }
+
+    @Test
+    public void testLocalVariablesSharedBetweenInteractiveEval() {
+        try (Context polyglot = Context.newBuilder()
+                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
+                .allowAllAccess(true)
+                .build()) {
+            polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(true).buildLiteral());
+            assertFalse(polyglot.eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral()).asBoolean());
+            polyglot.eval(Source.newBuilder("ruby", "b = 2", "test").interactive(true).buildLiteral());
+            assertEquals(16, polyglot.eval(Source.newBuilder("ruby", "a + b", "test").interactive(true).buildLiteral()).asInt());
         }
     }
 

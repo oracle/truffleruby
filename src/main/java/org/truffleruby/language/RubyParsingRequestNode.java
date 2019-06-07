@@ -15,10 +15,12 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -41,6 +43,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private DynamicObject mainObject;
     @CompilationFinal private InternalMethod method;
+    @CompilationFinal private MaterializedFrame declarationFrame;
 
     @Child private DirectCallNode callNode;
 
@@ -66,12 +69,20 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
+            final boolean interactive = source.isInteractive();
+
+            if (interactive) {
+                declarationFrame = Layouts.BINDING.getFrame(
+                        (DynamicObject) Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule())
+                                .getConstant("INTERACTIVE_BINDING").getValue());
+            }
+
             final RubyRootNode rootNode = translator.parse(
                     new RubySource(source),
-                    ParserContext.TOP_LEVEL,
+                    interactive ? ParserContext.EVAL : ParserContext.TOP_LEVEL,
                     argumentNames,
-                    null,
-                    true,
+                    declarationFrame,
+                    !interactive,
                     null);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
@@ -87,7 +98,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         }
 
         final Object value = callNode.call(RubyArguments.pack(
-                null,
+                declarationFrame,
                 null,
                 method,
                 null,

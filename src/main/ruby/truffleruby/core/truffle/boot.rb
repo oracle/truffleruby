@@ -14,6 +14,12 @@ TOPLEVEL_BINDING = binding
 
 module Truffle::Boot
 
+  def self.create_interactive_binding
+    binding
+  end
+
+  INTERACTIVE_BINDING = create_interactive_binding
+
   def self.check_syntax(source_or_file)
     inner_check_syntax source_or_file
     STDOUT.puts 'Syntax OK'

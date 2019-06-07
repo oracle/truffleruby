@@ -12,6 +12,7 @@ If you are using the native configuration, you will need to use the `--polyglot`
 flag to get access to other languages. The JVM configuration automatically has
 access to other languages.
 
+* [Running Ruby code from another language](#running-ruby-code-from-another-language)
 * [Loading code written in foreign languages](#loading-code-written-in-foreign-languages)
 * [Exporting Ruby objects to foreign languages](#exporting-ruby-objects-to-foreign-languages)
 * [Importing foreign objects to Ruby](#importing-foreign-objects-to-ruby)
@@ -21,6 +22,20 @@ access to other languages.
 * [Strings](#strings)
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
+
+## Running Ruby code from another language
+
+When you `eval` Ruby code from the Polyglot API in another language and mark
+the source as interactive, the same interactive top-level binding is used each
+time. This means that if you set a local variable in one `eval`, you will be
+able to use it from the next.
+
+Not that parsing Ruby is dependent on the current state of the top-level
+binding. If you parse an interactive source with the binding at one point in
+time, and then execute against the binding after it has been modified, the
+code will not be re-parsed with the modified binding. You may even find that
+you create a race condition, or parse against a binding in a state during the
+execution of another source.
 
 ## Loading code written in foreign languages
 
