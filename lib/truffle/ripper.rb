@@ -10,7 +10,7 @@
 
 class Ripper
 
-  def initialize(src, filename = "(ripper)", lineno = 1)
+  def initialize(src, filename = '(ripper)', lineno = 1)
   end
 
   def parse
