@@ -12,7 +12,6 @@ package org.truffleruby;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.shared.TruffleRuby;
@@ -175,7 +174,6 @@ public class PolyglotInteropTest {
         }
     }
 
-    @Ignore
     @Test
     public void testLocalVariablesSharedBetweenInteractiveEvalChangesParsing() {
         try (Context polyglot = Context.newBuilder()
