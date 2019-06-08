@@ -25,20 +25,14 @@ access to other languages.
 
 ## Running Ruby code from another language
 
-When you `eval` Ruby code from the Polyglot API in another language and mark
-the source as interactive, the same interactive top-level binding is used each
-time. This means that if you set a local variable in one `eval`, you will be
-able to use it from the next.
+When you `eval` Ruby code from the [Context API](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Context.html)
+in another language and mark the `Source` as interactive, the same interactive
+top-level binding is used each time. This means that if you set a local variable
+in one `eval`, you will be able to use it from the next.
 
-Not that parsing Ruby is dependent on the current state of the top-level
-binding. If you parse an interactive source with the binding at one point in
-time, and then execute against the binding after it has been modified, the
-code will not be re-parsed with the modified binding. You may even find that
-you create a race condition, or parse against a binding in a state during the
-execution of another source.
-
-To complicate this - Ruby parsing in TruffleRuby is lazy. Your code won't be
-parsed until it is executed for the first time.
+The semantics are the same as the Ruby semantics of calling
+`INTERACTIVE_BINDING.eval(code)` for every `Context.eval()` call with an
+interactive `Source`. This is similar to most REPL semantics.
 
 ## Loading code written in foreign languages
 
