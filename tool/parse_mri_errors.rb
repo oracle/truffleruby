@@ -1,4 +1,5 @@
-## Expirimental MRI test tagging script
+#!/usr/bin/env ruby
+## Experimental MRI test tagging script
 ## Needs to be run from the jruby/test/mri directory
 ## Error console output read from stdin or the first argument
 
