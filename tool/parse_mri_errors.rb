@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
-## Experimental MRI test tagging script
-## Needs to be run from the jruby/test/mri directory
-## Error console output read from stdin or the first argument
+## Experimental MRI test tagging script from a test run log
+## The input is read from stdin or the first argument
 
 # Usage:
-#     ruby tool/parse_mri_errors.rb output.txt
+#     tool/parse_mri_errors.rb output.txt
 # or
-#     jt test test/mri/tests/rdoc/test_rdoc_token_stream.rb | ruby tool/parse_mri_errors.rb
+#     jt test mri test/mri/tests/rdoc/test_rdoc_token_stream.rb | tool/parse_mri_errors.rb
 
 REASON = ENV.fetch('REASON', 'needs investigation')
 
