@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Sharing for thread-safety of objects is now triggered later as intended, e.g., when a second `Thread` is started.
+* Fixed `Array#to_h` so it doesn't set a default value (#1698).
 
 Compatibility:
 
