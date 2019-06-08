@@ -1309,7 +1309,14 @@ void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
 }
 
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
-  rb_tr_error("rb_enc_sprintf not implemented");
+  VALUE result;
+  va_list ap;
+
+  va_start(ap, format);
+  result = rb_enc_vsprintf(enc, format, ap);
+  va_end(ap);
+
+  return result;
 }
 
 int rb_enc_to_index(rb_encoding *enc) {

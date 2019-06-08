@@ -11,6 +11,7 @@ Compatibility:
 * `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
 * Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
 * Implement more `Ripper` methods as no-ops (#1694).
+* Implemented `rb_enc_sprintf` (#1702).
 
 # 20.0.0 beta 1
 
