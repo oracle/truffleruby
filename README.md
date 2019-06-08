@@ -122,15 +122,9 @@ We recommend that people trying TruffleRuby on their gems and applications
 [get in touch with us](#contact) for help.
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
-try running your full Ruby application on. However it is ready for
+try running your full Rails application on. However it is ready for
 experimentation and curious end-users to try on their gems and smaller
-applications.
-
-TruffleRuby runs Rails, and passes the majority of the Rails test suite. But it
-is missing support for Nokogiri and ActiveRecord database drivers which makes it
-not practical to run real Rails applications at the moment.
-
-You will find that many C extensions will not work without modification.
+applications, and to send us reports of issues they find.
 
 ## Migration from MRI
 
