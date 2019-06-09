@@ -47,6 +47,11 @@ platform_is_not :windows do
       ScratchPad.recorded.should be_true
     end
 
+    it "registers an handler doing nothing with :IGNORE" do
+      Signal.trap :HUP, :IGNORE
+      Process.kill(:HUP, Process.pid).should == 1
+    end
+
     it "ignores the signal when passed nil" do
       Signal.trap :HUP, nil
       Signal.trap(:HUP, @saved_trap).should be_nil
