@@ -53,44 +53,24 @@ platform_is_not :windows do
       Signal.trap(:HUP, @saved_trap).should be_nil
     end
 
-    it "accepts 'DEFAULT' as a symbol in place of a proc" do
+    it "accepts :DEFAULT in place of a proc" do
       Signal.trap :HUP, :DEFAULT
       Signal.trap(:HUP, :DEFAULT).should == "DEFAULT"
     end
 
-    it "accepts 'SIG_DFL' as a symbol in place of a proc" do
+    it "accepts :SIG_DFL in place of a proc" do
       Signal.trap :HUP, :SIG_DFL
       Signal.trap(:HUP, :SIG_DFL).should == "DEFAULT"
     end
 
-    it "accepts 'SIG_IGN' as a symbol in place of a proc" do
+    it "accepts :SIG_IGN in place of a proc" do
       Signal.trap :HUP, :SIG_IGN
       Signal.trap(:HUP, :SIG_IGN).should == "IGNORE"
     end
 
-    it "accepts 'IGNORE' as a symbol in place of a proc" do
+    it "accepts :IGNORE in place of a proc" do
       Signal.trap :HUP, :IGNORE
       Signal.trap(:HUP, :IGNORE).should == "IGNORE"
-    end
-
-    it "accepts long names as Strings" do
-      Signal.trap "SIGHUP", @proc
-      Signal.trap("SIGHUP", @saved_trap).should equal(@proc)
-    end
-
-    it "accepts short names as Strings" do
-      Signal.trap "HUP", @proc
-      Signal.trap("HUP", @saved_trap).should equal(@proc)
-    end
-
-    it "accepts long names as Symbols" do
-      Signal.trap :SIGHUP, @proc
-      Signal.trap(:SIGHUP, @saved_trap).should equal(@proc)
-    end
-
-    it "accepts short names as Symbols" do
-      Signal.trap :HUP, @proc
-      Signal.trap(:HUP, @saved_trap).should equal(@proc)
     end
 
     it "accepts 'SIG_DFL' in place of a proc" do
@@ -111,6 +91,26 @@ platform_is_not :windows do
     it "accepts 'IGNORE' in place of a proc" do
       Signal.trap :HUP, "IGNORE"
       Signal.trap(:HUP, "IGNORE").should == "IGNORE"
+    end
+
+    it "accepts long names as Strings" do
+      Signal.trap "SIGHUP", @proc
+      Signal.trap("SIGHUP", @saved_trap).should equal(@proc)
+    end
+
+    it "accepts short names as Strings" do
+      Signal.trap "HUP", @proc
+      Signal.trap("HUP", @saved_trap).should equal(@proc)
+    end
+
+    it "accepts long names as Symbols" do
+      Signal.trap :SIGHUP, @proc
+      Signal.trap(:SIGHUP, @saved_trap).should equal(@proc)
+    end
+
+    it "accepts short names as Symbols" do
+      Signal.trap :HUP, @proc
+      Signal.trap(:HUP, @saved_trap).should equal(@proc)
     end
   end
 
