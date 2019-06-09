@@ -147,7 +147,8 @@ public class SafepointManager {
 
     private static final int WAIT_TIME_IN_SECONDS = 5;
     private static final int MAX_WAIT_TIME_IN_SECONDS = 60;
-    private static final int STEP_BACKTRACE_OFFSET = 6;
+    // Currently 6 on JVM and 9 on SVM, adding some margin to be robust to changes
+    private static final int STEP_BACKTRACE_MAX_OFFSET = 12;
 
     private void driveArrivalAtPhaser() {
         int phase = phaser.arrive();
@@ -191,11 +192,17 @@ public class SafepointManager {
             final Thread thread = entry.getKey();
             if (thread != Thread.currentThread() && runningThreads.contains(thread)) {
                 final StackTraceElement[] stackTrace = entry.getValue();
-                if (STEP_BACKTRACE_OFFSET < stackTrace.length &&
-                        stackTrace[STEP_BACKTRACE_OFFSET].getClassName().equals(SafepointManager.class.getName()) &&
-                        stackTrace[STEP_BACKTRACE_OFFSET].getMethodName().equals("step")) {
-                    // In SafepointManager#step, ignore
-                } else {
+                boolean blocked = true;
+
+                for (int i = 0; i < stackTrace.length && i <= STEP_BACKTRACE_MAX_OFFSET; i++) {
+                    if (stackTrace[i].getClassName().equals(SafepointManager.class.getName()) && stackTrace[i].getMethodName().equals("step")) {
+                        // In SafepointManager#step, ignore
+                        blocked = false;
+                        break;
+                    }
+                }
+
+                if (blocked) {
                     System.err.println(thread);
                     for (int i = 0; i < stackTrace.length; i++) {
                         System.err.println(stackTrace[i]);
