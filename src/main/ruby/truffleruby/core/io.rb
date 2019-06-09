@@ -348,8 +348,6 @@ class IO
     end
   end
 
-  attr_accessor :descriptor
-
   def mode_read_only?
     @mode & ACCMODE == RDONLY
   end
@@ -1127,10 +1125,10 @@ class IO
     end
 
     # Close old descriptor if there was already one associated
-    io.close if io.descriptor != -1
+    io.close if io.instance_variable_get(:@descriptor) != -1
 
-    io.descriptor = fd
-    io.instance_variable_set(:@mode, mode || cur_mode)
+    io.instance_variable_set :@descriptor, fd
+    io.instance_variable_set :@mode, mode || cur_mode
     io.sync       = !!sync
     io.autoclose  = true
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
@@ -1676,7 +1674,7 @@ class IO
     end
 
     command = Truffle::Type.coerce_to_int command
-    Truffle::POSIX.fcntl descriptor, command, arg
+    Truffle::POSIX.fcntl @descriptor, command, arg
   end
 
   def internal_encoding
@@ -1713,7 +1711,7 @@ class IO
     end
 
     command = Truffle::Type.coerce_to_int(command)
-    ret = Truffle::POSIX.ioctl(descriptor, command, real_arg)
+    ret = Truffle::POSIX.ioctl(@descriptor, command, real_arg)
     Errno.handle if ret < 0
 
     if arg.kind_of?(String)

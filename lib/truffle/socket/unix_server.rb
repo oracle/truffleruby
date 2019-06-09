@@ -37,7 +37,7 @@ class UNIXServer < UNIXSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(@path)
-    status   = Truffle::Socket::Foreign.bind(descriptor, sockaddr)
+    status   = Truffle::Socket::Foreign.bind(@descriptor, sockaddr)
 
     Errno.handle('bind(2)') if status < 0
 

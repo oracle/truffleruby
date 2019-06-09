@@ -55,11 +55,11 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    sockname = Truffle::Socket::Foreign.getsockname(descriptor)
+    sockname = Truffle::Socket::Foreign.getsockname(@descriptor)
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    data     = Truffle::Socket::Foreign.getsockopt(descriptor, level, optname)
+    data     = Truffle::Socket::Foreign.getsockopt(@descriptor, level, optname)
 
     Socket::Option.new(family, level, optname, data)
   end
@@ -86,7 +86,7 @@ class BasicSocket < IO
     optval = 1 if optval == true
     optval = 0 if optval == false
 
-    sockname = Truffle::Socket::Foreign.getsockname(descriptor)
+    sockname = Truffle::Socket::Foreign.getsockname(@descriptor)
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
@@ -97,14 +97,14 @@ class BasicSocket < IO
         pointer.write_int(optval)
 
         error = Truffle::Socket::Foreign
-          .setsockopt(descriptor, level, optname, pointer, pointer.total)
+          .setsockopt(@descriptor, level, optname, pointer, pointer.total)
       end
     elsif optval.is_a?(String)
       Truffle::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
         pointer.write_string(optval)
 
         error = Truffle::Socket::Foreign
-          .setsockopt(descriptor, level, optname, pointer, optval.bytesize)
+          .setsockopt(@descriptor, level, optname, pointer, optval.bytesize)
       end
     else
       raise TypeError, 'socket option should be an Integer, String, true, or false'
@@ -116,11 +116,11 @@ class BasicSocket < IO
   end
 
   def getsockname
-    Truffle::Socket::Foreign.getsockname(descriptor)
+    Truffle::Socket::Foreign.getsockname(@descriptor)
   end
 
   def getpeername
-    Truffle::Socket::Foreign.getpeername(descriptor)
+    Truffle::Socket::Foreign.getpeername(@descriptor)
   end
 
   def send(message, flags, dest_sockaddr = nil)
@@ -140,13 +140,13 @@ class BasicSocket < IO
 
         begin
           bytes_sent = Truffle::Socket::Foreign
-            .sendto(descriptor, buffer, bytes, flags, addr, addr.size)
+            .sendto(@descriptor, buffer, bytes, flags, addr, addr.size)
         ensure
           addr.free
         end
       else
         bytes_sent = Truffle::Socket::Foreign
-          .send(descriptor, buffer, bytes, flags)
+          .send(@descriptor, buffer, bytes, flags)
       end
     end
 
@@ -186,7 +186,7 @@ class BasicSocket < IO
         need_more = false
 
         msg_size = Truffle::Socket::Foreign
-          .recvmsg(descriptor, header.pointer, flags)
+          .recvmsg(@descriptor, header.pointer, flags)
 
         Truffle::Socket::Error.read_error('recvmsg(2)', self) if msg_size < 0
 
@@ -245,7 +245,7 @@ class BasicSocket < IO
       end
 
       num_bytes = Truffle::Socket::Foreign
-        .sendmsg(descriptor, header.pointer, flags)
+        .sendmsg(@descriptor, header.pointer, flags)
 
       Truffle::Socket::Error.read_error('sendmsg(2)', self) if num_bytes < 0
 
@@ -271,7 +271,7 @@ class BasicSocket < IO
       return close
     end
 
-    Truffle::Socket::Foreign.shutdown(descriptor, 0)
+    Truffle::Socket::Foreign.shutdown(@descriptor, 0)
 
     force_write_only
 
@@ -285,7 +285,7 @@ class BasicSocket < IO
       return close
     end
 
-    Truffle::Socket::Foreign.shutdown(descriptor, 1)
+    Truffle::Socket::Foreign.shutdown(@descriptor, 1)
 
     force_read_only
 
@@ -302,7 +302,7 @@ class BasicSocket < IO
 
   def shutdown(how = Socket::SHUT_RDWR)
     how = Truffle::Socket.shutdown_option(how)
-    err = Truffle::Socket::Foreign.shutdown(descriptor, how)
+    err = Truffle::Socket::Foreign.shutdown(@descriptor, how)
 
     Errno.handle('shutdown(2)') unless err == 0
 
@@ -324,6 +324,6 @@ class BasicSocket < IO
   end
 
   def getpeereid
-    Truffle::Socket::Foreign.getpeereid(descriptor)
+    Truffle::Socket::Foreign.getpeereid(@descriptor)
   end
 end
