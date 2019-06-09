@@ -396,11 +396,10 @@ public abstract class IONodes {
             if (fd == CLOSED_FD) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().ioError("closed stream", this));
-            } else if (fd == -2) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().ioError("shutdown stream", this));
+            } else {
+                assert fd >= 0;
+                return nil();
             }
-            return nil();
         }
 
     }
