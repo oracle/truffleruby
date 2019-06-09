@@ -430,7 +430,7 @@ class StringIO
   end
 
   def readchar
-    raise IO::EOFError, 'end of file reached' if eof?
+    raise EOFError, 'end of file reached' if eof?
     getc
   end
 
@@ -440,7 +440,7 @@ class StringIO
 
   def readline(sep=$/, limit=Undefined)
     check_readable
-    raise IO::EOFError, 'end of file reached' if eof?
+    raise EOFError, 'end of file reached' if eof?
 
     Truffle::IOOperations.set_last_line(getline(true, sep, limit), Truffle.invoke_primitive(:caller_binding))
   end
@@ -527,7 +527,7 @@ class StringIO
 
     if str.nil?
       buffer.clear
-      raise IO::EOFError, 'end of file reached'
+      raise EOFError, 'end of file reached'
     end
 
     str
