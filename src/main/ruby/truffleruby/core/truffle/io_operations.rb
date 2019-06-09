@@ -101,7 +101,7 @@ module Truffle
     def self.pipe_end_setup(io)
       io.close_on_exec = true
       io.sync = true
-      io.pipe = true
+      io.instance_variable_set :@pipe, true
       io
     end
 

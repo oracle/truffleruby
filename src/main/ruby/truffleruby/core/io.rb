@@ -202,7 +202,7 @@ class IO
 
         reset!
         if fill(io) == 0
-          io.eof!
+          io.instance_variable_set(:@eof, true)
           @eof = true
         end
 
@@ -348,20 +348,20 @@ class IO
     end
   end
 
-  def mode_read_only?
+  private def mode_read_only?
     @mode & ACCMODE == RDONLY
   end
 
-  def mode_write_only?
+  private def mode_write_only?
     @mode & ACCMODE == WRONLY
   end
 
-  def force_read_only
+  private def force_read_only
     @mode &= ~IO::ACCMODE
     @mode |= RDONLY
   end
 
-  def force_write_only
+  private def force_write_only
     @mode &= ~IO::ACCMODE
     @mode |= WRONLY
   end
@@ -439,7 +439,7 @@ class IO
       end
 
       if @offset
-        if @from_io && !@from.pipe?
+        if @from_io && !@from.instance_variable_get(:@pipe)
           saved_pos = @from.pos
         else
           saved_pos = 0
@@ -903,7 +903,7 @@ class IO
       pid = Truffle::ProcessOperations.spawn(env || {}, *cmd, options)
     end
 
-    pipe.pid = pid
+    pipe.instance_variable_set :@pid, pid
 
     ch_write.close if readable
     ch_read.close  if writable
@@ -1594,13 +1594,6 @@ class IO
   end
   alias_method :codepoints, :each_codepoint
 
-
-  ##
-  # Set the pipe so it is at the end of the file
-  def eof!
-    @eof = true
-  end
-
   ##
   # Returns true if ios is at end of file that means
   # there are no more data to read. The stream must be
@@ -1867,16 +1860,6 @@ class IO
   def pid
     raise IOError, 'closed stream' if closed?
     @pid
-  end
-
-  attr_writer :pid
-
-  def pipe=(v)
-    @pipe = !!v
-  end
-
-  def pipe?
-    @pipe
   end
 
   def pos
@@ -2201,7 +2184,7 @@ class IO
           io.ensure_open
         end
 
-        io.reset_buffering
+        io.__send__(:reset_buffering)
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
@@ -2250,7 +2233,7 @@ class IO
   ##
   # Internal method used to reset the state of the buffer, including the
   # physical position in the stream.
-  def reset_buffering
+  private def reset_buffering
     @ibuffer.unseek! self
   end
 
@@ -2355,12 +2338,7 @@ class IO
     self
   end
 
-  def read_bom_byte
-    read_ios, _, _ = IO.select [self], nil, nil, 0.1
-    getbyte if read_ios
-  end
-
-  def strip_bom
+  private def strip_bom
     mode = Truffle::POSIX.truffleposix_fstat_mode(@descriptor)
     return unless Truffle::StatOperations.file?(mode)
 

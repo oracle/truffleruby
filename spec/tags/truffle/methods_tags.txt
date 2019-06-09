@@ -25,20 +25,9 @@ fails:Public methods on IO should include pread
 fails:Public methods on IO should include pwrite
 fails:Public methods on IO should not include dup
 fails:Public methods on IO should not include encode_with
-fails:Public methods on IO should not include eof!
-fails:Public methods on IO should not include force_read_only
-fails:Public methods on IO should not include force_write_only
-fails:Public methods on IO should not include mode_read_only?
-fails:Public methods on IO should not include mode_write_only?
 fails:Public methods on IO should not include nonblock
 fails:Public methods on IO should not include nonblock=
 fails:Public methods on IO should not include nonblock?
-fails:Public methods on IO should not include pid=
-fails:Public methods on IO should not include pipe=
-fails:Public methods on IO should not include pipe?
-fails:Public methods on IO should not include read_bom_byte
-fails:Public methods on IO should not include reset_buffering
-fails:Public methods on IO should not include strip_bom
 fails:Public methods on Kernel should include then
 fails:Public methods on Numeric should include clone
 fails:Public methods on Numeric should include dup
