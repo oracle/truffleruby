@@ -30,6 +30,20 @@ module Truffle
       class Sockaddr < Truffle::FFI::Struct
         config('platform.sockaddr', :sa_data, :sa_family)
 
+        SA_FAMILY_T = Truffle::Config['platform.typedef.sa_family_t'].to_sym
+        SA_FAMILY_OFFSET = Truffle::Config['platform.sockaddr.sa_family.offset']
+
+        def self.family_of_string(str)
+          case SA_FAMILY_T
+          when :ushort
+            str[SA_FAMILY_OFFSET..-1].unpack1('S')
+          when :uchar
+            str[SA_FAMILY_OFFSET..-1].unpack1('C')
+          else
+            raise "Unexpected type for sa_family_t: #{SA_FAMILY_T}"
+          end
+        end
+
         def data
           self[:sa_data]
         end

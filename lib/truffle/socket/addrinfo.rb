@@ -106,17 +106,14 @@ class Addrinfo
         pfamily = Socket::PF_INET6
       end
     else
-      if sockaddr.bytesize == Truffle::Socket::Foreign::SockaddrUn.size
+      @afamily = Truffle::Socket::Foreign::Sockaddr.family_of_string(sockaddr)
+      case @afamily
+      when Socket::AF_UNIX
         @unix_path = Socket.unpack_sockaddr_un(sockaddr)
-        @afamily   = Socket::AF_UNIX
-      else
+      when Socket::AF_INET
         @ip_port, @ip_address = Socket.unpack_sockaddr_in(sockaddr)
-
-        if sockaddr.bytesize == Truffle::Socket::Foreign::SockaddrIn6.size
-          @afamily = Socket::AF_INET6
-        else
-          @afamily = Socket::AF_INET
-        end
+      when Socket::AF_INET6
+        @ip_port, @ip_address = Socket.unpack_sockaddr_in(sockaddr)
       end
     end
 
@@ -203,17 +200,13 @@ class Addrinfo
   end
 
   def ip_address
-    unless ip?
-      raise SocketError, 'An IPv4/IPv6 address is required'
-    end
+    raise SocketError, 'need IPv4 or IPv6 address' unless ip?
 
     @ip_address
   end
 
   def ip_port
-    unless ip?
-      raise SocketError, 'An IPv4/IPv6 address is required'
-    end
+    raise SocketError, 'need IPv4 or IPv6 address' unless ip?
 
     @ip_port
   end

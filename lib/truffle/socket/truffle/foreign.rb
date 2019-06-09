@@ -304,7 +304,7 @@ module Truffle
 
         # On some systems this doesn't fail for families other than AF_INET(6)
         # so we raise manually here.
-        unless family =~ /AF_INET/
+        unless family.include?('AF_INET')
           raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr'
         end
 
