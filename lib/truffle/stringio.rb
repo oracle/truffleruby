@@ -390,7 +390,7 @@ class StringIO
     Truffle::IOOperations.puts(self, *args)
   end
 
-  def read(length=nil, buffer=nil)
+  def read(length = nil, buffer = nil)
     check_readable
     d = @__data__
     pos = d.pos
@@ -522,7 +522,7 @@ class StringIO
     val
   end
 
-  def sysread(length=nil, buffer='')
+  def sysread(length = nil, buffer = '')
     str = read(length, buffer)
 
     if str.nil?
@@ -535,8 +535,15 @@ class StringIO
 
   alias_method :readpartial, :sysread
 
-  def read_nonblock(length, buffer='', **options)
-    sysread(length, buffer)
+  def read_nonblock(length, buffer = '', exception: true)
+    str = read(length, buffer)
+
+    if exception and str.nil?
+      buffer.clear
+      raise EOFError, 'end of file reached'
+    end
+
+    str
   end
 
   def tell
