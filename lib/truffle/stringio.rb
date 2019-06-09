@@ -526,7 +526,6 @@ class StringIO
     str = read(length, buffer)
 
     if str.nil?
-      buffer.clear
       raise EOFError, 'end of file reached'
     end
 
@@ -539,7 +538,6 @@ class StringIO
     str = read(length, buffer)
 
     if exception and str.nil?
-      buffer.clear
       raise EOFError, 'end of file reached'
     end
 
