@@ -39,10 +39,10 @@ class IPSocket < BasicSocket
     Truffle::Socket.address_info(:getpeername, self, reverse_lookup)
   end
 
-  def recvfrom(maxlen, flags = 0)
-    flags = 0 if flags.nil?
+  private def internal_recvfrom(maxlen, flags, exception)
+    message, addr = internal_recvmsg(maxlen, flags, nil, false, exception)
 
-    message, addr = recvmsg(maxlen, flags)
+    return message if message == :wait_readable
 
     aname    = Truffle::Socket.address_family_name(addr.afamily)
     hostname = addr.ip_address
@@ -59,5 +59,10 @@ class IPSocket < BasicSocket
     end
 
     [message, [aname, addr.ip_port, hostname, addr.ip_address]]
+  end
+
+  def recvfrom(maxlen, flags = 0)
+    flags = 0 if flags.nil?
+    internal_recvfrom(maxlen, flags, true)
   end
 end

@@ -377,10 +377,14 @@ class Socket < BasicSocket
     [message, addr]
   end
 
-  def recvfrom_nonblock(bytes, flags = 0)
-    message, addr = recvmsg_nonblock(bytes, flags)
+  def recvfrom_nonblock(bytes, flags = 0, exception: true)
+    message, addr = recvmsg_nonblock(bytes, flags, exception: exception)
 
-    [message, addr]
+    if message == :wait_readable
+      message
+    else
+      [message, addr]
+    end
   end
 
   def listen(backlog)

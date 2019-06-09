@@ -155,15 +155,37 @@ class BasicSocket < IO
     bytes_sent
   end
 
-  def recv(bytes_to_read, flags = 0)
+  private def internal_recv(bytes_to_read, flags, buffer, exception)
+    raise ArgumentError, 'buffer argument not yet supported' if buffer
+
     Truffle::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
       n_bytes = Truffle::Socket::Foreign.recv(@descriptor, buf, bytes_to_read, flags)
-      Errno.handle('recv(2)') if n_bytes == -1
+
+      if n_bytes == -1
+        if exception
+          Truffle::Socket::Error.read_error('recv(2)', self)
+        else
+          return :wait_readable
+        end
+      end
+
       return buf.read_string(n_bytes)
     end
   end
 
-  def recvmsg(max_msg_len = nil, flags = 0, *_)
+  def recv(bytes_to_read, flags = 0, buf = nil)
+    internal_recv(bytes_to_read, flags, buf, true)
+  end
+
+  def recv_nonblock(bytes_to_read, flags = 0, buf = nil, exception: true)
+    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+
+    Truffle::Socket::Error.wrap_read_nonblock do
+      internal_recv(bytes_to_read, flags, buf, exception)
+    end
+  end
+
+  private def internal_recvmsg(max_msg_len, flags, max_control_len, scm_rights, exception)
     socket_type = getsockopt(:SOCKET, :TYPE).int
 
     if socket_type == Socket::SOCK_STREAM
@@ -188,7 +210,13 @@ class BasicSocket < IO
         msg_size = Truffle::Socket::Foreign
           .recvmsg(@descriptor, header.pointer, flags)
 
-        Truffle::Socket::Error.read_error('recvmsg(2)', self) if msg_size < 0
+        if msg_size < 0
+          if exception
+            Truffle::Socket::Error.read_error('recvmsg(2)', self)
+          else
+            return :wait_readable
+          end
+        end
 
         if grow_msg and header.message_truncated?
           need_more = true
@@ -216,13 +244,17 @@ class BasicSocket < IO
     nil
   end
 
-  def recvmsg_nonblock(max_msg_len = nil, flags = 0, *_)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
-
-    recvmsg(max_msg_len, flags | Socket::MSG_DONTWAIT)
+  def recvmsg(max_msg_len = nil, flags = 0, max_control_len = nil, scm_rights: false)
+    internal_recvmsg(max_msg_len, flags, max_control_len, scm_rights, true)
   end
 
-  def sendmsg(message, flags = 0, dest_sockaddr = nil, *_)
+  def recvmsg_nonblock(max_msg_len = nil, flags = 0, max_control_len = nil, exception: true, scm_rights: false)
+    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+
+    internal_recvmsg(max_msg_len, flags | Socket::MSG_DONTWAIT, max_control_len, scm_rights, exception)
+  end
+
+  private def internal_sendmsg(message, flags, dest_sockaddr, exception)
     msg_buffer = Truffle::Socket::Foreign.char_pointer(message.bytesize)
     io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
     header     = Truffle::Socket::Foreign::Msghdr.new
@@ -247,7 +279,13 @@ class BasicSocket < IO
       num_bytes = Truffle::Socket::Foreign
         .sendmsg(@descriptor, header.pointer, flags)
 
-      Truffle::Socket::Error.read_error('sendmsg(2)', self) if num_bytes < 0
+      if num_bytes < 0
+        if exception
+          Truffle::Socket::Error.read_error('sendmsg(2)', self)
+        else
+          return :wait_writable
+        end
+      end
 
       num_bytes
     ensure
@@ -258,10 +296,14 @@ class BasicSocket < IO
     end
   end
 
-  def sendmsg_nonblock(message, flags = 0, dest_sockaddr = nil, *_)
+  def sendmsg(message, flags = 0, dest_sockaddr = nil, *controls)
+    internal_sendmsg(message, flags, dest_sockaddr, true)
+  end
+
+  def sendmsg_nonblock(message, flags = 0, dest_sockaddr = nil, *controls, exception: true)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
-    sendmsg(message, flags | Socket::MSG_DONTWAIT, dest_sockaddr)
+    internal_sendmsg(message, flags | Socket::MSG_DONTWAIT, dest_sockaddr, exception)
   end
 
   def close_read
@@ -290,14 +332,6 @@ class BasicSocket < IO
     force_read_only
 
     nil
-  end
-
-  def recv_nonblock(bytes_to_read, flags = 0)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
-
-    Truffle::Socket::Error.wrap_read_nonblock do
-      recv(bytes_to_read, flags)
-    end
   end
 
   def shutdown(how = Socket::SHUT_RDWR)

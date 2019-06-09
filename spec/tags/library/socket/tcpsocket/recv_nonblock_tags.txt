@@ -1,1 +1,0 @@
-fails:TCPSocket#recv_nonblock returns :wait_readable in exceptionless mode
