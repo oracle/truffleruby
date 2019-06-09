@@ -1193,10 +1193,12 @@ class IO
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
+    fd = original.fileno
+
     # The 3rd argument is minimum acceptable descriptor value for the new FD.
     # We want to ensure newly allocated FDs never take the standard IO ones, even
     # if a STDIO stream is closed.
-    @descriptor = Truffle::POSIX.fcntl(@descriptor, F_DUPFD_CLOEXEC, 3)
+    @descriptor = Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3)
   end
 
   def advise(advice, offset = 0, len = 0)
@@ -1322,11 +1324,6 @@ class IO
   #  f.closed?       #=> true
   def closed?
     @descriptor == -1
-  end
-
-  def dup
-    ensure_open
-    super
   end
 
   # Argument matrix for IO#gets and IO#each:
