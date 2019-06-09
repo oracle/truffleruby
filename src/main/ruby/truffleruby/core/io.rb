@@ -349,9 +349,6 @@ class IO
   end
 
   attr_accessor :descriptor
-  attr_accessor :external
-  attr_accessor :internal
-  attr_accessor :mode
 
   def mode_read_only?
     @mode & ACCMODE == RDONLY
@@ -964,7 +961,9 @@ class IO
         Truffle::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, 'closed stream' if obj.closed?
-            return [[obj],[],[]] unless obj.buffer_empty?
+            unless obj.__send__(:buffer_empty?)
+              return [[obj],[],[]]
+            end
             obj
           else
             io = Truffle::Type.coerce_to(obj, IO, :to_io)
@@ -1131,7 +1130,7 @@ class IO
     io.close if io.descriptor != -1
 
     io.descriptor = fd
-    io.mode       = mode || cur_mode
+    io.instance_variable_set(:@mode, mode || cur_mode)
     io.sync       = !!sync
     io.autoclose  = true
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
@@ -1248,8 +1247,9 @@ class IO
   def binmode?
     !@binmode.nil?
   end
+
   # Used to find out if there is buffered data available.
-  def buffer_empty?
+  private def buffer_empty?
     @ibuffer.empty?
   end
 
@@ -1391,7 +1391,7 @@ class IO
           s = IO.read_encode(@io, s)
           s.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
           yield s
@@ -1422,7 +1422,7 @@ class IO
           str = IO.read_encode(@io, str)
           str.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
           yield str
@@ -1436,7 +1436,7 @@ class IO
             str = @buffer.read_to_char_boundary(@io, str)
             str.taint
 
-            $. = @io.increment_lineno
+            $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
 
             yield str
@@ -1477,7 +1477,7 @@ class IO
           str = @buffer.read_to_char_boundary(@io, str)
           str.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           yield str
 
           str = +''
@@ -1495,13 +1495,13 @@ class IO
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint
-        $. = @io.increment_lineno
+        $. = @io.__send__(:increment_lineno)
         yield str
       end
     end
   end
 
-  def increment_lineno
+  private def increment_lineno
     @lineno += 1
   end
 
