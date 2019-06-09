@@ -20,10 +20,6 @@ fails:Public methods on Hash should not include _get_or_undefined
 fails:Public methods on Hash should not include collect
 fails:Public methods on Hash should not include map
 fails:Public methods on Hash should not include sort
-fails:Public methods on Integer should include allbits?
-fails:Public methods on Integer should include anybits?
-fails:Public methods on Integer should include nobits?
-fails:Public methods on Integer should include pow
 fails:Public methods on IO should include fdatasync
 fails:Public methods on IO should include pread
 fails:Public methods on IO should include pwrite
