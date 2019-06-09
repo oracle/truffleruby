@@ -13,25 +13,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class Signals {
 
     // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
-    private static final ConcurrentMap<String, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
     public static void registerHandler(Runnable newHandler, String signalName) {
         final Signal signal = new Signal(signalName);
-        final sun.misc.SignalHandler oldSunHandler;
-        if (newHandler == null) {
-            oldSunHandler = Signal.handle(signal, sun.misc.SignalHandler.SIG_IGN);
-        } else {
-            oldSunHandler = Signal.handle(signal, s -> newHandler.run());
-        }
-        DEFAULT_HANDLERS.putIfAbsent(signalName, oldSunHandler);
+        final SignalHandler oldHandler = Signal.handle(signal, s -> newHandler.run());
+        DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
+    }
+
+    public static void registerIgnoreHandler(String signalName) {
+        final Signal signal = new Signal(signalName);
+        final SignalHandler oldHandler = Signal.handle(signal, SignalHandler.SIG_IGN);
+        DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
     }
 
     public static boolean restoreDefaultHandler(String signalName) {
-        final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signalName);
+        final SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signalName);
         if (defaultHandler == null) {
             // it is already the default signal
             return false;
@@ -44,7 +46,7 @@ public class Signals {
 
     public static void restoreSystemHandler(String signalName) {
         final Signal signal = new Signal(signalName);
-        Signal.handle(signal, sun.misc.SignalHandler.SIG_DFL);
+        Signal.handle(signal, SignalHandler.SIG_DFL);
     }
 
 }
