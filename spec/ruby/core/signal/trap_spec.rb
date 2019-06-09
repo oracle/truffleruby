@@ -4,8 +4,7 @@ platform_is_not :windows do
   describe "Signal.trap" do
     before :each do
       ScratchPad.clear
-
-      @proc = lambda { ScratchPad.record :proc_trap }
+      @proc = -> {}
       @saved_trap = Signal.trap(:HUP, @proc)
     end
 
@@ -55,22 +54,22 @@ platform_is_not :windows do
 
     it "accepts :DEFAULT in place of a proc" do
       Signal.trap :HUP, :DEFAULT
-      Signal.trap(:HUP, :DEFAULT).should == "DEFAULT"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
     end
 
     it "accepts :SIG_DFL in place of a proc" do
       Signal.trap :HUP, :SIG_DFL
-      Signal.trap(:HUP, :SIG_DFL).should == "DEFAULT"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
     end
 
     it "accepts :SIG_IGN in place of a proc" do
       Signal.trap :HUP, :SIG_IGN
-      Signal.trap(:HUP, :SIG_IGN).should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "accepts :IGNORE in place of a proc" do
       Signal.trap :HUP, :IGNORE
-      Signal.trap(:HUP, :IGNORE).should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "accepts 'SIG_DFL' in place of a proc" do
@@ -85,12 +84,12 @@ platform_is_not :windows do
 
     it "accepts 'SIG_IGN' in place of a proc" do
       Signal.trap :HUP, "SIG_IGN"
-      Signal.trap(:HUP, "SIG_IGN").should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "accepts 'IGNORE' in place of a proc" do
       Signal.trap :HUP, "IGNORE"
-      Signal.trap(:HUP, "IGNORE").should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "accepts long names as Strings" do
