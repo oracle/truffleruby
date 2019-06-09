@@ -522,7 +522,7 @@ class StringIO
     val
   end
 
-  def sysread(length = nil, buffer = '')
+  def sysread(length = nil, buffer = nil)
     str = read(length, buffer)
 
     if str.nil?
@@ -534,7 +534,7 @@ class StringIO
 
   alias_method :readpartial, :sysread
 
-  def read_nonblock(length, buffer = '', exception: true)
+  def read_nonblock(length, buffer = nil, exception: true)
     str = read(length, buffer)
 
     if exception and str.nil?
