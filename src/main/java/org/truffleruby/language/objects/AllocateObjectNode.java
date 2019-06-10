@@ -54,7 +54,7 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     protected abstract DynamicObject executeAllocate(DynamicObject classToAllocate, Object[] values);
 
     @Specialization(guards = {
-            "cachedClassToAllocate == classToAllocate",
+            "cachedClassToAllocate == classToAllocate", // ensures correct context
             "!cachedIsSingleton",
             "!isTracing(context)"
     }, assumptions = "getTracingAssumption()", limit = "getCacheLimit()")
@@ -71,19 +71,21 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     @CompilerDirectives.TruffleBoundary
     @Specialization(
             replaces = "allocateCached",
-            guards = { "!isSingleton(classToAllocate)", "!isTracing(context)" },
+            guards = { "!isSingleton(classToAllocate)", "!isTracing(cachedContext)", "context == cachedContext" },
             assumptions = "getTracingAssumption()")
     public DynamicObject allocateUncached(
             DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached("context") RubyContext cachedContext) {
         return allocate(context, getInstanceFactory(classToAllocate), values);
     }
 
     @CompilerDirectives.TruffleBoundary
-    @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing(context)"},
+    @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing(context)", "context == cachedContext"},
                     assumptions = "getTracingAssumption()")
     public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached("context") RubyContext cachedContext) {
         final DynamicObject object = allocate(context, getInstanceFactory(classToAllocate), values);
 
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
