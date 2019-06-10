@@ -4,6 +4,8 @@ Bug fixes:
 
 * Sharing for thread-safety of objects is now triggered later as intended, e.g., when a second `Thread` is started.
 * Fixed `Array#to_h` so it doesn't set a default value (#1698).
+* Removed extra `public` methods on `IO` (#1702).
+* Fixed `Process.kill(signal, Process.pid)` when the signal is trapped as `:IGNORE` (#1702).
 
 Compatibility:
 
