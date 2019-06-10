@@ -40,6 +40,7 @@ public abstract class ObjectIVarSetNode extends RubyBaseWithoutContextNode {
     public Object ivarSetCached(DynamicObject object, Object name, Object value, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("name") Object cachedName,
+            // context does not have to be guarded since it used only during cache instance creation
             @Cached("createWriteFieldNode(context, object, cachedName, checkName)") WriteObjectFieldNode writeObjectFieldNode) {
         CompilerAsserts.partialEvaluationConstant(cachedName);
         writeObjectFieldNode.write(object, value);
