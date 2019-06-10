@@ -19,8 +19,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -36,8 +40,10 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
     private final TruffleLanguage.ContextReference<RubyContext> contextReference;
     private final Source source;
+    private final boolean interactive;
     private final String[] argumentNames;
 
+    @CompilationFinal private Rope sourceRope;
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private DynamicObject mainObject;
     @CompilationFinal private InternalMethod method;
@@ -46,8 +52,9 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
     public RubyParsingRequestNode(RubyLanguage language, Source source, String[] argumentNames) {
         super(language, null, null);
-        contextReference = language.getContextReference();
+        this.contextReference = language.getContextReference();
         this.source = source;
+        this.interactive = source.isInteractive();
         this.argumentNames = argumentNames;
     }
 
@@ -55,6 +62,19 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
     public Object execute(VirtualFrame frame) {
         printTimeMetric("before-script");
         final RubyContext context = contextReference.get();
+
+        if (interactive) {
+            if (sourceRope == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                sourceRope = StringOperations.encodeRope(source.getCharacters().toString(), UTF8Encoding.INSTANCE);
+            }
+
+            // Just do Truffle::Boot.INTERACTIVE_BINDING.eval(code) for interactive sources.
+            // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
+            final Object interactiveBinding = Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule())
+                    .getConstant("INTERACTIVE_BINDING").getValue();
+            return context.send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
+        }
 
         if (cachedContext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -66,7 +86,13 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
-            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentNames, null, true, null);
+            final RubyRootNode rootNode = translator.parse(
+                    new RubySource(source),
+                    ParserContext.TOP_LEVEL,
+                    argumentNames,
+                    null,
+                    true,
+                    null);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -80,15 +106,14 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     sharedMethodInfo.getName(), context.getCoreLibrary().getObjectClass(), Visibility.PUBLIC, callTarget);
         }
 
-        Object[] arguments = RubyArguments.pack(
+        final Object value = callNode.call(RubyArguments.pack(
                 null,
                 null,
                 method,
                 null,
                 mainObject,
                 null,
-                frame.getArguments());
-        final Object value = callNode.call(arguments);
+                frame.getArguments()));
 
         // The return value will be leaked to Java, so share it if the Context API is used.
         // We share conditionally on EMBEDDED to avoid sharing return values used in RubyLauncher.

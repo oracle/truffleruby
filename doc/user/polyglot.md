@@ -12,6 +12,7 @@ If you are using the native configuration, you will need to use the `--polyglot`
 flag to get access to other languages. The JVM configuration automatically has
 access to other languages.
 
+* [Running Ruby code from another language](#running-ruby-code-from-another-language)
 * [Loading code written in foreign languages](#loading-code-written-in-foreign-languages)
 * [Exporting Ruby objects to foreign languages](#exporting-ruby-objects-to-foreign-languages)
 * [Importing foreign objects to Ruby](#importing-foreign-objects-to-ruby)
@@ -21,6 +22,17 @@ access to other languages.
 * [Strings](#strings)
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
+
+## Running Ruby code from another language
+
+When you `eval` Ruby code from the [Context API](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Context.html)
+in another language and mark the `Source` as interactive, the same interactive
+top-level binding is used each time. This means that if you set a local variable
+in one `eval`, you will be able to use it from the next.
+
+The semantics are the same as the Ruby semantics of calling
+`INTERACTIVE_BINDING.eval(code)` for every `Context.eval()` call with an
+interactive `Source`. This is similar to most REPL semantics.
 
 ## Loading code written in foreign languages
 
