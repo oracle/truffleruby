@@ -409,10 +409,6 @@ void rb_num_zerodiv(void) {
 
 // Type checks
 
-int RB_NIL_P(VALUE value) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_NIL_P", value));
-}
-
 int RB_FIXNUM_P(VALUE value) {
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));
 }

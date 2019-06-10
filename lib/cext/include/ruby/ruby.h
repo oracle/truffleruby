@@ -478,7 +478,6 @@ enum ruby_special_consts {
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
 int RTEST(VALUE value);
-int RB_NIL_P(VALUE value); /* Defined as a function in TruffleRuby. */
 #define NIL_P(v) RB_NIL_P(v)
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))

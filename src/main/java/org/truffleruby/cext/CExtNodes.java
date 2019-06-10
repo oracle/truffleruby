@@ -92,6 +92,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -1529,4 +1530,38 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "RB_NIL_P", onSingleton = true, required = 1)
+    @ImportStatic({ ValueWrapperManager.class })
+    public abstract static class NilPNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean nilPWrapper(ValueWrapper value) {
+            return value.getObject() == nil();
+        }
+
+        @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
+        protected boolean nilPPointer(TruffleObject value,
+                @CachedLibrary("value") InteropLibrary values,
+                @Cached BranchProfile unsupportedProfile,
+                @Cached BranchProfile nonPointerProfile) {
+            if (values.isPointer(value)) {
+                long handle = 0;
+                try {
+                    handle = values.asPointer(value);
+                } catch (UnsupportedMessageException e) {
+                    unsupportedProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                }
+                return handle == ValueWrapperManager.NIL_HANDLE;
+            } else {
+                nonPointerProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
+            }
+        }
+
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
+        }
+    }
 }

@@ -420,10 +420,6 @@ module Truffle::CExt
     value.to_s(base)
   end
 
-  def RB_NIL_P(value)
-    nil.equal?(value)
-  end
-
   def RB_FIXNUM_P(value)
     Truffle::Type.fits_into_long?(value)
   end
