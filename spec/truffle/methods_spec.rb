@@ -16,20 +16,21 @@ require_relative '../ruby/spec_helper'
 # but instead of jt untag, jt purge must be used to remove tags:
 # $ jt purge spec/truffle/methods_spec.rb
 
-modules = [
-  BasicObject, Kernel, Object,
-  Module, Class,
-  Enumerable, Enumerator, Enumerator::Lazy, Range,
-  Numeric, Integer, Float,
-  Rational, Complex,
-  Array, Hash, String,
-  File, IO,
+modules = %w[
+  BasicObject Kernel Object
+  Module Class
+  Enumerable Enumerator Enumerator::Lazy Range
+  Numeric Integer Float
+  Rational Complex
+  Array Hash String
+  File IO
+  ENV.singleton_class
 ]
 
 guard -> { !defined?(SlowSpecsTagger) } do
   if RUBY_ENGINE == "ruby"
     modules.each do |mod|
-      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      file = File.expand_path("../methods/#{mod}.txt", __FILE__)
       methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
       methods = methods.lines.map { |line| line.chomp.to_sym }
       contents = methods.map { |meth| "#{meth}\n" }.join
@@ -39,8 +40,8 @@ guard -> { !defined?(SlowSpecsTagger) } do
 
   code = <<-EOR
   #{modules.inspect}.each { |m|
-    puts m.name
-    puts m.public_instance_methods(false).sort
+    puts m
+    puts eval(m).public_instance_methods(false).sort
     puts
   }
   EOR
@@ -51,10 +52,10 @@ guard -> { !defined?(SlowSpecsTagger) } do
   end
 
   modules.each do |mod|
-    describe "Public methods on #{mod.name}" do
-      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+    describe "Public methods on #{mod}" do
+      file = File.expand_path("../methods/#{mod}.txt", __FILE__)
       expected = File.readlines(file).map { |line| line.chomp.to_sym }
-      methods = all_methods[mod.name]
+      methods = all_methods[mod]
 
       if methods == expected
         it "are the same as on MRI" do
