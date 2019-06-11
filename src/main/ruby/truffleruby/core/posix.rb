@@ -366,7 +366,7 @@ module Truffle::POSIX
   # by IO#sysread
 
   def self.read_string_native(io, length)
-    fd = io.descriptor
+    fd = io.fileno
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = Truffle::POSIX.read(fd, buffer, length)
     if bytes_read < 0
@@ -387,7 +387,7 @@ module Truffle::POSIX
   end
 
   def self.read_string_polyglot(io, length)
-    fd = io.descriptor
+    fd = io.fileno
     if fd == 0
       read = Truffle.invoke_primitive :io_read_polyglot, length
       [read, 0]
@@ -400,7 +400,7 @@ module Truffle::POSIX
   # called by IO#syswrite, IO#write, and IO::InternalBuffer#empty_to
 
   def self.write_string_native(io, string, continue_on_eagain)
-    fd = io.descriptor
+    fd = io.fileno
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     buffer.write_string string
@@ -426,7 +426,7 @@ module Truffle::POSIX
   end
 
   def self.write_string_polyglot(io, string, continue_on_eagain)
-    fd = io.descriptor
+    fd = io.fileno
     if fd == 1 || fd == 2
 
       # continue_on_eagain is set for IO::InternalBuffer#empty_to, for IO#write
@@ -444,7 +444,7 @@ module Truffle::POSIX
   # #write_string_nonblock_polylgot) is called by IO#write_nonblock
 
   def self.write_string_nonblock_native(io, string)
-    fd = io.descriptor
+    fd = io.fileno
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     buffer.write_string string
@@ -462,7 +462,7 @@ module Truffle::POSIX
   end
 
   def self.write_string_nonblock_polyglot(io, string)
-    fd = io.descriptor
+    fd = io.fileno
     if fd == 1 || fd == 2
 
       # We only come here from IO#write_nonblock. What happens in a polyglot

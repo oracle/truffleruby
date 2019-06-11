@@ -76,7 +76,7 @@ module Truffle
           size_p.write_int(sockaddr.size)
 
           Truffle::Socket::Foreign
-            .accept(source.descriptor, sockaddr.pointer, size_p)
+            .accept(source.fileno, sockaddr.pointer, size_p)
         end
 
         Error.read_error('accept(2)', source) if fd < 0
@@ -108,7 +108,7 @@ module Truffle
 
     def self.listen(source, backlog)
       backlog = Truffle::Type.coerce_to_int(backlog)
-      err     = Foreign.listen(source.descriptor, backlog)
+      err     = Foreign.listen(source.fileno, backlog)
 
       Error.read_error('listen(2)', source) if err < 0
 
@@ -322,7 +322,7 @@ module Truffle
     end
 
     def self.address_info(method, socket, reverse_lookup = nil)
-      sockaddr = Foreign.__send__(method, socket.descriptor)
+      sockaddr = Foreign.__send__(method, socket.fileno)
 
       reverse_lookup = convert_reverse_lookup(socket, reverse_lookup)
 

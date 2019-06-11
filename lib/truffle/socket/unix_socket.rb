@@ -50,7 +50,7 @@ class UNIXSocket < BasicSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(Truffle::Type.check_null_safe(path))
-    status   = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
+    status   = Truffle::Socket::Foreign.connect(@descriptor, sockaddr)
 
     Errno.handle('connect(2)') if status < 0
   end
@@ -64,7 +64,7 @@ class UNIXSocket < BasicSocket
   end
 
   def path
-    @path ||= Truffle::Socket::Foreign.getsockname(descriptor).unpack('SZ*')[1]
+    @path ||= Truffle::Socket::Foreign.getsockname(@descriptor).unpack('SZ*')[1]
   end
 
   def addr
@@ -72,7 +72,7 @@ class UNIXSocket < BasicSocket
   end
 
   def peeraddr
-    path = Truffle::Socket::Foreign.getpeername(descriptor).unpack('SZ*')[1]
+    path = Truffle::Socket::Foreign.getpeername(@descriptor).unpack('SZ*')[1]
 
     ['AF_UNIX', path]
   end

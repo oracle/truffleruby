@@ -280,21 +280,21 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
         public boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
             final String actionString = StringOperations.getString(action);
+            final String signal = StringOperations.getString(signalName);
+
             switch (actionString) {
                 case "DEFAULT":
-                    return restoreDefaultHandler(StringOperations.getString(signalName));
+                    return restoreDefaultHandler(signal);
                 case "SYSTEM_DEFAULT":
-                    return restoreSystemHandler(StringOperations.getString(signalName));
+                    return restoreSystemHandler(signal);
+                case "IGNORE":
+                    return registerIgnoreHandler(signal);
                 default:
                     throw new UnsupportedOperationException(actionString);
             }
         }
 
-        @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
-        public boolean ignoreSignal(DynamicObject signalName, Object nil) {
-            return registerHandler(StringOperations.getString(signalName), null);
-        }
-
+        @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalNameString)", "isRubyProc(proc)" })
         public boolean watchSignalProc(DynamicObject signalNameString, DynamicObject proc) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
@@ -352,6 +352,20 @@ public abstract class VMPrimitiveNodes {
 
             try {
                 Signals.restoreSystemHandler(signalName);
+            } catch (IllegalArgumentException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+            return true;
+        }
+
+        @TruffleBoundary
+        private boolean registerIgnoreHandler(String signalName) {
+            if (getContext().getOptions().EMBEDDED) {
+                RubyLanguage.LOGGER.warning("ignoring signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+            }
+
+            try {
+                Signals.registerIgnoreHandler(signalName);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }

@@ -83,11 +83,11 @@ class IO
   end
 
   if RbConfig::CONFIG['host_os'].downcase =~ /linux/ && File.exist?("/proc/#{Process.pid}/fd")
-    def stty(*args)
+    private def stty(*args)
       `stty #{args.join(' ')} < /proc/#{Process.pid}/fd/#{fileno}`
     end
   else
-    def stty(*args)
+    private def stty(*args)
       `stty #{args.join(' ')}`
     end
   end

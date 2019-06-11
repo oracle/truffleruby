@@ -376,7 +376,11 @@ module Process
 
       if pid == Process.pid && signal != 0
         signal_name = Signal::Numbers[signal].to_sym
-        Truffle.invoke_primitive :process_kill_raise, signal_name
+        result = Truffle.invoke_primitive :process_kill_raise, signal_name
+        if result == -1 # Try kill() if the java Signal.raise() failed
+          result = Truffle::POSIX.kill(pid, signal)
+          Errno.handle if result == -1
+        end
       else
         pid = -pid if use_process_group
         result = Truffle::POSIX.kill(pid, signal)

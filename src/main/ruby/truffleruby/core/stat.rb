@@ -103,7 +103,7 @@ class File
       fd = Truffle::Type.coerce_to fd, Integer, :to_int
       Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
         result = Truffle::POSIX.truffleposix_fstat(fd, ptr)
-        Errno.handle "file descriptor #{descriptor}" unless result == 0
+        Errno.handle "file descriptor #{fd}" unless result == 0
         Stat.new ptr
       end
     end

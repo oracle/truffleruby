@@ -20,39 +20,13 @@ fails:Public methods on Hash should not include _get_or_undefined
 fails:Public methods on Hash should not include collect
 fails:Public methods on Hash should not include map
 fails:Public methods on Hash should not include sort
-fails:Public methods on Integer should include allbits?
-fails:Public methods on Integer should include anybits?
-fails:Public methods on Integer should include nobits?
-fails:Public methods on Integer should include pow
 fails:Public methods on IO should include fdatasync
 fails:Public methods on IO should include pread
 fails:Public methods on IO should include pwrite
-fails:Public methods on IO should not include buffer_empty?
-fails:Public methods on IO should not include descriptor
-fails:Public methods on IO should not include descriptor=
-fails:Public methods on IO should not include dup
 fails:Public methods on IO should not include encode_with
-fails:Public methods on IO should not include eof!
-fails:Public methods on IO should not include external
-fails:Public methods on IO should not include external=
-fails:Public methods on IO should not include force_read_only
-fails:Public methods on IO should not include force_write_only
-fails:Public methods on IO should not include increment_lineno
-fails:Public methods on IO should not include internal
-fails:Public methods on IO should not include internal=
-fails:Public methods on IO should not include mode
-fails:Public methods on IO should not include mode=
-fails:Public methods on IO should not include mode_read_only?
-fails:Public methods on IO should not include mode_write_only?
 fails:Public methods on IO should not include nonblock
 fails:Public methods on IO should not include nonblock=
 fails:Public methods on IO should not include nonblock?
-fails:Public methods on IO should not include pid=
-fails:Public methods on IO should not include pipe=
-fails:Public methods on IO should not include pipe?
-fails:Public methods on IO should not include read_bom_byte
-fails:Public methods on IO should not include reset_buffering
-fails:Public methods on IO should not include strip_bom
 fails:Public methods on Kernel should include then
 fails:Public methods on Numeric should include clone
 fails:Public methods on Numeric should include dup

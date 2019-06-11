@@ -17,7 +17,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.language.control.RaiseException;
 import sun.misc.Signal;
 
 @CoreClass("Process")
@@ -54,7 +53,8 @@ public abstract class ProcessNodes {
             try {
                 Signal.raise(signal);
             } catch (IllegalArgumentException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                // Java does not know the handler, fallback to using kill()
+                return -1;
             }
             return 1;
         }

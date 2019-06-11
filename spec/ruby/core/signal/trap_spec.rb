@@ -4,8 +4,7 @@ platform_is_not :windows do
   describe "Signal.trap" do
     before :each do
       ScratchPad.clear
-
-      @proc = lambda { ScratchPad.record :proc_trap }
+      @proc = -> {}
       @saved_trap = Signal.trap(:HUP, @proc)
     end
 
@@ -48,29 +47,54 @@ platform_is_not :windows do
       ScratchPad.recorded.should be_true
     end
 
+    it "registers an handler doing nothing with :IGNORE" do
+      Signal.trap :HUP, :IGNORE
+      Process.kill(:HUP, Process.pid).should == 1
+    end
+
     it "ignores the signal when passed nil" do
       Signal.trap :HUP, nil
       Signal.trap(:HUP, @saved_trap).should be_nil
     end
 
-    it "accepts 'DEFAULT' as a symbol in place of a proc" do
+    it "accepts :DEFAULT in place of a proc" do
       Signal.trap :HUP, :DEFAULT
-      Signal.trap(:HUP, :DEFAULT).should == "DEFAULT"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
     end
 
-    it "accepts 'SIG_DFL' as a symbol in place of a proc" do
+    it "accepts :SIG_DFL in place of a proc" do
       Signal.trap :HUP, :SIG_DFL
-      Signal.trap(:HUP, :SIG_DFL).should == "DEFAULT"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
     end
 
-    it "accepts 'SIG_IGN' as a symbol in place of a proc" do
+    it "accepts :SIG_IGN in place of a proc" do
       Signal.trap :HUP, :SIG_IGN
-      Signal.trap(:HUP, :SIG_IGN).should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
-    it "accepts 'IGNORE' as a symbol in place of a proc" do
+    it "accepts :IGNORE in place of a proc" do
       Signal.trap :HUP, :IGNORE
-      Signal.trap(:HUP, :IGNORE).should == "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
+    end
+
+    it "accepts 'SIG_DFL' in place of a proc" do
+      Signal.trap :HUP, "SIG_DFL"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
+    end
+
+    it "accepts 'DEFAULT' in place of a proc" do
+      Signal.trap :HUP, "DEFAULT"
+      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
+    end
+
+    it "accepts 'SIG_IGN' in place of a proc" do
+      Signal.trap :HUP, "SIG_IGN"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
+    end
+
+    it "accepts 'IGNORE' in place of a proc" do
+      Signal.trap :HUP, "IGNORE"
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "accepts long names as Strings" do
@@ -91,26 +115,6 @@ platform_is_not :windows do
     it "accepts short names as Symbols" do
       Signal.trap :HUP, @proc
       Signal.trap(:HUP, @saved_trap).should equal(@proc)
-    end
-
-    it "accepts 'SIG_DFL' in place of a proc" do
-      Signal.trap :HUP, "SIG_DFL"
-      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
-    end
-
-    it "accepts 'DEFAULT' in place of a proc" do
-      Signal.trap :HUP, "DEFAULT"
-      Signal.trap(:HUP, @saved_trap).should == "DEFAULT"
-    end
-
-    it "accepts 'SIG_IGN' in place of a proc" do
-      Signal.trap :HUP, "SIG_IGN"
-      Signal.trap(:HUP, "SIG_IGN").should == "IGNORE"
-    end
-
-    it "accepts 'IGNORE' in place of a proc" do
-      Signal.trap :HUP, "IGNORE"
-      Signal.trap(:HUP, "IGNORE").should == "IGNORE"
     end
   end
 

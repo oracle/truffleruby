@@ -92,7 +92,7 @@ module Signal
       handler = 'SYSTEM_DEFAULT'
     when 'IGNORE', 'SIG_IGN'
       handler = 'IGNORE'
-    when nil
+    when nil # Same as 'IGNORE', except that it is kept as null in @handlers
       handler = nil
     when 'EXIT'
       handler = proc { exit }
@@ -114,8 +114,7 @@ module Signal
     end
 
     if number != Names['EXIT']
-      handler = handler == 'IGNORE' ? nil : handler
-      ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
+      ret = Truffle.invoke_primitive(:vm_watch_signal, signame, handler || 'IGNORE')
       if handler == 'DEFAULT' && !ret
         return +'SYSTEM_DEFAULT'
       end

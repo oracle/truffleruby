@@ -202,7 +202,7 @@ class IO
 
         reset!
         if fill(io) == 0
-          io.eof!
+          io.instance_variable_set(:@eof, true)
           @eof = true
         end
 
@@ -348,25 +348,20 @@ class IO
     end
   end
 
-  attr_accessor :descriptor
-  attr_accessor :external
-  attr_accessor :internal
-  attr_accessor :mode
-
-  def mode_read_only?
+  private def mode_read_only?
     @mode & ACCMODE == RDONLY
   end
 
-  def mode_write_only?
+  private def mode_write_only?
     @mode & ACCMODE == WRONLY
   end
 
-  def force_read_only
+  private def force_read_only
     @mode &= ~IO::ACCMODE
     @mode |= RDONLY
   end
 
-  def force_write_only
+  private def force_write_only
     @mode &= ~IO::ACCMODE
     @mode |= WRONLY
   end
@@ -444,7 +439,7 @@ class IO
       end
 
       if @offset
-        if @from_io && !@from.pipe?
+        if @from_io && !@from.instance_variable_get(:@pipe)
           saved_pos = @from.pos
         else
           saved_pos = 0
@@ -908,7 +903,7 @@ class IO
       pid = Truffle::ProcessOperations.spawn(env || {}, *cmd, options)
     end
 
-    pipe.pid = pid
+    pipe.instance_variable_set :@pid, pid
 
     ch_write.close if readable
     ch_read.close  if writable
@@ -964,7 +959,9 @@ class IO
         Truffle::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, 'closed stream' if obj.closed?
-            return [[obj],[],[]] unless obj.buffer_empty?
+            unless obj.__send__(:buffer_empty?)
+              return [[obj],[],[]]
+            end
             obj
           else
             io = Truffle::Type.coerce_to(obj, IO, :to_io)
@@ -1128,10 +1125,10 @@ class IO
     end
 
     # Close old descriptor if there was already one associated
-    io.close if io.descriptor != -1
+    io.close if io.instance_variable_get(:@descriptor) != -1
 
-    io.descriptor = fd
-    io.mode       = mode || cur_mode
+    io.instance_variable_set :@descriptor, fd
+    io.instance_variable_set :@mode, mode || cur_mode
     io.sync       = !!sync
     io.autoclose  = true
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
@@ -1196,10 +1193,12 @@ class IO
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
+    fd = original.fileno
+
     # The 3rd argument is minimum acceptable descriptor value for the new FD.
     # We want to ensure newly allocated FDs never take the standard IO ones, even
     # if a STDIO stream is closed.
-    @descriptor = Truffle::POSIX.fcntl(@descriptor, F_DUPFD_CLOEXEC, 3)
+    @descriptor = Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3)
   end
 
   def advise(advice, offset = 0, len = 0)
@@ -1248,8 +1247,9 @@ class IO
   def binmode?
     !@binmode.nil?
   end
+
   # Used to find out if there is buffered data available.
-  def buffer_empty?
+  private def buffer_empty?
     @ibuffer.empty?
   end
 
@@ -1326,11 +1326,6 @@ class IO
     @descriptor == -1
   end
 
-  def dup
-    ensure_open
-    super
-  end
-
   # Argument matrix for IO#gets and IO#each:
   #
   #  separator / limit | nil | >= 0 | < 0
@@ -1391,7 +1386,7 @@ class IO
           s = IO.read_encode(@io, s)
           s.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
           yield s
@@ -1422,7 +1417,7 @@ class IO
           str = IO.read_encode(@io, str)
           str.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
           yield str
@@ -1436,7 +1431,7 @@ class IO
             str = @buffer.read_to_char_boundary(@io, str)
             str.taint
 
-            $. = @io.increment_lineno
+            $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
 
             yield str
@@ -1477,7 +1472,7 @@ class IO
           str = @buffer.read_to_char_boundary(@io, str)
           str.taint
 
-          $. = @io.increment_lineno
+          $. = @io.__send__(:increment_lineno)
           yield str
 
           str = +''
@@ -1495,13 +1490,13 @@ class IO
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint
-        $. = @io.increment_lineno
+        $. = @io.__send__(:increment_lineno)
         yield str
       end
     end
   end
 
-  def increment_lineno
+  private def increment_lineno
     @lineno += 1
   end
 
@@ -1596,13 +1591,6 @@ class IO
   end
   alias_method :codepoints, :each_codepoint
 
-
-  ##
-  # Set the pipe so it is at the end of the file
-  def eof!
-    @eof = true
-  end
-
   ##
   # Returns true if ios is at end of file that means
   # there are no more data to read. The stream must be
@@ -1676,7 +1664,7 @@ class IO
     end
 
     command = Truffle::Type.coerce_to_int command
-    Truffle::POSIX.fcntl descriptor, command, arg
+    Truffle::POSIX.fcntl @descriptor, command, arg
   end
 
   def internal_encoding
@@ -1713,7 +1701,7 @@ class IO
     end
 
     command = Truffle::Type.coerce_to_int(command)
-    ret = Truffle::POSIX.ioctl(descriptor, command, real_arg)
+    ret = Truffle::POSIX.ioctl(@descriptor, command, real_arg)
     Errno.handle if ret < 0
 
     if arg.kind_of?(String)
@@ -1869,16 +1857,6 @@ class IO
   def pid
     raise IOError, 'closed stream' if closed?
     @pid
-  end
-
-  attr_writer :pid
-
-  def pipe=(v)
-    @pipe = !!v
-  end
-
-  def pipe?
-    @pipe
   end
 
   def pos
@@ -2203,7 +2181,7 @@ class IO
           io.ensure_open
         end
 
-        io.reset_buffering
+        io.__send__(:reset_buffering)
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
@@ -2252,7 +2230,7 @@ class IO
   ##
   # Internal method used to reset the state of the buffer, including the
   # physical position in the stream.
-  def reset_buffering
+  private def reset_buffering
     @ibuffer.unseek! self
   end
 
@@ -2357,12 +2335,7 @@ class IO
     self
   end
 
-  def read_bom_byte
-    read_ios, _, _ = IO.select [self], nil, nil, 0.1
-    getbyte if read_ios
-  end
-
-  def strip_bom
+  private def strip_bom
     mode = Truffle::POSIX.truffleposix_fstat_mode(@descriptor)
     return unless Truffle::StatOperations.file?(mode)
 
