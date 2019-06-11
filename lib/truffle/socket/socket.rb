@@ -251,9 +251,16 @@ class Socket < BasicSocket
     family = Truffle::Socket.address_family(family)
     type   = Truffle::Socket.socket_type(type)
 
-    fd0, fd1 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
+    fd1, fd2 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
 
-    [for_fd(fd0), for_fd(fd1)]
+    s1 = for_fd(fd1)
+    s2 = for_fd(fd2)
+
+    [s1, s2].map do |sock|
+      sock.instance_variable_set(:@family, family)
+      sock.instance_variable_set(:@socket_type, type)
+      sock
+    end
   end
 
   class << self
@@ -377,10 +384,14 @@ class Socket < BasicSocket
     [message, addr]
   end
 
-  def recvfrom_nonblock(bytes, flags = 0)
-    message, addr = recvmsg_nonblock(bytes, flags)
+  def recvfrom_nonblock(bytes, flags = 0, exception: true)
+    message, addr = recvmsg_nonblock(bytes, flags, exception: exception)
 
-    [message, addr]
+    if message == :wait_readable
+      message
+    else
+      [message, addr]
+    end
   end
 
   def listen(backlog)

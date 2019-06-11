@@ -6,6 +6,7 @@ Bug fixes:
 * Fixed `Array#to_h` so it doesn't set a default value (#1698).
 * Removed extra `public` methods on `IO` (#1702).
 * Fixed `Process.kill(signal, Process.pid)` when the signal is trapped as `:IGNORE` (#1702).
+* Fixed `Addrinfo.new(String)` to reliably find the address family (#1702).
 
 Compatibility:
 
@@ -16,6 +17,7 @@ Compatibility:
 * Implemented more `Ripper` methods as no-ops (#1694).
 * Implemented `rb_enc_sprintf` (#1702).
 * Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
+* Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
 
 Changes:
 

@@ -390,7 +390,7 @@ class StringIO
     Truffle::IOOperations.puts(self, *args)
   end
 
-  def read(length=nil, buffer=nil)
+  def read(length = nil, buffer = nil)
     check_readable
     d = @__data__
     pos = d.pos
@@ -430,7 +430,7 @@ class StringIO
   end
 
   def readchar
-    raise IO::EOFError, 'end of file reached' if eof?
+    raise EOFError, 'end of file reached' if eof?
     getc
   end
 
@@ -440,7 +440,7 @@ class StringIO
 
   def readline(sep=$/, limit=Undefined)
     check_readable
-    raise IO::EOFError, 'end of file reached' if eof?
+    raise EOFError, 'end of file reached' if eof?
 
     Truffle::IOOperations.set_last_line(getline(true, sep, limit), Truffle.invoke_primitive(:caller_binding))
   end
@@ -522,12 +522,11 @@ class StringIO
     val
   end
 
-  def sysread(length=nil, buffer='')
+  def sysread(length = nil, buffer = nil)
     str = read(length, buffer)
 
     if str.nil?
-      buffer.clear
-      raise IO::EOFError, 'end of file reached'
+      raise EOFError, 'end of file reached'
     end
 
     str
@@ -535,8 +534,14 @@ class StringIO
 
   alias_method :readpartial, :sysread
 
-  def read_nonblock(length, buffer='', **options)
-    sysread(length, buffer)
+  def read_nonblock(length, buffer = nil, exception: true)
+    str = read(length, buffer)
+
+    if exception and str.nil?
+      raise EOFError, 'end of file reached'
+    end
+
+    str
   end
 
   def tell

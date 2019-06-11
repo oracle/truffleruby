@@ -66,7 +66,7 @@ module Truffle
       end
     end
 
-    def self.accept(source, new_class)
+    def self.internal_accept(source, new_class, exception)
       raise IOError, 'socket has been closed' if source.closed?
 
       sockaddr = sockaddr_class_for_socket(source).new
@@ -79,7 +79,13 @@ module Truffle
             .accept(source.fileno, sockaddr.pointer, size_p)
         end
 
-        Error.read_error('accept(2)', source) if fd < 0
+        if fd < 0
+          if exception
+            Error.read_error('accept(2)', source)
+          else
+            return :wait_readable
+          end
+        end
 
         socket = new_class.for_fd(fd)
 
@@ -91,19 +97,16 @@ module Truffle
         sockaddr.free
       end
     end
+    private_class_method :internal_accept
+
+    def self.accept(source, new_class)
+      internal_accept(source, new_class, true)
+    end
 
     def self.accept_nonblock(source, new_class, exception)
       source.fcntl(::Fcntl::F_SETFL, ::Fcntl::O_NONBLOCK)
 
-      begin
-        accept(source, new_class)
-      rescue Errno::EAGAIN
-        if exception
-          raise ::IO::EAGAINWaitReadable
-        else
-          return :wait_readable
-        end
-      end
+      internal_accept(source, new_class, exception)
     end
 
     def self.listen(source, backlog)
