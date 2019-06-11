@@ -454,8 +454,8 @@ end
 
 struct 'sockaddr' do |s|
   s.include 'sys/socket.h'
-  s.field :sa_data, :char_array
   s.field :sa_family, :sa_family_t
+  s.field :sa_data, :char_array
 end
 
 struct 'sockaddr_in' do |s|
