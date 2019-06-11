@@ -1435,7 +1435,7 @@ module Truffle::CExt
   BASIC_OBJECT_ALLOCATE = BasicObject.method(:__allocate__).unbind
 
   def rb_data_object_wrap(ruby_class, data, mark, free)
-    ruby_class = Object if Truffle::Interop.null?(ruby_class)
+    ruby_class = Object unless ruby_class
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
@@ -1445,7 +1445,7 @@ module Truffle::CExt
   end
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
-    ruby_class = Object if Truffle::Interop.null?(ruby_class)
+    ruby_class = Object unless ruby_class
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
