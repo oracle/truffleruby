@@ -24,7 +24,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -34,13 +33,7 @@ import org.truffleruby.language.control.RaiseException;
 public abstract class AllocateObjectNode extends RubyBaseNode {
 
     public static AllocateObjectNode create() {
-        return AllocateObjectNodeGen.create(true);
-    }
-
-    private final boolean useCallerFrameForTracing;
-
-    public AllocateObjectNode(boolean useCallerFrameForTracing) {
-        this.useCallerFrameForTracing = useCallerFrameForTracing;
+        return AllocateObjectNodeGen.create();
     }
 
     public DynamicObject allocate(DynamicObject classToAllocate, Object... values) {
@@ -100,17 +93,9 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
 
     @CompilerDirectives.TruffleBoundary
     private void callTraceAllocation(DynamicObject object) {
-        final FrameInstance allocatingFrameInstance;
-        final SourceSection allocatingSourceSection;
+        final SourceSection allocatingSourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
-        if (useCallerFrameForTracing) {
-            allocatingFrameInstance = getContext().getCallStack().getCallerFrameIgnoringSend();
-            allocatingSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-        } else {
-            allocatingFrameInstance = Truffle.getRuntime().getCurrentFrame();
-            allocatingSourceSection = getEncapsulatingSourceSection();
-        }
-
+        final FrameInstance allocatingFrameInstance = Truffle.getRuntime().getCurrentFrame();
         final Frame allocatingFrame = allocatingFrameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
