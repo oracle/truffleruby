@@ -64,33 +64,28 @@ class BasicSocket < IO
     Socket::Option.new(family, level, optname, data)
   end
 
-  def setsockopt(level_or_option, optname = nil, optval = nil)
-    if level_or_option and optname and optval
-      if level_or_option.is_a?(Socket::Option)
-        raise TypeError,
-          'expected the first argument to be a Integer, Symbol, or String'
-      end
-
-      level = level_or_option
-    elsif level_or_option.is_a?(Socket::Option)
-      raise(ArgumentError, 'given 2, expected 1') if optname
-
-      level   = level_or_option.level
-      optname = level_or_option.optname
-      optval  = level_or_option.data
+  def setsockopt(*args)
+    if args.size == 1
+      option = args[0]
+      level   = option.level
+      optname = option.optname
+      optval  = option.data
+    elsif args.size == 3
+      level, optname, optval = args
     else
-      raise TypeError,
-        'expected the first argument to be a Integer, Symbol, String, or Socket::Option'
+      Truffle::Type.check_arity(args.size, 3, 3)
     end
-
-    optval = 1 if optval == true
-    optval = 0 if optval == false
 
     sockname = Truffle::Socket::Foreign.getsockname(@descriptor)
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
     error    = 0
+
+    case optval
+    when true  then optval = 1
+    when false then optval = 0
+    end
 
     if optval.is_a?(Integer)
       Truffle::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
