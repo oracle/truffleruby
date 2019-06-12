@@ -184,7 +184,6 @@ module ObjectSpace
 
   def trace_object_allocations
     trace_object_allocations_start
-
     begin
       yield
     ensure

@@ -40,6 +40,7 @@ package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
@@ -48,6 +49,7 @@ import org.truffleruby.cext.ValueWrapperManager;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -59,9 +61,9 @@ public class ObjectSpaceManager {
     private final RubyContext context;
 
     private final CyclicAssumption tracingAssumption = new CyclicAssumption("objspace-tracing");
-    @CompilerDirectives.CompilationFinal private boolean isTracing = false;
-    private int tracingAssumptionActivations = 0;
-    private boolean tracingPaused = false;
+    @CompilationFinal private boolean isTracing = false;
+    private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
+    private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
     private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
 
@@ -70,34 +72,16 @@ public class ObjectSpaceManager {
     }
 
     public void traceAllocationsStart() {
-        tracingAssumptionActivations++;
-
-        if (tracingAssumptionActivations == 1) {
+        if (tracingAssumptionActivations.incrementAndGet() == 1) {
             isTracing = true;
             tracingAssumption.invalidate();
         }
     }
 
     public void traceAllocationsStop() {
-        tracingAssumptionActivations--;
-
-        if (tracingAssumptionActivations == 0) {
+        if (tracingAssumptionActivations.decrementAndGet() == 0) {
             isTracing = false;
             tracingAssumption.invalidate();
-        }
-    }
-
-    public void traceAllocation(DynamicObject object, DynamicObject classPath, DynamicObject methodId, DynamicObject sourcefile, int sourceline) {
-        if (tracingPaused) {
-            return;
-        }
-
-        tracingPaused = true;
-
-        try {
-            context.send(context.getCoreLibrary().getObjectSpaceModule(), "trace_allocation", object, classPath, methodId, sourcefile, sourceline, getCollectionCount());
-        } finally {
-            tracingPaused = false;
         }
     }
 
@@ -107,6 +91,14 @@ public class ObjectSpaceManager {
 
     public boolean isTracing() {
         return isTracing;
+    }
+
+    public boolean isTracingPaused() {
+        return tracingPaused.get();
+    }
+
+    public void setTracingPaused(boolean tracingPaused) {
+        this.tracingPaused.set(tracingPaused);
     }
 
     public long getNextObjectID() {
