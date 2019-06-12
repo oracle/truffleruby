@@ -18,7 +18,7 @@ import org.truffleruby.language.yield.YieldNode;
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
     @Child private YieldNode dispatchNode = new YieldNode();
-    @Child private BooleanCastNode.Childless booleanCastNode;
+    @Child private BooleanCastNode booleanCastNode;
 
     public YieldingCoreMethodNode() {
         super();
@@ -35,7 +35,7 @@ public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNod
     private boolean booleanCast(Object value) {
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            booleanCastNode = insert(BooleanCastNodeGen.Childless.create());
+            booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
         return booleanCastNode.executeToBoolean(value);
     }

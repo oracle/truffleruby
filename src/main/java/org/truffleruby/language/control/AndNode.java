@@ -21,7 +21,7 @@ public class AndNode extends RubyNode {
     @Child private RubyNode left;
     @Child private RubyNode right;
 
-    @Child private BooleanCastNode.Childless leftCast;
+    @Child private BooleanCastNode leftCast;
 
     private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
 
@@ -44,7 +44,7 @@ public class AndNode extends RubyNode {
     private boolean castToBoolean(final Object value) {
         if (leftCast == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            leftCast = insert(BooleanCastNodeGen.Childless.create());
+            leftCast = insert(BooleanCastNodeGen.create(null));
         }
         return leftCast.executeToBoolean(value);
     }

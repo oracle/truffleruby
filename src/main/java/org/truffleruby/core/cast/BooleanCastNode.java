@@ -30,6 +30,10 @@ import org.truffleruby.language.RubyNode;
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class BooleanCastNode extends RubyNode {
 
+    public static BooleanCastNode create() {
+        return BooleanCastNodeGen.create(null);
+    }
+
     /** Execute with child node */
     public abstract boolean executeBoolean(VirtualFrame frame);
 
@@ -45,9 +49,6 @@ public abstract class BooleanCastNode extends RubyNode {
     @GenerateUncached
     @ImportStatic(RubyGuards.class)
     public abstract static class Childless extends RubyBaseWithoutContextNode {
-        public static Childless create() {
-            return BooleanCastNodeGen.ChildlessNodeGen.create();
-        }
 
         public abstract boolean executeToBoolean(Object value);
 

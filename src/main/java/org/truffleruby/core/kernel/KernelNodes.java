@@ -156,7 +156,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode equalNode;
-        @Child private BooleanCastNode.Childless booleanCastNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
@@ -184,7 +184,7 @@ public abstract class KernelNodes {
 
             if (booleanCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.Childless.create());
+                booleanCastNode = insert(BooleanCastNode.create());
             }
 
             return booleanCastNode.executeToBoolean(equalNode.call(left, "==", right));
@@ -208,7 +208,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqlNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode eqlNode;
-        @Child private BooleanCastNode.Childless booleanCastNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
@@ -232,7 +232,7 @@ public abstract class KernelNodes {
 
             if (booleanCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.Childless.create());
+                booleanCastNode = insert(BooleanCastNode.create());
             }
 
             return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
@@ -1068,7 +1068,7 @@ public abstract class KernelNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode;
         @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
-        @Child private BooleanCastNode.Childless booleanCastNode = BooleanCastNode.Childless.create();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
@@ -1392,7 +1392,7 @@ public abstract class KernelNodes {
         @Child private DoesRespondDispatchHeadNode dispatchIgnoreVisibility;
         @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
         @Child private CallDispatchHeadNode respondToMissingNode;
-        @Child private BooleanCastNode.Childless booleanCastNode;
+        @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
@@ -1454,7 +1454,7 @@ public abstract class KernelNodes {
 
             if (booleanCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.Childless.create());
+                booleanCastNode = insert(BooleanCastNode.create());
             }
 
             return booleanCastNode.executeToBoolean(respondToMissingNode.call(object, "respond_to_missing?", name, includeProtectedAndPrivate));

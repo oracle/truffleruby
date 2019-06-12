@@ -63,7 +63,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
         @Child private HashNode hashNode;
         @Child private CallDispatchHeadNode equalNode;
-        @Child private BooleanCastNode.Childless booleanCastNode;
+        @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
@@ -118,7 +118,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
             if (booleanCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.Childless.create());
+                booleanCastNode = insert(BooleanCastNode.create());
             }
 
             return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));

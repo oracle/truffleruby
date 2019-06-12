@@ -385,7 +385,7 @@ public abstract class StringNodes {
         @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create();
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private CallDispatchHeadNode objectEqualNode;
-        @Child private BooleanCastNode.Childless booleanCastNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         @Specialization(guards = "isRubyString(b)")
         public boolean equal(DynamicObject a, DynamicObject b) {
@@ -407,7 +407,7 @@ public abstract class StringNodes {
 
                 if (booleanCastNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    booleanCastNode = insert(BooleanCastNode.Childless.create());
+                    booleanCastNode = insert(BooleanCastNode.create());
                 }
 
                 return booleanCastNode.executeToBoolean(objectEqualNode.call(b, "==", a));
@@ -647,7 +647,7 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubyString(matchStr)")
         public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length,
                 @Cached("createPrivate()") CallDispatchHeadNode includeNode,
-                @Cached BooleanCastNode.Childless booleanCastNode,
+                @Cached("create()") BooleanCastNode booleanCastNode,
                 @Cached("createPrivate()") CallDispatchHeadNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);

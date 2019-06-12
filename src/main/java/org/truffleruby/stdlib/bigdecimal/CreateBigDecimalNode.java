@@ -109,7 +109,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "type == NEGATIVE_INFINITY || type == POSITIVE_INFINITY")
     public DynamicObject createInfinity(BigDecimalType type, Object digits, boolean strict,
-            @Cached BooleanCastNode.Childless booleanCastNode,
+            @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
@@ -130,7 +130,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "type == NAN")
     public DynamicObject createNaN(BigDecimalType type, Object digits, boolean strict,
-            @Cached BooleanCastNode.Childless booleanCastNode,
+            @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
