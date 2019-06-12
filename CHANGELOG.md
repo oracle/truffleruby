@@ -7,6 +7,7 @@ Bug fixes:
 * Removed extra `public` methods on `IO` (#1702).
 * Fixed `Process.kill(signal, Process.pid)` when the signal is trapped as `:IGNORE` (#1702).
 * Fixed `Addrinfo.new(String)` to reliably find the address family (#1702).
+* Fixed argument checks in `BasicSocket#setsockopt` (#1460).
 
 Compatibility:
 
