@@ -23,8 +23,8 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -33,13 +33,7 @@ import org.truffleruby.language.control.RaiseException;
 public abstract class AllocateObjectNode extends RubyBaseNode {
 
     public static AllocateObjectNode create() {
-        return AllocateObjectNodeGen.create(true);
-    }
-
-    private final boolean useCallerFrameForTracing;
-
-    public AllocateObjectNode(boolean useCallerFrameForTracing) {
-        this.useCallerFrameForTracing = useCallerFrameForTracing;
+        return AllocateObjectNodeGen.create();
     }
 
     public DynamicObject allocate(DynamicObject classToAllocate, Object... values) {
@@ -81,42 +75,49 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     @CompilerDirectives.TruffleBoundary
     @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing()"},
                     assumptions = "getTracingAssumption()")
-    public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values,
-                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+    public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values) {
         final DynamicObject object = allocate(getInstanceFactory(classToAllocate), values);
 
-        final FrameInstance allocatingFrameInstance;
-        final SourceSection allocatingSourceSection;
-
-        if (useCallerFrameForTracing) {
-            allocatingFrameInstance = getContext().getCallStack().getCallerFrameIgnoringSend();
-            allocatingSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-        } else {
-            allocatingFrameInstance = Truffle.getRuntime().getCurrentFrame();
-            allocatingSourceSection = getEncapsulatingSourceSection();
+        final ObjectSpaceManager objectSpaceManager = getContext().getObjectSpaceManager();
+        if (!objectSpaceManager.isTracingPaused()) {
+            objectSpaceManager.setTracingPaused(true);
+            try {
+                callTraceAllocation(object);
+            } finally {
+                objectSpaceManager.setTracingPaused(false);
+            }
         }
 
+        return object;
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private void callTraceAllocation(DynamicObject object) {
+        final SourceSection allocatingSourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
+
+        final FrameInstance allocatingFrameInstance = Truffle.getRuntime().getCurrentFrame();
         final Frame allocatingFrame = allocatingFrameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
 
-        getContext().getObjectSpaceManager().traceAllocation(
+        getContext().send(coreLibrary().getObjectSpaceModule(), "trace_allocation",
                 object,
-                string(makeStringNode, Layouts.CLASS.getFields(coreLibrary().getLogicalClass(allocatingSelf)).getName()),
+                string(Layouts.CLASS.getFields(coreLibrary().getLogicalClass(allocatingSelf)).getName()),
                 getSymbol(allocatingMethod),
-                string(makeStringNode, getContext().getPath(allocatingSourceSection.getSource())),
-                allocatingSourceSection.getStartLine());
-
-        return object;
+                string(getContext().getPath(allocatingSourceSection.getSource())),
+                allocatingSourceSection.getStartLine(),
+                ObjectSpaceManager.getCollectionCount());
     }
 
     protected DynamicObjectFactory getInstanceFactory(DynamicObject classToAllocate) {
         return Layouts.CLASS.getInstanceFactory(classToAllocate);
     }
 
-    private DynamicObject string(StringNodes.MakeStringNode makeStringNode, String value) {
-        return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+    private DynamicObject string(String value) {
+        // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not trace the allocation
+        // of Strings used for tracing allocations.
+        return StringOperations.createString(getContext(), StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")

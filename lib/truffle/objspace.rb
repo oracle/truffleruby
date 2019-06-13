@@ -184,7 +184,6 @@ module ObjectSpace
 
   def trace_object_allocations
     trace_object_allocations_start
-
     begin
       yield
     ensure
@@ -230,7 +229,11 @@ module ObjectSpace
   def allocation_method_id(object)
     allocation = ALLOCATIONS[object]
     return nil if allocation.nil?
-    allocation.method_id
+
+    method_id = allocation.method_id
+    # The allocator function is hidden in MRI
+    method_id = :new if method_id == :__allocate__
+    method_id
   end
   module_function :allocation_method_id
 

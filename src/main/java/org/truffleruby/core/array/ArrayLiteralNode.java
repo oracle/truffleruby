@@ -17,7 +17,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.AllocateObjectNodeGen;
 
 public abstract class ArrayLiteralNode extends RubyNode {
 
@@ -54,7 +53,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
     protected DynamicObject createArray(Object store, int size) {
         if (allocateObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateObjectNode = insert(AllocateObjectNodeGen.create(false));
+            allocateObjectNode = insert(AllocateObjectNode.create());
         }
         return allocateObjectNode.allocate(coreLibrary().getArrayClass(), store, size);
     }
