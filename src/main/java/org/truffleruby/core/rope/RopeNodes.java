@@ -1383,7 +1383,8 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class BytesNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class BytesNode extends RubyBaseWithoutContextNode {
 
         public static BytesNode create() {
             return RopeNodesFactory.BytesNodeGen.create();
@@ -1439,7 +1440,8 @@ public abstract class RopeNodes {
         }
     }
 
-    public abstract static class AsciiOnlyNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class AsciiOnlyNode extends RubyBaseWithoutContextNode {
 
         public static AsciiOnlyNode create() {
             return RopeNodesFactory.AsciiOnlyNodeGen.create();
@@ -1449,13 +1451,14 @@ public abstract class RopeNodes {
 
         @Specialization
         public boolean asciiOnly(Rope rope,
-                @Cached("create()") CodeRangeNode codeRangeNode) {
+                @Cached CodeRangeNode codeRangeNode) {
             return codeRangeNode.execute(rope) == CR_7BIT;
         }
 
     }
 
-    public abstract static class CodeRangeNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class CodeRangeNode extends RubyBaseWithoutContextNode {
 
         public static CodeRangeNode create() {
             return RopeNodesFactory.CodeRangeNodeGen.create();
@@ -1470,7 +1473,7 @@ public abstract class RopeNodes {
 
         @Specialization
         public CodeRange getCodeRangeNative(NativeRope rope,
-                @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());

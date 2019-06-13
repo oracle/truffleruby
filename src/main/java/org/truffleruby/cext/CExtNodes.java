@@ -651,7 +651,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -671,7 +671,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -689,7 +689,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization

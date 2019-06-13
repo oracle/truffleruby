@@ -10,27 +10,42 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 
+@GenerateUncached
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class ToJavaStringNode extends RubyNode {
+public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
+
+    // FIXME (pitr 12-Jun-2019): find a different way
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class RubyNodeWrapperNode extends RubyNode {
+        @Specialization
+        public Object call(Object value, @Cached ToJavaStringNode toJavaString) {
+            return toJavaString.executeToJavaString(value);
+        }
+    }
 
     public static ToJavaStringNode create() {
         return ToJavaStringNodeGen.create(null);
     }
 
+    public abstract String executeToJavaString(VirtualFrame frame);
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
@@ -44,8 +59,8 @@ public abstract class ToJavaStringNode extends RubyNode {
     @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
     public String stringUncached(DynamicObject value,
             @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
-            @Cached("create()") RopeNodes.AsciiOnlyNode asciiOnlyNode,
-            @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
+            @Cached RopeNodes.BytesNode bytesNode) {
         final Rope rope = StringOperations.rope(value);
         final byte[] bytes = bytesNode.execute(rope);
 
@@ -84,7 +99,7 @@ public abstract class ToJavaStringNode extends RubyNode {
     }
 
     protected int getLimit() {
-        return getContext().getOptions().INTEROP_CONVERT_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
     }
 
 }

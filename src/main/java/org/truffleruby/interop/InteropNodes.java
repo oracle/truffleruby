@@ -1062,7 +1062,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         public RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNodeGen.create(newName);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 
         @TruffleBoundary
@@ -1080,7 +1080,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         public RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNodeGen.create(newName);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 
         @Specialization

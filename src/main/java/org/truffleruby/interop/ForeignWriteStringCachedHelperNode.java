@@ -11,21 +11,25 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
-abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
+@GenerateUncached
+abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContextNode {
 
-    @Child private DoesRespondDispatchHeadNode indexDefinedNode;
-    @Child private CallDispatchHeadNode callNode;
 
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
+
+    public static ForeignWriteStringCachedHelperNode create() {
+        return ForeignWriteStringCachedHelperNodeGen.create();
+    }
 
     public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name,
             Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
@@ -37,8 +41,9 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
+            @Cached("create()") ForeignToRubyNode nameToRubyNode,
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+        return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
     @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar", "stringName.equals(cachedStringName)"})
@@ -49,7 +54,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             boolean isIVar,
             Object value,
             @Cached("stringName") Object cachedStringName,
-            @Cached("createWriteObjectFieldNode(stringName)") WriteObjectFieldNode writeObjectFieldNode) {
+            @Cached(value = "createWriteObjectFieldNode(cachedStringName)", allowUncached = true) WriteObjectFieldNode writeObjectFieldNode) {
         writeObjectFieldNode.write(receiver, value);
         return value;
     }
@@ -60,7 +65,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "methodDefined(receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+            "methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
     })
     public Object index(
             DynamicObject receiver,
@@ -68,20 +73,23 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
+            @Cached("create()") ForeignToRubyNode nameToRubyNode,
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch,
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode doesRespond) {
+        return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+            "!methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
     })
     public Object unknownIdentifier(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
-            Object value) throws UnknownIdentifierException {
+            Object value,
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(toString(name));
     }
 
@@ -90,33 +98,15 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
         return name.toString();
     }
 
-    protected DoesRespondDispatchHeadNode getIndexDefinedNode() {
-        if (indexDefinedNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            indexDefinedNode = insert(DoesRespondDispatchHeadNode.create());
-        }
-
-        return indexDefinedNode;
-    }
-
     // TODO CS 9-Aug-17 test method defined once and then run specialisations
 
-    protected boolean methodDefined(DynamicObject receiver, Object stringName,
+    protected static boolean methodDefined(DynamicObject receiver, Object stringName,
                                     DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {
             return definedNode.doesRespondTo(null, stringName, receiver);
         }
-    }
-
-    protected Object call(DynamicObject receiver, String methodName, Object... arguments) {
-        if (callNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-
-        return callNode.call(receiver, methodName, arguments);
     }
 
 }

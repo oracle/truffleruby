@@ -9,52 +9,45 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
+@GenerateUncached
 @ImportStatic(StringCachingGuards.class)
-public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseNode {
+public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseWithoutContextNode {
 
-    @Child private IsStringLikeNode isStringLikeNode;
+    public abstract Object executeStringCachingHelper(
+            DynamicObject receiver,
+            Object name,
+            Object value) throws UnknownIdentifierException;
 
-    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name, Object value) throws UnknownIdentifierException;
-
-    @Specialization(guards = "isStringLike(name)")
-    public Object cacheStringLikeAndForward(DynamicObject receiver, Object name, Object value,
-            @Cached("create()") ToJavaStringNode toJavaStringNode,
-            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
+    @Specialization(guards = "isStringLike.executeIsStringLike(name)")
+    public Object cacheStringLikeAndForward(
+            DynamicObject receiver, Object name, Object value,
+            @Cached ToJavaStringNode toJavaStringNode,
+            @Cached ForeignWriteStringCachedHelperNode nextHelper,
+            @Cached IsStringLikeNode isStringLike) throws UnknownIdentifierException {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(name);
         boolean isIVar = isIVar(nameAsJavaString);
         return nextHelper.executeStringCachedHelper(receiver, name, nameAsJavaString, isIVar, value);
     }
 
-    @Specialization(guards = "!isStringLike(name)")
-    public Object passThroughNonString(DynamicObject receiver, Object name, Object value,
-            @Cached("createNextHelper()") ForeignWriteStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
+    @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
+    public Object passThroughNonString(
+            DynamicObject receiver, Object name, Object value,
+            @Cached ForeignWriteStringCachedHelperNode nextHelper,
+            @Cached IsStringLikeNode isStringLike) throws UnknownIdentifierException {
         return nextHelper.executeStringCachedHelper(receiver, name, null, false, value);
-    }
-
-    protected boolean isStringLike(Object value) {
-        if (isStringLikeNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isStringLikeNode = insert(IsStringLikeNode.create());
-        }
-
-        return isStringLikeNode.executeIsStringLike(value);
     }
 
     protected boolean isIVar(String name) {
         return !name.isEmpty() && name.charAt(0) == '@';
-    }
-
-    protected ForeignWriteStringCachedHelperNode createNextHelper() {
-        return ForeignWriteStringCachedHelperNodeGen.create();
     }
 
 }

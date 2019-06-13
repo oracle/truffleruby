@@ -246,7 +246,7 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             long index,
             Object value,
-            @Shared("writeHelperNode") @Cached(allowUncached = true) ForeignWriteStringCachingHelperNode helperNode,
+            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
@@ -261,7 +261,7 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             Object value,
-            @Shared("writeHelperNode") @Cached(allowUncached = true) ForeignWriteStringCachingHelperNode helperNode,
+            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));

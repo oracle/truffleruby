@@ -218,7 +218,7 @@ public abstract class ReadlineHistoryNodes {
         }
 
         @CreateCast("line") public RubyNode coerceLineToJavaString(RubyNode line) {
-            return ToJavaStringNodeGen.create(line);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(line);
         }
 
         @TruffleBoundary
