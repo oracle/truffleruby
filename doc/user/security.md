@@ -138,7 +138,9 @@ Consider potential vulnerabilities in your system `libssl`.
 
 ## FFI
 
-We are not aware of any known vulnerabilities.
+Number | Description | Their Mitigation | Test | Our Mitigation
+--- | --- | --- | --- | ---
+CVE-2018-1000201 | A DLL loading issue can be hijacked on Windows when a `Symbol` is used for the library name | Treat Symbols the same as Strings in `ffi_lib` | | Applied the same mitigation, by using a version of FFI which fixed this vulnerability
 
 # Notes on hashing
 

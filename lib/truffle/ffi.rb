@@ -22,7 +22,6 @@ module FFI
   end
 
   module Platform
-    CPU = RbConfig::CONFIG['host_cpu']
     # eregon: I would like to use rbconfig/sizeof here, but the linker requires
     # ffi, and the linker is needed to build the rbconfig/sizeof C extension,
     # so we need to break the cycle.
@@ -35,7 +34,6 @@ end
 
 # Require the pure-Ruby Truffle NFI backend
 require_relative 'truffle/ffi_backend/last_error'
-require_relative 'truffle/ffi_backend/data_converter'
 require_relative 'truffle/ffi_backend/type'
 require_relative 'truffle/ffi_backend/struct_layout'
 require_relative 'truffle/ffi_backend/struct'

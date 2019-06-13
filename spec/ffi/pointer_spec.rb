@@ -94,7 +94,26 @@ describe "Pointer" do
         expect(array[j].address).to eq(address)
       end
     end
-    
+
+    it "#write_array_of_type for uint8" do
+      values = [10, 227, 32]
+      memory = FFI::MemoryPointer.new FFI::TYPE_UINT8, values.size
+      memory.write_array_of_type(FFI::TYPE_UINT8, :put_uint8, values)
+      array = memory.read_array_of_type(FFI::TYPE_UINT8, :read_uint8, values.size)
+      values.each_with_index do |val, j|
+        expect(array[j]).to eq(val)
+      end
+    end
+
+    it "#write_array_of_type for uint32" do
+      values = [10, 227, 32]
+      memory = FFI::MemoryPointer.new FFI::TYPE_UINT32, values.size
+      memory.write_array_of_type(FFI::TYPE_UINT32, :put_uint32, values)
+      array = memory.read_array_of_type(FFI::TYPE_UINT32, :read_uint32, values.size)
+      values.each_with_index do |val, j|
+        expect(array[j]).to eq(val)
+      end
+    end
   end
 
   describe 'NULL' do

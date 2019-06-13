@@ -152,7 +152,7 @@ module FFI
   # also allow to work with the pointer itself. This is useful when you want
   # a Ruby string already containing a copy of the data, but also the pointer
   # to the data for you to do something with it, like freeing it, in case the
-  # library handed the memory to off to the caller (Ruby-FFI).
+  # library handed the memory off to the caller (Ruby-FFI).
   #
   # It's {typedef}'d as +:strptr+.
   class StrPtrConverter

@@ -7,15 +7,15 @@ module FFI
   #
   # Given the @@@ portion in:
   #
-  #   module Zlib::ZStream < FFI::Struct
+  #   class Zlib::ZStream < FFI::Struct
   #     @@@
   #     name "struct z_stream_s"
   #     include "zlib.h"
-  #   
+  #
   #     field :next_in,   :pointer
   #     field :avail_in,  :uint
   #     field :total_in,  :ulong
-  #   
+  #
   #     # ...
   #     @@@
   #   end
@@ -90,7 +90,7 @@ module FFI
           raise "Compilation error generating struct #{@name} (#{@struct_name}):\n#{output}"
         end
       end
-      
+
       output = `#{binary}`.split "\n"
       File.unlink(binary + (FFI::Platform.windows? ? ".exe" : ""))
       sizeof = output.shift

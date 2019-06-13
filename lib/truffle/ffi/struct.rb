@@ -32,72 +32,12 @@
 #
 
 require 'ffi/platform'
+require 'ffi/struct_layout'
 require 'ffi/struct_layout_builder'
+require 'ffi/struct_by_reference'
 
 module FFI
 
-  class StructLayout
-
-    # @return [Array<Array(Symbol, Numeric)>
-    # Get an array of tuples (field name, offset of the field).
-    def offsets
-      members.map { |m| [ m, self[m].offset ] }
-    end
-
-    # @return [Numeric]
-    # Get the offset of a field.
-    def offset_of(field_name)
-      self[field_name].offset
-    end
-
-    # An enum {Field} in a {StructLayout}.
-    class Enum < Field
-
-      # @param [AbstractMemory] ptr pointer on a {Struct}
-      # @return [Object]
-      # Get an object of type {#type} from memory pointed by +ptr+.
-      def get(ptr)
-        type.find(ptr.get_int(offset))
-      end
-
-      # @param [AbstractMemory] ptr pointer on a {Struct}
-      # @param  value
-      # @return [nil]
-      # Set +value+ into memory pointed by +ptr+.
-      def put(ptr, value)
-        ptr.put_int(offset, type.find(value))
-      end
-
-    end
-
-    class InnerStruct < Field
-      def get(ptr)
-        type.struct_class.new(ptr.slice(self.offset, self.size))
-      end
-
-     def put(ptr, value)
-       raise TypeError, "wrong value type (expected #{type.struct_class})" unless value.is_a?(type.struct_class)
-       ptr.slice(self.offset, self.size).__copy_from__(value.pointer, self.size)
-     end
-    end
-
-    class Mapped < Field
-      def initialize(name, offset, type, orig_field)
-        super(name, offset, type)
-        @orig_field = orig_field
-      end
-
-      def get(ptr)
-        type.from_native(@orig_field.get(ptr), nil)
-      end
-
-      def put(ptr, value)
-        @orig_field.put(ptr, type.to_native(value, nil))
-      end
-    end
-  end
-
-  
   class Struct
 
     # Get struct size
@@ -296,7 +236,7 @@ module FFI
         @packed = packed
       end
       alias :pack :packed
-      
+
       def aligned(alignment = 1)
         @min_alignment = alignment
       end

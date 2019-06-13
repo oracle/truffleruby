@@ -200,35 +200,4 @@ module FFI
       alias_method :to_str, :to_s
     end
   end
-
-  class StructByReference
-    include DataConverter
-
-    attr_reader :struct_class
-
-    def initialize(struct_class)
-      unless Class === struct_class and struct_class < FFI::Struct
-        raise TypeError, 'wrong type (expected subclass of FFI::Struct)'
-      end
-      @struct_class = struct_class
-    end
-
-    def native_type
-      FFI::Type::POINTER
-    end
-
-    def to_native(value, ctx)
-      return Pointer::NULL if value.nil?
-
-      unless @struct_class === value
-        raise TypeError, "wrong argument type #{value.class} (expected #{@struct_class})"
-      end
-
-      value.pointer
-    end
-
-    def from_native(value, ctx)
-      @struct_class.new(value)
-    end
-  end
 end
