@@ -16,6 +16,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
@@ -209,7 +210,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                         TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
 
                 config.executionAction = ExecutionAction.FILE;
-                config.toExecute = context.eval(source).execute(config.toExecute).asString();
+                final Value file = context.eval(source).execute(config.toExecute);
+                if (file.isString()) {
+                    config.toExecute = file.asString();
+                } else {
+                    System.err.println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
+                    return 1;
+                }
             }
 
             final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
@@ -222,7 +229,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            System.err.println(TruffleRuby.SIMPLE_NAME + ": " + e.getMessage());
+            e.printStackTrace();
             return 1;
         }
     }
