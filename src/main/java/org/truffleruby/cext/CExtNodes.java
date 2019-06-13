@@ -90,6 +90,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
@@ -998,6 +999,20 @@ public class CExtNodes {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return nativeRope.getNativePointer().getAddress();
+        }
+
+    }
+
+    @CoreMethod(names = "string_to_pointer", onSingleton = true, required = 1)
+    public abstract static class StringToPointerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public DynamicObject toNative(DynamicObject string,
+                                      @Cached("create()") StringToNativeNode stringToNativeNode,
+                                      @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+
+            return allocateObjectNode.allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
         }
 
     }

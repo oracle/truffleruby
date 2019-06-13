@@ -178,15 +178,16 @@ module FFI
       end
     end
 
+    # Returns a Truffle::FFI::Pointer, to correctly keep the argument alive during the native call
     private def get_pointer_value(value)
       if Truffle::FFI::Pointer === value
-        value.address
+        value
       elsif nil.equal?(value)
-        0
+        Truffle::FFI::Pointer::NULL
       elsif String === value
-        Truffle::CExt.string_pointer_to_native(value)
+        Truffle::CExt.string_to_pointer(value)
       elsif value.respond_to?(:to_ptr)
-        value.to_ptr.address
+        Truffle::Type.coerce_to value, Truffle::FFI::Pointer, :to_ptr
       else
         raise ArgumentError, "#{value.inspect} (#{value.class}) is not a pointer"
       end
