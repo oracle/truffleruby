@@ -85,9 +85,9 @@ public class MainLoader {
         fileLoader.ensureReadable(file);
 
         /*
-         * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
-         * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
-         * passed through UTF-8.
+         * We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
+         * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once
+         * and pass them down to the lexer and to the Source.
          */
 
         byte[] sourceBytes = file.readAllBytes();
