@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.loader;
 
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -22,9 +24,7 @@ import org.truffleruby.shared.TruffleRuby;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Locale;
 
 /*
  * Loads normal Ruby source files from the file system.
@@ -37,24 +37,23 @@ public class FileLoader {
         this.context = context;
     }
 
-    public void ensureReadable(String path) {
-        final File file = new File(path);
-
+    public void ensureReadable(TruffleFile file) {
         if (!file.exists()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
+            throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + file, file.toString(), null));
         }
 
-        if (!file.canRead()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
+        if (!file.isReadable()) {
+            throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + file, file.toString(), null));
         }
     }
 
-    public RubySource loadFile(String path) throws IOException {
+    public RubySource loadFile(Env env, String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
 
-        ensureReadable(path);
+        final TruffleFile file = env.getTruffleFile(path);
+        ensureReadable(file);
 
         final String name;
 
@@ -70,28 +69,31 @@ public class FileLoader {
          * passed through UTF-8.
          */
 
-        final byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
+        final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final String language;
-        final String mimeType;
 
-        if (path.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
-            language = TruffleRuby.LLVM_ID;
-            mimeType = RubyLanguage.CEXT_MIME_TYPE;
-        } else {
-            // We need to assume all other files are Ruby, so the file type detection isn't enough
-            language = TruffleRuby.LANGUAGE_ID;
-            mimeType = TruffleRuby.MIME_TYPE;
-        }
-
-        // We set an explicit MIME type because LLVM does not have a default one
-
-        final Source source = Source.newBuilder(language, sourceRope.toString(), name)
-                .mimeType(mimeType)
-                .internal(isInternal(path))
-                .build();
+        final Source source = buildSource(file, name, sourceRope, isInternal(path));
 
         return new RubySource(source, sourceRope);
+    }
+
+    Source buildSource(TruffleFile file, String name, Rope sourceRope, boolean internal) {
+        /*
+         * I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
+         * default MIME type that Ruby supports.
+         *
+         * But if you remove setting the MIME type you get the following failures:
+         *
+         * - test/truffle/compiler/stf-optimises.sh (I think the value is different, not the compilation that fails)
+         * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
+         */
+
+        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file)
+                    .mimeType(TruffleRuby.MIME_TYPE)
+                    .name(name)
+                    .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
+                    .internal(internal)
+                    .build();
     }
 
     private boolean isInternal(String path) {

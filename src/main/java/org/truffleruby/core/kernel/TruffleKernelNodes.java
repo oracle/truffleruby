@@ -40,10 +40,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreClass("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
@@ -69,34 +67,30 @@ public abstract class TruffleKernelNodes {
             return BooleanCastWithDefaultNodeGen.create(false, inherit);
         }
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyString(file)")
-        public boolean load(VirtualFrame frame, DynamicObject file, boolean wrap,
-                @Cached("create()") IndirectCallNode callNode,
-                @Cached("create()") BranchProfile errorProfile) {
+        public boolean load(DynamicObject file, boolean wrap,
+                @Cached("create()") IndirectCallNode callNode) {
             if (wrap) {
                 throw new UnsupportedOperationException();
             }
 
             final String feature = StringOperations.getString(file);
+            final RubySource source;
             try {
-                final RubySource source = loadFile(feature);
-                final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
-                final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                        ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
-                        getContext().getCoreLibrary().getMainObject());
-                deferredCall.call(callNode);
+                final FileLoader fileLoader = new FileLoader(getContext());
+                source = fileLoader.loadFile(getContext().getEnv(), feature);
             } catch (IOException e) {
-                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            return true;
-        }
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
+                    getContext().getCoreLibrary().getMainObject());
+            deferredCall.call(callNode);
 
-        @TruffleBoundary
-        private RubySource loadFile(String feature) throws IOException {
-            final FileLoader fileLoader = new FileLoader(getContext());
-            return fileLoader.loadFile(feature);
+            return true;
         }
 
     }
