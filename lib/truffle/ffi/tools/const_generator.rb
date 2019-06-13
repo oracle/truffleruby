@@ -6,6 +6,7 @@ module FFI
   # ConstGenerator turns C constants into ruby values.
   #
   # @example a simple example for stdio
+  #  require 'ffi/tools/const_generator'
   #  cg = FFI::ConstGenerator.new('stdio') do |gen|
   #    gen.const(:SEEK_SET)
   #    gen.const('SEEK_CUR')
@@ -25,10 +26,10 @@ module FFI
     #
     # The only option is +:required+, which if set to +true+ raises an error if a
     # constant you have requested was not found.
-    # 
+    #
     # @param [#to_s] prefix
     # @param [Hash] options
-    # @return 
+    # @return
     # @option options [Boolean] :required
     # @overload initialize(prefix, options)
     # @overload initialize(prefix, options) { |gen| ... }
@@ -79,7 +80,7 @@ module FFI
     #  @param [#call] converter convert the value from a string to the appropriate
     #   type for {#to_ruby}.
     # @overload const(name, format=nil, cast='', ruby_name=nil) { |value| ... }
-    #  Use a converter block. This block convert the value from a string to the 
+    #  Use a converter block. This block convert the value from a string to the
     #  appropriate type for {#to_ruby}.
     #  @yieldparam value constant value
     def const(name, format = nil, cast = '', ruby_name = nil, converter = nil,
@@ -224,6 +225,6 @@ module FFI
       "#{ruby_name} = #{converted_value}"
     end
 
-  end  
+  end
 
 end

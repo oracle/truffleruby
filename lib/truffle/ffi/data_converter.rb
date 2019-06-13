@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2010 JRuby project
+# Copyright (C) 2008-2010 Wayne Meissner
 #
 # This file is part of ruby-ffi.
 #
@@ -26,20 +26,42 @@
 # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
-require 'ffi/platform'
-require 'ffi/data_converter'
-require 'ffi/types'
-require 'ffi/library'
-require 'ffi/errno'
-require 'ffi/pointer'
-require 'ffi/memorypointer'
-require 'ffi/struct'
-require 'ffi/union'
-require 'ffi/managedstruct'
-require 'ffi/callback'
-require 'ffi/io'
-require 'ffi/autopointer'
-require 'ffi/variadic'
-require 'ffi/enum'
+module FFI
+  # This module is used to extend somes classes and give then a common API.
+  #
+  # Most of methods defined here must be overriden.
+  module DataConverter
+    # Get native type.
+    #
+    # @overload native_type(type)
+    #  @param [String, Symbol, Type] type
+    #  @return [Type]
+    #  Get native type from +type+.
+    #
+    # @overload native_type
+    #  @raise {NotImplementedError} This method must be overriden.
+    def native_type(type = nil)
+      if type
+        @native_type = FFI.find_type(type)
+      else
+        native_type = @native_type
+        unless native_type
+          raise NotImplementedError, 'native_type method not overridden and no native_type set'
+        end
+        native_type
+      end
+    end
+
+    # Convert to a native type.
+    def to_native(value, ctx)
+      value
+    end
+
+    # Convert from a native type.
+    def from_native(value, ctx)
+      value
+    end
+  end
+end
