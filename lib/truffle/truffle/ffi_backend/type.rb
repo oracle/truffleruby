@@ -55,8 +55,6 @@ module FFI
     end
 
     class Builtin < Type
-      include DataConverter # TODO: Unclear if needed
-
       attr_reader :name
 
       def initialize(name, nfi_type, size, alignment)
