@@ -77,6 +77,13 @@ and set.
 
 `AtomicReference` is marshalable.
 
+## FFI
+
+TruffleRuby includes a built-in implementation of [Ruby-FFI](https://github.com/ffi/ffi),
+compatible with version 1.11.1 of the `ffi` gem. This should be transparent: you can
+just install the `ffi` gem as normal, and it will use our built-in implementation,
+regardless of the version of the `ffi` gem.
+
 ## Polyglot programming
 
 The `Polyglot` and `Java` modules provides access to the polyglot programming
