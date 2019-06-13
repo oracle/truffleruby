@@ -21,7 +21,6 @@ import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
@@ -38,9 +37,8 @@ import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -211,14 +209,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected OptionDescriptors getOptionDescriptors() {
-        final OptionDescriptor[] allDescriptions = OptionsCatalog.allDescriptors();
-        final List<OptionDescriptor> options = new ArrayList<>(allDescriptions.length);
-
-        for (OptionDescriptor descriptor : allDescriptions) {
-            options.add(descriptor);
-        }
-
-        return OptionDescriptors.create(options);
+        return OptionDescriptors.create(Arrays.asList(OptionsCatalog.allDescriptors()));
     }
 
     @Override
