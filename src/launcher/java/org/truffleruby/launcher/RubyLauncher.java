@@ -102,7 +102,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
         } catch (CommandLineException commandLineException) {
-            System.err.println(TruffleRuby.SIMPLE_NAME + ": " + commandLineException.getMessage());
+            System.err.println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
                 printHelp(System.err);
             }
@@ -171,7 +171,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     @Override
     protected AbortException abortUnrecognizedArgument(String argument) {
         throw abortInvalidArgument(argument,
-                TruffleRuby.SIMPLE_NAME + ": invalid option " + argument + "  (Use --help for usage instructions.)");
+                "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
     }
 
     private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {

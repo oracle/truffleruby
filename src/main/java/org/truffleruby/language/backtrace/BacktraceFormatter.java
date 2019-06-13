@@ -102,7 +102,7 @@ public class BacktraceFormatter {
         } else {
             messageString = message.toString();
         }
-        printer.println(TruffleRuby.SIMPLE_NAME + ": " + messageString);
+        printer.println("truffleruby: " + messageString);
     }
 
     @TruffleBoundary
