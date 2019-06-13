@@ -12,7 +12,6 @@ package org.truffleruby.core.basicobject;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -32,13 +31,11 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -69,14 +66,9 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!")
     public abstract static class NotNode extends UnaryCoreMethodNode {
 
-        @CreateCast("operand")
-        public RubyNode createCast(RubyNode operand) {
-            return BooleanCastNodeGen.create(operand);
-        }
-
         @Specialization
-        public boolean not(boolean value) {
-            return !value;
+        public boolean not(Object value, @Cached BooleanCastNode cast) {
+            return !cast.executeToBoolean(value);
         }
 
     }

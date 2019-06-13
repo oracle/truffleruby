@@ -9,13 +9,12 @@
  */
 package org.truffleruby.core.bool;
 
-import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.core.cast.BooleanCastNode;
 
 @CoreClass("FalseClass")
 public abstract class FalseClassNodes {
@@ -32,14 +31,9 @@ public abstract class FalseClassNodes {
     @CoreMethod(names = { "|", "^" }, needsSelf = false, required = 1)
     public abstract static class OrXorNode extends UnaryCoreMethodNode {
 
-        @CreateCast("operand")
-        public RubyNode createCast(RubyNode operand) {
-            return BooleanCastNodeGen.create(operand);
-        }
-
         @Specialization
-        public boolean orXor(boolean other) {
-            return other;
+        public boolean orXor(Object other, @Cached BooleanCastNode cast) {
+            return cast.executeToBoolean(other);
         }
 
     }
