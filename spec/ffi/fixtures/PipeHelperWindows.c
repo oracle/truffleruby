@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <stdio.h>
 #include "PipeHelper.h"
 
 int pipeHelperCreatePipe(FD_TYPE pipefd[2])

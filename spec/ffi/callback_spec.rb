@@ -510,40 +510,32 @@ describe "Callback with " do
     expect(v).to eq(-1)
   end
 
-  def testCallbackU8rV(value, &block)
+  def testCallbackU8rV(value)
     v1 = 0xdeadbeef
-    LibTest.testCallbackU8rV(value) { |i| v1 = yield(i) }
+    LibTest.testCallbackU8rV(value) { |i| v1 = i }
+    expect(v1).to eq(value)
 
+    # Using a FFI::Function (v2) should be consistent with the direct callback (v1)
     v2 = 0xdeadbeef
-    fun = FFI::Function.new(:void, [:uchar]) { |i| v2 = yield(i) }
+    fun = FFI::Function.new(:void, [:uchar]) { |i| v2 = i }
     LibTest.testCallbackU8rV(fun, value)
-    raise "FFI::Function (#{v2}) not consistent with direct callback (#{v1})" unless v1 == v2
-
-    v1
+    expect(v2).to eq(value)
   end
 
   it ":uchar (0) argument" do
-    v = 0xdeadbeef
-    testCallbackU8rV(0) { |i| v = i }
-    expect(v).to eq(0)
+    testCallbackU8rV(0)
   end
 
   it ":uchar (127) argument" do
-    v = 0xdeadbeef
-    testCallbackU8rV(127) { |i| v = i }
-    expect(v).to eq(127)
+    testCallbackU8rV(127)
   end
 
   it ":uchar (128) argument" do
-    v = 0xdeadbeef
-    testCallbackU8rV(128) { |i| v = i }
-    expect(v).to eq(128)
+    testCallbackU8rV(128)
   end
 
   it ":uchar (255) argument" do
-    v = 0xdeadbeef
-    testCallbackU8rV(255) { |i| v = i }
-    expect(v).to eq(255)
+    testCallbackU8rV(255)
   end
 
   it ":short (0) argument" do
@@ -791,6 +783,106 @@ describe "Callback with " do
       res = LibTestStdcall.testCallbackStdcall(po, pr, 0x7fffffff)
       expect(v).to eq([po, 0x7fffffff])
       expect(res).to be true
+    end
+  end
+end
+
+describe "Callback interop" do
+  # require 'fiddle'
+  # require 'fiddle/import'
+  require 'timeout'
+
+  module LibTestFFI
+    extend FFI::Library
+    ffi_lib TestLibrary::PATH
+    attach_function :testCallbackVrV, :testClosureVrV, [ :pointer ], :void
+    attach_function :testCallbackVrV_blocking, :testClosureVrV, [ :pointer ], :void, blocking: true
+  end
+
+  # module LibTestFiddle
+  #   extend Fiddle::Importer
+  #   dlload TestLibrary::PATH
+  #   extern 'void testClosureVrV(void *fp)'
+  # end
+
+  def assert_callback_in_same_thread_called_once
+    called = 0
+    thread = nil
+    yield proc {
+      called += 1
+      thread = Thread.current
+    }
+    expect(called).to eq(1)
+    expect(thread).to eq(Thread.current)
+  end
+
+  it "from ffi to ffi" do
+    assert_callback_in_same_thread_called_once do |block|
+      func = FFI::Function.new(:void, [:pointer], &block)
+      LibTestFFI.testCallbackVrV(FFI::Pointer.new(func.to_i))
+    end
+  end
+
+  it "from ffi to ffi with blocking:true" do
+    assert_callback_in_same_thread_called_once do |block|
+      func = FFI::Function.new(:void, [:pointer], &block)
+      LibTestFFI.testCallbackVrV_blocking(FFI::Pointer.new(func.to_i))
+    end
+  end
+
+  # https://github.com/ffi/ffi/issues/527
+  if RUBY_VERSION.split('.').map(&:to_i).pack("C*") >= [2,3,0].pack("C*") || RUBY_PLATFORM =~ /java/
+    it "from fiddle to ffi" do
+      next # Fiddle
+      assert_callback_in_same_thread_called_once do |block|
+        func = FFI::Function.new(:void, [:pointer], &block)
+        LibTestFiddle.testClosureVrV(Fiddle::Pointer[func.to_i])
+      end
+    end
+  end
+
+  it "from ffi to fiddle" do
+    next # Fiddle
+    assert_callback_in_same_thread_called_once do |block|
+      func = LibTestFiddle.bind_function(:cbVrV, Fiddle::TYPE_VOID, [], &block)
+      LibTestFFI.testCallbackVrV(FFI::Pointer.new(func.to_i))
+    end
+  end
+
+  it "from ffi to fiddle with blocking:true" do
+    next # Fiddle
+    assert_callback_in_same_thread_called_once do |block|
+      func = LibTestFiddle.bind_function(:cbVrV, Fiddle::TYPE_VOID, [], &block)
+      LibTestFFI.testCallbackVrV_blocking(FFI::Pointer.new(func.to_i))
+    end
+  end
+
+  it "from fiddle to fiddle" do
+    next # Fiddle
+    assert_callback_in_same_thread_called_once do |block|
+      func = LibTestFiddle.bind_function(:cbVrV, Fiddle::TYPE_VOID, [], &block)
+      LibTestFiddle.testClosureVrV(Fiddle::Pointer[func.to_i])
+    end
+  end
+
+  # https://github.com/ffi/ffi/issues/527
+  if RUBY_ENGINE == 'ruby' && RUBY_VERSION.split('.').map(&:to_i).pack("C*") >= [2,3,0].pack("C*")
+    it "C outside ffi call stack does not deadlock [#527]" do
+      next # takes a while, fails on MRI
+      path = File.join(File.dirname(__FILE__), "embed-test/embed-test.rb")
+      pid = spawn(RbConfig.ruby, "-Ilib", path, { [:out, :err] => "embed-test.log" })
+      begin
+        Timeout.timeout(10){ Process.wait(pid) }
+      rescue Timeout::Error
+        Process.kill(9, pid)
+        raise
+      else
+        if $?.exitstatus != 0
+          raise "external process failed:\n#{ File.read("embed-test.log") }"
+        end
+      end
+
+      expect(File.read("embed-test.log")).to match(/callback called with \["hello", 5, 0\]/)
     end
   end
 end
