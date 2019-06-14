@@ -9,6 +9,9 @@
  */
 package org.truffleruby.fixtures;
 
+import org.graalvm.polyglot.HostAccess;
+
+@HostAccess.Implementable
 public interface FluidForce {
 
     // Example copied from the JRuby wiki
