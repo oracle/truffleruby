@@ -169,7 +169,7 @@ suite = {
 
         "org.truffleruby": {
             "dir": "src/main",
-            "sourceDirs": ["java", "ruby"],
+            "sourceDirs": ["java"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
@@ -193,10 +193,20 @@ suite = {
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
             ],
+        },
+
+        "org.truffleruby.ruby": {
+            "dir": "src/main/ruby",
+            "sourceDirs": ["."],
+            "javaCompliance": "1.8+",
+            "license": [
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-new",          # Rubinius
+            ],
             "externalProjects": {
                 "ruby-core": {
                     "type": "ruby",
-                    "path": "ruby/truffleruby",
+                    "path": "truffleruby",
                     "source": ["core", "post-boot"],
                     "load_path": ["core"]
                 }
@@ -320,6 +330,7 @@ suite = {
             "mainClass": "org.truffleruby.launcher.RubyLauncher",
             "dependencies": [
                 "org.truffleruby",
+                "org.truffleruby.ruby",
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
