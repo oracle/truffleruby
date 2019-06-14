@@ -177,7 +177,7 @@ public class RubyObjectType extends ObjectType {
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Shared("readHelperNode") @Cached(allowUncached = true) ForeignReadStringCachingHelperNode helperNode) throws UnknownIdentifierException {
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         return helperNode.executeStringCachingHelper(receiver, name);
     }
@@ -186,7 +186,7 @@ public class RubyObjectType extends ObjectType {
     public static Object readArrayElement(
             DynamicObject receiver,
             long index,
-            @Shared("readHelperNode")@Cached(allowUncached = true) ForeignReadStringCachingHelperNode helperNode) {
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, index);

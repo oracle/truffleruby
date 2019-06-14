@@ -9,23 +9,25 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 
-public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutContextNode {
 
-    @Child private DoesRespondDispatchHeadNode definedNode;
-    @Child private DoesRespondDispatchHeadNode indexDefinedNode;
-    @Child private CallDispatchHeadNode callNode;
+    public static ForeignReadStringCachedHelperNode create() {
+        return ForeignReadStringCachedHelperNodeGen.create();
+    }
+
 
     protected final static String INDEX_METHOD_NAME = "[]";
     protected final static String METHOD_NAME = "method";
@@ -42,11 +44,12 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+            @Cached ForeignToRubyNode nameToRubyNode,
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+        return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
-    @Specialization(guards = {"!isRubyHash(receiver)", "isIVar"})
+    @Specialization(guards = { "!isRubyHash(receiver)", "isIVar" })
     public Object readInstanceVariable(
             DynamicObject receiver,
             Object name,
@@ -58,41 +61,48 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)",
-            "methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+            "methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode)"
     })
     public Object callIndex(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached ForeignToRubyNode nameToRubyNode,
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+        return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
             "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || (isRubyArray(receiver) || isRubyProc(receiver))",
-            "methodDefined(receiver, stringName, getDefinedNode())"
+            "!methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) || (isRubyArray(receiver) || isRubyProc(receiver))",
+            "methodDefined(receiver, stringName, definedNode)"
     })
     public Object getBoundMethod(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedNode,
+            @Cached ForeignToRubyNode nameToRubyNode,
+            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+        return dispatch.call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || (isRubyArray(receiver) || isRubyProc(receiver))",
-            "!methodDefined(receiver, stringName, getDefinedNode())"
+            "!methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) || (isRubyArray(receiver) || isRubyProc(receiver))",
+            "!methodDefined(receiver, stringName, definedNode)"
     })
     public Object unknownIdentifier(
             DynamicObject receiver,
             Object name,
             Object stringName,
-            boolean isIVar) throws UnknownIdentifierException {
+            boolean isIVar,
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(toString(name));
     }
 
@@ -101,40 +111,11 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
         return name.toString();
     }
 
-    protected DoesRespondDispatchHeadNode getDefinedNode() {
-        if (definedNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            definedNode = insert(DoesRespondDispatchHeadNode.create());
-        }
-
-        return definedNode;
-    }
-
-    protected DoesRespondDispatchHeadNode getIndexDefinedNode() {
-        if (indexDefinedNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            indexDefinedNode = insert(DoesRespondDispatchHeadNode.create());
-        }
-
-        return indexDefinedNode;
-    }
-
-    protected boolean methodDefined(DynamicObject receiver, Object stringName,
-                                    DoesRespondDispatchHeadNode definedNode) {
+    protected static boolean methodDefined(DynamicObject receiver, Object stringName, DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {
             return definedNode.doesRespondTo(null, stringName, receiver);
         }
     }
-
-    protected CallDispatchHeadNode getCallNode() {
-        if (callNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-
-        return callNode;
-    }
-
 }
