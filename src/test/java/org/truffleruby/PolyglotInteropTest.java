@@ -15,7 +15,6 @@ import org.graalvm.polyglot.Value;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -30,7 +29,6 @@ public class PolyglotInteropTest {
     @Test
     public void testCreateContext() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             assertEquals(14, polyglot.eval(TruffleRuby.LANGUAGE_ID, "14").asInt());
@@ -41,7 +39,6 @@ public class PolyglotInteropTest {
     public void testCreateContextNoAccess() {
         try (Context polyglot = Context.newBuilder()
                 .allowExperimentalOptions(true)
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .option(OptionsCatalog.NATIVE_PLATFORM.getName(), Boolean.FALSE.toString())
                 .build()) {
             assertEquals(14, polyglot.eval(TruffleRuby.LANGUAGE_ID, "14").asInt());
@@ -51,7 +48,6 @@ public class PolyglotInteropTest {
     @Test
     public void testParameters() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             assertEquals(16, polyglot.eval("ruby", "lambda { |a, b| a + b }").execute(14, 2).asInt());
@@ -61,7 +57,6 @@ public class PolyglotInteropTest {
     @Test
     public void testCallingMethods() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             assertEquals(0.909, polyglot.eval("ruby", "Math").getMember("sin").execute(2).asDouble(), 0.01);
@@ -71,7 +66,6 @@ public class PolyglotInteropTest {
     @Test
     public void testPassingBlocks() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             final int[] counter = new int[]{0};
@@ -86,7 +80,6 @@ public class PolyglotInteropTest {
     @Test
     public void testCreatingObjects() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             assertEquals(2021, polyglot.eval("ruby", "Time").newInstance(2021, 3, 18).getMember("year").execute().asInt());
@@ -96,7 +89,6 @@ public class PolyglotInteropTest {
     @Test
     public void testAccessingArrays() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             assertEquals(4, polyglot.eval("ruby", "[3, 4, 5]").getArrayElement(1).asInt());
@@ -107,7 +99,6 @@ public class PolyglotInteropTest {
     @Test
     public void testAccessingHashes() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             final Value access = polyglot.eval("ruby", "->(hash, key) { hash[key] }");
@@ -119,7 +110,6 @@ public class PolyglotInteropTest {
     @Test
     public void testImplementInterface() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             final FluidForce fluidForce = polyglot.eval("ruby", FluidForce.RUBY_SOURCE).as(FluidForce.class);
@@ -131,7 +121,6 @@ public class PolyglotInteropTest {
     @Test
     public void testImplementLambda() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             final BiFunction adder = polyglot.eval("ruby", "lambda { |a, b| a + b }").as(BiFunction.class);
@@ -142,7 +131,6 @@ public class PolyglotInteropTest {
     @Test
     public void testParseOnceRunMany() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             final Value parsedOnce = polyglot.eval("ruby", "lambda { 14 }");
@@ -153,7 +141,6 @@ public class PolyglotInteropTest {
     @Test
     public void testLocalVariablesNotSharedBetweenNonInteractiveEval() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             polyglot.eval("ruby", "a = 14");
@@ -164,7 +151,6 @@ public class PolyglotInteropTest {
     @Test
     public void testLocalVariablesSharedBetweenInteractiveEval() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(true).buildLiteral());
@@ -177,7 +163,6 @@ public class PolyglotInteropTest {
     @Test
     public void testLocalVariablesSharedBetweenInteractiveEvalChangesParsing() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             polyglot.eval(Source.newBuilder("ruby", "def foo; 12; end", "test").interactive(true).buildLiteral());
@@ -190,7 +175,6 @@ public class PolyglotInteropTest {
     @Test
     public void testLocalVariablesAreNotSharedBetweenInteractiveAndNonInteractive() {
         try (Context polyglot = Context.newBuilder()
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
             polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(false).buildLiteral());

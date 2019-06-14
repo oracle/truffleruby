@@ -348,10 +348,8 @@ local part_definitions = {
 
   run: {
     test_unit_tck_specs: {
-      run+: [
-        ["mx", "unittest", "org.truffleruby"],
-        ["mx", "tck"],
-      ] + jt(["test", "specs"] + self["$.run.specs"].test_spec_options),
+      run+: jt(["test", "unit"]) + jt(["test", "tck"]) +
+            jt(["test", "specs"] + self["$.run.specs"].test_spec_options),
       # + jt(["test", "specs", ":next"]) disabled as it's currently empty and MSpec doesn't support empty sets of files
     },
 

@@ -814,7 +814,11 @@ module Commands
     when 'mri' then test_mri(*rest)
     when 'unit', 'unittest'
       tests = rest.empty? ? ['org.truffleruby'] : rest
-      mx 'unittest', *tests
+      # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
+      # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
+      # because it cannot find the correct home.
+      home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby"
+      mx 'unittest', home, *tests
     when 'tck' then mx 'tck'
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
