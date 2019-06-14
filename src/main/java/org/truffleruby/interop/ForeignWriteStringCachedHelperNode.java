@@ -53,7 +53,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached(allowUncached = true) WriteObjectFieldNode writeObjectFieldNode) {
+            @Cached WriteObjectFieldNode writeObjectFieldNode) {
         writeObjectFieldNode.write(receiver, stringName, value);
         return value;
     }
