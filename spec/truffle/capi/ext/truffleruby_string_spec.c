@@ -16,6 +16,11 @@ static VALUE string_ptr(VALUE self, VALUE str) {
   return rb_str_new_cstr(cstring);
 }
 
+static VALUE string_NATIVE_RSTRING_PTR(VALUE self, VALUE str) {
+  NATIVE_RSTRING_PTR(str);
+  return str;
+}
+
 static VALUE string_ptr_return_address(VALUE self, VALUE str) {
   char* ptr = RSTRING_PTR(str);
   return LONG2NUM((long) ptr);
@@ -25,6 +30,7 @@ void Init_truffleruby_string_spec(void) {
   VALUE cls;
   cls = rb_define_class("CApiTruffleStringSpecs", rb_cObject);
   rb_define_method(cls, "string_ptr", string_ptr, 1);
+  rb_define_method(cls, "NATIVE_RSTRING_PTR", string_NATIVE_RSTRING_PTR, 1);
   rb_define_method(cls, "string_ptr_return_address", string_ptr_return_address, 1);
 }
 
