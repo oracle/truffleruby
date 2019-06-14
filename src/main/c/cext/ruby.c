@@ -2383,6 +2383,10 @@ out_of_range:
   return Qnil;
 }
 
+int rb_arithmetic_sequence_extract(VALUE obj, rb_arithmetic_sequence_components_t *component) {
+  rb_tr_error("rb_arithmetic_sequence_extract not implemented");
+}
+
 // Time
 
 VALUE rb_time_new(time_t sec, long usec) {
