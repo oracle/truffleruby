@@ -109,7 +109,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static String asString(
             DynamicObject receiver,
-            @Cached(allowUncached = true) ToJavaStringNode toJavaStringNode) throws UnsupportedMessageException {
+            @Cached ToJavaStringNode toJavaStringNode) throws UnsupportedMessageException {
 
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
         if (RubyGuards.isRubyString(receiver) || RubyGuards.isRubySymbol(receiver)) {
