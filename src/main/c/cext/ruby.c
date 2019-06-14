@@ -1217,6 +1217,10 @@ int rb_encdb_alias(const char *alias, const char *orig) {
   rb_tr_error("rb_encdb_alias not implemented");
 }
 
+int rb_enc_alias(const char *alias, const char *orig) {
+  rb_tr_error("rb_enc_alias not implemented");
+}
+
 VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
   return rb_enc_associate_index(obj, rb_enc_to_index(enc));
 }
