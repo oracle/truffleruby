@@ -812,7 +812,9 @@ module Commands
     when 'basictest' then test_basictest(*rest)
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
-    when 'unit', 'unittest' then mx 'unittest', 'org.truffleruby'
+    when 'unit', 'unittest'
+      tests = rest.empty? ? ['org.truffleruby'] : rest
+      mx 'unittest', *tests
     when 'tck' then mx 'tck'
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
