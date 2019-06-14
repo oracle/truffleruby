@@ -856,7 +856,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
         public Object eachOther(DynamicObject array, DynamicObject block,
@@ -866,7 +866,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
-            dispatchNode.dispatch(block, element, index);
+            dispatchNode.executeDispatch(block, element, index);
         }
 
     }

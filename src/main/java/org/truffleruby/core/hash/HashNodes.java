@@ -319,7 +319,7 @@ public abstract class HashNodes {
         @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
         @Child private HashNode hashNode = new HashNode();
         @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
         public Object deleteNull(DynamicObject hash, Object key, NotProvided block) {
@@ -332,7 +332,7 @@ public abstract class HashNodes {
         public Object deleteNull(DynamicObject hash, Object key, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return yieldNode.dispatch(block, key);
+            return yieldNode.executeDispatch(block, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
@@ -365,7 +365,7 @@ public abstract class HashNodes {
             if (maybeBlock == NotProvided.INSTANCE) {
                 return nil();
             } else {
-                return yieldNode.dispatch((DynamicObject) maybeBlock, key);
+                return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
             }
         }
 
@@ -379,7 +379,7 @@ public abstract class HashNodes {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil();
                 } else {
-                    return yieldNode.dispatch((DynamicObject) maybeBlock, key);
+                    return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
                 }
             }
 

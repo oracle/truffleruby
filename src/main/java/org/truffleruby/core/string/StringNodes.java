@@ -1561,7 +1561,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class ScrubNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -1701,7 +1701,7 @@ public abstract class StringNodes {
         }
 
         public Object yield(DynamicObject block, Object... arguments) {
-            return yieldNode.dispatch(block, arguments);
+            return yieldNode.executeDispatch(block, arguments);
         }
 
     }

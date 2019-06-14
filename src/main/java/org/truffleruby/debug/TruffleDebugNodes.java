@@ -95,11 +95,11 @@ public abstract class TruffleDebugNodes {
             final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(filter,
                     eventContext -> new ExecutionEventNode() {
 
-                        @Child private YieldNode yieldNode = new YieldNode();
+                        @Child private YieldNode yieldNode = YieldNode.create();
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.dispatch(block,
+                            yieldNode.executeDispatch(block,
                                     BindingNodes.createBinding(getContext(),
                                             frame.materialize(),
                                             eventContext.getInstrumentedSourceSection()));

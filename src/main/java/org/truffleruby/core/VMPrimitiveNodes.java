@@ -85,7 +85,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_catch", needsSelf = false)
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
         public Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
@@ -93,7 +93,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             try {
-                return dispatchNode.dispatch(block, tag);
+                return dispatchNode.executeDispatch(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter();
                 if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
@@ -140,13 +140,13 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         public Object vmExtendedModules(Object object, DynamicObject block,
                 @Cached("create()") MetaClassNode metaClassNode,
-                @Cached("new()") YieldNode yieldNode,
+                @Cached YieldNode yieldNode,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
 
             if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 for (DynamicObject included : Layouts.MODULE.getFields(metaClass).prependedAndIncludedModules()) {
-                    yieldNode.dispatch(block, included);
+                    yieldNode.executeDispatch(block, included);
                 }
             }
 
@@ -419,14 +419,14 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
         public DynamicObject getSection(DynamicObject section, DynamicObject block) {
             for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
                 final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.dispatch(block, key, entry.getValue());
+                yieldNode.executeDispatch(block, key, entry.getValue());
             }
 
             return nil();

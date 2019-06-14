@@ -456,7 +456,7 @@ public class RubyObjectType extends ObjectType {
     public static Object execute(
             DynamicObject receiver,
             Object[] arguments,
-            @Cached(allowUncached = true) ForeignExecuteHelperNode executeMethodNode,
+            @Cached ForeignExecuteHelperNode executeMethodNode,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return executeMethodNode.executeCall(
                 receiver,

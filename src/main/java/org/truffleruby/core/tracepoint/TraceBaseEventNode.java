@@ -54,10 +54,10 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected Object yield(DynamicObject block, Object... arguments) {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            yieldNode = insert(new YieldNode());
+            yieldNode = insert(YieldNode.create());
         }
 
-        return yieldNode.dispatch(block, arguments);
+        return yieldNode.executeDispatch(block, arguments);
     }
 
 }

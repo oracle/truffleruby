@@ -17,7 +17,7 @@ import org.truffleruby.language.yield.YieldNode;
 
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-    @Child private YieldNode dispatchNode = new YieldNode();
+    @Child private YieldNode dispatchNode = YieldNode.create();
     @Child private BooleanCastNode booleanCastNode;
 
     public YieldingCoreMethodNode() {
@@ -25,7 +25,7 @@ public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNod
     }
 
     public Object yield(DynamicObject block, Object... arguments) {
-        return dispatchNode.dispatch(block, arguments);
+        return dispatchNode.executeDispatch(block, arguments);
     }
 
     public boolean yieldIsTruthy(DynamicObject block, Object... arguments) {

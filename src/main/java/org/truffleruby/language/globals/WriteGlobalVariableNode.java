@@ -40,8 +40,8 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     public Object writeHooks(VirtualFrame frame, Object value,
                              @Cached("getStorage()") GlobalVariableStorage storage,
                              @Cached("setterArity(storage)") int arity,
-                             @Cached("new()") YieldNode yieldNode) {
-        yieldNode.dispatch(storage.getSetter(), value);
+                             @Cached YieldNode yieldNode) {
+        yieldNode.executeDispatch(storage.getSetter(), value);
         return value;
     }
 
@@ -49,8 +49,8 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     public Object writeHooksWithBinding(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,
-            @Cached("new()") YieldNode yieldNode) {
-        yieldNode.dispatch(storage.getSetter(), value, BindingNodes.createBinding(getContext(), frame.materialize()));
+            @Cached YieldNode yieldNode) {
+        yieldNode.executeDispatch(storage.getSetter(), value, BindingNodes.createBinding(getContext(), frame.materialize()));
         return value;
     }
 
