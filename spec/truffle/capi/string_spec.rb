@@ -13,12 +13,6 @@ describe "TruffleRuby RSTRING_PTR" do
     Truffle::CExt.string_pointer_is_native?(str).should == false
   end
 
-  it "stores the String to native memory if stored in malloc'd memory" do
-    str = "foobar"
-    @s.string_ptr_stored_in_native(str)
-    Truffle::CExt.string_pointer_is_native?(str).should == true
-  end
-
   it "stores the String to native memory if the address is returned" do
     str = "foobar"
     @s.string_ptr_return_address(str).should be_kind_of(Integer)
