@@ -10,12 +10,15 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class ForeignToRubyArgumentsNode extends RubyBaseWithoutContextNode {
 
     public static ForeignToRubyArgumentsNode create() {
         return ForeignToRubyArgumentsNodeGen.create();
@@ -23,13 +26,11 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
 
     public abstract Object[] executeConvert(Object[] args);
 
-    @Specialization(
-            guards = "args.length == cachedArgsLength",
-            limit = "getLimit()")
     @ExplodeLoop
+    @Specialization(guards = "args.length == cachedArgsLength", limit = "getLimit()")
     public Object[] convertCached(Object[] args,
-                                  @Cached("args.length") int cachedArgsLength,
-                                  @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            @Cached("args.length") int cachedArgsLength,
+            @Cached ForeignToRubyNode foreignToRubyNode) {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
@@ -41,7 +42,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
 
     @Specialization(replaces = "convertCached")
     public Object[] convertUncached(Object[] args,
-                                    @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            @Cached ForeignToRubyNode foreignToRubyNode) {
         final Object[] convertedArgs = new Object[args.length];
 
         for (int n = 0; n < args.length; n++) {
@@ -52,7 +53,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return getContext().getOptions().INTEROP_CONVERT_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
     }
 
 }

@@ -457,7 +457,7 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             Object[] arguments,
             @Cached(allowUncached = true) ForeignExecuteHelperNode executeMethodNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return executeMethodNode.executeCall(
                 receiver,
                 foreignToRubyArgumentsNode.executeConvert(arguments));
@@ -469,7 +469,7 @@ public class RubyObjectType extends ObjectType {
             String name,
             Object[] arguments,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
@@ -485,7 +485,7 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             Object[] arguments,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached(allowUncached = true) ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
