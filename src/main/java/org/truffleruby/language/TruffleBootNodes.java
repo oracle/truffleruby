@@ -95,7 +95,6 @@ public abstract class TruffleBootNodes {
         @Specialization
         public int main(DynamicObject kind, DynamicObject toExecute,
                 @Cached("create()") IndirectCallNode callNode,
-                @Cached("createPrivate()") CallDispatchHeadNode findSFile,
                 @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
 
@@ -105,7 +104,7 @@ public abstract class TruffleBootNodes {
 
             try {
                 source = loadMainSourceSettingDollarZero(
-                        findSFile, makeStringNode,
+                        makeStringNode,
                         StringOperations.getString(kind),
                         StringOperations.getString(toExecute).intern());
             } catch (RaiseException e) {
@@ -170,7 +169,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private RubySource loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, String kind, String toExecute) {
+        private RubySource loadMainSourceSettingDollarZero(StringNodes.MakeStringNode makeStringNode, String kind, String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
             try {

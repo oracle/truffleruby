@@ -44,8 +44,8 @@ module Truffle::Boot
     path = find_in_environment_paths(name, ENV['PATH']) and return path
     return name if File.exist?(name)
 
-    # Fail otherwise
-    raise LoadError, "No such file or directory -- #{name}"
+    # Not found, let the RubyLauncher print the error
+    nil
   end
 
   def self.find_in_environment_paths(name, env_value)
