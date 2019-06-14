@@ -39,11 +39,10 @@ public abstract class ObjectIVarSetNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
     public Object ivarSetCached(DynamicObject object, Object name, Object value, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("name") Object cachedName,
-            // context does not have to be guarded since it used only during cache instance creation
-            @Cached("createWriteFieldNode(context, object, cachedName, checkName)") WriteObjectFieldNode writeObjectFieldNode) {
-        CompilerAsserts.partialEvaluationConstant(cachedName);
-        writeObjectFieldNode.write(object, value);
+            @Cached("checkName(context, object, name, checkName)") Object cachedName,
+            @Cached WriteObjectFieldNode writeObjectFieldNode) {
+        CompilerAsserts.partialEvaluationConstant(checkName);
+        writeObjectFieldNode.write(object, cachedName, value);
         return value;
     }
 
@@ -54,17 +53,17 @@ public abstract class ObjectIVarSetNode extends RubyBaseWithoutContextNode {
         if (SharedObjects.isShared(context, object)) {
             SharedObjects.writeBarrier(context, value);
             synchronized (object) {
-                object.define(ObjectIVarGetNode.checkName(this, context, object, name, checkName), value);
+                object.define(checkName(context, object, name, checkName), value);
             }
         } else {
-            object.define(ObjectIVarGetNode.checkName(this, context, object, name, checkName), value);
+            object.define(checkName(context, object, name, checkName), value);
         }
         return value;
     }
 
-    protected WriteObjectFieldNode createWriteFieldNode(RubyContext context, DynamicObject object, Object name, boolean checkName) {
-        return WriteObjectFieldNodeGen.create(
-                ObjectIVarGetNode.checkName(this, context, object, name, checkName));
+    protected Object checkName(
+            RubyContext context, DynamicObject object, Object name, boolean checkName) {
+        return ObjectIVarGetNode.checkName(this, context, object, name, checkName);
     }
 
     protected int getCacheLimit() {

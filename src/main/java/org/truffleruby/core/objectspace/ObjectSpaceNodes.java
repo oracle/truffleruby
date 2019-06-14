@@ -172,7 +172,7 @@ public abstract class ObjectSpaceNodes {
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
 
         @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
@@ -202,7 +202,7 @@ public abstract class ObjectSpaceNodes {
                 FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
                 FinalizerReference newRef = getContext().getFinalizationService().addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
                 if (ref != newRef) {
-                    setFinalizerNode.write(object, newRef);
+                    setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                 }
             }
         }
@@ -213,7 +213,7 @@ public abstract class ObjectSpaceNodes {
     public abstract static class UndefineFinalizerNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create();
 
         @TruffleBoundary
         @Specialization
@@ -223,7 +223,7 @@ public abstract class ObjectSpaceNodes {
                 if (ref != null) {
                     FinalizerReference newRef = getContext().getFinalizationService().removeFinalizers(object, ref, ObjectSpaceManager.class);
                     if (ref != newRef) {
-                        setFinalizerNode.write(object, newRef);
+                        setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                     }
                 }
             }

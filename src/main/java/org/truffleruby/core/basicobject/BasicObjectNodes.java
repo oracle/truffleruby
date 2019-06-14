@@ -54,7 +54,6 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
@@ -206,12 +205,12 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "!isNil(object)")
         public long objectID(DynamicObject object,
                 @Cached("createReadObjectIDNode()") ReadObjectFieldNode readObjectIdNode,
-                @Cached("createWriteObjectIDNode()") WriteObjectFieldNode writeObjectIdNode) {
+                @Cached WriteObjectFieldNode writeObjectIdNode) {
             final long id = (long) readObjectIdNode.execute(object);
 
             if (id == 0) {
                 final long newId = getContext().getObjectSpaceManager().getNextObjectID();
-                writeObjectIdNode.write(object, newId);
+                writeObjectIdNode.write(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                 return newId;
             }
 
@@ -231,11 +230,6 @@ public abstract class BasicObjectNodes {
         protected ReadObjectFieldNode createReadObjectIDNode() {
             return ReadObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER, 0L);
         }
-
-        protected WriteObjectFieldNode createWriteObjectIDNode() {
-            return WriteObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER);
-        }
-
     }
 
     @CoreMethod(names = "initialize", needsSelf = false)

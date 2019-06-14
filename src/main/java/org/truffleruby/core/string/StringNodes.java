@@ -164,7 +164,6 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -1347,10 +1346,10 @@ public abstract class StringNodes {
             if (associated != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
                 }
 
-                writeAssociatedNode.write(self, associated);
+                writeAssociatedNode.write(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
             }
         }
 

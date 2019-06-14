@@ -103,7 +103,6 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
 
@@ -1489,18 +1488,14 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject setMarkList(DynamicObject structOwner,
-                @Cached("createWriter()") WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwner, getArray());
+                @Cached WriteObjectFieldNode writeMarkedNode) {
+            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getArray());
             return nil();
         }
 
         @TruffleBoundary
         protected Object[] getArray() {
             return markList.get().toArray();
-        }
-
-        public WriteObjectFieldNode createWriter() {
-            return WriteObjectFieldNodeGen.create(Layouts.MARKED_OBJECTS_IDENTIFIER);
         }
     }
 

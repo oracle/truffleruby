@@ -35,36 +35,28 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 @ReportPolymorphism
 public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
-    private final Object name;
-
-    public WriteObjectFieldNode(Object name) {
-        this.name = name;
+    public static WriteObjectFieldNode create() {
+        return WriteObjectFieldNodeGen.create();
     }
 
-    public Object getName() {
-        return name;
+    public void write(DynamicObject object, Object name, Object value) {
+        executeWithGeneralize(object, name, value, false);
     }
 
-    public void write(DynamicObject object, Object value) {
-        executeWithGeneralize(object, value, false);
-    }
-
-    public abstract void executeWithGeneralize(DynamicObject object, Object value, boolean generalize);
+    public abstract void executeWithGeneralize(DynamicObject object, Object name, Object value, boolean generalize);
 
     @TruffleBoundary
-    private void executeBoundary(DynamicObject object, Object value, boolean generalize) {
-        executeWithGeneralize(object, value, generalize);
+    private void executeBoundary(DynamicObject object, Object name, Object value, boolean generalize) {
+        executeWithGeneralize(object, name, value, generalize);
     }
 
     @Specialization(
-            guards = {
-                    "location != null",
-                    "object.getShape() == cachedShape"
-            },
+            guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" },
             assumptions = { "cachedShape.getValidAssumption()", "validLocation" },
             limit = "getCacheLimit()")
-    public void writeExistingField(DynamicObject object, Object value, boolean generalize,
-            @Cached("getLocation(object, value)") Location location,
+    public void writeExistingField(DynamicObject object, Object name, Object value, boolean generalize,
+            @Cached("name") Object cachedName,
+            @Cached("getLocation(object, cachedName, value)") Location location,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createAssumption(cachedShape, location)") Assumption validLocation,
             @Cached("isShared(cachedShape)") boolean shared,
@@ -87,7 +79,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
                     // (need to use the new storage)
                     if (object.getShape() != cachedShape) {
                         shapeRaceProfile.enter();
-                        executeBoundary(object, value, generalize);
+                        executeBoundary(object, cachedName, value, generalize);
                         return;
                     }
                     location.set(object, value, cachedShape);
@@ -97,23 +89,22 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException | FinalLocationException e) {
             // remove this entry
-            validLocation.invalidate("for " + location + " for existing ivar " + name + " at " + getEncapsulatingSourceSection());
+            validLocation.invalidate("for " + location + " for existing ivar " + cachedName + " at " + getEncapsulatingSourceSection());
             // Generalization is handled by Shape#defineProperty as the field already exists
-            executeWithGeneralize(object, value, generalize);
+            executeWithGeneralize(object, cachedName, value, generalize);
         }
     }
 
     @Specialization(
-            guards = {
-                    "location == null",
-                    "object.getShape() == oldShape" },
+            guards = { "location == null", "object.getShape() == oldShape", "name == cachedName" },
             assumptions = { "oldShape.getValidAssumption()", "newShape.getValidAssumption()", "validLocation" },
             limit = "getCacheLimit()")
-    public void writeNewField(DynamicObject object, Object value, boolean generalize,
-            @Cached("getLocation(object, value)") Location location,
+    public void writeNewField(DynamicObject object, Object name, Object value, boolean generalize,
+            @Cached("name") Object cachedName,
+            @Cached("getLocation(object, cachedName, value)") Location location,
             @Cached("object.getShape()") Shape oldShape,
-            @Cached("defineProperty(oldShape, value, generalize)") Shape newShape,
-            @Cached("getNewLocation(newShape)") Location newLocation,
+            @Cached("defineProperty(oldShape, cachedName, value, generalize)") Shape newShape,
+            @Cached("getNewLocation(cachedName, newShape)") Location newLocation,
             @Cached("createAssumption(oldShape, newShape, newLocation)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
@@ -127,7 +118,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
                     // (we need to make sure to have the right shape to add the new field)
                     if (object.getShape() != oldShape) {
                         shapeRaceProfile.enter();
-                        executeBoundary(object, value, generalize);
+                        executeBoundary(object, cachedName, value, generalize);
                         return;
                     }
                     newLocation.set(object, value, oldShape, newShape);
@@ -137,27 +128,27 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             }
         } catch (IncompatibleLocationException e) {
             // remove this entry
-            validLocation.invalidate("for " + location + " for new ivar " + name + " at " + getEncapsulatingSourceSection());
+            validLocation.invalidate("for " + location + " for new ivar " + cachedName + " at " + getEncapsulatingSourceSection());
             // Make sure to generalize when adding a new field and the value is incompatible.
             // So writing an int and then later a double generalizes to adding an Object field.
-            executeWithGeneralize(object, value, true);
+            executeWithGeneralize(object, cachedName, value, true);
         }
     }
 
     @Specialization(guards = "updateShape(object)")
-    public void updateShapeAndWrite(DynamicObject object, Object value, boolean generalize) {
-        executeWithGeneralize(object, value, generalize);
+    public void updateShapeAndWrite(DynamicObject object, Object name, Object value, boolean generalize) {
+        executeWithGeneralize(object, name, value, generalize);
     }
 
     @TruffleBoundary
     @Specialization(replaces = { "writeExistingField", "writeNewField", "updateShapeAndWrite" })
-    public void writeUncached(DynamicObject object, Object value, boolean generalize) {
+    public void writeUncached(DynamicObject object, Object name, Object value, boolean generalize) {
         final boolean shared = SharedObjects.isShared(getContext(), object);
         if (shared) {
             SharedObjects.writeBarrier(getContext(), value);
             synchronized (object) {
                 Shape shape = object.getShape();
-                Shape newShape = defineProperty(shape, value, false);
+                Shape newShape = defineProperty(shape, name, value, false);
                 newShape.getProperty(name).setSafe(object, value, shape, newShape);
             }
         } else {
@@ -165,7 +156,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         }
     }
 
-    protected Location getLocation(DynamicObject object, Object value) {
+    protected Location getLocation(DynamicObject object, Object name, Object value) {
         final Shape oldShape = object.getShape();
         final Property property = oldShape.getProperty(name);
 
@@ -178,7 +169,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     private static final Object SOME_OBJECT = new Object();
 
-    protected Shape defineProperty(Shape oldShape, Object value, boolean generalize) {
+    protected Shape defineProperty(Shape oldShape, Object name, Object value, boolean generalize) {
         if (generalize) {
             value = SOME_OBJECT;
         }
@@ -192,7 +183,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         }
     }
 
-    protected Location getNewLocation(Shape newShape) {
+    protected Location getNewLocation(Object name, Shape newShape) {
         return newShape.getProperty(name).getLocation();
     }
 
@@ -237,10 +228,4 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             return null;
         }
     }
-
-    @Override
-    public String toString() {
-        return name + " =";
-    }
-
 }

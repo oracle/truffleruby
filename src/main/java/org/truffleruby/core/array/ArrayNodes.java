@@ -69,7 +69,6 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -1527,10 +1526,10 @@ public abstract class ArrayNodes {
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
                 }
 
-                writeAssociatedNode.write(string, result.getAssociated());
+                writeAssociatedNode.write(string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
             }
 
             return string;

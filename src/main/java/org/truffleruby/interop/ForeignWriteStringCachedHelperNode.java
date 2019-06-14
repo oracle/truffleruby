@@ -19,11 +19,11 @@ import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 @GenerateUncached
 abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContextNode {
 
+    // TODO (pitr-ch 12-Jun-2019): missing generic cases
 
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
 
@@ -46,21 +46,16 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
-    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar", "stringName.equals(cachedStringName)"})
+    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
     public Object writeInstanceVariable(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached("stringName") Object cachedStringName,
-            @Cached(value = "createWriteObjectFieldNode(cachedStringName)", allowUncached = true) WriteObjectFieldNode writeObjectFieldNode) {
-        writeObjectFieldNode.write(receiver, value);
+            @Cached(allowUncached = true) WriteObjectFieldNode writeObjectFieldNode) {
+        writeObjectFieldNode.write(receiver, stringName, value);
         return value;
-    }
-
-    protected WriteObjectFieldNode createWriteObjectFieldNode(Object name) {
-        return WriteObjectFieldNodeGen.create(name);
     }
 
     @Specialization(guards = {

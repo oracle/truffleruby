@@ -129,7 +129,6 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -371,7 +370,7 @@ public abstract class KernelNodes {
 
             for (int i = 0; i < properties.length; i++) {
                 final Object value = readFieldNodes[i].execute(self);
-                writeFieldNodes[i].write(newObject, value);
+                writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
             }
 
             return newObject;
@@ -417,7 +416,7 @@ public abstract class KernelNodes {
         protected WriteObjectFieldNode[] createWriteFieldNodes(Property[] properties) {
             final WriteObjectFieldNode[] nodes = new WriteObjectFieldNode[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = WriteObjectFieldNodeGen.create(properties[i].getKey());
+                nodes[i] = WriteObjectFieldNode.create();
             }
             return nodes;
         }
@@ -1822,7 +1821,7 @@ public abstract class KernelNodes {
 
         @Child private IsFrozenNode isFrozenNode;
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNodeGen.create(Layouts.TAINTED_IDENTIFIER);
+        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
         @Specialization
         public int untaint(int num) {
@@ -1851,7 +1850,7 @@ public abstract class KernelNodes {
             }
 
             checkFrozen(object);
-            writeTaintNode.write(object, false);
+            writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
             return object;
         }
 

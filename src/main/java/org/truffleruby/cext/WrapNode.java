@@ -78,7 +78,7 @@ public abstract class WrapNode extends RubyBaseNode {
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
     public ValueWrapper wrapValue(DynamicObject value,
             @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
-            @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode,
+            @Cached WriteObjectFieldNode writeWrapperNode,
             @Cached("create()") BranchProfile noHandleProfile) {
         ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value);
         if (wrapper == null) {
@@ -92,7 +92,7 @@ public abstract class WrapNode extends RubyBaseNode {
                      */
                     wrapper = new ValueWrapper(value, UNSET_HANDLE);
                     Pointer.UNSAFE.storeFence();
-                    writeWrapperNode.write(value, wrapper);
+                    writeWrapperNode.write(value, Layouts.VALUE_WRAPPER_IDENTIFIER, wrapper);
                 }
             }
         }
@@ -109,10 +109,6 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     public WriteObjectFieldNode createWriter() {
-        return WriteObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER);
-    }
-
-    public static WrapNode create() {
-        return WrapNodeGen.create();
+        return WriteObjectFieldNodeGen.create();
     }
 }
