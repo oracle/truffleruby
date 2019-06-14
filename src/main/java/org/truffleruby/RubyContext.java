@@ -850,7 +850,7 @@ public class RubyContext {
         }
     }
 
-    public void setMainSources(Source mainSource, String mainSourceAbsolutePath) {
+    public void setMainSource(Source mainSource, String mainSourceAbsolutePath) {
         this.mainSource = mainSource;
         this.mainSourceAbsolutePath = mainSourceAbsolutePath;
     }

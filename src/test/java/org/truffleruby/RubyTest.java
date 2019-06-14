@@ -57,7 +57,6 @@ public abstract class RubyTest {
         return builder
                 .allowAllAccess(true)
                 .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
-                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .option(OptionsCatalog.BASICOPS_INLINE.getName(), Boolean.FALSE.toString());
     }
 

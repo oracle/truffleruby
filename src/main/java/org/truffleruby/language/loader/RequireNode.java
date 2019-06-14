@@ -24,7 +24,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
@@ -45,13 +44,13 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.TruffleRuby;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -202,17 +201,18 @@ public abstract class RequireNode extends RubyBaseNode {
     }
 
     private boolean parseAndCall(String feature, String expandedPath) {
-        final RubySource source;
-        try {
-            final FileLoader fileLoader = new FileLoader(getContext());
-            source = fileLoader.loadFile(expandedPath);
-        } catch (IOException e) {
-            return false;
-        }
+        if (isCExtension(expandedPath)) {
+            requireCExtension(feature, expandedPath);
+        } else {
+            // All other files are assumed to be Ruby, the file type detection is not enough
+            final RubySource source;
+            try {
+                final FileLoader fileLoader = new FileLoader(getContext());
+                source = fileLoader.loadFile(getContext().getEnv(), expandedPath);
+            } catch (IOException e) {
+                return false;
+            }
 
-        final String language = getLanguage(source.getSource());
-
-        if (TruffleRuby.LANGUAGE_ID.equals(language)) {
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.TOP_LEVEL,
@@ -233,12 +233,12 @@ public abstract class RequireNode extends RubyBaseNode {
             } finally {
                 requireMetric("after-execute-" + feature);
             }
-        } else if (TruffleRuby.LLVM_ID.equals(language)) {
-            requireCExtension(feature, expandedPath);
-        } else {
-            throw new UnsupportedOperationException();
         }
         return true;
+    }
+
+    private boolean isCExtension(String path) {
+        return path.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION);
     }
 
     @TruffleBoundary
@@ -372,11 +372,6 @@ public abstract class RequireNode extends RubyBaseNode {
         }
 
         return null;
-    }
-
-    @TruffleBoundary
-    private String getLanguage(Source source) {
-        return source.getLanguage();
     }
 
     @TruffleBoundary

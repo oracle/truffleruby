@@ -176,7 +176,7 @@ public abstract class TruffleBootNodes {
                 switch (kind) {
                     case "FILE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadFromFile(this, toExecute);
+                        source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
 

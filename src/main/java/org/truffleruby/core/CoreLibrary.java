@@ -837,7 +837,7 @@ public class CoreLibrary {
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context);
-            return fileLoader.loadFile(feature);
+            return fileLoader.loadFile(context.getEnv(), feature);
         }
     }
 

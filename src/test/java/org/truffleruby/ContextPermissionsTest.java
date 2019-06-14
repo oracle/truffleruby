@@ -29,9 +29,7 @@ public class ContextPermissionsTest {
 
     @Test
     public void testNativeNoThreads() throws Throwable {
-        // TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
-        String home = System.getProperty("user.dir") + "/mxbuild/truffleruby-jvm/jre/languages/ruby";
-        try (Context context = Context.newBuilder("ruby").allowNativeAccess(true).allowExperimentalOptions(true).option("ruby.home", home).build()) {
+        try (Context context = Context.newBuilder("ruby").allowNativeAccess(true).build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
             Assert.assertEquals(true, context.eval("ruby", "File.directory?('.')").asBoolean());
@@ -40,13 +38,9 @@ public class ContextPermissionsTest {
 
     @Test
     public void testRequireGem() {
-        // TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
-        String home = System.getProperty("user.dir") + "/mxbuild/truffleruby-jvm/jre/languages/ruby";
         try (Context context = Context.newBuilder("ruby")
                 .allowIO(true)
                 .allowNativeAccess(true)
-                .allowExperimentalOptions(true)
-                .option("ruby.home", home)
                 .build()) {
             // NOTE: rake is a bundled gem, so it needs RubyGems to be required
             Assert.assertEquals("Rake", context.eval("ruby", "require 'rake'; Rake.to_s").asString());

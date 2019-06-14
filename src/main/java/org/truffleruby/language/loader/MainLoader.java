@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.loader;
 
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -22,8 +24,6 @@ import org.truffleruby.shared.TruffleRuby;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /*
  * Loads the main script, whether it comes from an argument, standard in, or a file.
@@ -43,16 +43,21 @@ public class MainLoader {
 
     public RubySource loadFromStandardIn(RubyNode currentNode, String path) throws IOException {
         byte[] sourceBytes = readAllOfStandardIn();
+        final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
+                RopeOperations.decodeOrEscapeBinaryRope(sourceRope), path).build();
+        return new RubySource(source, sourceRope);
+    }
+
+    private Rope transformScript(RubyNode currentNode, String path, byte[] sourceBytes) throws IOException {
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
         if (embeddedScript.shouldTransform(sourceBytes)) {
             sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
         }
 
-        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).build();
-        return new RubySource(source, sourceRope);
+        return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     private byte[] readAllOfStandardIn() throws IOException {
@@ -73,39 +78,23 @@ public class MainLoader {
         return byteStream.toByteArray();
     }
 
-    public RubySource loadFromFile(RubyNode currentNode, String path) throws IOException {
+    public RubySource loadFromFile(Env env, RubyNode currentNode, String path) throws IOException {
         final FileLoader fileLoader = new FileLoader(context);
-        fileLoader.ensureReadable(path);
+
+        final TruffleFile file = env.getTruffleFile(path);
+        fileLoader.ensureReadable(file);
 
         /*
-         * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
-         * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
-         * passed through UTF-8.
+         * We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
+         * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once
+         * and pass them down to the lexer and to the Source.
          */
 
-        byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
+        byte[] sourceBytes = file.readAllBytes();
+        final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
-        final EmbeddedScript embeddedScript = new EmbeddedScript(context);
-
-        if (embeddedScript.shouldTransform(sourceBytes)) {
-            sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
-        }
-
-        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        /*
-         * I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
-         * default MIME type that Ruby supports.
-         *
-         * But if you remove setting the MIME type you get the following failures:
-         *
-         * - test/truffle/compiler/stf-optimises.sh (I think the value is different, not the compilation that fails)
-         * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
-         */
-
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).mimeType(TruffleRuby.MIME_TYPE).build();
-
-        context.setMainSources(source, new File(path).getAbsolutePath());
+        final Source source = fileLoader.buildSource(file, path, sourceRope, false);
+        context.setMainSource(source, new File(path).getAbsolutePath());
 
         return new RubySource(source, sourceRope);
     }
