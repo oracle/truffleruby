@@ -30,6 +30,8 @@ public interface NameErrorLayout extends ExceptionLayout {
         @Nullable Object receiver,
         Object name);
 
+    boolean isNameError(DynamicObject object);
+
     Object getName(DynamicObject object);
     void setName(DynamicObject object, Object value);
 
