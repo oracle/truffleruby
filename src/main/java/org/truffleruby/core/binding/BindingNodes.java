@@ -125,6 +125,14 @@ public abstract class BindingNodes {
         newFrame(binding, newFrameDescriptor(context));
     }
 
+    public static boolean hiddenVariable(Object name) {
+        if (name instanceof String) {
+            return hiddenVariable((String) name);
+        } else {
+            return true;
+        }
+    }
+
     public static boolean hiddenVariable(String name) {
         assert !name.isEmpty();
         return name.startsWith("$") || name.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;

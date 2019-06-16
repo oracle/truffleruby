@@ -25,6 +25,10 @@ Changes:
 
 * Interactive sources (like the GraalVM polyglot shell) now all share the same binding (#1695).
 
+Performance:
+
+* `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
+
 # 20.0.0 beta 1
 
 Bug fixes:

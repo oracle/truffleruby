@@ -24,6 +24,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.parser.TranslatorEnvironment;
 
@@ -88,20 +89,7 @@ public class LexicalScope {
     }
 
     private static boolean isInternal(FrameSlot slot) {
-        return isInternal(slot.getIdentifier());
-    }
-
-    private static boolean isInternal(Object identifier) {
-        if (identifier instanceof String) {
-            return isInternal((String) identifier);
-        } else {
-            return true;
-        }
-    }
-
-    private static boolean isInternal(String identifier) {
-        assert !identifier.isEmpty();
-        return identifier.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;
+        return BindingNodes.hiddenVariable(slot.getIdentifier());
     }
 
     @ExportLibrary(InteropLibrary.class)

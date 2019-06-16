@@ -577,7 +577,7 @@ public abstract class KernelNodes {
                 "equalNode.execute(rope(source), cachedSource)",
                 "equalNode.execute(rope(file), cachedFile)",
                 "line == cachedLine",
-                "assignsNoNewVariables(cachedRootNode)",
+                "!assignsNewUserVariables(getDescriptor(cachedRootNode))",
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
         public Object evalBindingNoAddsVarsCached(
@@ -602,8 +602,8 @@ public abstract class KernelNodes {
                 "equalNode.execute(rope(source), cachedSource)",
                 "equalNode.execute(rope(file), cachedFile)",
                 "line == cachedLine",
-                "!assignsNoNewVariables(cachedRootNode)",
-                "assignsNoNewVariables(rootNodeToEval)",
+                "assignsNewUserVariables(getDescriptor(cachedRootNode))",
+                "!assignsNewUserVariables(getDescriptor(rootNodeToEval))",
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
         public Object evalBindingAddsVarsCached(
@@ -617,13 +617,12 @@ public abstract class KernelNodes {
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
-                @Cached("newBindingDescriptor(getContext(), cachedRootNode)") FrameDescriptor newBindingDescriptor,
+                @Cached("getDescriptor(cachedRootNode).copy()") FrameDescriptor newBindingDescriptor,
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootNodeWrapper rootNodeToEval,
                 @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,
-                    newBindingDescriptor);
+            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,  newBindingDescriptor);
             return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -658,7 +657,7 @@ public abstract class KernelNodes {
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
-            if (!frameHasOnlySelf(descriptor)) {
+            if (assignsNewUserVariables(descriptor)) {
                 Layouts.BINDING.setFrame(binding, frame);
             }
             return getContext().getCodeLoader().prepareExecute(
@@ -687,32 +686,26 @@ public abstract class KernelNodes {
             return BindingNodes.getFrameDescriptor(binding);
         }
 
-        protected FrameDescriptor newBindingDescriptor(RubyContext context, RootNodeWrapper rootNode) {
-            FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
-            FrameDescriptor newDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
-            for (FrameSlot frameSlot : descriptor.getSlots()) {
-                newDescriptor.findOrAddFrameSlot(frameSlot.getIdentifier());
-            }
-            return newDescriptor;
+        protected FrameDescriptor getDescriptor(RootNodeWrapper rootNode) {
+            return rootNode.getRootNode().getFrameDescriptor();
         }
 
         protected MaterializedFrame getBindingFrame(DynamicObject binding) {
             return BindingNodes.getFrame(binding);
         }
 
+        protected static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
+            for (FrameSlot slot : descriptor.getSlots()) {
+                if (!BindingNodes.hiddenVariable(slot.getIdentifier())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         protected int getCacheLimit() {
             return getContext().getOptions().EVAL_CACHE;
         }
-
-        protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
-            FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
-            return frameHasOnlySelf(descriptor);
-        }
-
-        private boolean frameHasOnlySelf(FrameDescriptor descriptor) {
-            return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
-        }
-
     }
 
     @CoreMethod(names = "freeze")
