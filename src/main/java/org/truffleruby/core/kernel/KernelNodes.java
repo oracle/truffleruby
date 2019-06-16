@@ -571,7 +571,10 @@ public abstract class KernelNodes {
             }
         }
 
-        public abstract Object execute(VirtualFrame frame, Object self, DynamicObject str, DynamicObject binding, DynamicObject file, int line);
+        public abstract Object execute(VirtualFrame frame, Object self, DynamicObject source, DynamicObject binding, DynamicObject file, int line);
+
+        // If the source defines new local variables, those should be set in the Binding.
+        // So we have 2 specializations for whether or not the code defines new local variables.
 
         @Specialization(guards = {
                 "equalNode.execute(rope(source), cachedSource)",
