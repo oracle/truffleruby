@@ -26,7 +26,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.parser.TranslatorEnvironment;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,7 +88,7 @@ public class LexicalScope {
     }
 
     private static boolean isInternal(FrameSlot slot) {
-        return BindingNodes.hiddenVariable(slot.getIdentifier());
+        return BindingNodes.isHiddenVariable(slot.getIdentifier());
     }
 
     @ExportLibrary(InteropLibrary.class)

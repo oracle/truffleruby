@@ -128,7 +128,6 @@ import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.TaintNode;
@@ -699,7 +698,7 @@ public abstract class KernelNodes {
 
         protected static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
             for (FrameSlot slot : descriptor.getSlots()) {
-                if (!BindingNodes.hiddenVariable(slot.getIdentifier())) {
+                if (!BindingNodes.isHiddenVariable(slot.getIdentifier())) {
                     return true;
                 }
             }

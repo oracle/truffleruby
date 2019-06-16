@@ -125,17 +125,18 @@ public abstract class BindingNodes {
         newFrame(binding, newFrameDescriptor(context));
     }
 
-    public static boolean hiddenVariable(Object name) {
+    public static boolean isHiddenVariable(Object name) {
         if (name instanceof String) {
-            return hiddenVariable((String) name);
+            return isHiddenVariable((String) name);
         } else {
             return true;
         }
     }
 
-    public static boolean hiddenVariable(String name) {
+    private static boolean isHiddenVariable(String name) {
         assert !name.isEmpty();
-        return name.startsWith("$") || name.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;
+        return name.charAt(0) == '$' || // Frame-local global variable
+                name.charAt(0) == TranslatorEnvironment.TEMP_PREFIX;
     }
 
     @CoreMethod(names = { "dup", "clone" })
@@ -166,7 +167,7 @@ public abstract class BindingNodes {
 
         @Specialization(guards = {
                 "name == cachedName",
-                "!hiddenVariable(cachedName)",
+                "!isHiddenVariable(cachedName)",
                 "getFrameDescriptor(binding) == descriptor"
         }, limit = "getCacheLimit()")
         public boolean localVariableDefinedCached(DynamicObject binding, String name,
@@ -177,13 +178,13 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "!hiddenVariable(name)")
+        @Specialization(guards = "!isHiddenVariable(name)")
         public boolean localVariableDefinedUncached(DynamicObject binding, String name) {
             return FindDeclarationVariableNodes.findFrameSlotOrNull(name, getFrame(binding)) != null;
         }
 
         @TruffleBoundary
-        @Specialization(guards = "hiddenVariable(name)")
+        @Specialization(guards = "isHiddenVariable(name)")
         public Object localVariableDefinedLastLine(DynamicObject binding, String name) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
@@ -205,7 +206,7 @@ public abstract class BindingNodes {
             return NameToJavaStringNodeGen.create(name);
         }
 
-        @Specialization(guards = "!hiddenVariable(name)")
+        @Specialization(guards = "!isHiddenVariable(name)")
         public Object localVariableGetUncached(DynamicObject binding, String name,
                 @Cached("create(null)") FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = getFrame(binding);
@@ -217,7 +218,7 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "hiddenVariable(name)")
+        @Specialization(guards = "isHiddenVariable(name)")
         public Object localVariableGetLastLine(DynamicObject binding, String name) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
@@ -242,7 +243,7 @@ public abstract class BindingNodes {
 
         @Specialization(guards = {
                 "name == cachedName",
-                "!hiddenVariable(cachedName)",
+                "!isHiddenVariable(cachedName)",
                 "getFrameDescriptor(binding) == cachedFrameDescriptor",
                 "cachedFrameSlot != null"
         }, limit = "getCacheLimit()")
@@ -257,7 +258,7 @@ public abstract class BindingNodes {
 
         @Specialization(guards = {
                 "name == cachedName",
-                "!hiddenVariable(cachedName)",
+                "!isHiddenVariable(cachedName)",
                 "getFrameDescriptor(binding) == cachedFrameDescriptor",
                 "cachedFrameSlot == null"
         }, limit = "getCacheLimit()")
@@ -273,7 +274,7 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "!hiddenVariable(name)")
+        @Specialization(guards = "!isHiddenVariable(name)")
         public Object localVariableSetUncached(DynamicObject binding, String name, Object value) {
             MaterializedFrame frame = getFrame(binding);
             final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
@@ -290,7 +291,7 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "hiddenVariable(name)")
+        @Specialization(guards = "isHiddenVariable(name)")
         public Object localVariableSetLastLine(DynamicObject binding, String name, Object value) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
@@ -333,8 +334,7 @@ public abstract class BindingNodes {
 
         private static void addNamesFromFrame(RubyContext context, Frame frame, final Set<Object> names) {
             for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
-                if (slot.getIdentifier() instanceof String &&
-                        !hiddenVariable((String) slot.getIdentifier())) {
+                if (!isHiddenVariable(slot.getIdentifier())) {
                     names.add(context.getSymbolTable().getSymbol((String) slot.getIdentifier()));
                 }
             }
