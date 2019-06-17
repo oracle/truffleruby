@@ -83,21 +83,28 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         }
     }
 
-    @Specialization
-    public DynamicObject create(double value, int digits, boolean strict,
-            @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
-            @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
-            @Cached("create()") BranchProfile nanProfile,
-            @Cached("create()") BranchProfile positiveInfinityProfile,
-            @Cached("create()") BranchProfile negativeInfinityProfile) {
-        if (finiteValueProfile.profile(Double.isFinite(value))) {
-            final RoundingMode roundMode = getRoundMode();
-            final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+    @Specialization(guards = "isNegativeZero(value)")
+    public DynamicObject createNegativeZero(double value, int digits, boolean strict) {
+        return createSpecialBigDecimal(BigDecimalType.NEGATIVE_ZERO);
+    }
 
-            return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
-        } else {
-            return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
-        }
+    @Specialization(guards = {
+            "isFinite(value)",
+            "!isNegativeZero(value)"
+    })
+    public DynamicObject createFinite(double value, int digits, boolean strict,
+                                      @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
+        final RoundingMode roundMode = getRoundMode();
+        final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+        return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
+    }
+
+    @Specialization(guards = "!isFinite(value)")
+    public DynamicObject createInfinite(double value, int digits, boolean strict,
+                                        @Cached("create()") BranchProfile nanProfile,
+                                        @Cached("create()") BranchProfile positiveInfinityProfile,
+                                        @Cached("create()") BranchProfile negativeInfinityProfile) {
+        return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
     }
 
     @Specialization(guards = "type == NEGATIVE_INFINITY || type == POSITIVE_INFINITY")

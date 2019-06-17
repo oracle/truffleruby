@@ -322,6 +322,10 @@ public abstract class RubyGuards {
         return value >= 0;
     }
 
+    public static boolean isNegativeZero(double value) {
+        return Double.valueOf(value).equals(-0.0);
+    }
+
     // Composite
 
     public static boolean isSingletonClass(DynamicObject value) {
