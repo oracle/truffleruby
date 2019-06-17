@@ -1712,11 +1712,6 @@ VALUE rb_hash_delete(VALUE hash, VALUE key) {
   return RUBY_INVOKE(hash, "delete", key);
 }
 
-// From internal.h, used in test/mri/tests/cext-c/hash/delete.c
-VALUE rb_hash_delete_entry(VALUE hash, VALUE key) {
-  rb_tr_error("rb_hash_delete_entry not implemented");
-}
-
 VALUE rb_hash_delete_if(VALUE hash) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(hash, rb_intern("delete_if"), 0, NULL, rb_block_proc());
@@ -4820,9 +4815,4 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
-}
-
-// From internal.h, used in test/mri/tests/cext-c/integer/core_ext.c
-VALUE rb_int_positive_pow(long x, unsigned long y) {
-  rb_tr_error("rb_int_positive_pow not implemented");
 }
