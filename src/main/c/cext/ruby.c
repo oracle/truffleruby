@@ -4821,3 +4821,8 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
 }
+
+// From internal.h, used in test/mri/tests/cext-c/integer/core_ext.c
+VALUE rb_int_positive_pow(long x, unsigned long y) {
+  rb_tr_error("rb_int_positive_pow not implemented");
+}
