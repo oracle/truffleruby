@@ -500,9 +500,6 @@ module Commands
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
-      jt test report :language                       build a report on language specs
-                     :core                               (results go into test/target/mspec-html-report)
-                     :library
       jt test unit                                   run Java unittests
       jt test tck                                    run tck tests
       jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
@@ -1119,12 +1116,6 @@ EOS
   end
   private :test_cexts
 
-  def test_report(component)
-    test 'specs', '--truffle-formatter', component
-    sh 'ant', '-f', 'spec/buildTestReports.xml'
-  end
-  private :test_report
-
   def test_integration(*args)
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
@@ -1296,10 +1287,6 @@ EOS
 
     if args.delete('--jexception') || args.delete('--jexceptions')
       options << "-T--experimental-options" << "-T--exceptions-print-uncaught-java"
-    end
-
-    if args.delete('--truffle-formatter')
-      options += %w[--format spec/truffle_formatter.rb]
     end
 
     if ci?
