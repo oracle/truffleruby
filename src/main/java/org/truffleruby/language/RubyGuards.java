@@ -74,6 +74,7 @@ public abstract class RubyGuards {
         return clazz == Boolean.class || clazz == Byte.class || clazz == Short.class || clazz == Integer.class
                 || clazz == Long.class || clazz == Float.class || clazz == Double.class;
     }
+
     // Ruby types
 
     public static boolean isRubyBasicObject(Object object) {
@@ -311,6 +312,10 @@ public abstract class RubyGuards {
 
     public static boolean isInfinity(double value) {
         return Double.isInfinite(value);
+    }
+
+    public static boolean isFinite(double value) {
+        return Double.isFinite(value);
     }
 
     public static boolean isPositive(double value) {
