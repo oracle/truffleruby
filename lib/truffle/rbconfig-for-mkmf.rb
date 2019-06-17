@@ -135,12 +135,25 @@ begin
     Truffle::CExt::Preprocessor.makefile_matcher("#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1}", command2)
   end
 
+  for_file = proc do |compiler, flags, opt_command|
+    "#{compiler} #{flags} $< && #{opt_command}"
+  end
+
+  for_pipe = proc do |compiler, flags, opt_command|
+    "#{compiler} -I$(<D) #{flags} - -o $@ && #{opt_command}"
+  end
+
+  c_flags = "$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc"
+  cxx_flags = "$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++"
+  opt_command = "#{opt} #{opt_passes} $@ -o $@"
+
   mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
-    "$(CC) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-    "$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc $(<) && #{opt} #{opt_passes} $@ -o $@")
-  mkconfig['COMPILE_CXX'] = with_conditional_preprocessing.call(
-    "$(CXX) -I$(<D) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-    "$(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ $(<) && #{opt} #{opt_passes} $@ -o $@")
+    for_pipe.call("$(CC)", c_flags, opt_command),
+    for_file.call("$(CC)", c_flags, opt_command))
+
+  mkconfig['COMPILE_CXX']   = with_conditional_preprocessing.call(
+    for_pipe.call("$(CXX)", cxx_flags, opt_command),
+    for_file.call("$(CXX)", cxx_flags, opt_command))
 end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
