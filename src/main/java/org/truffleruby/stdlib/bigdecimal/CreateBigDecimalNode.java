@@ -39,9 +39,9 @@ import java.util.regex.Pattern;
 @ImportStatic(BigDecimalType.class)
 public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
-    private static final String exponent = "([eE][+-]?)?(\\d*)";
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^([+-]?\\d*\\.?\\d*" + exponent + ").*");
-    private static final Pattern ZERO_PATTERN = Pattern.compile("^[+-]?0*\\.?0*" + exponent);
+    private static final String EXPONENT = "([eE][+-]?)?(\\d*)";
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("^([+-]?\\d*\\.?\\d*" + EXPONENT + ").*");
+    private static final Pattern ZERO_PATTERN = Pattern.compile("^[+-]?0*\\.?0*" + EXPONENT);
 
     @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
