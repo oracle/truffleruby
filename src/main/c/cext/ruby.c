@@ -4816,3 +4816,11 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
 }
+
+#ifndef HAVE_GNU_QSORT_R
+typedef int (cmpfunc_t)(const void*, const void*, void*);
+
+void ruby_qsort(void* base, const size_t nel, const size_t size, cmpfunc_t *cmp, void *d) {
+  rb_tr_error("ruby_qsort not implemented");
+}
+#endif
