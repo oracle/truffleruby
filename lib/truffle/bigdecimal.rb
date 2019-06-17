@@ -321,7 +321,7 @@ end
 
 module Kernel
   def BigDecimal(value, precision = Truffle::UNDEFINED)
-    Truffle.invoke_primitive :bigdecimal_new, value, precision
+    Truffle.invoke_primitive :bigdecimal_new, value, precision, true
   end
 end
 

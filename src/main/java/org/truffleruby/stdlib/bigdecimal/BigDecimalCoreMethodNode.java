@@ -51,11 +51,15 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     }
 
     protected DynamicObject createBigDecimal(Object value) {
-        return getCreateBigDecimal().executeCreate(value, NotProvided.INSTANCE);
+        return createBigDecimal(value, true);
     }
 
-    protected DynamicObject createBigDecimal(Object value, int digits) {
-        return getCreateBigDecimal().executeCreate(value, digits);
+    protected DynamicObject createBigDecimal(Object value, boolean strict) {
+        return getCreateBigDecimal().executeCreate(value, NotProvided.INSTANCE, strict);
+    }
+
+    protected DynamicObject createBigDecimal(Object value, int digits, boolean strict) {
+        return getCreateBigDecimal().executeCreate(value, digits, strict);
     }
 
     protected RoundingMode getRoundMode() {
@@ -110,7 +114,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CreateBigDecimalNode getCreateBigDecimal() {
         if (createBigDecimal == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null));
+            createBigDecimal = insert(CreateBigDecimalNodeFactory.create(null, null, null));
         }
 
         return createBigDecimal;

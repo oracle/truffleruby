@@ -198,6 +198,11 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, StringOperations.createString(context, message), currentNode, javaThrowable);
     }
 
+    @TruffleBoundary
+    public DynamicObject argumentErrorInvalidBigDecimal(String string, Node currentNode) {
+        return argumentError(StringUtils.format("invalid value for BigDecimal(): \"%s\"", string), currentNode);
+    }
+
     // FrozenError
 
     @TruffleBoundary

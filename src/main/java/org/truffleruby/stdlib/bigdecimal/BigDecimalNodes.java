@@ -52,13 +52,13 @@ public abstract class BigDecimalNodes {
     public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object newBigDecimal(Object value, NotProvided digits) {
-            return createBigDecimal(value);
+        public Object newBigDecimal(Object value, NotProvided notProvided, boolean strict) {
+            return createBigDecimal(value, strict);
         }
 
         @Specialization
-        public Object newBigDecimal(Object value, int digits) {
-            return createBigDecimal(value, digits);
+        public Object newBigDecimal(Object value, int digits, boolean strict) {
+            return createBigDecimal(value, digits, strict);
         }
 
     }
