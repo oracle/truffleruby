@@ -177,6 +177,20 @@ module RbConfig
     mkconfig['datarootdir'] = '$(prefix)/share'
     expanded['ridir'] = "#{datarootdir}/ri"
     mkconfig['ridir'] = '$(datarootdir)/ri'
+
+    # Defined here for RubyInline
+    cc = Truffle::Boot.tool_path(:CC)
+    cxx = Truffle::Boot.tool_path(:CXX)
+
+    expanded['CC'] = mkconfig['CC'] = cc
+    expanded['CXX'] = mkconfig['CXX'] = cxx
+
+    expanded['CPP'] = "#{cc} -E"
+    mkconfig['CPP'] = '$(CC) -E'
+    expanded['LDSHARED'] = "#{cc} -shared"
+    mkconfig['LDSHARED'] = '$(CC) -shared'
+    expanded['LDSHAREDXX'] = "#{cxx} -shared"
+    mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
   end
 
   launcher = Truffle::Boot.get_option 'launcher'

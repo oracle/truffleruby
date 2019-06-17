@@ -26,9 +26,6 @@ warnflags = [
   '-ferror-limit=500'
 ].join(' ')
 
-cc = Truffle::Boot.tool_path(:CC)
-cxx = Truffle::Boot.tool_path(:CXX)
-
 base_cflags = "#{debugflags} #{warnflags}"
 cflags = "#{base_cflags} -fPIC -c"
 cxxflags = "#{cflags} -stdlib=libc++"
@@ -54,11 +51,6 @@ end
 librubyarg = "-L#{File.dirname(ruby_so)} -ltruffleruby -lpolyglot-mock"
 
 common = {
-  'CC' => cc,
-  'CPP' => cc,
-  'CXX' => cxx,
-  'LDSHARED' => "#{cc} -shared",
-  'LDSHAREDXX' => "#{cxx} -shared",
   'LIBRUBYARG' => librubyarg,
   'LIBRUBYARG_SHARED' => librubyarg,
   'debugflags' => debugflags,
@@ -103,7 +95,7 @@ begin
 end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "$(CC) -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
