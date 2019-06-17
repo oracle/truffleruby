@@ -449,7 +449,6 @@ module Commands
           --no-sforceimports                         do not run sforceimports before building
           parser                                     build the parser
           options                                    build the options
-          cexts                                      build only the C extensions (part of "jt build")
           graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby, 
                                                      available by default in mxbuild/truffleruby-jvm, 
                                                      the Ruby is symlinked into rbenv or chruby if available
@@ -562,8 +561,6 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
-    when "cexts" # Included in 'mx build' but useful to recompile just that part
-      mx 'build', '--dependencies', 'org.truffleruby.cext'
     when 'graalvm'
       build_graalvm(*options)
     when 'native'
@@ -743,9 +740,6 @@ module Commands
   def compile_cext(name, ext_dir, target, clang_opts, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
-
-    # Make sure ruby.su is built
-    build("cexts")
 
     chdir(ext_dir) do
       run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
@@ -1250,7 +1244,6 @@ EOS
   def test_specs(command, *args)
     env_vars = {}
     options = []
-    running_local_build = false
 
     case command
     when 'run'
@@ -1286,7 +1279,6 @@ EOS
         options << '-t' << find_launcher(true)
         options << '-T--native'
       else
-        running_local_build = true
         options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
         options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
         options << "-T--polyglot" # For Truffle::Interop.export specs
@@ -1313,12 +1305,6 @@ EOS
 
     if ci?
       options += %w[--format specdoc]
-    end
-
-    if running_local_build && (
-        args.any? { |arg| arg.include? 'optional/capi' } ||
-        !(args & %w[:capi :truffle_capi :library_cext]).empty?)
-      build("cexts")
     end
 
     run_mspec env_vars, command, *options, *args
