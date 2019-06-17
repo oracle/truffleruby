@@ -207,7 +207,13 @@ class BigDecimal < Numeric
   end
 
   def to_s(format = 'E')
-    if finite?
+    if zero?
+      if sign == SIGN_NEGATIVE_ZERO
+        '-0.0'
+      else
+        '0.0'
+      end
+    elsif finite?
       float_format    = format[-1] == 'F' || format[-1] == 'f'
       space_frequency = format.to_i
       prefix          = if self > 0 && [' ', '+'].include?(format[0])
