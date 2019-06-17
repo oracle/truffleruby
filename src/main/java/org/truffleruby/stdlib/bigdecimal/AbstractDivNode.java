@@ -49,6 +49,9 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
     }
 
     protected Object div(DynamicObject a, DynamicObject b, int precision) {
+        if (precision == 0) {
+            precision = getLimit();
+        }
         return createBigDecimal(divBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode())));
     }
 

@@ -25,6 +25,9 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
     private final ConditionProfile aNormalProfile = ConditionProfile.createBinaryProfile();
 
     protected Object add(DynamicObject a, DynamicObject b, int precision) {
+        if (precision == 0) {
+            precision = getLimit();
+        }
         return createBigDecimal(addBigDecimal(a, b, new MathContext(precision, getRoundMode())));
     }
 
