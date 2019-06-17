@@ -65,9 +65,6 @@ test_extlibs.rb
 
 # Other issues
 
-bigdecimal/test_bigdecimal.rb
-bigdecimal/test_bigdecimal_util.rb
-bigdecimal/test_bigmath.rb
 cext-ruby/bignum/test_big2str.rb
 cext-ruby/bignum/test_bigzero.rb
 cext-ruby/bignum/test_div.rb
