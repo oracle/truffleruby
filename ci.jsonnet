@@ -331,13 +331,6 @@ local part_definitions = {
       notify_emails: false,
     },
     bench: { capabilities+: self["$.cap"].bench_machine },
-    x52_18_override: {
-      is_after+:: ["$.cap.bench"],
-      capabilities: if std.count(super.capabilities, "x52") > 0
-      then std.map(function(c) if c == "x52" then "x52_18" else c,
-                   super.capabilities)
-      else error "trying to override x52 but it is missing",
-    },
     daily: { targets+: ["bench", "daily"] },
     weekly: { targets+: ["weekly"] },
     manual: {
@@ -591,8 +584,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:30:00" },
 
-      "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.cap.x52_18_override,
-      "ruby-metrics-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + $.cap.x52_18_override,
+      "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"],
+      "ruby-metrics-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"],
     } +
 
     {
