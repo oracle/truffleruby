@@ -64,6 +64,7 @@ module RbConfig
     'build'             => host,
     'build_os'          => host_os_full,
     'configure_args'    => ' ',
+    'CCDLFLAGS'         => '-fPIC',
     'COUTFLAG'          => '-o ',
     'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
