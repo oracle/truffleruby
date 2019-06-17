@@ -1449,7 +1449,7 @@ public abstract class BigDecimalNodes {
                     return Double.POSITIVE_INFINITY;
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
-                    return 0.0;
+                    return -0.0;
                 case NAN:
                     nanProfile.enter();
                     return Double.NaN;
