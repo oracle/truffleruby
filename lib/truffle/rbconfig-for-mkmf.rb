@@ -147,6 +147,7 @@ begin
   cxx_flags = "$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++"
   opt_command = "#{opt} #{opt_passes} $@ -o $@"
 
+  mkconfig["TRUFFLE_RAW_COMPILE_C"] = for_file.call("$(CC)", c_flags, opt_command)
   mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
     for_pipe.call("$(CC)", c_flags, opt_command),
     for_file.call("$(CC)", c_flags, opt_command))
