@@ -494,8 +494,7 @@ module Commands
       jt test spec/ruby/language                     run specs in this directory
       jt test spec/ruby/language/while_spec.rb       run specs in this file
       jt test compiler                               run compiler tests
-      jt test integration                            runs all integration tests
-      jt test integration [TESTS]                    runs the given integration tests
+      jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
       jt test gems [TESTS]                           tests using gems 
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
