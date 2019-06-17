@@ -38,14 +38,14 @@ module Truffle
       add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
 
       def self.makefile_matcher(command1, command2)
-        file_list = {}
+        file_list = Hash.new { |h,k| h[k] = [] }
         PATCHED_FILES.each_pair do |file, patch|
           dir = if patch[:ext_dir]
                   File.join(patch[:gem], 'ext', patch[:ext_dir])
                 else
                   "/#{patch[:gem]}"
                 end
-          (file_list[dir] ||= []) << file
+          file_list[dir] << file
         end
 
         make_function = <<-EOF
