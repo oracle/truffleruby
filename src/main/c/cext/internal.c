@@ -26,3 +26,13 @@ VALUE rb_hash_delete_entry(VALUE hash, VALUE key) {
 VALUE rb_int_positive_pow(long x, unsigned long y) {
   rb_tr_error("rb_int_positive_pow not implemented");
 }
+
+// Used in test/mri/tests/cext-c/string/fstring.c
+VALUE rb_fstring(VALUE str) {
+  rb_tr_error("rb_fstring not implemented");
+}
+
+// Used in test/mri/tests/cext-c/string/normalize.c
+VALUE rb_str_normalize_ospath(const char *ptr, long len) {
+  rb_tr_error("rb_str_normalize_ospath not implemented");
+}

@@ -11,3 +11,6 @@ VALUE rb_hash_key_str(VALUE);
 VALUE rb_hash_delete_entry(VALUE hash, VALUE key);
 
 VALUE rb_int_positive_pow(long x, unsigned long y);
+
+VALUE rb_fstring(VALUE str);
+VALUE rb_str_normalize_ospath(const char *ptr, long len);
