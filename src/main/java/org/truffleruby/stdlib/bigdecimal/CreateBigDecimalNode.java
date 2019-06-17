@@ -232,12 +232,9 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         strValue = strValue.replaceFirst("[dD]", "E");                  // 1. MRI allows d and D as exponent separators
         strValue = strValue.replaceAll("_", "");                        // 2. MRI allows underscores anywhere
 
-        final MatchResult result;
-        {
-            final Matcher matcher = NUMBER_PATTERN.matcher(strValue);
-            strValue = matcher.replaceFirst("$1"); // 3. MRI ignores the trailing junk
-            result = matcher.toMatchResult();
-        }
+        final Matcher matcher = NUMBER_PATTERN.matcher(strValue);
+        strValue = matcher.replaceFirst("$1"); // 3. MRI ignores the trailing junk
+        final MatchResult result = matcher.toMatchResult();
 
         try {
             final BigDecimal value = new BigDecimal(strValue, new MathContext(digits));
@@ -246,7 +243,6 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             } else {
                 return value;
             }
-
         } catch (NumberFormatException e) {
             if (ZERO_PATTERN.matcher(strValue).matches()) {
                 return BigDecimal.ZERO;
