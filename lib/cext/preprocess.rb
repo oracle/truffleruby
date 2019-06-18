@@ -13,7 +13,7 @@ if __FILE__ == $0
 
   file_name = ARGV.first
   original_content = File.read(file_name)
-  output = Truffle::CEXt::Preprocessor.patch(file_name, original_content, Dir.pwd)
+  output = Truffle::CExt::Preprocessor.patch(file_name, original_content, Dir.pwd)
 
   if ENV['PREPROCESS_DEBUG'] && original_content != output
     patched_file_name = "#{File.dirname file_name}/.#{File.basename file_name, '.*'}.patched#{File.extname file_name}"

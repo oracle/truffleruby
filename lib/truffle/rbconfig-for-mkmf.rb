@@ -132,7 +132,7 @@ mkconfig.merge!(common)
 # compiler which disables this standard behaviour of the C preprocessor.
 begin
   with_conditional_preprocessing = proc do |command1, command2|
-    Truffle::CExt::Preprocessor.makefile_matcher("#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{command1}", command2)
+    Truffle::CExt::Preprocessor.makefile_matcher(command1, command2)
   end
 
   for_file = proc do |compiler, flags, opt_command|
@@ -140,14 +140,14 @@ begin
   end
 
   for_pipe = proc do |compiler, flags, opt_command|
-    "#{compiler} -I$(<D) #{flags} - -o $@ && #{opt_command}"
+    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} - -o $@ && #{opt_command}"
   end
 
   c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc'
   cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++'
   opt_command = "#{opt} #{opt_passes} $@ -o $@"
 
-  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call("$(CC)", c_flags, opt_command)
+  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_pipe.call('$(CC)', c_flags, opt_command)
   mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
     for_pipe.call('$(CC)', c_flags, opt_command),
     for_file.call('$(CC)', c_flags, opt_command))
@@ -160,6 +160,6 @@ end
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} #{link_o_files} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
-%w[COMPILE_C COMPILE_CXX TRY_LINK].each do |key|
+%w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
 end
