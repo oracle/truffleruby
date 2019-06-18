@@ -19,6 +19,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 public class TopLevelRaiseHandler extends RubyNode {
 
@@ -55,7 +56,7 @@ public class TopLevelRaiseHandler extends RubyNode {
 
     private int statusFromException(DynamicObject exception) {
         if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSystemExitClass()) {
-            return castToInt(ReadObjectFieldNode.read(exception, "@status", null));
+            return castToInt(ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", null));
         } else {
             return 1;
         }

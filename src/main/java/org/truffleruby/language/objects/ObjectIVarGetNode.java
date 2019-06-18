@@ -37,32 +37,27 @@ public abstract class ObjectIVarGetNode extends RubyBaseWithoutContextNode {
         return executeIVarGet(object, name, false);
     }
 
-    @Specialization(guards = {"name == cachedName", "context == cachedContext"}, limit = "getCacheLimit()")
+    @Specialization(guards = {"name == cachedName"}, limit = "getCacheLimit()")
     public Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
-            @Cached("name") Object cachedName,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            // TODO (pitr-ch 06-Jun-2019): instead of caching context since nil is context dependent,
-            //  the nil() method should be turned into a node to always get the correct nil
-            @Cached("context") RubyContext cachedContext,
-            @Cached("createReadFieldNode(cachedContext, object, cachedName, checkName)") ReadObjectFieldNode readObjectFieldNode) {
+            @Cached("checkName(context, object, name, checkName)") Object cachedName,
+            @Cached ReadObjectFieldNode readObjectFieldNode) {
         CompilerAsserts.partialEvaluationConstant(checkName);
-        return readObjectFieldNode.execute(object);
+        return readObjectFieldNode.execute(object, cachedName, context.getCoreLibrary().getNil());
     }
 
     @TruffleBoundary
     @Specialization(replaces = "ivarGetCached")
     public Object ivarGetUncached(DynamicObject object, Object name, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return ReadObjectFieldNode.read(
+        return ReadObjectFieldNodeGen.getUncached().execute(
                 object,
-                checkName(this, context, object, name, checkName),
+                checkName(context, object, name, checkName),
                 context.getCoreLibrary().getNil());
     }
 
-    protected ReadObjectFieldNode createReadFieldNode(RubyContext context, DynamicObject object, Object name, boolean checkName) {
-        return ReadObjectFieldNodeGen.create(
-                checkName(this, context, object, name, checkName),
-                context.getCoreLibrary().getNil());
+    protected Object checkName(RubyContext context, DynamicObject object, Object name, boolean checkName) {
+        return checkName(this, context, object, name, checkName);
     }
 
     public static Object checkName(

@@ -52,7 +52,6 @@ import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfD
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -204,9 +203,9 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = "!isNil(object)")
         public long objectID(DynamicObject object,
-                @Cached("createReadObjectIDNode()") ReadObjectFieldNode readObjectIdNode,
+                @Cached ReadObjectFieldNode readObjectIdNode,
                 @Cached WriteObjectFieldNode writeObjectIdNode) {
-            final long id = (long) readObjectIdNode.execute(object);
+            final long id = (long) readObjectIdNode.execute(object,Layouts.OBJECT_ID_IDENTIFIER, 0L);
 
             if (id == 0) {
                 final long newId = getContext().getObjectSpaceManager().getNextObjectID();
@@ -225,10 +224,6 @@ public abstract class BasicObjectNodes {
         @TruffleBoundary
         private int hashCode(Object object) {
             return object.hashCode();
-        }
-
-        protected ReadObjectFieldNode createReadObjectIDNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER, 0L);
         }
     }
 

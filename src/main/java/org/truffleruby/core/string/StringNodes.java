@@ -161,7 +161,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -1318,7 +1317,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
+        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         @Specialization(guards = "self == from")
@@ -1342,7 +1341,7 @@ public abstract class StringNodes {
         }
 
         private void copyAssociated(DynamicObject self, DynamicObject from) {
-            final Object associated = readAssociatedNode.execute(from);
+            final Object associated = readAssociatedNode.execute(from, Layouts.ASSOCIATED_IDENTIFIER, null);
             if (associated != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -2511,14 +2510,14 @@ public abstract class StringNodes {
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
-                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
+                @Cached ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2533,24 +2532,20 @@ public abstract class StringNodes {
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
+                @Cached ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
             }
 
             return finishUnpack(result);
-        }
-
-        protected ReadObjectFieldNode createReadAssociatedNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         private DynamicObject finishUnpack(ArrayResult result) {

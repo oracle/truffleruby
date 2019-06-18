@@ -369,7 +369,7 @@ public abstract class KernelNodes {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self);
+                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil());
                 writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
             }
 
@@ -408,7 +408,7 @@ public abstract class KernelNodes {
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
             final ReadObjectFieldNode[] nodes = new ReadObjectFieldNode[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = ReadObjectFieldNodeGen.create(properties[i].getKey(), nil());
+                nodes[i] = ReadObjectFieldNode.create();
             }
             return nodes;
         }
@@ -909,7 +909,7 @@ public abstract class KernelNodes {
         @Specialization
         public Object removeInstanceVariable(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNode.read(object, ivar, nil());
+            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil());
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {

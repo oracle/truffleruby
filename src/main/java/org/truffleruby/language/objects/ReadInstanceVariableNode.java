@@ -35,7 +35,7 @@ public class ReadInstanceVariableNode extends RubyNode {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
-            return getReadNode().execute((DynamicObject) receiverObject);
+            return getReadNode().execute((DynamicObject) receiverObject, name, nil());
         } else {
             return nil();
         }
@@ -46,7 +46,7 @@ public class ReadInstanceVariableNode extends RubyNode {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
-            if (getReadOrNullNode().execute((DynamicObject) receiverObject) == null) {
+            if (getReadOrNullNode().execute((DynamicObject) receiverObject, name, null) == null) {
                 return nil();
             } else {
                 return coreStrings().INSTANCE_VARIABLE.createInstance();
@@ -59,7 +59,7 @@ public class ReadInstanceVariableNode extends RubyNode {
     private ReadObjectFieldNode getReadNode() {
         if (readNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readNode = insert(ReadObjectFieldNodeGen.create(name, nil()));
+            readNode = insert(ReadObjectFieldNode.create());
         }
 
         return readNode;
@@ -68,7 +68,7 @@ public class ReadInstanceVariableNode extends RubyNode {
     private ReadObjectFieldNode getReadOrNullNode() {
         if (readOrNullNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readOrNullNode = insert(ReadObjectFieldNodeGen.create(name, null));
+            readOrNullNode = insert(ReadObjectFieldNode.create());
         }
 
         return readOrNullNode;

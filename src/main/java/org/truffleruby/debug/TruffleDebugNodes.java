@@ -57,7 +57,6 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.shared.TruffleRuby;
@@ -756,8 +755,8 @@ public abstract class TruffleDebugNodes {
 
         @Specialization
         public DynamicObject associated(DynamicObject value,
-                                        @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
-            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value);
+                @Cached ReadObjectFieldNode readAssociatedNode) {
+            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
                 associated = new Pointer[]{};
@@ -771,11 +770,6 @@ public abstract class TruffleDebugNodes {
 
             return Layouts.ARRAY.createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
         }
-
-        protected ReadObjectFieldNode createReadAssociatedNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
-        }
-
     }
 
     @CoreMethod(names = "drain_finalization_queue", onSingleton = true)

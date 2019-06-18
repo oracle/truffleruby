@@ -9,57 +9,52 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 
-@ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 @ReportPolymorphism
-public abstract class ReadObjectFieldNode extends RubyBaseNode {
+@GenerateUncached
+@ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
+public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
 
-    private final Object defaultValue;
-    protected final Object name;
-
-    public ReadObjectFieldNode(Object name, Object defaultValue) {
-        this.name = name;
-        this.defaultValue = defaultValue;
+    public static ReadObjectFieldNode create() {
+        return ReadObjectFieldNodeGen.create();
     }
 
-    public Object getName() {
-        return name;
-    }
-
-    public abstract Object execute(DynamicObject object);
+    public abstract Object execute(DynamicObject object, Object name, Object defaultValue);
 
     @Specialization(
-            guards = "receiver.getShape() == cachedShape",
+            guards = {"receiver.getShape() == cachedShape", "name == cachedName"},
             assumptions = "cachedShape.getValidAssumption()",
             limit = "getCacheLimit()")
-    protected Object readObjectFieldCached(DynamicObject receiver,
+    protected Object readObjectFieldCached(DynamicObject receiver, Object name, Object defaultValue,
             @Cached("receiver.getShape()") Shape cachedShape,
-            @Cached("getProperty(cachedShape, name)") Property property) {
-        return readOrDefault(receiver, cachedShape, property, defaultValue);
+            @Cached("name") Object cachedName,
+            @Cached("getProperty(cachedShape, cachedName)") Property cachedProperty) {
+        return readOrDefault(receiver, cachedShape, cachedProperty, defaultValue);
     }
 
     @Specialization(guards = "updateShape(object)")
-    public Object updateShapeAndRead(DynamicObject object) {
-        return execute(object);
+    public Object updateShapeAndRead(DynamicObject object, Object name, Object defaultValue) {
+        return execute(object, name, defaultValue);
     }
 
-    @TruffleBoundary
     @Specialization(replaces = { "readObjectFieldCached", "updateShapeAndRead" })
-    protected Object readObjectFieldUncached(DynamicObject receiver) {
-        return read(receiver, name, defaultValue);
+    protected Object readObjectFieldUncached(DynamicObject receiver, Object name, Object defaultValue) {
+        final Shape shape = receiver.getShape();
+        final Property property = getProperty(shape, name);
+        return readOrDefault(receiver, shape, property, defaultValue);
     }
 
-    @TruffleBoundary
     public static Property getProperty(Shape shape, Object name) {
         Property property = shape.getProperty(name);
         if (!PropertyFlags.isDefined(property)) {
@@ -76,20 +71,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
         }
     }
 
-    @TruffleBoundary
-    public static Object read(DynamicObject object, Object name, Object defaultValue) {
-        final Shape shape = object.getShape();
-        final Property property = getProperty(shape, name);
-        return readOrDefault(object, shape, property, defaultValue);
-    }
-
     protected int getCacheLimit() {
-        return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
     }
-
-    @Override
-    public String toString() {
-        return name.toString();
-    }
-
 }

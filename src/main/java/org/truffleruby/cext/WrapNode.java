@@ -24,9 +24,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -77,14 +75,14 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
     public ValueWrapper wrapValue(DynamicObject value,
-            @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
+            @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
             @Cached("create()") BranchProfile noHandleProfile) {
-        ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value);
+        ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
             noHandleProfile.enter();
             synchronized (value) {
-                wrapper = (ValueWrapper) readWrapperNode.execute(value);
+                wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
                 if (wrapper == null) {
                     /*
                      * This is double-checked locking, but it's safe because the object that we create,
@@ -102,13 +100,5 @@ public abstract class WrapNode extends RubyBaseNode {
     @Specialization(guards = "!isRubyBasicObject(value)")
     public ValueWrapper wrapNonRubyObject(TruffleObject value) {
         throw new RaiseException(getContext(), coreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
-    }
-
-    public ReadObjectFieldNode createReader() {
-        return ReadObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER, null);
-    }
-
-    public WriteObjectFieldNode createWriter() {
-        return WriteObjectFieldNodeGen.create();
     }
 }
