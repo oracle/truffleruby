@@ -1,1 +1,0 @@
-fails:Float#to_d returns appropriate BigDecimal zero for signed zero

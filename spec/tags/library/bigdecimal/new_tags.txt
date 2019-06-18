@@ -1,2 +1,1 @@
 aot:BigDecimal.new treats invalid strings as 0.0
-fails:BigDecimal.new raises ArgumentError for invalid strings

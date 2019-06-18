@@ -36,16 +36,18 @@ import java.util.regex.Pattern;
 
 @NodeChild(value = "value", type = RubyNode.class)
 @NodeChild(value = "digits", type = RubyNode.class)
+@NodeChild(value = "strict", type = RubyNode.class)
 @ImportStatic(BigDecimalType.class)
 public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
-    private static final String exponent = "([eE][+-]?)?(\\d*)";
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^([+-]?\\d*\\.?\\d*" + exponent + ").*");
-    private static final Pattern ZERO_PATTERN = Pattern.compile("^[+-]?0*\\.?0*" + exponent);
+    private static final String EXPONENT = "([eE][+-]?)?(\\d*)";
+    private static final Pattern NUMBER_PATTERN_STRICT = Pattern.compile("^([+-]?\\d*\\.?\\d*" + EXPONENT + ")$");
+    private static final Pattern NUMBER_PATTERN_NON_STRICT = Pattern.compile("^([+-]?\\d*\\.?\\d*" + EXPONENT + ").*");
+    private static final Pattern ZERO_PATTERN = Pattern.compile("^[+-]?0*\\.?0*" + EXPONENT + "$");
 
     @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-    public abstract DynamicObject executeCreate(Object value, Object digits);
+    public abstract DynamicObject executeCreate(Object value, Object digits, boolean strict);
 
     private DynamicObject createNormalBigDecimal(BigDecimal value) {
         return allocateNode.allocate(getBigDecimalClass(), Layouts.BIG_DECIMAL.build(value, BigDecimalType.NORMAL));
@@ -56,12 +58,12 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization
-    public DynamicObject create(long value, NotProvided digits) {
-        return executeCreate(value, 0);
+    public DynamicObject create(long value, NotProvided digits, boolean strict) {
+        return executeCreate(value, 0, strict);
     }
 
     @Specialization
-    public DynamicObject create(long value, int digits,
+    public DynamicObject create(long value, int digits, boolean strict,
             @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
         BigDecimal bigDecimal = round((BigDecimal) bigDecimalCastNode.execute(value, getRoundMode()),
                 new MathContext(digits, getRoundMode()));
@@ -69,7 +71,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization
-    public DynamicObject create(double value, NotProvided digits,
+    public DynamicObject create(double value, NotProvided digits, boolean strict,
             @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
             @Cached("create()") BranchProfile nanProfile,
             @Cached("create()") BranchProfile positiveInfinityProfile,
@@ -81,25 +83,32 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         }
     }
 
-    @Specialization
-    public DynamicObject create(double value, int digits,
-            @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
-            @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
-            @Cached("create()") BranchProfile nanProfile,
-            @Cached("create()") BranchProfile positiveInfinityProfile,
-            @Cached("create()") BranchProfile negativeInfinityProfile) {
-        if (finiteValueProfile.profile(Double.isFinite(value))) {
-            final RoundingMode roundMode = getRoundMode();
-            final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+    @Specialization(guards = "isNegativeZero(value)")
+    public DynamicObject createNegativeZero(double value, int digits, boolean strict) {
+        return createSpecialBigDecimal(BigDecimalType.NEGATIVE_ZERO);
+    }
 
-            return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
-        } else {
-            return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
-        }
+    @Specialization(guards = {
+            "isFinite(value)",
+            "!isNegativeZero(value)"
+    })
+    public DynamicObject createFinite(double value, int digits, boolean strict,
+                                      @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
+        final RoundingMode roundMode = getRoundMode();
+        final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+        return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
+    }
+
+    @Specialization(guards = "!isFinite(value)")
+    public DynamicObject createInfinite(double value, int digits, boolean strict,
+                                        @Cached("create()") BranchProfile nanProfile,
+                                        @Cached("create()") BranchProfile positiveInfinityProfile,
+                                        @Cached("create()") BranchProfile negativeInfinityProfile) {
+        return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
     }
 
     @Specialization(guards = "type == NEGATIVE_INFINITY || type == POSITIVE_INFINITY")
-    public DynamicObject createInfinity(BigDecimalType type, Object digits,
+    public DynamicObject createInfinity(BigDecimalType type, Object digits, boolean strict,
             @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
@@ -120,7 +129,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization(guards = "type == NAN")
-    public DynamicObject createNaN(BigDecimalType type, Object digits,
+    public DynamicObject createNaN(BigDecimalType type, Object digits, boolean strict,
             @Cached("create()") BooleanCastNode booleanCastNode,
             @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
@@ -141,51 +150,51 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization(guards = "type == NEGATIVE_ZERO")
-    public DynamicObject createNegativeZero(BigDecimalType type, Object digits) {
+    public DynamicObject createNegativeZero(BigDecimalType type, Object digits, boolean strict) {
         return createSpecialBigDecimal(type);
     }
 
     @Specialization
-    public DynamicObject create(BigDecimal value, NotProvided digits) {
-        return create(value, 0);
+    public DynamicObject create(BigDecimal value, NotProvided digits, boolean strict) {
+        return create(value, 0, strict);
     }
 
     @Specialization
-    public DynamicObject create(BigDecimal value, int digits) {
+    public DynamicObject create(BigDecimal value, int digits, boolean strict) {
         return createNormalBigDecimal(round(value, new MathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public DynamicObject createBignum(DynamicObject value, NotProvided digits) {
-        return createBignum(value, 0);
+    public DynamicObject createBignum(DynamicObject value, NotProvided digits, boolean strict) {
+        return createBignum(value, 0, strict);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public DynamicObject createBignum(DynamicObject value, int digits) {
+    public DynamicObject createBignum(DynamicObject value, int digits, boolean strict) {
         return createNormalBigDecimal(
                 round(new BigDecimal(Layouts.BIGNUM.getValue(value)), new MathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyBigDecimal(value)")
-    public DynamicObject createBigDecimal(DynamicObject value, NotProvided digits) {
-        return createBigDecimal(value, 0);
+    public DynamicObject createBigDecimal(DynamicObject value, NotProvided digits, boolean strict) {
+        return createBigDecimal(value, 0, strict);
     }
 
     @Specialization(guards = "isRubyBigDecimal(value)")
-    public DynamicObject createBigDecimal(DynamicObject value, int digits) {
+    public DynamicObject createBigDecimal(DynamicObject value, int digits, boolean strict) {
         return createNormalBigDecimal(
                 round(Layouts.BIG_DECIMAL.getValue(value), new MathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyString(value)")
-    public DynamicObject createString(DynamicObject value, NotProvided digits) {
-        return createString(value, 0);
+    public DynamicObject createString(DynamicObject value, NotProvided digits, boolean strict) {
+        return createString(value, 0, strict);
     }
 
     @TruffleBoundary
     @Specialization(guards = "isRubyString(value)")
-    public DynamicObject createString(DynamicObject value, int digits) {
-        return executeCreate(getValueFromString(StringOperations.getString(value), digits), digits);
+    public DynamicObject createString(DynamicObject value, int digits, boolean strict) {
+        return executeCreate(getValueFromString(StringOperations.getString(value), digits, strict), digits, strict);
     }
 
     @Specialization(guards = {
@@ -193,7 +202,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             "!isRubyBigDecimal(value)",
             "!isRubyString(value)"
     })
-    public DynamicObject create(DynamicObject value, int digits,
+    public DynamicObject create(DynamicObject value, int digits, boolean strict,
             @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
             @Cached("createBinaryProfile()") ConditionProfile castProfile) {
         final Object castedValue = bigDecimalCastNode.execute(value, getRoundMode());
@@ -211,12 +220,14 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @TruffleBoundary
-    private Object getValueFromString(String string, int digits) {
-        String strValue = string.trim();
+    private Object getValueFromString(String string, int digits, boolean strict) {
+        String strValue = string;
+
+        strValue = strValue.replaceFirst("^\\s+", "");
 
         // TODO (pitr 26-May-2015): create specialization without trims and other cleanups, use rewriteOn
 
-        switch (strValue) {
+        switch (strValue.trim()) {
             case "NaN":
                 return BigDecimalType.NAN;
             case "Infinity":
@@ -230,14 +241,33 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
         // Convert String to Java understandable format (for BigDecimal).
         strValue = strValue.replaceFirst("[dD]", "E");                  // 1. MRI allows d and D as exponent separators
-        strValue = strValue.replaceAll("_", "");                        // 2. MRI allows underscores anywhere
 
-        final MatchResult result;
-        {
-            final Matcher matcher = NUMBER_PATTERN.matcher(strValue);
-            strValue = matcher.replaceFirst("$1"); // 3. MRI ignores the trailing junk
-            result = matcher.toMatchResult();
+        // 1. MRI allows _ before the decimal place
+        if (strValue.indexOf('_') != -1) {
+            final StringBuilder builder = new StringBuilder(strValue.length());
+
+            for (int n = 0; n < strValue.length(); n++) {
+                final char c = strValue.charAt(n);
+
+                if (c == '.') {
+                    builder.append(strValue.substring(n));
+                    break;
+                } else if (c != '_') {
+                    builder.append(c);
+                }
+            }
+
+            strValue = builder.toString();
         }
+
+        final Matcher matcher = (strict ? NUMBER_PATTERN_STRICT : NUMBER_PATTERN_NON_STRICT).matcher(strValue);
+
+        if (!matcher.matches()) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidBigDecimal(string, this));
+        }
+
+        final MatchResult result = matcher.toMatchResult();
+        strValue = matcher.replaceFirst("$1");
 
         try {
             final BigDecimal value = new BigDecimal(strValue, new MathContext(digits));
@@ -246,13 +276,13 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             } else {
                 return value;
             }
-
         } catch (NumberFormatException e) {
             if (ZERO_PATTERN.matcher(strValue).matches()) {
                 return BigDecimal.ZERO;
             }
 
-            final BigInteger exponent = new BigInteger(result.group(3));
+            final String exponentPart = result.group(3);
+            final BigInteger exponent = new BigInteger(exponentPart);
 
             if (exponent.signum() == 1) {
                 return BigDecimalType.POSITIVE_INFINITY;

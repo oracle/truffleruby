@@ -1,1 +1,0 @@
-fails:BigDecimal.limit picks the global precision when limit 0 specified

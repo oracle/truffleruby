@@ -38,6 +38,9 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
     }
 
     protected Object mult(DynamicObject a, DynamicObject b, int precision) {
+        if (precision == 0) {
+            precision = getLimit();
+        }
         return createBigDecimal(multBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode())));
     }
 

@@ -68,6 +68,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
     @TruffleBoundary
     @Specialization
     public BigDecimal doDouble(double value, RoundingMode roundingMode) {
+        assert !RubyGuards.isNegativeZero(value);
         return BigDecimal.valueOf(value);
     }
 

@@ -68,11 +68,7 @@ class String
   #
   # TruffleRuby: MRI defines this method in C. We define it in Ruby for simplicity & clarity.
   def to_d
-    begin
-      BigDecimal(self)
-    rescue ArgumentError
-      BigDecimal(0)
-    end
+    Truffle.invoke_primitive :bigdecimal_new, self, Truffle::UNDEFINED, false
   end
 end
 

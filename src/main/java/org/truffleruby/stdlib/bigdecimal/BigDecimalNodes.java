@@ -52,13 +52,13 @@ public abstract class BigDecimalNodes {
     public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object newBigDecimal(Object value, NotProvided digits) {
-            return createBigDecimal(value);
+        public Object newBigDecimal(Object value, NotProvided notProvided, boolean strict) {
+            return createBigDecimal(value, strict);
         }
 
         @Specialization
-        public Object newBigDecimal(Object value, int digits) {
-            return createBigDecimal(value, digits);
+        public Object newBigDecimal(Object value, int digits, boolean strict) {
+            return createBigDecimal(value, digits, strict);
         }
 
     }
@@ -971,9 +971,25 @@ public abstract class BigDecimalNodes {
             return compareBigDecimal(a, BigDecimal.valueOf(b));
         }
 
-        @Specialization(guards = "isNormal(a)")
-        public int compare(DynamicObject a, double b) {
+        @Specialization(guards = {
+                "isNormal(a)",
+                "isFinite(b)"
+        })
+        public int compareFinite(DynamicObject a, double b) {
             return compareBigDecimal(a, valueOf(b));
+        }
+
+        @Specialization(guards = {
+                "isNormal(a)",
+                "!isFinite(b)"
+        })
+        public Object compareNotFinite(DynamicObject a, double b) {
+            if (Double.isNaN(b)) {
+                return nil();
+            } else {
+                assert Double.isInfinite(b);
+                return b < 0 ? +1 : -1;
+            }
         }
 
         @Specialization(guards = {
@@ -997,9 +1013,26 @@ public abstract class BigDecimalNodes {
             return compareSpecial(a, createBigDecimal(BigDecimal.valueOf(b)));
         }
 
-        @Specialization(guards = "!isNormal(a)")
-        public Object compareSpecial(DynamicObject a, double b) {
+        @Specialization(guards = {
+                "!isNormal(a)",
+                "isFinite(b)"
+        })
+        public Object compareSpecialFinite(DynamicObject a, double b) {
             return compareSpecial(a, createBigDecimal(valueOf(b)));
+        }
+
+        @Specialization(guards = {
+                "!isNormal(a)",
+                "!isFinite(b)"
+        })
+        public Object compareSpecialInfinite(DynamicObject a, double b) {
+            final BigDecimalType type = Layouts.BIG_DECIMAL.getType(a);
+
+            if (type == BigDecimalType.NAN || Double.isNaN(b)) {
+                return nil();
+            } else {
+                return b < 0 ? +1 : -1;
+            }
         }
 
         @Specialization(guards = {
@@ -1416,7 +1449,7 @@ public abstract class BigDecimalNodes {
                     return Double.POSITIVE_INFINITY;
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
-                    return 0.0;
+                    return -0.0;
                 case NAN:
                     nanProfile.enter();
                     return Double.NaN;
