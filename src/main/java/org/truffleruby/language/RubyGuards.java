@@ -16,6 +16,8 @@ import org.truffleruby.core.CoreLibrary;
 
 public abstract class RubyGuards {
 
+    private static final long NEGATIVE_ZERO_DOUBLE_BITS = Double.doubleToRawLongBits(-0.0);
+
     // Basic Java types
 
     public static boolean isBoolean(Object value) {
@@ -323,7 +325,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isNegativeZero(double value) {
-        return Double.valueOf(value).equals(-0.0);
+        return Double.doubleToRawLongBits(value) == NEGATIVE_ZERO_DOUBLE_BITS;
     }
 
     // Composite
