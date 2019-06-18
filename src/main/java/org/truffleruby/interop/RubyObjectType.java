@@ -32,6 +32,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
@@ -219,9 +220,28 @@ public class RubyObjectType extends ObjectType {
     public static abstract class ReadNode extends Node {
 
         @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create();
+        private final ConditionProfile whichErrorProfile = ConditionProfile.createBinaryProfile();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            return helperNode.executeStringCachingHelper(frame, object, name);
+            try {
+                return helperNode.executeStringCachingHelper(frame, object, name);
+            } catch (RaiseException ex) {
+                if (whichErrorProfile.profile(Layouts.NAME_ERROR.isNameError(ex.getException()))) {
+                    try {
+                        return UnknownIdentifierException.raise(toString(name));
+                    } catch (Throwable unknownIdentifier) {
+                        unknownIdentifier.initCause(ex);
+                        throw unknownIdentifier;
+                    }
+                } else {
+                    throw ex;
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private static String toString(Object name) {
+            return name.toString();
         }
 
     }
