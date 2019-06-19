@@ -24,7 +24,8 @@ public abstract class TrueClassNodes {
     public abstract static class AndNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean and(Object other, @Cached BooleanCastNode cast) {
+        public boolean and(Object other,
+                @Cached BooleanCastNode cast) {
             return cast.executeToBoolean(other);
         }
     }
@@ -42,7 +43,8 @@ public abstract class TrueClassNodes {
     public abstract static class XorNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean xor(Object other, @Cached BooleanCastNode cast) {
+        public boolean xor(Object other,
+                @Cached BooleanCastNode cast) {
             return !cast.executeToBoolean(other);
         }
     }

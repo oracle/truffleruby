@@ -65,7 +65,8 @@ public abstract class BasicObjectNodes {
     public abstract static class NotNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean not(Object value, @Cached BooleanCastNode cast) {
+        public boolean not(Object value,
+                @Cached BooleanCastNode cast) {
             return !cast.executeToBoolean(value);
         }
 
@@ -205,7 +206,7 @@ public abstract class BasicObjectNodes {
         public long objectID(DynamicObject object,
                 @Cached ReadObjectFieldNode readObjectIdNode,
                 @Cached WriteObjectFieldNode writeObjectIdNode) {
-            final long id = (long) readObjectIdNode.execute(object,Layouts.OBJECT_ID_IDENTIFIER, 0L);
+            final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
 
             if (id == 0) {
                 final long newId = getContext().getObjectSpaceManager().getNextObjectID();

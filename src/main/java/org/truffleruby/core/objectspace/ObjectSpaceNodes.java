@@ -193,7 +193,7 @@ public abstract class ObjectSpaceNodes {
                 final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
                 final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object,Layouts.FINALIZER_REF_IDENTIFIER, null);
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 FinalizerReference newRef = getContext().getFinalizationService().addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
                 if (ref != newRef) {
                     setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);

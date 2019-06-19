@@ -32,7 +32,8 @@ public abstract class FalseClassNodes {
     public abstract static class OrXorNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean orXor(Object other, @Cached BooleanCastNode cast) {
+        public boolean orXor(Object other,
+                @Cached BooleanCastNode cast) {
             return cast.executeToBoolean(other);
         }
 

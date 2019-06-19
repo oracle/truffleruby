@@ -36,7 +36,8 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     @NodeChild(value = "value", type = RubyNode.class)
     public static abstract class RubyNodeWrapperNode extends RubyNode {
         @Specialization
-        public Object call(Object value, @Cached ToJavaStringNode toJavaString) {
+        public Object call(Object value,
+                @Cached ToJavaStringNode toJavaString) {
             return toJavaString.executeToJavaString(value);
         }
     }

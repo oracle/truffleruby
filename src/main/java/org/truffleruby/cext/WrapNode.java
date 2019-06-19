@@ -55,7 +55,8 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization
-    public ValueWrapper wrapDouble(double value, @CachedContext(RubyLanguage.class) RubyContext context) {
+    public ValueWrapper wrapDouble(double value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getValueWrapperManager().doubleWrapper(value);
     }
 
@@ -70,12 +71,14 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization
-    public ValueWrapper wrapWrappedValue(ValueWrapper value, @CachedContext(RubyLanguage.class) RubyContext context) {
+    public ValueWrapper wrapWrappedValue(ValueWrapper value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
     @Specialization(guards = "isNil(context, value)")
-    public ValueWrapper wrapNil(DynamicObject value, @CachedContext(RubyLanguage.class) RubyContext context) {
+    public ValueWrapper wrapNil(DynamicObject value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE);
     }
 
@@ -105,7 +108,8 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "!isRubyBasicObject(value)")
-    public ValueWrapper wrapNonRubyObject(TruffleObject value, @CachedContext(RubyLanguage.class) RubyContext context) {
+    public ValueWrapper wrapNonRubyObject(TruffleObject value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }
 }
