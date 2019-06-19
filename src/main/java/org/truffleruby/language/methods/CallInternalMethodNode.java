@@ -11,15 +11,18 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 @ReportPolymorphism
-public abstract class CallInternalMethodNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class CallInternalMethodNode extends RubyBaseWithoutContextNode {
 
     public static CallInternalMethodNode create() {
         return CallInternalMethodNodeGen.create();
@@ -37,14 +40,14 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return callNode.call(frameArguments);
     }
 
-    @Specialization
+    @Specialization(replaces = "callMethodCached")
     protected Object callMethodUncached(InternalMethod method, Object[] frameArguments,
             @Cached("create()") IndirectCallNode indirectCallNode) {
         return indirectCallNode.call(method.getCallTarget(), frameArguments);
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().DISPATCH_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 
 }

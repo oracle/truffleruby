@@ -9,18 +9,17 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ProcOrNullNode;
-import org.truffleruby.core.cast.ProcOrNullNodeGen;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
-public abstract class CallBoundMethodNode extends RubyBaseNode {
-
-    @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
-    @Child private ProcOrNullNode procOrNullNode = ProcOrNullNodeGen.create(null);
+@GenerateUncached
+public abstract class CallBoundMethodNode extends RubyBaseWithoutContextNode {
 
     public static CallBoundMethodNode create() {
         return CallBoundMethodNodeGen.create();
@@ -29,7 +28,9 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
     public abstract Object executeCallBoundMethod(DynamicObject method, Object[] arguments, Object block);
 
     @Specialization
-    protected Object call(DynamicObject method, Object[] arguments, Object block) {
+    protected Object call(DynamicObject method, Object[] arguments, Object block,
+            @Cached ProcOrNullNode procOrNullNode,
+            @Cached CallInternalMethodNode callInternalMethodNode) {
         final InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
         final DynamicObject typedBlock = procOrNullNode.executeProcOrNull(block);
         final Object[] frameArguments = packArguments(method, internalMethod, arguments, typedBlock);

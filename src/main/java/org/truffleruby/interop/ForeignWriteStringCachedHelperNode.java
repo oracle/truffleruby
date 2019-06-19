@@ -23,8 +23,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 @GenerateUncached
 abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContextNode {
 
-    // TODO (pitr-ch 12-Jun-2019): missing generic cases
-
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
 
     public static ForeignWriteStringCachedHelperNode create() {

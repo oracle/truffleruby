@@ -36,6 +36,7 @@ public class RubyCallNode extends RubyNode {
 
     @Child private RubyNode receiver;
     @Child private ProcOrNullNode block;
+    private final boolean hasLiteralBlock;
     @Children private final RubyNode[] arguments;
 
     private final boolean isSplatted;
@@ -57,8 +58,10 @@ public class RubyCallNode extends RubyNode {
 
         if (parameters.getBlock() == null) {
             this.block = null;
+            this.hasLiteralBlock = false;
         } else {
             this.block = ProcOrNullNodeGen.create(parameters.getBlock());
+            this.hasLiteralBlock = parameters.getBlock() instanceof BlockDefinitionNode;
         }
 
         this.isSplatted = parameters.isSplatted();
@@ -115,7 +118,7 @@ public class RubyCallNode extends RubyNode {
 
     private DynamicObject executeBlock(VirtualFrame frame) {
         if (block != null) {
-            return (DynamicObject) block.execute(frame);
+            return block.executeProcOrNull(frame);
         } else {
             return null;
         }
@@ -160,7 +163,7 @@ public class RubyCallNode extends RubyNode {
     }
 
     public boolean hasLiteralBlock() {
-        return block != null && block.getChild() instanceof BlockDefinitionNode;
+        return hasLiteralBlock;
     }
 
     private class DefinedNode extends RubyBaseWithoutContextNode {

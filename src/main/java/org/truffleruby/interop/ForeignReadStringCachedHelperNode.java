@@ -35,7 +35,6 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
         return ForeignReadStringCachedHelperNodeGen.create();
     }
 
-
     protected final static String INDEX_METHOD_NAME = "[]";
     protected final static String FETCH_METHOD_NAME = "fetch";
     protected final static String METHOD_NAME = "method";
