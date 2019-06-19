@@ -52,7 +52,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object stringName,
             boolean isIVar,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch,
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("createBinaryProfile()") ConditionProfile errorProfile) throws InvalidArrayIndexException {
         Object index = nameToRubyNode.executeConvert(name);
@@ -75,7 +75,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object stringName,
             boolean isIVar,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch,
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("createBinaryProfile()") ConditionProfile errorProfile) throws UnknownIdentifierException {
         Object key = nameToRubyNode.executeConvert(name);
@@ -117,7 +117,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             boolean isIVar,
             @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
         return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
@@ -134,7 +134,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
             @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatch) {
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
         return dispatch.call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 

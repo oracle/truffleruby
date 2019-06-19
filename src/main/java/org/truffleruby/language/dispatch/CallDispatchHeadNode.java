@@ -9,7 +9,18 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
@@ -43,6 +54,78 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
     public Object callWithBlock(Object receiver, String method, DynamicObject block, Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);
+    }
+
+    private static class Uncached extends CallDispatchHeadNode {
+        private final TruffleLanguage.ContextReference<RubyContext> contextReference = lookupContextReference(RubyLanguage.class);
+
+        Uncached(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
+            super(ignoreVisibility, onlyCallPublic, missingBehavior);
+        }
+
+        @Override
+        public Object call(Object receiver, String method, Object... arguments) {
+            return callWithBlock(receiver, method, null, arguments);
+        }
+
+        @Override
+        @TruffleBoundary
+        public Object callWithBlock(Object receiver, String methodName, DynamicObject block, Object... arguments) {
+            // FIXME (pitr 19-Jun-2019): this is probably not entirely correct, but works for now
+            //  we need to migrate dispatch nodes to DSL and add @GenerateUncached instead
+            RubyContext context = contextReference.get();
+            DynamicObject metaClass = context.getCoreLibrary().getMetaClass(receiver);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(metaClass, methodName, null);
+            if (method != null && !method.isUndefined()) {
+                return method.getCallTarget().call(RubyArguments.pack(
+                        null, null, method, null, receiver, block, arguments));
+            }
+
+            final InternalMethod methodMissing = ModuleOperations.lookupMethodUncached(metaClass, "method_missing", null);
+            if (methodMissing != null && !methodMissing.isUndefined()) {
+                Object[] missingAruments = new Object[arguments.length + 1];
+                System.arraycopy(arguments, 0, missingAruments, 1, arguments.length);
+                missingAruments[0] = context.getSymbolTable().getSymbol(methodName);
+
+                return methodMissing.getCallTarget().call(RubyArguments.pack(
+                        null, null, methodMissing, null, receiver, block, missingAruments));
+            }
+
+            final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, context);
+            throw new RaiseException(context, context.getCoreExceptions().noMethodErrorFromMethodMissing(
+                    formatter, receiver, methodName, arguments, this));
+        }
+
+        @Override
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
+            throw new AssertionError("never called");
+        }
+        @Override
+        public void reset(String reason) {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public DispatchNode getFirstDispatchNode() {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public NodeCost getCost() {
+            return NodeCost.MEGAMORPHIC;
+        }
+
+        @Override
+        public boolean isAdoptable() {
+            return false;
+        }
+    }
+
+    private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY =
+            new Uncached(true, false, MissingBehavior.CALL_METHOD_MISSING);
+
+    public static CallDispatchHeadNode getUncached() {
+        return UNCACHED_IGNORING_VISIBILITY;
     }
 
 }
