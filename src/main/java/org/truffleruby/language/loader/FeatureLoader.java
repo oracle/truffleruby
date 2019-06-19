@@ -32,7 +32,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.WrapNode;
 import org.truffleruby.cext.WrapNodeGen;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
@@ -398,8 +397,6 @@ public class FeatureLoader {
         return libraries;
     }
 
-    private final WrapNode wrapNode = WrapNodeGen.create();
-
     private void loadNativeLibrary(String library) {
         assert sulongLoadLibraryFunction != null;
 
@@ -413,7 +410,7 @@ public class FeatureLoader {
             }
         }
 
-        TruffleObject libraryRubyString = wrapNode.execute(StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
+        TruffleObject libraryRubyString = WrapNodeGen.getUncached().execute(StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
         try {
             InteropLibrary.getFactory().getUncached(sulongLoadLibraryFunction).execute(sulongLoadLibraryFunction, libraryRubyString);
         } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
