@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -22,13 +23,13 @@ import org.truffleruby.language.RubyBaseWithoutContextNode;
 @ImportStatic(StringCachingGuards.class)
 public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithoutContextNode {
 
-    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name) throws UnknownIdentifierException;
+    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name) throws UnknownIdentifierException, InvalidArrayIndexException;
 
     @Specialization(guards = "isStringLike.executeIsStringLike(name)")
     public Object cacheStringLikeAndForward(DynamicObject receiver, Object name,
             @Cached("create()") ToJavaStringNode toJavaStringNode,
             @Cached IsStringLikeNode isStringLike,
-            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
+            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(name);
         boolean isIVar = isIVar(nameAsJavaString);
         return nextHelper.executeStringCachedHelper(receiver, name, nameAsJavaString, isIVar);
@@ -37,7 +38,7 @@ public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithout
     @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
     public Object indexObject(DynamicObject receiver, Object name,
             @Cached IsStringLikeNode isStringLike,
-            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException {
+            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
         return nextHelper.executeStringCachedHelper(receiver, name, null, false);
     }
 

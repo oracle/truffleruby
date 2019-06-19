@@ -25,8 +25,8 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@array, "[]").should == @array.method(:[])
     end
 
-    it "returns nil for an index that doesn't exist" do
-      Truffle::Interop.read(@array, 100).should be_nil
+    it "raises for an index that doesn't exist" do
+      -> { Truffle::Interop.read(@array, 100) }.should raise_error(NameError)
     end
 
   end
@@ -41,8 +41,8 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@hash, 'b').should == 2
     end
 
-    it "returns nil for a key that doesn't exist" do
-      Truffle::Interop.read(@hash, 'foo').should be_nil
+    it "raise for a key that doesn't exist" do
+      -> { Truffle::Interop.read(@hash, 'foo') }.should raise_error NameError
     end
 
   end
@@ -57,8 +57,8 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@object, :@b).should == 2
     end
 
-    it "that does not exist as an instance variable returns nil" do
-      Truffle::Interop.read(@object, :@foo).should be_nil
+    it "that does not exist as an instance variable raises" do
+      -> { Truffle::Interop.read(@object, :@foo) }.should raise_error NameError
     end
 
   end

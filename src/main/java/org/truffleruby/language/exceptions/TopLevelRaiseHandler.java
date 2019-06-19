@@ -18,7 +18,6 @@ import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 public class TopLevelRaiseHandler extends RubyNode {

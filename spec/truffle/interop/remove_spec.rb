@@ -21,8 +21,8 @@ describe "Truffle::Interop.remove" do
       @array.should == [:a, :b, :d]
     end
 
-    it "no-ops when the index is out of bounds" do
-      Truffle::Interop.remove(@array, 10).should == true
+    it "raises when the index is out of bounds" do
+      -> { Truffle::Interop.remove(@array, 10) }.should raise_error NameError
       @array.should == [:a, :b, :c, :d]
     end
 
@@ -47,7 +47,7 @@ describe "Truffle::Interop.remove" do
     end
 
     it "no-ops when the key doesn't exist" do
-      Truffle::Interop.remove(@hash, 'bad_key').should == true
+      -> { Truffle::Interop.remove(@hash, 'bad_key') }.should raise_error NameError
       @hash.keys.should == ['a', 'b', 'c']
     end
   end

@@ -107,22 +107,22 @@ module Truffle
         else
           frozen = object.frozen?
           has_key = object.has_key?(name)
-          readable = true # has_key # TODO (pitr-ch 13-May-2019): do not allow to read non existing keys
-          modifiable = has_key && !frozen
-          removable = !frozen # modifiable # TODO (pitr-ch 22-May-2019): do not have removal of non-existing key as a noop
-          insertable = !frozen
+          readable = has_key
+          modifiable = !frozen && has_key
+          removable = modifiable
+          insertable = !frozen && !has_key
         end
       elsif object.is_a?(Array) && name.is_a?(Integer)
         in_bounds = name >= 0 && name < object.size
         frozen = object.frozen?
-        readable = true # in_bounds # FIXME (pitr-ch 13-May-2019): should be readable only when in bounds
-        modifiable = in_bounds && !frozen
-        removable = !frozen # TODO (pitr-ch 22-May-2019): should not allow to remove non existing elements as noop
-        insertable = !frozen
+        readable = in_bounds
+        modifiable = !frozen && in_bounds
+        removable = modifiable
+        insertable = !frozen && !in_bounds
       elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
         exists = object.instance_variable_defined?(name)
-        readable = true # exists # FIXME (pitr-ch 13-May-2019): should be readable only when defined
+        readable = exists
         insertable = !exists && !frozen
         modifiable = exists && !frozen
         removable = modifiable
@@ -140,7 +140,8 @@ module Truffle
           unless object.is_a?(Array)
             # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
             readable = object.respond_to?(:[])
-            modifiable = insertable = object.respond_to?(:[]=)
+            modifiable = object.respond_to?(:[]=)
+            insertable = false
             invocable = false
           end
         end

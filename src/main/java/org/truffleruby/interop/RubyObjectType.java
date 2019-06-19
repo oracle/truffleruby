@@ -127,7 +127,7 @@ public class RubyObjectType extends ObjectType {
             // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
             @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode dispatchNode,
-            @Cached BooleanCastNode booleanCastNode) {
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         // TODO (pitr-ch 18-Mar-2019): branchProfile?
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
@@ -179,14 +179,18 @@ public class RubyObjectType extends ObjectType {
             String name,
             @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        return helperNode.executeStringCachingHelper(receiver, name);
+        try {
+            return helperNode.executeStringCachingHelper(receiver, name);
+        } catch (InvalidArrayIndexException e) {
+            throw new IllegalStateException("never happens");
+        }
     }
 
     @ExportMessage
     public static Object readArrayElement(
             DynamicObject receiver,
             long index,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) {
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws InvalidArrayIndexException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, index);
@@ -277,7 +281,7 @@ public class RubyObjectType extends ObjectType {
         // TODO (pitr-ch 19-Mar-2019): profile
         if (RubyGuards.isRubyArray(receiver)) {
             // TODO (pitr-ch 19-Mar-2019): it was only checking that it fits into int before
-            if (RubyGuards.fitsInInteger(index)) {
+            if (RubyGuards.fitsInInteger(index) && index >= 0 && index < Layouts.ARRAY.getSize(receiver)) {
                 arrayDeleteAtNode.call(receiver, "delete_at", index);
             } else {
                 throw InvalidArrayIndexException.create(index);
@@ -292,17 +296,21 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             String name,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Exclusive @Cached(value = "createPrivate()", allowUncached = true)
-                    CallDispatchHeadNode hashDeleteNode,
-            @Exclusive @Cached(value = "createPrivate()", allowUncached = true)
-                    CallDispatchHeadNode removeInstanceVariableNode) throws UnknownIdentifierException {
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode hashDeleteNode,
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode hashKeyNode,
+            @Exclusive @Cached BooleanCastNode booleanCast,
+            @Exclusive @Cached(value = "createPrivate()", allowUncached = true) CallDispatchHeadNode removeInstanceVariableNode) throws UnknownIdentifierException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
         // TODO (pitr-ch 19-Mar-2019): break down
         if (RubyGuards.isRubyHash(receiver)) {
             // TODO (pitr-ch 13-May-2019): remove Hash member mapping
             Object key = foreignToRubyNode.executeConvert(name);
-            hashDeleteNode.call(receiver, "delete", key);
+            if (booleanCast.executeToBoolean(hashKeyNode.call(receiver, "key?", key))) {
+                hashDeleteNode.call(receiver, "delete", key);
+            } else {
+                throw UnknownIdentifierException.create(name);
+            }
             return;
         }
 

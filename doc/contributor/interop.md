@@ -110,7 +110,7 @@ integers.
 
 If the receiver is a Ruby `Hash`:
 
-- `READABLE` will be set for any key (since it returns nil for missing keys).
+- `READABLE` will be set for key that exists.
 
 - `INSERTABLE` will be set if the hash is not frozen and key does not exist.
 
@@ -121,7 +121,7 @@ If the receiver is a Ruby `Hash`:
 
 Otherwise, if the receiver is a Ruby `Array`:
 
-- `READABLE` will set if the name is an integer.
+- `READABLE` will set if the name is an integer and in bounds.
 
 - `INSERTABLE` will be set if the index is out of bounds 
   and the array is not frozen. 
@@ -129,13 +129,13 @@ Otherwise, if the receiver is a Ruby `Array`:
 - `MODIFIABLE` will be set if the index is an integer, in
   bounds and the array is not frozen.
 
-- `REMOVABLE` is set for any index.
+- `REMOVABLE` is set for any index in bounds.
 
 - `INVOCABLE` and `INTERNAL` will not be set.
 
 Otherwise if the name starts with an `@`:
 
-- `READABLE` will be set (any instance variable can be read, returning nil).
+- `READABLE` will be set if the variable exists
 
 - `INSERTABLE` will be set if the object is not frozen and the instance variable
   does not exists.
@@ -152,7 +152,9 @@ Otherwise:
 - `READABLE` will be set if the object has a method of that name, or the object
   has a `[]` method.
 
-- `INSERTABLE` and `MODIFIABLE` will be set if the object has a `[]=` method.
+- `MODIFIABLE` will be set if the object has a `[]=` method.
+
+- `INSERTABLE` will not be set
 
 - `REMOVABLE` and `INTERNAL` will not be set.
 

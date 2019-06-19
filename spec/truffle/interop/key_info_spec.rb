@@ -25,17 +25,9 @@ describe "Truffle::Interop.key_info" do
           Truffle::Interop.key_info(@array, 1).should include(:readable)
         end
 
-        it "for an integer out of bounds" do
-          Truffle::Interop.key_info(@array, 100).should include(:readable)
-        end
-
         it "for instance variables that exist" do
           @array.instance_variable_set :@foo, 14
           Truffle::Interop.key_info(@array, :@foo).should include(:readable)
-        end
-
-        it "for instance variables that don't exist" do
-          Truffle::Interop.key_info(@array, :@foo).should include(:readable) # TODO (pitr-ch 14-May-2019): be more strict
         end
 
         it "for a method" do
@@ -44,6 +36,14 @@ describe "Truffle::Interop.key_info" do
       end
 
       describe "not set" do
+
+        it "for an integer out of bounds" do
+          Truffle::Interop.key_info(@array, 100).should_not include(:readable)
+        end
+
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:readable)
+        end
 
         it "for something other than an integer" do
           Truffle::Interop.key_info(@array, :foo).should_not include(:readable)
@@ -58,7 +58,7 @@ describe "Truffle::Interop.key_info" do
       describe "set" do
 
         it "for an integer in bounds" do
-          Truffle::Interop.key_info(@array, 1).should include(:insertable, :modifiable)
+          Truffle::Interop.key_info(@array, 1).should include(:modifiable)
         end
 
         it "for instance variables that exist" do
@@ -146,23 +146,25 @@ describe "Truffle::Interop.key_info" do
           Truffle::Interop.key_info(@hash, 'b').should include(:readable)
         end
 
-        it "if the key is not found" do
-          Truffle::Interop.key_info(@hash, 'foo').should include(:readable)
-        end
-
-        it "for instance variables that exist" do
-          @hash.instance_variable_set :@foo, 14
-          Truffle::Interop.key_info(@hash, :@foo).should include(:readable)
-        end
-
-        it "for instance variables that don't exist" do
-          Truffle::Interop.key_info(@hash, :@foo).should include(:readable)
-        end
-
         it "for a method" do
           Truffle::Interop.key_info(@hash, :to_s).should include(:readable)
         end
 
+      end
+
+      describe "not set" do
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@hash, :@foo).should_not include(:readable)
+        end
+
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should_not include(:readable)
+        end
+
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@hash, :@foo).should_not include(:readable)
+        end
       end
 
     end
@@ -170,10 +172,6 @@ describe "Truffle::Interop.key_info" do
     describe "has INSERTABLE" do
 
       describe "set" do
-
-        it "if the key is found" do
-          Truffle::Interop.key_info(@hash, 'b').should include(:insertable)
-        end
 
         it "if the key is not found" do
           Truffle::Interop.key_info(@hash, 'foo').should include(:insertable)
@@ -185,6 +183,10 @@ describe "Truffle::Interop.key_info" do
 
         it "if the key is found and the hash is frozen" do
           @hash.freeze
+          Truffle::Interop.key_info(@hash, 'b').should_not include(:insertable)
+        end
+
+        it "if the key is found" do
           Truffle::Interop.key_info(@hash, 'b').should_not include(:insertable)
         end
 
@@ -293,10 +295,12 @@ describe "Truffle::Interop.key_info" do
             Truffle::Interop.key_info(@object, :@a).should include(:readable)
           end
 
-          it "if the variable does not exist" do
-            Truffle::Interop.key_info(@object, :@foo).should include(:readable)
-          end
+        end
 
+        describe "not set" do
+          it "if the variable does not exist" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:readable)
+          end
         end
 
       end
@@ -510,10 +514,10 @@ describe "Truffle::Interop.key_info" do
 
         end
 
-        describe "set" do
+        describe "not set" do
 
           it "if the variable does not exist" do
-            Truffle::Interop.key_info(@object, :@foo).should include(:readable)
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:readable)
           end
 
         end
@@ -642,7 +646,7 @@ describe "Truffle::Interop.key_info" do
 
           it "if the object has a index set method" do
             @object = TruffleInteropSpecs::WriteHasIndexSetAndIndex.new
-            Truffle::Interop.key_info(@object, :foo).should include(:insertable, :modifiable)
+            Truffle::Interop.key_info(@object, :foo).should include(:modifiable)
           end
 
         end

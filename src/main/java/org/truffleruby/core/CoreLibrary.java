@@ -110,6 +110,7 @@ public class CoreLibrary {
     private final DynamicObjectFactory hashFactory;
     private final DynamicObject integerClass;
     private final DynamicObject indexErrorClass;
+    private final DynamicObject keyErrorClass;
     private final DynamicObject ioErrorClass;
     private final DynamicObject loadErrorClass;
     private final DynamicObject localJumpErrorClass;
@@ -361,7 +362,7 @@ public class CoreLibrary {
 
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
-        defineClass(indexErrorClass, "KeyError");
+        keyErrorClass = defineClass(indexErrorClass, "KeyError");
         stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
@@ -1300,6 +1301,10 @@ public class CoreLibrary {
 
     public DynamicObject getIndexErrorClass() {
         return indexErrorClass;
+    }
+
+    public DynamicObject getKeyErrorClass() {
+        return keyErrorClass;
     }
 
     public DynamicObject getLocalJumpErrorClass() {
