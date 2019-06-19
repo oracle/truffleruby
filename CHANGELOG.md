@@ -30,6 +30,10 @@ Performance:
 
 * `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
 
+Performance:
+
+* `rb_str_cat` has been changed to improve performance. THe C string is now concatentated without first being converted to a Ruby string or having its encoding checked. As a side effect the behaviour of `rb_str_cat` should now more closely match that of MRI.
+
 # 20.0.0 beta 1
 
 Bug fixes:
