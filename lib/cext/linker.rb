@@ -76,7 +76,7 @@ module Truffle::CExt
       files.map do |file|
         if file.end_with?('.c')
           objfile = "#{File.dirname(file)}/#{File.basename(file, '.*')}.#{RbConfig::CONFIG['OBJEXT']}"
-          compile = RbConfig::CONFIG['COMPILE_C'].gsub('$<', file).gsub('$@', objfile)
+          compile = RbConfig::CONFIG['TRUFFLE_RAW_COMPILE_C'].gsub('$<', file).gsub('$@', objfile)
           compile = compile.sub('$(INCFLAGS)', @incflags.join(' '))
           compile = compile.sub('$(COUTFLAG)', '')
           if system(compile)

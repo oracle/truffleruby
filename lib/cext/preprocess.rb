@@ -6,69 +6,23 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative 'patches/json_patches'
-require_relative 'patches/nokogiri_patches'
-require_relative 'patches/pg_patches'
+require_relative '../truffle/truffle/cext_preprocessor.rb'
 
-class Preprocessor
+if __FILE__ == $0
+  require 'stringio'
 
-  PATCHED_FILES = {}
+  file_name = ARGV.first
+  original_content = File.read(file_name)
+  output = Truffle::CExt::Preprocessor.patch(file_name, original_content, Dir.pwd)
 
-  def self.add_gem_patches(patch_hash, gem_patches)
-    gem = gem_patches[:gem]
-    patch_list = gem_patches[:patches]
-    patch_list.each do |path_parts, patch|
-      processed_patch = {}
-      if path_parts.kind_of?(String)
-        key = path_parts
-      else
-        key = path_parts.last
-        processed_patch[:ext_dir] = path_parts.first if path_parts.size > 1
-      end
-      processed_patch[:patches] = patch
-      processed_patch[:gem] = gem
-      raise "Duplicate patch file #{key}." if patch_hash.include?(key)
-      patch_hash[key] = processed_patch
-    end
+  if ENV['PREPROCESS_DEBUG'] && original_content != output
+    patched_file_name = "#{File.dirname file_name}/.#{File.basename file_name, '.*'}.patched#{File.extname file_name}"
+    File.write patched_file_name, output
+    $stderr.print `git diff --no-index --color -- #{file_name} #{patched_file_name}`
+    file_name = patched_file_name
   end
 
-  add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
-  add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
-  add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
-
-  def self.patch(file, contents, directory)
-    if patched_file = PATCHED_FILES[File.basename(file)]
-      matched = if patched_file[:ext_dir]
-                  directory.end_with?(File.join(patched_file[:gem], 'ext', patched_file[:ext_dir]))
-                else
-                  regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
-                  directory.split('/').last(3).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
-                end
-      if matched
-        patched_file[:patches].each do |patch|
-          contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
-        end
-      end
-    end
-    contents
-  end
-
-  if __FILE__ == $0
-    require 'stringio'
-
-    file_name = ARGV.first
-    original_content = File.read(file_name)
-    output = patch(file_name, original_content, Dir.pwd)
-
-    if ENV['PREPROCESS_DEBUG'] && original_content != output
-      patched_file_name = "#{File.dirname file_name}/.#{File.basename file_name, '.*'}.patched#{File.extname file_name}"
-      File.write patched_file_name, output
-      $stderr.print `git diff --no-index --color -- #{file_name} #{patched_file_name}`
-      file_name = patched_file_name
-    end
-
-    expanded_path = File.expand_path(file_name)
-    $stdout.puts "#line 1 \"#{expanded_path}\""
-    $stdout.puts output
-  end
+  expanded_path = File.expand_path(file_name)
+  $stdout.puts "#line 1 \"#{expanded_path}\""
+  $stdout.puts output
 end

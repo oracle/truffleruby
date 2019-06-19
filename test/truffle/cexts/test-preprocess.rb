@@ -9,7 +9,7 @@
 require_relative '../../../lib/cext/preprocess'
 
 def test_patch(file, directory, input, expected)
-  got = Preprocessor.patch(file, input, directory)
+  got = Truffle::CExt::Preprocessor.patch(file, input, directory)
   abort "expected\n#{expected.inspect}\ngot\n#{got.inspect}" unless got == expected
 end
 
