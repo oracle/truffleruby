@@ -9,8 +9,17 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -22,15 +31,6 @@ import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.objectspace.ObjectSpaceManager;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.control.RaiseException;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -53,11 +53,7 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
 
     protected abstract DynamicObject executeAllocate(DynamicObject classToAllocate, Object[] values);
 
-    @Specialization(guards = {
-            "cachedClassToAllocate == classToAllocate", // ensures correct context
-            "!cachedIsSingleton",
-            "!isTracing(context)"
-    }, assumptions = "getTracingAssumption()", limit = "getCacheLimit()")
+    @Specialization(guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" }, limit = "getCacheLimit()")
     public DynamicObject allocateCached(
             DynamicObject classToAllocate,
             Object[] values,
@@ -65,29 +61,37 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return allocate(context, factory, values);
+
+        return trace(context, allocate(context, factory, values));
     }
 
-    @CompilerDirectives.TruffleBoundary
-    @Specialization(
-            replaces = "allocateCached",
-            guards = { "!isSingleton(classToAllocate)", "!isTracing(cachedContext)", "context == cachedContext" },
-            assumptions = "getTracingAssumption()")
+    @TruffleBoundary
+    @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
     public DynamicObject allocateUncached(
             DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("context") RubyContext cachedContext) {
-        return allocate(context, getInstanceFactory(classToAllocate), values);
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        return trace(context, allocate(context, getInstanceFactory(classToAllocate), values));
     }
 
-    @CompilerDirectives.TruffleBoundary
-    @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing(context)", "context == cachedContext"},
-                    assumptions = "getTracingAssumption()")
-    public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("context") RubyContext cachedContext) {
-        final DynamicObject object = allocate(context, getInstanceFactory(classToAllocate), values);
+    @Specialization(guards = "isSingleton(classToAllocate)")
+    public DynamicObject allocateSingleton(
+            DynamicObject classToAllocate, Object[] values,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
+    }
 
+    private DynamicObject trace(RubyContext context, DynamicObject object) {
+        if (context.getObjectSpaceManager().isTracing()) {
+            traceBoundary(context, object);
+        }
+        return object;
+    }
+
+    @TruffleBoundary
+    private void traceBoundary(RubyContext context, DynamicObject object) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
@@ -97,15 +101,13 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
                 objectSpaceManager.setTracingPaused(false);
             }
         }
-
-        return object;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     private void callTraceAllocation(RubyContext context, DynamicObject object) {
         final SourceSection allocatingSourceSection = context.getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
-        final Frame allocatingFrame = getContext().getCallStack().getCurrentFrame(FrameAccess.READ_ONLY);
+        final Frame allocatingFrame = context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
@@ -125,26 +127,10 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     }
 
     private DynamicObject string(RubyContext context, String value) {
-        // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not trace the allocation
+        // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
+        // trace the allocation
         // of Strings used for tracing allocations.
         return StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
-    }
-
-    @Specialization(guards = "isSingleton(classToAllocate)")
-    public DynamicObject allocateSingleton(
-            DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(
-                context,
-                context.getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
-    }
-
-    protected Assumption getTracingAssumption() {
-        return lookupContextReference(RubyLanguage.class).get().getObjectSpaceManager().getTracingAssumption();
-    }
-
-    protected static boolean isTracing(RubyContext context) {
-        return context.getObjectSpaceManager().isTracing();
     }
 
     protected static boolean isSingleton(DynamicObject classToAllocate) {

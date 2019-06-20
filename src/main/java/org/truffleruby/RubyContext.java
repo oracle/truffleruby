@@ -106,7 +106,7 @@ public class RubyContext {
     private final ReferenceProcessor referenceProcessor;
     private final FinalizationService finalizationService;
     private final MarkingService markingService;
-    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this);
+    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager();
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);

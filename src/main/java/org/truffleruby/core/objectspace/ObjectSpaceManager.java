@@ -38,12 +38,9 @@
  */
 package org.truffleruby.core.objectspace;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.utilities.CyclicAssumption;
+import com.oracle.truffle.api.utilities.AssumedValue;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -57,39 +54,26 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ObjectSpaceManager {
 
-    private final RubyContext context;
-
-    private final CyclicAssumption tracingAssumption = new CyclicAssumption("objspace-tracing");
-    @CompilationFinal private boolean isTracing = false;
+    private final AssumedValue<Boolean> isTracing = new AssumedValue<>("object-space-tracing", Boolean.FALSE);
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
     private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
 
-    public ObjectSpaceManager(RubyContext context) {
-        this.context = context;
-    }
-
     public void traceAllocationsStart() {
         if (tracingAssumptionActivations.incrementAndGet() == 1) {
-            isTracing = true;
-            tracingAssumption.invalidate();
+            isTracing.set(Boolean.TRUE);
         }
     }
 
     public void traceAllocationsStop() {
         if (tracingAssumptionActivations.decrementAndGet() == 0) {
-            isTracing = false;
-            tracingAssumption.invalidate();
+            isTracing.set(Boolean.FALSE);
         }
     }
 
-    public Assumption getTracingAssumption() {
-        return tracingAssumption.getAssumption();
-    }
-
     public boolean isTracing() {
-        return isTracing;
+        return isTracing.get();
     }
 
     public boolean isTracingPaused() {
