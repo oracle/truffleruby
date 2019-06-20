@@ -2178,6 +2178,14 @@ void rb_memerror(void) {
   rb_tr_error("rb_memerror should not return");
 }
 
+void rb_name_error_str(VALUE str, const char *fmt, ...) {
+  rb_tr_error("rb_name_error_str not implemented");
+}
+
+void rb_sys_fail_str(VALUE mesg) {
+  rb_tr_error("rb_sys_fail_str not implemented");
+}
+
 // Defining classes, modules and methods
 
 VALUE rb_define_class(const char *name, VALUE superclass) {
