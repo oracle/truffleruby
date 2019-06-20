@@ -22,7 +22,7 @@ public class TruffleRuby {
     public static final int LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getRubyRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
-    public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+    public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.image-build-time.PreinitializeContexts") != null;
 
     public static String getVersionString(String implementationName, boolean isAOT) {
         final String vm;
