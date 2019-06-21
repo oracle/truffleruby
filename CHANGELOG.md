@@ -22,6 +22,8 @@ Compatibility:
 * Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
 * Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
 * Added `Kernel#then` (#1703).
+* `FFI::Struct#[]=` is now supported for inline character arrays.
+* `blocking: true` is now supported for `FFI::Library#attach_function`.
 
 Changes:
 
