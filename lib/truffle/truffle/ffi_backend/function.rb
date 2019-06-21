@@ -65,6 +65,7 @@ module FFI
       param_types = @function_info.param_types
       return_type = @function_info.return_type
       enums = @function_info.enums
+      blocking = @function_info.blocking
 
       converted_args = args.dup
       if block
@@ -80,7 +81,18 @@ module FFI
         converted_args[i] = convert_ruby_to_native(param_types[i], arg, enums)
       end
 
-      result = @function.call(*converted_args)
+      if blocking
+        result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
+          r = @function.call(*converted_args)
+          if Integer === r and r == -1 and Errno.errno == Errno::EINTR::Errno
+            undefined # retry
+          else
+            r
+          end
+        }
+      else
+        result = @function.call(*converted_args)
+      end
 
       convert_native_to_ruby(return_type, result)
     end

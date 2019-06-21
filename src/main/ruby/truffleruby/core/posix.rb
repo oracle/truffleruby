@@ -134,7 +134,7 @@ module Truffle::POSIX
           result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
             r = bound_func.call(*args)
             if Integer === r and r == -1 and Errno.errno == EINTR
-              undefined
+              undefined # retry
             else
               r
             end
