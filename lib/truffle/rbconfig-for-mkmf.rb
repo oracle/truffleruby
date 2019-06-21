@@ -136,15 +136,21 @@ begin
   end
 
   for_file = proc do |compiler, flags, opt_command|
-    "#{compiler} #{flags} $< && #{opt_command}"
+    "#{compiler} #{flags} $(CSRCFLAG)$< && #{opt_command}"
   end
 
   for_pipe = proc do |compiler, flags, opt_command|
-    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags}&& #{opt_command}"
+    language_flag = if ('$(CXX)' == compiler)
+                      '-xc++'
+                    else
+                      '-xc'
+                    end
+
+    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} - && #{opt_command}"
   end
 
-  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -xc'
-  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -xc++'
+  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@'
+  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@'
   opt_command = "#{opt} #{opt_passes} $@ -o $@"
 
   mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call('$(CC)', c_flags, opt_command)
