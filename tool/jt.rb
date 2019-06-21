@@ -1209,16 +1209,18 @@ EOS
                    "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
         end
 
-          # Tests using gem install to compile the cexts
+        # Tests using gem install to compile the cexts
         sh 'test/truffle/cexts/puma/puma.sh'
         sh 'test/truffle/cexts/sqlite3/sqlite3.sh'
         sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
         sh 'test/truffle/cexts/json/json.sh'
 
-          # Test a gem dynamically compiling a C extension
-        sh 'test/truffle/cexts/RubyInline/RubyInline.sh'
+        # Test a gem dynamically compiling a C extension
+        # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
+        # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
+        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless ON_MAC
 
-          # Test cexts used by many projects
+        # Test cexts used by many projects
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
       else
         raise "unknown test: #{test_name}"
