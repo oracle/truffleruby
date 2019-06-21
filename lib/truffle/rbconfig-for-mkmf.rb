@@ -140,14 +140,14 @@ begin
   end
 
   for_pipe = proc do |compiler, flags, opt_command|
-    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} - -o $@ && #{opt_command}"
+    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags}&& #{opt_command}"
   end
 
-  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc'
-  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++'
+  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -xc'
+  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -xc++'
   opt_command = "#{opt} #{opt_passes} $@ -o $@"
 
-  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_pipe.call('$(CC)', c_flags, opt_command)
+  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call('$(CC)', c_flags, opt_command)
   mkconfig['COMPILE_C']   = with_conditional_preprocessing.call(
     for_pipe.call('$(CC)', c_flags, opt_command),
     for_file.call('$(CC)', c_flags, opt_command))

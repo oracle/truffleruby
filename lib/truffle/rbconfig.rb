@@ -61,6 +61,7 @@ module RbConfig
     'build'             => host,
     'build_os'          => host_os_full,
     'configure_args'    => ' ',
+    'COUTFLAG'          => '-o ',
     'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
     'DLDFLAGS'          => '',
