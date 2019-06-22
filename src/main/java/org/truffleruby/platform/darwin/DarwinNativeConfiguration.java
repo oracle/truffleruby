@@ -44,7 +44,7 @@ import org.truffleruby.platform.NativeConfiguration;
 public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on x86_64-darwin17
+        // Generated from tool/generate-native-config.rb on universal.x86_64-darwin18
         configuration.config("platform.sigaction.sizeof", 16);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -97,12 +97,12 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.ifaddrs.ifa_dstaddr.size", 8);
         configuration.config("platform.ifaddrs.ifa_dstaddr.type", string(context, "pointer"));
         configuration.config("platform.sockaddr.sizeof", 16);
-        configuration.config("platform.sockaddr.sa_data.offset", 2);
-        configuration.config("platform.sockaddr.sa_data.size", 14);
-        configuration.config("platform.sockaddr.sa_data.type", string(context, "char_array"));
         configuration.config("platform.sockaddr.sa_family.offset", 1);
         configuration.config("platform.sockaddr.sa_family.size", 1);
         configuration.config("platform.sockaddr.sa_family.type", string(context, "sa_family_t"));
+        configuration.config("platform.sockaddr.sa_data.offset", 2);
+        configuration.config("platform.sockaddr.sa_data.size", 14);
+        configuration.config("platform.sockaddr.sa_data.type", string(context, "char_array"));
         configuration.config("platform.sockaddr_in.sizeof", 16);
         configuration.config("platform.sockaddr_in.sin_family.offset", 1);
         configuration.config("platform.sockaddr_in.sin_family.size", 1);
