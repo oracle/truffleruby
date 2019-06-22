@@ -381,6 +381,14 @@ local part_definitions = {
         ["tool/make-standalone-distribution.sh"],
       ],
     },
+
+    generate_native_config: function(platform)
+      {
+        run+: [
+          ["ruby", "tool/generate-native-config.rb"],
+          ["cat", "src/main/java/org/truffleruby/platform/" + platform + "NativeConfiguration.java"],
+        ],
+      },
   },
 
   benchmark: {
@@ -669,8 +677,15 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         { timelimit: "02:00:00" },
     },
 
+  manual_builds: {
+    local shared = $.cap.manual + { timelimit: "5:00" },
+
+    "ruby-generate-native-config-linux":  shared + $.platform.linux  + $.run.generate_native_config("linux/Linux"),
+    "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config("darwin/Darwin"),
+  },
+
   builds:
-    local all_builds = $.test_builds + $.bench_builds;
+    local all_builds = $.test_builds + $.bench_builds + $.manual_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
