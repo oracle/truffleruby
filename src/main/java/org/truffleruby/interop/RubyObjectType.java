@@ -38,7 +38,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 public class RubyObjectType extends ObjectType {
 
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
-    // TODO (pitr-ch 19-Mar-2019): replace allowUncached = true
 
     @Override
     public Class<?> dispatch() {
@@ -72,7 +71,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static boolean hasArrayElements(
             DynamicObject receiver,
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode) {
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
         //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
         return RubyGuards.isRubyArray(receiver) ||
@@ -87,7 +86,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage()
     public static long getArraySize(
             DynamicObject receiver,
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Cached IntegerCastNode integerCastNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
@@ -124,7 +123,7 @@ public class RubyObjectType extends ObjectType {
     public static boolean isPointer(
             DynamicObject receiver,
             // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -144,7 +143,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static long asPointer(
             DynamicObject receiver,
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
@@ -159,7 +158,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static void toNative(
             DynamicObject receiver,
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
 
         // TODO (pitr-ch 18-Mar-2019): branch profile?
@@ -481,7 +480,7 @@ public class RubyObjectType extends ObjectType {
     @ExportMessage
     public static boolean isInstantiable(
             DynamicObject receiver,
-            @Exclusive @Cached(allowUncached = true) DoesRespondDispatchHeadNode doesRespond) {
+            @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 

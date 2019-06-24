@@ -115,7 +115,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached DoesRespondDispatchHeadNode definedIndexNode,
             @Cached ForeignToRubyNode nameToRubyNode,
             @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
         return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
@@ -131,8 +131,8 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedNode,
+            @Cached DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached DoesRespondDispatchHeadNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
             @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
         return dispatch.call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
@@ -148,8 +148,8 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedIndexNode,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
+            @Cached DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(toString(name));
     }
 

@@ -68,7 +68,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             Object value,
             @Cached("create()") ForeignToRubyNode nameToRubyNode,
             @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode doesRespond) {
+            @Cached DoesRespondDispatchHeadNode doesRespond) {
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
@@ -82,7 +82,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached(allowUncached = true) DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
+            @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(toString(name));
     }
 
