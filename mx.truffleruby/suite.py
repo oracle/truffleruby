@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.210.3",
+    "mxversion": "5.223.0",
     "name": "truffleruby",
 
     "imports": {
@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "5dc4d8b4f772e90475a00c2093846cf11b2fd480",
+                "version": "0527e987ef67a1a93d14754becd2b3877d961b35",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "5dc4d8b4f772e90475a00c2093846cf11b2fd480",
+                "version": "0527e987ef67a1a93d14754becd2b3877d961b35",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
