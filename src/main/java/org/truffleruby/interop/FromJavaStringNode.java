@@ -58,7 +58,6 @@ public abstract class FromJavaStringNode extends RubyBaseWithoutContextNode {
     }
 
     protected int getLimit() {
-        // TODO (pitr-ch 06-Jun-2019): ok?
         return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
     }
 
