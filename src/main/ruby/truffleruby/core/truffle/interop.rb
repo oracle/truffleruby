@@ -100,6 +100,7 @@ module Truffle
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
 
       if object.is_a?(Hash)
+        # TODO (pitr-ch 23-May-2019): make instance variables and methods accessible for hash
         if HASH_PUBLIC_METHODS.include? name
           # all the methods have to be readable and invocable otherwise they cannot be invoked from C
           readable = true

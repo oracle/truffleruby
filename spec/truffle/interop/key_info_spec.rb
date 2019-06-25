@@ -177,6 +177,15 @@ describe "Truffle::Interop.key_info" do
           Truffle::Interop.key_info(@hash, 'foo').should include(:insertable)
         end
 
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          # since the key is not there
+          Truffle::Interop.key_info(@hash, :@foo).should include(:insertable)
+        end
+
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@hash, :@foo).should include(:insertable)
+        end
       end
 
       describe "not set" do
@@ -190,19 +199,9 @@ describe "Truffle::Interop.key_info" do
           Truffle::Interop.key_info(@hash, 'b').should_not include(:insertable)
         end
 
-        # TODO (pitr-ch 23-May-2019): instance variables and methods are not accessible at the moment for hash
-        # it "for instance variables that exist" do
-        #   @hash.instance_variable_set :@foo, 14
-        #   Truffle::Interop.key_info(@hash, :@foo).should_not include(:insertable)
-        # end
-        #
-        # it "for instance variables that don't exist" do
-        #   Truffle::Interop.key_info(@hash, :@foo).should_not include(:insertable)
-        # end
-        #
-        # it "for a method" do
-        #   Truffle::Interop.key_info(@hash, :to_s).should_not include(:insertable)
-        # end
+        it "for a method" do
+          Truffle::Interop.key_info(@hash, :to_s).should_not include(:insertable)
+        end
 
       end
 
@@ -229,19 +228,18 @@ describe "Truffle::Interop.key_info" do
           Truffle::Interop.key_info(@hash, 'foo').should_not include_any_of(:modifiable)
         end
 
-        # TODO (pitr-ch 23-May-2019): instance variables and methods are not accessible at the moment for hash
-        # it "for instance variables that exist" do
-        #   @hash.instance_variable_set :@foo, 14
-        #   Truffle::Interop.key_info(@hash, :@foo).should_not include_any_of(:modifiable, :removable)
-        # end
-        #
-        # it "for instance variables that don't exist" do
-        #   Truffle::Interop.key_info(@hash, :@foo).should_not include_any_of(:modifiable, :removable)
-        # end
-        #
-        # it "for a method" do
-        #   Truffle::Interop.key_info(@hash, :to_s).should_not include_any_of(:modifiable, :removable)
-        # end
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@hash, :@foo).should_not include_any_of(:modifiable, :removable)
+        end
+
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@hash, :@foo).should_not include_any_of(:modifiable, :removable)
+        end
+
+        it "for a method" do
+          Truffle::Interop.key_info(@hash, :to_s).should_not include_any_of(:modifiable, :removable)
+        end
 
       end
 
