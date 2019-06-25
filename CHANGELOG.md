@@ -1,4 +1,4 @@
-# 20.0.0 beta 2
+# 19.1.0, June 2019
 
 Bug fixes:
 
@@ -9,35 +9,6 @@ Bug fixes:
 * Fixed `Addrinfo.new(String)` to reliably find the address family (#1702).
 * Fixed argument checks in `BasicSocket#setsockopt` (#1460).
 * Fixed `ObjectSpace.trace_object_allocations` (#1456).
-
-Compatibility:
-
-* Exceptions from `coerce` are no longer rescued, like MRI.
-* Implemented `Integer#{allbits?,anybits?,nobits?}`.
-* `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
-* Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
-* Implemented more `Ripper` methods as no-ops (#1694).
-* Implemented `rb_enc_sprintf` (#1702).
-* Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
-* Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
-* Increased compatibility of `BigDecimal`.
-
-Changes:
-
-* Interactive sources (like the GraalVM polyglot shell) now all share the same binding (#1695).
-
-Performance:
-
-* `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
-
-Performance:
-
-* `rb_str_cat` has been changed to improve performance. THe C string is now concatentated without first being converted to a Ruby string or having its encoding checked. As a side effect the behaviour of `rb_str_cat` should now more closely match that of MRI.
-
-# 20.0.0 beta 1
-
-Bug fixes:
-
 * Fixed `BigDecimal#{clone,dup}` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
 * Fixed creating `BigDecimal` instances from non-finite `Float` values (#1685).
 * Fixed `BigDecimal#inspect` output for non-finite values (e.g, NaN or -Infinity) (#1683).
@@ -55,8 +26,17 @@ Bug fixes:
 * Fixed concurrent modifications of `Gem::Specification::LOAD_CACHE` (#1601).
 * Fix `TCPServer#accept` to set `#do_not_reverse_lookup` correctly on the created `TCPSocket`.
 
-Compatibility
+Compatibility:
 
+* Exceptions from `coerce` are no longer rescued, like MRI.
+* Implemented `Integer#{allbits?,anybits?,nobits?}`.
+* `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
+* Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
+* Implemented more `Ripper` methods as no-ops (#1694).
+* Implemented `rb_enc_sprintf` (#1702).
+* Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
+* Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
+* Increased compatibility of `BigDecimal`.
 * `String#-@` now performs string deduplication (#1608).
 * `Hash#merge` now preserves the key order from the original hash for merged values (#1650).
 * Coerce values given to `FFI::Pointer` methods.
@@ -65,7 +45,13 @@ Compatibility
 
 Changes:
 
+* Interactive sources (like the GraalVM polyglot shell) now all share the same binding (#1695).
 * Hash code calculation has been improved to reduce hash collisions for `Hash` and other cases.
+
+Performance:
+
+* `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
+* `rb_str_cat` has been changed to improve performance. THe C string is now concatentated without first being converted to a Ruby string or having its encoding checked. As a side effect the behaviour of `rb_str_cat` should now more closely match that of MRI.
 
 # 19.0.0, May 2019
 
