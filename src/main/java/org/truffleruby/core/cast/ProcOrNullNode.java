@@ -39,7 +39,8 @@ public abstract class ProcOrNullNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "isNil(context, nil)")
-    public DynamicObject doNil(Object nil, @CachedContext(RubyLanguage.class) RubyContext context) {
+    public DynamicObject doNil(Object nil,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return null;
     }
 
