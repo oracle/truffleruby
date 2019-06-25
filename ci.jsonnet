@@ -302,6 +302,7 @@ local part_definitions = {
         mercurial: ">=3.2.4",
         ruby: ">=2.1.0",
         llvm: "==3.8",
+        binutils: ">=2.30",
       },
     },
     darwin: {
