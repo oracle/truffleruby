@@ -102,7 +102,7 @@ local part_definitions = {
     mri: {
       "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
       downloads+: {
-        MRI_HOME: { name: "ruby", version: "2.3.3" },
+        MRI_HOME: { name: "ruby", version: "2.6.3" },
       },
 
       environment+: {
