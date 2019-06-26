@@ -263,7 +263,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "8u212-jvmci-20-b01",
+          version: "8u212-jvmci-20-b04",
           platformspecific: true,
         },
       },
@@ -277,7 +277,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "openjdk",
-          version: "8u212-jvmci-20-b01",
+          version: "8u212-jvmci-20-b04",
           platformspecific: true,
         },
       },
