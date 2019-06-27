@@ -49,6 +49,7 @@ You'll usually get some conflicts to work out.
 * Update `doc/legal/legal.md`
 * Update `doc/contributor/stdlib.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
+* Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
 
 ## Update libraries from third-party repos
 
