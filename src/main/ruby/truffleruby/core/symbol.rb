@@ -92,7 +92,7 @@ class Symbol
     when Regexp
       match_data = pattern.search_region(str, 0, str.bytesize, true)
       Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
-      return match_data.byte_begin(0) if match_data
+      match_data
     when String
       raise TypeError, 'type mismatch: String given'
     else
@@ -100,7 +100,20 @@ class Symbol
     end
   end
 
-  alias_method :=~, :match
+  def =~(pattern)
+    str = to_s
+
+    case pattern
+    when Regexp
+      match_data = pattern.search_region(str, 0, str.bytesize, true)
+      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
+      match_data.byte_begin(0) if match_data
+    when String
+      raise TypeError, 'type mismatch: String given'
+    else
+      pattern =~ str
+    end
+  end
 
   def match?(pattern, pos=0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
