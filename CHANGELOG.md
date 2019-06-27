@@ -20,6 +20,7 @@ Compatibility:
 * Implemented `rb_enc_sprintf` (#1702).
 * Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
 * Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
+* Added `Kernel#then` (#1703).
 
 Changes:
 
