@@ -483,6 +483,8 @@ module Kernel
     end
   end
 
+  alias_method :then, :yield_self
+
   def test(cmd, file1, file2=nil)
     case cmd
     when ?d
