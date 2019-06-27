@@ -140,12 +140,12 @@ class Socket < BasicSocket
 
 
       if a[4] == AF_INET
-        offset, type = Truffle::Socket::Foreign::SockaddrIn.layout[:sin_addr]
-        size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
+        offset = Truffle::Config['platform.sockaddr_in.sin_addr.offset']
+        size = Truffle::Config['platform.sockaddr_in.sin_addr.size']
         addresses << sockaddr.byteslice(offset, size)
       elsif a[4] == AF_INET6
-        offset, type = Truffle::Socket::Foreign::SockaddrIn6.layout[:sin6_addr]
-        size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
+        offset = Truffle::Config['platform.sockaddr_in6.sin6_addr.offset']
+        size = Truffle::Config['platform.sockaddr_in6.sin6_addr.size']
         addresses << sockaddr.byteslice(offset, size)
       end
     end

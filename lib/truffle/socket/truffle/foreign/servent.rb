@@ -31,7 +31,7 @@ module Truffle
         config('platform.servent', :s_name, :s_aliases, :s_port, :s_proto)
 
         def name
-          self[:s_name].read_string
+          self[:s_name]
         end
 
         def port

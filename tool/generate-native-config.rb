@@ -138,7 +138,7 @@ class Generator
   end
 
   def compile_command(source, target)
-    cflags = "-xc -Wall -Werror#{EXTRA_CFLAGS}"
+    cflags = "-Wall -Werror#{EXTRA_CFLAGS}"
     "#{cc} #{cflags} #{source} -o #{target} 2>&1"
   end
 
@@ -147,7 +147,7 @@ class Generator
   end
 
   def compile(file)
-    target = file[0...-2]
+    target = file[0...file.rindex('.')]
     run compile_command(file, target)
     begin
       run execute_command(file, target)
@@ -156,8 +156,12 @@ class Generator
     end
   end
 
+  def source_file
+    'config.c'
+  end
+
   def generate
-    file = File.expand_path('../config.c', __FILE__)
+    file = File.expand_path("../#{source_file}", __FILE__)
     begin
       File.open(file, 'wb') { |f| source(f) }
       analyse(compile(file))
@@ -181,8 +185,16 @@ class StructGenerator < Generator
     @fields = []
   end
 
-  def field(name, type=nil)
-    @fields << Field.new(name, type)
+  def field(name)
+    @fields << Field.new(name)
+  end
+
+  def cc
+    'clang++'
+  end
+
+  def source_file
+    'config.cc'
   end
 
   def source(io)
@@ -190,15 +202,18 @@ class StructGenerator < Generator
     @includes.each do |inc|
       io.puts "#include <#{inc}>"
     end
+    io.puts "#include <iostream>"
+    io.puts "#include <cxxabi.h>"
     io.puts "#include <stddef.h>\n\n"
 
     io.puts 'int main(int argc, char **argv) {'
     io.puts "  struct #{@name} s;"
     io.puts %{  printf("sizeof(struct #{@name}) %u\\n", (unsigned int) sizeof(struct #{@name}));}
     @fields.each do |field|
-      io.puts %{  printf("#{field.name} %u %u\\n", } +
+      io.puts %{  printf("#{field.name} %u %u %s\\n", } +
         "(unsigned int) offsetof(struct #{@name}, #{field.name}), " +
-        "(unsigned int) sizeof(s.#{field.name}));"
+        "(unsigned int) sizeof(s.#{field.name}), " +
+        "abi::__cxa_demangle(typeid(s.#{field.name}).name(), NULL, NULL, NULL));"
     end
     io.puts "\n  return 0;\n}"
   end
@@ -212,9 +227,27 @@ class StructGenerator < Generator
 
     @fields.each do |field|
       line = output.shift
-      raise line unless line[/^#{field.name} (\d+) (\d+)$/]
+      raise line unless line[/^#{field.name} (\d+) (\d+) (.+)$/]
       field.offset = Integer($1)
       field.size = Integer($2)
+      field.type = normalize_type($3)
+    end
+  end
+
+  def normalize_type(type)
+    case type
+    when 'char*'
+      :string
+    when /^(unsigned )?char \[\d+\]$/
+      :char_array
+    when 'in_addr', 'in6_addr' # those are struct types
+      :char_array
+    when /\(\*\)\(/ # function pointer
+      :pointer
+    when /\*$/
+      :pointer
+    else
+      TypesGenerator::TYPE_MAP.fetch(type)
     end
   end
 
@@ -223,7 +256,7 @@ class StructGenerator < Generator
     @fields.each do |field|
       register "#{@name}.#{field.name}.offset", field.offset
       register "#{@name}.#{field.name}.size", field.size
-      register "#{@name}.#{field.name}.type", field.type if field.type
+      register "#{@name}.#{field.name}.type", field.type
     end
   end
 end
@@ -422,7 +455,7 @@ end
 
 struct 'sigaction' do |s|
   s.include 'signal.h'
-  s.field :sa_handler, :pointer
+  s.field :sa_handler
 end
 
 # Structs used by rubysl-socket
@@ -430,32 +463,32 @@ end
 struct 'addrinfo' do |s|
   s.include 'sys/socket.h'
   s.include 'netdb.h'
-  s.field :ai_flags, :int
-  s.field :ai_family, :int
-  s.field :ai_socktype, :int
-  s.field :ai_protocol, :int
-  s.field :ai_addrlen, :int
-  s.field :ai_addr, :pointer
-  s.field :ai_canonname, :string
-  s.field :ai_next, :pointer
+  s.field :ai_flags
+  s.field :ai_family
+  s.field :ai_socktype
+  s.field :ai_protocol
+  s.field :ai_addrlen
+  s.field :ai_addr
+  s.field :ai_canonname
+  s.field :ai_next
 end
 
 struct 'ifaddrs' do |s|
   s.include 'sys/types.h'
   s.include 'ifaddrs.h'
-  s.field :ifa_next, :pointer
-  s.field :ifa_name, :string
-  s.field :ifa_flags, :int
-  s.field :ifa_addr, :pointer
-  s.field :ifa_netmask, :pointer
-  s.field :ifa_broadaddr, :pointer
-  s.field :ifa_dstaddr, :pointer
+  s.field :ifa_next
+  s.field :ifa_name
+  s.field :ifa_flags
+  s.field :ifa_addr
+  s.field :ifa_netmask
+  s.field :ifa_broadaddr
+  s.field :ifa_dstaddr
 end
 
 struct 'sockaddr' do |s|
   s.include 'sys/socket.h'
-  s.field :sa_family, :sa_family_t
-  s.field :sa_data, :char_array
+  s.field :sa_family
+  s.field :sa_data
 end
 
 struct 'sockaddr_in' do |s|
@@ -463,10 +496,10 @@ struct 'sockaddr_in' do |s|
   s.include 'sys/socket.h'
   s.include 'fcntl.h'
   s.include 'sys/stat.h'
-  s.field :sin_family, :sa_family_t
-  s.field :sin_port, :ushort
+  s.field :sin_family
+  s.field :sin_port
   s.field :sin_addr
-  s.field :sin_zero, :char_array
+  s.field :sin_zero
 end
 
 struct 'sockaddr_in6' do |s|
@@ -474,57 +507,57 @@ struct 'sockaddr_in6' do |s|
   s.include 'sys/socket.h'
   s.include 'fcntl.h'
   s.include 'sys/stat.h'
-  s.field :sin6_family, :sa_family_t
-  s.field :sin6_port, :ushort
+  s.field :sin6_family
+  s.field :sin6_port
   s.field :sin6_flowinfo
-  s.field :sin6_addr, :char_array
+  s.field :sin6_addr
   s.field :sin6_scope_id
 end
 
 struct 'sockaddr_un' do |s|
   s.include 'sys/un.h'
-  s.field :sun_family, :sa_family_t
-  s.field :sun_path, :char_array
+  s.field :sun_family
+  s.field :sun_path
 end
 
 struct 'hostent' do |s|
   s.include 'netdb.h'
-  s.field :h_name, :string
-  s.field :h_aliases, :pointer
-  s.field :h_addrtype, :int
-  s.field :h_length, :int
-  s.field :h_addr_list, :pointer
+  s.field :h_name
+  s.field :h_aliases
+  s.field :h_addrtype
+  s.field :h_length
+  s.field :h_addr_list
 end
 
 struct 'linger' do |s|
   s.include 'sys/socket.h'
-  s.field :l_onoff, :int
-  s.field :l_linger, :int
+  s.field :l_onoff
+  s.field :l_linger
 end
 
 struct 'iovec' do |s|
   s.include 'sys/socket.h'
-  s.field :iov_base, :pointer
-  s.field :iov_len, :size_t
+  s.field :iov_base
+  s.field :iov_len
 end
 
 struct 'msghdr' do |s|
   s.include 'sys/socket.h'
-  s.field :msg_name, :pointer
-  s.field :msg_namelen, :int
-  s.field :msg_iov, :pointer
-  s.field :msg_iovlen, :size_t
-  s.field :msg_control, :pointer
-  s.field :msg_controllen, :size_t
-  s.field :msg_flags, :int
+  s.field :msg_name
+  s.field :msg_namelen
+  s.field :msg_iov
+  s.field :msg_iovlen
+  s.field :msg_control
+  s.field :msg_controllen
+  s.field :msg_flags
 end
 
 struct 'servent' do |s|
   s.include 'netdb.h'
-  s.field :s_name, :pointer
-  s.field :s_aliases, :pointer
-  s.field :s_port, :int
-  s.field :s_proto, :pointer
+  s.field :s_name
+  s.field :s_aliases
+  s.field :s_port
+  s.field :s_proto
 end
 
 # Constants
