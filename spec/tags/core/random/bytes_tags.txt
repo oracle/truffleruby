@@ -2,3 +2,4 @@ fails:Random.bytes returns a String
 fails:Random.bytes returns a String of the length given as argument
 fails:Random.bytes returns an ASCII-8BIT String
 fails:Random.bytes returns a random binary String
+fails:Random.bytes returns a binary String
