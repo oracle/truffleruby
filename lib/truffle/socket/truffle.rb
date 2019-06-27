@@ -49,10 +49,8 @@ module Truffle
         type   = Truffle::Config.lookup("#{base}.#{field}.type")
         type   = if type == 'char_array'
                    [:char, size]
-                 elsif type
-                   type.to_sym
                  else
-                   ffi_type_for_size(size)
+                   type.to_sym
                  end
 
         if !(Array === type) && ::FFI.find_type(type).size != size
@@ -63,17 +61,6 @@ module Truffle
       end
 
       struct_class.layout(*layout_args)
-    end
-
-    def self.ffi_type_for_size(size)
-      case size
-      when 1 then :char
-      when 2 then :short
-      when 4 then :int
-      when 8 then :long
-      else
-        raise ArgumentError, "Unknown type for size #{size}"
-      end
     end
 
     def self.aliases_for_hostname(hostname)
