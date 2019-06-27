@@ -12,6 +12,7 @@ package org.truffleruby.interop;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -22,6 +23,9 @@ import com.oracle.truffle.api.library.ReflectionLibrary;
 @ExportLibrary(ReflectionLibrary.class)
 public class LoggingForeignObject implements TruffleObject {
 
+    private final static Message INVOKE_MEMBER = Message.resolve(InteropLibrary.class, "invokeMember");
+    private final static Message IS_STRING = Message.resolve(InteropLibrary.class, "isString");
+    private final static Message AS_STRING = Message.resolve(InteropLibrary.class, "asString");
     private final StringBuilder log = new StringBuilder();
 
     public synchronized void log(String message, Object... args) {
@@ -37,7 +41,7 @@ public class LoggingForeignObject implements TruffleObject {
     @TruffleBoundary
     Object send(Message message, Object[] args) throws Exception {
         final Object[] flatArgs;
-        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.invokeMember")) {
+        if (message == INVOKE_MEMBER) {
             Object[] invokeArg = (Object[]) args[1];
             Object[] newArgs = new Object[1 + invokeArg.length];
             newArgs[0] = args[0];
@@ -52,11 +56,11 @@ public class LoggingForeignObject implements TruffleObject {
 
         log(message.getSimpleName() + "(" + String.join(", ", a) + ")", flatArgs);
 
-        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.isString")) {
+        if (message == IS_STRING) {
             return true;
         }
 
-        if (message.getQualifiedName().equals("com.oracle.truffle.api.interop.InteropLibrary.asString")) {
+        if (message == AS_STRING) {
             return getLog();
         }
 
