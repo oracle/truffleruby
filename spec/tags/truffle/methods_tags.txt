@@ -27,7 +27,6 @@ fails:Public methods on IO should not include encode_with
 fails:Public methods on IO should not include nonblock
 fails:Public methods on IO should not include nonblock=
 fails:Public methods on IO should not include nonblock?
-fails:Public methods on Kernel should include then
 fails:Public methods on Numeric should include clone
 fails:Public methods on Numeric should include dup
 fails:Public methods on Range should include %
