@@ -381,9 +381,22 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         // TODO (pitr-ch 30-Mar-2019): does it make sense to have paths for smaller numbers?
-        //  Probably at least for int.
 
-        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInLong(receiver)" },
+        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
+                limit = "getCacheLimit()")
+        public Object callInt(
+                TruffleObject receiver,
+                Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+            try {
+                return dispatch.call(receivers.asInt(receiver), name, args);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInInt(receiver)", "receivers.fitsInLong(receiver)" },
                 limit = "getCacheLimit()")
         public Object callLong(
                 TruffleObject receiver,
