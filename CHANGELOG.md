@@ -9,6 +9,7 @@ Bug fixes:
 * Fixed `Addrinfo.new(String)` to reliably find the address family (#1702).
 * Fixed argument checks in `BasicSocket#setsockopt` (#1460).
 * Fixed `ObjectSpace.trace_object_allocations` (#1456).
+* `Truffle::Interop.read(a_proc, key)` will no longer call the proc.
 
 Compatibility:
 
