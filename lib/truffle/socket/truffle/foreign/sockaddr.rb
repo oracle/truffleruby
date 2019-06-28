@@ -27,8 +27,8 @@
 module Truffle
   module Socket
     module Foreign
-      class Sockaddr < Truffle::FFI::Struct
-        config('platform.sockaddr', :sa_family, :sa_data)
+      class Sockaddr < ::FFI::Struct
+        Truffle::Socket.config(self, 'platform.sockaddr', :sa_family, :sa_data)
 
         SA_FAMILY_T = Truffle::Config['platform.typedef.sa_family_t'].to_sym
         SA_FAMILY_OFFSET = Truffle::Config['platform.sockaddr.sa_family.offset']

@@ -27,12 +27,10 @@
 module Truffle
   module Socket
     module Foreign
-      def self.attach_function(method_name, native_name = method_name, args_types, return_type, blocking: false)
-        Truffle::POSIX.attach_function(native_name, args_types, return_type,
-                                       Truffle::POSIX::LIBC, blocking, method_name, self)
-      end
+      extend ::FFI::Library
+      ffi_lib ::FFI::Library::LIBC
 
-      SIZEOF_INT = Truffle::FFI.type_size(:int)
+      SIZEOF_INT = ::FFI.type_size(:int)
 
       attach_function :_bind, :bind, [:int, :pointer, :socklen_t], :int
       attach_function :_connect, :connect, [:int, :pointer, :socklen_t], :int, blocking: true
@@ -82,10 +80,10 @@ module Truffle
       attach_function :gethostbyname, [:string], :pointer
       attach_function :gethostbyaddr, [:pointer, :socklen_t, :int], :pointer
 
-      attach_function :htons, [:uint16_t], :uint16_t
-      attach_function :ntohs, [:uint16_t], :uint16_t
+      attach_function :htons, [:uint16], :uint16
+      attach_function :ntohs, [:uint16], :uint16
 
-      attach_function :inet_network, [:string], :uint32_t
+      attach_function :inet_network, [:string], :uint32
       attach_function :inet_pton, [:int, :string, :pointer], :int
 
       attach_function :_getnameinfo,
@@ -168,7 +166,7 @@ module Truffle
 
         addrinfos
       ensure
-        hints.free if hints
+        hints.pointer.free if hints
 
         if res_p
           ptr = res_p.read_pointer
@@ -284,7 +282,7 @@ module Truffle
 
         res[:ai_addr].read_string(res[:ai_addrlen])
       ensure
-        hints.free if hints
+        hints.pointer.free if hints
 
         if res_p
           ptr = res_p.read_pointer
@@ -329,12 +327,12 @@ module Truffle
       end
 
       def self.memory_pointer(*args, &block)
-        Truffle::FFI::MemoryPointer.new(*args, &block)
+        ::FFI::MemoryPointer.new(*args, &block)
       end
 
       def self.pointers_of_type(current, type)
         pointers = []
-        size     = Truffle::FFI.type_size(type)
+        size     = ::FFI.type_size(type)
         pointer  = current.read_pointer
 
         until pointer.null?

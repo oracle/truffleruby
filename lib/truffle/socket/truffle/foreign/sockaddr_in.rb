@@ -27,8 +27,8 @@
 module Truffle
   module Socket
     module Foreign
-      class SockaddrIn < Truffle::FFI::Struct
-        config('platform.sockaddr_in',
+      class SockaddrIn < ::FFI::Struct
+        Truffle::Socket.config(self, 'platform.sockaddr_in',
                :sin_family, :sin_port, :sin_addr, :sin_zero)
 
         def self.with_sockaddr(addr)

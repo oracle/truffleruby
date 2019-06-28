@@ -138,7 +138,7 @@ class Socket < BasicSocket
     addrinfos.each do |a|
       sockaddr = Socket.sockaddr_in(0, a[3])
 
-
+      # Done manually because we want to read the full address as a String, even if it contains nul bytes
       if a[4] == AF_INET
         offset = Truffle::Config['platform.sockaddr_in.sin_addr.offset']
         size = Truffle::Config['platform.sockaddr_in.sin_addr.size']
@@ -282,7 +282,7 @@ class Socket < BasicSocket
       begin
         struct.to_s
       ensure
-        struct.free
+        struct.pointer.free
       end
     end
 
@@ -292,7 +292,7 @@ class Socket < BasicSocket
       begin
         struct[:sun_path].to_s
       ensure
-        struct.free
+        struct.pointer.free
       end
     end
 

@@ -37,8 +37,8 @@ module Truffle
       # To ensure Rubinius doesn't accidentally free invalid pointers all
       # pointers (including the pointer of "self") stored in this class have the
       # "autorelease" option set to false.
-      class Ifaddrs < Truffle::FFI::Struct
-        config('platform.ifaddrs', :ifa_next, :ifa_name, :ifa_flags,
+      class Ifaddrs < ::FFI::Struct
+        Truffle::Socket.config(self, 'platform.ifaddrs', :ifa_next, :ifa_name, :ifa_flags,
                :ifa_addr, :ifa_netmask, :ifa_broadaddr, :ifa_dstaddr)
 
         POINTERS = [

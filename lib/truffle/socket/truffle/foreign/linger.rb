@@ -27,8 +27,8 @@
 module Truffle
   module Socket
     module Foreign
-      class Linger < Truffle::FFI::Struct
-        config('platform.linger', :l_onoff, :l_linger)
+      class Linger < ::FFI::Struct
+        Truffle::Socket.config(self, 'platform.linger', :l_onoff, :l_linger)
 
         def self.from_string(string)
           linger = new

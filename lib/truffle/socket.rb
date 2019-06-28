@@ -26,8 +26,7 @@
 
 require 'fcntl'
 
-require 'truffle/ffi/ffi'
-require 'truffle/ffi/ffi_struct'
+require 'ffi'
 
 require 'socket/truffle'
 require 'socket/truffle/socket_options'

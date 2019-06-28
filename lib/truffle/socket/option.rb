@@ -45,7 +45,7 @@ class Socket < BasicSocket
 
         new(:UNSPEC, :SOCKET, :LINGER, linger.to_s)
       ensure
-        linger.free
+        linger.pointer.free
       end
     end
 

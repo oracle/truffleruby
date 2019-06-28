@@ -159,6 +159,20 @@ module FFI
           FFI::Struct::InlineArray.new(struct_pointer, self)
         end
       end
+
+      def put(struct_pointer, value)
+        if @type.char_array?
+          if value.bytesize < @type.length
+            struct_pointer.put_string(@offset, value)
+          elsif value.bytesize == @type.length
+            struct_pointer.put_bytes(@offset, value)
+          else
+            raise IndexError, "String is longer (#{value.bytesize} bytes) than the char array (#{@type.length} bytes)"
+          end
+        else
+          raise NotImplementedError, 'cannot set array field'
+        end
+      end
     end
   end
 end

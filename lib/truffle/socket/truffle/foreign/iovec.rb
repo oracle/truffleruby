@@ -27,8 +27,8 @@
 module Truffle
   module Socket
     module Foreign
-      class Iovec < Truffle::FFI::Struct
-        config('platform.iovec', :iov_base, :iov_len)
+      class Iovec < ::FFI::Struct
+        Truffle::Socket.config(self, 'platform.iovec', :iov_base, :iov_len)
 
         def self.with_buffer(buffer)
           vec = new
