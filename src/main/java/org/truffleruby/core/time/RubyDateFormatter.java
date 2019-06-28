@@ -45,7 +45,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -522,7 +521,7 @@ public abstract class RubyDateFormatter {
             // reset formatter
             formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
 
-            toAppendTo.append(output.getBytes(EncodingManager.charsetForEncoding(toAppendTo.getEncoding())));
+            toAppendTo.append(StringOperations.encodeBytes(output, toAppendTo.getEncoding()));
         }
 
         return toAppendTo;
