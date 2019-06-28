@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -55,6 +56,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
         return readOrDefault(receiver, shape, property, defaultValue);
     }
 
+    @TruffleBoundary
     public static Property getProperty(Shape shape, Object name) {
         Property property = shape.getProperty(name);
         if (!PropertyFlags.isDefined(property)) {
