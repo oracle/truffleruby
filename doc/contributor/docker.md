@@ -30,9 +30,9 @@ $ jt docker print --fedora28 --source --rvm
 Or, to run a full set of tests on a set of new release candidate tarballs:
 
 ```bash
-$ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
+$ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable-ce.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable-ee.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
 $ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
@@ -74,7 +74,7 @@ Pick any of:
 ## Other options
 
 * Print the Dockerfile rather than building it, `print` instead of `build`
-* Rebuild images after installing the Ruby component, `--rebuild-images`
+* Rebuild `polyglot` and `libpolyglot` images after installing the Ruby component, `--rebuild-images`
 * Run a full set of Docker tests we care about, `test` instead of `build`
 * Use a custom TruffleRuby repo, `--repo url`
 * Do not rebuild `openssl`, to test error messages, `--no-rebuild-openssl`

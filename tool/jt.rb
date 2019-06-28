@@ -2078,6 +2078,7 @@ EOS
         source_branch = args.shift
       when '--rebuild-images'
         rebuild_images = true
+        native_component = args.shift
       when '--no-rebuild-openssl'
         rebuild_openssl = false
       when '--no-manager'
@@ -2199,7 +2200,11 @@ EOS
 
     if rebuild_images
       if [:public, :graalvm].include?(install_method)
-        lines.push "RUN #{graalvm_base}/bin/gu rebuild-images ruby"
+        FileUtils.copy native_component, docker_dir
+        native_component = File.basename(native_component)
+        lines.push "COPY #{native_component} /test/"
+        lines.push "RUN #{graalvm_bin}/gu install --file /test/#{native_component} | tee install.log"
+        lines.push "RUN #{graalvm_base}/bin/gu rebuild-images polyglot libpolyglot"
       else
         abort "can't rebuild images for a build not from public or from local GraalVM components"
       end
