@@ -58,9 +58,10 @@ public class MarkingServiceNodes {
         @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
         public MarkerThreadLocalData getDataOnKnownThread(
                 Object dynamicParameter,
-                @CachedContext(RubyLanguage.class) RubyContext context, // Right context ensured by the current thread
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("currentJavaThread(dynamicParameter)") Thread thread,
                 @Cached("getData(dynamicParameter, context)") MarkerThreadLocalData data) {
+            assert context == data.getKeptObjects().getService().context;
             return data;
         }
 
