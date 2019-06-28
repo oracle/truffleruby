@@ -752,7 +752,7 @@ public class RubyContext {
             final File launcherDir = canonicalLauncherPath.getParentFile();
             final File candidate = launcherDir == null ? null : launcherDir.getParentFile();
             RubyLanguage.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
-            if (isRubyHome(candidate)) {
+            if (candidate != null && isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
                 RubyLanguage.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));

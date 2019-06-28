@@ -6,7 +6,7 @@ Generator.
 Context pre-initialization is enabled by setting this Java property:
 
 ```
--Dpolyglot.engine.PreinitializeContexts=ruby
+-Dpolyglot.image-build-time.PreinitializeContexts=ruby
 ```
 
 This is enabled by default in `mx.truffleruby/native-image.properties`.
@@ -42,5 +42,5 @@ runtime execution.
 Debugging on the JVM can be achieved with:
 
 ```
-jt ruby --jvm --vm.Dpolyglot.engine.PreinitializeContexts=ruby --log.level=FINE -e 'p :hi'
+jt ruby --jvm --vm.Dpolyglot.image-build-time.PreinitializeContexts=ruby --log.level=FINE -e 'p :hi'
 ```
