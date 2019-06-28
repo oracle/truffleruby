@@ -65,6 +65,7 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
         return trace(context, allocate(context, factory, values));
     }
 
+    // because the factory is not constant
     @TruffleBoundary
     @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
     public DynamicObject allocateUncached(
