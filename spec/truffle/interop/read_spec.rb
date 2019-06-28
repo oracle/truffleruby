@@ -41,7 +41,7 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@hash, 'b').should == 2
     end
 
-    it "raise for a key that doesn't exist" do
+    it "raises for a key that doesn't exist" do
       -> { Truffle::Interop.read(@hash, 'foo') }.should raise_error NameError
     end
 

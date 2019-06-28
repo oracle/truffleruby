@@ -46,7 +46,7 @@ describe "Truffle::Interop.remove" do
       @hash.keys.should == ['a', 'c']
     end
 
-    it "no-ops when the key doesn't exist" do
+    it "raises when the key doesn't exist" do
       -> { Truffle::Interop.remove(@hash, 'bad_key') }.should raise_error NameError
       @hash.keys.should == ['a', 'b', 'c']
     end
