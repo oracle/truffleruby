@@ -56,19 +56,15 @@ You can also download the Ruby component (`ruby-installable-...`) manually from
 https://github.com/oracle/truffleruby/releases. Then install it with
 `gu install --file path/to/ruby-installable-...`.
 
-If you install Ruby into the Enterprise Edition of GraalVM, you should then
-rebuild the Ruby executable images using the runtime from the Enterprise
-Edition. The version of the Ruby executable images you install by default uses
-the Community Edition runtime until you rebuild.
+If you are installing Ruby into GraalVM EE then you need to download the Ruby
+EE installable from OTN and install using `--file` in the same way.
 
-To get the best performance you want to rebuild the images. Check that `ruby
---version` reports that you are running `GraalVM EE` rather than `GraalVM CE`.
-
-Rebuilding the executable images can take a few minutes and you should have
-about 8 GB of RAM available.
+After installing Ruby you may want to rebuild other images so that they can
+use the new language. Rebuilding the executable images can take a few minutes
+and you should have about 10 GB of RAM available.
 
 ```bash
-$ gu rebuild-images ruby
+$ gu rebuild-images polyglot libpolyglot
 ```
 
 ## Using a Ruby package manager
