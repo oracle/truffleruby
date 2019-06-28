@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -29,7 +28,6 @@ import org.truffleruby.language.RubyNode;
 
 @GenerateUncached
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-@NodeChild(value = "value", type = RubyNode.class)
 public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
 
     // FIXME (pitr 12-Jun-2019): find a different way
@@ -43,10 +41,9 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     }
 
     public static ToJavaStringNode create() {
-        return ToJavaStringNodeGen.create(null);
+        return ToJavaStringNodeGen.create();
     }
 
-    public abstract String executeToJavaString(VirtualFrame frame);
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
