@@ -18,9 +18,9 @@ import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -59,7 +59,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
         try {
             return dispatch.call(receiver, FETCH_METHOD_NAME, index);
         } catch (RaiseException ex) {
-            DynamicObject logicalClass = ((BasicObjectLayoutImpl.BasicObjectType) ex.getException().getShape().getObjectType()).getLogicalClass();
+            DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
             if (errorProfile.profile(logicalClass == context.getCoreLibrary().getIndexErrorClass())) {
                 throw InvalidArrayIndexException.create((Long) index);
             } else {
@@ -82,7 +82,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
         try {
             return dispatch.call(receiver, FETCH_METHOD_NAME, key);
         } catch (RaiseException ex) {
-            DynamicObject logicalClass = ((BasicObjectLayoutImpl.BasicObjectType) ex.getException().getShape().getObjectType()).getLogicalClass();
+            DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
             if (errorProfile.profile(logicalClass == context.getCoreLibrary().getKeyErrorClass())) {
                 throw UnknownIdentifierException.create((String) stringName);
             } else {
