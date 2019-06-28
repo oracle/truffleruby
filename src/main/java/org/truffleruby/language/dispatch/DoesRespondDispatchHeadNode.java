@@ -9,18 +9,11 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.methods.InternalMethod;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
@@ -56,8 +49,6 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
     }
 
     private static class Uncached extends DoesRespondDispatchHeadNode {
-        private final TruffleLanguage.ContextReference<RubyContext> contextReference = lookupContextReference(
-                RubyLanguage.class);
 
         Uncached(boolean ignoreVisibility) {
             super(ignoreVisibility);
@@ -65,21 +56,11 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
         @Override
         public boolean doesRespondTo(VirtualFrame frame, Object name, Object receiver) {
-            // FIXME (pitr 19-Jun-2019): this is probably not entirely correct, but works for now
-            //  we need to migrate dispatch nodes to DSL and add @GenerateUncached instead
-            boolean result = respondTo(name, receiver);
-            boolean check = create().doesRespondTo(frame, name, receiver);
-            assert result == check;
-            return result;
-        }
-
-        @TruffleBoundary
-        protected boolean respondTo(Object name, Object receiver) {
-            RubyContext context = contextReference.get();
-            String methodName = ToJavaStringNodeGen.getUncached().executeToJavaString(name);
-            DynamicObject metaClass = context.getCoreLibrary().getMetaClass(receiver);
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(metaClass, methodName, null);
-            return method != null && !method.isUndefined();
+            // FIXME (pitr 28-Jun-2019): migrate the dispatch nodes properly instead
+            UncachedDispatchNode uncachedDispatchNode = new UncachedDispatchNode(
+                    true, false, DispatchAction.RESPOND_TO_METHOD, MissingBehavior.RETURN_MISSING);
+            return (boolean) uncachedDispatchNode.executeDispatch(
+                    null, receiver, name, null, RubyNode.EMPTY_ARGUMENTS);
         }
 
         @Override
@@ -111,7 +92,6 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
     public static DoesRespondDispatchHeadNode getUncached() {
         return UNCACHED_IGNORING_VISIBILITY;
-        //return create();
     }
 
 }
