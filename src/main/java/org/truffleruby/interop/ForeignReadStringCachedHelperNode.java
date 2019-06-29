@@ -55,7 +55,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
     }
 
     @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)",
             "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object callIndex(
@@ -70,7 +70,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
+            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
             "methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
     public Object getBoundMethod(
@@ -85,7 +85,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
+            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode()) || isRubyProc(receiver)",
             "!methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
     public Object unknownIdentifier(

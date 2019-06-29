@@ -99,4 +99,15 @@ describe "Truffle::Interop.read" do
 
   end
 
+  describe "with a Proc" do
+
+    it "does not call the proc" do
+      proc = -> { raise 'called' }
+      -> { Truffle::Interop.read(proc, :key) }.should raise_error NameError
+      Truffle::Interop.read(proc, :@var).should be_nil
+      Truffle::Interop.read(proc, 'call').should == proc.method(:call)
+    end
+
+  end
+
 end

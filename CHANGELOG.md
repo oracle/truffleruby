@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed argument checks in `BasicSocket#setsockopt` (#1460).
 * Fixed `ObjectSpace.trace_object_allocations` (#1456).
 * Fixed the `Symbol#match` returning `MatchData` (#1706).
+* `Truffle::Interop.read(a_proc, key)` will no longer call the proc.
 
 Compatibility:
 
