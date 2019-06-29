@@ -13,6 +13,9 @@ Compatibility:
 Changes:
 
 * An interop read message sent to a `Proc` will no longer call the `Proc`.
+
+Performance:
+
 * Several `String` methods have been made faster by the usage of vector instructions
   when searching for a single-byte character in a String.
 
@@ -71,7 +74,7 @@ Changes:
 Performance:
 
 * `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
-* `rb_str_cat` has been changed to improve performance. THe C string is now concatentated without first being converted to a Ruby string or having its encoding checked. As a side effect the behaviour of `rb_str_cat` should now more closely match that of MRI.
+* `rb_str_cat` is faster due to the C string now being concatenated without first being converted to a Ruby string or having its encoding checked. As a side effect the behaviour of `rb_str_cat` should now more closely match that of MRI.
 
 # 19.0.0, May 2019
 
