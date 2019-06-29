@@ -1,4 +1,24 @@
+# 19.2.0
+
+Bug fixes:
+
+* Fixed `Symbol#match` returning `MatchData` (#1706).
+
+Compatibility:
+
+* Added `Kernel#then` (#1703).
+* `FFI::Struct#[]=` is now supported for inline character arrays.
+* `blocking: true` is now supported for `FFI::Library#attach_function`.
+
+Changes:
+
+* An interop read message sent to a `Proc` will no longer call the `Proc`.
+* Several `String` methods have been made faster by the usage of vector instructions
+  when searching for a single-byte character in a String.
+
 # 19.1.0, June 2019
+
+*Ruby is an experimental language in the GraalVM 19.1.0 release*
 
 Bug fixes:
 
@@ -9,37 +29,6 @@ Bug fixes:
 * Fixed `Addrinfo.new(String)` to reliably find the address family (#1702).
 * Fixed argument checks in `BasicSocket#setsockopt` (#1460).
 * Fixed `ObjectSpace.trace_object_allocations` (#1456).
-* Fixed the `Symbol#match` returning `MatchData` (#1706).
-* `Truffle::Interop.read(a_proc, key)` will no longer call the proc.
-
-Compatibility:
-
-* Exceptions from `coerce` are no longer rescued, like MRI.
-* Implemented `Integer#{allbits?,anybits?,nobits?}`.
-* `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
-* Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
-* Implemented more `Ripper` methods as no-ops (#1694).
-* Implemented `rb_enc_sprintf` (#1702).
-* Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
-* Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
-* Added `Kernel#then` (#1703).
-* `FFI::Struct#[]=` is now supported for inline character arrays.
-* `blocking: true` is now supported for `FFI::Library#attach_function`.
-
-Changes:
-
-* Interactive sources (like the GraalVM polyglot shell) now all share the same binding (#1695).
-
-Performance:
-
-* `eval(code, binding)` for a fixed `code` containing blocks is now much faster. This improves the performance of rendering `ERB` templates containing loops.
-* Several `String` methods have been made faster by the usage of vector instructions
-  when searching for a single-byte character in a String.
-
-# 20.0.0 beta 1
-
-Bug fixes:
-
 * Fixed `BigDecimal#{clone,dup}` so it now just returns the receiver, per Ruby 2.5+ semantics (#1680).
 * Fixed creating `BigDecimal` instances from non-finite `Float` values (#1685).
 * Fixed `BigDecimal#inspect` output for non-finite values (e.g, NaN or -Infinity) (#1683).
