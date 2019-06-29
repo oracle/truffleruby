@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -37,12 +36,12 @@ public abstract class ObjectIVarGetNode extends RubyBaseWithoutContextNode {
         return executeIVarGet(object, name, false);
     }
 
-    @Specialization(guards = {"name == cachedName"}, limit = "getCacheLimit()")
+    @Specialization(guards = { "name == cachedName", "checkName == cachedCheckName" }, limit = "getCacheLimit()")
     public Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
+            @Cached("checkName") boolean cachedCheckName,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("checkName(context, object, name, checkName)") Object cachedName,
+            @Cached("checkName(context, object, name, cachedCheckName)") Object cachedName,
             @Cached ReadObjectFieldNode readObjectFieldNode) {
-        CompilerAsserts.partialEvaluationConstant(checkName);
         return readObjectFieldNode.execute(object, cachedName, context.getCoreLibrary().getNil());
     }
 
