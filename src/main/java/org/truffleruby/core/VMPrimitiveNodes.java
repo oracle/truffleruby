@@ -37,6 +37,8 @@
  */
 package org.truffleruby.core;
 
+import java.util.Map.Entry;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Cached;
@@ -49,8 +51,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -70,14 +72,12 @@ import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
 
 import java.io.PrintStream;
-import java.util.Map.Entry;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -173,14 +173,14 @@ public abstract class VMPrimitiveNodes {
 
         public VMMethodLookupNode() {
             nameToJavaStringNode = NameToJavaStringNode.create();
-            lookupMethodNode = LookupMethodNodeGen.create(true, false);
+            lookupMethodNode = LookupMethodNode.create();
         }
 
         @Specialization
         public DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, self, normalizedName);
             if (method == null) {
                 return nil();
             }

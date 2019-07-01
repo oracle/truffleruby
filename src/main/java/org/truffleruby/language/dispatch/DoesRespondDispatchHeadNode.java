@@ -56,11 +56,8 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
         @Override
         public boolean doesRespondTo(VirtualFrame frame, Object name, Object receiver) {
-            // FIXME (pitr 28-Jun-2019): migrate the dispatch nodes properly instead
-            UncachedDispatchNode uncachedDispatchNode = new UncachedDispatchNode(
-                    true, false, DispatchAction.RESPOND_TO_METHOD, MissingBehavior.RETURN_MISSING);
-            return (boolean) uncachedDispatchNode.executeDispatch(
-                    null, receiver, name, null, RubyNode.EMPTY_ARGUMENTS);
+            return (boolean) DSLUncachedDispatchNodeGen.getUncached().dispatch(
+                    null, receiver, name, null, RubyNode.EMPTY_ARGUMENTS, DispatchAction.RESPOND_TO_METHOD, MissingBehavior.RETURN_MISSING, true, false);
         }
 
         @Override

@@ -111,7 +111,6 @@ import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadD
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
@@ -822,7 +821,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -867,7 +866,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -885,7 +884,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -902,7 +901,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1071,7 +1070,7 @@ public abstract class KernelNodes {
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
-            lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, !ignoreVisibility);
+            lookupMethodNode = LookupMethodNode.create();
         }
 
         public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, DynamicObject name);
@@ -1081,12 +1080,12 @@ public abstract class KernelNodes {
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
                 @Cached("createBinaryProfile()") ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode.call(self, "respond_to_missing?", name, ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
-                    final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
+                    final InternalMethod methodMissing = lookupMethodNode.lookup(frame, self, "method_missing", ignoreVisibility, !ignoreVisibility);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(normalizedName, coreLibrary().getLogicalClass(self), this));
@@ -1339,7 +1338,7 @@ public abstract class KernelNodes {
 
         @CreateCast("feature")
         public RubyNode coerceToPath(RubyNode feature) {
-            return NameToJavaStringNodeGen.create(ToPathNodeGen.create(feature));
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(ToPathNodeGen.create(feature));
         }
 
         @Specialization
@@ -1512,7 +1511,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization

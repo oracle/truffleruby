@@ -161,7 +161,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization(guards = {
@@ -202,7 +202,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization(guards = "!isHiddenVariable(name)")
@@ -237,7 +237,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization(guards = {

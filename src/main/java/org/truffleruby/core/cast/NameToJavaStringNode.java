@@ -9,18 +9,23 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -31,32 +36,34 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
  * The exception message below assumes this conversion is done for a method name.
  */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class NameToJavaStringNode extends RubyNode {
+@GenerateUncached
+public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
 
-    @Child private ToJavaStringNode toJavaStringNode;
+    // FIXME (pitr 12-Jun-2019): find a different way
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class RubyNodeWrapperNode extends RubyNode {
+        @Specialization
+        public Object call(Object value,
+                @Cached NameToJavaStringNode toJavaString) {
+            return toJavaString.executeToJavaString(value);
+        }
+    }
 
     public static NameToJavaStringNode create() {
-        return NameToJavaStringNodeGen.create(null);
+        return NameToJavaStringNodeGen.create();
     }
 
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = "isRubyString(value)")
-    public String stringNameToJavaString(DynamicObject value) {
-        return executeToJavaString(value);
+    public String stringNameToJavaString(DynamicObject value,
+            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
+        return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public String symbolNameToJavaString(DynamicObject value) {
-        return executeToJavaString(value);
-    }
-
-    private String executeToJavaString(DynamicObject value) {
-        if (toJavaStringNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toJavaStringNode = insert(ToJavaStringNode.create());
-        }
+    public String symbolNameToJavaString(DynamicObject value,
+            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
@@ -67,6 +74,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
     public String nameToJavaString(Object object,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("create()") BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toStr) {
         final Object coerced;
@@ -75,8 +83,9 @@ public abstract class NameToJavaStringNode extends RubyNode {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(getContext(), coreExceptions().typeError(StringUtils.toString(object) + " is not a symbol nor a string", this));
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context.getCoreLibrary().getNoMethodErrorClass()) {
+                throw new RaiseException(context, context.getCoreExceptions().typeError(
+                        StringUtils.toString(object) + " is not a symbol nor a string", this));
             } else {
                 throw e;
             }
@@ -86,7 +95,8 @@ public abstract class NameToJavaStringNode extends RubyNode {
             return StringOperations.getString((DynamicObject) coerced);
         } else {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
+            throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(
+                    object, "String", "to_str", coerced, this));
         }
     }
 

@@ -61,13 +61,8 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         @Override
         @TruffleBoundary
         public Object callWithBlock(Object receiver, String methodName, DynamicObject block, Object... arguments) {
-            // FIXME (pitr 28-Jun-2019): migrate the dispatch nodes properly instead
-            UncachedDispatchNode uncachedDispatchNode = new UncachedDispatchNode(
-                    true,
-                    false,
-                    DispatchAction.CALL_METHOD,
-                    MissingBehavior.CALL_METHOD_MISSING);
-            return uncachedDispatchNode.executeDispatch(null, receiver, methodName, block, arguments);
+            return DSLUncachedDispatchNodeGen.getUncached().dispatch(
+                    null, receiver, methodName, block, arguments, DispatchAction.CALL_METHOD, MissingBehavior.CALL_METHOD_MISSING, true, false);
         }
 
         @Override

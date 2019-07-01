@@ -301,12 +301,12 @@ public abstract class ModuleNodes {
 
         @CreateCast("newName")
         public RubyNode coerceNewNameToString(RubyNode newName) {
-            return NameToJavaStringNodeGen.create(newName);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 
         @CreateCast("oldName")
         public RubyNode coerceOldNameToString(RubyNode oldName) {
-            return NameToJavaStringNodeGen.create(oldName);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(oldName);
         }
 
         @Child AddMethodNode addMethodNode = AddMethodNode.create(false);
@@ -523,7 +523,7 @@ public abstract class ModuleNodes {
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name") public RubyNode coerceNameToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("filename") public RubyNode coerceFilenameToPath(RubyNode filename) {
@@ -697,7 +697,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -719,7 +719,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -746,7 +746,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -821,7 +821,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("inherit")
@@ -934,7 +934,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -958,7 +958,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1002,7 +1002,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1243,7 +1243,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("inherit")
@@ -1417,7 +1417,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -1502,7 +1502,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -1565,7 +1565,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -1648,7 +1648,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -1667,7 +1667,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
