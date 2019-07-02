@@ -136,7 +136,7 @@ public class RopeOperations {
     }
 
     public static byte[] encodeAsciiBytes(String value) {
-        assert StringOperations.isASCIIOnly(value);
+        assert StringOperations.isAsciiOnly(value);
 
         final byte[] bytes = new byte[value.length()];
 

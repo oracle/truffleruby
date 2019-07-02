@@ -70,7 +70,7 @@ public abstract class StringOperations {
     public static byte[] encodeBytes(String value, Encoding encoding) {
         // Taken from org.jruby.RubyString#encodeByteList.
 
-        if (encoding == ASCIIEncoding.INSTANCE && !isASCIIOnly(value)) {
+        if (encoding == ASCIIEncoding.INSTANCE && !isAsciiOnly(value)) {
             throw new UnsupportedOperationException(
                     StringUtils.format("Can't convert Java String (%s) to Ruby BINARY String because it contains non-ASCII characters", value));
         }
@@ -114,7 +114,7 @@ public abstract class StringOperations {
         return rope(string).getEncoding();
     }
 
-    public static boolean isASCIIOnly(String string) {
+    public static boolean isAsciiOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
             if (!Encoding.isAscii(c)) {
