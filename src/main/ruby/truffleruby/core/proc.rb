@@ -103,4 +103,28 @@ class Proc
   def to_proc
     self
   end
+
+  def >>(other)
+    if other.respond_to?(:lambda?) && other.lambda?
+      -> (*args, &block) do
+        other.call(call(*args, &block))
+      end
+    else
+      proc do |*args, &block|
+        other.call(call(*args, &block))
+      end
+    end
+  end
+
+  def <<(other)
+    if other.respond_to?(:lambda?) && other.lambda?
+      -> (*args, &block) do
+        call(other.call(*args, &block))
+      end
+    else
+      proc do |*args, &block|
+        call(other.call(*args, &block))
+      end
+    end
+  end
 end
