@@ -36,6 +36,7 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayOperations;
@@ -69,9 +70,13 @@ public abstract class StringOperations {
     public static byte[] encodeBytes(String value, Encoding encoding) {
         // Taken from org.jruby.RubyString#encodeByteList.
 
+        if (encoding == ASCIIEncoding.INSTANCE && !isAsciiOnly(value)) {
+            throw new UnsupportedOperationException(
+                    StringUtils.format("Can't convert Java String (%s) to Ruby BINARY String because it contains non-ASCII characters", value));
+        }
+
         Charset charset = encoding.getCharset();
 
-        // if null charset, fall back on Java default charset
         if (charset == null) {
             throw new UnsupportedOperationException("Cannot find Charset to encode " + value + " with " + encoding);
         }
@@ -109,7 +114,7 @@ public abstract class StringOperations {
         return rope(string).getEncoding();
     }
 
-    public static boolean isASCIIOnly(String string) {
+    public static boolean isAsciiOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
             if (!Encoding.isAscii(c)) {

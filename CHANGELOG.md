@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed `Symbol#match` returning `MatchData` (#1706).
+* Allow `Time#strftime` to be called with binary format strings.
 
 Compatibility:
 

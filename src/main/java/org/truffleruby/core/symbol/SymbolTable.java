@@ -79,7 +79,7 @@ public class SymbolTable implements ReHashable {
         }
 
         final Rope rope;
-        if (StringOperations.isASCIIOnly(string)) {
+        if (StringOperations.isAsciiOnly(string)) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         } else {
             rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
