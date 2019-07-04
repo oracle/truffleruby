@@ -40,15 +40,17 @@ mkconfig = RbConfig::MAKEFILE_CONFIG
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
 
-  ruby_so = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
+  libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
 else
-  ruby_so = "#{cext_dir}/libtruffleruby.#{dlext}"
+  libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
 
-librubyarg = "-L#{File.dirname(ruby_so)} -ltruffleruby -lpolyglot-mock"
+# Link to libtruffleruby by absolute path
+libtruffleruby_dir = File.dirname(libtruffleruby)
+librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
 
 common = {
   'LIBRUBYARG' => librubyarg,

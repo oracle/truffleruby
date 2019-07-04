@@ -2234,6 +2234,25 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
+    if defined?(::TruffleRuby) and Truffle::Boot.get_option('building-core-cexts') and target != 'libtruffleruby'
+      # Replace the -rpath argument in $LIBRUBYARG with a relative path to libtruffleruby for core C exts
+      # Relative path from lib/mri/$TARGET to lib/cext/libtruffleruby.so
+      nesting = target.count('/')
+      target_dir_to_libtruffleruby_dir = "#{'../' * nesting}../cext"
+      if Truffle::Platform.darwin?
+        origin_token = '@loader_path'
+      else
+        origin_token = '$$ORIGIN' # $$ so the Makefile does not expand it
+      end
+
+      librubyarg = $LIBRUBYARG.split(' ')
+      rpath_index = librubyarg.index('-rpath')
+      raise 'Could not find -rpath in $LIBRUBYARG' unless rpath_index
+      # Extra quotes so the shell does not try to interpret $ORIGIN
+      librubyarg[rpath_index + 1] = "'#{origin_token}/#{target_dir_to_libtruffleruby_dir}'"
+      $LIBRUBYARG = librubyarg.join(' ')
+    end
+
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
