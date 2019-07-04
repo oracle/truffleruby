@@ -1471,7 +1471,7 @@ module Truffle::CExt
   def data_marker(mark, data_holder)
     raise unless mark.respond_to?(:call)
     proc { |obj|
-      create_mark_list
+      create_mark_list(obj)
       Truffle.invoke_primitive(:call_with_c_mutex, mark, [data_holder.data]) unless data_holder.data.nil?
       set_mark_list_on_object(obj)
     }

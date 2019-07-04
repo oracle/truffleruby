@@ -56,17 +56,25 @@ public class ValueWrapperManager {
 
     private Object[] blockMap = new Object[0];
 
-    private final ThreadLocal<HandleBlockHolder> threadBlocks = ThreadLocal.withInitial(() -> new HandleBlockHolder());
+    private final ThreadLocal<HandleThreadData> threadBlocks;
 
     private final RubyContext context;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
+        this.threadBlocks = ThreadLocal.withInitial((this::makeThreadData));
         nilWrapper = new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE, null);
     }
 
+    public HandleThreadData makeThreadData() {
+        HandleThreadData threadData = new HandleThreadData();
+        HandleBlockHolder holder = threadData.holder;
+        context.getFinalizationService().addFinalizer(threadData, null, ValueWrapperManager.class, () -> context.getMarkingService().queueForMarking(holder.handleBlock.wrappers), null);
+        return threadData;
+    }
+
     @TruffleBoundary
-    public HandleBlockHolder getBlockHolder() {
+    public HandleThreadData getBlockHolder() {
         return threadBlocks.get();
     }
 
@@ -145,8 +153,8 @@ public class ValueWrapperManager {
         }
     }
 
-    private static final int BLOCK_SIZE = 128;
-    private static final int BLOCK_BITS = 10;
+    private static final int BLOCK_BITS = 15;
+    private static final int BLOCK_SIZE = 1 << (BLOCK_BITS - TAG_BITS);
     private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << TAG_BITS;
     private static final long BLOCK_MASK = -1L << BLOCK_BITS;
     private static final long OFFSET_MASK = ~BLOCK_MASK;
@@ -217,43 +225,37 @@ public class ValueWrapperManager {
     }
 
     protected static class HandleBlockHolder {
+        protected HandleBlock handleBlock = null;
+    }
 
-        private HandleBlock handleBlock;
+    protected static class HandleThreadData {
 
-        public HandleBlockHolder() {
-            handleBlock = null;
-        }
+        private final HandleBlockHolder holder = new HandleBlockHolder();
 
         public HandleBlock currentBlock() {
-            return handleBlock;
+            return holder.handleBlock;
         }
 
         public HandleBlock makeNewBlock() {
-            handleBlock = new HandleBlock();
-            return handleBlock;
-        }
-
-        @TruffleBoundary
-        public void debug(HandleBlock block) {
-            System.err.printf("Allocated %x.\n", block.getBase());
+            return (holder.handleBlock = new HandleBlock());
         }
     }
 
     @GenerateUncached
     public static abstract class GetHandleBlockHolderNode extends RubyBaseWithoutContextNode {
 
-        public abstract HandleBlockHolder execute(ValueWrapper wrapper);
+        public abstract HandleThreadData execute(ValueWrapper wrapper);
 
         @Specialization(guards = "cachedThread == currentJavaThread(wrapper)", limit = "getCacheLimit()")
-        protected HandleBlockHolder getHolderOnKnownThread(ValueWrapper wrapper,
+        protected HandleThreadData getHolderOnKnownThread(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("currentJavaThread(wrapper)") Thread cachedThread,
-                @Cached("getBlockHolder(wrapper, context)") HandleBlockHolder blockHolder) {
-            return blockHolder;
+                @Cached("getBlockHolder(wrapper, context)") HandleThreadData threadData) {
+            return threadData;
         }
 
         @Specialization(replaces = "getHolderOnKnownThread")
-        protected HandleBlockHolder getBlockHolder(ValueWrapper wrapper,
+        protected HandleThreadData getBlockHolder(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return context.getValueWrapperManager().getBlockHolder();
         }
@@ -281,11 +283,14 @@ public class ValueWrapperManager {
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode,
                 @Cached BranchProfile newBlockProfile) {
-            HandleBlockHolder holder = getBlockHolderNode.execute(wrapper);
-            HandleBlock block = holder.handleBlock;
+            HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
+            HandleBlock block = threadData.holder.handleBlock;
             if (block == null || block.isFull()) {
                 newBlockProfile.enter();
-                block = holder.makeNewBlock();
+                if (block != null) {
+                    context.getMarkingService().queueForMarking(block.wrappers);
+                }
+                block = threadData.makeNewBlock();
                 context.getValueWrapperManager().addToBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);

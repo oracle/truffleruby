@@ -81,6 +81,7 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
@@ -1401,20 +1402,14 @@ public class CExtNodes {
         }
     }
 
-    private static final ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
-
-    @CoreMethod(names = "create_mark_list", onSingleton = true, required = 0)
+    @CoreMethod(names = "create_mark_list", onSingleton = true, required = 1)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject createNewMarkList(VirtualFrame frmae) {
-            setThreadLocal();
+        protected DynamicObject createNewMarkList(DynamicObject obj,
+                @Cached ReadObjectFieldNode readMarkedNode) {
+            getContext().getMarkingService().startMarking((Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
             return nil();
-        }
-
-        @TruffleBoundary
-        protected void setThreadLocal() {
-            markList.set(new ArrayList<>());
         }
     }
 
@@ -1429,17 +1424,12 @@ public class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getList().add(wrappedValue);
+                getContext().getMarkingService().addMark(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
             // marking may have already been removed from the handle map. }
             return nil();
-        }
-
-        @TruffleBoundary
-        protected ArrayList<Object> getList() {
-            return markList.get();
         }
 
         protected UnwrapNode createUnwrapNode() {
@@ -1481,13 +1471,8 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getArray());
+            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getContext().getMarkingService().finishMarking());
             return nil();
-        }
-
-        @TruffleBoundary
-        protected Object[] getArray() {
-            return markList.get().toArray();
         }
     }
 
