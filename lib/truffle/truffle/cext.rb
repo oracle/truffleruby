@@ -13,6 +13,7 @@ module Truffle::CExt
 
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new
+  RB_TYPE = Object.new
 
   extend self
 
@@ -299,6 +300,27 @@ module Truffle::CExt
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
 
+    value_class = value.class
+    type = hidden_variable_get(value_class, RB_TYPE)
+    type ||= hidden_variable_set(value_class, RB_TYPE, rb_tr_find_type(value))
+    rb_tr_cached_type(value, type)
+  end
+
+  def rb_tr_cached_type(value, type)
+    if type == T_NONE
+      if hidden_variable_get(value, DATA_HOLDER)
+        T_DATA
+      else
+        T_OBJECT
+      end
+    elsif type == T_FIXNUM
+      Truffle::Type.fits_into_long?(value) ? T_FIXNUM : T_BIGNUM
+    else
+      type
+    end
+  end
+
+  def rb_tr_find_type(value)
     case value
     when Class
       T_CLASS
@@ -331,50 +353,20 @@ module Truffle::CExt
     when Symbol
       T_SYMBOL
     when Integer
-      Truffle::Type.fits_into_long?(value) ? T_FIXNUM : T_BIGNUM
+      T_FIXNUM
     when Time
       T_DATA
     when Data
       T_DATA
     when BasicObject
-      if hidden_variable_get(value, DATA_HOLDER)
-        T_DATA
-      else
-        T_OBJECT
-      end
+      T_NONE
     else
       raise "unknown type #{value.class}"
     end
   end
 
   def RB_TYPE_P(value, type)
-    # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
-    # that puts never seen cases behind a transfer
-
-    case type
-    when T_SYMBOL
-      value.is_a?(Symbol)
-    when T_STRING
-      value.is_a?(String)
-    when T_FIXNUM
-      value.is_a?(Integer) && Truffle::Type.fits_into_long?(value)
-    when T_BIGNUM
-      value.is_a?(Integer) && !Truffle::Type.fits_into_long?(value)
-    when T_ARRAY
-      value.is_a?(Array)
-    when T_FILE
-      value.is_a?(File)
-    when T_HASH
-      value.is_a?(Hash)
-    when T_DATA
-      value.is_a?(Data)
-    when T_FLOAT
-      value.is_a?(Float)
-    when T_CLASS
-      value.is_a?(Class)
-    else
-      raise "unknown type #{type}"
-    end
+    return rb_type(value) == type
   end
 
   def rb_check_type(value, type)
