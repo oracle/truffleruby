@@ -18,4 +18,14 @@ describe "Thread#value" do
     t = Thread.new { Thread.current.exit }
     t.value.should == nil
   end
+
+  it "returns when the thread finished" do
+    q = Queue.new
+    t = Thread.new {
+      q.pop
+    }
+    -> { t.value }.should block_caller
+    q.push :result
+    t.value.should == :result
+  end
 end
