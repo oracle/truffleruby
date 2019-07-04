@@ -117,10 +117,7 @@ describe "C-API Thread function" do
       # Wake it up, causing the unblock function to be run.
       thr.wakeup
 
-      # Make sure it stopped
-      thr.join(1).should_not be_nil
-
-      # And we got a proper value
+      # Make sure it stopped and we got a proper value
       thr.value.should be_true
     end
 
@@ -139,10 +136,7 @@ describe "C-API Thread function" do
       # Wake it up, causing the unblock function to be run.
       thr.wakeup
 
-      # Make sure it stopped
-      thr.join(1).should_not be_nil
-
-      # And we got a proper value
+      # Make sure it stopped and we got a proper value
       thr.value.should be_true
     end
   end

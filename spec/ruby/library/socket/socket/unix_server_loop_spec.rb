@@ -48,7 +48,7 @@ with_feature :unix_socket do
           end
         end
 
-        thread.join(2)
+        thread.join
 
         @sock.should be_an_instance_of(Socket)
         addr.should be_an_instance_of(Addrinfo)

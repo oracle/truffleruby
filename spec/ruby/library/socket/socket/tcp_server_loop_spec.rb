@@ -45,7 +45,7 @@ describe 'Socket.tcp_server_loop' do
       # At this point the connection has been set up but the thread may not yet
       # have returned, thus we'll need to wait a little longer for it to
       # complete.
-      thread.join(2)
+      thread.join
 
       @sock.should be_an_instance_of(Socket)
       addr.should be_an_instance_of(Addrinfo)

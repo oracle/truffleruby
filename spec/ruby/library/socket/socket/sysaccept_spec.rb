@@ -59,8 +59,6 @@ describe 'Socket#sysaccept' do
 
           @client.connect(@server_addr)
 
-          thread.join(5)
-
           thread.value.should be_an_instance_of(Array)
         end
       end
