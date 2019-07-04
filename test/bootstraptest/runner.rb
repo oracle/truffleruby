@@ -59,7 +59,7 @@ if !Dir.respond_to?(:mktmpdir)
 end
 
 def main
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     require 'rbconfig'
     @ruby = RbConfig.ruby
   else
@@ -167,7 +167,7 @@ End
     end
     puts "Target is #{`#{@ruby} -v`.chomp}"
     puts
-    `#{@ruby} -e '$stderr.puts "WARNING: this test will take a long time unless you run in a native configuration" if RUBY_ENGINE == "truffleruby" && !TruffleRuby.native?'`
+    `#{@ruby} -e '$stderr.puts "WARNING: this test will take a long time unless you run in a native configuration" if defined?(::TruffleRuby) && !TruffleRuby.native?'`
     $stdout.flush
   end
 

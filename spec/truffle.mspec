@@ -109,7 +109,7 @@ class MSpecScript
     [/_spec.rb$/,                       '_tags.txt']
   ]
 
-  if defined?(TruffleRuby) && TruffleRuby.native?
+  if defined?(::TruffleRuby) && TruffleRuby.native?
     # exclude specs tagged with 'aot' and 'graalvm'
     set :xtags, (get(:xtags) || []) + ['aot', 'graalvm']
   end

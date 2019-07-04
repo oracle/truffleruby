@@ -14,7 +14,7 @@
 require "mkmf"
 require File.expand_path('../deprecation', __FILE__)
 
-if RUBY_ENGINE == 'truffleruby'
+if defined?(::TruffleRuby)
   require 'truffle/openssl-prefix'
   dir_config("openssl", ENV["OPENSSL_PREFIX"])
 else

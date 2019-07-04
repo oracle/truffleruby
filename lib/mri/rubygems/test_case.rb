@@ -109,7 +109,7 @@ class Gem::TestCase < (defined?(Minitest::Test) ? Minitest::Test : MiniTest::Uni
 
   extend Gem::Deprecate
 
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     # Added to avoid hardcoded paths
     TEST_DIR = ENV.fetch('RUBYGEMS_TEST_PATH', File.expand_path('../../../test', __FILE__))
   end
@@ -1358,7 +1358,7 @@ Also, a list:
   end
 
   @@ruby = rubybin
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     @@good_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/good_rake.rb\""
     @@bad_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/bad_rake.rb\""
   else
@@ -1553,7 +1553,7 @@ Also, a list:
 
   def self.cert_path(cert_name)
     if 32 == (Time.at(2**32) rescue 32)
-      if RUBY_ENGINE == 'truffleruby'
+      if defined?(::TruffleRuby)
         cert_file =
           "#{TEST_DIR}/rubygems/#{cert_name}_cert_32.pem"
       else
@@ -1565,7 +1565,7 @@ Also, a list:
       return cert_file if File.exist? cert_file
     end
 
-    if RUBY_ENGINE == 'truffleruby'
+    if defined?(::TruffleRuby)
       "#{TEST_DIR}/rubygems/#{cert_name}_cert.pem"
     else
       File.expand_path "../../../test/rubygems/#{cert_name}_cert.pem", __FILE__
@@ -1587,7 +1587,7 @@ Also, a list:
   # Returns the path to the key named +key_name+ from <tt>test/rubygems</tt>
 
   def self.key_path(key_name)
-    if RUBY_ENGINE == 'truffleruby'
+    if defined?(::TruffleRuby)
       "#{TEST_DIR}/rubygems/#{key_name}_key.pem"
     else
       File.expand_path "../../../test/rubygems/#{key_name}_key.pem", __FILE__

@@ -8,3 +8,5 @@
 
 example "RUBY_ENGINE == 'truffleruby'", true
 example "'truffleruby' == RUBY_ENGINE", true
+
+example "defined?(::TruffleRuby) == 'constant'", true

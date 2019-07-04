@@ -940,7 +940,7 @@ class ERB
   def def_method(mod, methodname, fname='(ERB)')
     src = self.src.sub(/^(?!#|$)/) {"def #{methodname}\n"} << "\nend\n"
     mod.module_eval do
-      if RUBY_ENGINE == 'truffleruby'
+      if defined?(::TruffleRuby)
         eval(src, binding, fname)
       else
         eval(src, binding, fname, -1)

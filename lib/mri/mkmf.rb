@@ -7,7 +7,7 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
-if RUBY_ENGINE == 'truffleruby'
+if defined?(::TruffleRuby)
   # Setup config here as we need to check the clang version
   require 'rbconfig-for-mkmf'
   # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
@@ -237,7 +237,7 @@ module MakeMakefile
     map.inject(dir) {|d, (orig, new)| d.gsub(orig, new)}
   end
 
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     $extmk = Truffle::Boot.get_option('building-core-cexts') || ENV.key?('MKMF_SET_EXTMK_TO_TRUE')
     topdir = RbConfig::CONFIG['prefix'] # the TruffleRuby home
     $hdrdir = RbConfig::CONFIG["rubyhdrdir"] # lib/cext/include
@@ -520,7 +520,7 @@ MSG
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
-    if RUBY_ENGINE == 'truffleruby'
+    if defined?(::TruffleRuby)
       # Specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
       RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
                        conf)
@@ -2165,7 +2165,7 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
-    if RUBY_ENGINE == 'truffleruby'
+    if defined?(::TruffleRuby)
       # Added dependency on Makefile as we should recompile if the Makefile was re-generated
       if $extconf_h
         depout.unshift("$(OBJS): Makefile $(RUBY_EXTCONF_H)\n\n")
@@ -2527,7 +2527,7 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      if RUBY_ENGINE == 'truffleruby'
+      if defined?(::TruffleRuby)
         # Added dependency on Makefile as we should recompile if the Makefile was re-generated
         mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
       else
@@ -2675,7 +2675,7 @@ MESSAGE
   end
   $configure_args["--topdir"] ||= $curdir
 
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     $ruby = arg_config("--ruby", RbConfig.ruby)
   else
     $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))

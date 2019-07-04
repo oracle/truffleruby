@@ -4,7 +4,7 @@ require "rubygems/deprecate"
 
 # If we're being loaded after yaml was already required, then
 # load our yaml + workarounds now.
-if RUBY_ENGINE == 'truffleruby'
+if defined?(::TruffleRuby)
   if defined? ::YAML
     # Truffle: this is conditional because at this point #gem cannot be defined
     # (it is defined after loading rubygems/core_ext/kernel_gem which comes

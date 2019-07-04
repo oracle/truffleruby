@@ -13,7 +13,7 @@ require 'socket'
 require 'io/nonblock'
 require 'etc'
 
-if RUBY_ENGINE == 'truffleruby'
+if defined?(::TruffleRuby)
   require 'timeout'
 end
 
@@ -259,7 +259,7 @@ module WEBrick
     # than +seconds+.
     #
     # If +seconds+ is zero or nil, simply executes the block
-    if RUBY_ENGINE == 'truffleruby'
+    if defined?(::TruffleRuby)
       def timeout(seconds, exception=Timeout::Error, &block)
         return yield if seconds.nil? or seconds.zero?
         Timeout.timeout(seconds, exception, &block)

@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 # -*- coding: us-ascii -*-
 
-if RUBY_ENGINE == 'truffleruby'
+if defined?(::TruffleRuby)
   require 'rbconfig'
   RUBY = RbConfig.ruby
 else
