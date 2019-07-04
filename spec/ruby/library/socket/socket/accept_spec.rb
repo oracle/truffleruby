@@ -56,7 +56,6 @@ describe 'Socket#accept' do
 
           client.connect(@server_addr)
 
-          thread.join(5)
           value = thread.value
           begin
             value.should be_an_instance_of(Array)
