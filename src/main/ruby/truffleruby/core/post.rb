@@ -102,8 +102,9 @@ end
 ruby_home = Truffle::Boot.ruby_home
 if ruby_home
   # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
-  # paths supplied by -I will stay before gem lib directories.
-  $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/#{Truffle::RUBY_BASE_VERSION}"
+  # paths supplied by -I will stay before gem lib directories. See Gem.load_path_insert_index in rubygems.rb.
+  # Must be kept in sync with the value of RbConfig::CONFIG['sitelibdir'].
+  $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/#{RUBY_ENGINE_VERSION}"
 
   $LOAD_PATH.push "#{ruby_home}/lib/truffle"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"

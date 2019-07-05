@@ -67,8 +67,8 @@ describe "Identifying features such as" do
     RbConfig::CONFIG['RUBY_INSTALL_NAME'].should == 'truffleruby'
   end
 
-  it "RbConfig::CONFIG['ruby_version'] matches RUBY_VERSION except with the minor always being zero" do
-    RbConfig::CONFIG['ruby_version'].should == RUBY_VERSION.sub(/\.(\d+)\z/, '.0')
+  it "RbConfig::CONFIG['ruby_version'] is the ABI version and matches RUBY_ENGINE_VERSION" do
+    RbConfig::CONFIG['ruby_version'].should == RUBY_ENGINE_VERSION
   end
 
   it "RbConfig::CONFIG['RUBY_BASE_NAME'] is 'ruby'" do

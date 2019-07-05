@@ -2,6 +2,7 @@
 
 Bug fixes:
 
+* Set `RbConfig::CONFIG['ruby_version']` to the same value as the TruffleRuby version. This fixes reusing C extensions between different versions of TruffleRuby with Bundler (#1715).
 * Fixed `Symbol#match` returning `MatchData` (#1706).
 * Allow `Time#strftime` to be called with binary format strings.
 
