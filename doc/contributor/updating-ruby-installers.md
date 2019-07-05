@@ -42,7 +42,7 @@ cc `@havenwood` in the PR description.
 There is a script in the repo that does everything needed:
 
 ```bash
-$ script/update-truffleruby $VERSION
+$ script/update-truffleruby $VERSION ../ruby-versions/pkg
 ```
 
 Example PR for `1.0.0-rc12`: https://github.com/rbenv/ruby-build/pull/1282
