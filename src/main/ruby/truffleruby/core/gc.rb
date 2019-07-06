@@ -76,11 +76,18 @@ module GC
     GC.start
   end
 
-  def self.stat
-    {
+  def self.stat(option = nil)
+    stat = {
       count: GC.count,
       time: GC.time,
     }
+    return stat unless option
+
+    if stat[option]
+      stat[option]
+    else
+      0
+    end
   end
 
   module Profiler
