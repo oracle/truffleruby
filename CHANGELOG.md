@@ -10,6 +10,7 @@ Compatibility:
 * Added `Kernel#then` (#1703).
 * `FFI::Struct#[]=` is now supported for inline character arrays.
 * `blocking: true` is now supported for `FFI::Library#attach_function`.
+* Implemented `Proc#>>` and `#<<` (#1688).
 
 Changes:
 
