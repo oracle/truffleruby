@@ -13,7 +13,7 @@ rescue LoadError
 end
 
 class Integer
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     FIXNUM_MIN = Truffle::Platform::LONG_MIN
     FIXNUM_MAX = Truffle::Platform::LONG_MAX
   else

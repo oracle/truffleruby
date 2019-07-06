@@ -589,7 +589,7 @@ module URI
         raise InvalidURIError,
           "can not set host with registry or opaque"
       else
-        if RUBY_ENGINE == 'truffleruby'
+        if defined?(::TruffleRuby)
           bad = !parser.regexp[:HOST].match(v)
         else
           bad = parser.regexp[:HOST] !~ v

@@ -3,7 +3,7 @@
 exit if defined?(CROSS_COMPILING) and CROSS_COMPILING
 ruby = ENV["RUBY"]
 unless ruby
-  if RUBY_ENGINE == 'truffleruby'
+  if defined?(::TruffleRuby)
     require 'rbconfig'
     ruby = RbConfig.ruby
   else

@@ -943,7 +943,7 @@ module Net   #:nodoc:
 
       D "opening connection to #{conn_address}:#{conn_port}..."
 
-      if RUBY_ENGINE == 'truffleruby'
+      if defined?(::TruffleRuby)
         # We'd rather use :connect_timeout than Timeout, as that starts a thread
         begin
           s = Socket.tcp(conn_address, conn_port, @local_host, @local_port, connect_timeout: @open_timeout)

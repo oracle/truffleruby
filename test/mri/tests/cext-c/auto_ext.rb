@@ -3,7 +3,7 @@ def auto_ext(feat = $0[%r[/test/mri/tests/(cext-c/.*)/extconf.rb\z], 1], inc: fa
   $INCFLAGS << " -I$(topdir) -I$(top_srcdir)" if inc
 
   # internal.h is in with normal headers in TruffleRuby
-  $INCFLAGS << " -I$(includedir)" if inc && RUBY_ENGINE == 'truffleruby'
+  $INCFLAGS << " -I$(includedir)" if inc && defined?(::TruffleRuby)
   
   $srcs = Dir[File.join($srcdir, "*.{#{SRC_EXT.join(%q{,})}}")]
   inits = $srcs.map {|s| File.basename(s, ".*")}
