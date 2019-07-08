@@ -82,6 +82,12 @@ module Truffle::POSIX
     end
   end
 
+  def self.nfi_symbol_from_pointer(pointer, signature)
+    lib = LIBTRUFFLEPOSIX.resolve
+    # We have to bind each time as the signature changes - should be an offline operation
+    lib['identity_pointer'].bind("(pointer):#{signature}").call(pointer)
+  end
+
   # the actual function is looked up and attached on its first call
   def self.attach_function(native_name, argument_types, return_type,
                            library = LIBC, blocking = false, method_name = native_name, on = self)

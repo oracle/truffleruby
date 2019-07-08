@@ -48,7 +48,7 @@ module FFI
         @function = function.handle.bind(@function_info.nfi_type)
         super(@function)
       elsif FFI::Pointer === function
-        @function = create_nfi_pointer(function, @function_info.nfi_type)
+        @function = Truffle::POSIX.nfi_symbol_from_pointer(function, @function_info.nfi_type)
         super(@function)
       elsif Proc === function || Method === function
         @function = function
@@ -203,11 +203,6 @@ module FFI
       else
         raise ArgumentError, "#{value.inspect} (#{value.class}) is not a pointer"
       end
-    end
-
-    private def create_nfi_pointer(pointer, nfi_signature)
-      lib = Truffle::POSIX::LIBTRUFFLEPOSIX.resolve
-      lib['identity_pointer'].bind("(pointer):#{nfi_signature}").call(pointer)
     end
 
     private def create_native_wrapper(function, function_info)
