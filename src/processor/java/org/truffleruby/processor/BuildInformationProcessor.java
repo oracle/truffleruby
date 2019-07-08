@@ -59,7 +59,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
             revision = runCommand("git rev-parse --short=8 HEAD");
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
         } catch (Throwable e) {
-            env.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage());
+            throw new Error(e);
         }
     }
 
