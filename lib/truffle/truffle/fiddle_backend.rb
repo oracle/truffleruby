@@ -74,7 +74,7 @@ module Truffle::Fiddle
       Integer(val)
     when Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       Float(val)
-    else 
+    else
       raise "#{val.inspect} to type #{type}"
     end
   end
@@ -87,7 +87,7 @@ module Truffle::Fiddle
       Fiddle::Pointer.new(Truffle::Interop.to_native(val))
     when Fiddle::TYPE_INT, Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       val
-    else 
+    else
       raise "#{val.inspect} from type #{type}"
     end
   end
@@ -219,7 +219,7 @@ module Fiddle
     def self.[](*args)
       raise 'not implemented'
     end
-    
+
     RTLD_LAZY    = Truffle::Config['platform.dlopen.RTLD_LAZY']
     RTLD_NOW     = Truffle::Config['platform.dlopen.RTLD_NOW']
     RTLD_GLOBAL  = Truffle::Config['platform.dlopen.RTLD_GLOBAL']
