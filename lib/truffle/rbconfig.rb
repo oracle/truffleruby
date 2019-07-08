@@ -49,7 +49,10 @@ module RbConfig
   ruby_install_name = 'truffleruby'
 
   ruby_base_name = 'ruby'
-  ruby_version   = Truffle::RUBY_BASE_VERSION
+
+  # The full TruffleRuby version, so C extensions from one TruffleRuby version
+  # are not reused with another TruffleRuby version.
+  ruby_abi_version = RUBY_ENGINE_VERSION
 
   arch     = "#{host_cpu}-#{host_os}"
   libs     = ''
@@ -96,7 +99,7 @@ module RbConfig
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
-    'ruby_version'      => ruby_version,
+    'ruby_version'      => ruby_abi_version,
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
   }
@@ -160,8 +163,9 @@ module RbConfig
     sitedir = \
     expanded['sitedir'] = "#{rubylibprefix}/site_ruby"
     mkconfig['sitedir'] = '$(rubylibprefix)/site_ruby'
+    # Must be kept in sync with post.rb
     sitelibdir = \
-    expanded['sitelibdir'] = "#{sitedir}/#{ruby_version}"
+    expanded['sitelibdir'] = "#{sitedir}/#{ruby_abi_version}"
     mkconfig['sitelibdir'] = '$(sitedir)/$(ruby_version)'
     expanded['sitearchdir'] = "#{sitelibdir}/#{sitearch}"
     mkconfig['sitearchdir'] = '$(sitelibdir)/$(sitearch)'
