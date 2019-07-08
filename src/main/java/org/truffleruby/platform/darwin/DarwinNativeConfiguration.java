@@ -601,6 +601,8 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.dlopen.RTLD_NOW", 2);
         configuration.config("platform.dlopen.RTLD_LOCAL", 4);
         configuration.config("platform.dlopen.RTLD_GLOBAL", 8);
+        configuration.config("platform.dlopen.RTLD_NEXT", -1);
+        configuration.config("platform.dlopen.RTLD_DEFAULT", -2);
         configuration.config("platform.clocks.CLOCK_MONOTONIC", 6);
         configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW", 4);
         configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW_APPROX", 5);
