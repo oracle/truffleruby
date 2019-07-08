@@ -364,8 +364,8 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.PF_ISDN", 34);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 44);
-        configuration.config("platform.socket.PF_MAX", 44);
+        configuration.config("platform.socket.AF_MAX", 45);
+        configuration.config("platform.socket.PF_MAX", 45);
         configuration.config("platform.socket.AF_PACKET", 17);
         configuration.config("platform.socket.PF_PACKET", 17);
         configuration.config("platform.socket.AF_ROUTE", 16);
@@ -698,6 +698,8 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.dlopen.RTLD_NOW", 2);
         configuration.config("platform.dlopen.RTLD_LOCAL", 0);
         configuration.config("platform.dlopen.RTLD_GLOBAL", 256);
+        configuration.config("platform.dlopen.RTLD_NEXT", -1);
+        configuration.config("platform.dlopen.RTLD_DEFAULT", 0);
         configuration.config("platform.clocks.CLOCK_BOOTTIME", 7);
         configuration.config("platform.clocks.CLOCK_BOOTTIME_ALARM", 9);
         configuration.config("platform.clocks.CLOCK_MONOTONIC", 1);
@@ -736,6 +738,9 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.uintptr_t", string(context, "ulong"));
         configuration.config("platform.typedef.intmax_t", string(context, "long"));
         configuration.config("platform.typedef.uintmax_t", string(context, "ulong"));
+        configuration.config("platform.typedef.ptrdiff_t", string(context, "long"));
+        configuration.config("platform.typedef.size_t", string(context, "ulong"));
+        configuration.config("platform.typedef.wchar_t", string(context, "int"));
         configuration.config("platform.typedef.u_char", string(context, "uchar"));
         configuration.config("platform.typedef.u_short", string(context, "ushort"));
         configuration.config("platform.typedef.u_int", string(context, "uint"));
@@ -764,7 +769,6 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.timer_t", string(context, "pointer"));
         configuration.config("platform.typedef.useconds_t", string(context, "uint"));
         configuration.config("platform.typedef.suseconds_t", string(context, "long"));
-        configuration.config("platform.typedef.size_t", string(context, "ulong"));
         configuration.config("platform.typedef.ulong", string(context, "ulong"));
         configuration.config("platform.typedef.ushort", string(context, "ushort"));
         configuration.config("platform.typedef.uint", string(context, "uint"));
