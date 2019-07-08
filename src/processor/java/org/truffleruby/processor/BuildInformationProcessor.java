@@ -80,13 +80,20 @@ public class BuildInformationProcessor extends AbstractProcessor {
         return source.getParentFile();
     }
 
-    private String runCommand(String command) throws IOException {
+    private String runCommand(String command) throws IOException, InterruptedException {
         final Process git = new ProcessBuilder(command.split("\\s+"))
                         .directory(trufflerubyHome)
                         .start();
+        final String firstLine;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
-            return reader.readLine();
+            firstLine = reader.readLine();
         }
+
+        final int exitCode = git.waitFor();
+        if (exitCode != 0) {
+            throw new Error("Command " + command + " failed with exit code " + exitCode);
+        }
+        return firstLine;
     }
 
     @Override
