@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
@@ -238,8 +239,10 @@ public class ExceptionTranslatingNode extends RubyNode {
             throw (AssertionError) throwable;
         }
 
+        final boolean truffleException = throwable instanceof TruffleException;
+
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA
-                || getContext().getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
+                || (!truffleException && getContext().getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA)) {
             throwable.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
