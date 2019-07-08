@@ -357,6 +357,7 @@ class TypesGenerator < Generator
 
   def source(io)
     io.puts '#include <stdint.h>'
+    io.puts '#include <stddef.h>'
     io.puts '#include <sys/types.h>'
     io.puts '#include <sys/socket.h>'
     io.puts '#include <sys/resource.h>'

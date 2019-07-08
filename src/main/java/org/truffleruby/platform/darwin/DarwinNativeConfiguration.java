@@ -44,7 +44,7 @@ import org.truffleruby.platform.NativeConfiguration;
 public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on universal.x86_64-darwin18
+        // Generated from tool/generate-native-config.rb on x86_64-darwin18
         configuration.config("platform.sigaction.sizeof", 16);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -650,6 +650,10 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.intptr_t", string(context, "long"));
         configuration.config("platform.typedef.intmax_t", string(context, "long"));
         configuration.config("platform.typedef.uintmax_t", string(context, "ulong"));
+        configuration.config("platform.typedef.ptrdiff_t", string(context, "long"));
+        configuration.config("platform.typedef.size_t", string(context, "ulong"));
+        configuration.config("platform.typedef.rsize_t", string(context, "ulong"));
+        configuration.config("platform.typedef.wchar_t", string(context, "int"));
         configuration.config("platform.typedef.u_char", string(context, "uchar"));
         configuration.config("platform.typedef.u_short", string(context, "ushort"));
         configuration.config("platform.typedef.u_int", string(context, "uint"));
@@ -680,12 +684,10 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.swblk_t", string(context, "int"));
         configuration.config("platform.typedef.uid_t", string(context, "uint"));
         configuration.config("platform.typedef.clock_t", string(context, "ulong"));
-        configuration.config("platform.typedef.size_t", string(context, "ulong"));
         configuration.config("platform.typedef.ssize_t", string(context, "long"));
         configuration.config("platform.typedef.time_t", string(context, "long"));
         configuration.config("platform.typedef.useconds_t", string(context, "uint"));
         configuration.config("platform.typedef.suseconds_t", string(context, "int"));
-        configuration.config("platform.typedef.rsize_t", string(context, "ulong"));
         configuration.config("platform.typedef.errno_t", string(context, "int"));
         configuration.config("platform.typedef.fd_mask", string(context, "int"));
         configuration.config("platform.typedef.pthread_key_t", string(context, "ulong"));
