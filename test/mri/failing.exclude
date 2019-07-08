@@ -135,7 +135,6 @@ dtrace/test_require.rb
 dtrace/test_singleton_function.rb
 dtrace/test_string.rb
 erb/test_erb_command.rb
-fiddle/test_cparser.rb
 irb/test_completion.rb
 irb/test_option.rb
 irb/test_raise_no_backtrace_exception.rb

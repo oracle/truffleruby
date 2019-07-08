@@ -12,7 +12,9 @@ module Truffle::Fiddle
   SIZEOF_LONG   = Truffle::FFI::Pointer.find_type_size(:long)
 
   INT_NFI_TYPE  = "SINT#{SIZEOF_INT * 8}"
+  UINT_NFI_TYPE  = "UINT#{SIZEOF_INT * 8}"
   LONG_NFI_TYPE = "SINT#{SIZEOF_LONG * 8}"
+  ULONG_NFI_TYPE = "UINT#{SIZEOF_LONG * 8}"
 
   def self.type_to_nfi(type)
     case type
@@ -28,12 +30,14 @@ module Truffle::Fiddle
       INT_NFI_TYPE
     when Fiddle::TYPE_LONG
       LONG_NFI_TYPE
+    when -Fiddle::TYPE_LONG
+      ULONG_NFI_TYPE
     when Fiddle::TYPE_FLOAT
       'FLOAT'
     when Fiddle::TYPE_DOUBLE
       'DOUBLE'
     else
-      raise 'not implemented'
+      raise "#{type} not implemented"
     end
   end
 
@@ -66,7 +70,9 @@ module Truffle::Fiddle
       end
     when Fiddle::TYPE_INT
       Integer(val)
-    when Fiddle::TYPE_DOUBLE
+    when -Fiddle::TYPE_LONG
+      Integer(val)
+    when Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       Float(val)
     else 
       raise "#{val.inspect} to type #{type}"
@@ -79,7 +85,7 @@ module Truffle::Fiddle
       nil
     when Fiddle::TYPE_VOIDP
       Fiddle::Pointer.new(Truffle::Interop.to_native(val))
-    when Fiddle::TYPE_INT, Fiddle::TYPE_DOUBLE
+    when Fiddle::TYPE_INT, Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       val
     else 
       raise "#{val.inspect} from type #{type}"
@@ -169,14 +175,19 @@ module Fiddle
 
     DEFAULT = :default_abi
 
-    def initialize(ptr, args, ret_type, abi = DEFAULT, name:)
+    def initialize(ptr, args, ret_type, abi = DEFAULT, name: nil)
       @arg_types = args
       @ret_type = ret_type
       args = args.map { |arg| Truffle::Fiddle.type_to_nfi(arg) }
       ret_type = Truffle::Fiddle.type_to_nfi(ret_type)
       signature = "(#{args.join(',')}):#{ret_type}"
-      ptr = Truffle::POSIX.nfi_symbol_from_pointer(ptr, signature)
-      @function = ptr.bind(signature)
+
+      if ptr.is_a?(Closure)
+        @function = ptr.method(:call)
+      else
+        ptr = Truffle::POSIX.nfi_symbol_from_pointer(ptr, signature)
+        @function = ptr.bind(signature)
+      end
     end
 
     def call(*args)
@@ -189,8 +200,8 @@ module Fiddle
 
   class Closure
 
-    def initialize(*args)
-      raise 'not implemented'
+    def initialize(ret, args, abi = Function::DEFAULT)
+      # does nothing - 'not implemented' when used
     end
 
     def to_i(*args)

@@ -1,4 +1,3 @@
-exclude :test_no_memory_leak, "needs investigation"
 exclude :test_minus, "needs investigation"
 exclude :test_inspect, "needs investigation"
 exclude :test_to_str, "needs investigation"
