@@ -337,7 +337,7 @@ public class ThreadManager {
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
         fiberManager.shutdown(javaThread);
 
-        Layouts.THREAD.getIoBuffer(thread).freeNoAutorelease();
+        Layouts.THREAD.getIoBuffer(thread).free();
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);

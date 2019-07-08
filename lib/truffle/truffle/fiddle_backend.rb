@@ -154,17 +154,15 @@ module Fiddle
   end
 
   def self.malloc(size)
-    ptr = Truffle::FFI::MemoryPointer.new(size)
-    ptr.autorelease = false
-    ptr.to_i
+    Truffle.invoke_primitive :pointer_raw_malloc, size
   end
 
-  def self.realloc(*args)
-    raise 'not implemented'
+  def self.realloc(address, size)
+    Truffle.invoke_primitive :pointer_raw_realloc, address, size
   end
 
-  def self.free(*args)
-    raise 'not implemented'
+  def self.free(address)
+    Truffle.invoke_primitive :pointer_raw_free, address
   end
 
   class Function

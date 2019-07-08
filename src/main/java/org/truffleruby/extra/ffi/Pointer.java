@@ -60,6 +60,10 @@ public class Pointer implements AutoCloseable {
         this.size = size;
     }
 
+    public Pointer realloc(long size) {
+        return new Pointer(UNSAFE.reallocateMemory(address, size));
+    }
+
     public void writeByte(long offset, byte b) {
         assert address + offset != 0;
         UNSAFE.putByte(address + offset, b);
@@ -225,17 +229,14 @@ public class Pointer implements AutoCloseable {
         UNSAFE.freeMemory(address);
     }
 
-    @TruffleBoundary
-    public synchronized void freeNoAutorelease() {
-        if (autorelease) {
-            throw new UnsupportedOperationException("Calling freeNoAutorelease() on a autorelease Pointer");
-        }
+    public synchronized void free() {
+        assert !autorelease;
         UNSAFE.freeMemory(address);
     }
 
     @Override
     public void close() {
-        freeNoAutorelease();
+        free();
     }
 
     public long getAddress() {
