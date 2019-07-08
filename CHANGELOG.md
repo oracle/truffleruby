@@ -1,5 +1,9 @@
 # 19.2.0
 
+New features:
+
+* `Fiddle` has been implemented.
+
 Bug fixes:
 
 * Set `RbConfig::CONFIG['ruby_version']` to the same value as the TruffleRuby version. This fixes reusing C extensions between different versions of TruffleRuby with Bundler (#1715).
