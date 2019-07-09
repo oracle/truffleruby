@@ -55,18 +55,11 @@ module Process
     RLIMIT_NOFILE  = Truffle::Config['platform.process.RLIMIT_NOFILE']
     RLIMIT_STACK   = Truffle::Config['platform.process.RLIMIT_STACK']
 
-    %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE].each do |limit|
+    %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE RLIMIT_RTPRIO
+       RLIMIT_RTTIME RLIMIT_SIGPENDING RLIMIT_MSGQUEUE RLIMIT_NICE].each do |limit|
       if value = Truffle::Config.lookup("platform.process.#{limit}")
         const_set limit, value
       end
-    end
-
-    if Truffle::Config.lookup('platform.process.RLIMIT_RTPRIO')
-      RLIMIT_RTPRIO     = Truffle::Config['platform.process.RLIMIT_RTPRIO']
-      RLIMIT_RTTIME     = Truffle::Config['platform.process.RLIMIT_RTTIME']
-      RLIMIT_SIGPENDING = Truffle::Config['platform.process.RLIMIT_SIGPENDING']
-      RLIMIT_MSGQUEUE   = Truffle::Config['platform.process.RLIMIT_MSGQUEUE']
-      RLIMIT_NICE       = Truffle::Config['platform.process.RLIMIT_NICE']
     end
 
     WNOHANG =   Truffle::Config['platform.process.WNOHANG']
