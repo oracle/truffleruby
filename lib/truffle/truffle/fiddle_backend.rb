@@ -185,7 +185,7 @@ module Fiddle
       if ptr.is_a?(Closure)
         @function = ptr.method(:call)
       else
-        ptr = Truffle::POSIX.nfi_symbol_from_pointer(ptr, signature)
+        ptr = Truffle::POSIX.nfi_function_from_pointer(ptr, signature)
         @function = ptr.bind(signature)
       end
     end

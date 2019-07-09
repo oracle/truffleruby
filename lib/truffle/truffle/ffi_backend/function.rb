@@ -48,7 +48,7 @@ module FFI
         @function = function.handle.bind(@function_info.nfi_type)
         super(@function)
       elsif FFI::Pointer === function
-        @function = Truffle::POSIX.nfi_symbol_from_pointer(function, @function_info.nfi_type)
+        @function = Truffle::POSIX.nfi_function_from_pointer(function, @function_info.nfi_type)
         super(@function)
       elsif Proc === function || Method === function
         @function = function
