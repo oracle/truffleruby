@@ -2549,7 +2549,7 @@ class IO
        external_encoding != data.encoding &&
        external_encoding != Encoding::ASCII_8BIT
       unless data.ascii_only? && external_encoding.ascii_compatible?
-        data.encode!(external_encoding)
+        data = data.encode(external_encoding)
       end
     end
 
