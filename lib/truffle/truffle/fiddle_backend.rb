@@ -37,7 +37,7 @@ module Truffle::Fiddle
     when Fiddle::TYPE_DOUBLE
       'DOUBLE'
     else
-      raise "#{type} not implemented"
+      raise NotImplementedError, "#{type} not implemented"
     end
   end
 
@@ -48,7 +48,7 @@ module Truffle::Fiddle
     when SIZEOF_LONG
       Fiddle::TYPE_LONG
     else
-      raise
+      raise NotImplementedError
     end
   end
 
@@ -66,7 +66,7 @@ module Truffle::Fiddle
       elsif val.is_a?(Integer)
         val
       else
-        raise "#{val.inspect} to pointer"
+        raise NotImplementedError, "#{val.inspect} to pointer"
       end
     when Fiddle::TYPE_INT
       Integer(val)
@@ -75,7 +75,7 @@ module Truffle::Fiddle
     when Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       Float(val)
     else
-      raise "#{val.inspect} to type #{type}"
+      raise NotImplementedError, "#{val.inspect} to type #{type}"
     end
   end
 
@@ -88,7 +88,7 @@ module Truffle::Fiddle
     when Fiddle::TYPE_INT, Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       val
     else
-      raise "#{val.inspect} from type #{type}"
+      raise NotImplementedError, "#{val.inspect} from type #{type}"
     end
   end
 
@@ -152,11 +152,11 @@ module Fiddle
   BUILD_RUBY_PLATFORM = RUBY_PLATFORM
 
   def self.dlwrap(*args)
-    raise 'not implemented'
+    raise NotImplementedError
   end
 
   def self.dlunwrap(*args)
-    raise 'not implemented'
+    raise NotImplementedError
   end
 
   def self.malloc(size)
@@ -205,7 +205,7 @@ module Fiddle
     end
 
     def to_i(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
   end
@@ -213,11 +213,11 @@ module Fiddle
   class Handle
 
     def self.sym(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def self.[](*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     RTLD_LAZY    = Truffle::Config['platform.dlopen.RTLD_LAZY']
@@ -234,11 +234,11 @@ module Fiddle
     end
 
     def to_i(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def close(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def sym(name)
@@ -250,15 +250,15 @@ module Fiddle
     alias_method :[], :sym
 
     def disable_close(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def enable_close(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def close_enabled?(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
   end
@@ -266,16 +266,16 @@ module Fiddle
   class Pointer
 
     def self.malloc(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def self.to_ptr(val)
       if val.is_a?(IO)
-        raise 'not implemented'
+        raise NotImplementedError
       elsif val.is_a?(String)
         ptr = Pointer.new(Truffle::CExt.string_pointer_to_native(val), val.bytesize)
       elsif val.respond_to?(:to_ptr)
-        raise 'not implemented'
+        raise NotImplementedError
       else
         ptr = Pointer.new(Integer(val))
       end
@@ -294,11 +294,11 @@ module Fiddle
     end
 
     def free=(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def free(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def to_i(*args)
@@ -306,63 +306,63 @@ module Fiddle
     end
 
     def to_int(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def to_value(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def ptr(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def +@(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def ref(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def -@(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def null?(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def to_s(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def to_str(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def inspect(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def <=>(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def ==(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def eql?(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def +(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def -(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def [](start, length = nil)
@@ -374,15 +374,15 @@ module Fiddle
     end
 
     def []=(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def size(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     def size=(*args)
-      raise 'not implemented'
+      raise NotImplementedError
     end
 
     NULL = Pointer.new(0)
