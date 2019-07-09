@@ -196,11 +196,6 @@ module Utilities
   end
 
   def find_gem(name)
-    ["#{TRUFFLERUBY_DIR}/lib/ruby/gems/shared/gems"].each do |dir|
-      found = Dir.glob("#{dir}/#{name}*").sort.first
-      return File.expand_path(found) if found
-    end
-
     [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
       found = Dir.glob("#{dir}/#{name}").sort.first
       return File.expand_path(found) if found
