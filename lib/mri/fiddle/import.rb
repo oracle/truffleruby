@@ -295,10 +295,9 @@ module Fiddle
     # See Fiddle::CompositeHandler.sym and Fiddle::Handler.sym
     def import_function(name, ctype, argtype, call_type = nil)
       addr = handler.sym(name)
-      # On TruffleRuby addr is foreign and InlinedNotNode doesnt't work with it - but Handler#sym never returns nil anyway
-      # if( !addr )
-      #   raise(DLError, "cannot find the function: #{name}()")
-      # end
+      if( !addr )
+        raise(DLError, "cannot find the function: #{name}()")
+      end
       Function.new(addr, argtype, ctype, CALL_TYPE_TO_ABI[call_type],
                    name: name)
     end
