@@ -26,7 +26,7 @@
 /lib/json/tools/* linguist-vendored
 /src/main/c/Makefile linguist-vendored
 /src/main/c/truffleposix/Makefile linguist-vendored
-/lib/ruby/gems/*/gems/*/bin/setup linguist-vendored
+/lib/gems/gems/*/bin/setup linguist-vendored
 /lib/truffle/post_install_hook.sh linguist-vendored
 /src/test/* linguist-vendored
 /src/processor/* linguist-vendored
@@ -41,7 +41,7 @@
 
 # Documentation
 
-/lib/ruby/gems/*/gems/*/doc/* linguist-documentation
+/lib/gems/gems/*/doc/* linguist-documentation
 
 # All our headers are C - don't magically work out they're ObjectiveC or C++
 

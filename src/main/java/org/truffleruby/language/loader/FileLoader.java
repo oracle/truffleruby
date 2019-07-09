@@ -108,7 +108,7 @@ public class FileLoader {
         }
 
         if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
-                !canonicalPath.startsWith(context.getRubyHome() + "/lib/ruby/gems/")) {
+                !canonicalPath.startsWith(context.getRubyHome() + "/lib/gems/")) {
             return context.getOptions().STDLIB_AS_INTERNAL;
         } else {
             return false;
