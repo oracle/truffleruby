@@ -760,7 +760,9 @@ public class RubyContext {
 
     private boolean isRubyHome(File path) {
         final File lib = new File(path, "lib");
-        return new File(lib, "truffle").isDirectory() && new File(lib, "ruby").isDirectory() && new File(lib, "patches").isDirectory();
+        return new File(lib, "truffle").isDirectory() &&
+                new File(lib, "gems").isDirectory() &&
+                new File(lib, "patches").isDirectory();
     }
 
     public TruffleNFIPlatform getTruffleNFI() {

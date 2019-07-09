@@ -14,6 +14,6 @@
 module Gem
   # The path to the gems shipped with TruffleRuby
   def self.default_dir
-    @default_dir ||= "#{Truffle::Boot.ruby_home or raise 'TruffleRuby home not found'}/lib/ruby/gems/#{Truffle::RUBY_BASE_VERSION}"
+    @default_dir ||= "#{Truffle::Boot.ruby_home or raise 'TruffleRuby home not found'}/lib/gems"
   end
 end

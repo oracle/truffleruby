@@ -196,11 +196,6 @@ module Utilities
   end
 
   def find_gem(name)
-    ["#{TRUFFLERUBY_DIR}/lib/ruby/gems/shared/gems"].each do |dir|
-      found = Dir.glob("#{dir}/#{name}*").sort.first
-      return File.expand_path(found) if found
-    end
-
     [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
       found = Dir.glob("#{dir}/#{name}").sort.first
       return File.expand_path(found) if found
@@ -2266,7 +2261,7 @@ EOS
 
     if basic_test || full_test
       configs.each do |config|
-        lines.push "RUN cp -r #{ruby_base}/lib/ruby/gems /test/clean-gems"
+        lines.push "RUN cp -r #{ruby_base}/lib/gems /test/clean-gems"
 
         if config == '' && install_method != :source
           gem = "gem"
@@ -2283,8 +2278,8 @@ EOS
         lines.push "RUN " + setup_env["#{gem} install unf"]
         lines.push "RUN " + setup_env["ruby #{config} -runf -e 'raise unless defined?(UNF)'"]
 
-        lines.push "RUN rm -rf #{ruby_base}/lib/ruby/gems"
-        lines.push "RUN mv /test/clean-gems #{ruby_base}/lib/ruby/gems"
+        lines.push "RUN rm -rf #{ruby_base}/lib/gems"
+        lines.push "RUN mv /test/clean-gems #{ruby_base}/lib/gems"
       end
     end
 

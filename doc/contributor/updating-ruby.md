@@ -59,19 +59,19 @@ then copy the original source of `flori/json` into `lib/json`.
 ## Updating .gemspec of default gems
 
 Default gems are imported from MRI files, except the .gemspec files in
-`lib/ruby/gems/n.n.n/specifications/default`.
+`lib/gems/specifications/default`.
 To update those, copy the files over from an installed MRI.
 ```
-rm -rf lib/ruby/gems/n.n.n/specifications/default
-cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/ruby/gems/n.n.n/specifications
+rm -rf lib/gems/specifications/default
+cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/gems/specifications
 ```
 
 ## Updating bundled gems
 
 To update a bundled gem, follow these steps:
 
-* Remove the current gem and gemspec from `lib/ruby/gems/a.b.c/gems` and
-  `lib/ruby/gems/a.b.c/specifications`
+* Remove the current gem and gemspec from `lib/gems/gems` and
+  `lib/gems/specifications`
 * Run the gem install command with the desired version
   `gem install rake -v 10.4.2 --no-doc`
 * Update the project `.gitignore` to allow the newly install gem sources

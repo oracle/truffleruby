@@ -123,7 +123,7 @@ are picked up by TruffleRuby (as any other Ruby implementation would do)
 causing TruffleRuby to pickup the wrong Gem home instead of its own.
 
 One way to fix this for all sessions is to tell TruffleRuby to ignore `GEM_*`
-variables and always use its own Gem home under `truffleruby/lib/ruby/gems`:
+variables and always use its own Gem home under `truffleruby/lib/gems`:
 
 ```bash
 # In ~/.bashrc or ~/.zshenv
