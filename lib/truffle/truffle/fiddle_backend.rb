@@ -8,8 +8,8 @@
 
 module Truffle::FiddleBackend
 
-  SIZEOF_INT    = Truffle::FFI::Pointer.find_type_size(:int)
-  SIZEOF_LONG   = Truffle::FFI::Pointer.find_type_size(:long)
+  SIZEOF_INT    = Truffle.invoke_primitive(:pointer_find_type_size, :int)
+  SIZEOF_LONG   = Truffle.invoke_primitive(:pointer_find_type_size, :long)
 
   INT_NFI_TYPE  = "SINT#{SIZEOF_INT * 8}"
   UINT_NFI_TYPE  = "UINT#{SIZEOF_INT * 8}"
@@ -122,20 +122,20 @@ module Fiddle
   TYPE_FLOAT        = 7
   TYPE_DOUBLE       = 8
 
-  SIZEOF_VOIDP      = Truffle::FFI::Pointer.find_type_size(:pointer)
-  SIZEOF_CHAR       = Truffle::FFI::Pointer.find_type_size(:char)
-  SIZEOF_SHORT      = Truffle::FFI::Pointer.find_type_size(:short)
+  SIZEOF_VOIDP      = Truffle.invoke_primitive(:pointer_find_type_size, :pointer)
+  SIZEOF_CHAR       = Truffle.invoke_primitive(:pointer_find_type_size, :char)
+  SIZEOF_SHORT      = Truffle.invoke_primitive(:pointer_find_type_size, :short)
   SIZEOF_INT        = Truffle::FiddleBackend::SIZEOF_INT
   SIZEOF_LONG       = Truffle::FiddleBackend::SIZEOF_LONG
-  SIZEOF_LONG_LONG  = Truffle::FFI::Pointer.find_type_size(:long_long)
-  SIZEOF_FLOAT      = Truffle::FFI::Pointer.find_type_size(:float)
-  SIZEOF_DOUBLE     = Truffle::FFI::Pointer.find_type_size(:double)
+  SIZEOF_LONG_LONG  = Truffle.invoke_primitive(:pointer_find_type_size, :long_long)
+  SIZEOF_FLOAT      = Truffle.invoke_primitive(:pointer_find_type_size, :float)
+  SIZEOF_DOUBLE     = Truffle.invoke_primitive(:pointer_find_type_size, :double)
 
-  SIZEOF_SIZE_T     = Truffle::FFI::Pointer.find_type_size(:size_t)
-  SIZEOF_SSIZE_T    = Truffle::FFI::Pointer.find_type_size(:ssize_t)
-  SIZEOF_PTRDIFF_T  = Truffle::FFI::Pointer.find_type_size(:ptrdiff_t)
-  SIZEOF_INTPTR_T   = Truffle::FFI::Pointer.find_type_size(:intptr_t)
-  SIZEOF_UINTPTR_T  = Truffle::FFI::Pointer.find_type_size(:uintptr_t)
+  SIZEOF_SIZE_T     = Truffle.invoke_primitive(:pointer_find_type_size, :size_t)
+  SIZEOF_SSIZE_T    = Truffle.invoke_primitive(:pointer_find_type_size, :ssize_t)
+  SIZEOF_PTRDIFF_T  = Truffle.invoke_primitive(:pointer_find_type_size, :ptrdiff_t)
+  SIZEOF_INTPTR_T   = Truffle.invoke_primitive(:pointer_find_type_size, :intptr_t)
+  SIZEOF_UINTPTR_T  = Truffle.invoke_primitive(:pointer_find_type_size, :uintptr_t)
 
   TYPE_SSIZE_T      = Truffle::FiddleBackend.int_type(SIZEOF_SIZE_T)
   TYPE_SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
