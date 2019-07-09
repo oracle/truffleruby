@@ -6,7 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module Truffle::Fiddle
+module Truffle::FiddleBackend
 
   SIZEOF_INT    = Truffle::FFI::Pointer.find_type_size(:int)
   SIZEOF_LONG   = Truffle::FFI::Pointer.find_type_size(:long)
@@ -114,8 +114,8 @@ module Fiddle
   SIZEOF_VOIDP      = Truffle::FFI::Pointer.find_type_size(:pointer)
   SIZEOF_CHAR       = Truffle::FFI::Pointer.find_type_size(:char)
   SIZEOF_SHORT      = Truffle::FFI::Pointer.find_type_size(:short)
-  SIZEOF_INT        = Truffle::Fiddle::SIZEOF_INT
-  SIZEOF_LONG       = Truffle::Fiddle::SIZEOF_LONG
+  SIZEOF_INT        = Truffle::FiddleBackend::SIZEOF_INT
+  SIZEOF_LONG       = Truffle::FiddleBackend::SIZEOF_LONG
   SIZEOF_LONG_LONG  = Truffle::FFI::Pointer.find_type_size(:long_long)
   SIZEOF_FLOAT      = Truffle::FFI::Pointer.find_type_size(:float)
   SIZEOF_DOUBLE     = Truffle::FFI::Pointer.find_type_size(:double)
@@ -126,10 +126,10 @@ module Fiddle
   SIZEOF_INTPTR_T   = Truffle::FFI::Pointer.find_type_size(:intptr_t)
   SIZEOF_UINTPTR_T  = Truffle::FFI::Pointer.find_type_size(:uintptr_t)
 
-  TYPE_SSIZE_T      = Truffle::Fiddle.int_type(SIZEOF_SIZE_T)
-  TYPE_SIZE_T       = -1 * Truffle::Fiddle::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
-  TYPE_PTRDIFF_T    = Truffle::Fiddle.int_type(SIZEOF_PTRDIFF_T)
-  TYPE_INTPTR_T     = Truffle::Fiddle.int_type(SIZEOF_INTPTR_T)
+  TYPE_SSIZE_T      = Truffle::FiddleBackend.int_type(SIZEOF_SIZE_T)
+  TYPE_SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
+  TYPE_PTRDIFF_T    = Truffle::FiddleBackend.int_type(SIZEOF_PTRDIFF_T)
+  TYPE_INTPTR_T     = Truffle::FiddleBackend.int_type(SIZEOF_INTPTR_T)
   TYPE_UINTPTR_T    = -TYPE_INTPTR_T
 
   # Alignment assumed to be the same as size
@@ -178,8 +178,8 @@ module Fiddle
     def initialize(ptr, args, ret_type, abi = DEFAULT, name: nil)
       @arg_types = args
       @ret_type = ret_type
-      args = args.map { |arg| Truffle::Fiddle.type_to_nfi(arg) }
-      ret_type = Truffle::Fiddle.type_to_nfi(ret_type)
+      args = args.map { |arg| Truffle::FiddleBackend.type_to_nfi(arg) }
+      ret_type = Truffle::FiddleBackend.type_to_nfi(ret_type)
       signature = "(#{args.join(',')}):#{ret_type}"
 
       if ptr.is_a?(Closure)
@@ -191,9 +191,9 @@ module Fiddle
     end
 
     def call(*args)
-      args = (args.zip(@arg_types)).map { |arg, type| Truffle::Fiddle.convert_ruby_to_native(type, arg) }
+      args = args.zip(@arg_types).map { |arg, type| Truffle::FiddleBackend.convert_ruby_to_native(type, arg) }
       ret = @function.call(*args)
-      Truffle::Fiddle.convert_native_to_ruby(@ret_type, ret)
+      Truffle::FiddleBackend.convert_native_to_ruby(@ret_type, ret)
     end
 
   end
