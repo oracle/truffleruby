@@ -27,6 +27,7 @@ local utils = import "utils.libsonnet";
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
   local jt = function(args) [["ruby", "tool/jt.rb"] + args],
+  local mri_version = "2.6.3",
 
   use: {
     common: {
@@ -101,17 +102,14 @@ local part_definitions = {
 
     mri: {
       "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
-      downloads+: {
-        MRI_HOME: { name: "ruby", version: "2.6.3" },
-      },
 
       environment+: {
         HOST_VM: "mri",
         HOST_VM_CONFIG: "default",
         GUEST_VM: "mri",
         GUEST_VM_CONFIG: "default",
-        RUBY_BIN: "$MRI_HOME/bin/ruby",
-        JT_BENCHMARK_RUBY: "$MRI_HOME/bin/ruby",
+        RUBY_BIN: "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
+        JT_BENCHMARK_RUBY: "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
       },
     },
 
@@ -300,7 +298,7 @@ local part_definitions = {
       packages+: {
         git: ">=1.8.3",
         mercurial: ">=3.2.4",
-        ruby: ">=2.1.0",
+        ruby: "==" + mri_version,
         llvm: "==3.8",
         binutils: ">=2.30",
       },
