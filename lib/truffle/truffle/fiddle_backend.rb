@@ -16,6 +16,15 @@ module Truffle::FiddleBackend
   LONG_NFI_TYPE = "SINT#{SIZEOF_LONG * 8}"
   ULONG_NFI_TYPE = "UINT#{SIZEOF_LONG * 8}"
 
+  SIZE_T_TYPEDEF = Truffle::Config.lookup('platform.typedef.size_t')
+
+  case SIZE_T_TYPEDEF
+  when 'ulong'
+    SIGNEDNESS_OF_SIZE_T = 1
+  else
+    raise NotImplementedError, "#{SIZE_T_TYPEDEF} not recognised"
+  end
+
   def self.type_to_nfi(type)
     case type
     when Fiddle::TYPE_VOID
@@ -95,8 +104,6 @@ module Truffle::FiddleBackend
       raise NotImplementedError, "#{val.inspect} from type #{type}"
     end
   end
-
-  SIGNEDNESS_OF_SIZE_T = 1 # platform specific!
 
 end
 
