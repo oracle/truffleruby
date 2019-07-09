@@ -60,11 +60,17 @@ end
 STDERR.sync = true
 
 # Always flush standard streams on exit
-Truffle::KernelOperations.at_exit true do
+Truffle::KernelOperations.at_exit(true) do
   STDOUT.flush
+rescue Errno::EPIPE
+  # Could not write to STDOUT, the calling process closed the pipe
+  nil
 end
-Truffle::KernelOperations.at_exit true do
+Truffle::KernelOperations.at_exit(true) do
   STDERR.flush
+rescue Errno::EPIPE
+  # Could not write to STDERR, the calling process closed the pipe
+  nil
 end
 
 module Truffle
