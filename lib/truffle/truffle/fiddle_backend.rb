@@ -84,7 +84,7 @@ module Truffle::FiddleBackend
     when Fiddle::TYPE_VOID
       nil
     when Fiddle::TYPE_VOIDP
-      Fiddle::Pointer.new(Truffle::Interop.to_native(val))
+      Fiddle::Pointer.new(Truffle::Interop.as_pointer(val))
     when Fiddle::TYPE_INT, Fiddle::TYPE_FLOAT, Fiddle::TYPE_DOUBLE
       val
     else
