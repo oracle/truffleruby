@@ -55,19 +55,7 @@ module Truffle::FiddleBackend
   def self.convert_ruby_to_native(type, val)
     case type
     when Fiddle::TYPE_VOIDP
-      if val.is_a?(String)
-        Truffle::CExt.string_pointer_to_native(val)
-      elsif val.is_a?(Fiddle::Pointer)
-        val.to_i
-      elsif val.respond_to?(:to_ptr)
-        val.to_ptr.to_i
-      elsif val.nil?
-        0
-      elsif val.is_a?(Integer)
-        val
-      else
-        raise NotImplementedError, "#{val.inspect} to pointer"
-      end
+      get_pointer_value(val)
     when Fiddle::TYPE_INT
       Integer(val)
     when -Fiddle::TYPE_LONG
@@ -76,6 +64,22 @@ module Truffle::FiddleBackend
       Float(val)
     else
       raise NotImplementedError, "#{val.inspect} to type #{type}"
+    end
+  end
+
+  def self.get_pointer_value(val)
+    if val.is_a?(String)
+      Truffle::CExt.string_pointer_to_native(val)
+    elsif val.is_a?(Fiddle::Pointer)
+      val.to_i
+    elsif val.respond_to?(:to_ptr)
+      val.to_ptr.to_i
+    elsif val.nil?
+      0
+    elsif val.is_a?(Integer)
+      val
+    else
+      raise NotImplementedError, "#{val.inspect} to pointer"
     end
   end
 
