@@ -48,7 +48,7 @@ module Truffle::Fiddle
     when SIZEOF_LONG
       Fiddle::TYPE_LONG
     else
-      raise NotImplementedError
+      raise NotImplementedError, "no integer of size #{size}"
     end
   end
 
