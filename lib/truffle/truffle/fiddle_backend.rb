@@ -105,6 +105,9 @@ module Truffle::FiddleBackend
     end
   end
 
+  RTLD_NEXT    = Truffle::Config['platform.dlopen.RTLD_NEXT']
+  RTLD_DEFAULT = Truffle::Config['platform.dlopen.RTLD_DEFAULT']
+
 end
 
 module Fiddle
@@ -234,14 +237,19 @@ module Fiddle
     RTLD_LAZY    = Truffle::Config['platform.dlopen.RTLD_LAZY']
     RTLD_NOW     = Truffle::Config['platform.dlopen.RTLD_NOW']
     RTLD_GLOBAL  = Truffle::Config['platform.dlopen.RTLD_GLOBAL']
-    RTLD_NEXT    = Truffle::Config['platform.dlopen.RTLD_NEXT']
-    RTLD_DEFAULT = Truffle::Config['platform.dlopen.RTLD_DEFAULT']
 
     def initialize(library = nil, flags = RTLD_LAZY | RTLD_GLOBAL)
       raise DLError, 'unsupported dlopen flags' if flags != RTLD_LAZY | RTLD_GLOBAL
-      @handle = Polyglot.eval('nfi', library ? "load #{library}" : 'default')
-    rescue RuntimeError
-      raise DLError, "#{library}: cannot open shared object file: No such file or directory"
+      if library == Truffle::FiddleBackend::RTLD_NEXT
+        @handle = :rtld_next
+      else
+        library = nil if library == Truffle::FiddleBackend::RTLD_DEFAULT
+        begin
+          @handle = Polyglot.eval('nfi', library ? "load #{library}" : 'default')
+        rescue RuntimeError
+          raise DLError, "#{library}: cannot open shared object file: No such file or directory"
+        end
+      end
     end
 
     def to_i(*args)
@@ -253,9 +261,13 @@ module Fiddle
     end
 
     def sym(name)
-      sym = @handle[name]
-      raise DLError, "unknown symbol \"#{name}\"" unless sym
-      Truffle::Interop.as_pointer(sym)
+      if :rtld_next == @handle
+        raise DLError, 'RTLD_NEXT is not supported'
+      else
+        sym = @handle[name]
+        raise DLError, "unknown symbol \"#{name}\"" unless sym
+        Truffle::Interop.as_pointer(sym)
+      end
     end
 
     alias_method :[], :sym
@@ -271,6 +283,9 @@ module Fiddle
     def close_enabled?(*args)
       raise NotImplementedError
     end
+
+    DEFAULT = Handle.new(Truffle::FiddleBackend::RTLD_DEFAULT)
+    NEXT    = Handle.new(Truffle::FiddleBackend::RTLD_NEXT)
 
   end
 
