@@ -225,14 +225,17 @@ public class Pointer implements AutoCloseable {
         UNSAFE.freeMemory(address);
     }
 
-    public synchronized void free() {
-        assert !autorelease;
+    @TruffleBoundary
+    public synchronized void freeNoAutorelease() {
+        if (autorelease) {
+            throw new UnsupportedOperationException("Calling freeNoAutorelease() on a autorelease Pointer");
+        }
         UNSAFE.freeMemory(address);
     }
 
     @Override
     public void close() {
-        free();
+        freeNoAutorelease();
     }
 
     public long getAddress() {

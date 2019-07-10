@@ -490,7 +490,7 @@ public abstract class IONodes {
             if (buffer.getSize() >= size) {
                 return buffer;
             } else {
-                buffer.free();
+                buffer.freeNoAutorelease();
                 final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
                 Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
                 return newBuffer;
