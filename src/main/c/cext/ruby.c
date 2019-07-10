@@ -1963,6 +1963,7 @@ VALUE rb_yield_values(int n, ...) {
 
 // Instance variables
 
+#undef rb_iv_get
 VALUE rb_iv_get(VALUE object, const char *name) {
   return RUBY_CEXT_INVOKE("rb_ivar_get", object, rb_str_new_cstr(name));
 }

@@ -394,6 +394,11 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   return argc;
 }
 
+#define rb_iv_get(val, name) \
+  (__builtin_constant_p(name) ?                             \
+   __extension__ (rb_ivar_get(val, rb_intern(name))) :      \
+   rb_iv_get(val, name))
+
 #if defined(__cplusplus)
 }
 #endif
