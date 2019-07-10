@@ -21,6 +21,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -77,6 +78,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             @Cached ForeignToRubyNode nameToRubyNode,
             @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch,
             @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached ToSymbolNode toSymbolNode,
             @Cached("createBinaryProfile()") ConditionProfile errorProfile) throws UnknownIdentifierException {
         Object key = nameToRubyNode.executeConvert(name);
         try {
@@ -84,7 +86,18 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
         } catch (RaiseException ex) {
             DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
             if (errorProfile.profile(logicalClass == context.getCoreLibrary().getKeyErrorClass())) {
-                throw UnknownIdentifierException.create((String) stringName);
+                // try again with the key as a symbol
+                // keeping this dirty since the whole hash-keys to members mapping has to be removed
+                try {
+                    return dispatch.call(receiver, FETCH_METHOD_NAME, toSymbolNode.executeToSymbol(name));
+                } catch (RaiseException ex2) {
+                    DynamicObject logicalClass2 = Layouts.BASIC_OBJECT.getLogicalClass(ex2.getException());
+                    if (logicalClass2 == context.getCoreLibrary().getKeyErrorClass()) {
+                        throw UnknownIdentifierException.create((String) stringName);
+                    } else {
+                        throw ex2;
+                    }
+                }
             } else {
                 throw ex;
             }

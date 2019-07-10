@@ -121,7 +121,7 @@ public class UncachedDispatchNode extends DispatchNode {
         }
 
         if (dispatchAction == DispatchAction.CALL_METHOD) {
-            final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(frame, name);
+            final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
             return call(methodMissing, receiver, block, modifiedArgumentsObjects);
