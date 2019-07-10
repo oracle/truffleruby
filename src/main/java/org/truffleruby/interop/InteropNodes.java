@@ -265,7 +265,7 @@ public abstract class InteropNodes {
 
         @Specialization(limit = "getCacheLimit()")
         public boolean hasSize(
-                TruffleObject receiver,
+                Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasArrayElements(receiver);
         }
