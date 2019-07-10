@@ -932,8 +932,8 @@ public abstract class PointerNodes {
     public static abstract class PointerRawMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long malloc(long size) {
-            return Pointer.malloc(size).getAddress();
+        public long realloc(long size) {
+            return Pointer.rawMalloc(size);
         }
 
     }
@@ -943,7 +943,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public long malloc(long address, long size) {
-            return new Pointer(address).realloc(size).getAddress();
+            return Pointer.rawRealloc(address, size);
         }
 
     }
@@ -953,7 +953,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public long free(long address) {
-            new Pointer(address).free();
+            Pointer.rawFree(address);
             return address;
         }
 
