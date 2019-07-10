@@ -8,6 +8,26 @@
 
 require_relative '../../ruby/spec_helper'
 
+describe "Truffle::Interop.size?" do
+
+  it "array has size" do
+    Truffle::Interop.size?([1, 2, 3]).should be_true
+  end
+
+  { hash: {},
+    string: "",
+    integer: 1,
+    method: nil.method(:inspect),
+    lambda: -> {},
+    class: Hash,
+    struct: Struct.new(:a).new(:v)
+  }.each do |name, v|
+    it "#{name} does not have size" do
+      Truffle::Interop.size?(v).should be_false
+    end
+  end
+end
+
 describe "Truffle::Interop.size" do
 
   it "returns the size of an array" do
