@@ -120,7 +120,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     }
 
     @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)", "!isRubyClass(receiver)",
             "methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode)"
     })
     public Object callIndex(
@@ -129,14 +129,26 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             Object stringName,
             boolean isIVar,
             @Cached DoesRespondDispatchHeadNode definedIndexNode,
+            @Cached("createBinaryProfile()") ConditionProfile errorProfile,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
-        return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) throws UnknownIdentifierException {
+        try {
+            return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+        } catch (RaiseException ex) {
+            // translate NameError to UnknownIdentifierException
+            DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
+            if (errorProfile.profile(logicalClass == context.getCoreLibrary().getNameErrorClass())) {
+                throw UnknownIdentifierException.create((String) stringName);
+            } else {
+                throw ex;
+            }
+        }
     }
 
     @Specialization(guards = {
             "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) || (isRubyArray(receiver) || isRubyProc(receiver))",
+            "noIndexMethod(definedIndexNode, receiver)",
             "methodDefined(receiver, stringName, definedNode)"
     })
     public Object getBoundMethod(
@@ -153,7 +165,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) || (isRubyArray(receiver) || isRubyProc(receiver))",
+            "noIndexMethod(definedIndexNode, receiver)",
             "!methodDefined(receiver, stringName, definedNode)"
     })
     public Object unknownIdentifier(
@@ -169,6 +181,13 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     @TruffleBoundary
     private String toString(Object name) {
         return name.toString();
+    }
+
+    protected static boolean noIndexMethod(DoesRespondDispatchHeadNode definedIndexNode, DynamicObject receiver) {
+        return !methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) ||
+                RubyGuards.isRubyArray(receiver) ||
+                RubyGuards.isRubyProc(receiver) ||
+                RubyGuards.isRubyClass(receiver);
     }
 
     protected static boolean methodDefined(DynamicObject receiver, Object stringName, DoesRespondDispatchHeadNode definedNode) {

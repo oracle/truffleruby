@@ -138,7 +138,7 @@ module Truffle
           modifiable = insertable = false
           internal = true
         else
-          unless object.is_a?(Array)
+          unless object.is_a?(Array) || object.is_a?(Class) # exclude #[] constructors
             # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
             readable = object.respond_to?(:[])
             modifiable = object.respond_to?(:[]=)

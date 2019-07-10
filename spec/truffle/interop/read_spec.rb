@@ -114,4 +114,12 @@ describe "Truffle::Interop.read" do
 
   end
 
+  describe "with a Hash class" do
+
+    it "does not call the [] method" do
+      -> { Truffle::Interop.read(Hash, :nothing) }.should raise_error NameError
+    end
+
+  end
+
 end
