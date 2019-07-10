@@ -33,6 +33,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectType extends ObjectType {
@@ -72,7 +73,7 @@ public class RubyObjectType extends ObjectType {
     public static boolean hasArrayElements(
             DynamicObject receiver,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached("createPrivate()") CallDispatchHeadNode isADispatch,
+            @Cached IsANode isANode,
             @Exclusive @Cached DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
         //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
@@ -84,11 +85,11 @@ public class RubyObjectType extends ObjectType {
                         !RubyGuards.isRubyMethod(receiver) &&
                         !RubyGuards.isRubyProc(receiver) &&
                         !RubyGuards.isRubyClass(receiver) && // exclude #[] constructors
-                        !isRubyStruct(context, receiver, isADispatch)); // Struct does not behave as array
+                        !isRubyStruct(context, receiver, isANode)); // Struct does not behave as array
     }
 
-    private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, CallDispatchHeadNode isADispatch) {
-        return (boolean) isADispatch.call(context.getCoreLibrary().getStructClass(), "===", receiver);
+    private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, IsANode isANode) {
+        return isANode.executeIsA(receiver, context.getCoreLibrary().getStructClass());
     }
 
     @ExportMessage()
