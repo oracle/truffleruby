@@ -19,6 +19,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.JavaException;
@@ -285,13 +286,19 @@ public class ExceptionTranslatingNode extends RubyNode {
                 // Java exception, print it formatted like a Ruby exception
                 final String message = t.getMessage();
                 builder.append(message != null ? message : "<no message>");
-
                 builder.append(" (").append(t.getClass().getSimpleName()).append(")\n");
 
-                // Print the first 10 lines of backtrace
-                final StackTraceElement[] stackTrace = t.getStackTrace();
-                for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
-                    stackTraceElementToRuby(builder, stackTrace[i]);
+                if (t instanceof TruffleException) {
+                    final Backtrace backtrace = new Backtrace((TruffleException) t);
+                    final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
+                    final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
+                    builder.append(formattedBacktrace).append('\n');
+                } else {
+                    // Print the first 10 lines of backtrace
+                    final StackTraceElement[] stackTrace = t.getStackTrace();
+                    for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
+                        stackTraceElementToRuby(builder, stackTrace[i]);
+                    }
                 }
             }
 

@@ -45,6 +45,15 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    public Backtrace(TruffleException exception) {
+        this.location = exception.getLocation();
+        this.sourceLocation = exception.getSourceLocation();
+        this.omitted = 0;
+        this.javaThrowable = null;
+
+        this.activations = getActivations(exception);
+    }
+
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
