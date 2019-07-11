@@ -370,7 +370,7 @@ int rb_long2int(long value);
 #define MODET2NUM(v) INT2NUM(v)
 #endif
 
-#define RB_FIX2LONG(x) ((long)(rb_tr_unwrap(x)))
+#define RB_FIX2LONG(x) (polyglot_as_i64(rb_tr_unwrap(x)))
 static inline long
 rb_fix2long(VALUE x)
 {
