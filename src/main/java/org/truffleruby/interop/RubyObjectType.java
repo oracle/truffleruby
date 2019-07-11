@@ -33,7 +33,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectType extends ObjectType {
@@ -89,7 +88,7 @@ public class RubyObjectType extends ObjectType {
     }
 
     private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, CallDispatchHeadNode isADispatch) {
-        return (boolean) isADispatch.call(context.getCoreLibrary().getStructClass(),"===", receiver);
+        return (boolean) isADispatch.call(context.getCoreLibrary().getStructClass(), "===", receiver);
     }
 
     @ExportMessage()
