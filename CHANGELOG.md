@@ -13,6 +13,7 @@ Compatibility:
 * `FFI::Struct#[]=` is now supported for inline character arrays.
 * `blocking: true` is now supported for `FFI::Library#attach_function`.
 * Implemented `Proc#>>` and `#<<` (#1688).
+* `Thread.report_on_exception` is now `true` by default like MRI 2.5+.
 
 Changes:
 

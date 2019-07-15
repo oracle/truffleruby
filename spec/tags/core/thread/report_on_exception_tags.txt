@@ -1,3 +1,2 @@
 slow:Thread.report_on_exception defaults to false
-fails:Thread.report_on_exception defaults to true
-fails:Thread#report_on_exception returns true for the main Thread
+slow:Thread.report_on_exception defaults to true
