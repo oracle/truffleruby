@@ -202,7 +202,7 @@ class Thread
   end
 
   @abort_on_exception = false
-  @report_on_exception = false
+  @report_on_exception = true
 
   class << self
     attr_accessor :abort_on_exception, :report_on_exception

@@ -293,7 +293,7 @@ public class ThreadManager {
         if (thread != mainThread) {
             final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
 
-            if (!isSystemExit && (boolean) ReadObjectFieldNode.read(thread, "@report_on_exception", false)) {
+            if (!isSystemExit && (boolean) ReadObjectFieldNode.read(thread, "@report_on_exception", true)) {
                 context.send(context.getCoreLibrary().getTruffleThreadOperationsModule(),
                         "report_exception",
                         thread,
