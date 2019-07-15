@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
@@ -290,14 +291,14 @@ public class ExceptionTranslatingNode extends RubyNode {
 
                 if (t instanceof TruffleException) {
                     final Backtrace backtrace = new Backtrace((TruffleException) t);
-                    final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
-                    final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
-                    builder.append(formattedBacktrace).append('\n');
+                    appendTruffleStackTrace(builder, backtrace);
                 } else {
-                    // Print the first 10 lines of backtrace
-                    final StackTraceElement[] stackTrace = t.getStackTrace();
-                    for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
-                        stackTraceElementToRuby(builder, stackTrace[i]);
+                    if (TruffleStackTrace.getStackTrace(t) != null) {
+                        final Backtrace backtrace = new Backtrace(t);
+                        appendTruffleStackTrace(builder, backtrace);
+                    } else {
+                        // Print the first 10 lines of the Java stacktrace
+                        appendJavaStackTrace(t, builder, 10);
                     }
                 }
             }
@@ -312,8 +313,17 @@ public class ExceptionTranslatingNode extends RubyNode {
         return coreExceptions().runtimeError(builder.toString(), this, throwable);
     }
 
-    private void stackTraceElementToRuby(StringBuilder builder, StackTraceElement stackTraceElement) {
-        builder.append('\t').append("from ").append(stackTraceElement).append('\n');
+    private void appendTruffleStackTrace(StringBuilder builder, Backtrace backtrace) {
+        final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
+        final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
+        builder.append(formattedBacktrace).append('\n');
+    }
+
+    private void appendJavaStackTrace(Throwable t, StringBuilder builder, int limit) {
+        final StackTraceElement[] stackTrace = t.getStackTrace();
+        for (int i = 0; i < Math.min(stackTrace.length, limit); i++) {
+            builder.append('\t').append("from ").append(stackTrace[i]).append('\n');
+        }
     }
 
 }

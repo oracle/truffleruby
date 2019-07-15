@@ -51,6 +51,15 @@ public class Backtrace {
         this.omitted = 0;
         this.javaThrowable = null;
 
+        this.activations = getActivations((Throwable) exception);
+    }
+
+    public Backtrace(Throwable exception) {
+        this.location = null;
+        this.sourceLocation = null;
+        this.omitted = 0;
+        this.javaThrowable = null;
+
         this.activations = getActivations(exception);
     }
 
@@ -90,7 +99,7 @@ public class Backtrace {
     }
 
     @TruffleBoundary
-    public Activation[] getActivations(TruffleException truffleException) {
+    public Activation[] getActivations(Throwable truffleException) {
         if (this.activations == null) {
             if (truffleException == null) {
                 truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
@@ -98,7 +107,7 @@ public class Backtrace {
 
             // The stacktrace is computed here if it was not already computed and stored in the
             // TruffleException with TruffleStackTraceElement.fillIn().
-            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace((Throwable) truffleException);
+            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace(truffleException);
 
             final List<Activation> activations = new ArrayList<>();
             final RubyContext context = RubyLanguage.getCurrentContext();
