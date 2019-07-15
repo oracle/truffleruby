@@ -50,14 +50,12 @@ module Truffle::FiddleBackend
     end
   end
 
-  def self.int_type(size)
-    case size
-    when SIZEOF_INT
-      Fiddle::TYPE_INT
-    when SIZEOF_LONG
+  def self.type_from_config(type)
+    case type
+    when 'long'
       Fiddle::TYPE_LONG
     else
-      raise NotImplementedError, "no integer of size #{size}"
+      raise NotImplementedError, "integer #{type} not known"
     end
   end
 
@@ -140,10 +138,10 @@ module Fiddle
   SIZEOF_INTPTR_T   = Truffle.invoke_primitive(:pointer_find_type_size, :intptr_t)
   SIZEOF_UINTPTR_T  = Truffle.invoke_primitive(:pointer_find_type_size, :uintptr_t)
 
-  TYPE_SSIZE_T      = Truffle::FiddleBackend.int_type(SIZEOF_SIZE_T)
+  TYPE_SSIZE_T      = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ssize_t'))
   TYPE_SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
-  TYPE_PTRDIFF_T    = Truffle::FiddleBackend.int_type(SIZEOF_PTRDIFF_T)
-  TYPE_INTPTR_T     = Truffle::FiddleBackend.int_type(SIZEOF_INTPTR_T)
+  TYPE_PTRDIFF_T    = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ptrdiff_t'))
+  TYPE_INTPTR_T     = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.intptr_t'))
   TYPE_UINTPTR_T    = -TYPE_INTPTR_T
 
   # Alignment assumed to be the same as size
