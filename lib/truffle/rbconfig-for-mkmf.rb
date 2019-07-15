@@ -75,6 +75,7 @@ warnflags = [
   '-Wno-int-to-pointer-cast',        # Same as above
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
   '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
+  '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-ferror-limit=500'
 ].join(' ')
 
