@@ -48,7 +48,7 @@ module Truffle::FFI
 
     # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
-      Truffle.invoke_primitive :pointer_find_type_size, type
+      Truffle.invoke_primitive(:pointer_find_type_size, type)
     end
 
     def self.size

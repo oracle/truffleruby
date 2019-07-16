@@ -6,7 +6,10 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module Fiddle
-  class DLError < StandardError
+require_relative '../ruby/spec_helper'
+
+describe "Fiddle" do
+  it "can be loaded after the FFI" do
+    ruby_exe("require 'ffi'; require 'fiddle'; puts 14", args: "2>&1").should == "14\n"
   end
 end

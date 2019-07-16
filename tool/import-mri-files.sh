@@ -38,6 +38,8 @@ cp ../ruby/st.c src/main/c/cext/st.c
 
 # Copy Ruby files in ext/, sorted alphabetically
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
+cp -r ../ruby/ext/fiddle/lib/fiddle lib/mri
+cp -r ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
 cp ../ruby/ext/nkf/lib/*.rb lib/mri
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri

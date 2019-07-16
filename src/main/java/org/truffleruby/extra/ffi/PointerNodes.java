@@ -928,4 +928,35 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_raw_malloc")
+    public static abstract class PointerRawMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long realloc(long size) {
+            return Pointer.rawMalloc(size);
+        }
+
+    }
+
+    @Primitive(name = "pointer_raw_realloc")
+    public static abstract class PointerRawReallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long malloc(long address, long size) {
+            return Pointer.rawRealloc(address, size);
+        }
+
+    }
+
+    @Primitive(name = "pointer_raw_free")
+    public static abstract class PointerRawFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long free(long address) {
+            Pointer.rawFree(address);
+            return address;
+        }
+
+    }
+
 }

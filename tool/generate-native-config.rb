@@ -357,6 +357,7 @@ class TypesGenerator < Generator
 
   def source(io)
     io.puts '#include <stdint.h>'
+    io.puts '#include <stddef.h>'
     io.puts '#include <sys/types.h>'
     io.puts '#include <sys/socket.h>'
     io.puts '#include <sys/resource.h>'
@@ -768,7 +769,7 @@ end
 
 constants 'dlopen' do |cg|
   cg.include 'dlfcn.h'
-  cg.consts %w[RTLD_LAZY RTLD_NOW RTLD_LOCAL RTLD_GLOBAL]
+  cg.consts %w[RTLD_LAZY RTLD_NOW RTLD_LOCAL RTLD_GLOBAL RTLD_NEXT RTLD_DEFAULT]
 end
 
 constants 'clocks' do |cg|

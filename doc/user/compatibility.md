@@ -72,9 +72,6 @@ The following standard libraries are unsupported.
 * `win32`
 * `win32ole`
 
-`fiddle` is not yet implemented - the module and some methods are there
-but not enough to run anything serious.
-
 We provide our own included implementation of the interface of the `ffi` gem,
 like JRuby and Rubinius. The implementation should be fairly complete and passes
 all the specs of the `ffi` gem except for some rarely-used corner cases.

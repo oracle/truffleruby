@@ -315,6 +315,18 @@ public class Pointer implements AutoCloseable {
         return Long.hashCode(address);
     }
 
+    public static long rawMalloc(long size) {
+        return UNSAFE.allocateMemory(size);
+    }
+
+    public static long rawRealloc(long address, long size) {
+        return UNSAFE.reallocateMemory(address, size);
+    }
+
+    public static void rawFree(long address) {
+        UNSAFE.freeMemory(address);
+    }
+
     @SuppressWarnings("restriction")
     private static Unsafe getUnsafe() {
         try {
