@@ -253,8 +253,6 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.platform.graal.AssertConstantNodeGen;
-import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -264,6 +262,8 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.platform.AssertConstantNodeGen;
+import org.truffleruby.platform.AssertNotCompiledNodeGen;
 
 /**
  * A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes.

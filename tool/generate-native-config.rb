@@ -43,10 +43,10 @@ EXTRA_CFLAGS = ''
 
 case RUBY_PLATFORM
 when /x86_64-linux/
-  PLATFORM_FILE = 'org/truffleruby/platform/linux/LinuxNativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/LinuxNativeConfiguration.java'
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
-  PLATFORM_FILE = 'org/truffleruby/platform/darwin/DarwinNativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/DarwinNativeConfiguration.java'
 else
   raise "Unsupported platform #{RUBY_PLATFORM}"
 end
