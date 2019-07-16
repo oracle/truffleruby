@@ -71,7 +71,7 @@ public abstract class ExceptionOperations {
 
     // because the factory is not constant
     @TruffleBoundary
-    private static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Backtrace backtrace) {
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Backtrace backtrace) {
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(Layouts.EXCEPTION.build(message, null, backtrace, cause));

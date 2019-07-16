@@ -263,11 +263,17 @@ public class ExceptionTranslatingNode extends RubyNode {
 
         final StringBuilder builder = new StringBuilder();
         boolean firstException = true;
+        Backtrace lastBacktrace = null;
 
         while (t != null) {
             if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
                 // Truffle's lazy stracktrace support, not a real exception
                 break;
+            }
+
+            if (lastBacktrace != null) {
+                appendTruffleStackTrace(builder, lastBacktrace);
+                lastBacktrace = null;
             }
 
             if (!firstException) {
@@ -290,15 +296,13 @@ public class ExceptionTranslatingNode extends RubyNode {
                 builder.append(" (").append(t.getClass().getSimpleName()).append(")\n");
 
                 if (t instanceof TruffleException) {
-                    final Backtrace backtrace = new Backtrace((TruffleException) t);
-                    appendTruffleStackTrace(builder, backtrace);
+                    lastBacktrace = new Backtrace((TruffleException) t);
                 } else {
+                    // Print the first 10 lines of the Java stacktrace
+                    appendJavaStackTrace(t, builder, 10);
+
                     if (TruffleStackTrace.getStackTrace(t) != null) {
-                        final Backtrace backtrace = new Backtrace(t);
-                        appendTruffleStackTrace(builder, backtrace);
-                    } else {
-                        // Print the first 10 lines of the Java stacktrace
-                        appendJavaStackTrace(t, builder, 10);
+                        lastBacktrace = new Backtrace(t);
                     }
                 }
             }
@@ -310,7 +314,11 @@ public class ExceptionTranslatingNode extends RubyNode {
         // When printing the backtrace of the exception, make it clear it's not a cause
         builder.append("Translated to internal error");
 
-        return coreExceptions().runtimeError(builder.toString(), this, throwable);
+        if (lastBacktrace != null) {
+            return coreExceptions().runtimeError(builder.toString(), lastBacktrace);
+        } else {
+            return coreExceptions().runtimeError(builder.toString(), this, throwable);
+        }
     }
 
     private void appendTruffleStackTrace(StringBuilder builder, Backtrace backtrace) {

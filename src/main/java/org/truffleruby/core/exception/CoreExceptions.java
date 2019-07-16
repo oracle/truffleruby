@@ -246,6 +246,13 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
+    @TruffleBoundary
+    public DynamicObject runtimeError(String fullMessage, Backtrace backtrace) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
+    }
+
     // SystemStackError
 
     @TruffleBoundary
