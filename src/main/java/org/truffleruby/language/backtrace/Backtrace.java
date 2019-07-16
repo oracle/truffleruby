@@ -45,6 +45,24 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    public Backtrace(TruffleException exception) {
+        this.location = exception.getLocation();
+        this.sourceLocation = exception.getSourceLocation();
+        this.omitted = 0;
+        this.javaThrowable = null;
+
+        this.activations = getActivations((Throwable) exception);
+    }
+
+    public Backtrace(Throwable exception) {
+        this.location = null;
+        this.sourceLocation = null;
+        this.omitted = 0;
+        this.javaThrowable = null;
+
+        this.activations = getActivations(exception);
+    }
+
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
@@ -81,7 +99,7 @@ public class Backtrace {
     }
 
     @TruffleBoundary
-    public Activation[] getActivations(TruffleException truffleException) {
+    public Activation[] getActivations(Throwable truffleException) {
         if (this.activations == null) {
             if (truffleException == null) {
                 truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
@@ -89,7 +107,7 @@ public class Backtrace {
 
             // The stacktrace is computed here if it was not already computed and stored in the
             // TruffleException with TruffleStackTraceElement.fillIn().
-            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace((Throwable) truffleException);
+            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace(truffleException);
 
             final List<Activation> activations = new ArrayList<>();
             final RubyContext context = RubyLanguage.getCurrentContext();

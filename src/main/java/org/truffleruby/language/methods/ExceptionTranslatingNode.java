@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
@@ -19,6 +20,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.JavaException;
@@ -261,11 +263,17 @@ public class ExceptionTranslatingNode extends RubyNode {
 
         final StringBuilder builder = new StringBuilder();
         boolean firstException = true;
+        Backtrace lastBacktrace = null;
 
         while (t != null) {
             if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
                 // Truffle's lazy stracktrace support, not a real exception
                 break;
+            }
+
+            if (lastBacktrace != null) {
+                appendTruffleStackTrace(builder, lastBacktrace);
+                lastBacktrace = null;
             }
 
             if (!firstException) {
@@ -285,13 +293,17 @@ public class ExceptionTranslatingNode extends RubyNode {
                 // Java exception, print it formatted like a Ruby exception
                 final String message = t.getMessage();
                 builder.append(message != null ? message : "<no message>");
-
                 builder.append(" (").append(t.getClass().getSimpleName()).append(")\n");
 
-                // Print the first 10 lines of backtrace
-                final StackTraceElement[] stackTrace = t.getStackTrace();
-                for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
-                    stackTraceElementToRuby(builder, stackTrace[i]);
+                if (t instanceof TruffleException) {
+                    lastBacktrace = new Backtrace((TruffleException) t);
+                } else {
+                    // Print the first 10 lines of the Java stacktrace
+                    appendJavaStackTrace(t, builder, 10);
+
+                    if (TruffleStackTrace.getStackTrace(t) != null) {
+                        lastBacktrace = new Backtrace(t);
+                    }
                 }
             }
 
@@ -302,11 +314,24 @@ public class ExceptionTranslatingNode extends RubyNode {
         // When printing the backtrace of the exception, make it clear it's not a cause
         builder.append("Translated to internal error");
 
-        return coreExceptions().runtimeError(builder.toString(), this, throwable);
+        if (lastBacktrace != null) {
+            return coreExceptions().runtimeError(builder.toString(), lastBacktrace);
+        } else {
+            return coreExceptions().runtimeError(builder.toString(), this, throwable);
+        }
     }
 
-    private void stackTraceElementToRuby(StringBuilder builder, StackTraceElement stackTraceElement) {
-        builder.append('\t').append("from ").append(stackTraceElement).append('\n');
+    private void appendTruffleStackTrace(StringBuilder builder, Backtrace backtrace) {
+        final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
+        final String formattedBacktrace = formatter.formatBacktrace(null, backtrace);
+        builder.append(formattedBacktrace).append('\n');
+    }
+
+    private void appendJavaStackTrace(Throwable t, StringBuilder builder, int limit) {
+        final StackTraceElement[] stackTrace = t.getStackTrace();
+        for (int i = 0; i < Math.min(stackTrace.length, limit); i++) {
+            builder.append('\t').append("from ").append(stackTrace[i]).append('\n');
+        }
     }
 
 }
