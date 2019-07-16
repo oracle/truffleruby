@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Foreign
       extend ::FFI::Library
-      ffi_lib ::FFI::Library::LIBC
+      ffi_lib ::FFI::Library::CURRENT_PROCESS
 
       SIZEOF_INT = ::FFI.type_size(:int)
 

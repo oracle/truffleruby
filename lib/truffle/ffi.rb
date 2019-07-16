@@ -27,6 +27,12 @@ module FFI
     # so we need to break the cycle.
     ADDRESS_SIZE = 64
     LONG_SIZE = 64
+
+    if ::Truffle::Platform.linux?
+      # Set it so FFI::Library finds the right file directly, like on MRI,
+      # and does not need to try and fail to load the /lib64/libc.so loader script.
+      GNU_LIBC = 'libc.so.6'
+    end
   end
 
   TypeDefs = {}
