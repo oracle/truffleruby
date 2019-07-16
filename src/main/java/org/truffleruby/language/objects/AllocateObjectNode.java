@@ -60,9 +60,10 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
             @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached(value = "lookupAllocationReporter(context)", allowUncached = true) AllocationReporter allocationReporter) {
 
-        return trace(context, allocate(context, factory, values));
+        return trace(context, allocate(context, allocationReporter, factory, values));
     }
 
     // because the factory is not constant
@@ -70,9 +71,14 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
     public DynamicObject allocateUncached(
             DynamicObject classToAllocate, Object[] values,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached(value = "lookupAllocationReporter(context)", allowUncached = true) AllocationReporter allocationReporter) {
 
-        return trace(context, allocate(context, getInstanceFactory(classToAllocate), values));
+        return trace(context, allocate(context, allocationReporter, getInstanceFactory(classToAllocate), values));
+    }
+
+    protected static AllocationReporter lookupAllocationReporter(RubyContext context) {
+        return context.getEnv().lookup(AllocationReporter.class);
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
@@ -142,9 +148,7 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
         return RubyLanguage.getCurrentContext().getOptions().ALLOCATE_CLASS_CACHE;
     }
 
-    private DynamicObject allocate(RubyContext context, DynamicObjectFactory factory, Object[] values) {
-        final AllocationReporter allocationReporter = context.getAllocationReporter();
-
+    private DynamicObject allocate(RubyContext context, AllocationReporter allocationReporter, DynamicObjectFactory factory, Object[] values) {
         if (allocationReporter.isActive()) {
             allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         }

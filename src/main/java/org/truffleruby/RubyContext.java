@@ -9,17 +9,23 @@
  */
 package org.truffleruby;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
-
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
@@ -65,33 +71,23 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
-import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
+import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.DarwinNativeConfiguration;
 import org.truffleruby.platform.LinuxNativeConfiguration;
+import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.RubyOptionTypes;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
 
 public class RubyContext {
 
     private final RubyLanguage language;
     @CompilationFinal private TruffleLanguage.Env env;
-
-    private final AllocationReporter allocationReporter;
 
     @CompilationFinal private Options options;
     @CompilationFinal private String rubyHome;
@@ -161,8 +157,6 @@ public class RubyContext {
 
         this.language = language;
         this.env = env;
-
-        allocationReporter = env.lookup(AllocationReporter.class);
 
         options = createOptions(env);
 
@@ -524,10 +518,6 @@ public class RubyContext {
 
     public BacktraceFormatter getUserBacktraceFormatter() {
         return userBacktraceFormatter;
-    }
-
-    public AllocationReporter getAllocationReporter() {
-        return allocationReporter;
     }
 
     public CoreLibrary getCoreLibrary() {
