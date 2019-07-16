@@ -47,15 +47,8 @@ when /x86_64-linux/
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
   PLATFORM_FILE = 'org/truffleruby/platform/darwin/DarwinNativeConfiguration.java'
-when /sparc(?:v9)?-solaris/
-  PLATFORM_FILE = 'org/truffleruby/platform/solaris/SolarisSparcV9NativeConfiguration.java'
-  ENV['CC'] ||= 'gcc'
-  # "-m64" forces a 64-bit binary
-  # "-D_XOPEN_SOURCE=600" tells Solaris to use the SUSv3 feature set
-  # "-std=gnu99" is required to build with SUSv3 enabled
-  EXTRA_CFLAGS << ' -std=gnu99 -m64 -D_XOPEN_SOURCE=600 -D__EXTENSIONS__=1'
 else
-  raise "Unknown platform #{RUBY_PLATFORM}"
+  raise "Unsupported platform #{RUBY_PLATFORM}"
 end
 
 class ConfigFileHandler

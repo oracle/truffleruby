@@ -73,7 +73,6 @@ import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.darwin.DarwinNativeConfiguration;
 import org.truffleruby.platform.linux.LinuxNativeConfiguration;
-import org.truffleruby.platform.solaris.SolarisSparcV9NativeConfiguration;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.RubyOptionTypes;
 import org.truffleruby.stdlib.CoverageManager;
@@ -412,9 +411,6 @@ public class RubyContext {
                 break;
             case DARWIN:
                 DarwinNativeConfiguration.load(nativeConfiguration, this);
-                break;
-            case SOLARIS:
-                SolarisSparcV9NativeConfiguration.load(nativeConfiguration, this);
                 break;
             default:
                 RubyLanguage.LOGGER.severe("no native configuration for this platform");
