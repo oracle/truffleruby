@@ -12,6 +12,7 @@ Bug fixes:
 * Do not modify the argument passed to `IO#write` when the encoding does not match (#1714).
 * Use the class where the method was defined to check if an `UnboundMethod` can be used for `#define_method` (#1710).
 * Fixed setting `$~` for `Enumerable` and `Enumerator::Lazy`'s `#grep` and `#grep_v`.
+* Improved errors when interacting with single-threaded languages (#1709).
 
 Compatibility:
 

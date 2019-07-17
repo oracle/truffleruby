@@ -86,7 +86,7 @@ public class ThreadManager {
         this.context = context;
         this.rootThread = createBootThread("main");
         this.rootJavaThread = Thread.currentThread();
-        this.fiberPool = Executors.newCachedThreadPool(this::createJavaThread);
+        this.fiberPool = Executors.newCachedThreadPool(this::createFiberJavaThread);
     }
 
     public void initialize(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
@@ -118,7 +118,16 @@ public class ThreadManager {
         Layouts.FIBER.setFinishedLatch(rootFiber, new CountDownLatch(1));
     }
 
-    public Thread createJavaThread(Runnable runnable) {
+    // spawning Thread => Fiber object
+    public static final ThreadLocal<DynamicObject> FIBER_BEING_SPAWNED = new ThreadLocal<>();
+
+    private Thread createFiberJavaThread(Runnable runnable) {
+        DynamicObject fiber = FIBER_BEING_SPAWNED.get();
+        assert fiber != null;
+        return createJavaThread(runnable, fiber);
+    }
+
+    private Thread createJavaThread(Runnable runnable, DynamicObject fiber) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(context, context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
         }
@@ -128,6 +137,18 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
+
+        assert fiber != null;
+        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
+            try {
+                Layouts.FIBER.setUncaughtException(fiber, throwable);
+                Layouts.FIBER.getInitializedLatch(fiber).countDown();
+            } catch (Throwable t) {
+                t.initCause(throwable);
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(javaThread, t);
+            }
+        });
+
         rubyManagedThreads.add(thread);
         return thread;
     }
@@ -233,12 +254,13 @@ public class ThreadManager {
         startSharing(rubyThread, sharingReason);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
+        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(rubyThread).getRootFiber();
 
-        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task));
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
-        thread.start();
 
-        FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode);
+        thread.start();
+        FiberManager.waitForInitialization(context, rootFiber, currentNode);
     }
 
     private void threadMain(DynamicObject thread, Node currentNode, Supplier<Object> task) {

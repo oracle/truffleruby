@@ -35,7 +35,8 @@ public interface FiberLayout extends BasicObjectLayout {
                               @Volatile @Nullable DynamicObject lastResumedByFiber,
                               @Volatile boolean alive,
                               @Nullable Thread thread,
-                              @Volatile boolean transferred);
+                              @Volatile boolean transferred,
+                              @Volatile @Nullable Throwable uncaughtException);
 
     boolean isFiber(DynamicObject object);
 
@@ -63,5 +64,8 @@ public interface FiberLayout extends BasicObjectLayout {
 
     boolean getTransferred(DynamicObject object);
     void setTransferred(DynamicObject object, boolean value);
+
+    Throwable getUncaughtException(DynamicObject object);
+    void setUncaughtException(DynamicObject object, Throwable value);
 
 }
