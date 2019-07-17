@@ -1052,10 +1052,13 @@ public abstract class ModuleNodes {
             final InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(method);
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final DynamicObject declaringModule = internalMethod.getDeclaringModule();
-                throw new RaiseException(getContext(), coreExceptions().typeError("bind argument must be a subclass of " + Layouts.MODULE.getFields(declaringModule).getName(), this));
+                if (RubyGuards.isSingletonClass(declaringModule)) {
+                    throw new RaiseException(getContext(), coreExceptions().typeError(
+                            "can't bind singleton method to a different class", this));
+                } else {
+                    throw new RaiseException(getContext(), coreExceptions().typeError("bind argument must be a subclass of " + Layouts.MODULE.getFields(declaringModule).getName(), this));
+                }
             }
-
-            // TODO CS 5-Apr-15 TypeError if the method came from a singleton
 
             return addMethod(module, name, internalMethod);
         }
