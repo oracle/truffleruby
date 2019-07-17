@@ -97,6 +97,10 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return ((value / 4) + 1) * 4;
     }
 
+    protected static int nearestBiggerMultipleOf9(int value) {
+        return ((value / 9) + 1) * 9;
+    }
+
     protected static int defaultDivisionPrecision(int precisionA, int precisionB, int limit) {
         final int combination = nearestBiggerMultipleOf4(precisionA + precisionB) * 4;
         return (limit > 0 && limit < combination) ? limit : combination;

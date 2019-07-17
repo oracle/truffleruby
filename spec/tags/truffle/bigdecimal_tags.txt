@@ -1,0 +1,1 @@
+fails:BigDecimal bug GR-16506 produces the expected result

@@ -22,7 +22,7 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
     private final ConditionProfile nanProfile = ConditionProfile.createBinaryProfile();
     private final ConditionProfile posInfinityProfile = ConditionProfile.createBinaryProfile();
     private final ConditionProfile negInfinityProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile aNormalProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile normalProfile = ConditionProfile.createBinaryProfile();
 
     protected Object add(DynamicObject a, DynamicObject b, int precision) {
         if (precision == 0) {
@@ -53,7 +53,7 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
 
         // One is NEGATIVE_ZERO and second is NORMAL
 
-        if (aNormalProfile.profile(isNormal(a))) {
+        if (normalProfile.profile(isNormal(a))) {
             return a;
         } else {
             return b;

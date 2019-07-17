@@ -193,6 +193,8 @@ class Rational < Numeric
       [Rational.new(other, 1), self]
     when Float
       [other, self.to_f]
+    when Truffle::BigDecimal
+      raise TypeError, 'BigDecimal can\'t be coerced into Rational'
     else
       super
     end

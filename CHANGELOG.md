@@ -18,6 +18,7 @@ Compatibility:
 * `blocking: true` is now supported for `FFI::Library#attach_function`.
 * Implemented `Proc#>>` and `#<<` (#1688).
 * `Thread.report_on_exception` is now `true` by default like MRI 2.5+.
+* `BigDecimal` compatibility has been generally improved in several ways.
 
 Changes:
 

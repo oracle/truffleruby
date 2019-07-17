@@ -65,7 +65,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization
     public DynamicObject create(long value, int digits, boolean strict,
             @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
-        BigDecimal bigDecimal = round((BigDecimal) bigDecimalCastNode.execute(value, getRoundMode()),
+        BigDecimal bigDecimal = round((BigDecimal) bigDecimalCastNode.execute(value, digits, getRoundMode()),
                 new MathContext(digits, getRoundMode()));
         return createNormalBigDecimal(bigDecimal);
     }
@@ -95,7 +95,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public DynamicObject createFinite(double value, int digits, boolean strict,
                                       @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
         final RoundingMode roundMode = getRoundMode();
-        final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, roundMode);
+        final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, digits, roundMode);
         return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
     }
 
@@ -205,10 +205,10 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public DynamicObject create(DynamicObject value, int digits, boolean strict,
             @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
             @Cached("createBinaryProfile()") ConditionProfile castProfile) {
-        final Object castedValue = bigDecimalCastNode.execute(value, getRoundMode());
+        final Object castedValue = bigDecimalCastNode.execute(value, digits, getRoundMode());
 
         if (castProfile.profile(castedValue instanceof BigDecimal)) {
-            return createNormalBigDecimal(round((BigDecimal) castedValue, new MathContext(digits, getRoundMode())));
+            return createNormalBigDecimal((BigDecimal) castedValue);
         } else {
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantBeCastedToBigDecimal(this));
         }
@@ -240,7 +240,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         }
 
         // Convert String to Java understandable format (for BigDecimal).
-        strValue = strValue.replaceFirst("[dD]", "E");                  // 1. MRI allows d and D as exponent separators
+        strValue = strValue.replaceFirst("[dD]", "E");                  // MRI allows d and D as exponent separators
 
         // 1. MRI allows _ before the decimal place
         if (strValue.indexOf('_') != -1) {

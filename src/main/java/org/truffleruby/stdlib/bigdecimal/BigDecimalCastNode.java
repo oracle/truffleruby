@@ -54,36 +54,38 @@ import java.math.RoundingMode;
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyBaseNode {
 
+    private static final int RMPD_COMPONENT_FIGURES = 19;
+
     public static BigDecimalCastNode create() {
         return BigDecimalCastNodeGen.create();
     }
 
-    public abstract Object execute(Object value, RoundingMode roundingMode);
+    public abstract Object execute(Object value, int digits, RoundingMode roundingMode);
 
     @Specialization
-    public BigDecimal doInt(long value, RoundingMode roundingMode) {
+    public BigDecimal doInt(long value, int digits, RoundingMode roundingMode) {
         return BigDecimal.valueOf(value);
     }
 
     @TruffleBoundary
     @Specialization
-    public BigDecimal doDouble(double value, RoundingMode roundingMode) {
+    public BigDecimal doDouble(double value, int digits, RoundingMode roundingMode) {
         assert !RubyGuards.isNegativeZero(value);
         return BigDecimal.valueOf(value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public BigDecimal doBignum(DynamicObject value, RoundingMode roundingMode) {
+    public BigDecimal doBignum(DynamicObject value, int digits, RoundingMode roundingMode) {
         return new BigDecimal(Layouts.BIGNUM.getValue(value));
     }
 
     @Specialization(guards = "isNormalRubyBigDecimal(value)")
-    public BigDecimal doBigDecimal(DynamicObject value, RoundingMode roundingMode) {
+    public BigDecimal doBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
         return Layouts.BIG_DECIMAL.getValue(value);
     }
 
     @Specialization(guards = "isSpecialRubyBigDecimal(value)")
-    public DynamicObject doSpecialBigDecimal(DynamicObject value, RoundingMode roundingMode) {
+    public DynamicObject doSpecialBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
         return value;
     }
 
@@ -91,7 +93,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
             "!isRubyNumber(value)",
             "!isRubyBigDecimal(value)"
     })
-    public Object doOther(Object value, RoundingMode roundingMode,
+    public Object doOther(Object value, int digits, RoundingMode roundingMode,
             @Cached("create()") IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
             @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {
@@ -100,7 +102,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
             final Object denominator = denominatorCallNode.call(value, "denominator");
 
             try {
-                return toBigDecimal(numerator, denominator, roundingMode);
+                return toBigDecimal(numerator, denominator, digits, roundingMode);
             } catch (Exception e) {
                 throw e;
             }
@@ -110,14 +112,13 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private BigDecimal toBigDecimal(Object numerator, Object denominator, RoundingMode roundingMode) {
-        BigDecimal numeratorDecimal = toBigDecimal(numerator);
-        BigDecimal denominatorDecimal = toBigDecimal(denominator);
-
-        int len = numeratorDecimal.precision() + denominatorDecimal.precision();
-        int pow = len / 4;
-        MathContext mathContext = new MathContext((pow + 1) * 4, roundingMode);
-
+    private BigDecimal toBigDecimal(Object numerator, Object denominator, int digits, RoundingMode roundingMode) {
+        final BigDecimal numeratorDecimal = toBigDecimal(numerator);
+        final BigDecimal denominatorDecimal = toBigDecimal(denominator);
+        if (digits == 0) {
+            digits = RMPD_COMPONENT_FIGURES;
+        }
+        final MathContext mathContext = new MathContext(digits, roundingMode);
         return numeratorDecimal.divide(denominatorDecimal, mathContext);
     }
 
