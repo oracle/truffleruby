@@ -281,7 +281,7 @@ describe "Module#define_method" do
 
     lambda {
       Class.new { define_method :bar, m }
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /can't bind singleton method to a different class/)
   end
 
   it "raises a TypeError when a Method from one class is defined on an unrelated class" do
@@ -409,7 +409,7 @@ describe "Module#define_method" do
       ParentClass = Class.new { define_method(:foo) { :bar } }
       ChildClass = Class.new(ParentClass) { define_method(:foo) { :baz } }
       ParentClass.send :define_method, :foo, ChildClass.instance_method(:foo)
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /bind argument must be a subclass of ChildClass/)
   end
 
   it "raises a TypeError when an UnboundMethod from one class is defined on an unrelated class" do
@@ -417,7 +417,21 @@ describe "Module#define_method" do
       DestinationClass = Class.new {
         define_method :bar, ModuleSpecs::InstanceMeth.instance_method(:foo)
       }
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /bind argument must be a subclass of ModuleSpecs::InstanceMeth/)
+  end
+
+  it "raises a TypeError when an UnboundMethod from a singleton class is defined on another class" do
+    c = Class.new do
+      class << self
+        def foo
+        end
+      end
+    end
+    m = c.method(:foo).unbind
+
+    lambda {
+      Class.new { define_method :bar, m }
+    }.should raise_error(TypeError, /can't bind singleton method to a different class/)
   end
 end
 
