@@ -32,6 +32,10 @@ describe "UnboundMethod#bind" do
     @child2_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
   end
 
+  it "allows binding a Kernel method retrieved from Object on BasicObject" do
+    Object.instance_method(:instance_of?).bind(BasicObject.new).call(BasicObject).should == true
+  end
+
   it "returns a callable method" do
     obj = UnboundMethodSpecs::Methods.new
     @normal_um.bind(obj).call.should == obj.foo
