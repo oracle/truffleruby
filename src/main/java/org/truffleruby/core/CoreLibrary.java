@@ -176,6 +176,7 @@ public class CoreLibrary {
     private final DynamicObject truffleRegexpOperationsModule;
     private final DynamicObject truffleThreadOperationsModule;
     private final DynamicObject bigDecimalClass;
+    private final DynamicObject bigDecimalOperationsModule;
     private final DynamicObject encodingCompatibilityErrorClass;
     private final DynamicObject encodingUndefinedConversionErrorClass;
     private final DynamicObject methodClass;
@@ -546,6 +547,7 @@ public class CoreLibrary {
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
+        bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
         DynamicObject truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
@@ -953,6 +955,10 @@ public class CoreLibrary {
 
     public DynamicObject getBigDecimalClass() {
         return bigDecimalClass;
+    }
+
+    public DynamicObject getBigDecimalOperationsModule() {
+        return bigDecimalOperationsModule;
     }
 
     public DynamicObjectFactory getBindingFactory() {

@@ -46,8 +46,6 @@ public abstract class BigDecimalNodes {
 
     // TODO (pitr 2015-jun-16): lazy setup when required, see https://github.com/jruby/jruby/pull/3048#discussion_r32413656
 
-    // TODO (pitr 21-Jun-2015): Check for missing coerce on OpNodes
-
     @Primitive(name = "bigdecimal_new", lowerFixnum = 1)
     public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
@@ -125,8 +123,8 @@ public abstract class BigDecimalNodes {
                 "isNormal(a)",
                 "isNormalRubyBigDecimal(b)"
         })
-        public Object subNormal(DynamicObject a, DynamicObject b) {
-            return subNormal(a, b, getLimit());
+        public Object sub(DynamicObject a, DynamicObject b) {
+            return sub(a, b, getLimit());
         }
 
         @Specialization(guards = {
@@ -153,8 +151,8 @@ public abstract class BigDecimalNodes {
                 "isNormal(a)",
                 "isNormalRubyBigDecimal(b)"
         })
-        public Object subNormal(DynamicObject a, DynamicObject b, int precision) {
-            return super.subNormal(a, b, precision);
+        public Object sub(DynamicObject a, DynamicObject b, int precision) {
+            return super.sub(a, b, precision);
         }
 
         @Override
@@ -959,7 +957,7 @@ public abstract class BigDecimalNodes {
     }
 
     @CoreMethod(names = "<=>", required = 1)
-    public abstract static class CompareNode extends BigDecimalCoreMethodArrayArgumentsNode {
+    public abstract static class CompareNode extends BigDecimalOpNode {
 
         @TruffleBoundary
         private int compareBigDecimal(DynamicObject a, BigDecimal b) {
@@ -1413,14 +1411,13 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "isNormal(value)")
         public Object precsNormal(DynamicObject value) {
             final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value).abs();
-            return createArray(new int[] {
-                    bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length(),
-                    nearestBiggerMultipleOf4(bigDecimalValue.unscaledValue().toString().length()) }, 2);
+            final int precs = nearestBiggerMultipleOf9(bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
+            return createArray(new int[] { precs, precs + 9 }, 2);
         }
 
         @Specialization(guards = "!isNormal(value)")
         public Object precsSpecial(DynamicObject value) {
-            return createArray(new int[] { 1, 1 }, 2);
+            return createArray(new int[] { 9, 9 }, 2);
         }
 
     }

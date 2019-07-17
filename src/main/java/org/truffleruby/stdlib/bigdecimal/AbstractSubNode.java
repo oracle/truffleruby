@@ -24,12 +24,7 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
     private final ConditionProfile negInfinityProfile = ConditionProfile.createBinaryProfile();
     private final ConditionProfile normalProfile = ConditionProfile.createBinaryProfile();
 
-    @TruffleBoundary
-    private BigDecimal subBigDecimal(DynamicObject a, DynamicObject b, MathContext mathContext) {
-        return Layouts.BIG_DECIMAL.getValue(a).subtract(Layouts.BIG_DECIMAL.getValue(b), mathContext);
-    }
-
-    protected Object subNormal(DynamicObject a, DynamicObject b, int precision) {
+    protected Object sub(DynamicObject a, DynamicObject b, int precision) {
         if (precision == 0) {
             precision = getLimit();
         }
@@ -64,4 +59,10 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
             return createBigDecimal(Layouts.BIG_DECIMAL.getValue(b).negate());
         }
     }
+
+    @TruffleBoundary
+    private BigDecimal subBigDecimal(DynamicObject a, DynamicObject b, MathContext mathContext) {
+        return Layouts.BIG_DECIMAL.getValue(a).subtract(Layouts.BIG_DECIMAL.getValue(b), mathContext);
+    }
+
 }

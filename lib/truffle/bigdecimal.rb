@@ -331,4 +331,20 @@ module Kernel
   end
 end
 
+module Truffle::BigDecimalOperations
+
+  def self.coerce_integer_to_bigdecimal(value)
+    Truffle.invoke_primitive(:bigdecimal_new, value, Truffle::UNDEFINED, true)
+  end
+
+  def self.coerce_float_to_bigdecimal(value)
+    Truffle.invoke_primitive(:bigdecimal_new, value.to_s, Truffle::UNDEFINED, true)
+  end
+
+  def self.coerce_rational_to_bigdecimal(value)
+    Truffle.invoke_primitive(:bigdecimal_new, value.to_f.to_s, Truffle::UNDEFINED, true)
+  end
+
+end
+
 require 'bigdecimal/math'
