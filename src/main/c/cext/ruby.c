@@ -1439,10 +1439,6 @@ ID rb_to_id(VALUE name) {
   return SYM2ID(RUBY_INVOKE(name, "to_sym"));
 }
 
-ID rb_intern(const char *string) {
-  return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
-}
-
 ID rb_intern2(const char *string, long length) {
   return (ID) SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new(string, length)));
 }
@@ -4851,3 +4847,9 @@ void ruby_qsort(void* base, const size_t nel, const size_t size, cmpfunc_t *cmp,
   rb_tr_error("ruby_qsort not implemented");
 }
 #endif
+
+#undef rb_intern
+
+ID rb_intern(const char *string) {
+  return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
+}
