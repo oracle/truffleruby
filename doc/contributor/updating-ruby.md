@@ -40,6 +40,28 @@ $ git diff vNN master | git apply -3
 
 You'll usually get some conflicts to work out.
 
+## Update config_*.h files
+
+Configuration files must be regenerated from ruby for Linux and macOS
+and copied into `lib/cext/include/truffleruby`. In the MRI repository
+do the folowing
+
+```
+autoconf
+CC=clang ./configure
+```
+
+The output of configure should report that it has created or updated a
+config.h file. For example
+
+```
+.ext/include/x86_64-linux/ruby/config.h updated
+```
+
+You will need to copy that file to
+`lib/cext/include/truffleruby/config_linux.h` or
+`lib/cext/include/truffleruby/config_darwin.h`.
+
 ## Make other changes
 
 * Update `versions.json` and `.ruby-version`
