@@ -363,7 +363,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public void addMethod(RubyContext context, Node currentNode, InternalMethod method) {
-        assert ModuleOperations.canBindMethodTo(method.getDeclaringModule(), rubyModuleObject) ||
+        assert ModuleOperations.canBindMethodTo(method, rubyModuleObject) ||
                 ModuleOperations.assignableTo(context.getCoreLibrary().getObjectClass(), method.getDeclaringModule()) ||
                 // TODO (pitr-ch 24-Jul-2016): find out why undefined methods sometimes do not match above assertion
                 // e.g. "block in _routes route_set.rb:525" in rails/actionpack/lib/action_dispatch/routing/

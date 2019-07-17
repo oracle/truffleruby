@@ -32,18 +32,17 @@ public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
     protected boolean canBindMethodToCached(InternalMethod method, DynamicObject module,
             @Cached("method.getDeclaringModule()") DynamicObject declaringModule,
             @Cached("module") DynamicObject cachedModule,
-            @Cached("canBindMethodTo(declaringModule, cachedModule)") boolean canBindMethodTo) {
+            @Cached("canBindMethodTo(method, cachedModule)") boolean canBindMethodTo) {
         return canBindMethodTo;
     }
 
     @Specialization(guards = "isRubyModule(module)")
     protected boolean canBindMethodToUncached(InternalMethod method, DynamicObject module) {
-        final DynamicObject declaringModule = method.getDeclaringModule();
-        return canBindMethodTo(declaringModule, module);
+        return canBindMethodTo(method, module);
     }
 
-    protected boolean canBindMethodTo(DynamicObject declaringModule, DynamicObject module) {
-        return ModuleOperations.canBindMethodTo(declaringModule, module);
+    protected boolean canBindMethodTo(InternalMethod method, DynamicObject module) {
+        return ModuleOperations.canBindMethodTo(method, module);
     }
 
     protected int getCacheLimit() {
