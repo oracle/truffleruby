@@ -26,6 +26,12 @@ describe "UnboundMethod#bind" do
     @normal_um.bind(obj).should == obj.method(:foo)
   end
 
+  it "returns Method for any object kind_of? the Module the method is defined in" do
+    @parent_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
+    @child1_um.bind(UnboundMethodSpecs::Parent.new).should be_kind_of(Method)
+    @child2_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
+  end
+
   it "returns a callable method" do
     obj = UnboundMethodSpecs::Methods.new
     @normal_um.bind(obj).call.should == obj.foo
