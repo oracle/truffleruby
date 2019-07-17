@@ -184,18 +184,6 @@ MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
   return 0;
 }
 
-MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
-  if (!rb_obj_is_kind_of(range, rb_cRange)) {
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
-  }
-
-  *begp = RUBY_INVOKE(range, "begin");
-  *endp = RUBY_INVOKE(range, "end");
-  *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
-  return Qtrue_int_const;
-}
-
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
 
