@@ -39,7 +39,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -262,11 +261,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true)
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
         protected DynamicObject bindingUncached(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             final SourceSection sourceSection = getCallerSourceSection();
 
             return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
@@ -283,13 +282,13 @@ public abstract class KernelNodes {
     @CoreMethod(names = "block_given?", isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
         public boolean blockGiven(VirtualFrame frame,
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile.profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil());
         }
     }

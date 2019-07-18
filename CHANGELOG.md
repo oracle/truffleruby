@@ -29,6 +29,7 @@ Performance:
 
 * Several `String` methods have been made faster by the usage of vector instructions
   when searching for a single-byte character in a String.
+* Methods needing the caller frame are now better optimized.
 
 # 19.1.0, June 2019
 

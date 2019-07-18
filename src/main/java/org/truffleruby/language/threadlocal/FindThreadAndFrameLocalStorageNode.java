@@ -17,7 +17,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -64,7 +63,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
             this.depth = depth;
         }
 
-        public boolean matches(Frame callerFrame) {
+        public boolean matches(MaterializedFrame callerFrame) {
             return callerFrame != null && callerFrame.getFrameDescriptor() == descriptor;
         }
 
@@ -73,8 +72,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
             return getStorageFromFrame(context, frame, slot, defaultValue, true);
         }
 
-        public static StorageInFrameFinder of(RubyContext context, Frame aFrame, String variableName) {
-            MaterializedFrame callerFrame = aFrame.materialize();
+        public static StorageInFrameFinder of(RubyContext context, MaterializedFrame callerFrame, String variableName) {
             FrameDescriptor descriptor = callerFrame.getFrameDescriptor();
 
             int depth = getVariableDeclarationFrameDepth(callerFrame, variableName);
@@ -86,7 +84,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     }
 
     private static int getVariableDeclarationFrameDepth(MaterializedFrame topFrame, String variableName) {
-        Frame frame = topFrame;
+        MaterializedFrame frame = topFrame;
         int count = 0;
 
         while (true) {
@@ -95,7 +93,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
                 return count;
             }
 
-            final Frame nextFrame = RubyArguments.getDeclarationFrame(frame);
+            final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
             if (nextFrame != null) {
                 frame = nextFrame;
                 count++;
@@ -105,8 +103,8 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
         }
     }
 
-    private static Frame getVariableDeclarationFrame(Frame topFrame, String variableName) {
-        Frame frame = topFrame;
+    private static MaterializedFrame getVariableDeclarationFrame(MaterializedFrame topFrame, String variableName) {
+        MaterializedFrame frame = topFrame;
 
         while (true) {
             final FrameSlot slot = getVariableSlot(frame, variableName);
@@ -114,7 +112,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
                 return frame;
             }
 
-            final Frame nextFrame = RubyArguments.getDeclarationFrame(frame);
+            final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
             if (nextFrame != null) {
                 frame = nextFrame;
             } else {
@@ -123,7 +121,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
         }
     }
 
-    private static FrameSlot getVariableSlot(Frame frame, String variableName) {
+    private static FrameSlot getVariableSlot(MaterializedFrame frame, String variableName) {
         final FrameDescriptor descriptor = frame.getFrameDescriptor();
         synchronized (descriptor) {
             return descriptor.findFrameSlot(variableName);
@@ -139,8 +137,8 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private static ThreadAndFrameLocalStorage getStorageSearchingDeclarations(RubyContext context, Frame topFrame, String variableName) {
-        final Frame frame = getVariableDeclarationFrame(topFrame, variableName);
+    private static ThreadAndFrameLocalStorage getStorageSearchingDeclarations(RubyContext context, MaterializedFrame topFrame, String variableName) {
+        final MaterializedFrame frame = getVariableDeclarationFrame(topFrame, variableName);
         if (frame == null) {
             return null;
         }
@@ -148,7 +146,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
         return getStorageFromFrame(context, frame, slot, frame.getFrameDescriptor().getDefaultValue(), true);
     }
 
-    private static ThreadAndFrameLocalStorage getStorageFromFrame(RubyContext context, Frame frame, FrameSlot slot, Object defaultValue, boolean add) {
+    private static ThreadAndFrameLocalStorage getStorageFromFrame(RubyContext context, MaterializedFrame frame, FrameSlot slot, Object defaultValue, boolean add) {
         final Object previousMatchData = frame.getValue(slot);
 
         if (previousMatchData == defaultValue) { // Never written to

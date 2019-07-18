@@ -15,7 +15,6 @@ import java.util.Set;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -388,11 +387,11 @@ public abstract class BindingNodes {
     @Primitive(name = "caller_binding", needsSelf = false)
     public abstract static class CallerBindingNode extends PrimitiveArrayArgumentsNode {
 
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
         public DynamicObject binding(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return BindingNodes.createBinding(getContext(), callerFrame);
         }
