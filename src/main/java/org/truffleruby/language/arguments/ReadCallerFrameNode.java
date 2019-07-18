@@ -9,10 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameInstance;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -23,12 +25,21 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
+    @CompilationFinal private volatile boolean firstCall = true;
 
     public static ReadCallerFrameNode create() {
         return new ReadCallerFrameNode();
     }
 
     public MaterializedFrame execute(VirtualFrame frame) {
+        // Avoid polluting the profile for the first call which has to use getCallerFrame()
+        if (firstCall) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            firstCall = false;
+            notifyCallerToSendFrame();
+            return getCallerFrame();
+        }
+
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -38,7 +49,7 @@ public class ReadCallerFrameNode extends RubyBaseNode {
         }
     }
 
-    private void replaceDispatchNode() {
+    private void notifyCallerToSendFrame() {
         final Node callerNode = getContext().getCallStack().getCallerNode(0, false);
         if (callerNode instanceof DirectCallNode) {
             final Node parent = callerNode.getParent();
@@ -50,7 +61,6 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     @TruffleBoundary
     private MaterializedFrame getCallerFrame() {
-        replaceDispatchNode();
         return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
     }
 
