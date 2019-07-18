@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -30,8 +29,8 @@ public class TruffleThreadNodes {
                 @Cached("of(modules)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             Object[] moduleArray = boxedCopyNode.execute(Layouts.ARRAY.getStore(modules), Layouts.ARRAY.getSize(modules));
-            Frame rubyCaller = getContext().getCallStack().getCallerFrameNotInModules(moduleArray, skip).getFrame(FrameInstance.FrameAccess.MATERIALIZE);
-            return rubyCaller == null ? nil() : BindingNodes.createBinding(getContext(), rubyCaller.materialize());
+            FrameInstance rubyCaller = getContext().getCallStack().getCallerFrameNotInModules(moduleArray, skip);
+            return rubyCaller == null ? nil() : BindingNodes.createBinding(getContext(), rubyCaller.getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize());
         }
 
     }
