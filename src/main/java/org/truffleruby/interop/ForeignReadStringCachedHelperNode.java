@@ -164,7 +164,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     }
 
     @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
+            "!isRubyHash(receiver)", "!isIVar",
             "noIndexMethod(definedIndexNode, receiver)",
             "!methodDefined(receiver, stringName, definedNode)"
     })
