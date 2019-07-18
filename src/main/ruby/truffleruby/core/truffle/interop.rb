@@ -48,12 +48,19 @@ module Truffle
         # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else
-        keys = object.methods.map(&:to_s)
+        keys = []
+        object.methods.each do |method|
+          keys << method.to_s if Truffle::Type.object_respond_to? object, method, true
+        end
         if internal
-          keys += object.instance_variables
-                      .map(&:to_s)
-                      .select { |ivar| ivar.start_with?('@') }
-          keys += object.private_methods.map(&:to_s)
+          object.instance_variables.each do |ivar|
+            ivar_string = ivar.to_s
+            keys << ivar_string if ivar_string.start_with?('@')
+          end
+          object.private_methods.each do |method|
+            # do not list methods which cannot be read using interop
+            keys << method.to_s if Truffle::Type.object_respond_to? object, method, true
+          end
         end
       end
       keys.map { |s| Truffle::Interop.to_java_string(s) }
