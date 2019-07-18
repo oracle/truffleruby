@@ -21,9 +21,19 @@ describe "UnboundMethod#bind" do
     UnboundMethodSpecs::Mod.instance_method(:from_mod).bind(Object.new).should be_kind_of(Method)
   end
 
-  it "returns Method returned for obj is equal to one directly returned by obj.method" do
+  it "the returned Method is equal to the one directly returned by obj.method" do
     obj = UnboundMethodSpecs::Methods.new
     @normal_um.bind(obj).should == obj.method(:foo)
+  end
+
+  it "returns Method for any object kind_of? the Module the method is defined in" do
+    @parent_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
+    @child1_um.bind(UnboundMethodSpecs::Parent.new).should be_kind_of(Method)
+    @child2_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
+  end
+
+  it "allows binding a Kernel method retrieved from Object on BasicObject" do
+    Object.instance_method(:instance_of?).bind(BasicObject.new).call(BasicObject).should == true
   end
 
   it "returns a callable method" do
