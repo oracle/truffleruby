@@ -40,7 +40,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
+        notOptimizedWarningNode.warn("keyword rest argument in combination with masgn or destructuring is not yet optimized");
 
         final Object array = readArrayNode.executeRead(frame);
 
