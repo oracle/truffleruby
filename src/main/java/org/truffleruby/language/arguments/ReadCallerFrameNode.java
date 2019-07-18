@@ -9,12 +9,11 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.builtins.CallerFrameAccess;
+import com.oracle.truffle.api.frame.FrameInstance;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -25,17 +24,11 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
 
-    private final CallerFrameAccess accessMode;
-
     public static ReadCallerFrameNode create() {
-        return new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        return new ReadCallerFrameNode();
     }
 
-    public ReadCallerFrameNode(CallerFrameAccess callerFrameAccess) {
-        this.accessMode = callerFrameAccess;
-    }
-
-    public Frame execute(VirtualFrame frame) {
+    public MaterializedFrame execute(VirtualFrame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -56,9 +49,9 @@ public class ReadCallerFrameNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private Frame getCallerFrame() {
+    private MaterializedFrame getCallerFrame() {
         replaceDispatchNode();
-        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode.getFrameAccess());
+        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
     }
 
 }

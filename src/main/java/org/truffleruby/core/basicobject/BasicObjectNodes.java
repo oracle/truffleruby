@@ -266,7 +266,7 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached("create()") ReadCallerFrameNode callerFrameNode,
                 @Cached("create()") IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return instanceEvalHelper(callerFrame, receiver, string, fileName, line, callNode);
         }
@@ -275,7 +275,7 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
                 @Cached("create()") ReadCallerFrameNode callerFrameNode,
                 @Cached("create()") IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return instanceEvalHelper(callerFrame, receiver, string, fileName, 1, callNode);
         }
@@ -284,7 +284,7 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
                 @Cached("create()") ReadCallerFrameNode callerFrameNode,
                 @Cached("create()") IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return instanceEvalHelper(callerFrame, receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, callNode);
         }

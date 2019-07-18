@@ -10,7 +10,6 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -98,7 +97,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
         this.sendsFrame = frameToSend;
         if (frameToSend == SendsFrame.CALLER_FRAME) {
-            this.readCaller = insert(new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE));
+            this.readCaller = insert(new ReadCallerFrameNode());
         }
         Node root = getRootNode();
         if (root instanceof RubyRootNode) {
@@ -195,7 +194,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
             case MY_FRAME:
                 return frame.materialize();
             case CALLER_FRAME:
-                return readCaller.execute(frame).materialize();
+                return readCaller.execute(frame);
             default:
                 return null;
         }

@@ -631,7 +631,7 @@ public abstract class StringNodes {
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
-            final DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame).materialize());
+            final DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame));
             if (matchStrPair == nil()) {
                 setLastMatchNode.call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
                 return nil();
