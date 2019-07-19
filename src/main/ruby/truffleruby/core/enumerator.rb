@@ -394,24 +394,26 @@ class Enumerator
       if block_given?
         Lazy.new(self, nil) do |yielder, *args|
           val = args.length >= 2 ? args : args.first
-          if pattern === val
-            Truffle::RegexpOperations.set_last_match($~, block.binding)
+          matches = pattern === val
+          Truffle::RegexpOperations.set_last_match($~, block.binding)
+
+          if matches
             yielder.yield yield(val)
           end
         end
       else
-        lazy = Lazy.new(self, nil) do |yielder, *args|
+        # :caller_binding is not optimized in blocks right now, and we want the caller of #grep
+        caller_binding = Truffle.invoke_primitive(:caller_binding)
+
+        Lazy.new(self, nil) do |yielder, *args|
           val = args.length >= 2 ? args : args.first
-          if pattern === val
+          matches = pattern === val
+          Truffle::RegexpOperations.set_last_match($~, caller_binding)
+
+          if matches
             yielder.yield val
           end
-
-          Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
         end
-
-        Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
-
-        lazy
       end
     end
 
