@@ -32,6 +32,12 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
     }
 
+    @Specialization
+    public Object coerce(long value,
+                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
+    }
+
     @Specialization(guards = "isRubyBignum(value)")
     public Object coerceBignum(DynamicObject value,
                          @Cached("createPublic()") CallDispatchHeadNode coerce) {
