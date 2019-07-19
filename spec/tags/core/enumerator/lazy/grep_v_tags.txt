@@ -1,3 +1,0 @@
-fails:Enumerator::Lazy#grep_v sets $~ in the block
-fails:Enumerator::Lazy#grep_v sets $~ in the next block with each
-fails:Enumerator::Lazy#grep_v sets $~ in the next block with map
