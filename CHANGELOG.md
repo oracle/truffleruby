@@ -11,6 +11,7 @@ Bug fixes:
 * Allow `Time#strftime` to be called with binary format strings.
 * Do not modify the argument passed to `IO#write` when the encoding does not match (#1714).
 * Use the class where the method was defined to check if an `UnboundMethod` can be used for `#define_method` (#1710).
+* Fixed setting `$~` for `Enumerable` and `Enumerator::Lazy`'s `#grep` and `#grep_v`.
 
 Compatibility:
 
