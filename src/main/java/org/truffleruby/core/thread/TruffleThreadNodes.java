@@ -24,7 +24,7 @@ public class TruffleThreadNodes {
     public abstract static class FindRubyCaller extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyArray(modules)")
+        @Specialization(guards = { "isRubyArray(modules)", "strategy.matches(modules)" })
         public DynamicObject findRubyCaller(int skip, DynamicObject modules,
                 @Cached("of(modules)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
