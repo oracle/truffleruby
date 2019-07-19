@@ -12,7 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -59,7 +59,8 @@ public abstract class ObjectGraph {
                 }
 
                 Truffle.getRuntime().iterateFrames(frameInstance -> {
-                    stack.addAll(getObjectsInFrame(frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY)));
+                    final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+                    stack.addAll(getObjectsInFrame(frame));
                     return null;
                 });
 

@@ -166,6 +166,14 @@
       <property name="format" value="executeWith\s*="/>
       <property name="message" value="Do not use executeWith, it is unclear"/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="getRuntime\(\)\.getCurrentFrame\(\)"/>
+      <property name="message" value="Use CallStackManager#getCurrentFrame() instead. FrameInstance should never be returned."/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="getRuntime\(\)\.getCallerFrame\(\)"/>
+      <property name="message" value="Use CallStackManager methods instead. FrameInstance should never be returned."/>
+    </module>
   </module>
   <!--<module name="RegexpHeader">-->
     <!--<property name="header" value="/\*\n \* Copyright \(c\) (20[0-9][0-9], )?20[0-9][0-9] Oracle and/or its affiliates. All rights reserved. This\n \* code is released under a tri EPL/GPL/LGPL license. You can use it,\n \* redistribute it and/or modify it under the terms of the:\n \*\n \* Eclipse Public License version 1\.0\n \* GNU General Public License version 2\n \* GNU Lesser General Public License version 2\.1\n \*/\n"/>-->

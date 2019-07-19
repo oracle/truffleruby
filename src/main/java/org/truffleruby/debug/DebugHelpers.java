@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.Source;
 
@@ -38,9 +38,7 @@ public abstract class DebugHelpers {
     @Deprecated
     @TruffleBoundary
     public static Object eval(RubyContext context, String code, Object... arguments) {
-        final FrameInstance currentFrameInstance = Truffle.getRuntime().getCurrentFrame();
-
-        final Frame currentFrame = currentFrameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE);
+        final Frame currentFrame = context.getCallStack().getCurrentFrame(FrameAccess.MATERIALIZE);
 
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(currentFrame);
 

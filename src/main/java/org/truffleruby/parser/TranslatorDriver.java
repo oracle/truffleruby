@@ -36,7 +36,6 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -175,7 +174,7 @@ public class TranslatorDriver {
             lexicalScope = context.getRootLexicalScope();
         }
         if (parserContext == ParserContext.MODULE) {
-            Object module = RubyArguments.getSelf(Truffle.getRuntime().getCurrentFrame().getFrame(FrameAccess.READ_ONLY));
+            Object module = RubyArguments.getSelf(context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY));
             lexicalScope = new LexicalScope(lexicalScope, (DynamicObject) module);
         }
         parseEnvironment.resetLexicalScope(lexicalScope);

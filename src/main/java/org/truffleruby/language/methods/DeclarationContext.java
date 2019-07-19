@@ -114,7 +114,7 @@ public class DeclarationContext {
 
     @TruffleBoundary
     public static void setCurrentVisibility(RubyContext context, Visibility visibility) {
-        final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
+        final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_WRITE);
         changeVisibility(callerFrame, visibility);
     }
 

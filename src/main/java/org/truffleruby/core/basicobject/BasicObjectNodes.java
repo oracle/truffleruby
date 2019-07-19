@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -369,10 +368,20 @@ public abstract class BasicObjectNodes {
             throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
+        private static class FrameAndCallNode {
+            final Frame frame;
+            final Node callNode;
+
+            private FrameAndCallNode(Frame frame, Node callNode) {
+                this.frame = frame;
+                this.callNode = callNode;
+            }
+        }
+
         @TruffleBoundary
         private DynamicObject buildMethodMissingException(Object self, DynamicObject nameObject, Object[] args, DynamicObject block) {
             final String name = nameObject.toString();
-            final FrameInstance relevantCallerFrame = getRelevantCallerFrame();
+            final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 
             final DynamicObject formatter;
@@ -396,7 +405,7 @@ public abstract class BasicObjectNodes {
             }
         }
 
-        private FrameInstance getRelevantCallerFrame() {
+        private FrameAndCallNode getRelevantCallerFrame() {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
                 if (callNode == null) {
@@ -405,7 +414,7 @@ public abstract class BasicObjectNodes {
                 }
 
                 final SuperCallNode superCallNode = NodeUtil.findParent(callNode, SuperCallNode.class);
-                final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
 
                 final InternalMethod method = RubyArguments.tryGetMethod(frame);
 
@@ -422,12 +431,12 @@ public abstract class BasicObjectNodes {
                     return null;
                 }
 
-                return frameInstance;
+                return new FrameAndCallNode(frame, callNode);
             });
         }
 
-        private boolean lastCallWasSuper(FrameInstance callerFrame) {
-            final SuperCallNode superCallNode = NodeUtil.findParent(callerFrame.getCallNode(), SuperCallNode.class);
+        private boolean lastCallWasSuper(FrameAndCallNode callerFrame) {
+            final SuperCallNode superCallNode = NodeUtil.findParent(callerFrame.callNode, SuperCallNode.class);
             return superCallNode != null;
         }
 
@@ -435,8 +444,8 @@ public abstract class BasicObjectNodes {
          * See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}.
          * The only way to fail if method is not null and not undefined is visibility.
          */
-        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name, FrameInstance callerFrame) {
-            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.getFrame(FrameAccess.READ_ONLY));
+        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name, FrameAndCallNode callerFrame) {
+            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);
             final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
@@ -445,8 +454,8 @@ public abstract class BasicObjectNodes {
             return null;
         }
 
-        private boolean lastCallWasVCall(FrameInstance callerFrame) {
-            final RubyCallNode callNode = NodeUtil.findParent(callerFrame.getCallNode(), RubyCallNode.class);
+        private boolean lastCallWasVCall(FrameAndCallNode callerFrame) {
+            final RubyCallNode callNode = NodeUtil.findParent(callerFrame.callNode, RubyCallNode.class);
             return callNode != null && callNode.isVCall();
         }
 

@@ -12,13 +12,16 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -28,6 +31,9 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.shared.TruffleRuby;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 public class CallStackManager {
 
     private final RubyContext context;
@@ -36,142 +42,75 @@ public class CallStackManager {
         this.context = context;
     }
 
-    private static final Object STOP_ITERATING = new Object();
+    // Frame
 
-    public FrameInstance getCallerFrameIgnoringSend() {
-        return getCallerFrameIgnoringSend(0);
+    @TruffleBoundary
+    public Frame getCurrentFrame(FrameAccess frameAccess) {
+        return iterateFrames(0, f -> true, f -> f.getFrame(frameAccess));
+    }
+
+    @TruffleBoundary
+    public Frame getCallerFrameIgnoringSend(FrameAccess frameAccess) {
+        return getCallerFrameIgnoringSend(f -> isRubyFrameAndNotSend(f.getFrame(FrameAccess.READ_ONLY)), frameAccess);
+    }
+
+    @TruffleBoundary
+    public Frame getCallerFrameNotInModules(FrameAccess frameAccess, Object[] modules) {
+        final Memo<Boolean> skippedFirstFrameFound = new Memo<>(false);
+
+        return getCallerFrameIgnoringSend(frameInstance -> {
+            final InternalMethod method = getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY));
+            if (method != null && !ArrayUtils.contains(modules, method.getDeclaringModule())) {
+                if (skippedFirstFrameFound.get()) {
+                    return true;
+                }
+                skippedFirstFrameFound.set(true);
+            }
+            return false;
+        }, frameAccess);
+    }
+
+    // Node
+
+    @TruffleBoundary
+    public Node getCallerNodeIgnoringSend() {
+        return getCallerNode(1, true);
     }
 
     @TruffleBoundary
     public Node getCallerNode(int skip, boolean ignoreSend) {
-        // Do not try getCallerFrame() as getCallerFrame().getCallNode() is always null.
-        // See the JavaDoc of getCallNode().
-
-        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Node>() {
-            int depth = 0;
-            int skipped = 0;
-
-            @Override
-            public Node visitFrame(FrameInstance frameInstance) {
-                depth++;
-                if (depth == 1) { // Skip top frame
-                    return null;
-                }
-
-                if (skipped >= skip) {
-                    if (ignoreSend) {
-                        final InternalMethod method = getMethod(frameInstance);
-                        if (method != null && context.getCoreLibrary().isSend(method)) {
-                            return null;
-                        } else {
-                            return frameInstance.getCallNode();
-                        }
-                    } else {
-                        return frameInstance.getCallNode();
-                    }
-                } else {
-                    skipped++;
-                }
-                return null;
+        return iterateFrames(skip, frameInstance -> {
+            if (ignoreSend) {
+                return isRubyFrameAndNotSend(frameInstance.getFrame(FrameAccess.READ_ONLY));
+            } else {
+                return true;
             }
-        });
+        }, f -> f.getCallNode());
+    }
+
+    // Method
+
+    @TruffleBoundary
+    public InternalMethod getCallingMethodIgnoringSend() {
+        return getMethod(getCallerFrameIgnoringSend(FrameAccess.READ_ONLY));
     }
 
     @TruffleBoundary
     public boolean callerIsSend() {
-        FrameInstance callerFrame = Truffle.getRuntime().getCallerFrame();
-        if (callerFrame == null) {
-            return false;
-        }
-        InternalMethod method = getMethod(callerFrame);
-        return context.getCoreLibrary().isSend(method);
+        final Boolean isSend = iterateFrames(1, f -> true, frameInstance ->
+                context.getCoreLibrary().isSend(getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY))));
+        return isSend != null && isSend;
     }
 
+    // SourceSection
+
     @TruffleBoundary
-    public FrameInstance getCallerFrameIgnoringSend(int skip) {
-        // Try first using getCallerFrame() as it's the common case
-        if (skip == 0) {
-            FrameInstance callerFrame = Truffle.getRuntime().getCallerFrame();
-            if (callerFrame == null) {
-                return null;
-            }
-            InternalMethod method = getMethod(callerFrame);
-
-            if (method == null) { // Not a Ruby frame
-                return null;
-            } else if (!context.getCoreLibrary().isSend(method)) {
-                return callerFrame;
-            }
-        }
-
-        // Need to iterate further
-        final Object frame = Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Object>() {
-            int depth = 0;
-            int skipped = 0;
-
-            @Override
-            public Object visitFrame(FrameInstance frameInstance) {
-                depth++;
-                if (depth == 1) { // Skip top frame
-                    return null;
-                }
-
-                InternalMethod method = getMethod(frameInstance);
-                if (method == null) {
-                    return STOP_ITERATING;
-                } else if (!context.getCoreLibrary().isSend(method)) {
-                    if (skipped >= skip) {
-                        return frameInstance;
-                    } else {
-                        skipped++;
-                        return null;
-                    }
-                } else {
-                    return null;
-                }
-            }
-        });
-
-        if (frame instanceof FrameInstance) {
-            return (FrameInstance) frame;
+    public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
+        if (BacktraceFormatter.isUserSourceSection(context, encapsulatingSourceSection)) {
+            return encapsulatingSourceSection;
         } else {
-            return null;
+            return getTopMostUserSourceSection();
         }
-    }
-
-    @TruffleBoundary
-    public FrameInstance getCallerFrameNotInModules(Object[] modules, int skip) {
-        final FrameInstance frame = Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<FrameInstance>() {
-            int depth = 0;
-            int skipped = 0;
-
-            @Override
-            public FrameInstance visitFrame(FrameInstance frameInstance) {
-                depth++;
-                if (depth == 1) {
-                    return null; // Skip ourselves.
-                }
-                final InternalMethod method = getMethod(frameInstance);
-                if (method == null) {
-                    return null;
-                } else if (!ArrayUtils.contains(modules, method.getDeclaringModule())) {
-                    if (skipped >= skip) {
-                        return frameInstance;
-                    } else {
-                        skipped++;
-                        return null;
-                    }
-                } else {
-                    return null;
-                }
-            }
-        });
-        return frame;
-    }
-
-    @TruffleBoundary
-    public InternalMethod getCallingMethodIgnoringSend() {
-        return getMethod(getCallerFrameIgnoringSend());
     }
 
     @TruffleBoundary
@@ -179,30 +118,59 @@ public class CallStackManager {
         return Truffle.getRuntime().iterateFrames(frameInstance -> {
             final Node callNode = frameInstance.getCallNode();
             if (callNode == null) {
-                return null;
+                return null; // Go to the next frame
             }
 
             final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
             if (BacktraceFormatter.isUserSourceSection(context, sourceSection)) {
                 return sourceSection;
             } else {
-                return null; // Keep searching
+                return null; // Go to the next frame
             }
         });
     }
 
-    @TruffleBoundary
-    public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
-        if (encapsulatingSourceSection != null && BacktraceFormatter.isUserSourceSection(context, encapsulatingSourceSection)) {
-            return encapsulatingSourceSection;
-        } else {
-            return getTopMostUserSourceSection();
-        }
+    // Internals
+
+    private Frame getCallerFrameIgnoringSend(Predicate<FrameInstance> filter, FrameAccess frameAccess) {
+        return iterateFrames(1, filter, f -> f.getFrame(frameAccess));
     }
 
-    private InternalMethod getMethod(FrameInstance frame) {
-        return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
+    /**
+     * Returns action() for the first frame matching the filter, and null if none matches.
+     * <p>
+     * skip=0 starts at the current frame and skip=1 starts at the caller frame.
+     */
+    private <R> R iterateFrames(int skip, Predicate<FrameInstance> filter, Function<FrameInstance, R> action) {
+        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<R>() {
+            int skipped = 0;
+
+            @Override
+            public R visitFrame(FrameInstance frameInstance) {
+                if (skipped < skip) {
+                    skipped++;
+                    return null; // Go to the next frame
+                }
+
+                if (filter.test(frameInstance)) {
+                    return action.apply(frameInstance);
+                } else {
+                    return null; // Go to the next frame
+                }
+            }
+        });
     }
+
+    private boolean isRubyFrameAndNotSend(Frame frame) {
+        final InternalMethod method = getMethod(frame);
+        return method != null && !context.getCoreLibrary().isSend(method);
+    }
+
+    private static InternalMethod getMethod(Frame frame) {
+        return RubyArguments.tryGetMethod(frame);
+    }
+
+    // Backtraces
 
     public Backtrace getBacktrace(Node currentNode) {
         return getBacktrace(currentNode, null, 0, null);

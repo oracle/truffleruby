@@ -10,7 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
@@ -54,11 +54,11 @@ public class ReadCallerFrameNode extends RubyBaseNode {
             // we don't want to deoptimize this CallTarget on every call.
             deoptWhenNotPassedCallerFrame = false;
         }
-        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
+        return getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
     }
 
     private boolean notifyCallerToSendFrame() {
-        final Node callerNode = getContext().getCallStack().getCallerNode(0, false);
+        final Node callerNode = getContext().getCallStack().getCallerNode(1, false);
         if (callerNode instanceof DirectCallNode) {
             final Node parent = callerNode.getParent();
             if (parent instanceof CachedDispatchNode) {

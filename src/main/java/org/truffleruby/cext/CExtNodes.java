@@ -712,7 +712,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(visibility)")
         public boolean checkCallerVisibility(DynamicObject visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
             switch (Layouts.SYMBOL.getString(visibility)) {

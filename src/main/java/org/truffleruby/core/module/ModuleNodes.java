@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -393,10 +392,10 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         private void createAccessor(DynamicObject module, String name) {
-            final FrameInstance callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend();
-            final SourceSection sourceSection = callerFrame.getCallNode().getEncapsulatingSourceSection();
+            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
             final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame.getFrame(FrameAccess.READ_ONLY));
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
             final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
             final String accessorName = isGetter ? name : name + "=";
@@ -632,8 +631,7 @@ public abstract class ModuleNodes {
 
             final RubySource source = createEvalSourceNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
 
-            final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
+            final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
@@ -1102,7 +1100,7 @@ public abstract class ModuleNodes {
         private DynamicObject addMethod(DynamicObject module, String name, InternalMethod method) {
             method = method.withName(name);
 
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, frame);
             addMethodNode.executeAddMethod(module, method, visibility);
             return getSymbol(method.getName());
@@ -1802,7 +1800,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject usedModules() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinementNamespaces = new HashSet<>();
             for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
@@ -1823,7 +1821,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject usedRefinements() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinements = new HashSet<>();
             for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
@@ -1959,7 +1957,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject moduleUsing(DynamicObject self, DynamicObject refinementModule) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             if (self != RubyArguments.getSelf(callerFrame)) {
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("Module#using is not called on self", this));
             }

@@ -14,7 +14,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -141,8 +141,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             } else if (!isSendProfile.profile(coreLibrary().isSend(callerMethod))) {
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
             } else {
-                FrameInstance instance = getContext().getCallStack().getCallerFrameIgnoringSend();
-                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+                Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
             }
 
@@ -208,8 +207,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         } else if (!context.getCoreLibrary().isSend(callerMethod)) {
             return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
         } else {
-            final FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
-            final Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+            final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
         }
     }
