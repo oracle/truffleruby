@@ -25,43 +25,49 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
-    @CompilationFinal private volatile boolean firstCall = true;
+    @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
 
     public static ReadCallerFrameNode create() {
         return new ReadCallerFrameNode();
     }
 
     public MaterializedFrame execute(VirtualFrame frame) {
-        // Avoid polluting the profile for the first call which has to use getCallerFrame()
-        if (firstCall) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            firstCall = false;
-            notifyCallerToSendFrame();
-            return getCallerFrame();
-        }
-
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
             return callerFrame;
         } else {
-            return getCallerFrame();
-        }
-    }
-
-    private void notifyCallerToSendFrame() {
-        final Node callerNode = getContext().getCallStack().getCallerNode(0, false);
-        if (callerNode instanceof DirectCallNode) {
-            final Node parent = callerNode.getParent();
-            if (parent instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) parent).startSendingOwnFrame();
+            // Every time the caller of the method using ReadCallerFrameNode changes,
+            // we need to notify the caller's CachedDispatchNode to pass us the frame next time.
+            if (deoptWhenNotPassedCallerFrame) {
+                // Invalidate because deoptWhenNotPassedCallerFrame might change and require recompilation
+                CompilerDirectives.transferToInterpreterAndInvalidate();
             }
+            return getCallerFrame();
         }
     }
 
     @TruffleBoundary
     private MaterializedFrame getCallerFrame() {
+        if (!notifyCallerToSendFrame()) {
+            // If we fail to notify the call node (e.g., because it is a UncachedDispatchNode which is not handled yet),
+            // we don't want to deoptimize this CallTarget on every call.
+            deoptWhenNotPassedCallerFrame = false;
+        }
         return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
+    }
+
+    private boolean notifyCallerToSendFrame() {
+        final Node callerNode = getContext().getCallStack().getCallerNode(0, false);
+        if (callerNode instanceof DirectCallNode) {
+            final Node parent = callerNode.getParent();
+            if (parent instanceof CachedDispatchNode) {
+                ((CachedDispatchNode) parent).startSendingOwnFrame();
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
