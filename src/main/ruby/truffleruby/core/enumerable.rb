@@ -357,8 +357,9 @@ module Enumerable
     if block_given?
       each do
         o = Truffle.single_block_arg
-        if pattern === o
-          Truffle::RegexpOperations.set_last_match($~, block.binding)
+        matches = pattern === o
+        Truffle::RegexpOperations.set_last_match($~, block.binding)
+        if matches
           ary << yield(o)
         end
       end
@@ -376,14 +377,15 @@ module Enumerable
     ary
   end
 
-  def grep_v(pattern)
+  def grep_v(pattern, &block)
     ary = []
 
     if block_given?
       each do
         o = Truffle.single_block_arg
-        unless pattern === o
-          # Regexp.set_block_last_match # TODO BJF Aug 1, 2016 Investigate for removal
+        matches = pattern === o
+        Truffle::RegexpOperations.set_last_match($~, block.binding)
+        unless matches
           ary << yield(o)
         end
       end
@@ -391,10 +393,11 @@ module Enumerable
       each do
         o = Truffle.single_block_arg
         unless pattern === o
-          # Regexp.set_block_last_match # TODO BJF Aug 1, 2016 Investigate for removal
           ary << o
         end
       end
+
+      Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
     end
 
     ary
