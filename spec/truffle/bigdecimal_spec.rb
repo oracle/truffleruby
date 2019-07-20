@@ -12,6 +12,10 @@ require 'bigdecimal'
 
 describe "BigDecimal" do
 
+  it "pre-coerces long integers" do
+    BigDecimal(3).add(1 << 50, 3).should == BigDecimal('0.113e16')
+  end
+
   describe "bug GR-16506" do
 
     before :each do
