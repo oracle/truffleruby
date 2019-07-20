@@ -35,7 +35,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module GC
-  def self.start
+  def self.start(full_mark: true, immediate_sweep: true)
     run(false)
   end
 
