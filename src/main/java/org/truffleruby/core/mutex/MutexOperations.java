@@ -15,9 +15,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -83,13 +83,7 @@ public abstract class MutexOperations {
         }
 
         if (throwable != null) {
-            if (throwable instanceof RuntimeException) {
-                throw (RuntimeException) throwable;
-            } else if (throwable instanceof Error) {
-                throw (Error) throwable;
-            } else {
-                throw new JavaException(throwable);
-            }
+            ExceptionOperations.rethrow(throwable);
         }
     }
 

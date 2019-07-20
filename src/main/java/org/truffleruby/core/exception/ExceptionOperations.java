@@ -17,6 +17,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -87,6 +88,16 @@ public abstract class ExceptionOperations {
 
     public static DynamicObject getFormatter(String name, RubyContext context) {
         return (DynamicObject) Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleExceptionOperationsModule()).getConstant(name).getValue();
+    }
+
+    public static void rethrow(Throwable throwable) {
+        if (throwable instanceof RuntimeException) {
+            throw (RuntimeException) throwable;
+        } else if (throwable instanceof Error) {
+            throw (Error) throwable;
+        } else {
+            throw new JavaException(throwable);
+        }
     }
 
 }

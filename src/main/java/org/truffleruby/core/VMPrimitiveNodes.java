@@ -76,6 +76,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
 
+import java.io.PrintStream;
 import java.util.Map.Entry;
 
 @CoreClass(value = "VM primitives")
@@ -317,7 +318,16 @@ public abstract class VMPrimitiveNodes {
                 // Workaround: we need to register with Truffle (which means going multithreaded),
                 // so that NFI can get its context to call pthread_kill() (GR-7405).
                 final TruffleContext truffleContext = context.getEnv().getContext();
-                final Object prev = truffleContext.enter();
+                final Object prev;
+                try {
+                    prev = truffleContext.enter();
+                } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
+                    // Not in a context, so we cannot use TruffleLogger
+                    final PrintStream printStream = new PrintStream(context.getEnv().err(), true);
+                    printStream.println("[ruby] SEVERE: signal " + signalName + " caught but can't create a thread to handle it so ignoring and restoring the default handler");
+                    Signals.restoreDefaultHandler(signalName);
+                    return;
+                }
                 try {
                     context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
                         if (rubyThread == rootThread &&

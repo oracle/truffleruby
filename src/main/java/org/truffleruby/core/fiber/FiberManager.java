@@ -19,6 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -113,7 +114,8 @@ public class FiberManager {
                 null,
                 true,
                 null,
-                false);
+                false,
+                null);
     }
 
     @TruffleBoundary
@@ -122,9 +124,13 @@ public class FiberManager {
     }
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
-        context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
-
-        waitForInitialization(context, fiber, currentNode);
+        ThreadManager.FIBER_BEING_SPAWNED.set(fiber);
+        try {
+            context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
+            waitForInitialization(context, fiber, currentNode);
+        } finally {
+            ThreadManager.FIBER_BEING_SPAWNED.remove();
+        }
     }
 
     /** Wait for full initialization of the new fiber */
@@ -135,6 +141,11 @@ public class FiberManager {
             initializedLatch.await();
             return BlockingAction.SUCCESS;
         });
+
+        final Throwable uncaughtException = Layouts.FIBER.getUncaughtException(fiber);
+        if (uncaughtException != null) {
+            ExceptionOperations.rethrow(uncaughtException);
+        }
     }
 
     private static final BranchProfile UNPROFILED = BranchProfile.create();
