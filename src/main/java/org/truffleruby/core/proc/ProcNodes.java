@@ -71,8 +71,7 @@ public abstract class ProcNodes {
         @Specialization
         public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
                                   @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
-            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameAccess.MATERIALIZE).materialize();
+            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
 
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 

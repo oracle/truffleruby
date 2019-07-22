@@ -97,8 +97,21 @@ public class SharedMethodInfo {
                 arity,
                 definitionModule,
                 newName,
-                0, // no longer a block
+                blockDepth,
                 notes,
+                argumentDescriptors,
+                alwaysClone);
+    }
+
+    public SharedMethodInfo forDefineMethod(DynamicObject newDefinitionModule, String newName) {
+        return new SharedMethodInfo(
+                sourceSection,
+                lexicalScope,
+                arity,
+                newDefinitionModule,
+                newName,
+                0, // no longer a block
+                null,
                 argumentDescriptors,
                 alwaysClone);
     }

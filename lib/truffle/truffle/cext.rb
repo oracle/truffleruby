@@ -1732,8 +1732,7 @@ module Truffle::CExt
 
   def rb_backref_get
     Truffle::RegexpOperations.last_match(
-      Truffle::ThreadOperations.ruby_caller(
-        1, [Truffle::CExt, Truffle::Interop.singleton_class]))
+      Truffle::ThreadOperations.ruby_caller([Truffle::CExt, Truffle::Interop.singleton_class]))
   end
 
   def rb_gv_set(name, value)

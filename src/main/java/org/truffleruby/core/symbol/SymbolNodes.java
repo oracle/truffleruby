@@ -116,8 +116,8 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
-            final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getCallNode().getEncapsulatingSourceSection();
+            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend()
+                    .getEncapsulatingSourceSection();
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,

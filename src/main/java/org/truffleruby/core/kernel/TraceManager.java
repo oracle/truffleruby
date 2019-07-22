@@ -12,15 +12,12 @@ package org.truffleruby.core.kernel;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
@@ -156,7 +153,7 @@ public class TraceManager {
                 return;
             }
 
-            final SourceSection sourceSection = getCallerSourceSection();
+            final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
 
             final String file;
             final int line;
@@ -191,21 +188,6 @@ public class TraceManager {
         @TruffleBoundary
         private int getLine(SourceSection sourceSection) {
             return sourceSection.getStartLine();
-        }
-
-        @TruffleBoundary
-        private SourceSection getCallerSourceSection() {
-            final FrameInstance callerFrame = Truffle.getRuntime().getCallerFrame();
-            if (callerFrame == null) {
-                return null;
-            }
-
-            final Node callNode = callerFrame.getCallNode();
-            if (callNode == null) {
-                return null;
-            } else {
-                return callNode.getEncapsulatingSourceSection();
-            }
         }
 
         @TruffleBoundary

@@ -273,8 +273,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected SourceSection getCallerSourceSection() {
-            // TODO: ignore #send
-            return getContext().getCallStack().getCallerNode(0, true).getEncapsulatingSourceSection();
+            return getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
         }
 
     }
@@ -986,7 +985,7 @@ public abstract class KernelNodes {
         @Specialization
         public DynamicObject lambda(NotProvided block,
                                     @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
-            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.MATERIALIZE).materialize();
+            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
             if (parentBlock == nil()) {
@@ -995,7 +994,7 @@ public abstract class KernelNodes {
                 warnProcWithoutBlock();
             }
 
-            Node callNode = getContext().getCallStack().getCallerFrameIgnoringSend(1).getCallNode();
+            Node callNode = getContext().getCallStack().getCallerNode(2, true);
             if (isLiteralBlock(callNode)) {
                 return lambdaFromBlock(parentBlock);
             } else {
@@ -1015,7 +1014,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected boolean isLiteralBlock(DynamicObject block) {
-            Node callNode = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode();
+            Node callNode = getContext().getCallStack().getCallerNodeIgnoringSend();
             return isLiteralBlock(callNode);
         }
 
@@ -1369,7 +1368,7 @@ public abstract class KernelNodes {
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
             } else {
-                final Source source = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode().getEncapsulatingSourceSection().getSource();
+                final Source source = getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection().getSource();
 
                 String sourcePath = getContext().getAbsolutePath(source);
                 if (sourcePath == null) {

@@ -12,7 +12,7 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayUtils;
@@ -38,7 +38,7 @@ public abstract class UsingNode extends RubyBaseNode {
             throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
         }
 
-        final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
+        final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_WRITE);
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
         final Map<DynamicObject, DynamicObject[]> newRefinements = usingModule(declarationContext, module);
         DeclarationContext.setRefinements(callerFrame, declarationContext, newRefinements);

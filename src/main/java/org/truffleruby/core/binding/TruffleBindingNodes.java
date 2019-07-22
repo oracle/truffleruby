@@ -12,7 +12,7 @@ package org.truffleruby.core.binding;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -42,7 +42,7 @@ public abstract class TruffleBindingNodes {
             final MaterializedFrame frame = Truffle.getRuntime().iterateFrames(frameInstance -> {
                 if (frameCount.get() == 2) {
                     sourceSection.set(frameInstance.getCallNode().getEncapsulatingSourceSection());
-                    return frameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
+                    return frameInstance.getFrame(FrameAccess.MATERIALIZE).materialize();
                 } else {
                     frameCount.set(frameCount.get() + 1);
                     return null;

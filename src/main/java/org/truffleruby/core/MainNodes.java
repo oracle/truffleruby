@@ -74,7 +74,7 @@ public abstract class MainNodes {
 
         @TruffleBoundary
         private boolean isCalledFromTopLevel() {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getName();
             return name.equals("<main>") || name.startsWith("<top ");
         }
