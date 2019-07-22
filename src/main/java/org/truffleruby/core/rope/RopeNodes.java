@@ -443,7 +443,7 @@ public abstract class RopeNodes {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
             } catch (ArithmeticException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentErrorTooLargeString(this));
             }
 
             if (shouldRebalanceProfile.profile(left.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD && left instanceof ConcatRope)) {
@@ -571,7 +571,7 @@ public abstract class RopeNodes {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
             } catch (ArithmeticException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentErrorTooLargeString(this));
             }
 
             final byte[] leftBytes = left.getBytes();
