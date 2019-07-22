@@ -146,6 +146,15 @@ but TruffleRuby is currently limited to millisecond (thousands of a second)
 precision. This applies to `Time.now` and
 `Process.clock_gettime(Process::CLOCK_REALTIME)`.
 
+#### Strings have a maximum bytesize of 2<sup>31</sup>-1
+
+Ruby Strings are represented as a Java `byte[]`. The JVM enforces a maximum
+array size of 2<sup>31</sup>-1 (by storing the size in a 32-bit signed `int`),
+and therefore Ruby Strings cannot be longer than 2<sup>31</sup>-1 bytes. That
+is, Strings must be smaller than 2GB. This is the same restriction as JRuby. We
+could try to workaround by using native strings, but this would be a large
+effort to support every Ruby String operation on native strings.
+
 #### Setting the process title doesn't always work
 
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
