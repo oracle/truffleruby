@@ -121,6 +121,10 @@ public class CoreExceptions {
         return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), currentNode, null);
     }
 
+    public DynamicObject argumentErrorTooLargeString(Node currentNode) {
+        return argumentError("result of string concatenation exceeds the system maximum string length (2^31-1 bytes)", currentNode);
+    }
+
     public DynamicObject argumentErrorCharacterRequired(Node currentNode) {
         return argumentError("%c requires a character", currentNode);
     }
