@@ -1067,7 +1067,7 @@ public abstract class ModuleNodes {
         private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc) {
             final RootCallTarget callTarget = Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-            final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).withMethodName(name);
+            final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).forDefineMethod(module, name);
             final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
