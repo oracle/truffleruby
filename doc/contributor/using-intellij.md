@@ -10,6 +10,37 @@ First, make sure the project is already built from the command line:
 $ jt build
 ```
 
+### Install Eclipse Code Formatter plugin
+
+Installing the Eclipse Code Formatter plugin is recommended to have the Java
+source code always formatted to match the project's guidelines.
+
+1.  Download Eclipse version 4.5.2 (same version is used in the CI)
+
+2.  Export path of the installed Eclipse IDE
+
+    ```bash
+    # e.g. on macOS
+    export ECLIPSE_EXE=/path/to/java-mars-4.5.2/Eclipse.app/Contents/MacOS/eclipse
+    ``` 
+
+3.  Install the 'Eclipse Code Formatter' plugin in IntelliJ's Preferences >
+    Plugins section.
+
+4.  The plugin will be fully configured in next step where the project files are
+    generated.
+
+### Install Ruby and Python plugins
+
+To be able to see and edit properly all the files in the TruffleRuby repository
+install plugins for languages Ruby and Python in Preferences > Plugins section.
+
+Make sure you have configured Ruby and Python SDKs. When the project files are
+generated it will try to use existing Python 2.7 SDK and a Ruby SDK which has
+'truffleruby-jvm' in its name. If `rbenv` is used the 'truffleruby-jvm' build
+should be linked automatically and the 'rbenv: truffleruby-jvm' Ruby SDK
+should be created automatically on the IDE start.
+
 ### Generate the project files
 
 ```bash
@@ -19,16 +50,13 @@ $ jt mx intellijinit
 ### Import the project
 
 From the IntelliJ launcher, select `Open` and navigate to this repository root.
-There should be now 2 projects in your workspace:
+There should now be the following in your workspace:
 
-* `truffleruby`
-* `truffleruby-test`
-
-To import other files that aren't part of Java projects, go to 'File', 'Project
-Structure...', 'Modules', '+', 'New Module', 'Ruby', 'New...' next to 'Module
-SDK', 'Ruby SDK', 'New local', select the `ruby` executable in the repository,
-'Next', set the 'Module name' to 'truffleruby-support', set the 'Content root'
-to the repository, select any 2.0 Ruby version, 'Finish'.
+*   `com`, `org` – roots of Java packages TruffleRuby depend on
+*   `mx` – the mx tool
+*   `truffleruby` – Root directory which contains all TruffleRuby files 
+    including the Java and Ruby source files. Syntax highlighting and project 
+    navigation should work for both Java and Ruby.
 
 ## Configuring Checkstyle Plugin
 
