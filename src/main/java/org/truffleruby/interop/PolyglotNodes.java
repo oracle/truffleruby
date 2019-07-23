@@ -54,15 +54,15 @@ public abstract class PolyglotNodes {
                 @Cached("privatizeRope(id)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(id, source))") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode idEqualNode,
-                @Cached("create()") RopeNodes.EqualNode sourceEqualNode
+                @Cached RopeNodes.EqualNode idEqualNode,
+                @Cached RopeNodes.EqualNode sourceEqualNode
         ) {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
         @Specialization(guards = {"isRubyString(id)", "isRubyString(source)"}, replaces = "evalCached")
         public Object evalUncached(DynamicObject id, DynamicObject source,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return callNode.call(parse(id, source), RubyNode.EMPTY_ARGUMENTS);
         }
 

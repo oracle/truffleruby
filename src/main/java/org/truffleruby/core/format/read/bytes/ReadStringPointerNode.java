@@ -46,7 +46,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
 
     @Specialization
     public Object read(VirtualFrame frame, long address,
-                       @Cached("create()") TaintNode taintNode) {
+                       @Cached TaintNode taintNode) {
         final Pointer pointer = new Pointer(address);
         checkAssociated((Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);
 

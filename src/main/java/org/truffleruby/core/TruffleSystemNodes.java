@@ -96,8 +96,8 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject javaGetEnv(DynamicObject name,
-                                        @Cached("create()") ToJavaStringNode toJavaStringNode,
-                                        @Cached("create()") FromJavaStringNode fromJavaStringNode,
+                                        @Cached ToJavaStringNode toJavaStringNode,
+                                        @Cached FromJavaStringNode fromJavaStringNode,
                                         @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
             final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);

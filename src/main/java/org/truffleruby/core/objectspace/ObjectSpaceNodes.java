@@ -118,7 +118,7 @@ public abstract class ObjectSpaceNodes {
         @TruffleBoundary // for the iterator
         @Specialization(guards = "isRubyModule(ofClass)")
         public int eachObject(DynamicObject ofClass, DynamicObject block,
-                @Cached("create()") IsANode isANode) {
+                @Cached IsANode isANode) {
             int count = 0;
 
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
@@ -170,8 +170,8 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
-                @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") WriteBarrierNode writeBarrierNode) {
+                @Cached BranchProfile errorProfile,
+                @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
                 if (getContext().getSharedObjects().isSharing()) {
                     // Share the finalizer, as it might run on a different Thread

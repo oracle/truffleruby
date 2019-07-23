@@ -534,7 +534,7 @@ public abstract class BigDecimalNodes {
         })
         public Object divmodSpecial(DynamicObject a, DynamicObject b,
                 @Cached("createPrivate()") CallDispatchHeadNode signCall,
-                @Cached("create()") IntegerCastNode signIntegerCast,
+                @Cached IntegerCastNode signIntegerCast,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
                 @Cached("createBinaryProfile()") ConditionProfile negNormalProfile,
@@ -770,10 +770,10 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(a)")
         public Object power(DynamicObject a, int exponent, Object unusedPrecision,
-                @Cached("create()") BranchProfile nanProfile,
-                @Cached("create()") BranchProfile posInfinityProfile,
-                @Cached("create()") BranchProfile negInfinityProfile,
-                @Cached("create()") BranchProfile negZeroProfile) {
+                @Cached BranchProfile nanProfile,
+                @Cached BranchProfile posInfinityProfile,
+                @Cached BranchProfile negInfinityProfile,
+                @Cached BranchProfile negZeroProfile) {
             final Object value;
 
             switch (Layouts.BIG_DECIMAL.getType(a)) {
@@ -932,10 +932,10 @@ public abstract class BigDecimalNodes {
                 "precision > 0"
         })
         public Object sqrtSpecial(DynamicObject a, int precision,
-                @Cached("create()") BranchProfile nanProfile,
-                @Cached("create()") BranchProfile posInfProfile,
-                @Cached("create()") BranchProfile negInfProfile,
-                @Cached("create()") BranchProfile negZeroProfile) {
+                @Cached BranchProfile nanProfile,
+                @Cached BranchProfile posInfProfile,
+                @Cached BranchProfile negInfProfile,
+                @Cached BranchProfile negZeroProfile) {
             switch (Layouts.BIG_DECIMAL.getType(a)) {
                 case NAN:
                     nanProfile.enter();
@@ -1243,9 +1243,9 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(value)")
         public Object absSpecial(DynamicObject value,
-                @Cached("create()") BranchProfile negInfProfile,
-                @Cached("create()") BranchProfile negZeroProfile,
-                @Cached("create()") BranchProfile posInfProfile) {
+                @Cached BranchProfile negInfProfile,
+                @Cached BranchProfile negZeroProfile,
+                @Cached BranchProfile posInfProfile) {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
 
             final Object result;
@@ -1302,10 +1302,10 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "!isNormal(value)")
         public Object roundSpecial(DynamicObject value, NotProvided precision, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
-                @Cached("create()") BranchProfile negInfinityProfile,
-                @Cached("create()") BranchProfile posInfinityProfile,
-                @Cached("create()") BranchProfile negZeroProfile,
-                @Cached("create()") BranchProfile nanProfile) {
+                @Cached BranchProfile negInfinityProfile,
+                @Cached BranchProfile posInfinityProfile,
+                @Cached BranchProfile negZeroProfile,
+                @Cached BranchProfile nanProfile) {
             switch (Layouts.BIG_DECIMAL.getType(value)) {
                 case NEGATIVE_INFINITY:
                     negInfinityProfile.enter();
@@ -1433,10 +1433,10 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(value)")
         public double toFSpecial(DynamicObject value,
-                @Cached("create()") BranchProfile negInfinityProfile,
-                @Cached("create()") BranchProfile posInfinityProfile,
-                @Cached("create()") BranchProfile negZeroProfile,
-                @Cached("create()") BranchProfile nanProfile) {
+                @Cached BranchProfile negInfinityProfile,
+                @Cached BranchProfile posInfinityProfile,
+                @Cached BranchProfile negZeroProfile,
+                @Cached BranchProfile nanProfile) {
             switch (Layouts.BIG_DECIMAL.getType(value)) {
                 case NEGATIVE_INFINITY:
                     negInfinityProfile.enter();
@@ -1481,10 +1481,10 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(value)")
         public Object toRSpecial(DynamicObject value,
-                @Cached("create()") BranchProfile negInfinityProfile,
-                @Cached("create()") BranchProfile posInfinityProfile,
-                @Cached("create()") BranchProfile negZeroProfile,
-                @Cached("create()") BranchProfile nanProfile) {
+                @Cached BranchProfile negInfinityProfile,
+                @Cached BranchProfile posInfinityProfile,
+                @Cached BranchProfile negZeroProfile,
+                @Cached BranchProfile nanProfile) {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
 
             switch (type) {

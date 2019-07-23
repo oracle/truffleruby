@@ -96,7 +96,7 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             @Cached MetaClassNode metaClassNode,
             @Cached("createBinaryProfile()") ConditionProfile noCallerMethodProfile,
             @Cached("createBinaryProfile()") ConditionProfile isSendProfile,
-            @Cached("create()") BranchProfile foreignProfile,
+            @Cached BranchProfile foreignProfile,
             @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
             @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
             @Cached("createBinaryProfile()") ConditionProfile isRefinedProfile,

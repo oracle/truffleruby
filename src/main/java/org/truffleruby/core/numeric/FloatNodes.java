@@ -221,7 +221,7 @@ public abstract class FloatNodes {
         public static ModNode create() {
             return ModNodeFactory.create(null);
         }
-        
+
         public abstract Object executeMod(Object a, Object b);
 
         @Specialization
@@ -770,7 +770,7 @@ public abstract class FloatNodes {
 
         @Specialization
         Object toI(double value,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (Double.isInfinite(value)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));

@@ -84,8 +84,8 @@ public abstract class CmpIntNode extends RubyBaseNode {
     public int cmpObject(Object value, Object receiver, Object other,
             @Cached("createPrivate()") CallDispatchHeadNode gtNode,
             @Cached("createPrivate()") CallDispatchHeadNode ltNode,
-            @Cached("create()") BooleanCastNode gtCastNode,
-            @Cached("create()") BooleanCastNode ltCastNode) {
+            @Cached BooleanCastNode gtCastNode,
+            @Cached BooleanCastNode ltCastNode) {
 
         if (gtCastNode.executeToBoolean(gtNode.call(value, ">", 0))) {
             return 1;

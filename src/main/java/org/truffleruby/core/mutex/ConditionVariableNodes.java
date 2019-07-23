@@ -55,8 +55,8 @@ public abstract class ConditionVariableNodes {
 
         @Specialization(guards = "isNil(timeout)")
         public DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
@@ -67,8 +67,8 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 

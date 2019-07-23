@@ -67,7 +67,7 @@ public abstract class HashCastNode extends RubyNode {
 
     @Specialization(guards = {"!isNil(object)", "!isRubyBignum(object)", "!isRubyHash(object)"})
     public Object cast(VirtualFrame frame, DynamicObject object,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         final Object result = toHashNode.call(object, "to_hash");
 
         if (result == DispatchNode.MISSING) {

@@ -58,7 +58,7 @@ public abstract class FiberNodes {
         protected Object transfer(VirtualFrame frame,
                 DynamicObject currentThread, DynamicObject currentFiber, DynamicObject fiber,
                 FiberOperation operation, Object[] args,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
 
             if (!Layouts.FIBER.getAlive(fiber)) {
                 errorProfile.enter();
@@ -109,7 +109,7 @@ public abstract class FiberNodes {
 
         @Specialization
         public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameFiberProfile) {
 
             Layouts.FIBER.setTransferred(fiber, true);
@@ -135,7 +135,7 @@ public abstract class FiberNodes {
 
         @Specialization
         public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile doubleResumeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile transferredProfile) {
 
@@ -166,8 +166,8 @@ public abstract class FiberNodes {
 
         @Specialization
         public Object yield(VirtualFrame frame, Object[] args,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
 
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
@@ -195,7 +195,7 @@ public abstract class FiberNodes {
 
         @Specialization
         public DynamicObject current(VirtualFrame frame,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
         }
@@ -207,7 +207,7 @@ public abstract class FiberNodes {
 
         @Specialization
         public DynamicObject getCatchTags(VirtualFrame frame,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
             return Layouts.FIBER.getCatchTags(currentFiber);

@@ -391,7 +391,7 @@ public abstract class IONodes {
 
         @Specialization
         public DynamicObject ensureOpen(DynamicObject file,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final int fd = Layouts.IO.getDescriptor(file);
             if (fd == CLOSED_FD) {
                 errorProfile.enter();
@@ -410,7 +410,7 @@ public abstract class IONodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public DynamicObject read(int length,
-                @Cached("create()") MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
@@ -478,7 +478,7 @@ public abstract class IONodes {
 
         @Specialization
         public DynamicObject getThreadBuffer(long size,
-                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+                @Cached AllocateObjectNode allocateObjectNode) {
             return allocateObjectNode.allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
         }
 

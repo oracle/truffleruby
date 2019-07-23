@@ -91,7 +91,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject prepend(DynamicObject bytes, DynamicObject string,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final int prependLength = rope.byteLength();
             final int originalLength = Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes().length;
@@ -109,7 +109,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         public Object setByte(DynamicObject bytes, int index, int value,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getLength()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().indexError("index out of bounds", this));
@@ -126,7 +126,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
@@ -136,7 +136,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyPointer(pointer)")
         public Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
-                @Cached("create()") BranchProfile nullPointerProfile) {
+                @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
@@ -176,11 +176,11 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
         public Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
-                                        @Cached("create()") RopeNodes.BytesNode bytesNode,
-                                        @Cached("create()") BranchProfile tooSmallStartProfile,
-                                        @Cached("create()") BranchProfile tooLargeStartProfile,
-                                        @Cached("create()") BranchProfile matchFoundProfile,
-                                        @Cached("create()") BranchProfile noMatchProfile) {
+                                        @Cached RopeNodes.BytesNode bytesNode,
+                                        @Cached BranchProfile tooSmallStartProfile,
+                                        @Cached BranchProfile tooLargeStartProfile,
+                                        @Cached BranchProfile matchFoundProfile,
+                                        @Cached BranchProfile noMatchProfile) {
 
             final ByteArrayBuilder in = Layouts.BYTE_ARRAY.getBytes(bytes);
             final Rope rope = StringOperations.rope(pattern);
@@ -203,8 +203,8 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
-                              @Cached("create()") RopeNodes.BytesNode bytesNode,
-                              @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                              @Cached RopeNodes.BytesNode bytesNode,
+                              @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                               @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));

@@ -338,7 +338,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject logWarning(
                 VirtualFrame frame, Object value,
-                @Cached("create()") ToJavaStringNode toJavaStringNode) {
+                @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
             return nil();
         }

@@ -10,7 +10,7 @@
 ```java
 @Specialization
 public Object lookupMethod(DynamicObject object,
-        @Cached("create()") MetaClassNode metaClassNode) {
+        @Cached MetaClassNode metaClassNode) {
     final DynamicObject rubyClass = metaClassNode.executeMetaClass(object);
     ...
 }

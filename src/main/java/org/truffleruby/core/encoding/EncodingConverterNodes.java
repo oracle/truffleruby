@@ -335,7 +335,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         public Object encodingConverterLastError(DynamicObject encodingConverter,
-                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final EConv.LastError lastError = ec.lastError;
 
@@ -386,7 +386,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         public Object encodingConverterLastError(DynamicObject encodingConverter,
-                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
@@ -445,8 +445,8 @@ public abstract class EncodingConverterNodes {
 
         @Specialization
         public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement,
-                @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached BranchProfile errorProfile,
+                @Cached RopeNodes.BytesNode bytesNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final Rope rope = StringOperations.rope(replacement);
             final Encoding encoding = rope.getEncoding();

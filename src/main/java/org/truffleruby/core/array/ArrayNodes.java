@@ -352,7 +352,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("mutableStrategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
-                @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode,
+                @Cached ArrayEnsureCapacityNode ensureCapacityNode,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyProfile,
@@ -452,7 +452,7 @@ public abstract class ArrayNodes {
         public Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
                 @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
                 @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final int size = getSize(array);
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int start = ArrayOperations.normalizeIndex(size, begin, negativeBeginProfile);
@@ -584,7 +584,7 @@ public abstract class ArrayNodes {
         public Object compactObjectsNonMutable(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder) {
             final int size = strategy.getSize(array);
             final Object store = Layouts.ARRAY.getStore(array);
             Object newStore = arrayBuilder.start(size);
@@ -840,7 +840,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object each(DynamicObject array, DynamicObject block,
-                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+                @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
@@ -860,7 +860,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object eachOther(DynamicObject array, DynamicObject block,
-                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+                @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
@@ -885,8 +885,8 @@ public abstract class ArrayNodes {
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
-                @Cached("create()") BranchProfile trueProfile,
-                @Cached("create()") BranchProfile falseProfile) {
+                @Cached BranchProfile trueProfile,
+                @Cached BranchProfile falseProfile) {
 
             if (sameProfile.profile(a == b)) {
                 return true;
@@ -948,8 +948,8 @@ public abstract class ArrayNodes {
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
-                @Cached("create()") BranchProfile trueProfile,
-                @Cached("create()") BranchProfile falseProfile) {
+                @Cached BranchProfile trueProfile,
+                @Cached BranchProfile falseProfile) {
 
             if (sameProfile.profile(a == b)) {
                 return true;
@@ -1005,7 +1005,7 @@ public abstract class ArrayNodes {
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
-                @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             final Object value = args[0];
             propagateSharingNode.propagate(array, value);
 
@@ -1158,7 +1158,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("createBinaryProfile()") ConditionProfile needsFill,
-                @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             final Object store = newStoreNode.execute(size);
             if (needsFill.profile(!strategy.isDefaultValue(value))) {
                 propagateSharingNode.propagate(array, value);
@@ -1180,8 +1180,8 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "size >= 0")
         public Object initializeBlock(DynamicObject array, int size, Object unusedValue, DynamicObject block,
-                @Cached("create()") ArrayBuilderNode arrayBuilder,
-                @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached PropagateSharingNode propagateSharingNode) {
             Object store = arrayBuilder.start(size);
 
             int n = 0;
@@ -1391,7 +1391,7 @@ public abstract class ArrayNodes {
         public Object map(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
             Object mappedStore = arrayBuilder.start(size);
@@ -1421,7 +1421,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public Object map(DynamicObject array, DynamicObject block,
-                @Cached("create()") ArrayEachIteratorNode iteratorNode) {
+                @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
@@ -1459,7 +1459,7 @@ public abstract class ArrayNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format))") DirectCallNode callPackNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
 
             try {
@@ -1477,7 +1477,7 @@ public abstract class ArrayNodes {
         public DynamicObject packUncached(
                 DynamicObject array,
                 DynamicObject format,
-                @Cached("create()") IndirectCallNode callPackNode) {
+                @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 
             try {
@@ -1688,7 +1688,7 @@ public abstract class ArrayNodes {
         public Object rejectOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             Object selectedStore = arrayBuilder.start(strategy.getSize(array));
@@ -1936,7 +1936,7 @@ public abstract class ArrayNodes {
         public Object selectOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             Object selectedStore = arrayBuilder.start(strategy.getSize(array));
@@ -2074,7 +2074,7 @@ public abstract class ArrayNodes {
                 @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("mutableStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
-                @Cached("create()") CmpIntNode cmpIntNode) {
+                @Cached CmpIntNode cmpIntNode) {
             final Object originalStore = Layouts.ARRAY.getStore(array);
             final Object store = newStoreNode.execute(getContext().getOptions().ARRAY_SMALL);
             final int size = strategy.getSize(array);
@@ -2156,7 +2156,7 @@ public abstract class ArrayNodes {
         public DynamicObject stealStorage(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(array, other);
 
             final int size = getSize(other);

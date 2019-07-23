@@ -29,7 +29,7 @@ public abstract class TaintFromSourceNode extends FormatNode {
 
     @Specialization(guards = "isSourceTainted(frame)")
     public Object taintNeeded(VirtualFrame frame, Object object,
-                       @Cached("create()") TaintNode taintNode) {
+                       @Cached TaintNode taintNode) {
         taintNode.executeTaint(object);
         return object;
     }

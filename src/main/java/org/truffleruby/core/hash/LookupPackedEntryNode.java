@@ -85,7 +85,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
     @ExplodeLoop
     @Specialization(replaces = "getConstantIndexPackedArray")
     public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
-            @Cached("create()") BranchProfile notInHashProfile,
+            @Cached BranchProfile notInHashProfile,
             @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
 

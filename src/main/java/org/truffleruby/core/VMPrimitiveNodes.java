@@ -89,9 +89,9 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         public Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
-                @Cached("create()") BranchProfile catchProfile,
+                @Cached BranchProfile catchProfile,
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             try {
                 return dispatchNode.executeDispatch(block, tag);
             } catch (ThrowException e) {
@@ -139,7 +139,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         public Object vmExtendedModules(Object object, DynamicObject block,
-                @Cached("create()") MetaClassNode metaClassNode,
+                @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
@@ -454,7 +454,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count >= 0")
         public DynamicObject readRandomBytes(int count,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);

@@ -285,7 +285,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit != 0")
         public DynamicObject readStringToNull(long address, long limit,
-                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
@@ -295,7 +295,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "isNil(noLimit)")
         public DynamicObject readStringToNull(long address, DynamicObject noLimit,
-                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
@@ -319,8 +319,8 @@ public abstract class PointerNodes {
         @Specialization
         public DynamicObject readBytes(long address, int length,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
-                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
@@ -578,7 +578,7 @@ public abstract class PointerNodes {
         @TruffleBoundary
         @Specialization(guards = "type == TYPE_STRING")
         public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
 
@@ -593,7 +593,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_PTR")
         public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
-                                                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+                                                @Cached AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(offset);

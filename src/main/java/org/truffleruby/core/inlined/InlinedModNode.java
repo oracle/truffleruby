@@ -46,7 +46,7 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
 
     @Specialization(guards = "b != ZERO", assumptions = "assumptions")
     Object floatMod(double a, double b,
-            @Cached("create()") FloatNodes.ModNode modNode) {
+            @Cached FloatNodes.ModNode modNode) {
         return modNode.executeMod(a, b);
     }
 

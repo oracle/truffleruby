@@ -30,7 +30,7 @@ public abstract class RubyToForeignArgumentsNode extends RubyBaseWithoutContextN
     @ExplodeLoop
     public Object[] convertCached(Object[] args,
             @Cached("args.length") int cachedArgsLength,
-            @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+            @Cached RubyToForeignNode rubyToForeignNode) {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
@@ -42,7 +42,7 @@ public abstract class RubyToForeignArgumentsNode extends RubyBaseWithoutContextN
 
     @Specialization(replaces = "convertCached")
     public Object[] convertUncached(Object[] args,
-            @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+            @Cached RubyToForeignNode rubyToForeignNode) {
         final Object[] convertedArgs = new Object[args.length];
 
         for (int n = 0; n < args.length; n++) {

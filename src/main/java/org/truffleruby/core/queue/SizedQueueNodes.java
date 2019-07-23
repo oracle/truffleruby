@@ -54,7 +54,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public DynamicObject initialize(DynamicObject self, int capacity,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (capacity <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError("queue size must be positive", this));
@@ -72,7 +72,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public int setMax(DynamicObject self, int newCapacity,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (newCapacity <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError("queue size must be positive", this));
@@ -132,7 +132,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public DynamicObject pushNonBlock(DynamicObject self, final Object value, boolean nonBlocking,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
@@ -183,7 +183,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             final Object value = queue.poll();

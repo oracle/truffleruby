@@ -362,7 +362,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization
         public Object sourceLocation(DynamicObject binding,
-                @Cached("create()") MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
 
             if (sourceSection == null) {

@@ -141,9 +141,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
         public ValueWrapper unwrapTypeCastObject(TruffleObject value,
                 @CachedLibrary("value") InteropLibrary values,
-                @Cached("create()") NativeToWrapperNode nativeToWrapperNode,
-                @Cached("create()") BranchProfile unsupportedProfile,
-                @Cached("create()") BranchProfile nonPointerProfile) {
+                @Cached NativeToWrapperNode nativeToWrapperNode,
+                @Cached BranchProfile unsupportedProfile,
+                @Cached BranchProfile nonPointerProfile) {
             if (values.isPointer(value)) {
                 long handle = 0;
                 try {
@@ -178,9 +178,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
     @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
     public Object unwrapTypeCastObject(TruffleObject value,
             @CachedLibrary("value") InteropLibrary values,
-            @Cached("create()") UnwrapNativeNode unwrapNativeNode,
-            @Cached("create()") BranchProfile unsupportedProfile,
-            @Cached("create()") BranchProfile nonPointerProfile) {
+            @Cached UnwrapNativeNode unwrapNativeNode,
+            @Cached BranchProfile unsupportedProfile,
+            @Cached BranchProfile nonPointerProfile) {
         if (values.isPointer(value)) {
             long handle = 0;
             try {

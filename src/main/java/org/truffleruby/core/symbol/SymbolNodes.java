@@ -175,7 +175,7 @@ public abstract class SymbolNodes {
 
         @Specialization
         public DynamicObject toS(DynamicObject symbol,
-                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
         }
 

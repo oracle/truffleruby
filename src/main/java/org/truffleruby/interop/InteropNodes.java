@@ -899,7 +899,7 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached BranchProfile exceptionProfile) {
             try {
                 return receivers.getMembers(receiver, internal);
             } catch (UnsupportedMessageException e) {
@@ -1213,7 +1213,7 @@ public abstract class InteropNodes {
         @Specialization
         public Object importObject(
                 String name,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final Object value = doImport(name);
             if (value != null) {
                 return value;
@@ -1258,8 +1258,8 @@ public abstract class InteropNodes {
                 @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached("create()") RopeNodes.EqualNode sourceEqualNode
+                @Cached RopeNodes.EqualNode mimeTypeEqualNode,
+                @Cached RopeNodes.EqualNode sourceEqualNode
         ) {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
@@ -1267,7 +1267,7 @@ public abstract class InteropNodes {
         @Specialization(guards = { "isRubyString(mimeType)", "isRubyString(source)" }, replaces = "evalCached")
         public Object evalUncached(
                 DynamicObject mimeType, DynamicObject source,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), RubyNode.EMPTY_ARGUMENTS);
         }
 
@@ -1347,7 +1347,7 @@ public abstract class InteropNodes {
         @Specialization
         public Object toJavaString(
                 Object value,
-                @Cached("create()") RubyToForeignNode toForeignNode) {
+                @Cached RubyToForeignNode toForeignNode) {
             return toForeignNode.executeConvert(value);
         }
 

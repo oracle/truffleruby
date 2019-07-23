@@ -69,9 +69,9 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         public DynamicObject bind(DynamicObject unboundMethod, Object object,
-                @Cached("create()") MetaClassNode metaClassNode,
-                @Cached("create()") CanBindMethodToModuleNode canBindMethodToModuleNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached MetaClassNode metaClassNode,
+                @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
+                @Cached BranchProfile errorProfile) {
             final DynamicObject objectMetaClass = metaClassNode.executeMetaClass(object);
 
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(Layouts.UNBOUND_METHOD.getMethod(unboundMethod), objectMetaClass)) {

@@ -166,7 +166,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean sameOrEqual(VirtualFrame frame, Object a, Object b,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
@@ -214,7 +214,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean sameOrEql(Object a, Object b,
-                        @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+                        @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
@@ -589,7 +589,7 @@ public abstract class KernelNodes {
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
             return eval(self, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
@@ -617,14 +617,14 @@ public abstract class KernelNodes {
                 @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootNodeWrapper rootNodeToEval,
                 @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,  newBindingDescriptor);
             return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization
         public Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(self, rope(source), binding, rope(file), line, false);
             return deferredCall.call(callNode);
         }
@@ -951,7 +951,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean isA(Object self, DynamicObject module,
-                @Cached("create()") IsANode isANode) {
+                @Cached IsANode isANode) {
             return isANode.executeIsA(self, module);
         }
 
@@ -1325,7 +1325,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubyString(featureString)")
         public boolean require(DynamicObject featureString,
-                @Cached("create()") RequireNode requireNode) {
+                @Cached RequireNode requireNode) {
             String feature = StringOperations.getString(featureString);
             return requireNode.executeRequire(feature);
         }
@@ -1343,7 +1343,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean requireRelative(String feature,
-                @Cached("create()") RequireNode requireNode) {
+                @Cached RequireNode requireNode) {
             return requireNode.executeRequire(getFullPath(feature));
         }
 
@@ -1516,7 +1516,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public DynamicObject singletonMethod(Object self, String name,
-                @Cached("create()") BranchProfile errorProfile,
+                @Cached BranchProfile errorProfile,
                 @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile methodProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
@@ -1574,8 +1574,8 @@ public abstract class KernelNodes {
 
         @Specialization
         public long sleep(VirtualFrame frame, long durationInMillis,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
             if (durationInMillis < 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError("time interval must be positive", this));
@@ -1636,8 +1636,8 @@ public abstract class KernelNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode,
-                @Cached("create()") IsTaintedNode isTaintedNode) {
+                @Cached RopeNodes.EqualNode equalNode,
+                @Cached IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             try {
@@ -1656,8 +1656,8 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 DynamicObject format,
                 Object[] arguments,
-                @Cached("create()") IndirectCallNode callPackNode,
-                @Cached("create()") IsTaintedNode isTaintedNode) {
+                @Cached IndirectCallNode callPackNode,
+                @Cached IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);

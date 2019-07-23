@@ -33,7 +33,7 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @Specialization
     public Object read(VirtualFrame frame, byte[] source,
-            @Cached("create()") BranchProfile errorProfile,
+            @Cached BranchProfile errorProfile,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);
         final int sourceLength = getSourceLength(frame);

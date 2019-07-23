@@ -39,7 +39,7 @@ public abstract class ToStrNode extends RubyNode {
 
     @Specialization(guards = "!isRubyString(object)")
     public DynamicObject coerceObject(VirtualFrame frame, Object object,
-            @Cached("create()") BranchProfile errorProfile,
+            @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toStrNode) {
         final Object coerced;
         try {

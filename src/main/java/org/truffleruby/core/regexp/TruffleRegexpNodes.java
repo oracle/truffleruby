@@ -152,7 +152,7 @@ public class TruffleRegexpNodes {
     public static abstract class CompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        public Object buildStatsArray(@Cached("create()") ArrayBuilderNode arrayBuilderNode) {
+        public Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(compiledRegexps, arrayBuilderNode, getContext());
         }
     }
@@ -161,7 +161,7 @@ public class TruffleRegexpNodes {
     public static abstract class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        public Object buildStatsArray(@Cached("create()") ArrayBuilderNode arrayBuilderNode) {
+        public Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(matchedRegexps, arrayBuilderNode, getContext());
         }
     }

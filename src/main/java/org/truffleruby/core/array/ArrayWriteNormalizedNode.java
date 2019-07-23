@@ -72,7 +72,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
 
     @Specialization(guards = "isExtendingByOne(array, index)")
     public Object writeExtendByOne(DynamicObject array, int index, Object value,
-                    @Cached("create()") ArrayAppendOneNode appendNode) {
+                    @Cached ArrayAppendOneNode appendNode) {
         appendNode.executeAppendOne(array, value);
         return value;
     }
@@ -84,7 +84,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     public Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached("create()") ArrayGeneralizeNode generalizeNode) {
+            @Cached ArrayGeneralizeNode generalizeNode) {
         final int newSize = index + 1;
         final Object[] objectStore = generalizeNode.executeGeneralize(array, newSize);
         for (int n = strategy.getSize(array); n < index; n++) {
@@ -103,7 +103,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
             @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
-            @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode) {
+            @Cached ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         final Object store = Layouts.ARRAY.getStore(array);
         for (int n = strategy.getSize(array); n < index; n++) {

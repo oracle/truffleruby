@@ -313,7 +313,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject aliasMethod(DynamicObject module, String newName, String oldName,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             DynamicObject moduleForLookup;
             if (Layouts.MODULE.getFields(module).isRefinement()) {
                 moduleForLookup = Layouts.MODULE.getFields(module).getRefinedClass();
@@ -361,7 +361,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isRubyModule(target)")
         public DynamicObject appendFeatures(DynamicObject features, DynamicObject target,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("append_features must be called only on modules", this));
@@ -384,7 +384,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject generateAccessor(DynamicObject module, Object nameObject,
-                @Cached("create()") NameToJavaStringNode nameToJavaStringNode) {
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.executeToJavaString(nameObject);
             createAccessor(module, name);
             return nil();
@@ -590,37 +590,37 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isRubyString(code)")
         public Object classEval(DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, "(eval)", callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(file), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, StringOperations.getString(file), line);
             return deferredCall.call(callNode);
         }
 
         @Specialization(guards = "wasProvided(code)")
         public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return classEvalSource(module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(toStr(frame, file)), callNode);
         }
 
         private Object classEvalSource(DynamicObject module, DynamicObject code, String file,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file, 1);
             return deferredCall.call(callNode);
         }
@@ -650,7 +650,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block,
-                @Cached("create()") ClassExecNode classExecNode) {
+                @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
 
@@ -877,7 +877,7 @@ public abstract class ModuleNodes {
         public Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
-                @Cached("create()") RopeNodes.EqualNode equalNode,
+                @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
             return getConstant(module, cachedString);
         }
@@ -1026,7 +1026,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(methodObject)")
         public DynamicObject defineMethodMethod(DynamicObject module, String name, DynamicObject methodObject, NotProvided block,
-                @Cached("create()") CanBindMethodToModuleNode canBindMethodToModuleNode) {
+                @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
             final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
 
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
@@ -1115,7 +1115,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject extendObject(DynamicObject module, DynamicObject object,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
@@ -1173,7 +1173,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = {"isRubyClass(self)", "isRubyClass(from)"})
         public Object initializeCopyClass(DynamicObject self, DynamicObject from,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (from == coreLibrary().getBasicObjectClass()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("can't copy the root class", this));
@@ -1273,7 +1273,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject moduleFunction(VirtualFrame frame, DynamicObject module, Object[] names,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("module_function must be called for modules", this));
@@ -1381,7 +1381,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isRubyModule(target)")
         public DynamicObject prependFeatures(DynamicObject features, DynamicObject target,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("prepend_features must be called only on modules", this));
@@ -1422,7 +1422,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject publicInstanceMethod(DynamicObject module, String name,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1570,7 +1570,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public DynamicObject instanceMethod(DynamicObject module, String name,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1878,7 +1878,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public void setMethodVisibility(DynamicObject module, Object name,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
             final InternalMethod method = Layouts.MODULE.getFields(module).deepMethodSearch(getContext(), methodName);

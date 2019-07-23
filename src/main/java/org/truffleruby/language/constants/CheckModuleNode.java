@@ -34,7 +34,7 @@ public abstract class CheckModuleNode extends RubyBaseNode {
 
     @Specialization
     protected DynamicObject checkModuleUncached(Object module,
-            @Cached("create()") BranchProfile notModuleProfile) {
+            @Cached BranchProfile notModuleProfile) {
         if (RubyGuards.isRubyModule(module)) {
             return (DynamicObject) module;
         } else {

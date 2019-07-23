@@ -87,7 +87,7 @@ public abstract class TimeNodes {
 
         @Specialization(guards = "isNil(offset)")
         public DynamicObject localtime(DynamicObject time, DynamicObject offset,
-                                       @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                       @Cached StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
@@ -404,7 +404,7 @@ public abstract class TimeNodes {
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 

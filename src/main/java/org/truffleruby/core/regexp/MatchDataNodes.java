@@ -237,7 +237,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "isRubySymbol(index)")
         public Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 

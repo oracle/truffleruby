@@ -47,13 +47,13 @@ public abstract class ToFNode extends RubyBaseNode {
 
     @Specialization
     public double coerceBoolean(boolean value,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         return coerceObject(value, errorProfile);
     }
 
     @Specialization
     public double coerceDynamicObject(DynamicObject object,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         return coerceObject(object, errorProfile);
     }
 

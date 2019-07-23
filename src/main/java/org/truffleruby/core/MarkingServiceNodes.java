@@ -30,7 +30,7 @@ public class MarkingServiceNodes {
 
         @Specialization
         public void keepObjectAlive(Object object,
-                @Cached("create()") GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
+                @Cached GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
             MarkerThreadLocalData data = getThreadLocalDataNode.execute();
             addToList(data.getExtensionCallStack().getKeptObjects(), object);
             data.getKeptObjects().keepObject(object);

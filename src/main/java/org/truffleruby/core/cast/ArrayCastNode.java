@@ -91,7 +91,7 @@ public abstract class ArrayCastNode extends RubyNode {
 
     @Specialization(guards = {"!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)"})
     public Object cast(VirtualFrame frame, DynamicObject object,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 
         if (result == nil()) {

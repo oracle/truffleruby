@@ -30,8 +30,8 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().STRING_BYTESIZE",
     }, assumptions = "assumptions", limit = "1")
     int byteSize(VirtualFrame frame, DynamicObject self,
-            @Cached("create()") LookupMethodNode lookupNode,
-            @Cached("create()") StringNodes.ByteSizeNode byteSizeNode) {
+            @Cached LookupMethodNode lookupNode,
+            @Cached StringNodes.ByteSizeNode byteSizeNode) {
         return byteSizeNode.executeByteSize(self);
     }
 

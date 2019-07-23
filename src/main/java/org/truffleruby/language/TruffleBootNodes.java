@@ -94,9 +94,9 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public int main(DynamicObject kind, DynamicObject toExecute,
-                @Cached("create()") IndirectCallNode callNode,
+                @Cached IndirectCallNode callNode,
                 @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
 
             setArgvGlobals(makeStringNode);
 

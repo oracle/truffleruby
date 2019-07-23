@@ -38,14 +38,14 @@ public abstract class FromJavaStringNode extends RubyBaseWithoutContextNode {
             String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
-            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            @Cached StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.fromRope(cachedRope);
     }
 
     @Specialization(replaces = "doCached")
     public DynamicObject doGeneric(
             String value,
-            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            @Cached StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 

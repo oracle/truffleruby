@@ -64,7 +64,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization
     public DynamicObject create(long value, int digits, boolean strict,
-            @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
+            @Cached BigDecimalCastNode bigDecimalCastNode) {
         BigDecimal bigDecimal = round((BigDecimal) bigDecimalCastNode.execute(value, digits, getRoundMode()),
                 new MathContext(digits, getRoundMode()));
         return createNormalBigDecimal(bigDecimal);
@@ -73,9 +73,9 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization
     public DynamicObject create(double value, NotProvided digits, boolean strict,
             @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
-            @Cached("create()") BranchProfile nanProfile,
-            @Cached("create()") BranchProfile positiveInfinityProfile,
-            @Cached("create()") BranchProfile negativeInfinityProfile) {
+            @Cached BranchProfile nanProfile,
+            @Cached BranchProfile positiveInfinityProfile,
+            @Cached BranchProfile negativeInfinityProfile) {
         if (finiteValueProfile.profile(Double.isFinite(value))) {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantOmitPrecision(this));
         } else {
@@ -93,7 +93,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             "!isNegativeZero(value)"
     })
     public DynamicObject createFinite(double value, int digits, boolean strict,
-                                      @Cached("create()") BigDecimalCastNode bigDecimalCastNode) {
+                                      @Cached BigDecimalCastNode bigDecimalCastNode) {
         final RoundingMode roundMode = getRoundMode();
         final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, digits, roundMode);
         return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
@@ -101,16 +101,16 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "!isFinite(value)")
     public DynamicObject createInfinite(double value, int digits, boolean strict,
-                                        @Cached("create()") BranchProfile nanProfile,
-                                        @Cached("create()") BranchProfile positiveInfinityProfile,
-                                        @Cached("create()") BranchProfile negativeInfinityProfile) {
+                                        @Cached BranchProfile nanProfile,
+                                        @Cached BranchProfile positiveInfinityProfile,
+                                        @Cached BranchProfile negativeInfinityProfile) {
         return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
     }
 
     @Specialization(guards = "type == NEGATIVE_INFINITY || type == POSITIVE_INFINITY")
     public DynamicObject createInfinity(BigDecimalType type, Object digits, boolean strict,
-            @Cached("create()") BooleanCastNode booleanCastNode,
-            @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
+            @Cached BooleanCastNode booleanCastNode,
+            @Cached GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
@@ -130,8 +130,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "type == NAN")
     public DynamicObject createNaN(BigDecimalType type, Object digits, boolean strict,
-            @Cached("create()") BooleanCastNode booleanCastNode,
-            @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
+            @Cached BooleanCastNode booleanCastNode,
+            @Cached GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
@@ -203,7 +203,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             "!isRubyString(value)"
     })
     public DynamicObject create(DynamicObject value, int digits, boolean strict,
-            @Cached("create()") BigDecimalCastNode bigDecimalCastNode,
+            @Cached BigDecimalCastNode bigDecimalCastNode,
             @Cached("createBinaryProfile()") ConditionProfile castProfile) {
         final Object castedValue = bigDecimalCastNode.execute(value, digits, getRoundMode());
 

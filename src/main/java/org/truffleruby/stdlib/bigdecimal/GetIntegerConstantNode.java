@@ -30,9 +30,9 @@ public abstract class GetIntegerConstantNode extends RubyBaseNode {
     @Specialization(guards = "isRubyModule(module)")
     public int doInteger(DynamicObject module, String name,
             @Cached("createLookupConstantNode()") LookupConstantNode lookupConstantNode,
-            @Cached("create()") GetConstantNode getConstantNode,
-            @Cached("create()") ToIntNode toIntNode,
-            @Cached("create()") IntegerCastNode integerCastNode) {
+            @Cached GetConstantNode getConstantNode,
+            @Cached ToIntNode toIntNode,
+            @Cached IntegerCastNode integerCastNode) {
         final Object value = getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         return integerCastNode.executeCastInt(toIntNode.executeIntOrLong(value));
     }

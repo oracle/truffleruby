@@ -36,7 +36,7 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL",
     }, assumptions = "assumptions", limit = "1")
     boolean notNil(VirtualFrame frame, Object self,
-            @Cached("create()") LookupMethodNode lookupNode) {
+            @Cached LookupMethodNode lookupNode) {
         return false;
     }
 

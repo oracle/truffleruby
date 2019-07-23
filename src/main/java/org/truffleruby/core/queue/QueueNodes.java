@@ -76,7 +76,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         public Object popBlocking(DynamicObject self, boolean nonBlocking,
-                                  @Cached("create()") BranchProfile closedProfile) {
+                                  @Cached BranchProfile closedProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = doPop(queue);
@@ -96,7 +96,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
-                                  @Cached("create()") BranchProfile errorProfile) {
+                                  @Cached BranchProfile errorProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = queue.poll();
