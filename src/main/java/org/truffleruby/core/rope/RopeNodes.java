@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -1297,6 +1298,7 @@ public abstract class RopeNodes {
 
     // This node type checks for the equality of the bytes owned by a rope but does not pay
     // attention to the encoding.
+    @ReportPolymorphism
     public abstract static class BytesEqualNode extends RubyBaseNode {
 
         public static BytesEqualNode create() {

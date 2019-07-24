@@ -128,7 +128,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY = new OptionKey<>(1);
     public static final OptionKey<Boolean> CLONE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_DEFAULT_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> CORE_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> CORE_ALWAYS_CLONE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PRIMITIVE_CALLERS_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> ALWAYS_SPLIT_HONOR_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> INLINE_NEEDS_CALLER_FRAME_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());

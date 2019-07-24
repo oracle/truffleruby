@@ -116,7 +116,7 @@ public abstract class TruffleGraalNodes {
                 Object value = frame.getValue(readNode.getFrameSlot());
                 readNode.replace(new ObjectLiteralNode(value));
             }
-            final RubyRootNode newRootNode = new RubyRootNode(getContext(), rootNode.getSourceSection(), rootNode.getFrameDescriptor(), rootNode.getSharedMethodInfo(), newBody);
+            final RubyRootNode newRootNode = new RubyRootNode(getContext(), rootNode.getSourceSection(), rootNode.getFrameDescriptor(), rootNode.getSharedMethodInfo(), newBody, true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final RootCallTarget callTargetForLambdas;

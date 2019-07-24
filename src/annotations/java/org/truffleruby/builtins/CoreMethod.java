@@ -85,4 +85,10 @@ public @interface CoreMethod {
      */
     String enumeratorSize() default "";
 
+    /**
+     * Disallow method splitting for this CoreMethod. Useful for methods not specializing on their
+     * arguments and just calling a TruffleBoundary method.
+     */
+    boolean neverSplit() default false;
+
 }

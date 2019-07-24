@@ -24,13 +24,14 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyContext context;
     private final SharedMethodInfo sharedMethodInfo;
+    private final boolean allowCloning;
 
     @Child private RubyNode body;
 
     private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
-                        SharedMethodInfo sharedMethodInfo, RubyNode body) {
+                        SharedMethodInfo sharedMethodInfo, RubyNode body, boolean allowCloning) {
         super(context.getLanguage(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
@@ -38,6 +39,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         this.context = context;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
+        this.allowCloning = allowCloning;
 
         // Ensure the body node is instrumentable, which requires a non-null SourceSection
         if (!body.hasSource()) {
@@ -61,7 +63,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public boolean isCloningAllowed() {
-        return true;
+        return allowCloning;
     }
 
     @Override

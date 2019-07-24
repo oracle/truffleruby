@@ -106,6 +106,7 @@ public class CoreClassProcessor extends AbstractProcessor {
                                 "Visibility." + method.visibility().name() + ", " +
                                 method.isModuleFunction() + ", " +
                                 onSingleton + ", " +
+                                method.neverSplit() + ", " +
                                 method.required() + ", " +
                                 method.optional() + ", " +
                                 method.rest() + ", " +

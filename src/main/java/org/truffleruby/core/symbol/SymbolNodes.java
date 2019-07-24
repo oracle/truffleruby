@@ -135,7 +135,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
-                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)));
+                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)), true);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

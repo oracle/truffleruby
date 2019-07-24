@@ -151,11 +151,11 @@ public class CoreMethodNodeManager {
         }
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
-        addMethods(module, method.isModuleFunction(), onSingleton, names, arity, visibility, methodNodeFactory);
+        addMethods(module, method.isModuleFunction(), onSingleton, names, arity, visibility, methodNodeFactory, method.neverSplit());
     }
 
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility, boolean isModuleFunction, boolean onSingleton,
-            int required, int optional, boolean rest, String keywordAsOptional, String... names) {
+            boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
@@ -165,22 +165,22 @@ public class CoreMethodNodeManager {
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
         });
 
-        addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory);
+        addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory, neverSplit);
     }
 
     private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names, Arity arity, Visibility visibility,
-            Function<SharedMethodInfo, RubyNode> methodNodeFactory) {
+            Function<SharedMethodInfo, RubyNode> methodNodeFactory, boolean neverSplit) {
         if (isModuleFunction) {
-            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity);
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, arity);
+            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity, neverSplit);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, arity, neverSplit);
         } else if (onSingleton) {
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity, neverSplit);
         } else {
-            addMethod(context, module, methodNodeFactory, names, visibility, arity);
+            addMethod(context, module, methodNodeFactory, names, visibility, arity, neverSplit);
         }
     }
 
-    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity) {
+    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity, boolean neverSplit) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         for (String name : names) {
@@ -190,7 +190,7 @@ public class CoreMethodNodeManager {
             }
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, lexicalScope, module, name, arity);
             final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
-            final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
+            final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode, neverSplit);
             final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(context, null, method);
@@ -218,8 +218,8 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
-        final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
+    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode, boolean neverSplit) {
+        final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode, !neverSplit);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 

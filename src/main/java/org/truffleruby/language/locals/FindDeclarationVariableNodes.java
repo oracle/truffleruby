@@ -12,6 +12,7 @@ package org.truffleruby.language.locals;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -58,6 +59,7 @@ public class FindDeclarationVariableNodes {
         return new FrameSlotAndDepth(frameSlot, 0);
     }
 
+    @ReportPolymorphism
     @ImportStatic(FindDeclarationVariableNodes.class)
     public static abstract class FindAndReadDeclarationVariableNode extends RubyBaseNode {
         public abstract Object execute(MaterializedFrame frame, String name);

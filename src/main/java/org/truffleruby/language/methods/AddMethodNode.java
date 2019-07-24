@@ -30,7 +30,6 @@ public abstract class AddMethodNode extends RubyBaseNode {
     private final boolean ignoreNameVisibility;
 
     @Child private SingletonClassNode singletonClassNode;
-    @Child private LookupMethodNode lookupMethodNode;
 
     public AddMethodNode(boolean ignoreNameVisibility) {
         this.ignoreNameVisibility = ignoreNameVisibility;
