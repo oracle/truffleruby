@@ -293,7 +293,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, neverSplit = true)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "newName", type = RubyNode.class)
     @NodeChild(value = "oldName", type = RubyNode.class)
@@ -354,7 +354,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "append_features", required = 1, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "append_features", required = 1, visibility = Visibility.PRIVATE, neverSplit = true)
     public abstract static class AppendFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
@@ -991,7 +991,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1)
+    @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1, neverSplit = true)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "proc", type = RubyNode.class)
@@ -1374,7 +1374,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE, neverSplit = true)
     public abstract static class PrependFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
@@ -1759,7 +1759,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "undef_method", rest = true)
+    @CoreMethod(names = "undef_method", rest = true, neverSplit = true)
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
