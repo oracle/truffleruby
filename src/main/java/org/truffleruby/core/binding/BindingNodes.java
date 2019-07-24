@@ -12,6 +12,7 @@ package org.truffleruby.core.binding;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -194,10 +195,10 @@ public abstract class BindingNodes {
 
     }
 
-    @ImportStatic(BindingNodes.class)
     @CoreMethod(names = "local_variable_get", required = 1)
     @NodeChild(value = "binding", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
+    @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -228,11 +229,12 @@ public abstract class BindingNodes {
 
     }
 
-    @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
+    @ReportPolymorphism
     @CoreMethod(names = "local_variable_set", required = 2)
     @NodeChild(value = "binding", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
+    @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     public abstract static class LocalVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
