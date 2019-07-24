@@ -41,6 +41,8 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
+  Truffle::Graal.always_split(instance_method(:to_sym))
+
   def byteslice(index_or_range, length=undefined)
     Truffle.primitive :string_byte_substring
 
