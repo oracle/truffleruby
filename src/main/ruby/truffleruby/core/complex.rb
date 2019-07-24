@@ -36,25 +36,8 @@
 
 class Complex < Numeric
 
-  undef_method :%
-  undef_method :<
-  undef_method :<=
-  undef_method :<=>
-  undef_method :>
-  undef_method :>=
-  undef_method :between?
-  undef_method :div
-  undef_method :divmod
-  undef_method :floor
-  undef_method :ceil
-  undef_method :modulo
-  undef_method :remainder
-  undef_method :round
-  undef_method :step
-  undef_method :truncate
-  undef_method :i
-  undef_method :negative?
-  undef_method :positive?
+  undef_method :%, :<, :<=, :<=>, :>, :>=, :between?, :div, :divmod, :floor, :ceil, :modulo,
+               :remainder, :round, :step, :truncate, :i, :negative?, :positive?
 
   def self.convert(real, imag = undefined)
     if nil.equal?(real) || nil.equal?(imag)
