@@ -20,6 +20,13 @@ require 'yaml'
 require 'rbconfig'
 require 'pathname'
 
+if RUBY_ENGINE != 'ruby'
+  unless RUBY_DESCRIPTION.include? 'Native'
+    puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
+    puts '  Consider using alias to run on ruby of your choice.'
+  end
+end
+
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
