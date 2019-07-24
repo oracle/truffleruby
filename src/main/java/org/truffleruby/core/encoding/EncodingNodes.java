@@ -14,6 +14,7 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -192,6 +193,7 @@ public abstract class EncodingNodes {
 
     }
 
+    @ReportPolymorphism
     public static abstract class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
