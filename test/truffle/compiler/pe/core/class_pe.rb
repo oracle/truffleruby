@@ -14,4 +14,9 @@ end
 
 example "ClassPEFixtures::B.superclass", ClassPEFixtures::A
 example "ClassPEFixtures::A.new.class", ClassPEFixtures::A
-example "ClassPEFixtures::AInstance.singleton_class", ClassPEFixtures::AInstance.singleton_class
+
+# Reporting polymorphism for SingletonClassNode would cause a lot of splitting, and for most usages,
+# getting the singleton class is a slow-path operation (e.g., to define class methods).
+# Having an uncached version of SingletonClassNode might help for this.
+# Always splitting Kernel#singleton_class would be an option, but it doesn't seem worth the cost.
+tagged example "ClassPEFixtures::AInstance.singleton_class", ClassPEFixtures::AInstance.singleton_class
