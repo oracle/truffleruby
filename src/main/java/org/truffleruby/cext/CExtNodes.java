@@ -1418,7 +1418,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(VirtualFrame frmae, Object markedObject,
+        protected DynamicObject addToMarkList(Object markedObject,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
