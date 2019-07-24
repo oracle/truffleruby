@@ -46,10 +46,10 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
-MAC = RbConfig::CONFIG['host_os'].include?('darwin')
-LINUX = RbConfig::CONFIG['host_os'].include?('linux')
+ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
+ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
-SO = MAC ? 'dylib' : 'so'
+LIB_EXTENSION = ON_MAC ? 'dylib' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -383,7 +383,7 @@ module Utilities
   end
 
   def app_open(file)
-    cmd = MAC ? 'open' : 'xdg-open'
+    cmd = ON_MAC ? 'open' : 'xdg-open'
 
     sh cmd, file
   end
@@ -415,9 +415,9 @@ module Utilities
   end
 
   def mx_os
-    if MAC
+    if ON_MAC
       'darwin'
-    elsif LINUX
+    elsif ON_LINUX
       'linux'
     else
       abort "Unknown OS"
@@ -1010,7 +1010,7 @@ module Commands
     tests -= %w[openssl xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
-    if ENV['TRUFFLERUBY_CI'] && MAC
+    if ENV['TRUFFLERUBY_CI'] && ON_MAC
       raise "no system clang" unless which('clang')
       %w[opt llvm-link].each do |tool|
         raise "should not have #{tool} in PATH in TruffleRuby CI" if which(tool)
@@ -1027,10 +1027,10 @@ module Commands
         # Test that we can compile and run some basic C code that uses openssl
         if ENV['OPENSSL_PREFIX']
           openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
+          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{LIB_EXTENSION}"
         else
           openssl_cflags = []
-          openssl_lib = "libssl.#{SO}"
+          openssl_lib = "libssl.#{LIB_EXTENSION}"
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
@@ -1493,11 +1493,11 @@ EOS
     METRICS_REPS.times do
       log '.', "sampling\n"
 
-      max_rss_in_mb = if LINUX
+      max_rss_in_mb = if ON_LINUX
                         out = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
                         out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
-                      elsif MAC
+                      elsif ON_MAC
                         out = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
                         out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
@@ -1770,7 +1770,7 @@ EOS
   end
 
   def install_jvmci
-    raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
+    raise "Installing JVMCI is only available on Linux and macOS currently" unless ON_LINUX || ON_MAC
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
@@ -1786,7 +1786,7 @@ EOS
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
       extracted = dirs.first
-      MAC ? "#{extracted}/Contents/Home" : extracted
+      ON_MAC ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort "Could not find the extracted JDK" unless java_home
@@ -1830,7 +1830,7 @@ EOS
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if MAC && !native
+    if ON_MAC && !native
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
