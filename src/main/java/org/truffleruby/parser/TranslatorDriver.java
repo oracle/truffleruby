@@ -276,7 +276,7 @@ public class TranslatorDriver {
             truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
         }
 
-        return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
+        return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode, true);
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {

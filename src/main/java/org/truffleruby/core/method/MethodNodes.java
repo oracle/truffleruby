@@ -269,7 +269,7 @@ public abstract class MethodNodes {
             final RootNode oldRootNode = method.getCallTarget().getRootNode();
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
-            final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode);
+            final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode, true);
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
 

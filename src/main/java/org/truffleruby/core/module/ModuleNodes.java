@@ -423,7 +423,7 @@ public abstract class ModuleNodes {
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
             }
             final RubyNode sequence = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, accessInstanceVariable));
-            final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, null, sharedMethodInfo, sequence);
+            final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, null, sharedMethodInfo, sequence, true);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
             final InternalMethod method = new InternalMethod(getContext(), sharedMethodInfo, lexicalScope, DeclarationContext.NONE, accessorName, module, visibility, callTarget);
 
@@ -1070,7 +1070,7 @@ public abstract class ModuleNodes {
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
             final RubyNode newBody = new CallMethodWithProcBody(declarationFrame, body);
-            final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), rootNode.getFrameDescriptor(), info, newBody);
+            final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), rootNode.getFrameDescriptor(), info, newBody, true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final DeclarationContext declarationContext = Layouts.PROC.getDeclarationContext(proc);
