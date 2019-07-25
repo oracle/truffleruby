@@ -41,14 +41,24 @@ local part_definitions = {
       },
 
       packages+: {
-        "pip:ninja_syntax": "==1.7.2", # Required by NFI and mx
+        "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
 
       setup+: [
         # We don't want to proxy any internet access
-        ["unset", "ANT_OPTS", "FTP_PROXY", "ftp_proxy", "GRADLE_OPTS",
-          "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy",
-          "MAVEN_OPTS", "no_proxy"]
+        [
+          "unset",
+          "ANT_OPTS",
+          "FTP_PROXY",
+          "ftp_proxy",
+          "GRADLE_OPTS",
+          "HTTPS_PROXY",
+          "https_proxy",
+          "HTTP_PROXY",
+          "http_proxy",
+          "MAVEN_OPTS",
+          "no_proxy",
+        ],
       ],
     },
 
@@ -153,18 +163,18 @@ local part_definitions = {
       is_after+:: ["$.use.build"],
 
       clone::
-      local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
-            repo = "../graal-enterprise",
-            suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
-            # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
-            merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
-            # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
-            # The suite file is automatically updated on every graal PR merged.
-            graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
-      [
-        ["git", "clone", url, repo],
-        ["git", "-C", repo, "checkout", graal_enterprise_commit],
-      ],
+        local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
+              repo = "../graal-enterprise",
+              suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
+              # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
+              merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
+              # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
+              # The suite file is automatically updated on every graal PR merged.
+              graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
+        [
+          ["git", "clone", url, repo],
+          ["git", "-C", repo, "checkout", graal_enterprise_commit],
+        ],
 
       setup+: self.clone + jt(["build", "--dy", "/graal-enterprise"]),
 
@@ -416,7 +426,7 @@ local part_definitions = {
       benchmarks+:: [
         "allocation:hello",
         "minheap:hello",
-        "time:hello"
+        "time:hello",
       ],
     },
 
@@ -426,7 +436,7 @@ local part_definitions = {
         "allocation",
         "minheap",
         "time",
-      ]
+      ],
     },
 
     # TODO not compose-able, it would had be broken up to 2 builds
@@ -513,10 +523,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local shared = $.use.build + $.svm.core + {
         "$.svm.gate":: {
-          tags: "build,ruby"
+          tags: "build,ruby",
         },
         environment+: {
-          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:GreyToBlackObjectVisitorDiagnosticHistory=16", # GR-9912
+          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:GreyToBlackObjectVisitorDiagnosticHistory=16",  # GR-9912
         },
         timelimit: "01:00:00",
       },
@@ -528,7 +538,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-test-svm-graal-enterprise-linux": $.platform.linux + svm_test_shared + shared + {
         "$.svm.gate":: {
-          tags: "build,ruby_product"
+          tags: "build,ruby_product",
         },
         environment+: {
           EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:+VerifyGraalGraphs -H:+VerifyPhases -H:+AOTPriorityInline -H:+VerifyDeoptimizationEntryPoints",
@@ -536,7 +546,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       },
       "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + svm_test_shared + shared + {
         "$.svm.gate":: {
-          tags: "build,darwin_ruby"
+          tags: "build,darwin_ruby",
         },
         # No extra verifications, this CI job is already slow
       },
@@ -669,9 +679,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     },
 
   manual_builds: {
-    local shared = $.cap.manual + { timelimit: "5:00" },
+    local shared = $.cap.manual { timelimit: "5:00" },
 
-    "ruby-generate-native-config-linux":  shared + $.platform.linux  + $.run.generate_native_config("linux/Linux"),
+    "ruby-generate-native-config-linux": shared + $.platform.linux + $.run.generate_native_config("linux/Linux"),
     "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config("darwin/Darwin"),
   },
 
@@ -755,3 +765,4 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
+
