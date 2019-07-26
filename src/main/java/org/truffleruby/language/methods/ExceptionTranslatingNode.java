@@ -23,6 +23,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.language.backtrace.BacktraceInterleaver;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
@@ -299,7 +300,7 @@ public class ExceptionTranslatingNode extends RubyNode {
                     lastBacktrace = new Backtrace((TruffleException) t);
                 } else {
                     // Print the first 10 lines of the Java stacktrace
-                    appendJavaStackTrace(t, builder, 10);
+                    appendJavaStackTrace(t, builder);
 
                     if (TruffleStackTrace.getStackTrace(t) != null) {
                         lastBacktrace = new Backtrace(t);
@@ -327,10 +328,13 @@ public class ExceptionTranslatingNode extends RubyNode {
         builder.append(formattedBacktrace).append('\n');
     }
 
-    private void appendJavaStackTrace(Throwable t, StringBuilder builder, int limit) {
+    private void appendJavaStackTrace(Throwable t, StringBuilder builder) {
         final StackTraceElement[] stackTrace = t.getStackTrace();
-        for (int i = 0; i < Math.min(stackTrace.length, limit); i++) {
-            builder.append('\t').append("from ").append(stackTrace[i]).append('\n');
+        for (StackTraceElement stackTraceElement : stackTrace) {
+            builder.append('\t').append("from ").append(stackTraceElement).append('\n');
+            if (BacktraceInterleaver.isCallBoundary(stackTraceElement)) {
+                break;
+            }
         }
     }
 
