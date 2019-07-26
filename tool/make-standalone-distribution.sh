@@ -23,7 +23,7 @@ case $(uname -m) in
 esac
 
 # Build
-tool/jt.rb build --native
+tool/jt.rb build --env native
 
 release_home="$(cd ../graal/vm/mxbuild/$os-$arch/RUBY_STANDALONE_SVM*/* && pwd -P)"
 
@@ -36,4 +36,4 @@ TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.
 "$release_home/bin/ruby" -v
 
 # Run all specs
-AOT_BIN="$release_home/bin/truffleruby" tool/jt.rb test --native :all
+tool/jt.rb -u "$release_home/bin/truffleruby" test :all

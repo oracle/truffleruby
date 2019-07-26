@@ -76,7 +76,7 @@ def ruby_testdownstream_aot(args):
     fast = ['--excl-tag', 'slow']
     mspec_args = ['--native', '--format', spec_format, '--excl-tag', 'ci']
 
-    os.environ['AOT_BIN'] = aot_bin
+    os.environ['RUBY_BIN'] = aot_bin
     ruby_run_specs(mspec_args)
 
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native

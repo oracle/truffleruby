@@ -60,17 +60,8 @@ local part_definitions = {
           "no_proxy",
         ],
       ],
-    },
 
-    svm: {
-      downloads+: {
-        GDB: { name: "gdb", version: "7.11.1", platformspecific: true },
-      },
-
-      environment+: {
-        GDB_BIN: "$GDB/bin/gdb",
-        HOST_VM: "svm",
-      },
+      mx_build_options:: [],
     },
 
     maven: {
@@ -84,9 +75,16 @@ local part_definitions = {
     },
 
     build: {
-      setup+: [
-        ["mx", "sversions"],
-      ] + self.before_build + jt(["build"]) + self.after_build,
+      setup+: [["mx", "sversions"]] +
+              self.before_build +
+              # aot-build.log is used for the build-stats metrics, in other cases it does no harm
+              jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
+              [
+                # make sure jt always uses what was just built
+                ["set-export", "VM_DIST_HOME", ["mx", "--env", self.mx_env, "graalvm-home"]],
+                ["set-export", "RUBY_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/ruby"],
+              ] +
+              self.after_build,
     },
 
     truffleruby: {
@@ -103,6 +101,38 @@ local part_definitions = {
       environment+: {
         # to differentiate running without (chunky_png) and with cexts (oily_png).
         GUEST_VM_CONFIG+: "-cexts",
+      },
+    },
+
+    enterprise: {
+      is_before_optional:: ["$.use.build"],
+      setup+:
+        # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
+        # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
+        # The suite file is automatically updated on every graal PR merged.
+        local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
+              repo = "../graal-enterprise",
+              suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
+              merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
+              graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
+        [
+          ["mx", "sversions"],
+          ["git", "clone", url, repo],
+          ["git", "-C", repo, "checkout", graal_enterprise_commit],
+        ],
+
+      environment+: {
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "graal-enterprise",
+      },
+    },
+
+    without_om: {
+      is_after+:: ["$.use.enterprise", "$.use.common"],
+      environment+: {
+        HOST_VM_CONFIG+: "-no-om",
+        java_opts+::
+          ["-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"],
       },
     },
 
@@ -141,128 +171,72 @@ local part_definitions = {
     },
   },
 
-  graal: {
-    core: {
-      is_after+:: ["$.use.build"],
-      setup+: jt(["build", "--graal"]),
-
-      environment+: {
-        HOST_VM: "server",
-        HOST_VM_CONFIG: "graal-core",
-      },
-    },
-
-    none: {
+  env: {
+    jvm: {
+      mx_env:: "jvm",
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "default",
       },
     },
-
-    enterprise: {
-      is_after+:: ["$.use.build"],
-
-      clone::
-        local url = ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
-              repo = "../graal-enterprise",
-              suite_file = "graal-enterprise/mx.graal-enterprise/suite.py",
-              # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
-              merge_commit_in_graal = ["git", "-C", "../graal", "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "-n1"] + jt(["truffle_version"]),
-              # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
-              # The suite file is automatically updated on every graal PR merged.
-              graal_enterprise_commit = ["git", "-C", repo, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, suite_file, "|", "head", "-1"];
-        [
-          ["git", "clone", url, repo],
-          ["git", "-C", repo, "checkout", graal_enterprise_commit],
-        ],
-
-      setup+: self.clone + jt(["build", "--dy", "/graal-enterprise"]),
-
+    jvm_compiler: {
+      mx_env:: "jvm-compiler",
+      environment+: {
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "graal-core",
+      },
+    },
+    jvm_ee: {
+      is_after+:: ["$.use.enterprise"],
+      mx_env:: "jvm-ee",
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
       },
     },
-
-    without_om: {
-      is_after+:: ["$.graal.enterprise", "$.use.common"],
+    local svm = {
+      downloads+: {
+        GDB: { name: "gdb", version: "7.11.1", platformspecific: true },
+      },
       environment+: {
-        HOST_VM_CONFIG+: "-no-om",
-        java_opts+::
-          ["-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"],
+        GDB_BIN: "$GDB/bin/gdb",
+        HOST_VM: "svm",
       },
     },
+    native: {
+      mx_env:: "native",
+      environment+: {
+        HOST_VM_CONFIG: "graal-core",
+      },
+    } + svm,
+    native_ee: {
+      is_after+:: ["$.use.enterprise"],
+      mx_env:: "native-ee",
+      environment+: {
+        HOST_VM_CONFIG: "graal-enterprise",
+      },
+    } + svm,
   },
 
   svm: {
-    core: {
-      is_after+:: ["$.use.build"],
-
-      svm_suite:: "/substratevm",
-
-      environment+: {
-        HOST_VM_CONFIG: "graal-core",
-        VM_SUITE_HOME: "$BUILD_DIR/graal/vm",
-      },
-    },
-
-    enterprise: {
-      is_after+:: ["$.use.build"],
-
-      svm_suite:: "/substratevm-enterprise",
-
-      setup+: $.graal.enterprise.clone,
-
-      environment+: {
-        HOST_VM_CONFIG: "graal-enterprise",
-        VM_SUITE_HOME: "$BUILD_DIR/graal-enterprise/vm-enterprise",
-      },
-    },
-
     gate: {
       # The same as job "gate-vm-native-truffleruby-tip" in
       # https://github.com/oracle/graal/blob/master/vm/ci_common/common.hocon
       local build = self,
-      run+: [
-        ["cd", "$VM_SUITE_HOME"],
-      ] + self.before_build + [
-        [
-          "mx",
-          "--dynamicimports",
-          self.svm_suite + ",truffleruby",
-          "--disable-polyglot",
-          "--disable-libpolyglot",
-          "--force-bash-launchers=lli,native-image",
-          "gate",
-          "--no-warning-as-error",
-          "--tags",
-          build["$.svm.gate"].tags,
-        ],
-      ] + self.after_build,
-    },
-
-    build_image: {
-      local vm_suite_mx_flags = [
-        "--dynamicimports",
-        self.svm_suite + ",truffleruby",
-        "--disable-polyglot",
-        "--disable-libpolyglot",
-        "--force-bash-launchers=lli,native-image",
-      ],
-      local vm_build = ["mx"] + vm_suite_mx_flags + ["build"],
-      local vm_dist_home = ["mx"] + vm_suite_mx_flags + ["graalvm-home"],
-
-      setup+: [
-        ["cd", "$VM_SUITE_HOME"],
-      ] + self.before_build + [
-        # aot-build.log is used for the build-stats metrics
-        vm_build + ["|", "tee", "../../main/aot-build.log"],
-      ] + self.after_build + [
-        ["set-export", "VM_DIST_HOME", vm_dist_home],
-        ["set-export", "AOT_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
-        ["set-export", "JT_BENCHMARK_RUBY", "$AOT_BIN"],
-        ["cd", "../../main"],
-      ],
+      run+: [["mx", "sversions"]] +
+            self.before_build +
+            [
+              [
+                "mx",
+                "--env",
+                build.mx_env,
+                "gate",
+                "--no-warning-as-error",
+                "--tags",
+                build["$.svm.gate"].tags,
+              ],
+            ] +
+            self.after_build,
     },
   },
 
@@ -353,14 +327,13 @@ local part_definitions = {
     },
 
     lint: {
+      is_after:: ["$.use.build"],
+      mx_build_options:: ["--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
       },
-      run+: [
-        ["mx", "sversions"],
-      ] + self.before_build + [
-        ["mx", "build", "--warning-as-error", "--force-deprecation-as-warning"],
-      ] + jt(["lint"]) + self.after_build,
+      # add before and after build since jt lint builds
+      run+: self.before_build + jt(["lint"]) + self.after_build,
     },
 
     test_basictest: { run+: jt(["test", "basictest"]) },
@@ -490,38 +463,38 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.run.lint + { timelimit: "30:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "30:00" },
     } +
 
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
+      local linux_gate_jvm = linux_gate + $.env.jvm,
 
-      "ruby-test-specs-linux":       linux_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
-      "ruby-test-fast-linux":        linux_gate + $.run.test_fast + { timelimit: "30:00" }, # To catch missing slow tags
-      "ruby-test-mri-linux":         linux_gate + $.run.test_mri + { timelimit: "30:00" },
-      "ruby-test-integration-linux": linux_gate + $.run.test_integration,
-      "ruby-test-cexts-linux":       linux_gate + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems-linux":        linux_gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem-linux":   linux_gate + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux":  linux_gate + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
+      "ruby-test-specs-linux": linux_gate_jvm + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
+      "ruby-test-fast-linux": linux_gate_jvm + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
+      "ruby-test-mri-linux": linux_gate_jvm + $.run.test_mri + { timelimit: "30:00" },
+      "ruby-test-integration-linux": linux_gate_jvm + $.run.test_integration,
+      "ruby-test-cexts-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-standalone-linux": linux_gate_jvm + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
-      "ruby-test-compiler-graal-core": linux_gate + $.use.truffleruby + $.graal.core + $.run.test_compiler,
-      # TODO was commented out, needs to be rewritten?
-      # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
+      "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_compiler + $.use.truffleruby + $.run.test_compiler,
+      # "ruby-test-compiler-graal-enterprise": linux_gate + $.env.jvm_ee + $.use.truffleruby + $.run.test_compiler,
     } +
 
     {
-      local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
+      local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.env.jvm + $.use.build + { timelimit: "01:00:00" },
 
       "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "50:00" },
-      "ruby-test-mri-darwin":   darwin_gate + $.run.test_mri,
+      "ruby-test-mri-darwin": darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems-darwin":  darwin_gate + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-gems-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_gems,
     } +
 
-    local svm_test_shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate;
+    local svm_test_shared = $.jdk.labsjdk8 + $.use.common + $.cap.gate + $.svm.gate;
     {
-      local shared = $.use.build + $.svm.core + {
+      local shared = $.env.native + $.use.build + {
         "$.svm.gate":: {
           tags: "build,ruby",
         },
@@ -534,7 +507,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-graal-core-linux": $.platform.linux + svm_test_shared + shared,
       "ruby-test-svm-graal-core-darwin": $.platform.darwin + svm_test_shared + shared,
     } + {
-      local shared = $.use.build + $.svm.enterprise + { timelimit: "01:15:00" },
+      local shared = $.use.enterprise + $.env.native_ee + { timelimit: "01:15:00" },
 
       "ruby-test-svm-graal-enterprise-linux": $.platform.linux + svm_test_shared + shared + {
         "$.svm.gate":: {
@@ -559,15 +532,15 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   local graal_configurations = {
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
 
-    "graal-core": shared + $.graal.core,
-    "graal-enterprise": shared + $.graal.enterprise,
-    "graal-enterprise-no-om": shared + $.graal.enterprise + $.graal.without_om,
+    "graal-core": shared + $.env.jvm_compiler,
+    "graal-enterprise": $.use.enterprise + shared + $.env.jvm_ee,
+    "graal-enterprise-no-om": $.use.enterprise + shared + $.env.jvm_ee + $.use.without_om,
   },
   local svm_configurations = {
-    local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build + $.use.svm,
+    local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
 
-    "svm-graal-core": shared + $.svm.core + $.svm.build_image,
-    "svm-graal-enterprise": shared + $.svm.enterprise + $.svm.build_image,
+    "svm-graal-core": shared + $.env.native,
+    "svm-graal-enterprise": $.use.enterprise + shared + $.env.native_ee,
   },
 
   bench_builds:
@@ -661,8 +634,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-metrics-truffle":
-        $.platform.linux + $.jdk.labsjdk8 + $.use.common + $.use.build +
-        $.use.truffleruby + $.graal.none +
+        $.platform.linux + $.jdk.labsjdk8 + $.use.common + $.env.jvm + $.use.build +
+        $.use.truffleruby +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.interpreter_metrics +
         { timelimit: "00:25:00" },
@@ -672,7 +645,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-cext":
         $.platform.linux + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
-        $.use.build + $.graal.core + $.use.gem_test_pack +
+        $.env.jvm_compiler + $.use.build + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "02:00:00" },
@@ -765,4 +738,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
+
+
 
