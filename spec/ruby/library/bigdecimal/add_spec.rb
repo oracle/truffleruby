@@ -171,22 +171,22 @@ describe "BigDecimal#add" do
   end
 
   it "raises TypeError when adds nil" do
-    lambda {
+    -> {
       @one.add(nil, 10)
     }.should raise_error(TypeError)
-    lambda {
+    -> {
       @one.add(nil, 0)
     }.should raise_error(TypeError)
   end
 
   it "raises TypeError when precision parameter is nil" do
-    lambda {
+    -> {
       @one.add(@one, nil)
     }.should raise_error(TypeError)
   end
 
   it "raises ArgumentError when precision parameter is negative" do
-    lambda {
+    -> {
       @one.add(@one, -10)
     }.should raise_error(ArgumentError)
   end

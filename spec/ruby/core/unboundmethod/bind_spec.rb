@@ -10,7 +10,7 @@ describe "UnboundMethod#bind" do
   end
 
   it "raises TypeError if object is not kind_of? the Module the method defined in" do
-    lambda { @normal_um.bind(UnboundMethodSpecs::B.new) }.should raise_error(TypeError)
+    -> { @normal_um.bind(UnboundMethodSpecs::B.new) }.should raise_error(TypeError)
   end
 
   it "returns Method for any object that is kind_of? the Module method was extracted from" do
@@ -56,6 +56,6 @@ describe "UnboundMethod#bind" do
       end
     end
     um = p.method(:singleton_method).unbind
-    lambda{ um.bind(other) }.should raise_error(TypeError)
+    ->{ um.bind(other) }.should raise_error(TypeError)
   end
 end
