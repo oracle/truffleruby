@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -107,8 +106,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
         if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
             if (metaClassNode.executeMetaClass(receiver) == context.getCoreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
-                notOptimizedWarningNode.warn("megamorphic dispatch on foreign object");
-                return megamorphicForeignCall(receiver, arguments, methodName);
+                return OutgoingForeignCallNodeGen.getUncached().executeCall((TruffleObject) receiver, methodName, arguments);
             }
         } else {
             assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";
@@ -171,12 +169,6 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
         return indirectCallNode.call(
                 method.getCallTarget(),
                 RubyArguments.pack(null, null, method, null, receiverObject, blockObject, argumentsObjects));
-    }
-
-    @TruffleBoundary
-    private Object megamorphicForeignCall(Object receiver, Object[] arguments, String methodName) {
-        // TODO (pitr-ch 30-Jun-2019): improve?
-        return OutgoingForeignCallNodeGen.create(methodName).executeCall((TruffleObject) receiver, arguments);
     }
 
 }

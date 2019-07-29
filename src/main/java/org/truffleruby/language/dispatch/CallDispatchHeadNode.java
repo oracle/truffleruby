@@ -93,6 +93,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
     private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY =
             new Uncached(true, false, MissingBehavior.CALL_METHOD_MISSING);
 
+    // FIXME (pitr 29-Jul-2019): this only matches common createPrivate
     public static CallDispatchHeadNode getUncached() {
         return UNCACHED_IGNORING_VISIBILITY;
     }

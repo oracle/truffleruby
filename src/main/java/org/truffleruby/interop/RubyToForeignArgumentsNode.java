@@ -9,13 +9,16 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-import org.truffleruby.language.RubyBaseNode;
-
-public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class RubyToForeignArgumentsNode extends RubyBaseWithoutContextNode {
 
     public static RubyToForeignArgumentsNode create() {
         return RubyToForeignArgumentsNodeGen.create();
@@ -26,8 +29,8 @@ public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
     @Specialization(guards = "args.length == cachedArgsLength", limit = "getLimit()")
     @ExplodeLoop
     public Object[] convertCached(Object[] args,
-                                  @Cached("args.length") int cachedArgsLength,
-                                  @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+            @Cached("args.length") int cachedArgsLength,
+            @Cached("create()") RubyToForeignNode rubyToForeignNode) {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
@@ -39,7 +42,7 @@ public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
 
     @Specialization(replaces = "convertCached")
     public Object[] convertUncached(Object[] args,
-                                    @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+            @Cached("create()") RubyToForeignNode rubyToForeignNode) {
         final Object[] convertedArgs = new Object[args.length];
 
         for (int n = 0; n < args.length; n++) {
@@ -50,7 +53,7 @@ public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return getContext().getOptions().INTEROP_CONVERT_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
     }
 
 }

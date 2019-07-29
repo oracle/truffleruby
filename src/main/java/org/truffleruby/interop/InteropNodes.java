@@ -13,6 +13,34 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperationNodes;
+import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.shared.TruffleRuby;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -38,31 +66,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.builtins.CoreClass;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.shared.TruffleRuby;
 
 @CoreClass("Truffle::Interop")
 public abstract class InteropNodes {
@@ -113,13 +116,13 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
-    public abstract static class ExecuteNode extends InteropCoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    public abstract static class ExecuteUncacheableNode extends RubyBaseWithoutContextNode {
 
         abstract Object execute(TruffleObject receiver, Object[] args);
 
-        public static ExecuteNode create() {
-            return InteropNodesFactory.ExecuteNodeFactory.create(null);
+        public static ExecuteUncacheableNode create() {
+            return InteropNodesFactory.ExecuteUncacheableNodeGen.create();
         }
 
         @Specialization(limit = "getCacheLimit()")
@@ -128,6 +131,7 @@ public abstract class InteropNodes {
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile exceptionProfile,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object foreign;
@@ -136,7 +140,7 @@ public abstract class InteropNodes {
                 foreign = receivers.execute(receiver, rubyToForeignArgumentsNode.executeConvert(args));
             } catch (UnsupportedTypeException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(getContext(), translate(e));
+                throw new RaiseException(context, translate(context, e));
             } catch (ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -146,10 +150,31 @@ public abstract class InteropNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject translate(UnsupportedTypeException e) {
+        private DynamicObject translate(RubyContext context, UnsupportedTypeException e) {
             String message = "Wrong arguments: " +
                     Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", "));
-            return coreExceptions().typeError(message, this);
+            return context.getCoreExceptions().typeError(message, this);
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+
+    }
+
+    @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
+    public abstract static class ExecuteNode extends InteropCoreMethodArrayArgumentsNode {
+
+        abstract Object execute(TruffleObject receiver, Object[] args);
+
+        public static ExecuteNode create() {
+            return InteropNodesFactory.ExecuteNodeFactory.create(null);
+        }
+
+        @Specialization
+        public Object executeForeignCached(TruffleObject receiver, Object[] args,
+                @Cached ExecuteUncacheableNode executeUncacheableNode) {
+            return executeUncacheableNode.execute(receiver, args);
         }
 
     }
@@ -172,11 +197,11 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "invoke", isModuleFunction = true, required = 2, rest = true)
-    public abstract static class InvokeNode extends InteropCoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    public abstract static class InvokeUncacheableNode extends RubyBaseWithoutContextNode {
 
-        public static InvokeNode create() {
-            return InteropNodesFactory.InvokeNodeFactory.create(null);
+        public static InvokeUncacheableNode create() {
+            return InteropNodesFactory.InvokeUncacheableNodeGen.create();
         }
 
         abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
@@ -209,6 +234,26 @@ public abstract class InteropNodes {
 
             return foreignToRubyNode.executeConvert(foreign);
         }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @CoreMethod(names = "invoke", isModuleFunction = true, required = 2, rest = true)
+    public abstract static class InvokeNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public static InvokeNode create() {
+            return InteropNodesFactory.InvokeNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
+
+        @Specialization
+        public Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
+                @Cached InvokeUncacheableNode invokeUncacheableNode) {
+            return invokeUncacheableNode.execute(receiver, identifier, args);
+        }
     }
 
     @CoreMethod(names = "instantiable?", isModuleFunction = true, required = 1)
@@ -227,17 +272,17 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
-    public abstract static class NewNode extends InteropCoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    public abstract static class NewUncacheableNode extends RubyBaseWithoutContextNode {
 
-        public static NewNode create() {
-            return InteropNodesFactory.NewNodeFactory.create(null);
+        public static NewUncacheableNode create() {
+            return InteropNodesFactory.NewUncacheableNodeGen.create();
         }
 
         abstract Object execute(TruffleObject receiver, Object[] args);
 
         @Specialization(limit = "getCacheLimit()")
-        public Object newCached(
+        protected Object newCached(
                 TruffleObject receiver,
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
@@ -256,6 +301,27 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+
+    }
+
+    @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
+    public abstract static class NewNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public static NewNode create() {
+            return InteropNodesFactory.NewNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object[] args);
+
+        @Specialization
+        public Object newCached(TruffleObject receiver, Object[] args,
+                @Cached NewUncacheableNode newUncacheableNode) {
+            return newUncacheableNode.execute(receiver, args);
         }
 
     }
@@ -442,6 +508,26 @@ public abstract class InteropNodes {
         }
     }
 
+    @GenerateUncached
+    public abstract static class NullUncacheableNode extends RubyBaseWithoutContextNode {
+
+        public static NullUncacheableNode create() {
+            return InteropNodesFactory.NullUncacheableNodeGen.create();
+        }
+
+        abstract boolean execute(Object receiver);
+
+        @Specialization(limit = "getCacheLimit()")
+        public boolean isNull(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isNull(receiver);
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
     @CoreMethod(names = "null?", isModuleFunction = true, required = 1)
     public abstract static class NullNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -449,18 +535,12 @@ public abstract class InteropNodes {
             return InteropNodesFactory.NullNodeFactory.create(null);
         }
 
-        abstract Object execute(TruffleObject receiver);
+        abstract Object execute(Object receiver);
 
-        @Specialization(limit = "getCacheLimit()")
-        public boolean isNull(
-                TruffleObject receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isNull(receiver);
-        }
-
-        @Fallback
-        public boolean isNull(Object receiver) {
-            return false;
+        @Specialization
+        public boolean isNull(Object receiver,
+                @Cached NullUncacheableNode nullUncacheableNode) {
+            return nullUncacheableNode.execute(receiver);
         }
 
     }
@@ -514,11 +594,11 @@ public abstract class InteropNodes {
     }
 
     // TODO (pitr-ch 27-Mar-2019): break down
-    @CoreMethod(names = "read", isModuleFunction = true, required = 2)
-    public abstract static class ReadNode extends InteropCoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    public abstract static class ReadUncacheableNode extends RubyBaseWithoutContextNode {
 
-        public static ReadNode create() {
-            return InteropNodesFactory.ReadNodeFactory.create(null);
+        public static ReadUncacheableNode create() {
+            return InteropNodesFactory.ReadUncacheableNodeGen.create();
         }
 
         abstract Object execute(TruffleObject receiver, Object identifier);
@@ -528,6 +608,7 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,
                 @Cached BranchProfile exceptionProfile,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -539,8 +620,8 @@ public abstract class InteropNodes {
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                        context,
+                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -554,6 +635,7 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,
                 @Cached BranchProfile exceptionProfile,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
@@ -563,8 +645,8 @@ public abstract class InteropNodes {
             } catch (InvalidArrayIndexException e) {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+                        context,
+                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -572,6 +654,29 @@ public abstract class InteropNodes {
 
             return foreignToRubyNode.executeConvert(foreign);
         }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @CoreMethod(names = "read", isModuleFunction = true, required = 2)
+    public abstract static class ReadNode extends InteropCoreMethodArrayArgumentsNode {
+
+        // TODO (pitr-ch 29-Jul-2019): remove the Uncacheable nodes, same to others in this file
+
+        public static ReadNode create() {
+            return InteropNodesFactory.ReadNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier);
+
+        @Specialization
+        protected Object read(TruffleObject receiver, Object identifier,
+                @Cached ReadUncacheableNode readUncacheableNode) {
+            return readUncacheableNode.execute(receiver, identifier);
+        }
+
     }
 
     // TODO (pitr-ch 27-Mar-2019): break down
@@ -622,11 +727,10 @@ public abstract class InteropNodes {
     }
 
     // TODO (pitr-ch 27-Mar-2019): break down
-    @CoreMethod(names = "write", isModuleFunction = true, required = 3)
-    public abstract static class WriteNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public static WriteNode create() {
-            return InteropNodesFactory.WriteNodeFactory.create(null);
+    @GenerateUncached
+    public abstract static class WriteUncacheableNode extends RubyBaseWithoutContextNode {
+        public static WriteUncacheableNode create() {
+            return InteropNodesFactory.WriteUncacheableNodeGen.create();
         }
 
         abstract Object execute(TruffleObject receiver, Object identifier, Object value);
@@ -637,6 +741,7 @@ public abstract class InteropNodes {
                 DynamicObject identifier,
                 Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignNode valueToForeignNode,
                 @Cached BranchProfile unknownIdentifierProfile,
@@ -647,8 +752,8 @@ public abstract class InteropNodes {
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+                        context,
+                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -664,6 +769,7 @@ public abstract class InteropNodes {
                 long identifier, // TODO (pitr-ch 01-Apr-2019): allow only long? (unify other similar cases)
                 Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached RubyToForeignNode valueToForeignNode,
                 @Cached BranchProfile unknownIdentifierProfile,
                 @Cached BranchProfile exceptionProfile) {
@@ -672,8 +778,8 @@ public abstract class InteropNodes {
             } catch (InvalidArrayIndexException e) {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+                        context,
+                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -682,6 +788,27 @@ public abstract class InteropNodes {
             //  the write no longer returns its own value
             return value;
         }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @CoreMethod(names = "write", isModuleFunction = true, required = 3)
+    public abstract static class WriteNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public static WriteNode create() {
+            return InteropNodesFactory.WriteNodeFactory.create(null);
+        }
+
+        abstract Object execute(TruffleObject receiver, Object identifier, Object value);
+
+        @Specialization
+        protected Object write(TruffleObject receiver, Object identifier, Object value,
+                @Cached WriteUncacheableNode writeUncacheableNode) {
+            return writeUncacheableNode.execute(receiver, identifier, value);
+        }
+
     }
 
     // TODO (pitr-ch 01-Apr-2019): break down
