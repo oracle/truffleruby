@@ -14,15 +14,20 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -32,15 +37,17 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+@GenerateUncached
 @ImportStatic({ ValueWrapperManager.class })
-public abstract class UnwrapNode extends RubyBaseNode {
+public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
 
     public static UnwrapNode create() {
         return UnwrapNodeGen.create();
     }
 
+    @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class UnwrapNativeNode extends RubyBaseNode {
+    public static abstract class UnwrapNativeNode extends RubyBaseWithoutContextNode {
 
         public abstract Object execute(long handle);
 
@@ -60,8 +67,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected DynamicObject unwrapNil(long handle) {
-            return nil();
+        protected DynamicObject unwrapNil(long handle,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getCoreLibrary().getNil();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
@@ -70,8 +78,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected Object unwrapTaggedObject(long handle) {
-            return getContext().getValueWrapperManager().getFromHandleMap(handle);
+        protected Object unwrapTaggedObject(long handle,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getValueWrapperManager().getFromHandleMap(handle);
         }
 
         @Fallback
@@ -86,8 +95,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
+    @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class NativeToWrapperNode extends RubyBaseNode {
+    public static abstract class NativeToWrapperNode extends RubyBaseWithoutContextNode {
 
         public abstract ValueWrapper execute(long handle);
 
@@ -107,8 +117,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected ValueWrapper unwrapNil(long handle) {
-            return new ValueWrapper(nil(), NIL_HANDLE, null);
+        protected ValueWrapper unwrapNil(long handle,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE, null);
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
@@ -117,8 +128,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        protected ValueWrapper unwrapTaggedObject(long handle) {
-            return getContext().getValueWrapperManager().getWrapperFromHandleMap(handle);
+        protected ValueWrapper unwrapTaggedObject(long handle,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getValueWrapperManager().getWrapperFromHandleMap(handle);
         }
 
         @Fallback
@@ -188,6 +200,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
     protected Object unwrapTypeCastObject(TruffleObject value,
             @CachedLibrary("value") InteropLibrary values,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached UnwrapNativeNode unwrapNativeNode,
             @Cached BranchProfile unsupportedProfile,
             @Cached BranchProfile nonPointerProfile) {
@@ -197,16 +210,16 @@ public abstract class UnwrapNode extends RubyBaseNode {
                 handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
                 unsupportedProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this, e));
             }
             return unwrapNativeNode.execute(handle);
         } else {
             nonPointerProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("Not a handle or a pointer", this));
         }
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().DISPATCH_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 }

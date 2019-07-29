@@ -23,7 +23,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class ValueWrapperManager {
@@ -311,5 +314,37 @@ public class ValueWrapperManager {
 
     public static boolean isWrapper(TruffleObject value) {
         return value instanceof ValueWrapper;
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class UnwrapperFunction implements TruffleObject {
+
+        @ExportMessage
+        public boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached UnwrapNode unwrapNode) {
+            return unwrapNode.execute(arguments[0]);
+        }
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class WrapperFunction implements TruffleObject {
+
+        @ExportMessage
+        public boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached WrapNode wrapNode) {
+            return wrapNode.execute(arguments[0]);
+        }
     }
 }

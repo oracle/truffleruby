@@ -1833,12 +1833,4 @@ module Truffle::CExt
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
 
-  def rb_tr_wrap(obj)
-    Truffle.invoke_primitive :cext_wrap, obj
-  end
-
-  def rb_tr_unwrap(wrapper)
-    Truffle.invoke_primitive :cext_unwrap, wrapper
-  end
-
 end

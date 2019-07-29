@@ -1564,4 +1564,22 @@ public class CExtNodes {
             return getContext().getOptions().DISPATCH_CACHE;
         }
     }
+
+    @CoreMethod(names = "rb_tr_unwrap_function", onSingleton = true, required = 0)
+    public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.UnwrapperFunction();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_wrap_function", onSingleton = true, required = 0)
+    public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.WrapperFunction();
+        }
+    }
 }
