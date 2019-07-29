@@ -1,1 +1,2 @@
 fails(uses-fork):C-API Kernel function rb_set_end_proc runs a C function on shutdown
+fails:C-API Kernel function rb_block_lambda converts the implicit block into a lambda

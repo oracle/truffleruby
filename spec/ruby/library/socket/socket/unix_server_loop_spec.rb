@@ -13,7 +13,7 @@ with_feature :unix_socket do
 
     describe 'when no connections are available' do
       it 'blocks the caller' do
-        lambda { Socket.unix_server_loop(@path) }.should block_caller
+        -> { Socket.unix_server_loop(@path) }.should block_caller
       end
     end
 

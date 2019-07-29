@@ -12,7 +12,7 @@ describe "passed { |a, b = 1|  } creates a method that" do
   end
 
   it "raises an ArgumentError when passed zero arguments" do
-    lambda { @klass.new.m }.should raise_error(ArgumentError)
+    -> { @klass.new.m }.should raise_error(ArgumentError)
   end
 
   it "has a default value for b when passed one argument" do
@@ -24,7 +24,7 @@ describe "passed { |a, b = 1|  } creates a method that" do
   end
 
   it "raises an ArgumentError when passed three arguments" do
-    lambda { @klass.new.m(1, 2, 3) }.should raise_error(ArgumentError)
+    -> { @klass.new.m(1, 2, 3) }.should raise_error(ArgumentError)
   end
 end
 
@@ -83,7 +83,7 @@ describe "Module#define_method when given an UnboundMethod" do
       define_method :piggy, instance_method(:ziggy)
     end
 
-    lambda { foo.new.ziggy }.should raise_error(NoMethodError)
+    -> { foo.new.ziggy }.should raise_error(NoMethodError)
     foo.new.piggy.should == 'piggy'
   end
 end
@@ -194,7 +194,7 @@ describe "Module#define_method" do
   it "defines a new method with the given name and the given block as body in self" do
     class DefineMethodSpecClass
       define_method(:block_test1) { self }
-      define_method(:block_test2, &lambda { self })
+      define_method(:block_test2, &-> { self })
     end
 
     o = DefineMethodSpecClass.new
@@ -203,21 +203,21 @@ describe "Module#define_method" do
   end
 
   it "raises a TypeError when the given method is no Method/Proc" do
-    lambda {
+    -> {
       Class.new { define_method(:test, "self") }
     }.should raise_error(TypeError)
 
-    lambda {
+    -> {
       Class.new { define_method(:test, 1234) }
     }.should raise_error(TypeError)
 
-    lambda {
+    -> {
       Class.new { define_method(:test, nil) }
     }.should raise_error(TypeError)
   end
 
   it "raises an ArgumentError when no block is given" do
-    lambda {
+    -> {
       Class.new { define_method(:test) }
     }.should raise_error(ArgumentError)
   end
@@ -230,7 +230,7 @@ describe "Module#define_method" do
       end
     end
 
-    lambda {
+    -> {
       o.define(:foo) { raise "not used" }
     }.should raise_error(ArgumentError)
   end
@@ -242,11 +242,11 @@ describe "Module#define_method" do
     end
 
     obj = DefineMethodSpecClass.new
-    lambda { obj.proc_style_test :arg }.should raise_error(ArgumentError)
+    -> { obj.proc_style_test :arg }.should raise_error(ArgumentError)
   end
 
   it "raises a #{frozen_error_class} if frozen" do
-    lambda {
+    -> {
       Class.new { freeze; define_method(:foo) {} }
     }.should raise_error(frozen_error_class)
   end
@@ -267,7 +267,7 @@ describe "Module#define_method" do
     c = klass.new
     c.data = :bar
     c.other_inspect.should == "data is bar"
-    lambda{o.other_inspect}.should raise_error(NoMethodError)
+    ->{o.other_inspect}.should raise_error(NoMethodError)
   end
 
   it "raises a TypeError when a Method from a singleton class is defined on another class" do
@@ -279,7 +279,7 @@ describe "Module#define_method" do
     end
     m = c.method(:foo)
 
-    lambda {
+    -> {
       Class.new { define_method :bar, m }
     }.should raise_error(TypeError, /can't bind singleton method to a different class/)
   end
@@ -291,7 +291,7 @@ describe "Module#define_method" do
     end
     m = c.new.method(:foo)
 
-    lambda {
+    -> {
       Class.new { define_method :bar, m }
     }.should raise_error(TypeError)
   end
@@ -305,7 +305,7 @@ describe "Module#define_method" do
     o = DefineMethodSpecClass.new
 
     DefineMethodSpecClass.send(:undef_method, :accessor_method)
-    lambda { o.accessor_method }.should raise_error(NoMethodError)
+    -> { o.accessor_method }.should raise_error(NoMethodError)
 
     DefineMethodSpecClass.send(:define_method, :accessor_method, m)
 
@@ -405,7 +405,7 @@ describe "Module#define_method" do
   end
 
   it "raises a TypeError when an UnboundMethod from a child class is defined on a parent class" do
-    lambda {
+    -> {
       ParentClass = Class.new { define_method(:foo) { :bar } }
       ChildClass = Class.new(ParentClass) { define_method(:foo) { :baz } }
       ParentClass.send :define_method, :foo, ChildClass.instance_method(:foo)
@@ -413,7 +413,7 @@ describe "Module#define_method" do
   end
 
   it "raises a TypeError when an UnboundMethod from one class is defined on an unrelated class" do
-    lambda {
+    -> {
       DestinationClass = Class.new {
         define_method :bar, ModuleSpecs::InstanceMeth.instance_method(:foo)
       }
@@ -429,7 +429,7 @@ describe "Module#define_method" do
     end
     m = c.method(:foo).unbind
 
-    lambda {
+    -> {
       Class.new { define_method :bar, m }
     }.should raise_error(TypeError, /can't bind singleton method to a different class/)
   end
@@ -448,11 +448,11 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed one argument" do
-      lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1 }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed two arguments" do
-      lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
     end
   end
 
@@ -468,11 +468,11 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed one argument" do
-      lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1 }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed two arguments" do
-      lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
     end
   end
 
@@ -484,15 +484,15 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed zero arguments" do
-      lambda { @klass.new.m }.should raise_error(ArgumentError)
+      -> { @klass.new.m }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed zero arguments and a block" do
-      lambda { @klass.new.m { :computed } }.should raise_error(ArgumentError)
+      -> { @klass.new.m { :computed } }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed two arguments" do
-      lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
     end
 
     it "receives the value passed as the argument when passed one argument" do
@@ -529,7 +529,7 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed zero arguments" do
-      lambda { @klass.new.m }.should raise_error(ArgumentError)
+      -> { @klass.new.m }.should raise_error(ArgumentError)
     end
 
     it "returns the value computed by the block when passed one argument" do
@@ -557,19 +557,19 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed zero arguments" do
-      lambda { @klass.new.m }.should raise_error(ArgumentError)
+      -> { @klass.new.m }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed one argument" do
-      lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1 }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed one argument and a block" do
-      lambda { @klass.new.m(1) { } }.should raise_error(ArgumentError)
+      -> { @klass.new.m(1) { } }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed three arguments" do
-      lambda { @klass.new.m 1, 2, 3 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1, 2, 3 }.should raise_error(ArgumentError)
     end
   end
 
@@ -581,15 +581,15 @@ describe "Module#define_method" do
     end
 
     it "raises an ArgumentError when passed zero arguments" do
-      lambda { @klass.new.m }.should raise_error(ArgumentError)
+      -> { @klass.new.m }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed one argument" do
-      lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
+      -> { @klass.new.m 1 }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError when passed one argument and a block" do
-      lambda { @klass.new.m(1) { } }.should raise_error(ArgumentError)
+      -> { @klass.new.m(1) { } }.should raise_error(ArgumentError)
     end
 
     it "receives an empty array as the third argument when passed two arguments" do
