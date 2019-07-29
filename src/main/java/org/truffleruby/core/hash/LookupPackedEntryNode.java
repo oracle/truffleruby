@@ -20,13 +20,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @ImportStatic(HashGuards.class)
 public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
-    @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createPrivate();
 
     public static LookupPackedEntryNode create() {
         return LookupPackedEntryNodeGen.create();

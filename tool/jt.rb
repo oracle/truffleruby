@@ -554,8 +554,6 @@ module Commands
       sh 'tool/generate-options.rb'
     when 'graalvm'
       build_graalvm(*options)
-    when 'native'
-      build_native_image(*options)
     else
       build_graalvm(*project, *options)
     end
