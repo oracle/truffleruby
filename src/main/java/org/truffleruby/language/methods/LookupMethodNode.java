@@ -11,6 +11,8 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -22,10 +24,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -36,49 +39,61 @@ import org.truffleruby.language.objects.MetaClassNode;
  * on an actual instance.
  */
 @ReportPolymorphism
-public abstract class LookupMethodNode extends RubyBaseNode {
-
-    private final boolean ignoreVisibility;
-    private final boolean onlyLookupPublic;
-
-    @Child private MetaClassNode metaClassNode = MetaClassNode.create();
+@GenerateUncached
+public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
 
     public static LookupMethodNode create() {
-        return LookupMethodNodeGen.create(false, false);
-    }
-
-    public static LookupMethodNode createIgnoreVisibility() {
-        return LookupMethodNodeGen.create(true, false);
-    }
-
-    public LookupMethodNode(boolean ignoreVisibility, boolean onlyLookupPublic) {
-        this.ignoreVisibility = ignoreVisibility;
-        this.onlyLookupPublic = onlyLookupPublic;
+        return LookupMethodNodeGen.create();
     }
 
     public InternalMethod lookup(VirtualFrame frame, Object self, String name) {
-        return executeLookupMethod(frame, self, name);
+        return executeLookupMethod(frame, self, name, false, false);
     }
 
-    public abstract InternalMethod executeLookupMethod(VirtualFrame frame, Object self, String name);
+    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+        CompilerAsserts.partialEvaluationConstant(ignoreVisibility);
+        CompilerAsserts.partialEvaluationConstant(onlyLookupPublic);
+        return executeLookupMethod(frame, self, name, ignoreVisibility, onlyLookupPublic);
+    }
+
+    public InternalMethod lookupIgnoringVisibility(VirtualFrame frame, Object self, String name) {
+        return executeLookupMethod(frame, self, name, true, false);
+    }
+
+    protected abstract InternalMethod executeLookupMethod(Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic);
 
     @Specialization(
-            guards = {
-                    "metaClass(self) == selfMetaClass",
-                    "name == cachedName"
-            },
-            assumptions = "method.getAssumptions()",
+            guards = { "metaClass(metaClassNode, self) == cachedSelfMetaClass", "name == cachedName", "context == cachedContext" },
+            assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
-    protected InternalMethod lookupMethodCached(VirtualFrame frame, Object self, String name,
-            @Cached("metaClass(self)") DynamicObject selfMetaClass,
+    protected InternalMethod lookupMethodCached(
+            Frame frame,
+            Object self,
+            String name,
+            boolean ignoreVisibility,
+            boolean onlyLookupPublic,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            // FIXME (pitr 25-Jun-2019): Use following line instead of "getCurrentContext()" after GR-16868 is fixed
+            // @Cached("context") RubyContext cachedContext,
+            @Cached("getCurrentContext()") RubyContext cachedContext,
             @Cached("name") String cachedName,
-            @Cached("doCachedLookup(frame, self, name)") MethodLookupResult method) {
-        return method.getMethod();
+            @Cached MetaClassNode metaClassNode,
+            @Cached("metaClass(metaClassNode, self)") DynamicObject cachedSelfMetaClass,
+            @Cached("doCachedLookup(cachedContext, frame, self, cachedName, ignoreVisibility, onlyLookupPublic)") MethodLookupResult methodLookupResult) {
+
+        return methodLookupResult.getMethod();
     }
 
     @Specialization(replaces = "lookupMethodCached")
-    protected InternalMethod lookupMethodUncached(VirtualFrame frame, Object self, String name,
-            @Cached("create()") MetaClassNode callerMetaClassNode,
+    protected InternalMethod lookupMethodUncached(
+            Frame frame,
+            Object self,
+            String name,
+            boolean ignoreVisibility,
+            boolean onlyLookupPublic,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached MetaClassNode callerMetaClassNode,
+            @Cached MetaClassNode metaClassNode,
             @Cached("createBinaryProfile()") ConditionProfile noCallerMethodProfile,
             @Cached("createBinaryProfile()") ConditionProfile isSendProfile,
             @Cached("create()") BranchProfile foreignProfile,
@@ -89,11 +104,14 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("createBinaryProfile()") ConditionProfile publicProfile,
             @Cached("createBinaryProfile()") ConditionProfile privateProfile,
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile) {
+
+        assert this != LookupMethodNodeGen.getUncached() || frame == null;
+
         // Actual lookup
 
-        final DynamicObject metaClass = metaClass(self);
+        final DynamicObject metaClass = metaClass(metaClassNode, self);
 
-        if (metaClass == coreLibrary().getTruffleInteropForeignClass()) {
+        if (metaClass == context.getCoreLibrary().getTruffleInteropForeignClass()) {
             foreignProfile.enter();
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
@@ -137,11 +155,11 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             final InternalMethod callerMethod = RubyArguments.tryGetMethod(frame);
 
             if (noCallerMethodProfile.profile(callerMethod == null)) {
-                callerClass = coreLibrary().getObjectClass();
-            } else if (!isSendProfile.profile(coreLibrary().isSend(callerMethod))) {
+                callerClass = context.getCoreLibrary().getObjectClass();
+            } else if (!isSendProfile.profile(context.getCoreLibrary().isSend(callerMethod))) {
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
             } else {
-                Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+                Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
             }
 
@@ -153,15 +171,16 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return method;
     }
 
-    protected DynamicObject metaClass(Object object) {
+    protected DynamicObject metaClass(MetaClassNode metaClassNode, Object object) {
         return metaClassNode.executeMetaClass(object);
     }
 
-    protected MethodLookupResult doCachedLookup(VirtualFrame frame, Object self, String name) {
-        return lookupMethodCachedWithVisibility(getContext(), frame, self, name, ignoreVisibility, onlyLookupPublic);
+    protected MethodLookupResult doCachedLookup(
+            RubyContext context, Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+        return lookupMethodCachedWithVisibility(context, frame, self, name, ignoreVisibility, onlyLookupPublic);
     }
 
-    public static MethodLookupResult lookupMethodCachedWithVisibility(RubyContext context, VirtualFrame callingFrame,
+    public static MethodLookupResult lookupMethodCachedWithVisibility(RubyContext context, Frame callingFrame,
             Object receiver, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
@@ -200,7 +219,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return method;
     }
 
-    protected static DynamicObject getCallerClass(RubyContext context, VirtualFrame callingFrame) {
+    protected static DynamicObject getCallerClass(RubyContext context, Frame callingFrame) {
         final InternalMethod callerMethod = RubyArguments.tryGetMethod(callingFrame);
         if (callerMethod == null) {
             return context.getCoreLibrary().getObjectClass();
@@ -213,7 +232,11 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().METHOD_LOOKUP_CACHE;
+        return getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+    }
+
+    protected static RubyContext getCurrentContext() {
+        return RubyLanguage.getCurrentContext();
     }
 
 }

@@ -76,6 +76,8 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -85,6 +87,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -148,6 +151,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNo
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -157,16 +161,15 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -183,10 +186,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreClass("String")
 public abstract class StringNodes {
 
-    public abstract static class MakeStringNode extends RubyBaseNode {
-
-        @Child private AllocateObjectNode allocateObjectNode;
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+    @GenerateUncached
+    public abstract static class MakeStringNode extends RubyBaseWithoutContextNode {
 
         public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
 
@@ -225,37 +226,34 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange) {
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
+                @Cached @Shared("allocate") AllocateObjectNode allocateObjectNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return allocateObjectNode.allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization
-        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange,
+                @Cached @Shared("allocate") AllocateObjectNode allocateObjectNode,
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
-        }
-
-        private DynamicObject allocate(DynamicObject object, Object[] values) {
-            if (allocateObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateObjectNode = insert(AllocateObjectNode.create());
-            }
-            return allocateObjectNode.allocate(object, values);
+            return allocateObjectNode.allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
         protected DynamicObject makeAsciiStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
 
-            return makeStringFromBytes(bytes, encoding, codeRange);
+            return executeMake(bytes, encoding, codeRange);
         }
 
         @Specialization(guards = "!is7Bit(codeRange)")
         protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = StringOperations.encodeBytes(string, encoding);
 
-            return makeStringFromBytes(bytes, encoding, codeRange);
+            return executeMake(bytes, encoding, codeRange);
         }
 
         protected static boolean is7Bit(CodeRange codeRange) {
@@ -1319,7 +1317,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
+        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNode.create();
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         @Specialization(guards = "self == from")
@@ -1343,14 +1341,14 @@ public abstract class StringNodes {
         }
 
         private void copyAssociated(DynamicObject self, DynamicObject from) {
-            final Object associated = readAssociatedNode.execute(from);
+            final Object associated = readAssociatedNode.execute(from, Layouts.ASSOCIATED_IDENTIFIER, null);
             if (associated != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
                 }
 
-                writeAssociatedNode.write(self, associated);
+                writeAssociatedNode.write(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
             }
         }
 
@@ -1562,7 +1560,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class ScrubNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -1702,7 +1700,7 @@ public abstract class StringNodes {
         }
 
         public Object yield(DynamicObject block, Object... arguments) {
-            return yieldNode.dispatch(block, arguments);
+            return yieldNode.executeDispatch(block, arguments);
         }
 
     }
@@ -2512,14 +2510,14 @@ public abstract class StringNodes {
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
-                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
+                @Cached ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2534,24 +2532,20 @@ public abstract class StringNodes {
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
+                @Cached ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
             }
 
             return finishUnpack(result);
-        }
-
-        protected ReadObjectFieldNode createReadAssociatedNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         private DynamicObject finishUnpack(ArrayResult result) {

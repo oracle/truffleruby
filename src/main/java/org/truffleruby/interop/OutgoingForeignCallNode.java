@@ -10,75 +10,115 @@
 package org.truffleruby.interop;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.language.RubyBaseNode;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
-public abstract class OutgoingForeignCallNode extends RubyBaseNode {
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
-    @Child private ExceptionTranslatingNode exceptionTranslatingNode;
+@GenerateUncached
+@ImportStatic(Boolean.class)
+public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode {
 
-    private final String name;
-    private final BranchProfile errorProfile = BranchProfile.create();
+    public abstract Object executeCall(TruffleObject receiver, String name, Object[] args);
 
-    public OutgoingForeignCallNode(String name) {
-        this.name = name;
-        this.exceptionTranslatingNode = new ExceptionTranslatingNode(null, UnsupportedOperationBehavior.TYPE_ERROR);
-    }
-
-    public abstract Object executeCall(TruffleObject receiver, Object[] args);
-
-    @Specialization
-    public Object callCached(TruffleObject receiver, Object[] args,
-            @Cached("createHelperNode()") OutgoingNode outgoingNode) {
+    // uncached name implementation is not needed since the name is cached in CachedForeignDispatchNode
+    // TODO (pitr-ch 30-Jul-2019): make this clearer when cleaning up this file
+    @Specialization(guards = "name == cachedName", limit = "1")
+    public Object callCached(
+            TruffleObject receiver, String name, Object[] args,
+            @Cached("name") String cachedName,
+            @Cached BranchProfile errorProfile,
+            @Cached TranslateExceptionNode translateExceptionNode,
+            // FIXME (pitr 29-Jul-2019): workaround true false
+            @Cached(value = "createOutgoingNode(cachedName, FALSE.booleanValue())", uncached = "createOutgoingNode(cachedName, TRUE.booleanValue())") OutgoingNode outgoingNode) {
         try {
-            return outgoingNode.executeCall(receiver, args);
+            return outgoingNode.executeCall(receiver, cachedName, args);
         } catch (Throwable t) {
             errorProfile.enter();
-            throw exceptionTranslatingNode.translate(t);
+            throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
         }
     }
 
+    protected static ExceptionTranslatingNode createExceptionTranslating() {
+        return new ExceptionTranslatingNode(null, UnsupportedOperationBehavior.TYPE_ERROR);
+    }
+
     @TruffleBoundary
-    protected OutgoingNode createHelperNode() {
+    protected OutgoingNode createOutgoingNode(String name, boolean uncached) {
+        // TODO (pitr-ch 01-Apr-2019): support to_int with new interop
         if (name.equals("[]")) {
-            return new IndexReadOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.IndexReadOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.IndexReadOutgoingNodeGen.create();
+            }
         } else if (name.equals("[]=")) {
-            return new IndexWriteOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.IndexWriteOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.IndexWriteOutgoingNodeGen.create();
+            }
         } else if (name.equals("call")) {
-            return new CallOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.CallOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.CallOutgoingNodeGen.create();
+            }
         } else if (name.equals("new")) {
-            return new NewOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.NewOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.NewOutgoingNodeGen.create();
+            }
         } else if (name.equals("to_a") || name.equals("to_ary")) {
-            return new ToAOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.ToAOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.ToAOutgoingNodeGen.create();
+            }
         } else if (name.equals("respond_to?")) {
-            return new RespondToOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.RespondToOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.RespondToOutgoingNodeGen.create();
+            }
         } else if (name.equals("__send__")) {
-            return new SendOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.SendOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.SendOutgoingNodeGen.create();
+            }
         } else if (name.equals("nil?")) {
-            return new IsNilOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.IsNilOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.IsNilOutgoingNodeGen.create();
+            }
         } else if (name.equals("equal?")) {
-            return new IsReferenceEqualOutgoingNode();
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.IsReferenceEqualOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.IsReferenceEqualOutgoingNodeGen.create();
+            }
         } else if (name.equals("delete")
                 || name.equals("size")
                 || name.equals("keys")
@@ -88,8 +128,223 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 || name.equals("to_str")
                 || name.equals("is_a?")
                 || name.equals("kind_of?")) {
-            final int expectedArgsLength;
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.SpecialFormOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.SpecialFormOutgoingNodeGen.create();
+            }
+        } else if (isOperatorMethod(name)) {
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.UnboxForOperatorAndReDispatchOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.UnboxForOperatorAndReDispatchOutgoingNodeGen.create();
+            }
+        } else {
+            if (uncached) {
+                return OutgoingForeignCallNodeGen.InvokeOutgoingNodeGen.getUncached();
+            } else {
+                return OutgoingForeignCallNodeGen.InvokeOutgoingNodeGen.create();
+            }
+        }
+    }
 
+    @TruffleBoundary
+    private static boolean isOperatorMethod(String name) {
+        return !name.isEmpty() && !Character.isLetter(name.charAt(0));
+    }
+
+    // TODO (pitr 27-Jul-2019): cleanup this file, turn nodes into specializations?
+
+    protected abstract static class OutgoingNode extends RubyBaseWithoutContextNode {
+
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+
+        protected abstract Object executeCall(TruffleObject receiver, String name, Object[] args);
+    }
+
+    @GenerateUncached
+    public abstract static class IndexReadOutgoingNode extends OutgoingNode {
+        @Specialization(guards = "args.length == 1")
+        protected Object call(
+                TruffleObject receiver, String name, Object[] args,
+                @Cached InteropNodes.ReadUncacheableNode readNode) {
+            return readNode.execute(receiver, args[0]);
+        }
+
+        @Specialization(guards = "args.length != 1")
+        protected Object callWithBadArguments(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 1, this));
+        }
+    }
+
+    @GenerateUncached
+    protected abstract static class IndexWriteOutgoingNode extends OutgoingNode {
+
+        @Specialization(guards = "args.length == 2")
+        protected Object call(
+                TruffleObject receiver, String name, Object[] args,
+                @Cached InteropNodes.WriteUncacheableNode writeUncacheableNode) {
+            return writeUncacheableNode.execute(receiver, args[0], args[1]);
+        }
+
+        @Specialization(guards = "args.length != 2")
+        protected Object callWithBadArguments(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 2, this));
+        }
+    }
+
+    @GenerateUncached
+    protected abstract static class CallOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        protected Object call(
+                TruffleObject receiver, String name, Object[] args,
+                // TODO (pitr-ch 29-Mar-2019): use this node directly instead?
+                @Cached InteropNodes.ExecuteUncacheableNode executeUncacheableNode) {
+            return executeUncacheableNode.execute(receiver, args);
+        }
+    }
+
+
+    @GenerateUncached
+    protected abstract static class SendOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        public Object sendOutgoing(TruffleObject receiver, String nameSend, Object[] args,
+                @Cached BranchProfile argumentErrorProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatchNode) {
+            if (args.length < 1) {
+                argumentErrorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError(args.length, 1, this));
+            }
+
+            final Object name = args[0];
+            final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
+
+            // FIXME (pitr 29-Jul-2019): it had return missing instead
+            return dispatchNode.dispatch(null, receiver, name, null, sendArgs);
+        }
+
+    }
+
+    @GenerateUncached
+    protected abstract static class NewOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        public Object newOutgoing(
+                TruffleObject receiver, String name, Object[] args,
+                // TODO (pitr-ch 29-Mar-2019): use this node directly?
+                @Cached InteropNodes.NewUncacheableNode newNode) {
+            return newNode.execute(receiver, args);
+        }
+
+    }
+
+    @GenerateUncached
+    protected abstract static class ToAOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        public Object toAOutgoing(TruffleObject receiver, String name, Object[] args,
+                @Cached BranchProfile argumentErrorProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached("createPrivate()") CallDispatchHeadNode callToArray) {
+            if (args.length != 0) {
+                argumentErrorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError(args.length, 0, this));
+            }
+
+            return callToArray.call(context.getCoreLibrary().getTruffleInteropModule(), "to_array", receiver);
+        }
+
+    }
+
+    @GenerateUncached
+    protected abstract static class RespondToOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        public Object respondToOutgoing(TruffleObject receiver, String name, Object[] args,
+                @Cached BranchProfile argumentErrorProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached("createPrivate()") CallDispatchHeadNode callRespondTo) {
+            if (args.length != 1) {
+                argumentErrorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError(args.length, 1, this));
+            }
+
+            return callRespondTo.call(context.getCoreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
+        }
+
+    }
+
+    @GenerateUncached
+    protected abstract static class SpecialFormOutgoingNode extends OutgoingNode {
+
+        @Specialization(guards = "context == cachedContext", limit = "getCacheLimit()")
+        public Object specialFormOutgoingCached(TruffleObject receiver, String cachedName, Object[] args,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                // FIXME (pitr 25-Jun-2019): Use following line instead of "getCurrentContext()" after GR-16868 is fixed
+                // @Cached("context") RubyContext cachedContext,
+                @Cached("getCurrentContext()") RubyContext cachedContext,
+                @Cached(value = "cachedContext.getSymbolTable().getSymbol(cachedName)", allowUncached = true) DynamicObject symbol,
+                @Cached(value = "getExpectedArgsLength(cachedName)", allowUncached = true) int expectedArgsLength,
+                @Cached BranchProfile argumentErrorProfile,
+                @Cached("createPrivate()") CallDispatchHeadNode callSpecialForm) {
+            return specialFormOutgoing(context, argumentErrorProfile, callSpecialForm, receiver, symbol, expectedArgsLength, args);
+        }
+
+        @Specialization(replaces = "specialFormOutgoingCached")
+        public Object specialFormOutgoingUncached(TruffleObject receiver, String cachedName, Object[] args,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached(value = "getExpectedArgsLength(cachedName)", allowUncached = true) int expectedArgsLength,
+                @Cached BranchProfile argumentErrorProfile,
+                @Cached("createPrivate()") CallDispatchHeadNode callSpecialForm) {
+
+            DynamicObject symbol = context.getSymbolTable().getSymbol(cachedName);
+            return specialFormOutgoing(context, argumentErrorProfile, callSpecialForm, receiver, symbol, expectedArgsLength, args);
+        }
+
+        protected Object specialFormOutgoing(
+                RubyContext context, BranchProfile argumentErrorProfile, CallDispatchHeadNode callSpecialForm,
+                TruffleObject receiver, DynamicObject symbol, int expectedArgsLength, Object[] args) {
+
+            if (args.length != expectedArgsLength) {
+                argumentErrorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError(args.length, expectedArgsLength, this));
+            }
+
+            final Object[] prependedArgs = new Object[args.length + 2];
+            prependedArgs[0] = receiver;
+            prependedArgs[1] = symbol;
+            System.arraycopy(args, 0, prependedArgs, 2, args.length);
+
+            return callSpecialForm.call(context.getCoreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
+        }
+
+        protected static RubyContext getCurrentContext() {
+            return RubyLanguage.getCurrentContext();
+        }
+
+        protected int getExpectedArgsLength(String name) {
+            int expectedArgsLength;
             switch (name) {
                 case "delete":
                 case "is_a?":
@@ -107,278 +362,44 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 default:
                     throw new UnsupportedOperationException();
             }
+            return expectedArgsLength;
+        }
 
-            return new SpecialFormOutgoingNode(getContext().getSymbolTable().getSymbol(name), expectedArgsLength);
-        } else if (isOperatorMethod(name)) {
-            return new UnboxForOperatorAndReDispatchOutgoingNode(name);
-        } else {
-            return new InvokeOutgoingNode(name);
+
+    }
+
+    @GenerateUncached
+    protected abstract static class IsNilOutgoingNode extends OutgoingNode {
+
+        @Specialization(guards = "args.length == 0")
+        protected Object call(
+                TruffleObject receiver, String name, Object[] args,
+                @Cached InteropNodes.NullUncacheableNode nullUncacheableNode) {
+            return nullUncacheableNode.execute(receiver);
+        }
+
+        @Specialization(guards = "args.length != 0")
+        protected Object callWithBadArguments(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(args.length, 0, this));
         }
     }
 
-    @TruffleBoundary
-    private static boolean isOperatorMethod(String name) {
-        return !name.isEmpty() && !Character.isLetter(name.charAt(0));
-    }
+    @GenerateUncached
+    protected abstract static class IsReferenceEqualOutgoingNode extends OutgoingNode {
 
-    protected int getCacheLimit() {
-        return getContext().getOptions().INTEROP_EXECUTE_CACHE;
-    }
-
-    protected abstract static class OutgoingNode extends Node {
-
-        protected final BranchProfile argumentErrorProfile = BranchProfile.create();
-        protected final BranchProfile exceptionProfile = BranchProfile.create();
-        protected final BranchProfile unknownIdentifierProfile = BranchProfile.create();
-
-        public abstract Object executeCall(TruffleObject receiver, Object[] args);
-
-    }
-
-    protected class IndexReadOutgoingNode extends OutgoingNode {
-
-        @Child private Node node;
-        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        public IndexReadOutgoingNode() {
-            node = Message.READ.createNode();
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
+        @Specialization
+        public Object isReferenceEqualOutgoing(TruffleObject receiver, String name, Object[] args,
+                @Cached BranchProfile argumentErrorProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             if (args.length != 1) {
                 argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
-            }
-
-            final Object name = rubyToForeignNode.executeConvert(args[0]);
-            final Object foreign;
-            try {
-                foreign = ForeignAccess.sendRead(node, receiver, name);
-            } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-    }
-
-    protected class IndexWriteOutgoingNode extends OutgoingNode {
-
-        @Child private Node node;
-        @Child private RubyToForeignNode identifierToForeignNode = RubyToForeignNode.create();
-        @Child private RubyToForeignNode valueToForeignNode = RubyToForeignNode.create();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        public IndexWriteOutgoingNode() {
-            node = Message.WRITE.createNode();
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != 2) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 2, this));
-            }
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendWrite(
-                        node,
-                        receiver,
-                        identifierToForeignNode.executeConvert(args[0]),
-                        valueToForeignNode.executeConvert(args[1]));
-            } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
-            } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-    }
-
-    protected class CallOutgoingNode extends OutgoingNode {
-
-        @Child private Node node = Message.EXECUTE.createNode();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendExecute(
-                        node,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), translate(e));
-            } catch (ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @TruffleBoundary
-        private DynamicObject translate(UnsupportedTypeException e) {
-            return coreExceptions().typeError(
-                    "Wrong arguments: " + Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", ")),
-                    this);
-        }
-
-    }
-
-    protected class SendOutgoingNode extends OutgoingNode {
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createReturnMissing();
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length < 1) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
-            }
-
-            final Object name = args[0];
-            final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
-
-            final Object result = dispatchNode.dispatch(null, receiver, name, null, sendArgs);
-
-            assert result != DispatchNode.MISSING;
-
-            return result;
-        }
-
-    }
-
-    protected class NewOutgoingNode extends OutgoingNode {
-
-        @Child private Node node = Message.NEW.createNode();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendNew(
-                        node,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-    }
-
-    protected class ToAOutgoingNode extends OutgoingNode {
-
-        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createPrivate();
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != 0) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
-            }
-
-            return callToArray.call(coreLibrary().getTruffleInteropModule(), "to_array", receiver);
-        }
-
-    }
-
-    protected class RespondToOutgoingNode extends OutgoingNode {
-
-        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.createPrivate();
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != 1) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
-            }
-
-            return callRespondTo.call(coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
-        }
-
-    }
-
-    protected class SpecialFormOutgoingNode extends OutgoingNode {
-
-        private final DynamicObject name;
-        private final int argsLength;
-
-        @Child private CallDispatchHeadNode callSpecialForm = CallDispatchHeadNode.createPrivate();
-
-        public SpecialFormOutgoingNode(DynamicObject name, int argsLength) {
-            this.name = name;
-            this.argsLength = argsLength;
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != argsLength) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, this.argsLength, this));
-            }
-
-            final Object[] prependedArgs = new Object[args.length + 2];
-            prependedArgs[0] = receiver;
-            prependedArgs[1] = name;
-            System.arraycopy(args, 0, prependedArgs, 2, args.length);
-
-            return callSpecialForm.call(coreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
-        }
-
-    }
-
-    protected class IsNilOutgoingNode extends OutgoingNode {
-
-        @Child private Node node;
-
-        public IsNilOutgoingNode() {
-            node = Message.IS_NULL.createNode();
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != 0) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
-            }
-
-            return ForeignAccess.sendIsNull(node, receiver);
-        }
-
-    }
-
-    protected class IsReferenceEqualOutgoingNode extends OutgoingNode {
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (args.length != 1) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError(args.length, 1, this));
             }
 
             final TruffleObject a = receiver;
@@ -389,8 +410,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
             final TruffleObject b = (TruffleObject) args[0];
 
-            if (getContext().getEnv().isHostObject(a) && getContext().getEnv().isHostObject(b)) {
-                return getContext().getEnv().asHostObject(a) == getContext().getEnv().asHostObject(b);
+            if (context.getEnv().isHostObject(a) && context.getEnv().isHostObject(b)) {
+                return context.getEnv().asHostObject(a) == context.getEnv().asHostObject(b);
             } else {
                 return a == b;
             }
@@ -398,108 +419,101 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     }
 
-    protected class UnboxForOperatorAndReDispatchOutgoingNode extends OutgoingNode {
+    // TODO (pitr-ch 30-Mar-2019): rename, drop unbox name
+    @GenerateUncached
+    protected abstract static class UnboxForOperatorAndReDispatchOutgoingNode extends OutgoingNode {
 
-        private final String name;
-
-        @Child private Node isBoxedNode = Message.IS_BOXED.createNode();
-        @Child private Node unboxNode;
-        @Child private ForeignToRubyNode foreignToRubyNode;
-        @Child private CallDispatchHeadNode redispatchNode;
-        @Child private InvokeOutgoingNode invokeOutgoingNode;
-
-        public UnboxForOperatorAndReDispatchOutgoingNode(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            if (ForeignAccess.sendIsBoxed(isBoxedNode, receiver)) { // implicit profiling as a result of lazy nodes
-                final Object unboxedReceiver = convertToRuby(unbox(receiver));
-                return reDispatch(unboxedReceiver, args);
-            } else {
-                return invoke(receiver, args);
-            }
-        }
-
-        private Object unbox(TruffleObject receiver) {
-            if (unboxNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                unboxNode = insert(Message.UNBOX.createNode());
-            }
-
+        @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getCacheLimit()")
+        public Object callBoolean(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
             try {
-                return ForeignAccess.sendUnbox(unboxNode, receiver);
+                return dispatch.call(receivers.asBoolean(receiver), name, args);
             } catch (UnsupportedMessageException e) {
                 throw new JavaException(e);
             }
         }
 
-        private Object convertToRuby(final Object unboxedReceiver) {
-            if (foreignToRubyNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                foreignToRubyNode = insert(ForeignToRubyNode.create());
-            }
-
-            return foreignToRubyNode.executeConvert(unboxedReceiver);
-        }
-
-        private Object reDispatch(Object receiver, Object[] args) {
-            if (redispatchNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                // ignore visibility like ForeignInvokeNode
-                redispatchNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-
-            return redispatchNode.call(receiver, name, args);
-        }
-
-        private Object invoke(TruffleObject receiver, Object[] args) {
-            if (invokeOutgoingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                invokeOutgoingNode = insert(new InvokeOutgoingNode(name));
-            }
-
-            return invokeOutgoingNode.executeCall(receiver, args);
-        }
-
-    }
-
-    protected class InvokeOutgoingNode extends OutgoingNode {
-
-        private final String name;
-
-        @Child private Node node = Message.INVOKE.createNode();
-        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        public InvokeOutgoingNode(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public Object executeCall(TruffleObject receiver, Object[] args) {
-            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
-
-            final Object foreign;
+        @Specialization(guards = "receivers.isString(receiver)", limit = "getCacheLimit()")
+        public Object callString(
+                TruffleObject receiver, String name, Object[] args,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
             try {
-                foreign = ForeignAccess.sendInvoke(
-                        node,
-                        receiver,
-                        name,
-                        arguments);
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
-            } catch (UnsupportedTypeException | ArityException e) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                Object rubyString = foreignToRubyNode.executeConvert(receivers.asString(receiver));
+                return dispatch.call(rubyString, name, args);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
             }
+        }
 
-            return foreignToRubyNode.executeConvert(foreign);
+        // TODO (pitr-ch 30-Mar-2019): does it make sense to have paths for smaller numbers?
+
+        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
+                limit = "getCacheLimit()")
+        public Object callInt(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+            try {
+                return dispatch.call(receivers.asInt(receiver), name, args);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInInt(receiver)", "receivers.fitsInLong(receiver)" },
+                limit = "getCacheLimit()")
+        public Object callLong(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+            try {
+                return dispatch.call(receivers.asLong(receiver), name, args);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInLong(receiver)", "receivers.fitsInDouble(receiver)" },
+                limit = "getCacheLimit()")
+        public Object callDouble(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+            try {
+                return dispatch.call(receivers.asDouble(receiver), name, args);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        @Specialization(guards = {
+                "!receivers.isBoolean(receiver)",
+                "!receivers.isString(receiver)",
+                "!receivers.isNumber(receiver)"
+        }, limit = "getCacheLimit()")
+        public Object call(
+                TruffleObject receiver, String name, Object[] args,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
+            return invokeUncacheableNode.execute(receiver, name, args);
         }
 
     }
 
+    @GenerateUncached
+    protected abstract static class InvokeOutgoingNode extends OutgoingNode {
+
+        @Specialization
+        public Object call(
+                TruffleObject receiver, String name, Object[] args,
+                @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
+            // TODO (pitr-ch 20-May-2019): better translation of interop errors
+            return invokeUncacheableNode.execute(receiver, name, args);
+        }
+    }
 
 }

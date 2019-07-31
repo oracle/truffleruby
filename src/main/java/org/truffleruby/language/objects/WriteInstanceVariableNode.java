@@ -40,10 +40,10 @@ public class WriteInstanceVariableNode extends RubyNode {
         if (objectProfile.profile(object instanceof DynamicObject)) {
             if (writeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                writeNode = insert(WriteObjectFieldNodeGen.create(name));
+                writeNode = insert(WriteObjectFieldNode.create());
             }
 
-            writeNode.write((DynamicObject) object, value);
+            writeNode.write((DynamicObject) object, name, value);
         } else {
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }

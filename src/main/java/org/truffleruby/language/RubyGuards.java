@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 
 public abstract class RubyGuards {
@@ -274,6 +275,10 @@ public abstract class RubyGuards {
     public static boolean isRubyNumber(Object object) {
         // Doesn't include classes like BigDecimal
         return isBasicNumber(object) || isRubyBignum(object);
+    }
+
+    public static boolean isNil(RubyContext context, Object object) {
+        return object == context.getCoreLibrary().getNil();
     }
 
     // Internal types

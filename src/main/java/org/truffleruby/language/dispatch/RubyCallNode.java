@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -24,6 +23,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
@@ -36,6 +36,7 @@ public class RubyCallNode extends RubyNode {
 
     @Child private RubyNode receiver;
     @Child private ProcOrNullNode block;
+    private final boolean hasLiteralBlock;
     @Children private final RubyNode[] arguments;
 
     private final boolean isSplatted;
@@ -57,8 +58,10 @@ public class RubyCallNode extends RubyNode {
 
         if (parameters.getBlock() == null) {
             this.block = null;
+            this.hasLiteralBlock = false;
         } else {
             this.block = ProcOrNullNodeGen.create(parameters.getBlock());
+            this.hasLiteralBlock = parameters.getBlock() instanceof BlockDefinitionNode;
         }
 
         this.isSplatted = parameters.isSplatted();
@@ -115,7 +118,7 @@ public class RubyCallNode extends RubyNode {
 
     private DynamicObject executeBlock(VirtualFrame frame) {
         if (block != null) {
-            return (DynamicObject) block.execute(frame);
+            return block.executeProcOrNull(frame);
         } else {
             return null;
         }
@@ -160,10 +163,10 @@ public class RubyCallNode extends RubyNode {
     }
 
     public boolean hasLiteralBlock() {
-        return block != null && block.getChild() instanceof BlockDefinitionNode;
+        return hasLiteralBlock;
     }
 
-    private class DefinedNode extends Node {
+    private class DefinedNode extends RubyBaseWithoutContextNode {
 
         private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 

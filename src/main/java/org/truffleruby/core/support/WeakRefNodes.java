@@ -15,9 +15,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -32,11 +30,11 @@ public abstract class WeakRefNodes {
     @Primitive(name = "weakref_set_object")
     public static abstract class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNodeGen.create(fieldName);
+        @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNode.create();
 
         @Specialization
         public Object weakRefSetObject(DynamicObject weakRef, Object object) {
-            fieldNode.write(weakRef, new WeakReference<>(object));
+            fieldNode.write(weakRef, fieldName, new WeakReference<>(object));
             return object;
         }
     }
@@ -44,12 +42,12 @@ public abstract class WeakRefNodes {
     @Primitive(name = "weakref_object")
     public static abstract class WeakRefObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child ReadObjectFieldNode fieldNode = ReadObjectFieldNodeGen.create(fieldName, EMPTY_WEAK_REF);
+        @Child ReadObjectFieldNode fieldNode = ReadObjectFieldNode.create();
 
         @Specialization
         public Object weakRefObject(DynamicObject weakRef) {
             @SuppressWarnings("unchecked")
-            final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef)).get();
+            final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF)).get();
             if (object == null) {
                 return nil();
             } else {

@@ -9,26 +9,23 @@
  */
 package org.truffleruby.cext;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
+import org.truffleruby.core.MarkingServiceNodes;
 
 /**
  * This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access
  * methods to be set up which convert these value wrappers to native pointers without affecting the
  * semantics of the wrapped objects.
  */
-@MessageResolution(receiverType = ValueWrapper.class)
+@ExportLibrary(InteropLibrary.class)
 public class ValueWrapper implements TruffleObject {
 
     private final Object object;
@@ -68,66 +65,32 @@ public class ValueWrapper implements TruffleObject {
         return this.object.hashCode();
     }
 
-
-    @CanResolve
-    public abstract static class IsInstance extends Node {
-
-        protected boolean test(TruffleObject receiver) {
-            return receiver instanceof ValueWrapper;
-        }
+    @ExportMessage
+    public boolean isPointer() {
+        return true;
     }
 
-    @Resolve(message = "IS_POINTER")
-    public static abstract class IsPointerNode extends Node {
-
-        protected boolean access(VirtualFrame frame, ValueWrapper wrapper) {
-            return true;
-        }
+    @ExportMessage
+    public void toNative() {
     }
 
-    @Resolve(message = "TO_NATIVE")
-    public static abstract class ToNativeNode extends Node {
-        protected Object access(VirtualFrame frame, ValueWrapper receiver) {
-            return receiver;
+    @ExportMessage
+    public static long asPointer(
+            ValueWrapper wrapper,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
+            @Cached BranchProfile createHandleProfile,
+            @Cached BranchProfile taggedObjBranchProfile) {
+
+        long handle = wrapper.getHandle();
+        if (handle == ValueWrapperManager.UNSET_HANDLE) {
+            createHandleProfile.enter();
+            handle = context.getValueWrapperManager().createNativeHandle(wrapper);
         }
-    }
-
-    @Resolve(message = "AS_POINTER")
-    public static abstract class AsPointerNode extends Node {
-
-        @CompilationFinal private RubyContext context;
-        @Child private KeepAliveNode keepAliveNode = KeepAliveNode.create();
-
-        private final BranchProfile createHandleProfile = BranchProfile.create();
-        private final BranchProfile taggedObjBranchProfile = BranchProfile.create();
-
-        protected long access(VirtualFrame frame, ValueWrapper wrapper) {
-            long handle = wrapper.getHandle();
-            if (handle == ValueWrapperManager.UNSET_HANDLE) {
-                createHandleProfile.enter();
-                handle = getContext().getValueWrapperManager().createNativeHandle(wrapper);
-            }
-            if (ValueWrapperManager.isTaggedObject(handle)) {
-                taggedObjBranchProfile.enter();
-                keepAliveNode.execute(frame, wrapper);
-            }
-            return handle;
+        if (ValueWrapperManager.isTaggedObject(handle)) {
+            taggedObjBranchProfile.enter();
+            keepAliveNode.execute(wrapper);
         }
-
-        public RubyContext getContext() {
-            if (context == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyLanguage.getCurrentContext();
-            }
-
-            return context;
-        }
-
+        return handle;
     }
-
-    @Override
-    public ForeignAccess getForeignAccess() {
-        return ValueWrapperForeign.ACCESS;
-    }
-
 }

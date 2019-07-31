@@ -451,7 +451,7 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_each_alias", needsSelf = false)
     public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
@@ -460,7 +460,7 @@ public abstract class EncodingNodes {
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.dispatch(block, aliasName, entry.value.getEncoding().getIndex());
+                yieldNode.executeDispatch(block, aliasName, entry.value.getEncoding().getIndex());
             }
             return nil();
         }

@@ -32,7 +32,7 @@ import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 import org.truffleruby.extra.ffi.Pointer;
@@ -212,7 +212,7 @@ public class ThreadManager {
 
     private boolean getGlobalAbortOnException() {
         final DynamicObject threadClass = context.getCoreLibrary().getThreadClass();
-        return (boolean) ReadObjectFieldNode.read(threadClass, "@abort_on_exception", null);
+        return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@abort_on_exception", null);
     }
 
     private ThreadLocalGlobals createThreadLocals() {
@@ -315,7 +315,7 @@ public class ThreadManager {
         if (thread != mainThread) {
             final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
 
-            if (!isSystemExit && (boolean) ReadObjectFieldNode.read(thread, "@report_on_exception", true)) {
+            if (!isSystemExit && (boolean) ReadObjectFieldNodeGen.getUncached().execute(thread, "@report_on_exception", true)) {
                 context.send(context.getCoreLibrary().getTruffleThreadOperationsModule(),
                         "report_exception",
                         thread,

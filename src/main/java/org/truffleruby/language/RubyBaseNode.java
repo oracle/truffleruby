@@ -23,14 +23,9 @@ import org.truffleruby.core.string.CoreStrings;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@TypeSystemReference(RubyTypes.class)
-@ImportStatic(RubyGuards.class)
-public abstract class RubyBaseNode extends Node {
+public abstract class RubyBaseNode extends RubyBaseWithoutContextNode {
 
     @CompilationFinal private RubyContext context;
 

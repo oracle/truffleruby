@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.nodes.NodeCost;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -44,6 +46,49 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                 methodName,
                 null,
                 RubyNode.EMPTY_ARGUMENTS);
+    }
+
+    private static class Uncached extends DoesRespondDispatchHeadNode {
+
+        Uncached(boolean ignoreVisibility) {
+            super(ignoreVisibility);
+        }
+
+        @Override
+        public boolean doesRespondTo(VirtualFrame frame, Object name, Object receiver) {
+            return (boolean) DSLUncachedDispatchNodeGen.getUncached().dispatch(
+                    null, receiver, name, null, RubyNode.EMPTY_ARGUMENTS, DispatchAction.RESPOND_TO_METHOD, MissingBehavior.RETURN_MISSING, true, false);
+        }
+
+        @Override
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
+            throw new AssertionError("never called");
+        }
+        @Override
+        public void reset(String reason) {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public DispatchNode getFirstDispatchNode() {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public NodeCost getCost() {
+            return NodeCost.MEGAMORPHIC;
+        }
+
+        @Override
+        public boolean isAdoptable() {
+            return false;
+        }
+    }
+
+    private static final Uncached UNCACHED_IGNORING_VISIBILITY = new Uncached(true);
+
+    public static DoesRespondDispatchHeadNode getUncached() {
+        return UNCACHED_IGNORING_VISIBILITY;
     }
 
 }

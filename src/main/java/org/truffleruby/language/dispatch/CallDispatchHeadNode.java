@@ -9,6 +9,9 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
@@ -43,6 +46,56 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
     public Object callWithBlock(Object receiver, String method, DynamicObject block, Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);
+    }
+
+    private static class Uncached extends CallDispatchHeadNode {
+        Uncached(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
+            super(ignoreVisibility, onlyCallPublic, missingBehavior);
+        }
+
+        @Override
+        public Object call(Object receiver, String method, Object... arguments) {
+            return callWithBlock(receiver, method, null, arguments);
+        }
+
+        @Override
+        @TruffleBoundary
+        public Object callWithBlock(Object receiver, String methodName, DynamicObject block, Object... arguments) {
+            return DSLUncachedDispatchNodeGen.getUncached().dispatch(
+                    null, receiver, methodName, block, arguments, DispatchAction.CALL_METHOD, MissingBehavior.CALL_METHOD_MISSING, true, false);
+        }
+
+        @Override
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
+            throw new AssertionError("never called");
+        }
+        @Override
+        public void reset(String reason) {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public DispatchNode getFirstDispatchNode() {
+            throw new AssertionError("never called");
+        }
+
+        @Override
+        public NodeCost getCost() {
+            return NodeCost.MEGAMORPHIC;
+        }
+
+        @Override
+        public boolean isAdoptable() {
+            return false;
+        }
+    }
+
+    private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY =
+            new Uncached(true, false, MissingBehavior.CALL_METHOD_MISSING);
+
+    // FIXME (pitr 29-Jul-2019): this only matches common createPrivate
+    public static CallDispatchHeadNode getUncached() {
+        return UNCACHED_IGNORING_VISIBILITY;
     }
 
 }

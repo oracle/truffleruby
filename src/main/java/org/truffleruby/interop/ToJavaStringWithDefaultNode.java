@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyNode;
 public abstract class ToJavaStringWithDefaultNode extends RubyNode {
 
     private final String defaultValue;
-    @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create(null);
+    @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
 
     public ToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;

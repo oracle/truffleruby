@@ -111,7 +111,6 @@ import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadD
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
@@ -120,9 +119,7 @@ import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -131,7 +128,6 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -372,8 +368,8 @@ public abstract class KernelNodes {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self);
-                writeFieldNodes[i].write(newObject, value);
+                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil());
+                writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
             }
 
             return newObject;
@@ -411,7 +407,7 @@ public abstract class KernelNodes {
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
             final ReadObjectFieldNode[] nodes = new ReadObjectFieldNode[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = ReadObjectFieldNodeGen.create(properties[i].getKey(), nil());
+                nodes[i] = ReadObjectFieldNode.create();
             }
             return nodes;
         }
@@ -419,7 +415,7 @@ public abstract class KernelNodes {
         protected WriteObjectFieldNode[] createWriteFieldNodes(Property[] properties) {
             final WriteObjectFieldNode[] nodes = new WriteObjectFieldNode[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = WriteObjectFieldNodeGen.create(properties[i].getKey());
+                nodes[i] = WriteObjectFieldNode.create();
             }
             return nodes;
         }
@@ -825,7 +821,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -870,19 +866,14 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
         public Object instanceVariableGetSymbol(DynamicObject object, String name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name);
+                @Cached ObjectIVarGetNode iVarGetNode) {
+            return iVarGetNode.executeIVarGet(object, name, true);
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(true);
-        }
-
     }
 
     @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)
@@ -893,19 +884,14 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
         public Object instanceVariableSet(DynamicObject object, String name, Object value,
-                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name, value);
+                @Cached ObjectIVarSetNode iVarSetNode) {
+            return iVarSetNode.executeIVarSet(object, name, value, true);
         }
-
-        protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(true);
-        }
-
     }
 
     @CoreMethod(names = "remove_instance_variable", raiseIfFrozenSelf = true, required = 1)
@@ -915,14 +901,14 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @TruffleBoundary
         @Specialization
         public Object removeInstanceVariable(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNode.read(object, ivar, nil());
+            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil());
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {
@@ -1084,7 +1070,7 @@ public abstract class KernelNodes {
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
-            lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, !ignoreVisibility);
+            lookupMethodNode = LookupMethodNode.create();
         }
 
         public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, DynamicObject name);
@@ -1094,12 +1080,12 @@ public abstract class KernelNodes {
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
                 @Cached("createBinaryProfile()") ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode.call(self, "respond_to_missing?", name, ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
-                    final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
+                    final InternalMethod methodMissing = lookupMethodNode.lookup(frame, self, "method_missing", ignoreVisibility, !ignoreVisibility);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(normalizedName, coreLibrary().getLogicalClass(self), this));
@@ -1352,7 +1338,7 @@ public abstract class KernelNodes {
 
         @CreateCast("feature")
         public RubyNode coerceToPath(RubyNode feature) {
-            return NameToJavaStringNodeGen.create(ToPathNodeGen.create(feature));
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(ToPathNodeGen.create(feature));
         }
 
         @Specialization
@@ -1525,7 +1511,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -1834,7 +1820,7 @@ public abstract class KernelNodes {
 
         @Child private IsFrozenNode isFrozenNode;
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNodeGen.create(Layouts.TAINTED_IDENTIFIER);
+        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
         @Specialization
         public int untaint(int num) {
@@ -1863,7 +1849,7 @@ public abstract class KernelNodes {
             }
 
             checkFrozen(object);
-            writeTaintNode.write(object, false);
+            writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
             return object;
         }
 

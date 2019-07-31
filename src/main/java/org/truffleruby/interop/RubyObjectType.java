@@ -9,35 +9,41 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
-import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 
-@MessageResolution(receiverType = BoxedValue.class)
+@ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectType extends ObjectType {
+
+    // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
+
+    @Override
+    public Class<?> dispatch() {
+        return RubyObjectType.class;
+    }
 
     @Override
     @TruffleBoundary
@@ -56,372 +62,444 @@ public class RubyObjectType extends ObjectType {
         }
     }
 
+    @ExportMessage
+    public static boolean isNull(
+            DynamicObject object,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return object == context.getCoreLibrary().getNil();
+    }
 
-    @CanResolve
-    public abstract static class Check extends Node {
+    @ExportMessage
+    public static boolean hasArrayElements(
+            DynamicObject receiver,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached IsANode isANode,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode) {
+        // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
+        //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
+        return RubyGuards.isRubyArray(receiver) ||
+                (respondNode.doesRespondTo(null, "[]", receiver) &&
+                        !RubyGuards.isRubyHash(receiver) &&
+                        !RubyGuards.isRubyString(receiver) &&
+                        !RubyGuards.isRubyInteger(receiver) &&
+                        !RubyGuards.isRubyMethod(receiver) &&
+                        !RubyGuards.isRubyProc(receiver) &&
+                        !RubyGuards.isRubyClass(receiver) && // exclude #[] constructors
+                        !isRubyStruct(context, receiver, isANode)); // Struct does not behave as array
+    }
 
-        protected static boolean test(TruffleObject receiver) {
-            return RubyGuards.isRubyBasicObject(receiver);
+    private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, IsANode isANode) {
+        return isANode.executeIsA(receiver, context.getCoreLibrary().getStructClass());
+    }
+
+    @ExportMessage()
+    public static long getArraySize(
+            DynamicObject receiver,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
+            @Cached IntegerCastNode integerCastNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
+        // TODO (pitr-ch 19-Mar-2019): profile, breakdown
+        if (RubyGuards.isRubyArray(receiver)) {
+            return Layouts.ARRAY.getSize(receiver);
+        } else if (respondNode.doesRespondTo(null, "size", receiver)) {
+            return integerCastNode.executeCastInt(dispatchNode.call(receiver, "size"));
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    public static boolean isString(DynamicObject receiver) {
+        return RubyGuards.isRubyString(receiver) || RubyGuards.isRubySymbol(receiver);
+    }
+
+    @ExportMessage
+    public static String asString(
+            DynamicObject receiver,
+            @Cached ToJavaStringNode toJavaStringNode) throws UnsupportedMessageException {
+
+        // TODO (pitr-ch 19-Mar-2019): profile, breakdown
+        if (RubyGuards.isRubyString(receiver) || RubyGuards.isRubySymbol(receiver)) {
+            return toJavaStringNode.executeToJavaString(receiver);
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    // FIXME (pitr 18-Mar-2019): replace #unbox support with testing #to_int etc.
+    //   since if an object had un-box method it could be have been un-boxed
+    @ExportMessage
+    public static boolean isPointer(
+            DynamicObject receiver,
+            // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        // TODO (pitr-ch 18-Mar-2019): branchProfile?
+        // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
+        if (respondNode.doesRespondTo(null, "__pointer__?", receiver)) {
+            return booleanCastNode.executeToBoolean(dispatchNode.call(receiver, "__pointer__?"));
+        } else {
+            return false;
+        }
+    }
+
+    // FIXME (pitr 11-May-2019): allow Ruby objects to implement interop subProtocols, e.g. for array, or numbers. Not for members though.
+
+    // FIXME (pitr 21-Mar-2019): "if-and-only-if" relation between isPointer == true and "asPointer does not throw an UnsupportedMessageException"
+    // TODO (pitr-ch 18-Mar-2019): assert #pointer? #address invariant - both has to be defined
+    @ExportMessage
+    public static long asPointer(
+            DynamicObject receiver,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
+
+        // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
+        if (respondNode.doesRespondTo(null, "__address__", receiver)) {
+            return longCastNode.executeCastLong(dispatchNode.call(receiver, "__address__"));
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    public static void toNative(
+            DynamicObject receiver,
+            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+
+        // TODO (pitr-ch 18-Mar-2019): branch profile?
+        if (respondNode.doesRespondTo(null, "to_native", receiver)) {
+            // FIXME (pitr 18-Mar-2019): now it returns no value;
+            dispatchNode.call(receiver, "to_native");
+
         }
 
     }
 
-    @Resolve(message = "IS_NULL")
-    public static abstract class IsNullNode extends Node {
-
-        @CompilationFinal private ContextReference<RubyContext> contextReference;
-
-        protected Object access(DynamicObject object) {
-            return object == getContext().getCoreLibrary().getNil();
+    @ExportMessage
+    public static Object readMember(
+            DynamicObject receiver,
+            String name,
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws UnknownIdentifierException {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        try {
+            return helperNode.executeStringCachingHelper(receiver, name);
+        } catch (InvalidArrayIndexException e) {
+            throw new IllegalStateException("never happens");
         }
-
-        private RubyContext getContext() {
-            if (contextReference == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                contextReference = RubyLanguage.getCurrentContextReference();
-            }
-
-            return contextReference.get();
-        }
-
     }
 
-    @Resolve(message = "HAS_SIZE")
-    public static abstract class HasSizeNode extends Node {
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return RubyGuards.isRubyArray(object);
+    @ExportMessage
+    public static Object readArrayElement(
+            DynamicObject receiver,
+            long index,
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws InvalidArrayIndexException {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        try {
+            return helperNode.executeStringCachingHelper(receiver, index);
+        } catch (UnknownIdentifierException e) {
+            throw new IllegalStateException("never happens");
         }
-
     }
 
-    @Resolve(message = "GET_SIZE")
-    public static abstract class GetSizeNode extends Node {
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.call(object, "size");
-        }
-
+    // TODO (pitr-ch 19-Mar-2019): move to arrayType
+    @ExportMessage
+    public static boolean isArrayElementReadable(
+            DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_readable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_readable?",
+                receiver,
+                index);
     }
 
-    @Resolve(message = "IS_BOXED")
-    public static abstract class IsBoxedNode extends Node {
+    @ExportMessage
+    public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_modifiable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_modifiable?",
+                receiver,
+                index);
+    }
 
-        private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile symbolProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
+    @ExportMessage
+    public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_insertable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_insertable?",
+                receiver,
+                index);
+    }
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
+    @ExportMessage
+    public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_removable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_removable?",
+                receiver,
+                index);
+    }
 
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (stringProfile.profile(RubyGuards.isRubyString(object))) {
-                return true;
-            } else if (symbolProfile.profile(RubyGuards.isRubySymbol(object))) {
-                return true;
-            } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
-                return true;
+    @ExportMessage
+    public static void writeArrayElement(
+            DynamicObject receiver,
+            long index,
+            Object value,
+            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        try {
+            helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
+        } catch (UnknownIdentifierException e) {
+            throw new IllegalStateException("never happens");
+        }
+    }
+
+    @ExportMessage
+    public static void writeMember(
+            DynamicObject receiver,
+            String name,
+            Object value,
+            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
+    }
+
+    @ExportMessage
+    public static void removeArrayElement(
+            DynamicObject receiver,
+            long index,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode) throws UnsupportedMessageException, InvalidArrayIndexException {
+
+        // TODO (pitr-ch 19-Mar-2019): profile
+        if (RubyGuards.isRubyArray(receiver)) {
+            // TODO (pitr-ch 19-Mar-2019): it was only checking that it fits into int before
+            if (RubyGuards.fitsInInteger(index) && index >= 0 && index < Layouts.ARRAY.getSize(receiver)) {
+                arrayDeleteAtNode.call(receiver, "delete_at", index);
             } else {
-                return doesRespond.doesRespondTo(frame, "unbox", object);
+                throw InvalidArrayIndexException.create(index);
             }
+        } else {
+            throw UnsupportedMessageException.create();
         }
-
     }
 
-    @Resolve(message = "UNBOX")
-    public static abstract class UnboxNode extends Node {
+    @ExportMessage
+    public static void removeMember(
+            DynamicObject receiver,
+            String name,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashDeleteNode,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashKeyNode,
+            @Exclusive @Cached BooleanCastNode booleanCast,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode) throws UnknownIdentifierException {
 
-        private final ConditionProfile stringSymbolProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-        @Child private ToJavaStringNode toJavaStringNode;
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (stringSymbolProfile.profile(RubyGuards.isRubyString(object) || RubyGuards.isRubySymbol(object))) {
-                if (toJavaStringNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    toJavaStringNode = insert(ToJavaStringNode.create());
-                }
-
-                return toJavaStringNode.executeToJavaString(object);
-            } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
-                return Layouts.POINTER.getPointer(object).getAddress();
-            } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
-                return dispatchNode.call(object, "unbox");
+        // TODO (pitr-ch 19-Mar-2019): profile
+        // TODO (pitr-ch 19-Mar-2019): break down
+        if (RubyGuards.isRubyHash(receiver)) {
+            // TODO (pitr-ch 13-May-2019): remove Hash member mapping
+            Object key = foreignToRubyNode.executeConvert(name);
+            if (booleanCast.executeToBoolean(hashKeyNode.call(receiver, "key?", key))) {
+                hashDeleteNode.call(receiver, "delete", key);
             } else {
-                throw UnsupportedMessageException.raise(Message.UNBOX);
+                throw UnknownIdentifierException.create(name);
             }
+            return;
         }
 
+        // TODO (pitr-ch 19-Mar-2019): profile
+        if (!name.isEmpty() && name.charAt(0) == '@') {
+            removeInstanceVariableNode.call(
+                    receiver,
+                    "remove_instance_variable",
+                    foreignToRubyNode.executeConvert(name));
+            return;
+        }
+
+        // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
+        // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
+        throw UnknownIdentifierException.create(name);
     }
 
-    @Resolve(message = "IS_POINTER")
-    public static abstract class IsPointerNode extends Node {
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (doesRespond.doesRespondTo(frame, "pointer?", object)) {
-                return dispatchNode.call(object, "pointer?");
-            } else {
-                return false;
-            }
-        }
-
+    @ExportMessage
+    public static boolean hasMembers(DynamicObject receiver) {
+        return true;
     }
 
-    @Resolve(message = "AS_POINTER")
-    public static abstract class AsPointerNode extends Node {
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-
-        private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (doesRespond.doesRespondTo(frame, "address", object)) {
-                Object result = dispatchNode.call(object, "address");
-
-                if (intProfile.profile(result instanceof Integer)) {
-                    result = (long) ((int) result);
-                }
-
-                return result;
-            } else {
-                throw UnsupportedMessageException.raise(Message.AS_POINTER);
-            }
-        }
-
+    @ExportMessage
+    public static Object getMembers(
+            DynamicObject receiver,
+            boolean internal,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_keys",
+                receiver,
+                internal);
     }
 
-    @Resolve(message = "TO_NATIVE")
-    public static abstract class ToNativeNode extends Node {
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (doesRespond.doesRespondTo(frame, "to_native", object)) {
-                return dispatchNode.call(object, "to_native");
-            } else {
-                throw UnsupportedMessageException.raise(Message.TO_NATIVE);
-            }
-        }
-
+    @ExportMessage
+    public static boolean isMemberReadable(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_readable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_readable?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "READ")
-    public static abstract class ReadNode extends Node {
-
-        @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create();
-        private final ConditionProfile whichErrorProfile = ConditionProfile.createBinaryProfile();
-
-        protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            try {
-                return helperNode.executeStringCachingHelper(frame, object, name);
-            } catch (RaiseException ex) {
-                if (whichErrorProfile.profile(Layouts.NAME_ERROR.isNameError(ex.getException()))) {
-                    try {
-                        return UnknownIdentifierException.raise(toString(name));
-                    } catch (Throwable unknownIdentifier) {
-                        unknownIdentifier.initCause(ex);
-                        throw unknownIdentifier;
-                    }
-                } else {
-                    throw ex;
-                }
-            }
-        }
-
-        @TruffleBoundary
-        private static String toString(Object name) {
-            return name.toString();
-        }
-
+    @ExportMessage
+    public static boolean isMemberModifiable(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_modifiable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_modifiable?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "WRITE")
-    public static abstract class WriteNode extends Node {
-
-        @Child private ForeignWriteStringCachingHelperNode helperNode = ForeignWriteStringCachingHelperNodeGen.create();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject object, Object name, Object value) {
-            return helperNode.executeStringCachingHelper(
-                    frame,
-                    object,
-                    name,
-                    foreignToRubyNode.executeConvert(value));
-        }
-
+    @ExportMessage
+    public static boolean isMemberInsertable(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_insertable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_insertable?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "REMOVE")
-    public static abstract class RemoveNode extends Node {
-
-        private final ConditionProfile arrayReceiverProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile hashReceiverProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile ivarProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile validArrayIndexProfile = ConditionProfile.createBinaryProfile();
-
-        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
-        @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode removeInstanceVariableNode = CallDispatchHeadNode.createPrivate();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        protected boolean access(VirtualFrame frame, DynamicObject object, Object name) {
-            if (arrayReceiverProfile.profile(RubyGuards.isRubyArray(object))) {
-                if (validArrayIndexProfile.profile(name instanceof Integer ||
-                        (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
-                    arrayDeleteAtNode.call(object, "delete_at", name);
-                } else {
-                    throw UnknownIdentifierException.raise(toJavaStringNode.executeToJavaString(name));
-                }
-            } else if (hashReceiverProfile.profile(RubyGuards.isRubyHash(object))) {
-                hashDeleteNode.call(object, "delete", foreignToRubyNode.executeConvert(name));
-            } else if (stringProfile.profile(name instanceof String)) {
-                final String stringName = (String) name;
-
-                if (ivarProfile.profile(!stringName.isEmpty() && stringName.charAt(0) == '@')) {
-                    removeInstanceVariableNode.call(object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
-                } else {
-                    throw UnsupportedMessageException.raise(Message.REMOVE);
-                }
-            } else {
-                throw UnsupportedMessageException.raise(Message.REMOVE);
-            }
-
-            return true;
-        }
-
+    @ExportMessage
+    public static boolean isMemberRemovable(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_removable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_removable?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "HAS_KEYS")
-    public static abstract class HasKeysNode extends Node {
-
-        private final ConditionProfile hasKeysProfile = ConditionProfile.createBinaryProfile();
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return !hasKeysProfile.profile(RubyGuards.isRubyArray(object) || RubyGuards.isRubyString(object));
-        }
-
+    @ExportMessage
+    public static boolean isMemberInvocable(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_invocable?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "KEYS")
-    public static abstract class KeysNode extends Node {
-
-        @CompilationFinal private RubyContext context;
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-
-        protected Object access(VirtualFrame frame, DynamicObject object, boolean internal) {
-            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
-        }
-
-        private RubyContext getContext() {
-            if (context == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyLanguage.getCurrentContext();
-            }
-
-            return context;
-        }
-
+    @ExportMessage
+    public static boolean isMemberInternal(
+            DynamicObject receiver,
+            String name,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+        // TODO (pitr-ch 19-Mar-2019): breakdown
+        final Object convertedName = foreignToRubyNode.executeConvert(name);
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "object_key_internal?",
+                receiver,
+                convertedName);
     }
 
-    @Resolve(message = "KEY_INFO")
-    public static abstract class KeyInfoNode extends Node {
-
-        @CompilationFinal private RubyContext context;
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            final Object convertedName = foreignToRubyNode.executeConvert(name);
-            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
-        }
-
-        private RubyContext getContext() {
-            if (context == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyLanguage.getCurrentContext();
-            }
-
-            return context;
-        }
-
+    @ExportMessage
+    public static boolean hasMemberReadSideEffects(DynamicObject receiver, String name) {
+        // TODO (pitr-ch 29-May-2019): is that always true?
+        return false;
     }
 
-    @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class IsExecutableNode extends Node {
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return RubyGuards.isRubyMethod(object) || RubyGuards.isRubyProc(object);
-        }
-
+    @ExportMessage
+    public static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name) {
+        // TODO (pitr-ch 29-May-2019): is that always true?
+        return false;
     }
 
-    @Resolve(message = "EXECUTE")
-    public static abstract class ExecuteNode extends Node {
-
-        @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create();
-        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
-            return executeMethodNode.executeCall(
-                    object,
-                    foreignToRubyArgumentsNode.executeConvert(arguments));
-        }
-
+    @ExportMessage
+    public static boolean isExecutable(DynamicObject receiver) {
+        // TODO (pitr-ch 19-Mar-2019): break down to types
+        return RubyGuards.isRubyMethod(receiver) || RubyGuards.isRubyProc(receiver);
     }
 
-    @Resolve(message = "INVOKE")
-    public static abstract class InvokeNode extends Node {
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
-            return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
-        }
-
+    @ExportMessage
+    public static Object execute(
+            DynamicObject receiver,
+            Object[] arguments,
+            @Cached ForeignExecuteHelperNode executeMethodNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+        return executeMethodNode.executeCall(
+                receiver,
+                foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
-    @Resolve(message = "IS_INSTANTIABLE")
-    public static abstract class IsInstantiableNode extends Node {
-
-        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject receiver) {
-            return doesRespond.doesRespondTo(frame, "new", receiver);
-        }
-
+    @ExportMessage
+    public static Object invokeMember(
+            DynamicObject receiver,
+            String name,
+            Object[] arguments,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+        return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
-    @Resolve(message = "NEW")
-    public static abstract class NewNode extends Node {
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
-        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
-
-        protected Object access(VirtualFrame frame, DynamicObject receiver, Object[] arguments) {
-            return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
-        }
-
+    @ExportMessage
+    public static boolean isInstantiable(
+            DynamicObject receiver,
+            @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
+        return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
-    @Override
-    public ForeignAccess getForeignAccessFactory(DynamicObject object) {
-        return RubyObjectTypeForeign.ACCESS;
+    @ExportMessage
+    public static Object instantiate(
+            DynamicObject receiver,
+            Object[] arguments,
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+        return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
 }

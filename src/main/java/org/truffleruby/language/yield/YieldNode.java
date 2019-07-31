@@ -9,32 +9,35 @@
  */
 package org.truffleruby.language.yield;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public class YieldNode extends Node {
+@GenerateUncached
+public abstract class YieldNode extends RubyBaseWithoutContextNode {
 
-    @Child private CallBlockNode callBlockNode;
+    public static YieldNode create() {
+        return YieldNodeGen.create();
+    }
 
-    public Object dispatch(DynamicObject block, Object... argumentsObjects) {
-        return getCallBlockNode().executeCallBlock(
+    public final Object executeDispatch(DynamicObject block, Object... argumentsObjects) {
+        return executeDispatchWithArrayArguments(block, argumentsObjects);
+    }
+
+    public abstract Object executeDispatchWithArrayArguments(DynamicObject block, Object[] argumentsObjects);
+
+    @Specialization
+    public Object dispatch(DynamicObject block, Object[] argumentsObjects,
+            @Cached CallBlockNode callBlockNode) {
+        return callBlockNode.executeCallBlock(
                 Layouts.PROC.getDeclarationContext(block),
                 block,
                 ProcOperations.getSelf(block),
                 null,
                 argumentsObjects);
     }
-
-    private CallBlockNode getCallBlockNode() {
-        if (callBlockNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callBlockNode = insert(CallBlockNode.create());
-        }
-
-        return callBlockNode;
-    }
-
 }

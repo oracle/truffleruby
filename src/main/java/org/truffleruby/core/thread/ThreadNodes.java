@@ -440,7 +440,7 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject wakeup(DynamicObject rubyThread,
-                                    @Cached("new()") YieldNode yieldNode) {
+                                    @Cached YieldNode yieldNode) {
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiberRacy();
             final Thread thread = Layouts.FIBER.getThread(currentFiber);
             if (!Layouts.FIBER.getAlive(currentFiber) || thread == null) {
@@ -670,9 +670,9 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyProc(block)")
         public Object runBlockingSystemCall(DynamicObject block,
-                @Cached("new()") YieldNode yieldNode) {
+                @Cached YieldNode yieldNode) {
             return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(this,
-                    () -> yieldNode.dispatch(block));
+                    () -> yieldNode.executeDispatch(block));
         }
     }
 

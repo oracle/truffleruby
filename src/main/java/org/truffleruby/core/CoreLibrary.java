@@ -110,6 +110,7 @@ public class CoreLibrary {
     private final DynamicObjectFactory hashFactory;
     private final DynamicObject integerClass;
     private final DynamicObject indexErrorClass;
+    private final DynamicObject keyErrorClass;
     private final DynamicObject ioErrorClass;
     private final DynamicObject loadErrorClass;
     private final DynamicObject localJumpErrorClass;
@@ -205,6 +206,7 @@ public class CoreLibrary {
     private final Object supportUndefined;
     private final DynamicObject digestClass;
     private final DynamicObjectFactory digestFactory;
+    private final DynamicObject structClass;
 
     private final FrameDescriptor emptyDescriptor;
 
@@ -361,7 +363,7 @@ public class CoreLibrary {
 
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
-        defineClass(indexErrorClass, "KeyError");
+        keyErrorClass = defineClass(indexErrorClass, "KeyError");
         stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
@@ -488,6 +490,7 @@ public class CoreLibrary {
         ioClass = defineClass("IO");
         Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, Layouts.IO.createIOShape(ioClass, ioClass));
         defineClass(ioClass, "File");
+        structClass = defineClass("Struct");
 
         final DynamicObject tracePointClass = defineClass("TracePoint");
         Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
@@ -1302,6 +1305,10 @@ public class CoreLibrary {
         return indexErrorClass;
     }
 
+    public DynamicObject getKeyErrorClass() {
+        return keyErrorClass;
+    }
+
     public DynamicObject getLocalJumpErrorClass() {
         return localJumpErrorClass;
     }
@@ -1416,6 +1423,10 @@ public class CoreLibrary {
 
     public DynamicObject getWarningModule() {
         return warningModule;
+    }
+
+    public DynamicObject getStructClass() {
+        return structClass;
     }
 
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";

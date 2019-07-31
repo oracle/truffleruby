@@ -9,24 +9,29 @@
  */
 package org.truffleruby.cext;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -56,11 +61,11 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
-import org.truffleruby.core.mutex.MutexOperations;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
 import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
+import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -96,36 +101,28 @@ import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
 
-        @Specialization
-        public Object callCWithMutex(TruffleObject receiver, DynamicObject argsArray,
-                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
+        @Specialization(limit = "getCacheLimit()")
+        public Object callCWithMutex(
+                TruffleObject receiver,
+                DynamicObject argsArray,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached BranchProfile exceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -136,31 +133,34 @@ public class CExtNodes {
                 if (ownedProfile.profile(!owned)) {
                     MutexOperations.lockInternal(getContext(), lock, this);
                     try {
-                        return execute(receiver, args, executeNode, exceptionProfile);
+                        return execute(receiver, args, receivers, exceptionProfile);
                     } finally {
                         MutexOperations.unlockInternal(lock);
                     }
                 } else {
-                    return execute(receiver, args, executeNode, exceptionProfile);
+                    return execute(receiver, args, receivers, exceptionProfile);
                 }
             } else {
-                return execute(receiver, args, executeNode, exceptionProfile);
+                return execute(receiver, args, receivers, exceptionProfile);
             }
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
         }
 
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
+        }
+
     }
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
@@ -180,14 +180,15 @@ public class CExtNodes {
         }
     }
 
-    @ImportStatic(Message.class)
     @Primitive(name = "call_without_c_mutex")
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        public Object callCWithoutMutex(TruffleObject receiver, DynamicObject argsArray,
+        @Specialization(limit = "getCacheLimit()")
+        public Object callCWithoutMutex(
+                TruffleObject receiver,
+                DynamicObject argsArray,
                 @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached("EXECUTE.createNode()") Node executeNode,
+                @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
@@ -199,26 +200,30 @@ public class CExtNodes {
                 if (ownedProfile.profile(owned)) {
                     MutexOperations.unlockInternal(lock);
                     try {
-                        return execute(receiver, args, executeNode, exceptionProfile);
+                        return execute(receiver, args, receivers, exceptionProfile);
                     } finally {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                 } else {
-                    return execute(receiver, args, executeNode, exceptionProfile);
+                    return execute(receiver, args, receivers, exceptionProfile);
                 }
             } else {
-                return execute(receiver, args, executeNode, exceptionProfile);
+                return execute(receiver, args, receivers, exceptionProfile);
             }
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, Node executeNode, BranchProfile exceptionProfile) {
+        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
         }
 
     }
@@ -645,7 +650,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -665,7 +670,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -683,7 +688,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @Specialization
@@ -1142,7 +1147,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubySymbol(name)")
         public Object hiddenVariableGet(DynamicObject object, DynamicObject name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
+                @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, name);
         }
 
@@ -1150,11 +1155,6 @@ public class CExtNodes {
         public Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
             return nil();
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false);
-        }
-
     }
 
     @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
@@ -1162,14 +1162,9 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubySymbol(name)")
         public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
-                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
+                @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, name, value);
         }
-
-        protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(false);
-        }
-
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
@@ -1471,7 +1466,7 @@ public class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                keepAliveNode.execute(frame, guardedObject);
+                keepAliveNode.execute(guardedObject);
             }
             return nil();
         }
@@ -1493,18 +1488,14 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject setMarkList(DynamicObject structOwner,
-                @Cached("createWriter()") WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwner, getArray());
+                @Cached WriteObjectFieldNode writeMarkedNode) {
+            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getArray());
             return nil();
         }
 
         @TruffleBoundary
         protected Object[] getArray() {
             return markList.get().toArray();
-        }
-
-        public WriteObjectFieldNode createWriter() {
-            return WriteObjectFieldNodeGen.create(Layouts.MARKED_OBJECTS_IDENTIFIER);
         }
     }
 
@@ -1543,9 +1534,9 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(VirtualFrame frame, DynamicObject block,
+        public DynamicObject pushFrame(DynamicObject block,
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getExtensionCallStack().push(block);
+            getDataNode.execute().getExtensionCallStack().push(block);
             return nil();
         }
     }
@@ -1554,9 +1545,9 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject popFrame(VirtualFrame frame,
+        public DynamicObject popFrame(
                 @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            getDataNode.execute(frame).getExtensionCallStack().pop();
+            getDataNode.execute().getExtensionCallStack().pop();
             return nil();
         }
     }

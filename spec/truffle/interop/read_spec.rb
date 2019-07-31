@@ -21,8 +21,12 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@array, 1).should == 2
     end
 
-    it "returns nil for an index that doesn't exist" do
-      Truffle::Interop.read(@array, 100).should be_nil
+    it "reads a method of given name that exists" do
+      Truffle::Interop.read(@array, "[]").should == @array.method(:[])
+    end
+
+    it "raises for an index that doesn't exist" do
+      -> { Truffle::Interop.read(@array, 100) }.should raise_error(NameError)
     end
 
   end
@@ -37,8 +41,8 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@hash, 'b').should == 2
     end
 
-    it "returns nil for a key that doesn't exist" do
-      Truffle::Interop.read(@hash, 'foo').should be_nil
+    it "raises for a key that doesn't exist" do
+      -> { Truffle::Interop.read(@hash, 'foo') }.should raise_error NameError
     end
 
   end
@@ -53,8 +57,8 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.read(@object, :@b).should == 2
     end
 
-    it "that does not exist as an instance variable returns nil" do
-      Truffle::Interop.read(@object, :@foo).should be_nil
+    it "that does not exist as an instance variable raises" do
+      -> { Truffle::Interop.read(@object, :@foo) }.should raise_error NameError
     end
 
   end
@@ -104,8 +108,16 @@ describe "Truffle::Interop.read" do
     it "does not call the proc" do
       proc = -> { raise 'called' }
       -> { Truffle::Interop.read(proc, :key) }.should raise_error NameError
-      Truffle::Interop.read(proc, :@var).should be_nil
+      -> { Truffle::Interop.read(proc, :@var) }.should raise_error NameError
       Truffle::Interop.read(proc, 'call').should == proc.method(:call)
+    end
+
+  end
+
+  describe "with a Hash class" do
+
+    it "does not call the [] method" do
+      -> { Truffle::Interop.read(Hash, :nothing) }.should raise_error NameError
     end
 
   end

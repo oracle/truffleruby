@@ -10,22 +10,27 @@
 package org.truffleruby.cext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.core.string.StringUtils;
+import com.oracle.truffle.llvm.spi.NativeTypeLibrary;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 
-@MessageResolution(receiverType = ManagedStructObjectType.class)
+@ExportLibrary(value = NativeTypeLibrary.class, receiverType = DynamicObject.class)
+@ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class ManagedStructObjectType extends ObjectType {
+
+    @Override
+    public Class<?> dispatch() {
+        return ManagedStructObjectType.class;
+    }
 
     public static final ManagedStructLayout MANAGED_STRUCT = ManagedStructLayoutImpl.INSTANCE;
 
@@ -56,57 +61,64 @@ public class ManagedStructObjectType extends ObjectType {
         return builder.toString();
     }
 
-
-    @Resolve(message = "READ")
-    public static abstract class ReadNode extends Node {
-
-        @Child
-        ObjectIVarGetNode readObjectFieldNode = ObjectIVarGetNode.create();
-        private final BranchProfile notStringProfile = BranchProfile.create();
-
-        protected Object access(DynamicObject object, Object name) {
-            if (!(name instanceof String)) {
-                notStringProfile.enter();
-                throw UnknownIdentifierException.raise(StringUtils.toString(name));
-            }
-
-            assert object.containsKey(name) : object + " does not have key " + name;
-
-            return readObjectFieldNode.executeIVarGet(object, name);
-        }
-
+    @ExportMessage
+    public static boolean hasMembers(DynamicObject receiver) {
+        return true;
     }
 
-    @Resolve(message = "WRITE")
-    public static abstract class WriteNode extends Node {
-
-        @Child
-        ObjectIVarSetNode writeObjectFieldNode = ObjectIVarSetNodeGen.create(false);
-        private final BranchProfile notStringProfile = BranchProfile.create();
-
-        protected Object access(DynamicObject object, Object name, Object value) {
-            if (!(name instanceof String)) {
-                notStringProfile.enter();
-                throw UnknownIdentifierException.raise(StringUtils.toString(name));
-            }
-
-            return writeObjectFieldNode.executeIVarSet(object, name, value);
-        }
-
+    @ExportMessage
+    public static boolean isMemberReadable(DynamicObject receiver, String member) {
+        return true;
     }
 
-    @SuppressWarnings("unknown-message")
-    @Resolve(message = "com.oracle.truffle.llvm.spi.GetDynamicType")
-    public abstract static class GetDynamicTypeNode extends Node {
-
-        protected Object access(DynamicObject object) {
-            return ManagedStructObjectType.MANAGED_STRUCT.getType(object);
-        }
+    @ExportMessage
+    public static boolean isMemberModifiable(DynamicObject receiver, String member) {
+        return true;
     }
 
-    @Override
-    public ForeignAccess getForeignAccessFactory(DynamicObject object) {
-        return ManagedStructObjectTypeForeign.ACCESS;
+    @ExportMessage
+    public static boolean isMemberInsertable(DynamicObject receiver, String member) {
+        return true;
+    }
+
+    @ExportMessage
+    public static Object getMembers(
+            DynamicObject receiver,
+            boolean includeInternal,
+            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+        return dispatchNode.call(receiver, "instance_variables");
+    }
+
+    @ExportMessage
+    public static Object readMember(
+            DynamicObject receiver,
+            String name,
+            @Cached ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
+
+        if (!receiver.containsKey(name)) {
+            throw UnknownIdentifierException.create(name);
+        }
+        return readObjectFieldNode.executeIVarGet(receiver, name);
+    }
+
+    @ExportMessage
+    public static void writeMember(
+            DynamicObject receiver,
+            String name,
+            Object value,
+            @Cached ObjectIVarSetNode writeObjectFieldNode) {
+
+        writeObjectFieldNode.executeIVarSet(receiver, name, value);
+    }
+
+    @ExportMessage
+    public static boolean hasNativeType(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    public static Object getNativeType(DynamicObject receiver) {
+        return ManagedStructObjectType.MANAGED_STRUCT.getType(receiver);
     }
 
 }

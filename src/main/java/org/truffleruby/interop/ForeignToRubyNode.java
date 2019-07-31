@@ -10,12 +10,16 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
 
-import org.truffleruby.language.RubyBaseNode;
-
-public abstract class ForeignToRubyNode extends RubyBaseNode {
+@GenerateUncached
+@ImportStatic(RubyGuards.class)
+public abstract class ForeignToRubyNode extends RubyBaseWithoutContextNode {
 
     public static ForeignToRubyNode create() {
         return ForeignToRubyNodeGen.create();

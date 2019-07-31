@@ -9,11 +9,15 @@
  */
 package org.truffleruby.core.exception;
 
-import static org.truffleruby.core.array.ArrayHelpers.createArray;
-
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -32,11 +36,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.platform.ErrnoDescriptions;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
+import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 public class CoreExceptions {
 
@@ -597,6 +597,11 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameErrorUnknownIdentifier(TruffleObject receiver, Object name, UnknownIdentifierException exception, Node currentNode) {
+        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameErrorUnknownIdentifier(TruffleObject receiver, Object name, InvalidArrayIndexException exception, Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 

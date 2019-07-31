@@ -27,7 +27,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
     @Child private ReadFrameSlotNode readArrayNode;
     @Child private WriteFrameSlotNode writeArrayNode;
     @Child private CallDispatchHeadNode callHelperNode;
-    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
+    @Child private NotOptimizedWarningNode notOptimizedWarningNode = NotOptimizedWarningNode.create();
 
     private final Object kwrestName;
 

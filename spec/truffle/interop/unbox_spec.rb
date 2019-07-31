@@ -38,24 +38,12 @@ describe "Truffle::Interop.unbox" do
     Truffle::Interop.from_java_string(unboxed).should == 'test'
   end
 
-  it "unboxes a pointer to the address" do
-    Truffle::Interop.unbox(Truffle::FFI::Pointer.new(1024)).should == 1024
-  end
-
   it "is not supported for nil" do
     -> { Truffle::Interop.unbox(nil) }.should raise_error(ArgumentError)
   end
 
   it "is not supported for objects which cannot be unboxed" do
     -> { Truffle::Interop.unbox(Object.new) }.should raise_error(ArgumentError)
-  end
-
-  it "calls #unbox" do
-    obj = Object.new
-    def obj.unbox
-      14
-    end
-    Truffle::Interop.unbox(obj).should == 14
   end
 
 end

@@ -37,6 +37,8 @@
  */
 package org.truffleruby.core;
 
+import java.util.Map.Entry;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Cached;
@@ -49,8 +51,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -70,14 +72,12 @@ import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
 
 import java.io.PrintStream;
-import java.util.Map.Entry;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -85,7 +85,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_catch", needsSelf = false)
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
         public Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
@@ -93,7 +93,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             try {
-                return dispatchNode.dispatch(block, tag);
+                return dispatchNode.executeDispatch(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter();
                 if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
@@ -140,13 +140,13 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         public Object vmExtendedModules(Object object, DynamicObject block,
                 @Cached("create()") MetaClassNode metaClassNode,
-                @Cached("new()") YieldNode yieldNode,
+                @Cached YieldNode yieldNode,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
 
             if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 for (DynamicObject included : Layouts.MODULE.getFields(metaClass).prependedAndIncludedModules()) {
-                    yieldNode.dispatch(block, included);
+                    yieldNode.executeDispatch(block, included);
                 }
             }
 
@@ -173,14 +173,14 @@ public abstract class VMPrimitiveNodes {
 
         public VMMethodLookupNode() {
             nameToJavaStringNode = NameToJavaStringNode.create();
-            lookupMethodNode = LookupMethodNodeGen.create(true, false);
+            lookupMethodNode = LookupMethodNode.create();
         }
 
         @Specialization
         public DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, self, normalizedName);
             if (method == null) {
                 return nil();
             }
@@ -419,14 +419,14 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private YieldNode yieldNode = YieldNode.create();
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
         public DynamicObject getSection(DynamicObject section, DynamicObject block) {
             for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
                 final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.dispatch(block, key, entry.getValue());
+                yieldNode.executeDispatch(block, key, entry.getValue());
             }
 
             return nil();

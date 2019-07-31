@@ -10,16 +10,22 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
 
-public abstract class FromJavaStringNode extends RubyBaseNode {
+@GenerateUncached
+@ImportStatic(RubyGuards.class)
+public abstract class FromJavaStringNode extends RubyBaseWithoutContextNode {
 
     public static FromJavaStringNode create() {
         return FromJavaStringNodeGen.create();
@@ -28,7 +34,8 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     public abstract DynamicObject executeFromJavaString(Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    public DynamicObject doCached(String value,
+    public DynamicObject doCached(
+            String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
@@ -36,8 +43,9 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "doCached")
-    public DynamicObject doGeneric(String value,
-                                        @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+    public DynamicObject doGeneric(
+            String value,
+            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
@@ -50,7 +58,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return getContext().getOptions().INTEROP_CONVERT_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
     }
 
 }

@@ -11,10 +11,10 @@ package org.truffleruby.core.format.write;
 
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.format.FormatFrameDescriptor;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public class OutputNode extends Node {
+public class OutputNode extends RubyBaseWithoutContextNode {
 
     public Object execute(VirtualFrame frame) {
         try {

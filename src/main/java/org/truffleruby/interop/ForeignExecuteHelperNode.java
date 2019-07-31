@@ -10,27 +10,33 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.yield.YieldNode;
 
-public abstract class ForeignExecuteHelperNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class ForeignExecuteHelperNode extends RubyBaseWithoutContextNode {
 
     public abstract Object executeCall(Object receiver, Object[] arguments);
 
     @Specialization(guards = "isRubyProc(proc)")
     protected Object callProc(DynamicObject proc, Object[] arguments,
-            @Cached("new()") YieldNode yieldNode) {
-        return yieldNode.dispatch(proc, arguments);
+            @Cached YieldNode yieldNode) {
+        return yieldNode.executeDispatch(proc, arguments);
     }
 
     @Specialization(guards = "isRubyMethod(method)")
     protected Object callMethod(DynamicObject method, Object[] arguments,
-            @Cached("create()") CallBoundMethodNode callBoundMethodNode) {
-        return callBoundMethodNode.executeCallBoundMethod(method, arguments, nil());
+            @Cached CallBoundMethodNode callBoundMethodNode,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return callBoundMethodNode.executeCallBoundMethod(method, arguments, context.getCoreLibrary().getNil());
     }
 
 }

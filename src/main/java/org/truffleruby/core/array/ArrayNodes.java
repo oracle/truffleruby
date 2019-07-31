@@ -69,7 +69,6 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -857,7 +856,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode implements ArrayElementConsumerNode {
 
-        @Child private YieldNode dispatchNode = new YieldNode();
+        @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
         public Object eachOther(DynamicObject array, DynamicObject block,
@@ -867,7 +866,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(DynamicObject array, DynamicObject block, Object element, int index) {
-            dispatchNode.dispatch(block, element, index);
+            dispatchNode.executeDispatch(block, element, index);
         }
 
     }
@@ -1527,10 +1526,10 @@ public abstract class ArrayNodes {
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                    writeAssociatedNode = insert(WriteObjectFieldNode.create());
                 }
 
-                writeAssociatedNode.write(string, result.getAssociated());
+                writeAssociatedNode.write(string, Layouts.ASSOCIATED_IDENTIFIER, result.getAssociated());
             }
 
             return string;

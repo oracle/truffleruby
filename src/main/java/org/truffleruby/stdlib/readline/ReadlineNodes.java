@@ -216,7 +216,7 @@ public abstract class ReadlineNodes {
     public abstract static class InsertTextNode extends CoreMethodNode {
 
         @CreateCast("text") public RubyNode coerceTextToString(RubyNode text) {
-            return ToJavaStringNodeGen.create(text);
+            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(text);
         }
 
         @TruffleBoundary

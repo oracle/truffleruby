@@ -9,6 +9,8 @@
  */
 package org.truffleruby.extra.ffi;
 
+import java.math.BigInteger;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -17,9 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import java.math.BigInteger;
-
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -189,7 +188,7 @@ public abstract class PointerNodes {
 
     }
 
-    @CoreMethod(names = { "address", "to_i" })
+    @CoreMethod(names = { "address", "__address__", "to_i" })
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

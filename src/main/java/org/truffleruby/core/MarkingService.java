@@ -153,6 +153,10 @@ public class MarkingService extends ReferenceProcessingService<MarkingService.Ma
             this.service = service;
         }
 
+        MarkingService getService() {
+            return service;
+        }
+
         public void keepObject(Object object) {
             /*
              * It is important to get the ordering of events correct to avoid references being

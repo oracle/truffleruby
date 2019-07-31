@@ -24,6 +24,7 @@ public interface BasicObjectLayout {
 
     DynamicObject createBasicObject(DynamicObjectFactory factory);
 
+    boolean isBasicObject(ObjectType objectType);
     boolean isBasicObject(Object object);
 
     DynamicObjectFactory setLogicalClass(DynamicObjectFactory factory, DynamicObject value);

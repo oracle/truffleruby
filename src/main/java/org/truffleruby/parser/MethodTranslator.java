@@ -225,7 +225,7 @@ public class MethodTranslator extends BodyTranslator {
         final Arity arity = argsNode.getArity();
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, true, this).translate();
-        
+
         final boolean isPrimitive = callsPrimitive(bodyNode);
 
         RubyNode body;

@@ -9,18 +9,24 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 
 /**
  * Casts a value into a boolean.
  */
+@GenerateUncached
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class BooleanCastNode extends RubyNode {
+public abstract class BooleanCastNode extends RubyBaseWithoutContextNode {
 
     public static BooleanCastNode create() {
         return BooleanCastNodeGen.create(null);
@@ -32,8 +38,9 @@ public abstract class BooleanCastNode extends RubyNode {
     /** Execute with given value */
     public abstract boolean executeToBoolean(Object value);
 
-    @Specialization(guards = "isNil(nil)")
-    public boolean doNil(Object nil) {
+    @Specialization(guards = "isNil(context, nil)")
+    public boolean doNil(Object nil,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return false;
     }
 
@@ -57,8 +64,9 @@ public abstract class BooleanCastNode extends RubyNode {
         return true;
     }
 
-    @Specialization(guards = "!isNil(object)")
-    public boolean doBasicObject(DynamicObject object) {
+    @Specialization(guards = "!isNil(context, object)")
+    public boolean doBasicObject(DynamicObject object,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return true;
     }
 

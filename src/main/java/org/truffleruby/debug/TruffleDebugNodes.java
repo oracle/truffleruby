@@ -14,15 +14,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.interop.CanResolve;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.MessageResolution;
-import com.oracle.truffle.api.interop.Resolve;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.EventBinding;
+import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
+import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -36,33 +48,18 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.interop.BoxedValue;
-import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.BoxedValue;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.shared.TruffleRuby;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.EventBinding;
-import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
-import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
 
 @CoreClass("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -97,11 +94,11 @@ public abstract class TruffleDebugNodes {
             final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(filter,
                     eventContext -> new ExecutionEventNode() {
 
-                        @Child private YieldNode yieldNode = new YieldNode();
+                        @Child private YieldNode yieldNode = YieldNode.create();
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.dispatch(block,
+                            yieldNode.executeDispatch(block,
                                     BindingNodes.createBinding(getContext(),
                                             frame.materialize(),
                                             eventContext.getInstrumentedSourceSection()));
@@ -434,32 +431,13 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_null", onSingleton = true)
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignNull.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignNull implements TruffleObject {
 
-            @CanResolve
-            public abstract static class Check extends Node {
-
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignNull;
-                }
-
+            @ExportMessage
+            public boolean isNull() {
+                return true;
             }
-
-            @Resolve(message = "IS_NULL")
-            public static abstract class IsNullNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignNull noll) {
-                    return true;
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignNullForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -473,7 +451,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_pointer", required = 1, onSingleton = true)
     public abstract static class ForeignPointerNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignPointer.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignPointer implements TruffleObject {
 
             private final long address;
@@ -482,42 +460,15 @@ public abstract class TruffleDebugNodes {
                 this.address = address;
             }
 
-            public long getAddress() {
+            @ExportMessage
+            public boolean isPointer() {
+                return true;
+            }
+
+            @ExportMessage
+            public long asPointer() {
                 return address;
             }
-
-            @CanResolve
-            public abstract static class Check extends Node {
-
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignPointer;
-                }
-
-            }
-
-            @Resolve(message = "IS_POINTER")
-            public static abstract class IsPointerNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignPointer pointer) {
-                    return true;
-                }
-
-            }
-
-            @Resolve(message = "AS_POINTER")
-            public static abstract class AsPointerNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignPointer pointer) {
-                    return pointer.getAddress();
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignPointerForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -531,32 +482,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object",  onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignObject.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignObject implements TruffleObject {
-
-            @CanResolve
-            public abstract static class Check extends Node {
-
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignObject;
-                }
-
-            }
-
-            @Resolve(message = "IS_BOXED")
-            public static abstract class IsBoxedNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignObject number) {
-                    return false;
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -571,7 +498,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
     public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignObjectFromMap.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignObjectFromMap implements TruffleObject {
 
             private final Map map;
@@ -580,55 +507,32 @@ public abstract class TruffleDebugNodes {
                 this.map = map;
             }
 
-            public Map getMap() {
-                return map;
+            @ExportMessage
+            public boolean hasMembers() {
+                return true;
             }
 
-            @CanResolve
-            public abstract static class Check extends Node {
+            @ExportMessage
+            @TruffleBoundary
+            public Object getMembers(
+                    boolean includeInternal,
+                    @CachedContext(RubyLanguage.class) RubyContext context) {
+                return context.getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
+            }
 
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignObjectFromMap;
+            @ExportMessage
+            public boolean isMemberReadable(String member) {
+                return map.containsKey(member);
+            }
+
+            @ExportMessage
+            public Object readMember(String key) throws UnknownIdentifierException {
+                final Object value = map.get(key);
+                if (value == null) {
+                    throw UnknownIdentifierException.create(key);
                 }
-
+                return value;
             }
-
-            @Resolve(message = "KEYS")
-            public static abstract class KeysNode extends Node {
-
-                @CompilationFinal private ContextReference<RubyContext> contextReference;
-
-                protected Object access(VirtualFrame frame, ForeignObjectFromMap object) {
-                    final Map map = object.getMap();
-                    return getContext().getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
-                }
-
-                private RubyContext getContext() {
-                    if (contextReference == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        contextReference = RubyLanguage.getCurrentContextReference();
-                    }
-
-                    return contextReference.get();
-                }
-
-            }
-
-            @Resolve(message = "READ")
-            public static abstract class ReadNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignObjectFromMap object, Object key) {
-                    final Map map = object.getMap();
-                    return map.get(key);
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignObjectFromMapForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -642,7 +546,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_array_from_java", required = 1, onSingleton = true)
     public abstract static class ForeignArrayFromJavaNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignArrayFromJava.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignArrayFromJava implements TruffleObject {
 
             private final Object[] array;
@@ -651,53 +555,44 @@ public abstract class TruffleDebugNodes {
                 this.array = array;
             }
 
-            public Object[] getArray() {
-                return array;
+            @ExportMessage
+            public boolean hasArrayElements() {
+                return true;
             }
 
-            @CanResolve
-            public abstract static class Check extends Node {
+            @ExportMessage(name = "isArrayElementReadable")
+            @ExportMessage(name = "isArrayElementModifiable")
+            public boolean isArrayElement(long index) {
+                return 0 >= index && index < array.length;
+            }
 
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignArrayFromJava;
+            @ExportMessage
+            public Object readArrayElement(long index) throws InvalidArrayIndexException {
+                try {
+                    return array[(int) index];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    throw InvalidArrayIndexException.create(index);
                 }
-
             }
 
-            @Resolve(message = "HAS_SIZE")
-            public static abstract class HasSizeNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
-                    return true;
+            @ExportMessage
+            public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
+                try {
+                    array[(int) index] = value;
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    throw InvalidArrayIndexException.create(index);
                 }
-
             }
 
-            @Resolve(message = "GET_SIZE")
-            public static abstract class SizeNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignArrayFromJava object) {
-                    final Object[] array = object.getArray();
-                    return array.length;
-                }
-
+            @ExportMessage
+            final boolean isArrayElementInsertable(long index) {
+                return false;
             }
 
-            @Resolve(message = "READ")
-            public static abstract class ReadNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignArrayFromJava object, Object key) {
-                    final Object[] array = object.getArray();
-                    return array[(int) key];
-                }
-
+            @ExportMessage
+            public long getArraySize() {
+                return array.length;
             }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignArrayFromJavaForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -722,7 +617,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_executable", required = 1, onSingleton = true)
     public abstract static class ForeignExecutableNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignExecutable.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignExecutable implements TruffleObject {
 
             private final Object value;
@@ -731,42 +626,15 @@ public abstract class TruffleDebugNodes {
                 this.value = value;
             }
 
-            public Object getValue() {
+            @ExportMessage
+            public boolean isExecutable() {
+                return true;
+            }
+
+            @ExportMessage
+            public Object execute(Object... arguments) {
                 return value;
             }
-
-            @CanResolve
-            public abstract static class Check extends Node {
-
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignExecutable;
-                }
-
-            }
-
-            @Resolve(message = "IS_EXECUTABLE")
-            public static abstract class IsExecutableNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignExecutable executable) {
-                    return true;
-                }
-
-            }
-
-            @Resolve(message = "EXECUTE")
-            public static abstract class ExecuteNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignExecutable executable, Object... arguments) {
-                    return executable.getValue();
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignExecutableForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -780,7 +648,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
 
-        @MessageResolution(receiverType = ForeignString.class)
+        @ExportLibrary(InteropLibrary.class)
         public static class ForeignString implements TruffleObject {
 
             private final String string;
@@ -789,42 +657,15 @@ public abstract class TruffleDebugNodes {
                 this.string = string;
             }
 
-            public String getString() {
+            @ExportMessage
+            public boolean isString() {
+                return true;
+            }
+
+            @ExportMessage
+            public String asString() {
                 return string;
             }
-
-            @CanResolve
-            public abstract static class Check extends Node {
-
-                protected static boolean test(TruffleObject receiver) {
-                    return receiver instanceof ForeignString;
-                }
-
-            }
-
-            @Resolve(message = "IS_BOXED")
-            public static abstract class IsBoxedNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignString string) {
-                    return true;
-                }
-
-            }
-
-            @Resolve(message = "UNBOX")
-            public static abstract class UnboxNode extends Node {
-
-                protected Object access(VirtualFrame frame, ForeignString string) {
-                    return string.getString();
-                }
-
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignStringForeign.ACCESS;
-            }
-
         }
 
         @TruffleBoundary
@@ -914,8 +755,8 @@ public abstract class TruffleDebugNodes {
 
         @Specialization
         public DynamicObject associated(DynamicObject value,
-                                        @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
-            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value);
+                @Cached ReadObjectFieldNode readAssociatedNode) {
+            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
                 associated = new Pointer[]{};
@@ -929,11 +770,6 @@ public abstract class TruffleDebugNodes {
 
             return Layouts.ARRAY.createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
         }
-
-        protected ReadObjectFieldNode createReadAssociatedNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
-        }
-
     }
 
     @CoreMethod(names = "drain_finalization_queue", onSingleton = true)

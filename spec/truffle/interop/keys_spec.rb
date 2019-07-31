@@ -27,8 +27,8 @@ describe "Truffle::Interop.keys" do
     Truffle::Interop.java_string?(key).should be_true
   end
 
-  it "returns an empty array for an array" do
-    Truffle::Interop.keys([1, 2, 3]).should == []
+  it "returns an array of public methods for an array" do
+    Truffle::Interop.keys([1, 2, 3]).should include(*([].public_methods.map(&:to_s)))
   end
 
   it "returns an empty array for a big integer" do

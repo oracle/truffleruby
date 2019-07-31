@@ -9,18 +9,25 @@
  */
 package org.truffleruby.language.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.InteropException;
-import com.oracle.truffle.api.interop.Message;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -45,15 +52,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
-
 public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
@@ -61,9 +59,6 @@ public abstract class RequireNode extends RubyBaseNode {
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
     @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createPrivate();
 
-    @Child private Node readNode = Message.READ.createNode();
-    @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
-    @Child private Node executeNode = Message.EXECUTE.createNode();
     @Child private WarningNode warningNode;
 
     @Child private GetConstantNode getConstantNode;
@@ -264,13 +259,14 @@ public abstract class RequireNode extends RubyBaseNode {
 
         final TruffleObject initFunction = findFunctionInLibraries(libraries, initFunctionName, expandedPath);
 
-        if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
+        InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
+        if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
             throw new RaiseException(getContext(), coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
         requireMetric("before-execute-" + feature);
         try {
-            ForeignAccess.sendExecute(executeNode, initFunction);
+            initFunctionInteropLibrary.execute(initFunction);
         } catch (InteropException e) {
             throw new JavaException(e);
         } finally {
@@ -278,12 +274,12 @@ public abstract class RequireNode extends RubyBaseNode {
         }
     }
 
-    public TruffleObject findFunctionInLibraries(List<TruffleObject> libraries, String functionName, String path) {
+    TruffleObject findFunctionInLibraries(List<TruffleObject> libraries, String functionName, String path) {
         Object initObject = null;
 
         for (TruffleObject library : libraries) {
             try {
-                initObject = ForeignAccess.sendRead(readNode, library, functionName);
+                initObject = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
             } catch (UnknownIdentifierException e) {
                 // TODO CS 18-Mar-18 it's not ideal that we're catching and throwing an exception when we don't find Init_ in each file
                 continue;

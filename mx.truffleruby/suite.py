@@ -109,7 +109,8 @@ suite = {
                 "test/truffle/ecosystem/blog",
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
-                "test/truffle/offline"
+                "test/truffle/offline",
+                "rubyspec_temp",
             ]
         },
     },
@@ -175,6 +176,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
+                "sulong:SULONG",
                 "JONI",
                 "JCODINGS",
             ],
@@ -337,6 +339,7 @@ suite = {
                 "truffle:TRUFFLE_NFI",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
+                "sulong:SULONG",
             ],
             "description": "TruffleRuby",
             "license": [

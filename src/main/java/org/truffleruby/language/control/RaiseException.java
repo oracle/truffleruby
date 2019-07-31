@@ -20,7 +20,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 /**
  * A ControlFlowException holding a Ruby exception.
@@ -115,7 +115,7 @@ public class RaiseException extends RuntimeException implements TruffleException
 
     @Override
     public int getExitStatus() {
-        final Object status = ReadObjectFieldNode.read(exception, "@status", 1);
+        final Object status = ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", 1);
 
         if (status instanceof Integer) {
             return (int) status;

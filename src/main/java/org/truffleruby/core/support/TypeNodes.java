@@ -30,9 +30,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.TaintNode;
 
@@ -165,14 +163,9 @@ public abstract class TypeNodes {
 
         @Specialization
         public Object ivarGet(DynamicObject object, DynamicObject name,
-                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
+                @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, Layouts.SYMBOL.getString(name));
         }
-
-        protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false);
-        }
-
     }
 
     @Primitive(name = "object_ivar_set")
@@ -180,14 +173,9 @@ public abstract class TypeNodes {
 
         @Specialization
         public Object ivarSet(DynamicObject object, DynamicObject name, Object value,
-                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
+                @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, Layouts.SYMBOL.getString(name), value);
         }
-
-        protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(false);
-        }
-
     }
 
     @Primitive(name = "object_can_contain_object")

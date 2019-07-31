@@ -31,7 +31,7 @@ public abstract class DispatchHeadNode extends RubyBaseNode {
         this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
         this.dispatchAction = dispatchAction;
-        first = new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction);
+        first = insert(new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction));
     }
 
     public Object dispatch(

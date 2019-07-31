@@ -41,70 +41,145 @@ module Truffle
     end
 
     def self.object_keys(object, internal)
+      # TODO (pitr-ch 23-May-2019): add assert that called methods are in members list
       if object.is_a?(Hash)
-        keys = object.keys
-      elsif object.respond_to?(:[])
+        keys = object.keys # FIXME (pitr-ch 11-May-2019): no return methods
+      elsif object.respond_to?(:[]) && !object.is_a?(Array)
+        # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else
-        keys = object.methods.map(&:to_s)
+        keys = []
+        object.methods.each do |method|
+          keys << method.to_s if Truffle::Type.object_respond_to? object, method, true
+        end
         if internal
-          keys += object.instance_variables
-            .map(&:to_s)
-            .select { |ivar| ivar.start_with?('@') }
+          object.instance_variables.each do |ivar|
+            ivar_string = ivar.to_s
+            keys << ivar_string if ivar_string.start_with?('@')
+          end
+          object.private_methods.each do |method|
+            # do not list methods which cannot be read using interop
+            keys << method.to_s if Truffle::Type.object_respond_to? object, method, true
+          end
         end
       end
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
 
+    # FIXME (pitr-ch 01-Apr-2019): remove
     def self.key_info(object, name)
-      key_info_flags_from_bits(key_info_bits(object, name))
+      flags = []
+
+      [:existing, :readable, :writable, :removable, :modifiable, :insertable].each do |info_name|
+        add = begin
+          send "is_member_#{info_name}?", object, name
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
+          # ignore
+        end
+
+        add ||= begin
+          send "is_array_element_#{info_name}?", object, name
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
+          # ignore
+        end
+
+        flags << info_name if add
+      end
+
+      [:invocable, :internal].each do |info_name|
+        add = begin
+          send "is_member_#{info_name}?", object, name
+        rescue TypeError # rubocop:disable Lint/HandleExceptions
+          # ignore
+        end
+
+        flags << info_name if add
+      end
+
+      flags
     end
 
+    HASH_PUBLIC_METHODS = Hash.public_instance_methods.map(&:to_s)
+    private_constant :HASH_PUBLIC_METHODS
+
+    # FIXME (pitr-ch 11-May-2019): breakdown
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
 
       if object.is_a?(Hash)
+        # TODO (pitr-ch 23-May-2019): make instance variables and methods accessible for hash
+        if HASH_PUBLIC_METHODS.include? name
+          # all the methods have to be readable and invocable otherwise they cannot be invoked from C
+          readable = true
+          invocable = true
+        else
+          frozen = object.frozen?
+          has_key = object.has_key?(name)
+          readable = has_key
+          modifiable = !frozen && has_key
+          removable = modifiable
+          insertable = !frozen && !has_key
+        end
+      elsif object.is_a?(Array) && name.is_a?(Integer)
+        in_bounds = name >= 0 && name < object.size
         frozen = object.frozen?
-        has_key = object.has_key?(name)
-        readable = has_key
-        modifiable = has_key && !frozen
-        removable = modifiable
-        insertable = !frozen
-      elsif object.is_a?(Array)
-        in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
         readable = in_bounds
-        insertable = in_bounds && !object.frozen?
-        modifiable = insertable
+        modifiable = !frozen && in_bounds
+        removable = modifiable
+        insertable = !frozen && !in_bounds
       elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
         exists = object.instance_variable_defined?(name)
         readable = exists
-        insertable = !frozen
+        insertable = !exists && !frozen
         modifiable = exists && !frozen
         removable = modifiable
         internal = true
       else
-        method = object.respond_to?(name)
-        readable = method || object.respond_to?(:[])
-        insertable = object.respond_to?(:[]=)
-        modifiable = insertable
-        invocable = method
+        # TODO (pitr-ch 11-May-2019): method should be removable?
+        if name.is_a?(String) && object.respond_to?(name)
+          invocable = readable = true
+          modifiable = insertable = false
+        elsif name.is_a?(String) && object.private_methods.include?(name.to_sym)
+          invocable = readable = true
+          modifiable = insertable = false
+          internal = true
+        else
+          unless object.is_a?(Array) || object.is_a?(Class) # exclude #[] constructors
+            # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
+            readable = object.respond_to?(:[])
+            modifiable = object.respond_to?(:[]=)
+            insertable = false
+            invocable = false
+          end
+        end
       end
 
-      key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
+      [readable, invocable, internal, insertable, modifiable, removable]
     end
 
-    def self.key_info_flags_from_bits(bits)
-      flags = []
-      flags << :existing    if existing_bit?(bits)
-      flags << :readable    if readable_bit?(bits)
-      flags << :writable    if writable_bit?(bits)
-      flags << :invocable   if invocable_bit?(bits)
-      flags << :internal    if internal_bit?(bits)
-      flags << :removable   if removable_bit?(bits)
-      flags << :modifiable  if modifiable_bit?(bits)
-      flags << :insertable  if insertable_bit?(bits)
-      flags
+    def self.object_key_readable?(object, name)
+      object_key_info(object, name)[0]
+    end
+
+    def self.object_key_invocable?(object, name)
+      object_key_info(object, name)[1]
+    end
+
+    def self.object_key_internal?(object, name)
+      object_key_info(object, name)[2]
+    end
+
+    def self.object_key_insertable?(object, name)
+      object_key_info(object, name)[3]
+    end
+
+    def self.object_key_modifiable?(object, name)
+      object_key_info(object, name)[4]
+    end
+
+    def self.object_key_removable?(object, name)
+      object_key_info(object, name)[5]
     end
 
     def self.lookup_symbol(name)
@@ -291,6 +366,7 @@ module Truffle
     rescue RuntimeError
       false
     end
+
     private_class_method :is_java_map?
 
     def self.pairs_from_java_map(map)
@@ -313,6 +389,39 @@ module Truffle
       else
         object
       end
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.boxed?(object)
+      is_boolean?(object) || is_string?(object) || is_number?(object)
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.unbox(object)
+      return as_boolean object if is_boolean? object
+      return as_string object if is_string? object
+
+      if is_number?(object)
+        return as_int object if fits_in_int? object
+        return as_long object if fits_in_long? object
+        return as_double object if fits_in_double? object
+      end
+
+      raise ArgumentError, "not boxed: #{object}"
+    end
+
+    # TODO (pitr-ch 01-Apr-2019): remove
+    def self.unbox_without_conversion(object)
+      return as_boolean object if is_boolean? object
+      return as_string_without_conversion object if is_string? object
+
+      if is_number?(object)
+        return as_int object if fits_in_int? object
+        return as_long object if fits_in_long? object
+        return as_double object if fits_in_double? object
+      end
+
+      raise ArgumentError, "not boxed: #{object.inspect}"
     end
 
     def self.to_java_map(hash)

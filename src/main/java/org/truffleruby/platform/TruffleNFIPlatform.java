@@ -9,29 +9,21 @@
  */
 package org.truffleruby.platform;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.JavaException;
-
 import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.JavaException;
 
 public class TruffleNFIPlatform {
 
     final TruffleObject defaultLibrary;
-
-    private final Node readNode = Message.READ.createNode();
-    private final Node asPointerNode = Message.AS_POINTER.createNode();
-
-    private final Node bindNode = Message.INVOKE.createNode();
 
     private final String size_t;
     private final NativeFunction strlen;
@@ -51,35 +43,27 @@ public class TruffleNFIPlatform {
 
     public TruffleObject lookup(TruffleObject library, String name) {
         try {
-            return (TruffleObject) ForeignAccess.sendRead(readNode, library, name);
+            return (TruffleObject) InteropLibrary.getFactory().getUncached(library).readMember(library, name);
         } catch (UnknownIdentifierException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
     }
 
-    private static Object execute(Node executeNode, TruffleObject function, Object... args) {
+    private static Object invoke(TruffleObject receiver, String identifier, Object... args) {
         try {
-            return ForeignAccess.sendExecute(executeNode, function, args);
-        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
-            throw new JavaException(e);
-        }
-    }
-
-    private static Object invoke(Node invokeNode, TruffleObject receiver, String identifier, Object... args) {
-        try {
-            return ForeignAccess.sendInvoke(invokeNode, receiver, identifier, args);
+            return InteropLibrary.getFactory().getUncached(receiver).invokeMember(receiver, identifier, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException | UnknownIdentifierException e) {
             throw new JavaException(e);
         }
     }
 
-    public TruffleObject bind(TruffleObject function, String signature) {
-        return (TruffleObject) invoke(bindNode, function, "bind", signature);
+    private TruffleObject bind(TruffleObject function, String signature) {
+        return (TruffleObject) invoke(function, "bind", signature);
     }
 
-    public long asPointer(TruffleObject function) {
+    public long asPointer(TruffleObject truffleObject) {
         try {
-            return ForeignAccess.sendAsPointer(asPointerNode, function);
+            return InteropLibrary.getFactory().getUncached(truffleObject).asPointer(truffleObject);
         } catch (UnsupportedMessageException e) {
             throw new JavaException(e);
         }
@@ -130,15 +114,19 @@ public class TruffleNFIPlatform {
     public static class NativeFunction {
 
         private final TruffleObject function;
-        private final Node executeNode;
+        private final InteropLibrary functionInteropLibrary;
 
         private NativeFunction(TruffleObject function) {
             this.function = function;
-            this.executeNode = Message.EXECUTE.createNode();
+            this.functionInteropLibrary = InteropLibrary.getFactory().getUncached(this.function);
         }
 
         public Object call(Object... arguments) {
-            return execute(executeNode, function, arguments);
+            try {
+                return functionInteropLibrary.execute(function, arguments);
+            } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
+                throw new JavaException(e);
+            }
         }
 
     }

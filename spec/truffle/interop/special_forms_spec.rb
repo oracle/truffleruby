@@ -14,63 +14,64 @@ describe "Interop special form" do
     @object = Truffle::Interop.logging_foreign_object
   end
 
-  it "#[] sends READ" do
-    @object[:foo]
-    @object['bar']
-    @object.log.should include("READ(foo)")
-    @object.log.should include("READ(bar)")
+  it "#[] sends readMember(*)" do
+    -> { @object[:foo] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object['bar'] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("readMember(foo)")
+    @object.to_s.should include("readMember(bar)")
   end
 
-  it "#[]= sends WRITE" do
-    @object[:foo] = 1
-    @object['bar'] = 2
-    @object.log.should include("WRITE(foo, 1)")
-    @object.log.should include("WRITE(bar, 2)")
+  it "#[]= sends writeMember(*)" do
+    -> { (@object[:foo] = 1) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { (@object['bar'] = 2) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("writeMember(foo, 1)")
+    @object.to_s.should include("writeMember(bar, 2)")
   end
 
-  it "#delete(name) sends REMOVE" do
-    @object.delete :foo
-    @object.delete 14
-    @object.log.should include("REMOVE(foo)")
-    @object.log.should include("REMOVE(14)")
+  # FIXME (pitr-ch 18-Mar-2019): break down
+  it "#delete(name) sends removeMember(*) or removeArrayElement(*)" do
+    -> { @object.delete :foo }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.delete 14 }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("removeMember(foo)")
+    @object.to_s.should include("removeArrayElement(14)")
   end
 
-  it "#call sends EXECUTE" do
-    @object.call(1, 2, 3)
-    @object.log.should include("EXECUTE(...)")
+  it "#call sends execute(*)" do
+    -> { @object.call(1, 2, 3) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("execute(1, 2, 3)")
   end
 
-  it "#nil? sends IS_NULL" do
+  it "#nil? sends isNull()" do
     @object.nil?
-    @object.log.should include("IS_NULL")
+    @object.to_s.should include("isNull()")
   end
 
-  it "#size sends GET_SIZE" do
-    @object.size
-    @object.log.should include("GET_SIZE")
+  it "#size sends getArraySize()" do
+    -> { @object.size }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("getArraySize()")
   end
 
-  it "#keys sends KEYS" do
-    @object.keys
-    @object.log.should include("KEYS")
+  it "#keys sends getMembers(false)" do
+    -> { @object.keys }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("getMembers(false)")
   end
 
   guard -> { !TruffleRuby.native? } do
-    it "#class sends READ('class') on Java class objects" do
+    it "#class sends readMember('class') on Java class objects" do
       Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
     end
   end
 
-  it "#name sends INVOKE" do
-    @object.foo
-    @object.bar(1, 2, 3)
-    @object.log.should include("INVOKE(foo, ...)")
-    @object.log.should include("INVOKE(bar, ...)")
+  it "#name sends invokeMember(*)" do
+    -> { @object.foo }.should raise_error(NoMethodError)
+    -> { @object.bar(1, 2, 3) }.should raise_error(NoMethodError)
+    @object.to_s.should include("invokeMember(foo)")
+    @object.to_s.should include("invokeMember(bar, 1, 2, 3)")
   end
 
-  it "#new sends NEW" do
-    @object.new
-    @object.log.should include("NEW(...)")
+  it "#new sends instantiate()" do
+    -> { @object.new }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    @object.to_s.should include("instantiate()")
   end
 
   describe "#is_a?" do
@@ -135,47 +136,50 @@ describe "Interop special form" do
 
   end
 
-  it "#respond_to?(:to_a) sends HAS_SIZE" do
+  it "#respond_to?(:to_a) sends hasArrayElements()" do
     @object.respond_to?(:to_a)
-    @object.log.should include("HAS_SIZE")
+    @object.to_s.should include("hasArrayElements()")
   end
 
-  it "#respond_to?(:to_ary) sends HAS_SIZE" do
+  it "#respond_to?(:to_ary) sends hasArrayElements()" do
     @object.respond_to?(:to_ary)
-    @object.log.should include("HAS_SIZE")
+    @object.to_s.should include("hasArrayElements()")
   end
 
-  it "#respond_to?(:new) sends IS_INSTANTIABLE" do
+  it "#respond_to?(:new) sends isInstantiable()" do
     @object.respond_to?(:new)
-    @object.log.should include("IS_INSTANTIABLE")
+    @object.to_s.should include("isInstantiable()")
   end
 
-  it "#respond_to?(:size) sends HAS_SIZE" do
+  it "#respond_to?(:size) sends hasArrayElements()" do
     @object.respond_to?(:size)
-    @object.log.should include("HAS_SIZE")
+    @object.to_s.should include("hasArrayElements()")
   end
 
-  it "#respond_to?(:keys) sends HAS_KEYS" do
+  it "#respond_to?(:keys) sends hasMembers()" do
     @object.respond_to?(:keys)
-    @object.log.should include("HAS_KEYS")
+    @object.to_s.should include("hasMembers()")
   end
 
   it "#respond_to?(:inspect) is true" do
     @object.respond_to?(:inspect).should be_true
+    @object.to_s.should include("isString()")
   end
 
   it "#respond_to?(:to_s) is true" do
     @object.respond_to?(:to_s).should be_true
+    @object.to_s.should include("isString()")
   end
 
+  # FIXME (pitr-ch 18-Mar-2019): break down to new messages, test isNumber and isBoolean separately
   it "#respond_to?(:to_str) sends IS_BOXED" do
     @object.respond_to?(:to_str)
-    @object.log.should include("IS_BOXED")
+    @object.to_s.should include("isString()")
   end
 
-  it "#respond_to?(:call) sends IS_EXECUTABLE" do
+  it "#respond_to?(:call) sends isExecutable()" do
     @object.respond_to?(:call)
-    @object.log.should include("IS_EXECUTABLE")
+    @object.to_s.should include("isExecutable()")
   end
 
 end

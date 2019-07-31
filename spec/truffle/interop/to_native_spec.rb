@@ -11,19 +11,35 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.to_native" do
 
   it "is not supported for nil" do
-    -> { Truffle::Interop.to_native(nil) }.should raise_error(ArgumentError)
+    Truffle::Interop.to_native(nil)
+    Truffle::Interop.pointer?(nil).should be_false
   end
 
   it "is not supported for objects which cannot be converted to a pointer" do
-    -> { Truffle::Interop.to_native(Object.new) }.should raise_error(ArgumentError)
+    object = Object.new
+    Truffle::Interop.to_native(object)
+    Truffle::Interop.pointer?(object).should be_false
   end
 
-  it "calls #to_native" do
+  it "calls #to_native does internal conversion to support as_pointer" do
     obj = Object.new
+
     def obj.to_native
-      Truffle::FFI::Pointer.new(0x123)
+      @pointer = Truffle::FFI::Pointer.new(0x123)
     end
-    Truffle::Interop.to_native(obj).should == Truffle::FFI::Pointer.new(0x123)
+
+    def obj.__pointer__?
+      !@pointer.nil?
+    end
+
+    def obj.__address__
+      @pointer.__address__
+    end
+
+    Truffle::Interop.pointer?(obj).should be_false
+    Truffle::Interop.to_native(obj)
+    Truffle::Interop.pointer?(obj).should be_true
+    Truffle::Interop.as_pointer(obj).should == 0x123
   end
 
 end

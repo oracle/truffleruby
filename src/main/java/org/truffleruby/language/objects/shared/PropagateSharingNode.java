@@ -10,10 +10,10 @@
 package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public class PropagateSharingNode extends Node {
+public class PropagateSharingNode extends RubyBaseWithoutContextNode {
 
     @Child private IsSharedNode isSharedNode;
     @Child private WriteBarrierNode writeBarrierNode;

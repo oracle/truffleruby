@@ -32,9 +32,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @CoreClass("ObjectSpace")
@@ -68,9 +66,9 @@ public abstract class ObjectSpaceNodes {
         @Specialization(guards = "isBasicObjectID(id)")
         public DynamicObject id2Ref(
                 final long id,
-                @Cached("createReadObjectIDNode()") ReadObjectFieldNode readObjectIdNode) {
+                @Cached ReadObjectFieldNode readObjectIdNode) {
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
-                final long objectID = (long) readObjectIdNode.execute(object);
+                final long objectID = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
                 if (objectID == id) {
                     return object;
                 }
@@ -87,10 +85,6 @@ public abstract class ObjectSpaceNodes {
         @Specialization(guards = { "isRubyBignum(id)", "isFloatID(id)" })
         public double id2RefFloat(DynamicObject id) {
             return Double.longBitsToDouble(Layouts.BIGNUM.getValue(id).longValue());
-        }
-
-        protected ReadObjectFieldNode createReadObjectIDNode() {
-            return ReadObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER, 0L);
         }
 
         protected boolean isLargeFixnumID(DynamicObject id) {
@@ -171,8 +165,8 @@ public abstract class ObjectSpaceNodes {
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
 
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNode.create();
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
@@ -199,10 +193,10 @@ public abstract class ObjectSpaceNodes {
                 final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
                 final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 FinalizerReference newRef = getContext().getFinalizationService().addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
                 if (ref != newRef) {
-                    setFinalizerNode.write(object, newRef);
+                    setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                 }
             }
         }
@@ -212,18 +206,18 @@ public abstract class ObjectSpaceNodes {
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
     public abstract static class UndefineFinalizerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNode.create();
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @TruffleBoundary
         @Specialization
         public Object undefineFinalizer(DynamicObject object) {
             synchronized (getContext().getFinalizationService()) {
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref != null) {
                     FinalizerReference newRef = getContext().getFinalizationService().removeFinalizers(object, ref, ObjectSpaceManager.class);
                     if (ref != newRef) {
-                        setFinalizerNode.write(object, newRef);
+                        setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                     }
                 }
             }

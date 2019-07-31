@@ -50,7 +50,7 @@ public abstract class RangeNodes {
         @Specialization(guards = "isIntRange(range)")
         public DynamicObject map(DynamicObject range, DynamicObject block,
                                  @Cached("create()") ArrayBuilderNode arrayBuilder,
-                                 @Cached("new()") YieldNode yieldNode) {
+                                 @Cached YieldNode yieldNode) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
@@ -66,7 +66,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yieldNode.dispatch(block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, yieldNode.executeDispatch(block, begin + direction * n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {

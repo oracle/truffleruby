@@ -105,7 +105,7 @@ module Truffle::FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
-    def pointer?
+    def __pointer__?
       true
     end
 

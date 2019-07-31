@@ -30,7 +30,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 @CoreClass("Exception")
 public abstract class ExceptionNodes {
@@ -102,7 +101,7 @@ public abstract class ExceptionNodes {
                 DynamicObject exception,
                 @Cached("createBinaryProfile()") ConditionProfile hasCustomBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
-            final Object customBacktrace = getReadCustomBacktraceNode().execute(exception);
+            final Object customBacktrace = getReadCustomBacktraceNode().execute(exception, CUSTOM_BACKTRACE_FIELD, null);
 
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
@@ -122,7 +121,7 @@ public abstract class ExceptionNodes {
         private ReadObjectFieldNode getReadCustomBacktraceNode() {
             if (readCustomBacktraceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readCustomBacktraceNode = insert(ReadObjectFieldNodeGen.create(CUSTOM_BACKTRACE_FIELD, null));
+                readCustomBacktraceNode = insert(ReadObjectFieldNode.create());
             }
 
             return readCustomBacktraceNode;
@@ -160,10 +159,10 @@ public abstract class ExceptionNodes {
         private Object readCustomBacktrace(DynamicObject exception) {
             if (readCustomBacktraceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readCustomBacktraceNode = insert(ReadObjectFieldNodeGen.create(CUSTOM_BACKTRACE_FIELD, null));
+                readCustomBacktraceNode = insert(ReadObjectFieldNode.create());
             }
 
-            return readCustomBacktraceNode.execute(exception);
+            return readCustomBacktraceNode.execute(exception, CUSTOM_BACKTRACE_FIELD, null);
         }
 
     }

@@ -9,52 +9,41 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
+@GenerateUncached
 @ImportStatic(StringCachingGuards.class)
-public abstract class ForeignReadStringCachingHelperNode extends RubyBaseNode {
+public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithoutContextNode {
 
-    @Child private IsStringLikeNode isStringLikeNode;
+    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name) throws UnknownIdentifierException, InvalidArrayIndexException;
 
-    public abstract Object executeStringCachingHelper(VirtualFrame frame, DynamicObject receiver, Object name);
-
-    @Specialization(guards = "isStringLike(name)")
-    public Object cacheStringLikeAndForward(VirtualFrame frame, DynamicObject receiver, Object name,
+    @Specialization(guards = "isStringLike.executeIsStringLike(name)")
+    public Object cacheStringLikeAndForward(DynamicObject receiver, Object name,
             @Cached("create()") ToJavaStringNode toJavaStringNode,
-            @Cached("createNextHelper()") ForeignReadStringCachedHelperNode nextHelper) {
+            @Cached IsStringLikeNode isStringLike,
+            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(name);
         boolean isIVar = isIVar(nameAsJavaString);
-        return nextHelper.executeStringCachedHelper(frame, receiver, name, nameAsJavaString, isIVar);
+        return nextHelper.executeStringCachedHelper(receiver, name, nameAsJavaString, isIVar);
     }
 
-    @Specialization(guards = "!isStringLike(name)")
-    public Object indexObject(VirtualFrame frame, DynamicObject receiver, Object name,
-            @Cached("createNextHelper()") ForeignReadStringCachedHelperNode nextHelper) {
-        return nextHelper.executeStringCachedHelper(frame, receiver, name, null, false);
-    }
-
-    protected boolean isStringLike(Object value) {
-        if (isStringLikeNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isStringLikeNode = insert(IsStringLikeNode.create());
-        }
-
-        return isStringLikeNode.executeIsStringLike(value);
+    @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
+    public Object indexObject(DynamicObject receiver, Object name,
+            @Cached IsStringLikeNode isStringLike,
+            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
+        return nextHelper.executeStringCachedHelper(receiver, name, null, false);
     }
 
     protected boolean isIVar(String name) {
         return !name.isEmpty() && name.charAt(0) == '@';
-    }
-
-    protected ForeignReadStringCachedHelperNode createNextHelper() {
-        return ForeignReadStringCachedHelperNodeGen.create();
     }
 
 }

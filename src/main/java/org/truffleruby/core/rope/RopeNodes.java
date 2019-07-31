@@ -17,6 +17,7 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -35,6 +36,7 @@ import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -262,7 +264,8 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class CalculateAttributesNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class CalculateAttributesNode extends RubyBaseWithoutContextNode {
 
         public static CalculateAttributesNode create() {
             return RopeNodesFactory.CalculateAttributesNodeGen.create();
@@ -621,7 +624,8 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class MakeLeafRopeNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class MakeLeafRopeNode extends RubyBaseWithoutContextNode {
 
         public static MakeLeafRopeNode create() {
             return RopeNodesFactory.MakeLeafRopeNodeGen.create();
@@ -649,7 +653,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
         public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
                 @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") CalculateCharacterLengthNode calculateCharacterLengthNode) {
+                @Cached CalculateCharacterLengthNode calculateCharacterLengthNode) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
@@ -727,7 +731,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)" })
         public LeafRope makeUnknownLeafRopeGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
-                                                   @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                                                   @Cached CalculateAttributesNode calculateAttributesNode,
                                                    @Cached("create()") BranchProfile asciiOnlyProfile,
                                                    @Cached("create()") BranchProfile validProfile,
                                                    @Cached("create()") BranchProfile brokenProfile,
@@ -1381,7 +1385,8 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class BytesNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class BytesNode extends RubyBaseWithoutContextNode {
 
         public static BytesNode create() {
             return RopeNodesFactory.BytesNodeGen.create();
@@ -1437,7 +1442,8 @@ public abstract class RopeNodes {
         }
     }
 
-    public abstract static class AsciiOnlyNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class AsciiOnlyNode extends RubyBaseWithoutContextNode {
 
         public static AsciiOnlyNode create() {
             return RopeNodesFactory.AsciiOnlyNodeGen.create();
@@ -1447,13 +1453,14 @@ public abstract class RopeNodes {
 
         @Specialization
         public boolean asciiOnly(Rope rope,
-                @Cached("create()") CodeRangeNode codeRangeNode) {
+                @Cached CodeRangeNode codeRangeNode) {
             return codeRangeNode.execute(rope) == CR_7BIT;
         }
 
     }
 
-    public abstract static class CodeRangeNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class CodeRangeNode extends RubyBaseWithoutContextNode {
 
         public static CodeRangeNode create() {
             return RopeNodesFactory.CodeRangeNodeGen.create();
@@ -1468,7 +1475,7 @@ public abstract class RopeNodes {
 
         @Specialization
         public CodeRange getCodeRangeNative(NativeRope rope,
-                @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
@@ -1553,7 +1560,8 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(CodeRange.class)
-    public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {
+    @GenerateUncached
+    public abstract static class CalculateCharacterLengthNode extends RubyBaseWithoutContextNode {
 
         public static CalculateCharacterLengthNode create() {
             return RopeNodesFactory.CalculateCharacterLengthNodeGen.create();

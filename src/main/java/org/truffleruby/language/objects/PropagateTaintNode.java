@@ -10,10 +10,10 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
-public class PropagateTaintNode extends Node {
+public class PropagateTaintNode extends RubyBaseWithoutContextNode {
 
     @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
     @Child private TaintNode taintNode;

@@ -9,16 +9,21 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.RubyLanguage;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.ControlFlowException;
+import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 
 /**
  * Displays a warning when code is compiled that will compile successfully but is very low performance. We don't want
@@ -27,48 +32,56 @@ import java.util.logging.Level;
  *
  * Ideally you should not use this node, and instead you should optimise the code which would use it.
  */
-public class NotOptimizedWarningNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class NotOptimizedWarningNode extends RubyBaseWithoutContextNode {
 
-    @CompilationFinal private boolean warned;
+    public static NotOptimizedWarningNode create() {
+        return NotOptimizedWarningNodeGen.create();
+    }
 
-    // The remembered set of displayed warnings is global to the VM
-    private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    protected class Warned extends ControlFlowException {
+        private static final long serialVersionUID = 6760505091509903491L;
+    }
 
-    @SuppressWarnings("unused")
-    private static volatile boolean[] sideEffect;
+    public final void warn(String message) {
+        executeWarn(message);
+    }
 
-    public void warn(String message) {
+    protected abstract void executeWarn(String message);
+
+    @Specialization(rewriteOn = Warned.class)
+    protected void warnOnce(String message,
+            @CachedContext(RubyLanguage.class) RubyContext context) throws Warned {
         // The message should be a constant, because we don't want to do anything expensive to create it
         CompilerAsserts.compilationConstant(message);
 
-        // If we've already warned from this node then don't warn again
-        if (warned) {
-            return;
-        }
-
-        // If we didn't cause the value to escape, the transfer would float above the inInterpreter
-        final boolean[] inInterpreter = new boolean[]{ CompilerDirectives.inInterpreter() };
-        sideEffect = inInterpreter;
-
         // If we're in the interpreter then don't warn
-        if (inInterpreter[0]) {
+        if (CompilerDirectives.inInterpreter()) {
             return;
         }
 
-        // This is the first time in compiled code, so transfer to the interpreter to warn and remember that we've warned
-        CompilerDirectives.transferToInterpreterAndInvalidate();
+        log(context, message);
+        throw new Warned();
+    }
 
+    @Specialization(replaces = "warnOnce")
+    protected void doNotWarn(String message) {
+        // do nothing
+    }
+
+    @TruffleBoundary
+    private void log(RubyContext context, String message) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
-        final SourceSection userSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+        final SourceSection userSourceSection = context.getCallStack().getTopMostUserSourceSection();
 
         final String displayedWarning = String.format("%s: %s",
-                getContext().fileLine(userSourceSection), message);
+                context.fileLine(userSourceSection), message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {
             RubyLanguage.LOGGER.log(Level.WARNING, displayedWarning);
         }
-
-        warned = true;
     }
 
+    // The remembered set of displayed warnings is global to the VM
+    private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 }

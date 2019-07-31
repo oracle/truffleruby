@@ -10,8 +10,8 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.keys?" do
 
-  it "returns false for an array" do
-    Truffle::Interop.keys?([1, 2, 3]).should be_false
+  it "returns true for an array" do
+    Truffle::Interop.keys?([1, 2, 3]).should be_true
   end
 
   it "returns true for a hash" do

@@ -9,8 +9,12 @@
  */
 package org.truffleruby.language.yield;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
@@ -24,7 +28,8 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
-public abstract class CallBlockNode extends RubyBaseNode {
+@GenerateUncached
+public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
 
     public static CallBlockNode create() {
         return CallBlockNodeGen.create();
@@ -42,8 +47,9 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object self,
             Object blockArgument,
             Object[] arguments,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("getBlockCallTarget(block)") RootCallTarget cachedCallTarget,
-            @Cached("createBlockCallNode(block, cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createBlockCallNode(context, block, cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
     }
@@ -55,7 +61,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object self,
             Object blockArgument,
             Object[] arguments,
-            @Cached("create()") IndirectCallNode callNode) {
+            @Cached IndirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(getBlockCallTarget(block), frameArguments);
     }
@@ -76,15 +82,15 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return Layouts.PROC.getCallTargetForType(block);
     }
 
-    protected DirectCallNode createBlockCallNode(DynamicObject block, RootCallTarget callTarget) {
+    protected DirectCallNode createBlockCallNode(RubyContext context, DynamicObject block, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || getContext().getOptions().YIELD_ALWAYS_CLONE;
+        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || context.getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();
         }
 
-        if (getContext().getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
+        if (context.getOptions().YIELD_ALWAYS_INLINE && callNode.isInlinable()) {
             callNode.forceInlining();
         }
 
@@ -92,7 +98,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().YIELD_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().YIELD_CACHE;
     }
 
 }

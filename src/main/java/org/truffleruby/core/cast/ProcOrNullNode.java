@@ -9,16 +9,27 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 
+@GenerateUncached
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ProcOrNullNode extends RubyNode {
+public abstract class ProcOrNullNode extends RubyBaseWithoutContextNode {
 
-    public abstract RubyNode getChild();
+    public static ProcOrNullNode create() {
+        return ProcOrNullNodeGen.create(null);
+    }
+
+    public abstract DynamicObject executeProcOrNull(VirtualFrame frame);
 
     public abstract DynamicObject executeProcOrNull(Object proc);
 
@@ -27,8 +38,9 @@ public abstract class ProcOrNullNode extends RubyNode {
         return null;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    public DynamicObject doNil(Object nil) {
+    @Specialization(guards = "isNil(context, nil)")
+    public DynamicObject doNil(Object nil,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         return null;
     }
 

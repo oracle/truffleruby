@@ -97,7 +97,7 @@ void rb_tr_init(void *ruby_cext) {
 
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
-  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);  
+  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
   #else
   register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
   #endif
@@ -1535,7 +1535,7 @@ void rb_ary_store(VALUE array, long index, VALUE value) {
 }
 
 VALUE rb_ary_entry(VALUE array, long index) {
-  return rb_tr_wrap(polyglot_get_array_element(rb_tr_unwrap(array), (int) index));
+  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "[]", index));
 }
 
 VALUE rb_ary_each(VALUE array) {

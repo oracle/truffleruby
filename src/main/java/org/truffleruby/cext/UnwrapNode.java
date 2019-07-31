@@ -9,11 +9,16 @@
  */
 package org.truffleruby.cext;
 
-import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
-
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
@@ -21,19 +26,12 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.ForeignAccess;
-import com.oracle.truffle.api.interop.Message;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
-@ImportStatic({ Message.class, ValueWrapperManager.class })
+@ImportStatic({ ValueWrapperManager.class })
 public abstract class UnwrapNode extends RubyBaseNode {
 
     @ImportStatic(ValueWrapperManager.class)
@@ -130,7 +128,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
-    @ImportStatic({ Message.class, ValueWrapperManager.class })
+    @ImportStatic({ ValueWrapperManager.class })
     public static abstract class ToWrapperNode extends RubyBaseNode {
 
         public abstract ValueWrapper execute(TruffleObject value);
@@ -140,17 +138,16 @@ public abstract class UnwrapNode extends RubyBaseNode {
             return value;
         }
 
-        @Specialization(guards = "!isWrapper(value)")
+        @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
         public ValueWrapper unwrapTypeCastObject(TruffleObject value,
-                @Cached("IS_POINTER.createNode()") Node isPointerNode,
-                @Cached("AS_POINTER.createNode()") Node asPointerNode,
+                @CachedLibrary("value") InteropLibrary values,
                 @Cached("create()") NativeToWrapperNode nativeToWrapperNode,
                 @Cached("create()") BranchProfile unsupportedProfile,
                 @Cached("create()") BranchProfile nonPointerProfile) {
-            if (ForeignAccess.sendIsPointer(isPointerNode, value)) {
+            if (values.isPointer(value)) {
                 long handle = 0;
                 try {
-                    handle = ForeignAccess.sendAsPointer(asPointerNode, value);
+                    handle = values.asPointer(value);
                 } catch (UnsupportedMessageException e) {
                     unsupportedProfile.enter();
                     throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
@@ -165,6 +162,10 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public static ToWrapperNode create() {
             return ToWrapperNodeGen.create();
         }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
+        }
     }
 
     public abstract Object execute(TruffleObject value);
@@ -174,17 +175,16 @@ public abstract class UnwrapNode extends RubyBaseNode {
         return value.getObject();
     }
 
-    @Specialization(guards = "!isWrapper(value)")
+    @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
     public Object unwrapTypeCastObject(TruffleObject value,
-            @Cached("IS_POINTER.createNode()") Node isPointerNode,
-            @Cached("AS_POINTER.createNode()") Node asPointerNode,
+            @CachedLibrary("value") InteropLibrary values,
             @Cached("create()") UnwrapNativeNode unwrapNativeNode,
             @Cached("create()") BranchProfile unsupportedProfile,
             @Cached("create()") BranchProfile nonPointerProfile) {
-        if (ForeignAccess.sendIsPointer(isPointerNode, value)) {
+        if (values.isPointer(value)) {
             long handle = 0;
             try {
-                handle = ForeignAccess.sendAsPointer(asPointerNode, value);
+                handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
                 unsupportedProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
@@ -194,5 +194,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
             nonPointerProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
         }
+    }
+
+    protected int getCacheLimit() {
+        return getContext().getOptions().DISPATCH_CACHE;
     }
 }

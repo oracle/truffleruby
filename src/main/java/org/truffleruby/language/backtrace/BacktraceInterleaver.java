@@ -49,7 +49,7 @@ public class BacktraceInterleaver {
         return interleaved;
     }
 
-    private static boolean isCallBoundary(StackTraceElement element) {
+    public static boolean isCallBoundary(StackTraceElement element) {
         return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy")
                 || element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
     }
