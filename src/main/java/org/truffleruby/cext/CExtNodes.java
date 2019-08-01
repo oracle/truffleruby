@@ -1540,7 +1540,7 @@ public class CExtNodes {
         }
 
         @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-        protected boolean nilPPointer(TruffleObject value,
+        protected boolean nilPPointer(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached BranchProfile unsupportedProfile,
                 @Cached BranchProfile nonPointerProfile) {

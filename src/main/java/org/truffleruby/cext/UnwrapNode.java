@@ -31,7 +31,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -148,7 +147,7 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
     @ImportStatic({ ValueWrapperManager.class })
     public static abstract class ToWrapperNode extends RubyBaseNode {
 
-        public abstract ValueWrapper execute(TruffleObject value);
+        public abstract ValueWrapper execute(Object value);
 
         @Specialization
         protected ValueWrapper wrappedValueWrapper(ValueWrapper value) {
@@ -156,7 +155,7 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         }
 
         @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-        protected ValueWrapper unwrapTypeCastObject(TruffleObject value,
+        protected ValueWrapper unwrapTypeCastObject(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode,
                 @Cached BranchProfile unsupportedProfile,
@@ -185,7 +184,7 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         }
     }
 
-    public abstract Object execute(TruffleObject value);
+    public abstract Object execute(Object value);
 
     @Specialization(guards = "!isTaggedLong(value.getHandle())")
     protected Object unwrapValueObject(ValueWrapper value) {
@@ -198,7 +197,7 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-    protected Object unwrapTypeCastObject(TruffleObject value,
+    protected Object unwrapTypeCastObject(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached UnwrapNativeNode unwrapNativeNode,

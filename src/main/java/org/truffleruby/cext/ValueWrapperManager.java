@@ -312,7 +312,7 @@ public class ValueWrapperManager {
         return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
     }
 
-    public static boolean isWrapper(TruffleObject value) {
+    public static boolean isWrapper(Object value) {
         return value instanceof ValueWrapper;
     }
 
