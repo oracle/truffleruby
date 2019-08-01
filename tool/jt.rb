@@ -533,6 +533,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
+          --revel         enable assertions, show core Ruby files in backtrace, and print un caught Java exceptions 
           --asm           show assembly
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape
@@ -699,17 +700,15 @@ module Commands
     build(*options)
   end
 
-  def run_ruby(*args)
-    env_vars = args.first.is_a?(Hash) ? args.shift : {}
-    options = args.last.is_a?(Hash) ? args.pop : {}
-
+  def ruby_options(options, args)
     raise ArgumentError, args.inspect + ' has non-String values' if args.any? { |v| not v.is_a? String }
 
-    core_load_path = true
     ruby_args = []
     vm_args = []
 
+    core_load_path = true
     experimental_options_added = false
+
     add_experimental_options = -> do
       unless experimental_options_added
         experimental_options_added = true
@@ -723,13 +722,16 @@ module Commands
         core_load_path = false
       when '--graal'
         truffleruby_compiler!
+      when '--reveal'
+        vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
+        add_experimental_options.call
+        vm_args += %w[--backtraces-hide-core-files=false]
+        args.unshift "--jexceptions"
       when '--stress'
-        truffleruby_compiler!
         vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
         vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
         vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
       when '--asm'
-        truffleruby_compiler!
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
         vm_args << JDEBUG
@@ -758,19 +760,32 @@ module Commands
         # marks rest of the options as Ruby arguments, stop parsing jt options
         break
       else
-        ruby_args.push arg
+        if arg.start_with? '-'
+          ruby_args.push arg
+        else
+          args.unshift arg
+          break
+        end
       end
     end
-
-    options[:no_print_cmd] = true if @silent
-
-    ruby_args += args
 
     if truffleruby? && core_load_path
       add_experimental_options.call
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
+    [vm_args, ruby_args, options, args]
+  end
+
+  def run_ruby(*args)
+    env_vars = args.first.is_a?(Hash) ? args.shift : {}
+    options = args.last.is_a?(Hash) ? args.pop : {}
+
+    vm_args, ruby_args, options, args = ruby_options(options, args)
+
+    options[:no_print_cmd] = true if @silent
+
+    ruby_args += args
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
   private :run_ruby
@@ -984,10 +999,8 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      truffle_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
-      truffle_args += %w[--vm.Xmx2G --jexceptions]
+      truffle_args += %w(--reveal --vm.Xmx2G)
     end
-
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
@@ -1336,27 +1349,16 @@ EOS
       options += %w[--excl-tag slow]
     end
 
-    if truffleruby?
-      if truffleruby?
-        options += %w[--vm.ea --vm.esa] unless truffleruby_native?
-        options += %w[--vm.Xmx2G]
-      end
-      # For --core-load-path and --backtraces-hide-core-files
-      options << "-T--experimental-options"
-      options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
-      # For Truffle::Interop.export specs
-      options << "-T--polyglot" unless truffleruby_native?
-      options << '-T--backtraces-hide-core-files=false'
-      options << "-T#{JDEBUG}" if args.delete('--jdebug')
-
-      if args.delete('--jexception') || args.delete('--jexceptions')
-        options << "-T--exceptions-print-uncaught-java"
-      end
-    end
-
     options += %w[--format specdoc] if ci?
 
-    run_mspec env_vars, command, *options, *args
+    vm_args, ruby_args, _, args = ruby_options(
+        {},
+        ["--reveal",
+         "--vm.Xmx2G",
+         *("--polyglot" unless truffleruby_native?)] + args)
+
+    prefixed_ruby_args = (vm_args + ruby_args).map { |v| "-T#{v}" }
+    run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
   end
   private :test_specs
 
