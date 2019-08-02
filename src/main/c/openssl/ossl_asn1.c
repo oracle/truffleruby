@@ -1159,7 +1159,8 @@ ossl_asn1prim_to_der(VALUE self)
     if (j & 0x80)
 	ossl_raise(eASN1Error, "ASN1_get_object"); /* should not happen */
 
-    return to_der_internal(self, 0, 0, rb_str_drop_bytes(str, alllen - bodylen));
+    rb_str_update(str, 0, alllen - bodylen, rb_str_new(NULL, 0));
+    return to_der_internal(self, 0, 0, str);
 }
 
 /*
