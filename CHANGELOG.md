@@ -1,3 +1,9 @@
+# 19.3.0
+
+Bug fixes:
+
+* `rb_undef_method` now works for private methods (#1731).
+
 # 19.2.0
 
 New features:
