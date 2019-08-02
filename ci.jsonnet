@@ -274,7 +274,7 @@ local part_definitions = {
     linux: {
       before_build:: [],
       after_build:: [],
-      "$.run.specs":: { test_spec_options: ["-Gci"] },
+      "$.run.specs":: { test_spec_options: ["--excl-tag", "ci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
@@ -290,7 +290,7 @@ local part_definitions = {
     darwin: {
       before_build:: [],
       after_build:: [],
-      "$.run.specs":: { test_spec_options: ["-GdarwinCI"] },
+      "$.run.specs":: { test_spec_options: ["--excl-tag", "darwinCi"] },
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
       },
