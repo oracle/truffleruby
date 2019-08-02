@@ -323,8 +323,8 @@ describe "CApiModule" do
     end
 
     it "undefines private methods also" do
-      @m.rb_undef_method @class, "initialize"
-      -> { @class.new }.should raise_error(NoMethodError)
+      @m.rb_undef_method @class, "initialize_copy"
+      -> { @class.new.dup }.should raise_error(NoMethodError)
     end
 
     it "does not raise exceptions when passed a missing name" do
