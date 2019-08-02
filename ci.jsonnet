@@ -149,7 +149,6 @@ local part_definitions = {
         GUEST_VM: "mri",
         GUEST_VM_CONFIG: "default",
         RUBY_BIN: "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
-        JT_BENCHMARK_RUBY: "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
       },
     },
 
@@ -165,7 +164,6 @@ local part_definitions = {
         GUEST_VM: "jruby",
         GUEST_VM_CONFIG: "indy",
         RUBY_BIN: "$JRUBY_HOME/bin/jruby",
-        JT_BENCHMARK_RUBY: "$JRUBY_HOME/bin/jruby",
         JRUBY_OPTS: "-Xcompile.invokedynamic=true",
       },
     },

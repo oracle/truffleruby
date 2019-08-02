@@ -43,9 +43,10 @@ It's the same command to run the benchmark, for instance:
 $ jt benchmark bench/classic/mandelbrot.rb --simple
 ```
 
-You can benchmark an entirely different implementation using the
-`JT_BENCHMARK_RUBY` environment variable.
+You can benchmark an entirely different implementation using the `--use`
+option or with `RUBY_BIN` environment variable.
 
 ```bash
-$ JT_BENCHMARK_RUBY=ruby jt benchmark bench/classic/mandelbrot.rb --simple
+$ jt --use ruby benchmark bench/classic/mandelbrot.rb --simple
+$ RUBY_BIN=ruby jt benchmark bench/classic/mandelbrot.rb --simple
 ```
