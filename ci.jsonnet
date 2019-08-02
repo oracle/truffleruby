@@ -467,7 +467,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.use.build + { timelimit: "01:00:00" },
+      local linux_gate_without_build = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
+      local linux_gate = linux_gate_without_build + $.use.build,
       local linux_gate_jvm = linux_gate + $.env.jvm,
 
       "ruby-test-specs-linux": linux_gate_jvm + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
@@ -477,7 +478,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux": linux_gate_jvm + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
+      "ruby-test-standalone-linux": linux_gate_without_build + $.env.jvm + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_compiler + $.use.truffleruby + $.run.test_compiler,
       # "ruby-test-compiler-graal-enterprise": linux_gate + $.env.jvm_ee + $.use.truffleruby + $.run.test_compiler,
