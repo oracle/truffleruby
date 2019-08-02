@@ -1203,7 +1203,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isRubyArray(copy)")
         public DynamicObject initializeFromArray(DynamicObject array, DynamicObject copy, NotProvided unusedValue, Object maybeBlock,
-                @Cached("createReplaceNode()") ReplaceNode replaceNode) {
+                @Cached ReplaceNode replaceNode) {
             replaceNode.executeReplace(array, copy);
             return array;
         }
@@ -1250,10 +1250,6 @@ public abstract class ArrayNodes {
             return toIntNode.doInt(value);
         }
 
-        protected ReplaceNode createReplaceNode() {
-            return ReplaceNodeFactory.create(null, null);
-        }
-
     }
 
     @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
@@ -1269,16 +1265,12 @@ public abstract class ArrayNodes {
 
         @Specialization
         public DynamicObject initializeCopy(DynamicObject self, DynamicObject from,
-                @Cached("createReplaceNode()") ReplaceNode replaceNode) {
+                @Cached ReplaceNode replaceNode) {
             if (self == from) {
                 return self;
             }
             replaceNode.executeReplace(self, from);
             return self;
-        }
-
-        protected ReplaceNode createReplaceNode() {
-            return ReplaceNodeFactory.create(null, null);
         }
 
     }
@@ -1784,6 +1776,10 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
+
+        public static ReplaceNode create() {
+            return ReplaceNodeFactory.create(null, null);
+        }
 
         @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 

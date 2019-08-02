@@ -1359,12 +1359,8 @@ public abstract class InteropNodes {
         @Specialization
         public Object fromJavaString(
                 Object value,
-                @Cached("createForeignToRubyNode()") ForeignToRubyNode foreignToRubyNode) {
+                @Cached ForeignToRubyNode foreignToRubyNode) {
             return foreignToRubyNode.executeConvert(value);
-        }
-
-        protected ForeignToRubyNode createForeignToRubyNode() {
-            return ForeignToRubyNodeGen.create();
         }
 
     }

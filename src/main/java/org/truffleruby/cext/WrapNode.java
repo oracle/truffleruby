@@ -39,6 +39,10 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @GenerateUncached
 public abstract class WrapNode extends RubyBaseWithoutContextNode {
 
+    public static WrapNode create() {
+        return WrapNodeGen.create();
+    }
+
     public abstract ValueWrapper execute(Object value);
 
     @Specialization

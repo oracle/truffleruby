@@ -34,6 +34,10 @@ import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 @ImportStatic({ ValueWrapperManager.class })
 public abstract class UnwrapNode extends RubyBaseNode {
 
+    public static UnwrapNode create() {
+        return UnwrapNodeGen.create();
+    }
+
     @ImportStatic(ValueWrapperManager.class)
     public static abstract class UnwrapNativeNode extends RubyBaseNode {
 

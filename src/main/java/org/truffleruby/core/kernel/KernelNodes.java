@@ -1140,7 +1140,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization(guards = "regular")
         public DynamicObject methodsRegular(Object self, boolean regular,
-                                            @Cached("createMetaClassNode()") MetaClassNode metaClassNode) {
+                                            @Cached MetaClassNode metaClassNode) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED).toArray();
@@ -1149,16 +1149,8 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "!regular")
         public DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
-                                              @Cached("createSingletonMethodsNode()") SingletonMethodsNode singletonMethodsNode) {
+                                              @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
-        }
-
-        protected MetaClassNode createMetaClassNode() {
-            return MetaClassNode.create();
-        }
-
-        protected SingletonMethodsNode createSingletonMethodsNode() {
-            return SingletonMethodsNodeFactory.create(null, null);
         }
 
     }
@@ -1538,6 +1530,10 @@ public abstract class KernelNodes {
     @NodeChild(value = "object", type = RubyNode.class)
     @NodeChild(value = "includeAncestors", type = RubyNode.class)
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
+
+        public static SingletonMethodsNode create() {
+            return SingletonMethodsNodeFactory.create(null, null);
+        }
 
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 

@@ -1374,13 +1374,10 @@ public class CExtNodes {
 
         @Specialization
         public TruffleObject wrapInt(Object value,
-                @Cached("createWrapNode()") WrapNode wrapNode) {
+                @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }
 
-        protected WrapNode createWrapNode() {
-            return WrapNodeGen.create();
-        }
     }
 
     @Primitive(name = "cext_unwrap", needsSelf = false)
@@ -1389,7 +1386,7 @@ public class CExtNodes {
         @Specialization
         public Object unwrap(TruffleObject value,
                 @Cached BranchProfile exceptionProfile,
-                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
+                @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
             if (object == null) {
                 exceptionProfile.enter();
@@ -1402,10 +1399,6 @@ public class CExtNodes {
         @TruffleBoundary
         private String exceptionMessage(Object value) {
             return String.format("native handle not found (%s)", value);
-        }
-
-        protected UnwrapNode createUnwrapNode() {
-            return UnwrapNodeGen.create();
         }
     }
 
