@@ -298,40 +298,24 @@ module Kernel
   def inspect
     prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
 
-    # The protocol here seems odd, but it's to match MRI.
-    #
-    # MRI side-calls to the C function that implements Kernel#to_s. If that
-    # method is overridden, the new Ruby method is never called. So, we inline
-    # the code for Kernel#to_s here because we simply dispatch to Ruby
-    # methods.
     ivars = Truffle.invoke_primitive :object_ivars, self
 
     if ivars.empty?
       return Truffle::Type.infect "#{prefix}>", self
     end
 
-    # Otherwise, if it's already been inspected, return the ...
+    # If it's already been inspected, return the ...
     return "#{prefix} ...>" if Thread.guarding? self
 
-    # Otherwise, gather the ivars and show them.
-    parts = []
-
-    Thread.recursion_guard self do
-      ivars.each do |var|
+    parts = Thread.recursion_guard self do
+      ivars.map do |var|
         value = Truffle.invoke_primitive :object_ivar_get, self, var
-        parts << "#{var}=#{value.inspect}"
+        "#{var}=#{value.inspect}"
       end
     end
 
-    if parts.empty?
-      str = "#{prefix}>"
-    else
-      str = "#{prefix} #{parts.join(', ')}>"
-    end
-
-    Truffle::Type.infect(str, self)
-
-    str
+    str = "#{prefix} #{parts.join(', ')}>"
+    Truffle::Type.infect str, self
   end
 
   def load(filename, wrap = false)
