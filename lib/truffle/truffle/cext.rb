@@ -1298,7 +1298,7 @@ module Truffle::CExt
   end
 
   def rb_undef(mod, name)
-    if mod.frozen? or mod.method_defined?(name)
+    if mod.frozen? or mod.method_defined?(name) or mod.private_method_defined?(name)
       mod.send(:undef_method, name)
     end
   end
