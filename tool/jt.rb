@@ -900,7 +900,7 @@ module Commands
       # because it cannot find the correct home.
       home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby"
       mx 'unittest', home, *tests
-    when 'tck' then mx 'tck', *args[1..-1]
+    when 'tck' then mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
