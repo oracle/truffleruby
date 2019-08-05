@@ -304,15 +304,8 @@ local part_definitions = {
       },
     },
     darwin: {
-      # Only set LLVM bin on PATH during "mx build" as Sulong needs it.
-      # Unset it for everything else to test how end-user might run TruffleRuby.
-      before_build:: [
-        ["set-export", "PATH_WITHOUT_LLVM", "$PATH"],
-        ["set-export", "PATH", "/usr/local/opt/llvm@4/bin:$PATH"],
-      ],
-      after_build:: [
-        ["set-export", "PATH", "$PATH_WITHOUT_LLVM"],
-      ],
+      before_build:: [],
+      after_build:: [],
       "$.run.specs":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
