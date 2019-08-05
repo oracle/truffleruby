@@ -171,7 +171,7 @@ module Utilities
     return @ruby_launcher if defined? @ruby_launcher
 
     @ruby_name ||= ENV['RUBY_BIN'] || "jvm"
-    @ruby_launcher = if @ruby_name == "PATH"
+    @ruby_launcher = if @ruby_name == "ruby"
                        ENV["RBENV_ROOT"] ? `rbenv which ruby`.chomp : which("ruby")
                      elsif File.exist?(@ruby_name) && File.executable?(@ruby_name)
                        @ruby_name
@@ -501,7 +501,7 @@ module Commands
                                     options based on the given Ruby interpreter. Allowed values are:
                                     * name given to the --name option during build
                                     * absolute path of a Ruby interpreter
-                                    * 'PATH' will cause jt to pick a current Ruby interpreter available in environment variable PATH
+                                    * 'ruby' which uses the current Ruby executable in the PATH
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`   
           --silent                  Does not print the command and which Ruby is used
