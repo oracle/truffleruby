@@ -173,7 +173,7 @@ module Utilities
     @ruby_name ||= ENV['RUBY_BIN'] || "jvm"
     @ruby_launcher = if @ruby_name == "ruby"
                        ENV["RBENV_ROOT"] ? `rbenv which ruby`.chomp : which("ruby")
-                     elsif File.exist?(@ruby_name) && File.executable?(@ruby_name)
+                     elsif File.executable?(@ruby_name)
                        @ruby_name
                      else
                        "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/jre/languages/ruby/bin/ruby"
