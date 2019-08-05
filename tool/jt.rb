@@ -20,11 +20,10 @@ require 'yaml'
 require 'rbconfig'
 require 'pathname'
 
-if RUBY_ENGINE != 'ruby'
-  unless RUBY_DESCRIPTION.include? 'Native'
-    $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
-    $stderr.puts '  Consider using alias to run on ruby of your choice.'
-  end
+if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
+  $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
+  $stderr.puts '  Consider using following bash alias to run on MRI.'
+  $stderr.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
 end
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
