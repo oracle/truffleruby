@@ -104,7 +104,7 @@ local part_definitions = {
       },
     },
 
-    enterprise: {
+    clone_enterprise: {
       is_before_optional:: ["$.use.build"],
       setup+:
         # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
@@ -120,15 +120,10 @@ local part_definitions = {
           ["git", "clone", url, repo],
           ["git", "-C", repo, "checkout", graal_enterprise_commit],
         ],
-
-      environment+: {
-        HOST_VM: "server",
-        HOST_VM_CONFIG: "graal-enterprise",
-      },
     },
 
     without_om: {
-      is_after+:: ["$.use.enterprise", "$.use.common"],
+      is_after+:: ["$.use.clone_enterprise", "$.use.common"],
       environment+: {
         HOST_VM_CONFIG+: "-no-om",
         java_opts+::
@@ -185,7 +180,7 @@ local part_definitions = {
       },
     },
     jvm_ee: {
-      is_after+:: ["$.use.enterprise"],
+      is_after+:: ["$.use.clone_enterprise"],
       mx_env:: "jvm-ee",
       environment+: {
         HOST_VM: "server",
@@ -208,7 +203,7 @@ local part_definitions = {
       },
     } + svm,
     native_ee: {
-      is_after+:: ["$.use.enterprise"],
+      is_after+:: ["$.use.clone_enterprise"],
       mx_env:: "native-ee",
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
@@ -506,7 +501,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-graal-core-linux": $.platform.linux + svm_test_shared + shared,
       "ruby-test-svm-graal-core-darwin": $.platform.darwin + svm_test_shared + shared,
     } + {
-      local shared = $.use.enterprise + $.env.native_ee + { timelimit: "01:15:00" },
+      local shared = $.use.clone_enterprise + $.env.native_ee + { timelimit: "01:15:00" },
 
       "ruby-test-svm-graal-enterprise-linux": $.platform.linux + svm_test_shared + shared + {
         "$.svm.gate":: {
@@ -532,14 +527,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
 
     "graal-core": shared + $.env.jvm_ce,
-    "graal-enterprise": $.use.enterprise + shared + $.env.jvm_ee,
-    "graal-enterprise-no-om": $.use.enterprise + shared + $.env.jvm_ee + $.use.without_om,
+    "graal-enterprise": $.use.clone_enterprise + shared + $.env.jvm_ee,
+    "graal-enterprise-no-om": $.use.clone_enterprise + shared + $.env.jvm_ee + $.use.without_om,
   },
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
 
     "svm-graal-core": shared + $.env.native,
-    "svm-graal-enterprise": $.use.enterprise + shared + $.env.native_ee,
+    "svm-graal-enterprise": $.use.clone_enterprise + shared + $.env.native_ee,
   },
 
   bench_builds:
