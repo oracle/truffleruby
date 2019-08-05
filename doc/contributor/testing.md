@@ -26,7 +26,7 @@ to test at the Ruby level.
 
 Java unit tests live in `src/test/java/org/truffleruby`.
 
-To run Java unit tests run `jt test unittest` or `mx unittest org.truffleruby`.
+To run Java unit tests run `jt test unittest`.
 
 ### TCK
 
