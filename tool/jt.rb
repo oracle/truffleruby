@@ -49,7 +49,7 @@ RUBOCOP_INCLUDE_LIST = %w[
 ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
 ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
-LIB_EXTENSION = ON_MAC ? 'dylib' : 'so'
+SOEXT = ON_MAC ? 'dylib' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -1119,10 +1119,10 @@ module Commands
         # Test that we can compile and run some basic C code that uses openssl
         if ENV['OPENSSL_PREFIX']
           openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{LIB_EXTENSION}"
+          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SOEXT}"
         else
           openssl_cflags = []
-          openssl_lib = "libssl.#{LIB_EXTENSION}"
+          openssl_lib = "libssl.#{SOEXT}"
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
