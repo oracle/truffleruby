@@ -75,7 +75,7 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
     public String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("create()") BranchProfile errorProfile,
+            @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toStr) {
         final Object coerced;
 

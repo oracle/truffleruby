@@ -29,13 +29,13 @@ public abstract class ForeignToRubyNode extends RubyBaseWithoutContextNode {
 
     @Specialization
     public DynamicObject convertCharacterCached(char value,
-            @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+            @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
     }
 
     @Specialization
     public DynamicObject convertStringCached(String value,
-            @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+            @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(value);
     }
 

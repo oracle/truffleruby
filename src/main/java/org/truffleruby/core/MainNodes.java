@@ -63,7 +63,7 @@ public abstract class MainNodes {
 
         @Specialization(guards = "isRubyModule(refinementModule)")
         public DynamicObject mainUsing(DynamicObject refinementModule,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("main.using is permitted only at toplevel", this));

@@ -168,7 +168,7 @@ public class CExtNodes {
 
         @Specialization
         public Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
-                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
 
@@ -187,9 +187,9 @@ public class CExtNodes {
         public Object callCWithoutMutex(
                 TruffleObject receiver,
                 DynamicObject argsArray,
-                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached BranchProfile exceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -439,7 +439,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         public Object dbl2big(double num,
-                              @Cached("create()") BranchProfile errorProfile) {
+                              @Cached BranchProfile errorProfile) {
             if (Double.isInfinite(num)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
@@ -460,7 +460,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rb_class_of(Object object,
-                                      @Cached("create()") MetaClassNode metaClassNode) {
+                                      @Cached MetaClassNode metaClassNode) {
             return metaClassNode.executeMetaClass(object);
         }
 
@@ -495,7 +495,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject clearCodeRange(DynamicObject string,
-                @Cached("create()") StringToNativeNode stringToNativeNode) {
+                @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
             nativeRope.clearCodeRange();
             StringOperations.setRope(string, nativeRope);
@@ -510,11 +510,11 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
-                @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
             final CodeRange ropeCodeRange = codeRangeNode.execute(rope);
@@ -547,7 +547,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rbStrNewNul(int byteLength,
-                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
 
             return makeStringNode.fromRope(rope);
@@ -560,7 +560,7 @@ public class CExtNodes {
 
         @Specialization
         public long capacity(DynamicObject string,
-                @Cached("create()") StringToNativeNode stringToNativeNode) {
+                @Cached StringToNativeNode stringToNativeNode) {
             return stringToNativeNode.executeToNative(string).getCapacity();
         }
 
@@ -571,7 +571,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject strSetLen(DynamicObject string, int newByteLength,
-                @Cached("create()") StringToNativeNode stringToNativeNode,
+                @Cached StringToNativeNode stringToNativeNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
@@ -598,7 +598,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rbStrResize(DynamicObject string, int newByteLength,
-                @Cached("create()") StringToNativeNode stringToNativeNode) {
+                @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             if (nativeRope.byteLength() == newByteLength) {
@@ -622,7 +622,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject block(VirtualFrame frame,
-                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }
     }
@@ -693,7 +693,7 @@ public class CExtNodes {
 
         @Specialization
         public Object rbConstSet(DynamicObject module, String name, Object value,
-                @Cached("create()") ConstSetNode constSetNode) {
+                @Cached ConstSetNode constSetNode) {
             return constSetNode.setConstantNoCheckName(module, name, value);
         }
 
@@ -972,9 +972,9 @@ public class CExtNodes {
         @Specialization(guards = "isRubyString(string)")
         protected NativeRope toNative(DynamicObject string,
                 @Cached("createBinaryProfile()") ConditionProfile convertProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached RopeNodes.CodeRangeNode codeRangeNode) {
             final Rope currentRope = rope(string);
 
             final NativeRope nativeRope;
@@ -1000,7 +1000,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public long toNative(DynamicObject string,
-                @Cached("create()") StringToNativeNode stringToNativeNode) {
+                @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return nativeRope.getNativePointer().getAddress();
@@ -1013,8 +1013,8 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject toNative(DynamicObject string,
-                                      @Cached("create()") StringToNativeNode stringToNativeNode,
-                                      @Cached("create()") AllocateObjectNode allocateObjectNode) {
+                                      @Cached StringToNativeNode stringToNativeNode,
+                                      @Cached AllocateObjectNode allocateObjectNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return allocateObjectNode.allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
@@ -1039,7 +1039,7 @@ public class CExtNodes {
         public Object read(DynamicObject string, int index,
                 @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile inBoundsProfile,
-                @Cached("create()") RopeNodes.GetByteNode getByteNode) {
+                @Cached RopeNodes.GetByteNode getByteNode) {
             final Rope rope = rope(string);
 
             if (nativeRopeProfile.profile(rope instanceof NativeRope) || inBoundsProfile.profile(index < rope.byteLength())) {
@@ -1057,7 +1057,7 @@ public class CExtNodes {
         @Specialization(guards = "isRubyString(string)")
         public int write(DynamicObject string, int index, int value,
                 @Cached("createBinaryProfile()") ConditionProfile newRopeProfile,
-                @Cached("create()") RopeNodes.SetByteNode setByteNode) {
+                @Cached RopeNodes.SetByteNode setByteNode) {
             final Rope rope = rope(string);
 
             final Rope newRope = setByteNode.executeSetByte(rope, index, value);
@@ -1172,8 +1172,8 @@ public class CExtNodes {
 
         @Specialization
         public TruffleObject executeWithProtect(DynamicObject block,
-                                                @Cached("create()") BranchProfile exceptionProfile,
-                                                @Cached("create()") BranchProfile noExceptionProfile) {
+                                                @Cached BranchProfile exceptionProfile,
+                                                @Cached BranchProfile noExceptionProfile) {
             try {
                 yield(block);
                 noExceptionProfile.enter();
@@ -1298,7 +1298,7 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode,
+                @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1334,7 +1334,7 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
-                @Cached("create()") RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
@@ -1374,13 +1374,10 @@ public class CExtNodes {
 
         @Specialization
         public TruffleObject wrapInt(Object value,
-                @Cached("createWrapNode()") WrapNode wrapNode) {
+                @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }
 
-        protected WrapNode createWrapNode() {
-            return WrapNodeGen.create();
-        }
     }
 
     @Primitive(name = "cext_unwrap", needsSelf = false)
@@ -1388,8 +1385,8 @@ public class CExtNodes {
 
         @Specialization
         public Object unwrap(TruffleObject value,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
+                @Cached BranchProfile exceptionProfile,
+                @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
             if (object == null) {
                 exceptionProfile.enter();
@@ -1402,10 +1399,6 @@ public class CExtNodes {
         @TruffleBoundary
         private String exceptionMessage(Object value) {
             return String.format("native handle not found (%s)", value);
-        }
-
-        protected UnwrapNode createUnwrapNode() {
-            return UnwrapNodeGen.create();
         }
     }
 
@@ -1431,9 +1424,9 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") BranchProfile noExceptionProfile,
-                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+                @Cached BranchProfile exceptionProfile,
+                @Cached BranchProfile noExceptionProfile,
+                @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
@@ -1460,9 +1453,9 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject addToMarkList(VirtualFrame frame, TruffleObject guardedObject,
-                @Cached("create()") MarkingServiceNodes.KeepAliveNode keepAliveNode,
-                @Cached("create()") BranchProfile noExceptionProfile,
-                @Cached("create()") UnwrapNode.ToWrapperNode toWrapperNode) {
+                @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
+                @Cached BranchProfile noExceptionProfile,
+                @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(guardedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
@@ -1506,7 +1499,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 addObjectToMarkingService(object, marker);
                 return nil();
@@ -1535,7 +1528,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject pushFrame(DynamicObject block,
-                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
             return nil();
         }
@@ -1546,7 +1539,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject popFrame(
-                @Cached("create()") MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
             return nil();
         }

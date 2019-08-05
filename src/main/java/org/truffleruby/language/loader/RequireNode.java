@@ -72,9 +72,9 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @Specialization
     protected boolean require(String feature,
-            @Cached("create()") BranchProfile notFoundProfile,
+            @Cached BranchProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
-            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            @Cached StringNodes.MakeStringNode makeStringNode) {
         final String expandedPath = getContext().getFeatureLoader().findFeature(feature);
 
         if (expandedPath == null) {

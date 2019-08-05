@@ -208,7 +208,7 @@ public abstract class BindingNodes {
 
         @Specialization(guards = "!isHiddenVariable(name)")
         public Object localVariableGetUncached(DynamicObject binding, String name,
-                @Cached("create(null)") FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
+                @Cached FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = getFrame(binding);
             Object result = readNode.execute(frame, name);
             if (result == null) {
@@ -362,7 +362,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization
         public Object sourceLocation(DynamicObject binding,
-                @Cached("create()") MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
 
             if (sourceSection == null) {

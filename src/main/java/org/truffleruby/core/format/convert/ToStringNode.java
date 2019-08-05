@@ -81,7 +81,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = "isRubyString(string)")
     public byte[] toStringString(VirtualFrame frame, DynamicObject string,
-            @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            @Cached RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
         }
@@ -103,7 +103,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = "isRubyArray(array)")
     public byte[] toString(VirtualFrame frame, DynamicObject array,
-            @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(CallDispatchHeadNode.createReturnMissing());
@@ -124,7 +124,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
     public byte[] toString(VirtualFrame frame, Object object,
-            @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            @Cached RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {

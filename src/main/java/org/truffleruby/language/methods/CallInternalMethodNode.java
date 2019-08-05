@@ -42,7 +42,7 @@ public abstract class CallInternalMethodNode extends RubyBaseWithoutContextNode 
 
     @Specialization(replaces = "callMethodCached")
     protected Object callMethodUncached(InternalMethod method, Object[] frameArguments,
-            @Cached("create()") IndirectCallNode indirectCallNode) {
+            @Cached IndirectCallNode indirectCallNode) {
         return indirectCallNode.call(method.getCallTarget(), frameArguments);
     }
 

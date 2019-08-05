@@ -53,7 +53,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     public DynamicObject read(VirtualFrame frame, byte[] source,
-                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                              @Cached StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 
         int length;

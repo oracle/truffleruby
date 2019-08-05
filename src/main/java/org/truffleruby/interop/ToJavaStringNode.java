@@ -50,7 +50,7 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     String stringCached(DynamicObject value,
             @Cached("privatizeRope(value)") Rope cachedRope,
             @Cached("getString(value)") String convertedString,
-            @Cached("create()") RopeNodes.EqualNode equalsNode) {
+            @Cached RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }
 

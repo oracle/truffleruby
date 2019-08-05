@@ -30,8 +30,8 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().NOT",
     }, assumptions = "assumptions", limit = "1")
     boolean not(VirtualFrame frame, Object self,
-            @Cached("create()") LookupMethodNode lookupNode,
-            @Cached("create()") BooleanCastNode booleanCastNode) {
+            @Cached LookupMethodNode lookupNode,
+            @Cached BooleanCastNode booleanCastNode) {
         return !booleanCastNode.executeToBoolean(self);
     }
 

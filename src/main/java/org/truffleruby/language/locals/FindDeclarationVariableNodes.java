@@ -113,5 +113,9 @@ public class FindDeclarationVariableNodes {
         public static FindAndReadDeclarationVariableNode create(Object defaultValue) {
             return FindAndReadDeclarationVariableNodeGen.create(defaultValue);
         }
+
+        public static FindAndReadDeclarationVariableNode create() {
+            return FindAndReadDeclarationVariableNodeGen.create(null);
+        }
     }
 }

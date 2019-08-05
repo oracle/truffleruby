@@ -30,7 +30,7 @@ public abstract class RubyToForeignNode extends RubyBaseWithoutContextNode {
 
     @Specialization(guards = "isRubySymbol(value) || isRubyString(value)")
     public String convertString(DynamicObject value,
-            @Cached("create()") ToJavaStringNode toJavaStringNode) {
+            @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 

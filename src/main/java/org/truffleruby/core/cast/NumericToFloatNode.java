@@ -42,7 +42,7 @@ public abstract class NumericToFloatNode extends RubyBaseNode {
 
     @Specialization(guards = "isNumeric(frame, value)")
     protected double castNumeric(VirtualFrame frame, DynamicObject value,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         final Object result = callToFloat(value);
 
         if (result instanceof Double) {

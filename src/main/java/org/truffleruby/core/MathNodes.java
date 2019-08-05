@@ -464,7 +464,7 @@ public abstract class MathNodes {
 
         @Specialization
         public double function(Object a, NotProvided b,
-                        @Cached("create()") ToFNode toFNode) {
+                        @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));

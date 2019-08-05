@@ -163,7 +163,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
-                @Cached("create()") LookupPackedEntryNode lookupPackedEntryNode,
+                @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -174,7 +174,7 @@ public abstract class HashNodes {
         @Specialization(guards = "isBucketHash(hash)")
         public Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached("new()") LookupEntryNode lookupEntryNode,
-                @Cached("create()") BranchProfile notInHashProfile) {
+                @Cached BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
             if (hashLookupResult.getEntry() != null) {
@@ -269,7 +269,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
         DynamicObject compareByIdentity(DynamicObject hash,
-                @Cached("create()") InternalRehashNode internalRehashNode) {
+                @Cached InternalRehashNode internalRehashNode) {
             Layouts.HASH.setCompareByIdentity(hash, true);
             return internalRehashNode.executeRehash(hash);
         }
@@ -516,7 +516,7 @@ public abstract class HashNodes {
 
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
-                                        @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                                        @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
             propagateSharingNode.propagate(hash, block);
@@ -526,7 +526,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "wasProvided(defaultValue)")
         public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
-                                        @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                                        @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.propagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
@@ -613,7 +613,7 @@ public abstract class HashNodes {
         @Specialization(guards = "!isRubyHash(other)")
         public DynamicObject replaceCoerce(DynamicObject self, Object other,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
-                @Cached("create()") InitializeCopyNode initializeCopyNode) {
+                @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to", other,
                     coreLibrary().getHashClass(), coreStrings().TO_HASH.getSymbol());
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
@@ -641,7 +641,7 @@ public abstract class HashNodes {
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
         public DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
-                        @Cached("create()") ArrayBuilderNode arrayBuilderNode) {
+                        @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -668,7 +668,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isBucketHash(hash)")
         public DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
-                        @Cached("create()") ArrayBuilderNode arrayBuilderNode) {
+                        @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final int length = Layouts.HASH.getSize(hash);
@@ -701,7 +701,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isRubyProc(defaultProc)")
         public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
-                                            @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                                            @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultProc);
 
             Layouts.HASH.setDefaultValue(hash, nil());
@@ -723,7 +723,7 @@ public abstract class HashNodes {
 
         @Specialization
         public Object setDefault(DynamicObject hash, Object defaultValue,
-                                 @Cached("create()") PropagateSharingNode propagateSharingNode) {
+                                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultValue);
 
             Layouts.HASH.setDefaultValue(hash, defaultValue);
@@ -963,7 +963,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
         public DynamicObject rehashNotIdentity(DynamicObject hash,
-                @Cached("create()") InternalRehashNode internalRehashNode) {
+                @Cached InternalRehashNode internalRehashNode) {
             return internalRehashNode.executeRehash(hash);
         }
 

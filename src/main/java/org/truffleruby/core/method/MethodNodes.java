@@ -71,7 +71,7 @@ public abstract class MethodNodes {
 
         @Specialization(guards = "isRubyMethod(b)")
         public boolean equal(VirtualFrame frame, DynamicObject a, DynamicObject b,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(Layouts.METHOD.getReceiver(a), Layouts.METHOD.getReceiver(b)) &&
                     Layouts.METHOD.getMethod(a).getDeclaringModule() == Layouts.METHOD.getMethod(b).getDeclaringModule() &&
                     MethodNodes.areInternalMethodEqual(Layouts.METHOD.getMethod(a), Layouts.METHOD.getMethod(b));

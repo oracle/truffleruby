@@ -782,7 +782,7 @@ public abstract class IntegerNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         public Object equal(VirtualFrame frame, Object a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode reverseCallNode,
-                @Cached("create()") BooleanCastNode booleanCastNode) {
+                @Cached BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
             return booleanCastNode.executeToBoolean(reversedResult);
         }
@@ -1178,7 +1178,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         public Object leftShift(DynamicObject a, DynamicObject b,
-                @Cached("create()") ToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
             if (bBigInt.signum() == -1) {
                 return 0;
@@ -1190,7 +1190,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         public Object leftShiftCoerced(Object a, Object b,
-                @Cached("create()") ToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             return executeLeftShift(a, toIntNode.doInt(b));
         }
 
@@ -1297,7 +1297,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         public Object rightShiftCoerced(Object a, Object b,
-                @Cached("create()") ToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             return executeRightShift(a, toIntNode.doInt(b));
         }
 
@@ -1627,8 +1627,8 @@ public abstract class IntegerNodes {
         }, limit = "getLimit()")
         public Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
-                @Cached("create()") BranchProfile overflowProfile,
-                @Cached("create()") MulNode mulNode) {
+                @Cached BranchProfile overflowProfile,
+                @Cached MulNode mulNode) {
             Object result = 1;
             int exp = cachedExponent;
             while (exp > 0) {
@@ -1651,8 +1651,8 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = { "isIntOrLong(base)", "exponent >= 0" })
         public Object powLoop(Object base, long exponent,
-                @Cached("create()") BranchProfile overflowProfile,
-                @Cached("create()") MulNode mulNode) {
+                @Cached BranchProfile overflowProfile,
+                @Cached MulNode mulNode) {
             Object result = 1;
             long exp = exponent;
             while (exp > 0) {

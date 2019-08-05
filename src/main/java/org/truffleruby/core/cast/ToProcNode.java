@@ -40,7 +40,7 @@ public abstract class ToProcNode extends RubyNode {
     @Specialization(guards = "!isRubyProc(object)")
     public DynamicObject doObject(VirtualFrame frame, Object object,
             @Cached("createPrivate()") CallDispatchHeadNode toProc,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {
             coerced = toProc.dispatch(frame, object, "to_proc", null, EMPTY_ARGUMENTS);

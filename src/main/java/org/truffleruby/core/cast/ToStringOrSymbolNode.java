@@ -42,7 +42,7 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isRubyString(object)" })
     public DynamicObject coerceObject(VirtualFrame frame, Object object,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {
             coerced = callToStr(object);

@@ -132,8 +132,8 @@ public abstract class TruffleRopesNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject flattenRope(DynamicObject string,
-                                         @Cached("create()") RopeNodes.FlattenNode flattenNode,
-                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                         @Cached RopeNodes.FlattenNode flattenNode,
+                                         @Cached StringNodes.MakeStringNode makeStringNode) {
 
             final Rope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
 
@@ -152,7 +152,7 @@ public abstract class TruffleRopesNodes {
 
         @Specialization
         public DynamicObject createSimpleString(
-                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(new AsciiOnlyLeafRope(new byte[]{'t', 'e', 's', 't'}, UTF8Encoding.INSTANCE));
         }
 

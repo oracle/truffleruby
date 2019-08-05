@@ -70,7 +70,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(file)")
         public boolean load(DynamicObject file, boolean wrap,
-                @Cached("create()") IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode) {
             if (wrap) {
                 throw new UnsupportedOperationException();
             }

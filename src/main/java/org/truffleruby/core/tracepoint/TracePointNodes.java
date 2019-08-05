@@ -55,7 +55,7 @@ public abstract class TracePointNodes {
 
         @Specialization
         public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
-                @Cached("create()") ArrayToObjectArrayNode arrayToObjectArrayNode) {
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
             final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
@@ -216,7 +216,7 @@ public abstract class TracePointNodes {
 
         @Specialization
         public DynamicObject methodId(DynamicObject tracePoint,
-                @Cached("create()") MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
             final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
             return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);

@@ -39,11 +39,15 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @GenerateUncached
 public abstract class WrapNode extends RubyBaseWithoutContextNode {
 
+    public static WrapNode create() {
+        return WrapNodeGen.create();
+    }
+
     public abstract ValueWrapper execute(Object value);
 
     @Specialization
     public ValueWrapper wrapLong(long value,
-            @Cached("create()") BranchProfile smallFixnumProfile,
+            @Cached BranchProfile smallFixnumProfile,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
@@ -86,7 +90,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     public ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
-            @Cached("create()") BranchProfile noHandleProfile,
+            @Cached BranchProfile noHandleProfile,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {

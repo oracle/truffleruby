@@ -142,7 +142,7 @@ public abstract class EncodingNodes {
                 @Cached("first.getCodeRange()") CodeRange firstCodeRange,
                 @Cached("second.getCodeRange()") CodeRange secondCodeRange,
                 @Cached("negotiateRopeRopeUncached(first, second)") Encoding negotiatedEncoding,
-                @Cached("create()") RopeNodes.CodeRangeNode codeRangeNode) {
+                @Cached RopeNodes.CodeRangeNode codeRangeNode) {
             return negotiatedEncoding;
         }
 
@@ -221,7 +221,7 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = { "isRubyString(first)", "isRubyString(second)" })
         protected Encoding negotiateStringStringEncoding(DynamicObject first, DynamicObject second,
-                @Cached("create()") NegotiateCompatibleRopeEncodingNode ropeNode) {
+                @Cached NegotiateCompatibleRopeEncodingNode ropeNode) {
             return ropeNode.executeNegotiate(
                     StringOperations.rope(first),
                     StringOperations.rope(second));
@@ -394,7 +394,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         public DynamicObject localeCharacterMap(
-                @Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached GetRubyEncodingNode getRubyEncodingNode) {
             final DynamicObject rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(getContext().getEncodingManager().getLocaleEncoding());
 
             return Layouts.ENCODING.getName(rubyEncoding);
@@ -481,8 +481,8 @@ public abstract class EncodingNodes {
 
         @Specialization
         public DynamicObject getActualEncoding(DynamicObject string,
-                @Cached("create()") GetActualEncodingNode getActualEncodingNode,
-                @Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
+                @Cached GetActualEncodingNode getActualEncodingNode,
+                @Cached GetRubyEncodingNode getRubyEncodingNode) {
             final Rope rope = StringOperations.rope(string);
             final Encoding actualEncoding = getActualEncodingNode.execute(rope);
 
@@ -736,7 +736,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         public Encoding checkEncoding(Rope first, Rope second,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
@@ -763,7 +763,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         public Encoding checkEncoding(Object first, Object second,
-                                      @Cached("create()") BranchProfile errorProfile) {
+                                      @Cached BranchProfile errorProfile) {
             final Encoding negotiatedEncoding = executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {

@@ -264,7 +264,7 @@ public abstract class RegexpNodes {
 
         @Specialization
         public DynamicObject source(DynamicObject regexp,
-                                    @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                    @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.REGEXP.getSource(regexp));
         }
 
@@ -437,8 +437,8 @@ public abstract class RegexpNodes {
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") TruffleRegexpNodes.MatchNode matchNode) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleRegexpNodes.MatchNode matchNode) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0);
 

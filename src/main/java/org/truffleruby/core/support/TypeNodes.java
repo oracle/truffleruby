@@ -77,7 +77,7 @@ public abstract class TypeNodes {
 
         @Specialization
         public boolean objectEqual(Object a, Object b,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
         }
 
@@ -208,7 +208,7 @@ public abstract class TypeNodes {
 
         @Specialization
         public DynamicObject toS(Object obj,
-                @Cached("create()") ToSNode kernelToSNode) {
+                @Cached ToSNode kernelToSNode) {
             return kernelToSNode.executeToS(obj);
         }
 

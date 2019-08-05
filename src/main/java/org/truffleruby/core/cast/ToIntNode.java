@@ -94,13 +94,13 @@ public abstract class ToIntNode extends RubyNode {
 
     @Specialization
     public Object coerceBoolean(boolean value,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         return coerceObject(value, errorProfile);
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
     public Object coerceBasicObject(DynamicObject object,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile) {
         return coerceObject(object, errorProfile);
     }
 
