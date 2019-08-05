@@ -1865,7 +1865,7 @@ EOS
   end
 
   def build_graalvm(*options)
-    raise "use --env jvm-compiler instead" if options.delete('--graal')
+    raise "use --env jvm-ce instead" if options.delete('--graal')
     raise "use --env native instead" if options.delete('--native')
 
     @building = true

@@ -177,8 +177,8 @@ local part_definitions = {
         HOST_VM_CONFIG: "default",
       },
     },
-    jvm_compiler: {
-      mx_env:: "jvm-compiler",
+    jvm_ce: {
+      mx_env:: "jvm-ce",
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-core",
@@ -478,7 +478,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux": linux_gate_without_build + $.env.jvm + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
-      "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_compiler + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_ce + $.use.truffleruby + $.run.test_compiler,
       # "ruby-test-compiler-graal-enterprise": linux_gate + $.env.jvm_ee + $.use.truffleruby + $.run.test_compiler,
     } +
 
@@ -531,7 +531,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   local graal_configurations = {
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
 
-    "graal-core": shared + $.env.jvm_compiler,
+    "graal-core": shared + $.env.jvm_ce,
     "graal-enterprise": $.use.enterprise + shared + $.env.jvm_ee,
     "graal-enterprise-no-om": $.use.enterprise + shared + $.env.jvm_ee + $.use.without_om,
   },
@@ -644,7 +644,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-cext":
         $.platform.linux + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
-        $.env.jvm_compiler + $.use.build + $.use.gem_test_pack +
+        $.env.jvm_ce + $.use.build + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "02:00:00" },
