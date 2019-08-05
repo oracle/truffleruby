@@ -766,7 +766,7 @@ module Commands
       end
     end
 
-    if truffleruby? && core_load_path
+    if core_load_path && truffleruby? && !truffleruby_native?
       add_experimental_options.call
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
