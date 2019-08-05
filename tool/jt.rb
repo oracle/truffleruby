@@ -509,10 +509,9 @@ module Commands
         jt build [parser|options] [options]
             parser                            build the parser
             options                           build the options
-            --no-sforceimports                do not run sforceimports before building
         jt build graalvm [options] [mx_options] [-- mx_build_options]
             graalvm                           build a GraalVM based on the given env file, the default is a minimal 
-                                              GraalVM with JVM and Truffleruby only available by in mxbuild/truffleruby-jvm, 
+                                              GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm, 
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
               --no-sforceimports              do not run sforceimports before building
@@ -532,7 +531,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --revel         enable assertions, show core Ruby files in backtrace, and print un caught Java exceptions 
+          --reveal        enable assertions, show core Ruby files in backtrace, and print un caught Java exceptions 
           --asm           show assembly
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape
