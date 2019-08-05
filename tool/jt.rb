@@ -181,13 +181,13 @@ module Utilities
     raise "The Ruby executable #{@ruby_launcher} does not exist" unless File.exist?(@ruby_launcher)
     raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
 
-    # any subprocess using jt should use what was picked here
-    ENV['RUBY_BIN'] = @ruby_launcher
-
-    $stderr.puts <<~STR unless @silent
-      Using Ruby: #{ruby_version}
-            from: #{@ruby_launcher}
-    STR
+    unless @silent
+      shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/jre/languages/ruby$], '')
+      tags = [truffleruby? ? 'TruffleRuby' : 'a Ruby',
+              *('Native' if truffleruby_native?),
+              *("with Graal" if truffleruby_compiler?)]
+      $stderr.puts "Using #{tags.join(' ')}: #{shortened_path} "
+    end
 
     @ruby_launcher
   end
@@ -199,29 +199,38 @@ module Utilities
   end
 
   def truffleruby_compiler!
-    if truffleruby_interpreted?
-      raise "The ruby executable #{ruby_launcher} does not have Graal.\nTry to use `jt build --graal`."
+    unless truffleruby_compiler?
+      raise "The ruby executable #{ruby_launcher} does not have Graal.\nUse `jt build --env jvm-ce` and `jt --use jvm-ce <command> ...`."
     end
   end
 
   def truffleruby_native?
-    truffleruby? && ruby_version.include?('Native')
+    return @truffleruby_native unless @truffleruby_native.nil?
+    # the truffleruby executable is bigger than 10MB if it is native executor
+    # the executable delegator for mac has less than 1MB
+    @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
   end
 
-  def truffleruby_interpreted?
-    truffleruby? && ruby_version.include?('Interpreted')
+  def truffleruby_compiler?
+    return @truffleruby_compiler unless @truffleruby_compiler.nil?
+
+    truffleruby? or return @truffleruby_compiler = false
+    # it has to have graal.jar in gvm-dir/jre/lib/jvmci
+    graal_jar_path = File.expand_path(File.join(File.dirname(ruby_launcher), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
+    return @truffleruby_compiler = File.exist?(graal_jar_path)
   end
 
   def truffleruby?
-    ruby_version.include? 'truffleruby'
+    # only truffleruby has sibling truffleruby executable
+    @truffleruby ||= File.executable?(truffleruby_launcher_path)
+  end
+
+  def truffleruby_launcher_path
+    @truffleruby_launcher_path ||= ruby_launcher.gsub(%r[/ruby$], '/truffleruby')
   end
 
   def truffleruby!
     raise "This command requires TruffleRuby." unless truffleruby?
-  end
-
-  def ruby_version
-    @ruby_version ||= `#{ruby_launcher} --version`.chomp
   end
 
   def find_repo(name)
@@ -334,8 +343,9 @@ module Utilities
   end
 
   def raw_sh(*args)
-    # force launcher to be determined and set for subprocess
-    ruby_launcher unless @building
+    # use same ruby_launcher in subprocess jt instances
+    # cannot be set while building
+    ENV['RUBY_BIN'] = ruby_launcher unless @building
 
     options = args.last.is_a?(Hash) ? args.last : {}
     continue_on_failure = options.delete :continue_on_failure
@@ -760,6 +770,7 @@ module Commands
         if arg.start_with? '-'
           ruby_args.push arg
         else
+          # not processed by ruby_options, probably a ruby argument, put it back
           args.unshift arg
           break
         end
