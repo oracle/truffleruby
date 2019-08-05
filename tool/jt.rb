@@ -1970,7 +1970,6 @@ EOS
     mx 'canonicalizeprojects'
     mx 'verifysourceinproject'
     mx 'checkoverlap'
-    mx 'verifylibraryurls'
   end
 
   def verify_native_bin!
