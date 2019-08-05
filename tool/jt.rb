@@ -721,8 +721,6 @@ module Commands
       case arg
       when '--no-core-load-path'
         core_load_path = false
-      when '--graal'
-        truffleruby_compiler!
       when '--reveal'
         vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
         add_experimental_options.call
