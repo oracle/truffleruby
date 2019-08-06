@@ -76,15 +76,13 @@ local part_definitions = {
 
     build: {
       setup+: [["mx", "sversions"]] +
-              self.before_build +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
               jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
               [
                 # make sure jt always uses what was just built
                 ["set-export", "VM_DIST_HOME", ["mx", "--env", self.mx_env, "graalvm-home"]],
                 ["set-export", "RUBY_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/ruby"],
-              ] +
-              self.after_build,
+              ],
     },
 
     truffleruby: {
@@ -216,20 +214,10 @@ local part_definitions = {
       # The same as job "gate-vm-native-truffleruby-tip" in
       # https://github.com/oracle/graal/blob/master/vm/ci_common/common.hocon
       local build = self,
-      run+: [["mx", "sversions"]] +
-            self.before_build +
-            [
-              [
-                "mx",
-                "--env",
-                build.mx_env,
-                "gate",
-                "--no-warning-as-error",
-                "--tags",
-                build["$.svm.gate"].tags,
-              ],
-            ] +
-            self.after_build,
+      run+: [
+        ["mx", "sversions"],
+        ["mx", "--env", build.mx_env, "gate", "--no-warning-as-error", "--tags", build["$.svm.gate"].tags],
+      ],
     },
   },
 
@@ -265,8 +253,6 @@ local part_definitions = {
 
   platform: {
     linux: {
-      before_build:: [],
-      after_build:: [],
       "$.run.specs":: { test_spec_options: ["--excl-tag", "ci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -281,8 +267,6 @@ local part_definitions = {
       },
     },
     darwin: {
-      before_build:: [],
-      after_build:: [],
       "$.run.specs":: { test_spec_options: ["--excl-tag", "darwinCi"] },
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
@@ -325,8 +309,7 @@ local part_definitions = {
       packages+: {
         "pip:pylint": "==1.9.0",
       },
-      # add before and after build since jt lint builds
-      run+: self.before_build + jt(["lint"]) + self.after_build,
+      run+: jt(["lint"]),
     },
 
     test_basictest: { run+: jt(["test", "basictest"]) },
