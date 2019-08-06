@@ -11,8 +11,6 @@
 
 # A workflow tool for TruffleRuby development
 
-# Recommended: function jt { ruby tool/jt.rb "$@"; }
-
 require 'fileutils'
 require 'json'
 require 'timeout'
