@@ -568,7 +568,6 @@ module Commands
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --reveal        enable assertions, show core Ruby files in backtrace, and print un caught Java exceptions 
           --asm           show assembly
-          --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape
           --igv-full      show all phases, not just up to the Truffle partial escape
           --infopoints    show source location for each node in IGV
@@ -770,9 +769,6 @@ module Commands
       when '--jexception', '--jexceptions'
         add_experimental_options.call
         vm_args << '--exceptions-print-uncaught-java=true'
-      when '--server'
-        add_experimental_options.call
-        vm_args << '--instrumentation_server_port=8080'
       when '--infopoints'
         vm_args << "--vm.XX:+UnlockDiagnosticVMOptions" << "--vm.XX:+DebugNonSafepoints"
         vm_args << "--vm.Dgraal.TruffleEnableInfopoints=true"
