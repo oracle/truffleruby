@@ -790,13 +790,7 @@ module Commands
         # marks rest of the options as Ruby arguments, stop parsing jt options
         break
       else
-        if arg.start_with? '-'
-          ruby_args.push arg
-        else
-          # not processed by ruby_options, probably a ruby argument, put it back
-          args.unshift arg
-          break
-        end
+        ruby_args.push arg
       end
     end
 
@@ -805,18 +799,17 @@ module Commands
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
-    [vm_args, ruby_args, options, args]
+    [vm_args, ruby_args + args, options]
   end
 
   def run_ruby(*args)
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
 
-    vm_args, ruby_args, options, args = ruby_options(options, args)
+    vm_args, ruby_args, options = ruby_options(options, args)
 
     options[:no_print_cmd] = true if @silent
 
-    ruby_args += args
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
   private :run_ruby
@@ -1389,18 +1382,13 @@ EOS
                   [args, []]
                 end
 
-    vm_args, ruby_args, parsed_options, remaining_ruby_args = ruby_options(
+    vm_args, ruby_args, parsed_options = ruby_options(
         {},
         ["--reveal",
          "--vm.Xmx2G",
          *("--polyglot" unless truffleruby_native?)] + ruby_args)
 
-    unless remaining_ruby_args.empty?
-      raise "there are unparsed ruby arguments #{remaining_ruby_args.inspect}"
-    end
-    unless parsed_options.empty?
-      raise "unsupported options #{parsed_options}"
-    end
+    raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 
     prefixed_ruby_args = (vm_args + ruby_args).map { |v| "-T#{v}" }
     run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
