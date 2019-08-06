@@ -206,10 +206,10 @@ module Utilities
 
     unless @silent
       shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/jre/languages/ruby$], '')
-      tags = [truffleruby? ? 'TruffleRuby' : 'a Ruby',
-              *('Native' if truffleruby_native?),
+      tags = [*('Native' if truffleruby_native?),
+              truffleruby? ? 'TruffleRuby' : 'a Ruby',
               *("with Graal" if truffleruby_compiler?)]
-      $stderr.puts "Using #{tags.join(' ')}: #{shortened_path} "
+      $stderr.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
 
     @ruby_launcher
