@@ -789,6 +789,8 @@ module Commands
         break
       else
         ruby_args.push arg
+        # do not continue looking for jt options when we encounter an argument
+        break unless arg.start_with? '-'
       end
     end
 
