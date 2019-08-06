@@ -229,7 +229,7 @@ module Utilities
 
   def truffleruby_native?
     return @truffleruby_native unless @truffleruby_native.nil?
-    # the truffleruby executable is bigger than 10MB if it is native executor
+    # the truffleruby executable is bigger than 10MB if it is a native executable
     # the executable delegator for mac has less than 1MB
     @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
   end
