@@ -110,30 +110,10 @@ end
 
 module Utilities
 
-  COLORS = {
-      default: '38',
-      black: '30',
-      red: '31',
-      green: '32',
-      brown: '33',
-      blue: '34',
-      purple: '35',
-      cyan: '36',
-      gray: '37',
-      dark_gray: '1;30',
-      light_red: '1;31',
-      light_green: '1;32',
-      yellow: '1;33',
-      light_blue: '1;34',
-      light_purple: '1;35',
-      light_cyan: '1;36',
-      white: '1;37' }.freeze
-  private_constant :COLORS
-
   private
 
-  def colorize(text, colour = :default)
-    STDOUT.tty? ? "\e[#{COLORS.fetch(colour)}m#{text}\e[0m" : text
+  def bold(text)
+    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
   end
 
   def ci?
@@ -380,7 +360,7 @@ module Utilities
     capture = options.delete :capture
 
     unless options.delete :no_print_cmd
-      STDERR.puts colorize "$ #{printable_cmd(args)}", :white
+      STDERR.puts bold "$ #{printable_cmd(args)}"
     end
 
     exec(*args) if use_exec
