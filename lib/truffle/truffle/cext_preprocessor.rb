@@ -9,6 +9,7 @@
 require_relative 'patches/json_patches'
 require_relative 'patches/nokogiri_patches'
 require_relative 'patches/pg_patches'
+
 module Truffle
   module CExt
     class Preprocessor
