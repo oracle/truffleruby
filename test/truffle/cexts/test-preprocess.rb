@@ -6,7 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require_relative '../../../lib/cext/preprocess'
+require_relative '../../../lib/truffle/truffle/cext_preprocessor'
 
 def test_patch(file, directory, input, expected)
   got = Truffle::CExt::Preprocessor.patch(file, input, directory)

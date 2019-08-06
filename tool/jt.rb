@@ -1014,7 +1014,7 @@ module Commands
       case test_name
       when 'tools'
         # Test tools
-        sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
+        run_ruby 'test/truffle/cexts/test-preprocess.rb'
 
       when 'openssl'
         # Test that we can compile and run some basic C code that uses openssl

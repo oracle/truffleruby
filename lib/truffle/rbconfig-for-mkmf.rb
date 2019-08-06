@@ -101,14 +101,8 @@ if Truffle::Boot.get_option 'building-core-cexts'
   polyglot_h = "-DSULONG_POLYGLOT_H='\"#{ENV.fetch('SULONG_POLYGLOT_H')}\"'"
   mkconfig['CPPFLAGS'] = "#{relative_debug_paths} #{polyglot_h}"
   expanded['CPPFLAGS'] = mkconfig['CPPFLAGS']
-
-  # Default to the ruby in $PATH to build core C extensions faster
-  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || 'ruby'
 else
   link_o_files = "#{cext_dir}/ruby.o #{cext_dir}/sulongmock.o"
-
-  # TRUFFLERUBY_PREPROCESS_RUBY must only be used for TruffleRuby development, at your own risks
-  preprocess_ruby = ENV['TRUFFLERUBY_PREPROCESS_RUBY'] || RbConfig.ruby
 end
 
 common = {
@@ -147,7 +141,7 @@ begin
                       '-xc'
                     end
 
-    "#{preprocess_ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} - && #{opt_command}"
+    "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} - && #{opt_command}"
   end
 
   c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@'
