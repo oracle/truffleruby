@@ -110,7 +110,7 @@ end
 
 module Utilities
 
-  COLOURS = {
+  COLORS = {
       default: '38',
       black: '30',
       red: '31',
@@ -128,12 +128,12 @@ module Utilities
       light_purple: '1;35',
       light_cyan: '1;36',
       white: '1;37' }.freeze
-  private_constant :COLOURS
+  private_constant :COLORS
 
   private
 
   def colorize(text, colour = :default)
-    STDOUT.tty? ? "\e[#{COLOURS.fetch(colour)}m#{text}\e[0m" : text
+    STDOUT.tty? ? "\e[#{COLORS.fetch(colour)}m#{text}\e[0m" : text
   end
 
   def ci?
