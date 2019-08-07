@@ -193,8 +193,13 @@ module Utilities
       $stderr.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
 
+    # use same ruby_launcher in subprocess jt instances
+    # cannot be set while building
+    ENV['RUBY_BIN'] = ruby_launcher
     @ruby_launcher
   end
+
+  alias_method :require_ruby_launcher!, :ruby_launcher
 
   def truffleruby_native!
     unless truffleruby_native?
@@ -349,10 +354,6 @@ module Utilities
   end
 
   def raw_sh(*args)
-    # use same ruby_launcher in subprocess jt instances
-    # cannot be set while building
-    ENV['RUBY_BIN'] = ruby_launcher unless @building
-
     options = args.last.is_a?(Hash) ? args.last : {}
     continue_on_failure = options.delete :continue_on_failure
     use_exec = options.delete :use_exec
@@ -715,7 +716,7 @@ module Commands
     build(*options)
   end
 
-  def ruby_options(options, args)
+  private def ruby_options(options, args)
     raise ArgumentError, args.inspect + ' has non-String values' if args.any? { |v| not v.is_a? String }
 
     ruby_args = []
@@ -796,6 +797,7 @@ module Commands
   private :run_ruby
 
   def ruby(*args)
+    require_ruby_launcher!
     env = args.first.is_a?(Hash) ? args.shift : {}
     run_ruby(env, '--exec', *args)
   end
@@ -820,7 +822,7 @@ module Commands
     ruby '-S', 'gem', *args
   end
 
-  def cextc(cext_dir, *clang_opts)
+  private def cextc(cext_dir, *clang_opts)
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
@@ -828,7 +830,7 @@ module Commands
     compile_cext(name, ext_dir, target, clang_opts)
   end
 
-  def compile_cext(name, ext_dir, target, clang_opts, env: {})
+  private def compile_cext(name, ext_dir, target, clang_opts, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
@@ -879,6 +881,7 @@ module Commands
   end
 
   def test(*args)
+    require_ruby_launcher!
     path, *rest = args
 
     case path
@@ -1063,6 +1066,7 @@ module Commands
   private :run_mri_tests
 
   def retag(*args)
+    require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
     raise unless test_files.size == 1
     test_file = test_files[0]
@@ -1265,7 +1269,7 @@ EOS
     ports
   end
 
-  def test_bundle(*args)
+  private def test_bundle(*args)
     require 'tmpdir'
 
     bundle_install_flags = [
@@ -1324,6 +1328,7 @@ EOS
   end
 
   def mspec(*args)
+    require_ruby_launcher!
     run_mspec({}, *args)
   end
 
@@ -1405,6 +1410,7 @@ EOS
   alias_method :'gem-test-pack', :gem_test_pack
 
   def tag(path, *args)
+    require_ruby_launcher!
     return tag_all(*args) if path == 'all'
     test_specs('tag', path, *args)
   end
@@ -1416,10 +1422,12 @@ EOS
   private :tag_all
 
   def purge(path, *args)
+    require_ruby_launcher!
     test_specs('purge', path, *args)
   end
 
   def untag(path, *args)
+    require_ruby_launcher!
     puts
     puts "WARNING: untag is currently not very reliable - run `jt test #{[path,*args] * ' '}` after and manually annotate any new failures"
     puts
@@ -1427,6 +1435,8 @@ EOS
   end
 
   def build_stats(attribute, *args)
+    require_ruby_launcher!
+
     use_json = args.delete '--json'
 
     value = case attribute
@@ -1447,24 +1457,25 @@ EOS
     end
   end
 
-  def build_stats_native_binary_size(*args)
+  private def build_stats_native_binary_size(*args)
     truffleruby_native!
     File.size(ruby_launcher) / 1024.0 / 1024.0
   end
 
-  def build_stats_native_build_time(*args)
+  private def build_stats_native_build_time(*args)
     log = File.read('aot-build.log')
     build_time = log[/\[truffleruby.*\].*\[total\]:\s*([0-9,.]+)\s*ms/, 1]
     Float(build_time.gsub(',', '')) / 1000.0
   end
 
-  def build_stats_native_runtime_compilable_methods(*args)
+  private def build_stats_native_runtime_compilable_methods(*args)
     log = File.read('aot-build.log')
     log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
     Integer($~[:method_count])
   end
 
   def metrics(command, *args)
+    require_ruby_launcher!
     args = args.dup
     case command
     when 'alloc'
@@ -1482,7 +1493,7 @@ EOS
     end
   end
 
-  def metrics_alloc(*args)
+  private def metrics_alloc(*args)
     use_json = args.delete '--json'
     samples = []
     METRICS_REPS.times do
@@ -1507,7 +1518,7 @@ EOS
     end
   end
 
-  def memory_allocated(trace)
+  private def memory_allocated(trace)
     allocated = 0
     trace.lines do |line|
       case line
@@ -1523,7 +1534,7 @@ EOS
     allocated
   end
 
-  def metrics_minheap(*args)
+  private def metrics_minheap(*args)
     use_json = args.delete '--json'
     heap = 10
     log '>', "Trying #{heap} MB\n"
@@ -1560,11 +1571,11 @@ EOS
     end
   end
 
-  def can_run_in_heap(heap, *command)
+  private def can_run_in_heap(heap, *command)
     run_ruby("--vm.Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
   end
 
-  def metrics_maxrss(*args)
+  private def metrics_maxrss(*args)
     truffleruby_native!
 
     use_json = args.delete '--json'
@@ -1611,7 +1622,7 @@ EOS
     end
   end
 
-  def metrics_native_instructions(*args)
+  private def metrics_native_instructions(*args)
     truffleruby_native!
 
     use_json = args.delete '--json'
@@ -1651,7 +1662,7 @@ EOS
   end
   private :metrics_time_measure
 
-  def metrics_time(*args)
+  private def metrics_time(*args)
     use_json = args.delete '--json'
     flamegraph = args.delete '--flamegraph'
 
@@ -1671,7 +1682,7 @@ EOS
     metrics_time_format_results(samples, use_json, flamegraph)
   end
 
-  def metrics_time_format_results(samples, use_json, flamegraph)
+  private def metrics_time_format_results(samples, use_json, flamegraph)
     min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
 
     results = {}
@@ -1715,9 +1726,8 @@ EOS
       sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
-  private :metrics_time_format_results
 
-  def get_times(trace, total)
+  private def get_times(trace, total)
     result = Hash.new(0)
     stack = [['total', 0]]
 
@@ -1758,6 +1768,8 @@ EOS
   end
 
   def benchmark(*args)
+    require_ruby_launcher!
+
     args.map! do |a|
       if a.include?('.rb')
         benchmark = find_benchmark(a)
@@ -1782,6 +1794,7 @@ EOS
   end
 
   def profile(*args)
+    require_ruby_launcher!
     env = args.first.is_a?(Hash) ? args.shift : {}
 
     require 'tempfile'
@@ -1833,7 +1846,7 @@ EOS
     end
   end
 
-  def install_jvmci
+  private def install_jvmci
     raise "Installing JVMCI is only available on Linux and macOS currently" unless ON_LINUX || ON_MAC
 
     update, jvmci_version = jvmci_update_and_version
@@ -1890,11 +1903,9 @@ EOS
     raw_sh("git", "-C", ee_path, "checkout", graal_enterprise_commit)
   end
 
-  def build_graalvm(*options)
+  private def build_graalvm(*options)
     raise "use --env jvm-ce instead" if options.delete('--graal')
     raise "use --env native instead" if options.delete('--native')
-
-    @building = true
 
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
@@ -1974,7 +1985,7 @@ EOS
   end
   alias :'native-launcher' :native_launcher
 
-  def check_dsl_usage
+  private def check_dsl_usage
     # Change the annotation retention policy in Truffle so we can inspect specializations.
     raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
     begin
@@ -2003,7 +2014,7 @@ EOS
     sh env, "ruby", "#{gem_home}/bin/rubocop", *args
   end
 
-  def check_filename_length
+  private def check_filename_length
     # For eCryptfs, see https://bugs.launchpad.net/ecryptfs/+bug/344878
     max_length = 143
 
@@ -2021,7 +2032,7 @@ EOS
     end
   end
 
-  def check_parser
+  private def check_parser
     build('parser')
     diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: true
     unless diff.empty?
@@ -2031,7 +2042,7 @@ EOS
     end
   end
 
-  def check_documentation_urls
+  private def check_documentation_urls
     url_base = 'https://github.com/oracle/truffleruby/blob/master/doc/'
     # Explicit list of URLs, so they can be added manually
     # Notably, Ruby installers reference the LLVM urls
@@ -2085,7 +2096,7 @@ EOS
     mx 'checkoverlap'
   end
 
-   def sync
+  def sync
     exec(RbConfig.ruby, "#{TRUFFLERUBY_DIR}/tool/sync.rb")
   end
 
