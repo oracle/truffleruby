@@ -1188,11 +1188,11 @@ module Truffle::CExt
   end
 
   def rb_ivar_get(object, name)
-    TrufflePrimitive.object_ivar_get object, name.to_sym
+    TrufflePrimitive.object_ivar_get object, name
   end
 
   def rb_ivar_set(object, name, value)
-    TrufflePrimitive.object_ivar_set object, name.to_sym, value
+    TrufflePrimitive.object_ivar_set object, name, value
   end
 
   def rb_special_const_p(object)
