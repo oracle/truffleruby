@@ -120,7 +120,7 @@ module Utilities
     ENV.key?("BUILD_URL")
   end
 
-  def truffle_version
+  def get_truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
     raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
     $1
@@ -530,7 +530,8 @@ module Commands
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm, 
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
-              --no-sforceimports              do not run sforceimports before building
+              --[no-]sforceimports            run sforceimports before building (default: !ci?)
+              --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
               --env|-e                        mx env file used to build the GraalVM, default is "jvm"  
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
                                               it is also linked in your ruby manager (if found) under the same name,
@@ -617,7 +618,7 @@ module Commands
   end
 
   def truffle_version
-    puts super
+    puts get_truffle_version
   end
 
   def mx(*args)
@@ -1862,14 +1863,38 @@ EOS
     java_home
   end
 
+  def checkout_enterprise_revision
+    ee_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal-enterprise')
+    graal_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal')
+    unless File.directory?(ee_path)
+      github_ee_url = "https://github.com/graalvm/graal-enterprise.git"
+      bitbucket_ee_url = raw_sh("mx", "urlrewrite", github_ee_url, capture: true).chomp
+      if bitbucket_ee_url == github_ee_url
+        raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
+      end
+      raw_sh "git", "clone", bitbucket_ee_url, ee_path
+    end
+
+    raw_sh "git", "-C", ee_path, "fetch", "--all"
+
+    suite_file = File.join ee_path, "vm-enterprise/mx.vm-enterprise/suite.py"
+    # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
+    merge_commit_in_graal = raw_sh(
+        "git", "-C", graal_path, "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "--max-count=1", get_truffle_version,
+        capture: true).chomp
+    # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
+    # The suite file is automatically updated on every graal PR merged.
+    graal_enterprise_commit = raw_sh(
+        "git", "-C", ee_path, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, '--' ,suite_file,
+        capture: true).lines.first.chomp
+    raw_sh("git", "-C", ee_path, "checkout", graal_enterprise_commit)
+  end
+
   def build_graalvm(*options)
     raise "use --env jvm-ce instead" if options.delete('--graal')
     raise "use --env native instead" if options.delete('--native')
 
     @building = true
-
-    sforceimports = !options.delete("--no-sforceimports")
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if !ci? && sforceimports
 
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
@@ -1885,7 +1910,11 @@ EOS
                               env
                             end
 
-    # TODO (pitr-ch 26-Jul-2019): clone enterprise in same manner as in CI when *-ee env is used, move here?
+    sforceimports = options.delete("--sforceimports") || options.delete("--no-sforceimports") ? false : !ci?
+    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
+
+    ee_checkout = options.delete("--ee-checkout") || options.delete("--no-ee-checkout") ? false : !ci?
+    checkout_enterprise_revision if env.include?("ee") && ee_checkout
 
     delimiter_index = options.index "--"
     mx_options, mx_build_options = if delimiter_index
