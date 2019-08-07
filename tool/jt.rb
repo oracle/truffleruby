@@ -547,7 +547,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal        enable assertions, show core Ruby files in backtrace, and print un caught Java exceptions 
+          --reveal        enable assertions, show core Ruby files in backtrace 
           --asm           show assembly
           --igv           make sure IGV is running and dump Graal graphs after partial escape
           --igv-full      show all phases, not just up to the Truffle partial escape
@@ -738,7 +738,6 @@ module Commands
         vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
         add_experimental_options.call
         vm_args += %w[--backtraces-hide-core-files=false]
-        args.unshift "--jexceptions"
       when '--stress'
         vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
         vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
