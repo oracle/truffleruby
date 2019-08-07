@@ -642,8 +642,6 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
-    when 'graalvm'
-      build_graalvm(*options)
     else
       build_graalvm(*project, *options)
     end
