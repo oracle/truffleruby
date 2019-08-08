@@ -237,7 +237,7 @@ module Utilities
   end
 
   def truffleruby_launcher_path
-    @truffleruby_launcher_path ||= ruby_launcher.gsub(%r[/ruby$], '/truffleruby')
+    @truffleruby_launcher_path ||= File.join File.dirname(ruby_launcher), 'truffleruby'
   end
 
   def truffleruby!
