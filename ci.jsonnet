@@ -62,6 +62,7 @@ local part_definitions = {
       ],
 
       mx_build_options:: [],
+      jt_build_options:: [],
     },
 
     maven: {
@@ -77,7 +78,7 @@ local part_definitions = {
     build: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
-              jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
+              jt(["build", "--env", self.mx_env] + self.jt_build_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
               [
                 # make sure jt always uses what was just built
                 ["set-export", "VM_DIST_HOME", ["mx", "--env", self.mx_env, "graalvm-home"]],
@@ -165,6 +166,7 @@ local part_definitions = {
     },
     jvm_ee: {
       mx_env:: "jvm-ee",
+      jt_build_options:: ["--ee-checkout"],
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
@@ -187,6 +189,7 @@ local part_definitions = {
     } + svm,
     native_ee: {
       mx_env:: "native-ee",
+      jt_build_options:: ["--ee-checkout"],
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
       },
