@@ -227,7 +227,8 @@ module Utilities
     return @truffleruby_compiler = true if truffleruby_native?
 
     # it has to have graal.jar in gvm-dir/jre/lib/jvmci
-    graal_jar_path = File.expand_path(File.join(File.dirname(ruby_launcher), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
+    # use realpath to always use the executable in jre/languages/ruby/bin/
+    graal_jar_path = File.expand_path(File.join(File.dirname(File.realpath(ruby_launcher)), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
     return @truffleruby_compiler = File.exist?(graal_jar_path)
   end
 
