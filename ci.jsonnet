@@ -59,6 +59,7 @@ local part_definitions = {
           "MAVEN_OPTS",
           "no_proxy",
         ],
+        ["ruby", "--version"],
       ],
 
       mx_build_options:: [],
