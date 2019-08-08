@@ -240,6 +240,7 @@ local part_definitions = {
 
   platform: {
     linux: {
+      platform_name:: "Linux",
       "$.run.specs":: { test_spec_options: ["--excl-tag", "ci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -254,6 +255,7 @@ local part_definitions = {
       },
     },
     darwin: {
+      platform_name:: "Darwin",
       "$.run.specs":: { test_spec_options: ["--excl-tag", "darwinCi"] },
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
@@ -319,13 +321,12 @@ local part_definitions = {
       ],
     },
 
-    generate_native_config: function(platform)
-      {
-        run+: [
-          ["ruby", "tool/generate-native-config.rb"],
-          ["cat", "src/main/java/org/truffleruby/platform/" + platform + "NativeConfiguration.java"],
-        ],
-      },
+    generate_native_config: {
+      run+: [
+        ["ruby", "tool/generate-native-config.rb"],
+        ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
+      ],
+    },
   },
 
   benchmark: {
@@ -617,8 +618,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   manual_builds: {
     local shared = $.cap.manual { timelimit: "5:00" },
 
-    "ruby-generate-native-config-linux": shared + $.platform.linux + $.run.generate_native_config("linux/Linux"),
-    "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config("darwin/Darwin"),
+    "ruby-generate-native-config-linux": shared + $.platform.linux + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config,
   },
 
   builds:
