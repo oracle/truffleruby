@@ -820,7 +820,8 @@ module Commands
     ruby '-S', 'gem', *args
   end
 
-  private def cextc(cext_dir, *clang_opts)
+  def cextc(cext_dir, *clang_opts)
+    require_ruby_launcher!
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
