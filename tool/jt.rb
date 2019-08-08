@@ -1920,10 +1920,10 @@ EOS
                               env
                             end
 
-    sforceimports = options.delete("--sforceimports") || options.delete("--no-sforceimports") ? false : !ci?
+    sforceimports = options.delete("--sforceimports") || (options.delete("--no-sforceimports") ? false : !ci?)
     mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
 
-    ee_checkout = options.delete("--ee-checkout") || options.delete("--no-ee-checkout") ? false : !ci?
+    ee_checkout = options.delete("--ee-checkout") || (options.delete("--no-ee-checkout") ? false : !ci?)
     checkout_enterprise_revision if env.include?("ee") && ee_checkout
 
     delimiter_index = options.index "--"
