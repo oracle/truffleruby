@@ -421,9 +421,13 @@ module Utilities
     if Hash === args.last && args.last.empty?
       *args, options = args
     end
-    env = env.map { |k,v| "#{k}=#{shellescape(v)}" }.join(' ')
-    args = args.map { |a| shellescape(a) }.join(' ')
-    env.empty? ? args : "#{env} #{args}"
+
+    env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
+    args = args.map { |a| shellescape(a) }
+
+    all = [*env, *args]
+    size = all.reduce(0) { |s, v| s + v.size }
+    all.join(size <= 180 ? " " : " \\\n  ")
   end
 
   def shellescape(str)
