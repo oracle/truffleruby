@@ -785,7 +785,7 @@ module Commands
     [vm_args, ruby_args + args, options]
   end
 
-  def run_ruby(*args)
+  private def run_ruby(*args)
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
 
@@ -795,7 +795,6 @@ module Commands
 
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
-  private :run_ruby
 
   def ruby(*args)
     require_ruby_launcher!
@@ -919,22 +918,19 @@ module Commands
     end
   end
 
-  def jt(*args)
+  private def jt(*args)
     sh RbConfig.ruby, 'tool/jt.rb', *args
   end
-  private :jt
 
-  def test_basictest(*args)
+  private def test_basictest(*args)
     run_runner_test 'basictest/runner.rb', *args
   end
-  private :test_basictest
 
-  def test_bootstraptest(*args)
+  private def test_bootstraptest(*args)
     run_runner_test 'bootstraptest/runner.rb', *args
   end
-  private :test_bootstraptest
 
-  def run_runner_test(runner, *args)
+  private def run_runner_test(runner, *args)
     double_dash_index = args.index '--'
     if double_dash_index
       args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
@@ -943,9 +939,8 @@ module Commands
     end
     run_ruby *args, "#{TRUFFLERUBY_DIR}/test/#{runner}", *runner_args
   end
-  private :run_runner_test
 
-  def test_mri(*args)
+  private def test_mri(*args)
     double_dash_index = args.index '--'
     if double_dash_index
       args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
@@ -988,9 +983,8 @@ module Commands
 
     run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
-  private :test_mri
 
-  def mri_test_name(test)
+  private def mri_test_name(test)
     prefix = "#{MRI_TEST_RELATIVE_PREFIX}/"
     abs_prefix = "#{MRI_TEST_PREFIX}/"
     if test.start_with?(prefix)
@@ -1001,9 +995,8 @@ module Commands
       test
     end
   end
-  private :mri_test_name
 
-  def run_mri_tests(extra_args, test_files, runner_args, run_options)
+  private def run_mri_tests(extra_args, test_files, runner_args, run_options)
     abort "No test files! (probably filtered out by failing.exclude)" if test_files.empty?
     test_files = test_files.map { |file| mri_test_name(file) }
 
@@ -1065,7 +1058,6 @@ module Commands
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, *runner_args, run_options)
   end
-  private :run_mri_tests
 
   def retag(*args)
     require_ruby_launcher!
@@ -1090,7 +1082,7 @@ module Commands
     run_mri_tests(options, test_files, [], use_exec: true)
   end
 
-  def test_compiler(*args)
+  private def test_compiler(*args)
     truffleruby_compiler!
     env = {}
 
@@ -1102,9 +1094,8 @@ module Commands
       end
     end
   end
-  private :test_compiler
 
-  def test_cexts(*args)
+  private def test_cexts(*args)
     all_tests = %w(tools openssl minimum method module globals backtraces xopenssl postinstallhook gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
@@ -1216,9 +1207,8 @@ EOS
       end
     end
   end
-  private :test_cexts
 
-  def test_integration(*args)
+  private def test_integration(*args)
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
@@ -1227,9 +1217,8 @@ EOS
       sh test_script
     end
   end
-  private :test_integration
 
-  def test_gems(*args)
+  private def test_gems(*args)
     gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
@@ -1240,9 +1229,8 @@ EOS
       sh test_script
     end
   end
-  private :test_gems
 
-  def test_ecosystem(*args)
+  private def test_ecosystem(*args)
     gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
@@ -1261,7 +1249,6 @@ EOS
     end
     exit success
   end
-  private :test_ecosystem
 
   def find_ports_for_pid(pid)
     while (ports = `lsof -P -i 4 -a -p #{pid} -Fn | grep nlocalhost | cut -d ':' -f 2`.strip).empty?
@@ -1334,7 +1321,7 @@ EOS
     run_mspec({}, *args)
   end
 
-  def test_specs(command, *args)
+  private def test_specs(command, *args)
     env_vars = {}
     options = []
 
@@ -1381,7 +1368,6 @@ EOS
     prefixed_ruby_args = (vm_args + ruby_args).map { |v| "-T#{v}" }
     run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
   end
-  private :test_specs
 
   def gem_test_pack
     name = "truffleruby-gem-test-pack"
@@ -1418,10 +1404,9 @@ EOS
   end
 
   # Add tags to all given examples without running them. Useful to avoid file exclusions.
-  def tag_all(*args)
+  private def tag_all(*args)
     test_specs('tag_all', *args)
   end
-  private :tag_all
 
   def purge(path, *args)
     require_ruby_launcher!
@@ -1646,7 +1631,7 @@ EOS
     end
   end
 
-  def metrics_time_measure(use_json, *args)
+  private def metrics_time_measure(use_json, *args)
     truffleruby!
     metrics_time_option = '--vm.Dtruffleruby.metrics.time=true'
     verbose_gc_flag = truffleruby_native? ? '--vm.XX:+PrintGC' : '--vm.verbose:gc' unless use_json
@@ -1662,7 +1647,6 @@ EOS
     log "\n", nil
     samples
   end
-  private :metrics_time_measure
 
   private def metrics_time(*args)
     use_json = args.delete '--json'
@@ -2116,7 +2100,7 @@ EOS
     end
   end
 
-  def docker_build(*args)
+  private def docker_build(*args)
     if args.first.nil? || args.first.start_with?('--')
       image_name = 'truffleruby-test'
     else
@@ -2126,9 +2110,8 @@ EOS
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
-  private :docker_build
 
-  def docker_test(*args)
+  private def docker_test(*args)
     distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
@@ -2152,9 +2135,8 @@ EOS
       end
     end
   end
-  private :docker_test
 
-  def dockerfile(*args)
+  private def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
@@ -2427,7 +2409,6 @@ EOS
 
     lines.join("\n") + "\n"
   end
-  private :dockerfile
 
 end
 
