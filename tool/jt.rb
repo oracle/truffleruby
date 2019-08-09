@@ -498,7 +498,9 @@ module Utilities
 
   def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
-    ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
+    Dir.chdir(TRUFFLERUBY_DIR) do
+      ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
+    end
   end
 
   def newer?(input, output)
