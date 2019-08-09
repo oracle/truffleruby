@@ -28,11 +28,11 @@ $ cd truffleruby
 $ ruby tool/jt.rb --help
 ```
 
-Most of us add a function to our shell profile file so that it can be run with
+Most of us add an alias to our shell profile file so that it can be run with
 just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
 
 ```bash
-$ echo 'function jt { ruby '$PWD'/tool/jt.rb "$@"; }' >> ~/.bash_profile
+$ echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash_profile
 ```
 
 ```bash

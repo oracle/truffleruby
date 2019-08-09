@@ -19,9 +19,9 @@ for the first few iterations).
 
 ## OptCarrot
 
-OptCarrot can be run the same way as the example above (with `bench/optcarrot/optcarrot.rb`),
-but also has a fixed-workload harness with minimal dependencies,
-which can be useful to debug or tune performance.
+OptCarrot can be run the same way as the example above (with
+`bench/optcarrot/optcarrot.rb`), but also has a fixed-workload harness with
+minimal dependencies, which can be useful to debug or tune performance.
 
 Run the fixed-workload harness with minimal dependencies with:
 
@@ -31,7 +31,8 @@ $ jt ruby bench/optcarrot/fixed-workload.rb
 
 # Benchmarking without the GraalVM Compiler
 
-You can turn off the GraalVM Compiler if you want, by not including it in the GraalVM build:
+You can turn off the GraalVM Compiler if you want, by not including it in the
+GraalVM build:
 
 ```bash
 $ jt build
@@ -43,9 +44,10 @@ It's the same command to run the benchmark, for instance:
 $ jt benchmark bench/classic/mandelbrot.rb --simple
 ```
 
-You can benchmark an entirely different implementation using the
-`JT_BENCHMARK_RUBY` environment variable.
+You can benchmark an entirely different implementation using the `--use` option
+or with the `RUBY_BIN` environment variable.
 
 ```bash
-$ JT_BENCHMARK_RUBY=ruby jt benchmark bench/classic/mandelbrot.rb --simple
+$ jt --use ruby benchmark bench/classic/mandelbrot.rb --simple
+$ RUBY_BIN=ruby jt benchmark bench/classic/mandelbrot.rb --simple
 ```

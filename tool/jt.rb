@@ -11,14 +11,20 @@
 
 # A workflow tool for TruffleRuby development
 
-# Recommended: function jt { ruby tool/jt.rb "$@"; }
-
 require 'fileutils'
 require 'json'
 require 'timeout'
 require 'yaml'
 require 'rbconfig'
 require 'pathname'
+
+if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
+  $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
+  $stderr.puts '  Consider using following bash alias to run on MRI.'
+  $stderr.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
+end
+
+abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
@@ -39,10 +45,10 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
-MAC = RbConfig::CONFIG['host_os'].include?('darwin')
-LINUX = RbConfig::CONFIG['host_os'].include?('linux')
+ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
+ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
-SO = MAC ? 'dylib' : 'so'
+SOEXT = ON_MAC ? 'dylib' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -105,13 +111,18 @@ SUBPROCESSES = []
 end
 
 module Utilities
+
   private
+
+  def bold(text)
+    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
+  end
 
   def ci?
     ENV.key?("BUILD_URL")
   end
 
-  def truffle_version
+  def get_truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
     raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
     $1
@@ -160,12 +171,80 @@ module Utilities
     end
   end
 
-  def find_launcher(use_native)
-    if use_native
-      ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-native/jre/languages/ruby/bin/ruby"
-    else
-      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/ruby"
+  def ruby_launcher
+    return @ruby_launcher if defined? @ruby_launcher
+
+    @ruby_name ||= ENV['RUBY_BIN'] || "jvm"
+    @ruby_launcher = if @ruby_name == "ruby"
+                       ENV["RBENV_ROOT"] ? `rbenv which ruby`.chomp : which("ruby")
+                     elsif File.executable?(@ruby_name)
+                       @ruby_name
+                     else
+                       "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/jre/languages/ruby/bin/ruby"
+                     end
+
+    raise "The Ruby executable #{@ruby_launcher} does not exist" unless File.exist?(@ruby_launcher)
+    raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
+
+    unless @silent
+      shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/jre/languages/ruby$], '')
+      tags = [*('Native' if truffleruby_native?),
+              *("Interpreted" if truffleruby? && !truffleruby_compiler?),
+              truffleruby? ? 'TruffleRuby' : 'a Ruby',
+              *("with Graal" if truffleruby_compiler?)]
+      $stderr.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
+
+    # use same ruby_launcher in subprocess jt instances
+    # cannot be set while building
+    ENV['RUBY_BIN'] = ruby_launcher
+    @ruby_launcher
+  end
+
+  alias_method :require_ruby_launcher!, :ruby_launcher
+
+  def truffleruby_native!
+    unless truffleruby_native?
+      raise "The ruby executable #{ruby_launcher} is not native."
+    end
+  end
+
+  def truffleruby_compiler!
+    unless truffleruby_compiler?
+      raise "The ruby executable #{ruby_launcher} does not have Graal.\nUse `jt build --env jvm-ce` and `jt --use jvm-ce <command> ...`."
+    end
+  end
+
+  def truffleruby_native?
+    return @truffleruby_native unless @truffleruby_native.nil?
+    # the truffleruby executable is bigger than 10MB if it is a native executable
+    # the executable delegator for mac has less than 1MB
+    @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
+  end
+
+  def truffleruby_compiler?
+    return @truffleruby_compiler unless @truffleruby_compiler.nil?
+
+    return @truffleruby_compiler = false unless truffleruby?
+    return @truffleruby_compiler = true if truffleruby_native?
+
+    # it has to have graal.jar in gvm-dir/jre/lib/jvmci
+    # use realpath to always use the executable in jre/languages/ruby/bin/
+    graal_jar_path = File.expand_path(File.join(File.dirname(File.realpath(ruby_launcher)), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
+    return @truffleruby_compiler = File.exist?(graal_jar_path)
+  end
+
+  def truffleruby?
+    # only truffleruby has sibling truffleruby executable
+    @truffleruby ||= File.executable?(truffleruby_launcher_path)
+  end
+
+  def truffleruby_launcher_path
+    @truffleruby_launcher_path ||= File.join File.dirname(ruby_launcher), 'truffleruby'
+  end
+
+  def truffleruby!
+    raise "This command requires TruffleRuby." unless truffleruby?
   end
 
   def find_repo(name)
@@ -285,7 +364,7 @@ module Utilities
     capture = options.delete :capture
 
     unless options.delete :no_print_cmd
-      STDERR.puts "$ #{printable_cmd(args)}"
+      STDERR.puts bold "$ #{printable_cmd(args)}"
     end
 
     exec(*args) if use_exec
@@ -342,9 +421,13 @@ module Utilities
     if Hash === args.last && args.last.empty?
       *args, options = args
     end
-    env = env.map { |k,v| "#{k}=#{shellescape(v)}" }.join(' ')
-    args = args.map { |a| shellescape(a) }.join(' ')
-    env.empty? ? args : "#{env} #{args}"
+
+    env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
+    args = args.map { |a| shellescape(a) }
+
+    all = [*env, *args]
+    size = all.reduce(0) { |s, v| s + v.size }
+    all.join(size <= 180 ? " " : " \\\n  ")
   end
 
   def shellescape(str)
@@ -376,7 +459,7 @@ module Utilities
   end
 
   def app_open(file)
-    cmd = MAC ? 'open' : 'xdg-open'
+    cmd = ON_MAC ? 'open' : 'xdg-open'
 
     sh cmd, file
   end
@@ -408,9 +491,9 @@ module Utilities
   end
 
   def mx_os
-    if MAC
+    if ON_MAC
       'darwin'
-    elsif LINUX
+    elsif ON_LINUX
       'linux'
     else
       abort "Unknown OS"
@@ -419,13 +502,8 @@ module Utilities
 
   def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
-
-    if i = args.index('-t')
-      launcher = args[i+1]
-      flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
-      sh env_vars, launcher, *flags, *mspec_args, *args, use_exec: true
-    else
-      ruby env_vars, *mspec_args, '-t', find_launcher(false), *args
+    Dir.chdir(TRUFFLERUBY_DIR) do
+      ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
     end
   end
 
@@ -439,29 +517,49 @@ module Commands
   include Utilities
 
   def help
-    puts <<-TXT.gsub(/^#{' '*6}/, '')
-      jt build [what] [options]                      by default it builds graalvm
-          --no-sforceimports                         do not run sforceimports before building
-          parser                                     build the parser
-          options                                    build the options
-          graalvm                                    build a minimal JVM-only GraalVM containing only TruffleRuby, 
-                                                     available by default in mxbuild/truffleruby-jvm, 
-                                                     the Ruby is symlinked into rbenv or chruby if available
-              --graal      include the GraalVM Compiler in the build
-              --native     build native ruby image as well, available in mxbuild/truffleruby-native
-              --name NAME  specify the name of the build "mxbuild/truffleruby-NAME"
-                           it is also linked in your ruby manager (if found) under the same name
-                           the named build stays until it is rebuilt or deleted manually
+    puts <<~TXT
+      Usage: jt [options] COMMAND [command-options] 
+          Where options are:
+          --build                   Runs `jt build` before the command
+          --rebuild                 Runs `jt rebuild` before the command
+          --use|-u [RUBY_SELECTOR]  Specifies which Ruby interpreter should be used in a given command. jt will apply 
+                                    options based on the given Ruby interpreter. Allowed values are:
+                                    * name given to the --name option during build
+                                    * absolute path of a Ruby interpreter
+                                    * 'ruby' which uses the current Ruby executable in the PATH
+                                    Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
+                                    The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`   
+          --silent                  Does not print the command and which Ruby is used
+
+      jt build [graalvm|parser|options] ...   by default it builds graalvm
+        jt build [parser|options] [options]
+            parser                            build the parser
+            options                           build the options
+        jt build graalvm [options] [mx_options] [-- mx_build_options]
+            graalvm                           build a GraalVM based on the given env file, the default is a minimal 
+                                              GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm, 
+                                              the Ruby is symlinked into rbenv or chruby if available
+            options:
+              --[no-]sforceimports            run sforceimports before building (default: !ci?)
+              --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
+              --env|-e                        mx env file used to build the GraalVM, default is "jvm"  
+              --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
+                                              it is also linked in your ruby manager (if found) under the same name,
+                                              by default it is the name of the mx env file,
+                                              the named build stays until it is rebuilt or deleted manually
+            mx_options                        options passed directly to mx
+            mx_build_options                  options passed to the build command of mx
+
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
-      jt rebuild                                     clean, sforceimports, and build
+      jt rebuild [build options]                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
-              --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
+          --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
+          --reveal        enable assertions, show core Ruby files in backtrace 
           --asm           show assembly
-          --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape
           --igv-full      show all phases, not just up to the Truffle partial escape
           --infopoints    show source location for each node in IGV
@@ -470,7 +568,6 @@ module Commands
           --jdebug        run a JDWP debug server on #{JDEBUG_PORT}
           --jexception[s] print java exceptions
           --exec          use exec rather than system
-          --no-print-cmd  don\'t print the command
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
@@ -479,11 +576,11 @@ module Commands
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
       jt test mri                                    run mri tests
-#{MRI_TEST_MODULES.map { |k, h| format ' '*10+'%-16s%s', k, h[:help] }.join("\n")}
-          --native        use native TruffleRuby image (set AOT_BIN)
+      #{MRI_TEST_MODULES.map { |k, h| format ' ' * 10 + '%-16s%s', k, h[:help] }.join("\n")}
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
+      jt test specs [fast] [mspec arguments] [-- ruby options]
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
@@ -510,7 +607,6 @@ module Commands
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface
-          JT_BENCHMARK_RUBY=ruby       benchmark some other Ruby, like MRI
                                        note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
@@ -528,16 +624,19 @@ module Commands
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
         JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
-        AOT_BIN                                      TruffleRuby executable
     TXT
   end
 
   def truffle_version
-    puts super
+    puts get_truffle_version
   end
 
   def mx(*args)
     super(*args)
+  end
+
+  def launcher
+    puts ruby_launcher
   end
 
   def build(*options)
@@ -552,8 +651,6 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
-    when 'graalvm'
-      build_graalvm(*options)
     else
       build_graalvm(*project, *options)
     end
@@ -590,7 +687,7 @@ module Commands
     env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN
                   TRUFFLERUBY_RESILIENT_GEM_HOME
                   OPENSSL_PREFIX
-                  AOT_BIN TRUFFLERUBYOPT RUBYOPT]
+                  TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect
@@ -622,30 +719,34 @@ module Commands
   end
 
   def rebuild(*options)
-    clean(*options)
+    clean
     build(*options)
   end
 
-  def run_ruby(*args)
-    env_vars = args.first.is_a?(Hash) ? args.shift : {}
-    options = args.last.is_a?(Hash) ? args.pop : {}
-
+  private def ruby_options(options, args)
     raise ArgumentError, args.inspect + ' has non-String values' if args.any? { |v| not v.is_a? String }
 
-    native = false
-    core_load_path = true
     ruby_args = []
     vm_args = []
 
+    core_load_path = true
+    experimental_options_added = false
+
+    add_experimental_options = -> do
+      unless experimental_options_added
+        experimental_options_added = true
+        vm_args << '--experimental-options'
+      end
+    end
+
     while (arg = args.shift)
       case arg
-      when '--native'
-        native = true
-        vm_args << '--native'
       when '--no-core-load-path'
         core_load_path = false
-      when '--graal'
-        abort "jt ruby --graal no longer works, instead build with graal 'jt build --graal' and then use 'jt ruby'"
+      when '--reveal'
+        vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
+        add_experimental_options.call
+        vm_args += %w[--backtraces-hide-core-files=false]
       when '--stress'
         vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
         vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
@@ -655,22 +756,21 @@ module Commands
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
-        vm_args << '--experimental-options' << '--exceptions-print-uncaught-java=true'
-      when '--server'
-        vm_args << '--experimental-options' << '--instrumentation_server_port=8080'
+        add_experimental_options.call
+        vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
         vm_args << "--vm.XX:+UnlockDiagnosticVMOptions" << "--vm.XX:+DebugNonSafepoints"
         vm_args << "--vm.Dgraal.TruffleEnableInfopoints=true"
       when '--fg'
         vm_args << "--vm.Dgraal.TruffleBackgroundCompilation=false"
       when '--trace'
+        truffleruby_compiler!
         vm_args << "--vm.Dgraal.TraceTruffleCompilation=true"
       when '--igv', '--igv-full'
+        truffleruby_compiler!
         vm_args << (arg == '--igv-full' ? "--vm.Dgraal.Dump=:2" : "--vm.Dgraal.Dump=TruffleTree,PartialEscape:2")
         vm_args << "--vm.Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "--vm.Dgraal.PrintBackendCFG=false"
-      when '--no-print-cmd'
-        options[:no_print_cmd] = true
       when '--exec'
         options[:use_exec] = true
       when '--'
@@ -678,22 +778,32 @@ module Commands
         break
       else
         ruby_args.push arg
+        # do not continue looking for jt options when we encounter an argument
+        break unless arg.start_with? '-'
       end
     end
 
-    ruby_args += args
-
-    if core_load_path
-      vm_args << "--experimental-options" << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
+    if core_load_path && truffleruby? && !truffleruby_native?
+      add_experimental_options.call
+      vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
-    ruby_bin = find_launcher(native)
-
-    raw_sh env_vars, ruby_bin, *vm_args, *ruby_args, options
+    [vm_args, ruby_args + args, options]
   end
-  private :run_ruby
+
+  private def run_ruby(*args)
+    env_vars = args.first.is_a?(Hash) ? args.shift : {}
+    options = args.last.is_a?(Hash) ? args.pop : {}
+
+    vm_args, ruby_args, options = ruby_options(options, args)
+
+    options[:no_print_cmd] = true if @silent
+
+    raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
+  end
 
   def ruby(*args)
+    require_ruby_launcher!
     env = args.first.is_a?(Hash) ? args.shift : {}
     run_ruby(env, '--exec', *args)
   end
@@ -719,6 +829,7 @@ module Commands
   end
 
   def cextc(cext_dir, *clang_opts)
+    require_ruby_launcher!
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
@@ -726,7 +837,7 @@ module Commands
     compile_cext(name, ext_dir, target, clang_opts)
   end
 
-  def compile_cext(name, ext_dir, target, clang_opts, env: {})
+  private def compile_cext(name, ext_dir, target, clang_opts, env: {})
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
@@ -777,6 +888,7 @@ module Commands
   end
 
   def test(*args)
+    require_ruby_launcher!
     path, *rest = args
 
     case path
@@ -802,7 +914,7 @@ module Commands
       # because it cannot find the correct home.
       home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby"
       mx 'unittest', home, *tests
-    when 'tck' then mx 'tck'
+    when 'tck' then mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
@@ -812,22 +924,19 @@ module Commands
     end
   end
 
-  def jt(*args)
+  private def jt(*args)
     sh RbConfig.ruby, 'tool/jt.rb', *args
   end
-  private :jt
 
-  def test_basictest(*args)
+  private def test_basictest(*args)
     run_runner_test 'basictest/runner.rb', *args
   end
-  private :test_basictest
 
-  def test_bootstraptest(*args)
+  private def test_bootstraptest(*args)
     run_runner_test 'bootstraptest/runner.rb', *args
   end
-  private :test_bootstraptest
 
-  def run_runner_test(runner, *args)
+  private def run_runner_test(runner, *args)
     double_dash_index = args.index '--'
     if double_dash_index
       args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
@@ -836,9 +945,8 @@ module Commands
     end
     run_ruby *args, "#{TRUFFLERUBY_DIR}/test/#{runner}", *runner_args
   end
-  private :run_runner_test
 
-  def test_mri(*args)
+  private def test_mri(*args)
     double_dash_index = args.index '--'
     if double_dash_index
       args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
@@ -881,9 +989,8 @@ module Commands
 
     run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
-  private :test_mri
 
-  def mri_test_name(test)
+  private def mri_test_name(test)
     prefix = "#{MRI_TEST_RELATIVE_PREFIX}/"
     abs_prefix = "#{MRI_TEST_PREFIX}/"
     if test.start_with?(prefix)
@@ -894,15 +1001,14 @@ module Commands
       test
     end
   end
-  private :mri_test_name
 
-  def run_mri_tests(extra_args, test_files, runner_args, run_options)
+  private def run_mri_tests(extra_args, test_files, runner_args, run_options)
     abort "No test files! (probably filtered out by failing.exclude)" if test_files.empty?
     test_files = test_files.map { |file| mri_test_name(file) }
 
     truffle_args = []
-    if !extra_args.include?('--native')
-      truffle_args += %w[--vm.Xmx2G --vm.ea --vm.esa --jexceptions]
+    if truffleruby?
+      truffle_args += %w(--reveal --vm.Xmx2G)
     end
 
     env_vars = {
@@ -958,9 +1064,9 @@ module Commands
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, *runner_args, run_options)
   end
-  private :run_mri_tests
 
   def retag(*args)
+    require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
     raise unless test_files.size == 1
     test_file = test_files[0]
@@ -982,7 +1088,8 @@ module Commands
     run_mri_tests(options, test_files, [], use_exec: true)
   end
 
-  def test_compiler(*args)
+  private def test_compiler(*args)
+    truffleruby_compiler!
     env = {}
 
     env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
@@ -993,9 +1100,8 @@ module Commands
       end
     end
   end
-  private :test_compiler
 
-  def test_cexts(*args)
+  private def test_cexts(*args)
     all_tests = %w(tools openssl minimum method module globals backtraces xopenssl postinstallhook gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
@@ -1003,7 +1109,7 @@ module Commands
     tests -= %w[openssl xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
-    if ENV['TRUFFLERUBY_CI'] && MAC
+    if ENV['TRUFFLERUBY_CI'] && ON_MAC
       raise "no system clang" unless which('clang')
       %w[opt llvm-link].each do |tool|
         raise "should not have #{tool} in PATH in TruffleRuby CI" if which(tool)
@@ -1020,10 +1126,10 @@ module Commands
         # Test that we can compile and run some basic C code that uses openssl
         if ENV['OPENSSL_PREFIX']
           openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
+          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SOEXT}"
         else
           openssl_cflags = []
-          openssl_lib = "libssl.#{SO}"
+          openssl_lib = "libssl.#{SOEXT}"
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
@@ -1107,9 +1213,8 @@ EOS
       end
     end
   end
-  private :test_cexts
 
-  def test_integration(*args)
+  private def test_integration(*args)
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
@@ -1118,9 +1223,8 @@ EOS
       sh test_script
     end
   end
-  private :test_integration
 
-  def test_gems(*args)
+  private def test_gems(*args)
     gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
@@ -1131,9 +1235,8 @@ EOS
       sh test_script
     end
   end
-  private :test_gems
 
-  def test_ecosystem(*args)
+  private def test_ecosystem(*args)
     gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
@@ -1152,7 +1255,6 @@ EOS
     end
     exit success
   end
-  private :test_ecosystem
 
   def find_ports_for_pid(pid)
     while (ports = `lsof -P -i 4 -a -p #{pid} -Fn | grep nlocalhost | cut -d ':' -f 2`.strip).empty?
@@ -1162,7 +1264,7 @@ EOS
     ports
   end
 
-  def test_bundle(*args)
+  private def test_bundle(*args)
     require 'tmpdir'
 
     bundle_install_flags = [
@@ -1221,10 +1323,11 @@ EOS
   end
 
   def mspec(*args)
+    require_ruby_launcher!
     run_mspec({}, *args)
   end
 
-  def test_specs(command, *args)
+  private def test_specs(command, *args)
     env_vars = {}
     options = []
 
@@ -1251,44 +1354,26 @@ EOS
       options += %w[--excl-tag slow]
     end
 
-    if args.include?('-t')
-      # Running specs on another Ruby, pass no options
-    else
-      # For --core-load-path and --backtraces-hide-core-files
-      options << "-T--experimental-options"
+    options += %w[--format specdoc] if ci?
 
-      if args.delete('--native')
-        verify_native_bin!
-        options << '-t' << find_launcher(true)
-        options << '-T--native'
-      else
-        options += %w[-T--vm.ea -T--vm.esa -T--vm.Xmx2G]
-        options << "-T--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
-        options << "-T--polyglot" # For Truffle::Interop.export specs
-      end
+    delimiter_index = args.index("--")
+    args, ruby_args = if delimiter_index
+                  [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
+                else
+                  [args, []]
+                end
 
-      options << '-T--backtraces-hide-core-files=false'
-    end
+    vm_args, ruby_args, parsed_options = ruby_options(
+        {},
+        ["--reveal",
+         "--vm.Xmx2G",
+         *("--polyglot" unless truffleruby_native?)] + ruby_args)
 
-    if args.delete('--graal')
-      abort "'jt test --graal' no longer works, instead build with graal 'jt build --graal' and then use 'jt test'"
-    end
+    raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 
-    if args.delete('--jdebug')
-      options << "-T#{JDEBUG}"
-    end
-
-    if args.delete('--jexception') || args.delete('--jexceptions')
-      options << "-T--experimental-options" << "-T--exceptions-print-uncaught-java"
-    end
-
-    if ci?
-      options += %w[--format specdoc]
-    end
-
-    run_mspec env_vars, command, *options, *args
+    prefixed_ruby_args = (vm_args + ruby_args).map { |v| "-T#{v}" }
+    run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
   end
-  private :test_specs
 
   def gem_test_pack
     name = "truffleruby-gem-test-pack"
@@ -1319,21 +1404,23 @@ EOS
   alias_method :'gem-test-pack', :gem_test_pack
 
   def tag(path, *args)
+    require_ruby_launcher!
     return tag_all(*args) if path == 'all'
     test_specs('tag', path, *args)
   end
 
   # Add tags to all given examples without running them. Useful to avoid file exclusions.
-  def tag_all(*args)
+  private def tag_all(*args)
     test_specs('tag_all', *args)
   end
-  private :tag_all
 
   def purge(path, *args)
+    require_ruby_launcher!
     test_specs('purge', path, *args)
   end
 
   def untag(path, *args)
+    require_ruby_launcher!
     puts
     puts "WARNING: untag is currently not very reliable - run `jt test #{[path,*args] * ' '}` after and manually annotate any new failures"
     puts
@@ -1341,6 +1428,8 @@ EOS
   end
 
   def build_stats(attribute, *args)
+    require_ruby_launcher!
+
     use_json = args.delete '--json'
 
     value = case attribute
@@ -1361,23 +1450,25 @@ EOS
     end
   end
 
-  def build_stats_native_binary_size(*args)
-    File.size(find_launcher(true)) / 1024.0 / 1024.0
+  private def build_stats_native_binary_size(*args)
+    truffleruby_native!
+    File.size(ruby_launcher) / 1024.0 / 1024.0
   end
 
-  def build_stats_native_build_time(*args)
+  private def build_stats_native_build_time(*args)
     log = File.read('aot-build.log')
     build_time = log[/\[truffleruby.*\].*\[total\]:\s*([0-9,.]+)\s*ms/, 1]
     Float(build_time.gsub(',', '')) / 1000.0
   end
 
-  def build_stats_native_runtime_compilable_methods(*args)
+  private def build_stats_native_runtime_compilable_methods(*args)
     log = File.read('aot-build.log')
     log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
     Integer($~[:method_count])
   end
 
   def metrics(command, *args)
+    require_ruby_launcher!
     args = args.dup
     case command
     when 'alloc'
@@ -1395,7 +1486,7 @@ EOS
     end
   end
 
-  def metrics_alloc(*args)
+  private def metrics_alloc(*args)
     use_json = args.delete '--json'
     samples = []
     METRICS_REPS.times do
@@ -1420,7 +1511,7 @@ EOS
     end
   end
 
-  def memory_allocated(trace)
+  private def memory_allocated(trace)
     allocated = 0
     trace.lines do |line|
       case line
@@ -1436,7 +1527,7 @@ EOS
     allocated
   end
 
-  def metrics_minheap(*args)
+  private def metrics_minheap(*args)
     use_json = args.delete '--json'
     heap = 10
     log '>', "Trying #{heap} MB\n"
@@ -1473,12 +1564,12 @@ EOS
     end
   end
 
-  def can_run_in_heap(heap, *command)
+  private def can_run_in_heap(heap, *command)
     run_ruby("--vm.Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
   end
 
-  def metrics_maxrss(*args)
-    verify_native_bin!
+  private def metrics_maxrss(*args)
+    truffleruby_native!
 
     use_json = args.delete '--json'
     samples = []
@@ -1486,12 +1577,12 @@ EOS
     METRICS_REPS.times do
       log '.', "sampling\n"
 
-      max_rss_in_mb = if LINUX
-                        out = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+      max_rss_in_mb = if ON_LINUX
+                        out = raw_sh('/usr/bin/time', '-v', '--', ruby_launcher, *args, capture: true, :err => :out, no_print_cmd: true)
                         out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
-                      elsif MAC
-                        out = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+                      elsif ON_MAC
+                        out = raw_sh('/usr/bin/time', '-l', '--', ruby_launcher, *args, capture: true, :err => :out, no_print_cmd: true)
                         out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
@@ -1524,12 +1615,12 @@ EOS
     end
   end
 
-  def metrics_native_instructions(*args)
-    verify_native_bin!
+  private def metrics_native_instructions(*args)
+    truffleruby_native!
 
     use_json = args.delete '--json'
 
-    out = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, :err => :out, no_print_cmd: true)
+    out = raw_sh('perf', 'stat', '-e', 'instructions', '--', ruby_launcher, *args, capture: true, :err => :out, no_print_cmd: true)
 
     out =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
@@ -1546,10 +1637,10 @@ EOS
     end
   end
 
-  def metrics_time_measure(use_json, *args)
-    native = args.include? '--native'
+  private def metrics_time_measure(use_json, *args)
+    truffleruby!
     metrics_time_option = '--vm.Dtruffleruby.metrics.time=true'
-    verbose_gc_flag = native ? '--vm.XX:+PrintGC' : '--vm.verbose:gc' unless use_json
+    verbose_gc_flag = truffleruby_native? ? '--vm.XX:+PrintGC' : '--vm.verbose:gc' unless use_json
     args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
 
     samples = METRICS_REPS.times.map do
@@ -1562,9 +1653,8 @@ EOS
     log "\n", nil
     samples
   end
-  private :metrics_time_measure
 
-  def metrics_time(*args)
+  private def metrics_time(*args)
     use_json = args.delete '--json'
     flamegraph = args.delete '--flamegraph'
 
@@ -1584,7 +1674,7 @@ EOS
     metrics_time_format_results(samples, use_json, flamegraph)
   end
 
-  def metrics_time_format_results(samples, use_json, flamegraph)
+  private def metrics_time_format_results(samples, use_json, flamegraph)
     min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
 
     results = {}
@@ -1628,9 +1718,8 @@ EOS
       sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
-  private :metrics_time_format_results
 
-  def get_times(trace, total)
+  private def get_times(trace, total)
     result = Hash.new(0)
     stack = [['total', 0]]
 
@@ -1671,6 +1760,8 @@ EOS
   end
 
   def benchmark(*args)
+    require_ruby_launcher!
+
     args.map! do |a|
       if a.include?('.rb')
         benchmark = find_benchmark(a)
@@ -1681,21 +1772,9 @@ EOS
       end
     end
 
-    benchmark_ruby = ENV['JT_BENCHMARK_RUBY']
-
     run_args = []
 
-    if args.include?('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
-      # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
-      # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
-      benchmark_ruby ||= find_launcher(true)
-
-      unless File.exist?(benchmark_ruby.to_s)
-        raise "Could not find benchmark ruby -- '#{benchmark_ruby}' does not exist"
-      end
-    end
-
-    unless benchmark_ruby
+    if truffleruby?
       run_args.push '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
@@ -1703,14 +1782,11 @@ EOS
     run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push *args
 
-    if benchmark_ruby
-      sh benchmark_ruby, *run_args, use_exec: true
-    else
-      run_ruby *run_args, use_exec: true
-    end
+    run_ruby *run_args, use_exec: true
   end
 
   def profile(*args)
+    require_ruby_launcher!
     env = args.first.is_a?(Hash) ? args.shift : {}
 
     require 'tempfile'
@@ -1762,8 +1838,8 @@ EOS
     end
   end
 
-  def install_jvmci
-    raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
+  private def install_jvmci
+    raise "Installing JVMCI is only available on Linux and macOS currently" unless ON_LINUX || ON_MAC
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
@@ -1779,7 +1855,7 @@ EOS
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
       extracted = dirs.first
-      MAC ? "#{extracted}/Contents/Home" : extracted
+      ON_MAC ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort "Could not find the extracted JDK" unless java_home
@@ -1792,27 +1868,67 @@ EOS
     java_home
   end
 
-  def build_graalvm(*options)
-    sforceimports = !options.delete("--no-sforceimports")
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if !ci? && sforceimports
+  def checkout_enterprise_revision
+    ee_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal-enterprise')
+    graal_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal')
+    unless File.directory?(ee_path)
+      github_ee_url = "https://github.com/graalvm/graal-enterprise.git"
+      bitbucket_ee_url = raw_sh("mx", "urlrewrite", github_ee_url, capture: true).chomp
+      if bitbucket_ee_url == github_ee_url
+        raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
+      end
+      raw_sh "git", "clone", bitbucket_ee_url, ee_path
+    end
 
-    graal = options.delete('--graal')
-    native = options.delete('--native')
-    name = if (i = options.index('--name'))
-             options.delete_at(i)
-             options.delete_at(i)
-           else
-             native ? 'native' : 'jvm'
-           end
-    name = "truffleruby-#{name}"
+    raw_sh "git", "-C", ee_path, "fetch", "--all"
 
-    mx_args = ['-p', TRUFFLERUBY_DIR,
-               '--dynamicimports', '/vm',
-               *(%w[--dynamicimports /compiler] if graal),
-               *(%w[--dynamicimports /substratevm --disable-libpolyglot --disable-polyglot --force-bash-launchers=lli,native-image] if native),
-               *options]
+    suite_file = File.join ee_path, "vm-enterprise/mx.vm-enterprise/suite.py"
+    # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
+    merge_commit_in_graal = raw_sh(
+        "git", "-C", graal_path, "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "--max-count=1", get_truffle_version,
+        capture: true).chomp
+    # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
+    # The suite file is automatically updated on every graal PR merged.
+    graal_enterprise_commit = raw_sh(
+        "git", "-C", ee_path, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, '--' ,suite_file,
+        capture: true).lines.first.chomp
+    raw_sh("git", "-C", ee_path, "checkout", graal_enterprise_commit)
+  end
 
-    mx(*mx_args, 'build')
+  private def build_graalvm(*options)
+    raise "use --env jvm-ce instead" if options.delete('--graal')
+    raise "use --env native instead" if options.delete('--native')
+
+    env = if (i = options.index('--env') || options.index('-e'))
+            options.delete_at i
+            options.delete_at i
+          else
+            "jvm"
+          end
+    native = env.include? 'native'
+    name = "truffleruby-" + if (i = options.index('--name') || options.index('-n'))
+                              options.delete_at i
+                              options.delete_at i
+                            else
+                              env
+                            end
+
+    sforceimports = options.delete("--sforceimports") || (options.delete("--no-sforceimports") ? false : !ci?)
+    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
+
+    ee_checkout = options.delete("--ee-checkout") || (options.delete("--no-ee-checkout") ? false : !ci?)
+    checkout_enterprise_revision if env.include?("ee") && ee_checkout
+
+    delimiter_index = options.index "--"
+    mx_options, mx_build_options = if delimiter_index
+                                     [options[0...delimiter_index], options[(delimiter_index + 1)..-1]]
+                                   else
+                                     [options, nil]
+                                   end
+
+    mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
+
+    mx(*mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
@@ -1823,7 +1939,7 @@ EOS
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if MAC && !native
+    if ON_MAC && !native
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
@@ -1861,7 +1977,7 @@ EOS
   end
   alias :'native-launcher' :native_launcher
 
-  def check_dsl_usage
+  private def check_dsl_usage
     # Change the annotation retention policy in Truffle so we can inspect specializations.
     raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
     begin
@@ -1890,7 +2006,7 @@ EOS
     sh env, "ruby", "#{gem_home}/bin/rubocop", *args
   end
 
-  def check_filename_length
+  private def check_filename_length
     # For eCryptfs, see https://bugs.launchpad.net/ecryptfs/+bug/344878
     max_length = 143
 
@@ -1908,7 +2024,7 @@ EOS
     end
   end
 
-  def check_parser
+  private def check_parser
     build('parser')
     diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: true
     unless diff.empty?
@@ -1918,7 +2034,7 @@ EOS
     end
   end
 
-  def check_documentation_urls
+  private def check_documentation_urls
     url_base = 'https://github.com/oracle/truffleruby/blob/master/doc/'
     # Explicit list of URLs, so they can be added manually
     # Notably, Ruby installers reference the LLVM urls
@@ -1972,13 +2088,6 @@ EOS
     mx 'checkoverlap'
   end
 
-  def verify_native_bin!
-    unless File.exist?(find_launcher(true))
-      raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
-    end
-  end
-  private :verify_native_bin!
-
   def sync
     exec(RbConfig.ruby, "#{TRUFFLERUBY_DIR}/tool/sync.rb")
   end
@@ -1997,7 +2106,7 @@ EOS
     end
   end
 
-  def docker_build(*args)
+  private def docker_build(*args)
     if args.first.nil? || args.first.start_with?('--')
       image_name = 'truffleruby-test'
     else
@@ -2007,9 +2116,8 @@ EOS
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
-  private :docker_build
 
-  def docker_test(*args)
+  private def docker_test(*args)
     distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
@@ -2033,9 +2141,8 @@ EOS
       end
     end
   end
-  private :docker_test
 
-  def dockerfile(*args)
+  private def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
@@ -2308,7 +2415,6 @@ EOS
 
     lines.join("\n") + "\n"
   end
-  private :dockerfile
 
 end
 
@@ -2327,6 +2433,13 @@ class JT
       send $1
       args.shift
     end
+
+    if args.first == "--use" || args.first == "-u"
+      args.shift
+      @ruby_name = args.shift
+    end
+
+    @silent = !!args.delete("--silent")
 
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
