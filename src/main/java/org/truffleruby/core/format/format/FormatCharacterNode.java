@@ -9,12 +9,8 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import java.nio.charset.StandardCharsets;
+
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToIntegerNode;
@@ -26,7 +22,12 @@ import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.control.RaiseException;
 
-import java.nio.charset.StandardCharsets;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("width")
 @NodeChild("value")

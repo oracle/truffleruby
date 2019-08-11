@@ -14,7 +14,7 @@
  *
  * Copyright (C) 2004 Jan Arne Petersen <jpetersen@uni-bonn.de>
  * Copyright (C) 2004-2007 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -29,15 +29,15 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
+import static org.truffleruby.parser.lexer.RubyLexer.EOF;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
+
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.parser.Tokens;
-
-import static org.truffleruby.parser.lexer.RubyLexer.EOF;
-import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
-import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
 
 /**
  * A lexing unit for scanning a heredoc element.
@@ -46,12 +46,12 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
  * foo(<<EOS, bar)
  * This is heredoc country!
  * EOF
- * 
+ *
  * Where:
  * EOS = marker
  * ',bar)\n' = lastLine
  * </pre>
- *  
+ *
  */
 public class HeredocTerm extends StrTerm {
     // Marker delimiting heredoc boundary

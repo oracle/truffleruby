@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 import java.util.Locale;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class StringUtils {
 

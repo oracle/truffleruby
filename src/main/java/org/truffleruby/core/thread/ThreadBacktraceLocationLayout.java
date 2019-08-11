@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.thread;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.backtrace.Backtrace;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.language.backtrace.Backtrace;
 
 @Layout
 public interface ThreadBacktraceLocationLayout extends BasicObjectLayout {

@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.supercall;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 /**
  * Represents a super call with implicit arguments without a surrounding method

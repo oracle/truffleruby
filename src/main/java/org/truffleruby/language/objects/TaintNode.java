@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
 
 public abstract class TaintNode extends RubyBaseNode {
 

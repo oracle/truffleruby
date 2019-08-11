@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.format.unpack;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
+import java.nio.charset.StandardCharsets;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
 import org.truffleruby.language.RubyNode;
 
-import java.nio.charset.StandardCharsets;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 
 public class UnpackCompiler {
 

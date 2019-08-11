@@ -9,16 +9,17 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild("width")
 @NodeChild("precision")

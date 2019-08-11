@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyGuards;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class BucketsStrategy {
 

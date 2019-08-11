@@ -9,13 +9,8 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.Arrays;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.ArrayCastNodeGen;
@@ -58,7 +53,13 @@ import org.truffleruby.parser.ast.SuperParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
-import java.util.Arrays;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class MethodTranslator extends BodyTranslator {
 

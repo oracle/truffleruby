@@ -9,10 +9,14 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
+import java.lang.ref.SoftReference;
+import java.util.Collection;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -23,21 +27,18 @@ import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.StringKey;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
-import java.lang.ref.SoftReference;
-import java.util.Collection;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public class SymbolTable implements ReHashable {
 

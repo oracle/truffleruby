@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.parser.ReadLocalNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.parser.ReadLocalNode;
 
 public class ReadLocalVariableNode extends ReadLocalNode {
 

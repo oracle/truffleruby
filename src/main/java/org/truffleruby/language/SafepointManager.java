@@ -9,20 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.InterruptMode;
-import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.platform.Signals;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map.Entry;
@@ -32,6 +18,21 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.platform.Signals;
+
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class SafepointManager {
 

@@ -13,13 +13,13 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;

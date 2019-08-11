@@ -9,9 +9,7 @@
  */
 package org.truffleruby.core.mutex;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -20,7 +18,9 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
-import java.util.concurrent.locks.ReentrantLock;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class MutexOperations {
 

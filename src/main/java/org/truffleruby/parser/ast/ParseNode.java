@@ -18,7 +18,7 @@
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
  * Copyright (C) 2006 Thomas Corbat <tcorbat@hsr.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -33,13 +33,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.ast.types.INameNode;
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.types.INameNode;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
  * Base class for all Nodes in the AST

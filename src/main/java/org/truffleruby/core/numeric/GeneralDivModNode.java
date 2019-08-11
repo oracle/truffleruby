@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class GeneralDivModNode extends RubyBaseNode {
 

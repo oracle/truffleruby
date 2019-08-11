@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.fiber;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import com.oracle.truffle.api.object.dsl.Volatile;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
 
 @Layout
 public interface FiberLayout extends BasicObjectLayout {

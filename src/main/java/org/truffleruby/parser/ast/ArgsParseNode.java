@@ -18,7 +18,7 @@
  * Copyright (C) 2002 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2007 Mirko Stocker <me@misto.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -34,11 +34,11 @@
 
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * Represents the argument declarations of a method.  The fields:

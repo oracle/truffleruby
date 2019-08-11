@@ -9,13 +9,6 @@
  */
 package org.truffleruby.core.format.read.array;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -25,6 +18,13 @@ import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "source", type = SourceNode.class)
 @ImportStatic(ArrayGuards.class)

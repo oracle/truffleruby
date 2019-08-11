@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.symbol;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface SymbolLayout extends BasicObjectLayout {

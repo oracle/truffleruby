@@ -9,13 +9,14 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
+import org.truffleruby.Layouts;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public abstract class AbstractSubNode extends BigDecimalOpNode {
 

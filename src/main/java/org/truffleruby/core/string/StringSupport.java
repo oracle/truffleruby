@@ -25,7 +25,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+
+import java.util.Arrays;
+
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -40,12 +46,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 
-import java.util.Arrays;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public final class StringSupport {
     public static final int TRANS_SIZE = 256;

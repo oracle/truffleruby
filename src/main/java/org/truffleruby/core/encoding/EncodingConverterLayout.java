@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.encoding;
 
+import org.jcodings.transcode.EConv;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.jcodings.transcode.EConv;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface EncodingConverterLayout extends BasicObjectLayout {

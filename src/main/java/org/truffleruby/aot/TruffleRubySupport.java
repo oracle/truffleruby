@@ -13,11 +13,6 @@
  */
 package org.truffleruby.aot;
 
-import org.jcodings.Encoding;
-import org.jcodings.EncodingDB;
-import org.jcodings.util.ArrayReader;
-import org.jcodings.util.CaseInsensitiveBytesHash;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +25,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jcodings.Encoding;
+import org.jcodings.EncodingDB;
+import org.jcodings.util.ArrayReader;
+import org.jcodings.util.CaseInsensitiveBytesHash;
 
 public final class TruffleRubySupport {
     public static final Map<String, EncodingInstance> allEncodings = getEncodings();

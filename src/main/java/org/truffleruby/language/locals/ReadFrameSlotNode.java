@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 public abstract class ReadFrameSlotNode extends RubyBaseWithoutContextNode {
 

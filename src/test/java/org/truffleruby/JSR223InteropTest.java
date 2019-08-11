@@ -9,8 +9,11 @@
  */
 package org.truffleruby;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Map;
 import java.util.function.Function;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -23,8 +26,6 @@ import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.services.scriptengine.TruffleRubyScriptEngine;
 import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
 import org.truffleruby.shared.TruffleRuby;
-
-import static org.junit.Assert.assertEquals;
 
 public class JSR223InteropTest {
 

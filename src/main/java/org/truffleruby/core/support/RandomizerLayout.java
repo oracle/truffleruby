@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.support;
 
+import org.truffleruby.algorithms.Randomizer;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.algorithms.Randomizer;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface RandomizerLayout extends BasicObjectLayout {

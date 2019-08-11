@@ -41,15 +41,15 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-
 import java.nio.charset.StandardCharsets;
 
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("value")
 public abstract class WriteMIMEStringNode extends FormatNode {

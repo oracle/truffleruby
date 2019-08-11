@@ -26,6 +26,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
@@ -38,10 +42,6 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Helpers {
 

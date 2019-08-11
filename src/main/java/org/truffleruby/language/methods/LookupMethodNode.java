@@ -9,6 +9,18 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.MetaClassNode;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -21,18 +33,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleFields;
-import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.MetaClassNode;
 
 /**
  * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}

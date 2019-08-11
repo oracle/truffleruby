@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyGuards;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class StringCachingGuards {
 

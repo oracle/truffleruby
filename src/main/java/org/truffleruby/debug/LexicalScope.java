@@ -9,6 +9,14 @@
  */
 package org.truffleruby.debug;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.language.arguments.RubyArguments;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.frame.Frame;
@@ -23,13 +31,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.language.arguments.RubyArguments;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LexicalScope {
 

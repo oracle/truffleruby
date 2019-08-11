@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.truffleruby.core.string.StringOperations;
 
-import java.util.concurrent.locks.ReentrantLock;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class AutoloadConstant {
 

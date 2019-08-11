@@ -39,6 +39,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
+
+import java.nio.charset.Charset;
+
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
@@ -131,17 +142,6 @@ import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
-
-import java.nio.charset.Charset;
-
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
@@ -3654,7 +3654,7 @@ public class RubyParser {
     }
     // line 2572 "RubyParser.y"
 
-    /** The parse method use an lexer stream and parse it to an AST node 
+    /** The parse method use an lexer stream and parse it to an AST node
      * structure
      */
     public RubyParserResult parse(ParserConfiguration configuration) {

@@ -9,21 +9,21 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
-
-import org.graalvm.polyglot.Context;
-import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubySource;
-import org.truffleruby.shared.TruffleRuby;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.assertEquals;
+import org.graalvm.polyglot.Context;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
+
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.source.Source;
 
 public abstract class RubyTest {
 

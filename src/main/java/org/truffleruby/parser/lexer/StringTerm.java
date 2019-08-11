@@ -27,15 +27,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
-import org.jcodings.Encoding;
-import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.string.KCode;
-import org.truffleruby.parser.ast.RegexpParseNode;
-import org.truffleruby.parser.parser.Tokens;
-
 import static org.truffleruby.parser.lexer.RubyLexer.EOF;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
@@ -49,6 +40,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jcodings.Encoding;
+import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.KCode;
+import org.truffleruby.parser.ast.RegexpParseNode;
+import org.truffleruby.parser.parser.Tokens;
+
 public class StringTerm extends StrTerm {
 
     // Chanacters that can be escaped in a %r style regexp literal when they are also the terminator.
@@ -57,7 +57,7 @@ public class StringTerm extends StrTerm {
     // Expand variables, Indentation of final marker
     private int flags;
 
-    // Start of string ([, (, {, <, ', ", \n) 
+    // Start of string ([, (, {, <, ', ", \n)
     private final char begin;
 
     // End of string (], ), }, >, ', ", \0)

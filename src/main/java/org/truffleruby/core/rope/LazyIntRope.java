@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.rope;
 
+import java.nio.charset.StandardCharsets;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
-
-import java.nio.charset.StandardCharsets;
 
 public class LazyIntRope extends LazyRope {
 

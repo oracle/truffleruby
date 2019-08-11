@@ -38,9 +38,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 import org.truffleruby.core.hash.ReHashable;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /**
  * A thread-safe cache removing entries when the value is no longer in use.

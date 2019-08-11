@@ -9,12 +9,10 @@
  */
 package org.truffleruby.language.backtrace;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -28,10 +26,12 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.shared.TruffleRuby;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class BacktraceFormatter {
 

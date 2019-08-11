@@ -9,9 +9,9 @@
  */
 package org.truffleruby.stdlib.digest;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
@@ -27,8 +27,9 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("Truffle::Digest")
 public abstract class DigestNodes {

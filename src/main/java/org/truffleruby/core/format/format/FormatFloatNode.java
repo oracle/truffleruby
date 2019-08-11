@@ -16,18 +16,19 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChild("width")
 @NodeChild("precision")

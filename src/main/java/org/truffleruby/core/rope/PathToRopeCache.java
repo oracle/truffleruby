@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.StringOperations;
-
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /**
  * A cache from Source.getName() to a Rope. The Rope is kept alive as long as the Source.getName()

@@ -9,22 +9,23 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.object.ObjectType;
-import com.oracle.truffle.api.object.dsl.Layout;
-import com.oracle.truffle.api.object.dsl.Nullable;
-import com.oracle.truffle.api.object.dsl.Volatile;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.ObjectType;
+import com.oracle.truffle.api.object.dsl.Layout;
+import com.oracle.truffle.api.object.dsl.Nullable;
+import com.oracle.truffle.api.object.dsl.Volatile;
 
 @Layout
 public interface ThreadLayout extends BasicObjectLayout {

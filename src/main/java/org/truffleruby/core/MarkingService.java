@@ -13,7 +13,6 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.ReferenceProcessingService.WeakProcessingReference;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

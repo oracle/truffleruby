@@ -9,19 +9,18 @@
  */
 package org.truffleruby.core.array;
 
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.setSize;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.language.RubyBaseNode;
-
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism

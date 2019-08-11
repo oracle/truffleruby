@@ -14,6 +14,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -22,8 +25,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 
 /**
  * Displays a warning when code is compiled that will compile successfully but is very low performance. We don't want

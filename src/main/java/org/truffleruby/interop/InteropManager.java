@@ -9,10 +9,10 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.RubyContext;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.truffleruby.RubyContext;
 
 public class InteropManager {
 

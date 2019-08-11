@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,18 +31,18 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-import java.util.List;
-
-/** 
+/**
  * Singleton class definition.
- * 
+ *
  * <pre>
  * class &lt;&lt; anObject
- * 
+ *
  * end
  * </pre>
  */
@@ -78,7 +78,7 @@ public class SClassParseNode extends ParseNode {
 
     /**
      * Gets the body of this class.
-     * 
+     *
      * @return the contents
      */
     public ParseNode getBodyNode() {
@@ -87,7 +87,7 @@ public class SClassParseNode extends ParseNode {
 
     /**
      * Gets the scope of this class
-     * 
+     *
      * @return the scope
      */
     public StaticScope getScope() {

@@ -17,7 +17,7 @@
  * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -32,11 +32,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * An assignment to a local variable.
@@ -86,7 +86,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
 
     /**
      * How many scopes should we burrow down to until we need to set the block variable value.
-     * 
+     *
      * @return 0 for current scope, 1 for one down, ...
      */
     public int getDepth() {
@@ -96,7 +96,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
-     * 
+     *
      * @return Returns an int offset into storage structure
      */
     public int getIndex() {

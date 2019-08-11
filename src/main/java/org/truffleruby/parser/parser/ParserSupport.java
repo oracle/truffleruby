@@ -20,7 +20,7 @@
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
  * Copyright (C) 2006-2007 Mirko Stocker <me@misto.ch>
  * Copyright (C) 2006 Thomas Corbat <tcorbat@hsr.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -34,6 +34,15 @@
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
+
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
+import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
+import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -132,15 +141,6 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
 
 public class ParserSupport {
     // Parser states:

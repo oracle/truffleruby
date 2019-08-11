@@ -9,6 +9,19 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -22,18 +35,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.IntegerCastNode;
-import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectType extends ObjectType {

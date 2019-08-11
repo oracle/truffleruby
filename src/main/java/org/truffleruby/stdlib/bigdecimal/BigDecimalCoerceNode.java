@@ -9,15 +9,16 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
 
 /**
  * This node implements the front part of the coercion logic in BigDecimal - the types it handles before going into

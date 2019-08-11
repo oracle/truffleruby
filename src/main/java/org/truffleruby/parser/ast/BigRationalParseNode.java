@@ -9,11 +9,11 @@
  */
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
 import java.math.BigInteger;
 import java.util.List;
+
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 public class BigRationalParseNode extends NumericParseNode implements SideEffectFree {
     private final BigInteger numerator;

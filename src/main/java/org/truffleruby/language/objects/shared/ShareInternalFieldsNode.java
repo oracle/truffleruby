@@ -9,12 +9,6 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
@@ -23,6 +17,13 @@ import org.truffleruby.core.array.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
  * Share the internal fields of an object, accessible by its Layout

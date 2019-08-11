@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
 public final class SequenceNode extends RubyNode {

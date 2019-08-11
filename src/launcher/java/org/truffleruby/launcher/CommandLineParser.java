@@ -34,10 +34,6 @@
  */
 package org.truffleruby.launcher;
 
-import org.graalvm.options.OptionDescriptor;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.options.Verbosity;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +45,10 @@ import java.util.function.BiConsumer;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+import org.graalvm.options.OptionDescriptor;
+import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.shared.options.Verbosity;
 
 public class CommandLineParser {
 

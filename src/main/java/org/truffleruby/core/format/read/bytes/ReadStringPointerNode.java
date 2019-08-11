@@ -9,14 +9,6 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameUtil;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -26,6 +18,14 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameUtil;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @NodeChild("value")
 public abstract class ReadStringPointerNode extends FormatNode {

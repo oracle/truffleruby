@@ -9,19 +9,20 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ShapeCachingGuards;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public class SharedObjects {
 

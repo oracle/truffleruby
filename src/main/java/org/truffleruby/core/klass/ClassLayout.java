@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.klass;
 
+import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.ModuleLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.module.ModuleFields;
-import org.truffleruby.core.module.ModuleLayout;
 
 @Layout
 public interface ClassLayout extends ModuleLayout {

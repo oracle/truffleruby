@@ -9,12 +9,13 @@
  */
 package org.truffleruby.platform;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 
 @NodeChild("value")
 public abstract class AssertConstantNode extends RubyNode {

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleFields;
@@ -23,6 +22,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class ExceptionOperations {
 

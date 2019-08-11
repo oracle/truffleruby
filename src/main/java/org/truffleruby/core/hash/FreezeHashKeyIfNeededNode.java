@@ -9,13 +9,13 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 

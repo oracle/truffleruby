@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
+
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyGuards {
 

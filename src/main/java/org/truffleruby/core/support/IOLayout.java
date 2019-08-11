@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.support;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface IOLayout extends BasicObjectLayout {

@@ -9,9 +9,9 @@
  */
 package org.truffleruby.shared.options;
 
-import org.graalvm.options.OptionDescriptor;
-
 import java.util.Collection;
+
+import org.graalvm.options.OptionDescriptor;
 
 public class RubyOptionTypes {
 

@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.format.convert;
 
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.MissingValue;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.MissingValue;
 
 @NodeChild("bytes")
 public abstract class BytesToInteger32BigNode extends FormatNode {

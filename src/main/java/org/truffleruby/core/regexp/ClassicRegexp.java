@@ -35,6 +35,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.regexp;
 
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -55,13 +62,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;

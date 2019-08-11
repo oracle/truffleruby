@@ -9,6 +9,14 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -26,14 +34,6 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.utilities.NeverValidAssumption;
-
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 @ReportPolymorphism

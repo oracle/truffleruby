@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class CatchReturnAsErrorNode extends RubyNode {
 

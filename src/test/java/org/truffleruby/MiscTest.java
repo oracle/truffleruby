@@ -9,19 +9,19 @@
  */
 package org.truffleruby;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Value;
-import org.junit.Assert;
-import org.junit.Test;
-import org.truffleruby.shared.options.OptionsCatalog;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
+import org.junit.Assert;
+import org.junit.Test;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 public class MiscTest {
 

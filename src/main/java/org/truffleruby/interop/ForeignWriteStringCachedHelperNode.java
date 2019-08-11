@@ -9,16 +9,17 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 @GenerateUncached
 abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContextNode {

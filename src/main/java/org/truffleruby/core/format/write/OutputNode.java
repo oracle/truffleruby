@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.format.write;
 
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
+
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class OutputNode extends RubyBaseWithoutContextNode {
 

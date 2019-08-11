@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.format.printf;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatNode;
@@ -33,8 +35,7 @@ import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class PrintfSimpleTreeBuilder {
 

@@ -9,37 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.TruffleStackTrace;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.InterruptMode;
-import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.SafepointManager;
-import org.truffleruby.language.control.ExitException;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.ReturnException;
-import org.truffleruby.language.control.KillException;
-import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
-import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -51,6 +20,37 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.control.ExitException;
+import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnException;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
+import org.truffleruby.platform.NativeConfiguration;
+import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
+
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class ThreadManager {
 

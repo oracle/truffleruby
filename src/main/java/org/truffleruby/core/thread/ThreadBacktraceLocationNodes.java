@@ -9,12 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
-
 import java.io.File;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -27,6 +21,12 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Thread::Backtrace::Location")
 public class ThreadBacktraceLocationNodes {

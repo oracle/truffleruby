@@ -9,9 +9,6 @@
  */
 package org.truffleruby.core.inlined;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleFields;
@@ -21,6 +18,9 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.parser.TranslatorEnvironment;
+
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.object.DynamicObject;
 
 /**
  * We inline basic operations as it makes little sense to compile them in isolation without the

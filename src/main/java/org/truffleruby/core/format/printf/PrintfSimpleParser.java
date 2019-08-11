@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.format.printf;
 
-import org.truffleruby.core.format.exceptions.InvalidFormatException;
-import org.truffleruby.language.RubyGuards;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.language.RubyGuards;
 
 public class PrintfSimpleParser {
 

@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.format.format;
 
+import java.nio.charset.StandardCharsets;
+
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.core.format.FormatNode;
-
-import java.nio.charset.StandardCharsets;
 
 @NodeChild("value")
 public abstract class FormatFloatHumanReadableNode extends FormatNode {

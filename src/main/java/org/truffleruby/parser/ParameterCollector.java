@@ -9,6 +9,9 @@
  */
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -24,9 +27,6 @@ import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
 import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Collects parameter names from a JRuby AST.

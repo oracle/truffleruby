@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
 
 class TracePointEventNode extends TraceBaseEventNode {
 

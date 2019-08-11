@@ -18,7 +18,7 @@
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -33,11 +33,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * Represents an assignment to a global variable.
@@ -58,7 +58,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
 
     /**
      * RubyMethod used by visitors.
-     * accepts the visitor 
+     * accepts the visitor
      * @param iVisitor the visitor to accept
      **/
     @Override

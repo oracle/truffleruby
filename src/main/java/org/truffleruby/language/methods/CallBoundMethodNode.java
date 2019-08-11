@@ -9,14 +9,15 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 public abstract class CallBoundMethodNode extends RubyBaseWithoutContextNode {

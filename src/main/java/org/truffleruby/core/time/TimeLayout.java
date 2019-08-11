@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.time;
 
+import java.time.ZonedDateTime;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.time.ZonedDateTime;
 
 @Layout
 public interface TimeLayout extends BasicObjectLayout {

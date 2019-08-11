@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.numeric;
 
+import java.math.BigInteger;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.math.BigInteger;
 
 @Layout
 public interface BignumLayout extends BasicObjectLayout {

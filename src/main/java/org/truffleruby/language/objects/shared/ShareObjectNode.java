@@ -9,6 +9,16 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.interop.RubyObjectType;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -18,15 +28,6 @@ import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.interop.RubyObjectType;
-import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ShapeCachingGuards;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Share the object and all that is reachable from it

@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.lang.reflect.Array;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-import java.lang.reflect.Array;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayOperations {
 

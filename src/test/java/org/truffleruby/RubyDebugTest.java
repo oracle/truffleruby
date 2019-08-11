@@ -9,25 +9,10 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.debug.Breakpoint;
-import com.oracle.truffle.api.debug.DebugException;
-import com.oracle.truffle.api.debug.DebugStackFrame;
-import com.oracle.truffle.api.debug.DebugValue;
-import com.oracle.truffle.api.debug.Debugger;
-import com.oracle.truffle.api.debug.DebuggerSession;
-import com.oracle.truffle.api.debug.SuspendedEvent;
-import com.oracle.truffle.tck.DebuggerTester;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Instrument;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.junit.Ignore;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.truffleruby.shared.TruffleRuby;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -39,10 +24,26 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Instrument;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
+
+import com.oracle.truffle.api.debug.Breakpoint;
+import com.oracle.truffle.api.debug.DebugException;
+import com.oracle.truffle.api.debug.DebugStackFrame;
+import com.oracle.truffle.api.debug.DebugValue;
+import com.oracle.truffle.api.debug.Debugger;
+import com.oracle.truffle.api.debug.DebuggerSession;
+import com.oracle.truffle.api.debug.SuspendedEvent;
+import com.oracle.truffle.tck.DebuggerTester;
 
 public class RubyDebugTest {
 

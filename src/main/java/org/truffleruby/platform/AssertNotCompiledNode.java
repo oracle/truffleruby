@@ -9,12 +9,13 @@
  */
 package org.truffleruby.platform;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 
 public abstract class AssertNotCompiledNode extends RubyNode {
 

@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayLiteralNode extends RubyNode {
 

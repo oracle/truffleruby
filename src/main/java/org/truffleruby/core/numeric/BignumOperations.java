@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class BignumOperations {
 

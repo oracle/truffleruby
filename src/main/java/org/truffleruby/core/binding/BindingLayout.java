@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.binding;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import com.oracle.truffle.api.source.SourceSection;
-
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 /**
  * Bindings capture the frame from where they are called, which is initially stored in

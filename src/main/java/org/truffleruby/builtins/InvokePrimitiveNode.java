@@ -9,9 +9,10 @@
  */
 package org.truffleruby.builtins;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyNode;
 
 public class InvokePrimitiveNode extends RubyNode {
 

@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.locals.FindDeclarationVariableNodesFactory.FindAndReadDeclarationVariableNodeGen;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -18,10 +22,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.locals.FindDeclarationVariableNodesFactory.FindAndReadDeclarationVariableNodeGen;
 
 public class FindDeclarationVariableNodes {
     public static class FrameSlotAndDepth {

@@ -13,10 +13,10 @@
  */
 package org.truffleruby.aot;
 
-import org.jcodings.exception.InternalException;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+
+import org.jcodings.exception.InternalException;
 
 // Checkstyle: stop
 

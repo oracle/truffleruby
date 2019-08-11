@@ -20,7 +20,7 @@
  * Copyright (C) 2004-2005 David Corbin <dcorbin@users.sourceforge.net>
  * Copyright (C) 2005 Zach Dennis <zdennis@mktec.com>
  * Copyright (C) 2006 Thomas Corbat <tcorbat@hsr.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -43,8 +43,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.function.BiConsumer;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -79,17 +88,8 @@ import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.parser.RubyParser;
 import org.truffleruby.parser.parser.Tokens;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.function.BiConsumer;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-
-import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 /*
  * This is a port of the MRI lexer to Java.
@@ -464,7 +464,7 @@ public class RubyLexer implements MagicCommentHandler {
             /*
              * The source we are lexing came in via a String (or Reader, or File) from the Polyglot API, so we only
              * have the String - we don't have any access to the original bytes, so we cannot re-interpret them
-             * in another encoding without risking errors. 
+             * in another encoding without risking errors.
              */
 
             final String description;

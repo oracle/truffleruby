@@ -40,15 +40,17 @@
  */
 package org.truffleruby.stdlib.readline;
 
+import java.io.IOException;
+
+import org.truffleruby.RubyContext;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
+
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import jline.console.history.History;
 import jline.console.history.MemoryHistory;
-import org.truffleruby.RubyContext;
-
-import java.io.IOException;
 
 public class ConsoleHolder {
 

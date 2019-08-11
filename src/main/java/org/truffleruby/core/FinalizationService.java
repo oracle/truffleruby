@@ -16,10 +16,9 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.ReferenceProcessingService.PhantomProcessingReference;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.objects.ObjectGraphNode;
 
 /**
  * Finalizers are implemented with phantom references and reference queues, and are run in a

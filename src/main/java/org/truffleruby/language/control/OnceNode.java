@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
 
 /**
  * Executes a child node just once, and uses the same value each subsequent time the node is

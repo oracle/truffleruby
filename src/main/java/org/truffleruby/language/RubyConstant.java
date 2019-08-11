@@ -9,15 +9,15 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
-
 import java.util.Set;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.ObjectGraphNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyConstant implements ObjectGraphNode {
 

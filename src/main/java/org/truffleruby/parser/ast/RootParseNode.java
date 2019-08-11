@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2006 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -28,18 +28,18 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import com.oracle.truffle.api.source.Source;
 
-import java.util.List;
-
 /**
  * Represents the top of the AST.  This is a node not present in MRI.  It was created to
  * hold the top-most static scope in an easy to grab way and it also exists to hold BEGIN
  * and END nodes.  These can then be interpreted/compiled in the same places as the rest
- * of the code. 
+ * of the code.
  *
  */
 // TODO: Store BEGIN and END information into this node
@@ -74,7 +74,7 @@ public class RootParseNode extends ParseNode {
 
     /**
      * First real AST node to be interpreted
-     * 
+     *
      * @return real top AST node
      */
     public ParseNode getBodyNode() {

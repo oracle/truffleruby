@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2006-2007 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -28,6 +28,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.scope;
 
+import java.util.Arrays;
+
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.AssignableParseNode;
@@ -38,18 +40,16 @@ import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
 
-import java.util.Arrays;
-
 /**
  * StaticScope represents lexical scoping of variables and module/class constants.
- * 
+ *
  * At a very high level every scopes enclosing scope contains variables in the next outer
  * lexical layer.  The enclosing scopes variables may or may not be reachable depending
  * on the scoping rules for variables (governed by BlockStaticScope and LocalStaticScope).
- * 
+ *
  * StaticScope also keeps track of current module/class that is in scope.  previousCRefScope
  * will point to the previous scope of the enclosing module/class (cref).
- * 
+ *
  */
 public class StaticScope {
 

@@ -83,6 +83,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -95,8 +96,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-
-import org.truffleruby.extra.ffi.Pointer;
 
 @CoreClass("IO")
 public abstract class IONodes {

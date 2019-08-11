@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseNode;
 
 /**
  * Caches {@link ModuleOperations#canBindMethodTo} for a method.

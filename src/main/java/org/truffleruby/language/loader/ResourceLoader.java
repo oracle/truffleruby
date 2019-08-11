@@ -9,13 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.parser.RubySource;
-import org.truffleruby.shared.TruffleRuby;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +17,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.TruffleRuby;
+
+import com.oracle.truffle.api.source.Source;
 
 /*
  * Loads source files that have been stored as resources (in the Java jar file sense.)

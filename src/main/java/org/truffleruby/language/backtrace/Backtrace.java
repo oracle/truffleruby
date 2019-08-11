@@ -9,6 +9,16 @@
  */
 package org.truffleruby.language.backtrace;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.GetBacktraceException;
+import org.truffleruby.language.CallStackManager;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
@@ -17,15 +27,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.exception.GetBacktraceException;
-import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.control.RaiseException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Backtrace {
 

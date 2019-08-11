@@ -9,6 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.shared.SharedObjects;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,12 +23,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.klass.ClassNodes;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.shared.SharedObjects;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class SingletonClassNode extends RubyNode {

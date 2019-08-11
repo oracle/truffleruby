@@ -9,15 +9,15 @@
  */
 package org.truffleruby;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
-import org.junit.Test;
-import org.truffleruby.shared.TruffleRuby;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import static org.junit.Assert.assertEquals;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
+import org.junit.Test;
+import org.truffleruby.shared.TruffleRuby;
 
 public class PolyglotIOTest extends RubyTest {
 
