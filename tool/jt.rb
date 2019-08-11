@@ -517,7 +517,8 @@ module Commands
   include Utilities
 
   def help
-    puts <<~TXT
+    # <<~ cannot be used since idea thinks TR is 2.1 and displays it as error
+    puts <<-TXT.gsub(/^ {6}/, '')
       Usage: jt [options] COMMAND [command-options] 
           Where options are:
           --build                   Runs `jt build` before the command
