@@ -618,6 +618,7 @@ module Commands
       jt install jvmci                              install a JVMCI JDK in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
+      jt format                                     run eclipse code formatter
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -1676,6 +1677,10 @@ EOS
     metrics_time_format_results(samples, use_json, flamegraph)
   end
 
+  def format(*args)
+    mx "eclipseformat", "--primary", *args, continue_on_failure: true
+  end
+
   private def metrics_time_format_results(samples, use_json, flamegraph)
     min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
 
@@ -2069,25 +2074,19 @@ EOS
   end
 
   def lint(*args)
-    check_dsl_usage unless args.delete '--no-build'
     check_filename_length
-
-    # Style
     rubocop
     sh "tool/lint.sh"
-    checkstyle
-    mx 'pylint', '--primary'
+    mx 'gate', '--tags', 'style'
+
+    # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`,
+    #   includes verifylibraryurls though
+    mx 'spotbugs'
+
+    check_dsl_usage unless args.delete '--no-build'
 
     check_parser
     check_documentation_urls
-    mx 'spotbugs'
-
-    # mx sanity checks
-    mx 'gate', '--tags', 'always'
-    mx 'verifymultireleaseprojects'
-    mx 'canonicalizeprojects'
-    mx 'verifysourceinproject'
-    mx 'checkoverlap'
   end
 
   def sync
