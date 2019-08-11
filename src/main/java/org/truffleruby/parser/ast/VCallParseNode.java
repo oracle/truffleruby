@@ -55,7 +55,7 @@ public class VCallParseNode extends ParseNode implements INameNode {
     public NodeType getNodeType() {
         return NodeType.VCALLNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -72,7 +72,7 @@ public class VCallParseNode extends ParseNode implements INameNode {
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

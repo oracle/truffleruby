@@ -46,8 +46,7 @@ public class BacktraceFormatter {
      * Flags for a backtrace exposed to Ruby via #caller, #caller_locations, Exception#backtrace and
      * Thread#backtrace.
      */
-    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS =
-            EnumSet.of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
+    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS = EnumSet.of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
 
     private final RubyContext context;
     private final EnumSet<FormattingFlags> flags;

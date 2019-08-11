@@ -170,7 +170,7 @@ public abstract class IONodes {
 
             while (pat < pend) {
                 char c = (char) (bytes[pat++] & 0xFF);
-                switch(c) {
+                switch (c) {
                     case '?':
                         if (s >= send || (pathname && isdirsep(string[s])) ||
                                 (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
@@ -294,7 +294,7 @@ public abstract class IONodes {
                             return 0;
                         }
                     }
-                /* failed : try next recursion */
+                    /* failed : try next recursion */
                     if (ptmp != -1 && stmp != -1 && !(period && string[stmp] == '.')) {
                         stmp = nextSlashIndex(string, stmp, send);
                         if (stmp < send) {
@@ -318,9 +318,7 @@ public abstract class IONodes {
                 return false; // not enough bytes
             }
 
-            return bytes[pos] == '*'
-                    && bytes[pos + 1] == '*'
-                    && bytes[pos + 2] == '/';
+            return bytes[pos] == '*' && bytes[pos + 1] == '*' && bytes[pos + 2] == '/';
         }
 
         // Look for slash, starting from 'start' position, until 'end'.
@@ -369,8 +367,7 @@ public abstract class IONodes {
                 }
 
                 if (nocase) {
-                    if (Character.toLowerCase(cstart) <= test
-                            && test <= Character.toLowerCase(cend)) {
+                    if (Character.toLowerCase(cstart) <= test && test <= Character.toLowerCase(cend)) {
                         ok = true;
                     }
                 } else {
@@ -458,15 +455,14 @@ public abstract class IONodes {
 
             final Rope rope = rope(string);
 
-            RopeOperations.visitBytes(rope, (bytes, offset, length) ->
-                getContext().getThreadManager().runUntilResult(this, () -> {
-                    try {
-                        stream.write(bytes, offset, length);
-                    } catch (IOException e) {
-                        throw new JavaException(e);
-                    }
-                    return BlockingAction.SUCCESS;
-                }));
+            RopeOperations.visitBytes(rope, (bytes, offset, length) -> getContext().getThreadManager().runUntilResult(this, () -> {
+                try {
+                    stream.write(bytes, offset, length);
+                } catch (IOException e) {
+                    throw new JavaException(e);
+                }
+                return BlockingAction.SUCCESS;
+            }));
 
             return rope.byteLength();
         }

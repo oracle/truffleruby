@@ -63,6 +63,7 @@ public class FindDeclarationVariableNodes {
     @ImportStatic(FindDeclarationVariableNodes.class)
     public static abstract class FindAndReadDeclarationVariableNode extends RubyBaseNode {
         public abstract Object execute(MaterializedFrame frame, String name);
+
         private final Object defaultValue;
 
         protected FindAndReadDeclarationVariableNode(Object defaultValue) {

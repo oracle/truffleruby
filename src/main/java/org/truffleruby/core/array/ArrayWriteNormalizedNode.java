@@ -72,7 +72,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
 
     @Specialization(guards = "isExtendingByOne(array, index)")
     public Object writeExtendByOne(DynamicObject array, int index, Object value,
-                    @Cached ArrayAppendOneNode appendNode) {
+            @Cached ArrayAppendOneNode appendNode) {
         appendNode.executeAppendOne(array, value);
         return value;
     }

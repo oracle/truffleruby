@@ -96,9 +96,9 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject javaGetEnv(DynamicObject name,
-                                        @Cached ToJavaStringNode toJavaStringNode,
-                                        @Cached FromJavaStringNode fromJavaStringNode,
-                                        @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
             final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);
 
@@ -172,10 +172,10 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", isModuleFunction = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel"})
+        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
         public Object logCached(DynamicObject level, DynamicObject message,
-                        @Cached("level") DynamicObject cachedLevel,
-                        @Cached("getLevel(cachedLevel)") Level javaLevel) {
+                @Cached("level") DynamicObject cachedLevel,
+                @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
             return nil();
         }
@@ -213,7 +213,7 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "isRubyString(name)")
         protected DynamicObject setProcessTitle(DynamicObject name) {
             if (TruffleOptions.AOT) {
-                Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", StringOperations.getString(name) });
+                Compiler.command(new Object[]{ "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", StringOperations.getString(name) });
             } else {
                 throw new UnsupportedOperationException();
             }

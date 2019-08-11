@@ -56,7 +56,8 @@ public class SourceSectionTest extends RubyTest {
 
     @Test
     public void testDeeplyNestedCallSections() {
-        testSourceSection(" [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ", RubyCallNode.class, "5 + 6", 5, 5, 85, 5, 16, 20);
+        testSourceSection(" [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ", RubyCallNode.class,
+                "5 + 6", 5, 5, 85, 5, 16, 20);
     }
 
     @Test

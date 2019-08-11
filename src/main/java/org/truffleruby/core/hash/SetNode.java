@@ -103,10 +103,10 @@ public abstract class SetNode extends RubyBaseNode {
 
     @Specialization(guards = "isBucketHash(hash)")
     public Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-                    @Cached("createBinaryProfile()") ConditionProfile foundProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile foundProfile,
+            @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
+            @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
+            @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);

@@ -52,12 +52,10 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return coreLibrary().getFloatClass();
     }
 
-    @Specialization(guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
     protected DynamicObject logicalClassCached(DynamicObject object,
-                                            @Cached("object.getShape()") Shape cachedShape,
-                                            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass) {
+            @Cached("object.getShape()") Shape cachedShape,
+            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass) {
         return logicalClass;
     }
 

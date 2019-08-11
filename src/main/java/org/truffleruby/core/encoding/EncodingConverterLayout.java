@@ -20,14 +20,15 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface EncodingConverterLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createEncodingConverterShape(DynamicObject logicalClass,
-                                                      DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createEncodingConverter(DynamicObjectFactory factory,
-                                          @Nullable EConv econv);
+            @Nullable EConv econv);
 
     boolean isEncodingConverter(DynamicObject object);
 
     EConv getEconv(DynamicObject object);
+
     void setEconv(DynamicObject object, EConv value);
 
 }

@@ -51,10 +51,9 @@ public class PolyglotInteropTest {
     @Test
     public void testPassingBlocks() {
         try (Context polyglot = Context.newBuilder().allowHostAccess(HostAccess.ALL).build()) {
-            final int[] counter = new int[]{0};
+            final int[] counter = new int[]{ 0 };
 
-            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }")
-                    .execute(polyglot.asValue((IntConsumer) n -> counter[0] += n));
+            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }").execute(polyglot.asValue((IntConsumer) n -> counter[0] += n));
 
             assertEquals(6, counter[0]);
         }
@@ -93,7 +92,7 @@ public class PolyglotInteropTest {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test
     public void testImplementLambda() {
         try (Context polyglot = Context.create()) {

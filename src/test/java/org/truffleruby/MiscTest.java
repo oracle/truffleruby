@@ -88,9 +88,7 @@ public class MiscTest {
 
     @Test
     public void testFiberFromIntegratorThread() throws Throwable {
-        try (Context context = RubyTest.setupContext(Context.newBuilder())
-                .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
-                .allowCreateThread(true).build()) {
+        try (Context context = RubyTest.setupContext(Context.newBuilder()).option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString()).allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
 
             TestingThread thread = new TestingThread(() -> {

@@ -37,7 +37,7 @@ public class ReadRestArgumentNode extends RubyNode {
     @Child private ArrayAppendOneNode arrayAppendOneNode;
 
     public ReadRestArgumentNode(int startIndex, int indexFromCount,
-                                boolean keywordArguments, int minimumForKWargs) {
+            boolean keywordArguments, int minimumForKWargs) {
         this.startIndex = startIndex;
         this.indexFromCount = indexFromCount;
         this.keywordArguments = keywordArguments;

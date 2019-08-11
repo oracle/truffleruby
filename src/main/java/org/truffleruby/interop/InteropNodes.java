@@ -1259,8 +1259,7 @@ public abstract class InteropNodes {
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode
-        ) {
+                @Cached RopeNodes.EqualNode sourceEqualNode) {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
@@ -1335,8 +1334,7 @@ public abstract class InteropNodes {
         }
 
         protected boolean isJavaClassOrInterface(TruffleObject object) {
-            return getContext().getEnv().isHostObject(object)
-                    && getContext().getEnv().asHostObject(object) instanceof Class<?>;
+            return getContext().getEnv().isHostObject(object) && getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
 
     }
@@ -1456,8 +1454,7 @@ public abstract class InteropNodes {
 
         @Specialization
         public boolean isJavaClass(Object value) {
-            return getContext().getEnv().isHostObject(value)
-                    && getContext().getEnv().asHostObject(value) instanceof Class;
+            return getContext().getEnv().isHostObject(value) && getContext().getEnv().asHostObject(value) instanceof Class;
         }
 
     }

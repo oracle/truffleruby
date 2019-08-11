@@ -93,7 +93,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             "!isNegativeZero(value)"
     })
     public DynamicObject createFinite(double value, int digits, boolean strict,
-                                      @Cached BigDecimalCastNode bigDecimalCastNode) {
+            @Cached BigDecimalCastNode bigDecimalCastNode) {
         final RoundingMode roundMode = getRoundMode();
         final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, digits, roundMode);
         return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
@@ -101,9 +101,9 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "!isFinite(value)")
     public DynamicObject createInfinite(double value, int digits, boolean strict,
-                                        @Cached BranchProfile nanProfile,
-                                        @Cached BranchProfile positiveInfinityProfile,
-                                        @Cached BranchProfile negativeInfinityProfile) {
+            @Cached BranchProfile nanProfile,
+            @Cached BranchProfile positiveInfinityProfile,
+            @Cached BranchProfile negativeInfinityProfile) {
         return createNonFiniteBigDecimal(value, nanProfile, positiveInfinityProfile, negativeInfinityProfile);
     }
 
@@ -115,8 +115,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
-        final int exceptionConstant = getIntegerConstantNode
-                .executeGetIntegerConstant(getBigDecimalClass(), "EXCEPTION_INFINITY");
+        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(getBigDecimalClass(), "EXCEPTION_INFINITY");
 
         final boolean raise = booleanCastNode.executeToBoolean(
                 modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));

@@ -45,10 +45,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     public abstract void executeShare(DynamicObject object);
 
-    @Specialization(
-            guards = "object.getShape() == cachedShape",
-            assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
-            limit = "CACHE_LIMIT")
+    @Specialization(guards = "object.getShape() == cachedShape", assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" }, limit = "CACHE_LIMIT")
     @ExplodeLoop
     protected void shareCached(DynamicObject object,
             @Cached("ensureSharedClasses(getContext(), object.getShape())") Shape cachedShape,
@@ -69,7 +66,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     private boolean allFieldsAreShared(DynamicObject object) {
         for (DynamicObject value : ObjectGraph.getAdjacentObjects(object)) {
-             assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
+            assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
         }
 
         return true;

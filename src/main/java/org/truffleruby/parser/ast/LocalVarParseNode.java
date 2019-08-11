@@ -43,7 +43,7 @@ import java.util.List;
 public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
-    
+
     // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
     // is what index in the right scope to set the value.
     private final int location;
@@ -76,7 +76,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
@@ -95,7 +95,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
     public String getName() {
         return name;
     }
-    
+
     /**
      * Set the name of this variable (for refactoring support)
      * @param name the new name
@@ -103,7 +103,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
     public void setName(String name) {
         this.name = name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

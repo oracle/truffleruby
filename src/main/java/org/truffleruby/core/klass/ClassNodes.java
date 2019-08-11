@@ -111,14 +111,14 @@ public abstract class ClassNodes {
 
     @TruffleBoundary
     public static DynamicObject createRubyClass(RubyContext context,
-                                                SourceSection sourceSection,
-                                                DynamicObject classClass,
-                                                DynamicObject lexicalParent,
-                                                DynamicObject superclass,
-                                                String name,
-                                                boolean isSingleton,
-                                                DynamicObject attached,
-                                                boolean initialized) {
+            SourceSection sourceSection,
+            DynamicObject classClass,
+            DynamicObject lexicalParent,
+            DynamicObject superclass,
+            String name,
+            boolean isSingleton,
+            DynamicObject attached,
+            boolean initialized) {
         assert superclass == null || RubyGuards.isRubyClass(superclass);
 
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
@@ -212,7 +212,8 @@ public abstract class ClassNodes {
         }
 
         String name = StringUtils.format("#<Class:%s>", Layouts.MODULE.getFields(rubyClass).getName());
-        DynamicObject metaClass = ClassNodes.createRubyClass(context, Layouts.MODULE.getFields(rubyClass).getSourceSection(), Layouts.BASIC_OBJECT.getLogicalClass(rubyClass), null, singletonSuperclass, name, true, rubyClass, true);
+        DynamicObject metaClass = ClassNodes.createRubyClass(context, Layouts.MODULE.getFields(rubyClass).getSourceSection(), Layouts.BASIC_OBJECT.getLogicalClass(rubyClass), null,
+                singletonSuperclass, name, true, rubyClass, true);
         SharedObjects.propagate(context, rubyClass, metaClass);
         Layouts.BASIC_OBJECT.setMetaClass(rubyClass, metaClass);
 
@@ -302,8 +303,8 @@ public abstract class ClassNodes {
 
         @Specialization(guards = { "rubyClass == cachedRubyCLass", "cachedSuperclass != null" }, limit = "getCacheLimit()")
         public Object getSuperClass(DynamicObject rubyClass,
-                                    @Cached("rubyClass") DynamicObject cachedRubyCLass,
-                                    @Cached("fastLookUp(cachedRubyCLass)") DynamicObject cachedSuperclass) {
+                @Cached("rubyClass") DynamicObject cachedRubyCLass,
+                @Cached("fastLookUp(cachedRubyCLass)") DynamicObject cachedSuperclass) {
             // caches only initialized classes, just allocated will go through slow look up
             return cachedSuperclass;
         }

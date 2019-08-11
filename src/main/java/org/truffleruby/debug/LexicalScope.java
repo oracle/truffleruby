@@ -44,11 +44,7 @@ public class LexicalScope {
             receiver = RubyArguments.getSelf(frame);
         }
 
-        final Scope topScope = Scope.newBuilder(root.getName(), getVariables(context, root, frame))
-                .node(root)
-                .receiver("self", receiver)
-                .arguments(getArguments(frame))
-                .build();
+        final Scope topScope = Scope.newBuilder(root.getName(), getVariables(context, root, frame)).node(root).receiver("self", receiver).arguments(getArguments(frame)).build();
 
         // TODO CS 22-Apr-19 we only support the top-most scope at the moment - not scopes captured in blocks
 

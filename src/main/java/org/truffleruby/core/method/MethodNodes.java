@@ -178,7 +178,7 @@ public abstract class MethodNodes {
                 return nil();
             } else {
                 DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                Object[] objects = new Object[] { file, sourceSection.getStartLine() };
+                Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects, objects.length);
             }
         }

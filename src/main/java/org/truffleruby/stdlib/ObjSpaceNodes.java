@@ -52,7 +52,7 @@ public abstract class ObjSpaceNodes {
 
         @Specialization(guards = "isRubyMatchData(object)")
         public int memsizeOfMatchData(DynamicObject object,
-                                      @Cached ValuesNode matchDataValues) {
+                @Cached ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
 

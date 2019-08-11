@@ -614,8 +614,7 @@ public class CoreLibrary {
                                 }
                                 return FileVisitResult.CONTINUE;
                             }
-                        }
-                );
+                        });
             } catch (IOException ignored) {
                 // bad ruby home
             }

@@ -66,7 +66,8 @@ public class MethodTranslator extends BodyTranslator {
     private boolean isBlock;
     private final boolean shouldLazyTranslate;
 
-    public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext, ArgsParseNode argsNode) {
+    public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext,
+            ArgsParseNode argsNode) {
         super(currentNode, context, parent, environment, source, parserContext, false);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
@@ -190,8 +191,8 @@ public class MethodTranslator extends BodyTranslator {
         // If we do not accept any arguments or only one required, there's never any need to destructure
         if (!arity.hasRest() && arity.getOptional() == 0 && arity.getRequired() <= 1) {
             return false;
-        // If there are only a rest argument and optional arguments, there is no need to destructure.
-        // Because the first optional argument (or the rest if no optional) will take the whole array.
+            // If there are only a rest argument and optional arguments, there is no need to destructure.
+            // Because the first optional argument (or the rest if no optional) will take the whole array.
         } else if (arity.hasRest() && arity.getRequired() == 0) {
             return false;
         } else {

@@ -19,7 +19,8 @@ public class RubyOptionTypes {
     public static <T> T parseValue(OptionDescriptor descriptor, Object value) {
         if (value == null) {
             return (T) descriptor.getKey().getDefaultValue();
-        } if (value instanceof String) {
+        }
+        if (value instanceof String) {
             try {
                 return (T) descriptor.getKey().getType().convert((String) value);
             } catch (IllegalArgumentException e) {

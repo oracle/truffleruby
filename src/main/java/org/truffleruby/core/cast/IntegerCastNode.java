@@ -51,7 +51,7 @@ public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
         throw new RaiseException(context, notAFixnum(context, value));
     }
 
-    @Specialization(guards = {"!isBasicInteger(value)"})
+    @Specialization(guards = { "!isBasicInteger(value)" })
     public int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));
@@ -59,8 +59,7 @@ public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
 
     @TruffleBoundary
     private DynamicObject notAFixnum(RubyContext context, Object object) {
-        return context.getCoreExceptions().
-                typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
+        return context.getCoreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
     }
 
 }

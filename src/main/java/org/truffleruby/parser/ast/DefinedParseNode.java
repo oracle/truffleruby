@@ -72,7 +72,7 @@ public class DefinedParseNode extends ParseNode {
     public ParseNode getExpressionNode() {
         return expressionNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(expressionNode);

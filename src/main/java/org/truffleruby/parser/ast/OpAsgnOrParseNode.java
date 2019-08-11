@@ -42,10 +42,10 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
 
     public OpAsgnOrParseNode(SourceIndexLength position, ParseNode headNode, ParseNode valueNode) {
         super(position);
-        
+
         assert headNode != null : "headNode is not null";
         assert valueNode != null : "valueNode is not null";
-        
+
         firstNode = headNode;
         secondNode = valueNode;
     }
@@ -79,7 +79,7 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
     public ParseNode getSecondNode() {
         return secondNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);

@@ -25,7 +25,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     private final boolean appendNull;
 
     public WriteBinaryStringNode(boolean pad, boolean padOnNil,
-                                 int width, byte padding, boolean takeAll, boolean appendNull) {
+            int width, byte padding, boolean takeAll, boolean appendNull) {
         this.pad = pad;
         this.padOnNil = padOnNil;
         this.width = width;

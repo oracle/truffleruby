@@ -640,7 +640,7 @@ public class CoreExceptions {
 
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        final DynamicObject argsArray =  createArray(context, args);
+        final DynamicObject argsArray = createArray(context, args);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);

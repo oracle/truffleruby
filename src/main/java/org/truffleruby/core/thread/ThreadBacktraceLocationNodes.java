@@ -45,7 +45,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
-                                          @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
             final String path = getContext().getAbsolutePath(sourceSection.getSource());
 
@@ -71,7 +71,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject path(DynamicObject threadBacktraceLocation,
-                                  @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
             final String path = getContext().getPath(sourceSection.getSource());
 

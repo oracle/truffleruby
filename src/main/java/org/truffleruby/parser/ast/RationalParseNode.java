@@ -41,7 +41,7 @@ public class RationalParseNode extends NumericParseNode implements SideEffectFre
 
     public RationalParseNode(SourceIndexLength position, long numerator, long denominator) {
         super(position);
-        
+
         this.numerator = numerator;
         this.denominator = denominator;
     }

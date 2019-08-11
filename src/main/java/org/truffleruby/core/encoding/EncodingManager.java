@@ -210,7 +210,7 @@ public class EncodingManager {
         final String normalizedName = name.toLowerCase(Locale.ENGLISH);
         final Encoding encoding;
 
-        switch(normalizedName) {
+        switch (normalizedName) {
             case "internal":
                 encoding = getDefaultInternalEncoding();
                 return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);

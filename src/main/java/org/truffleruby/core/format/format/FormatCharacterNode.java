@@ -41,15 +41,12 @@ public abstract class FormatCharacterNode extends FormatNode {
         this.hasMinusFlag = hasMinusFlag;
     }
 
-    @Specialization(
-        guards = {
+    @Specialization(guards = {
             "width == cachedWidth"
-        },
-        limit = "getLimit()"
-    )
+    }, limit = "getLimit()")
     byte[] formatCached(VirtualFrame frame, int width, Object value,
-                        @Cached("width") int cachedWidth,
-                        @Cached("makeFormatString(width)") String cachedFormatString) {
+            @Cached("width") int cachedWidth,
+            @Cached("makeFormatString(width)") String cachedFormatString) {
         final String charString = getCharString(frame, value);
         return doFormat(charString, cachedFormatString);
     }
@@ -64,11 +61,11 @@ public abstract class FormatCharacterNode extends FormatNode {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
-                false,
-                "to_str",
-                false,
-                null,
-                WriteByteNodeGen.create(new LiteralFormatNode(value))));
+                    false,
+                    "to_str",
+                    false,
+                    null,
+                    WriteByteNodeGen.create(new LiteralFormatNode(value))));
         }
         Object toStrResult;
         try {

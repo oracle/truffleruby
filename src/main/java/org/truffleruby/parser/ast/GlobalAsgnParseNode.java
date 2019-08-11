@@ -55,7 +55,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
     public NodeType getNodeType() {
         return NodeType.GLOBALASGNNODE;
     }
-    
+
     /**
      * RubyMethod used by visitors.
      * accepts the visitor 
@@ -65,6 +65,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitGlobalAsgnNode(this);
     }
+
     /**
      * Gets the name.
      * @return Returns a String
@@ -72,7 +73,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

@@ -211,7 +211,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             // Already removed.
             return;
         }
-    
+
         if (first == ref) {
             if (ref.getNext() != null) {
                 first = ref.getNext();
@@ -220,14 +220,14 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                 first = null;
             }
         }
-    
+
         if (ref.getNext() != null) {
             ref.getNext().setPrevious(ref.getPrevious());
         }
         if (ref.getPrevious() != null) {
             ref.getPrevious().setNext(ref.getNext());
         }
-    
+
         // Mark that this ref has been removed.
         ref.setNext(ref);
         ref.setPrevious(ref);

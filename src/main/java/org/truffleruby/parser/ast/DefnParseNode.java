@@ -44,7 +44,7 @@ import java.util.List;
  */
 public class DefnParseNode extends MethodDefParseNode implements INameNode {
     public DefnParseNode(SourceIndexLength position, String name, ArgsParseNode argsNode,
-                         StaticScope scope, ParseNode bodyNode) {
+            StaticScope scope, ParseNode bodyNode) {
         super(position, name, argsNode, scope, bodyNode);
     }
 

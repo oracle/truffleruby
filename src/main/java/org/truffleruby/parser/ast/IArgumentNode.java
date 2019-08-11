@@ -33,5 +33,6 @@ package org.truffleruby.parser.ast;
  */
 public interface IArgumentNode {
     ParseNode getArgsNode();
+
     ParseNode setArgsNode(ParseNode argsNode);
 }

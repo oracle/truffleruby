@@ -26,6 +26,7 @@ public interface IntRangeLayout extends BasicObjectLayout {
             int end);
 
     boolean isIntRange(Object object);
+
     boolean isIntRange(DynamicObject object);
 
     boolean getExcludedEnd(DynamicObject object);

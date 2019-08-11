@@ -143,8 +143,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
                 methodMissingNotFoundProfile.enter();
                 final DynamicObject formatter = ExceptionOperations.getFormatter(
                         ExceptionOperations.NO_METHOD_ERROR, context);
-                throw new RaiseException(context, context.getCoreExceptions().
-                        noMethodErrorFromMethodMissing(formatter, receiver, methodName, arguments, this));
+                throw new RaiseException(context, context.getCoreExceptions().noMethodErrorFromMethodMissing(formatter, receiver, methodName, arguments, this));
             }
         }
 

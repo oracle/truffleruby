@@ -88,12 +88,7 @@ public class FileLoader {
          * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
          */
 
-        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file)
-                    .mimeType(TruffleRuby.MIME_TYPE)
-                    .name(name)
-                    .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
-                    .internal(internal)
-                    .build();
+        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).mimeType(TruffleRuby.MIME_TYPE).name(name).content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope)).internal(internal).build();
     }
 
     private boolean isInternal(String path) {

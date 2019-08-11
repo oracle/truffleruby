@@ -74,4 +74,4 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
     public List<ParseNode> childNodes() {
         return ParseNode.createList(leftNode);
     }
- }
+}

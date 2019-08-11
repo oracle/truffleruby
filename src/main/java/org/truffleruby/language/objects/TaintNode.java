@@ -53,10 +53,10 @@ public abstract class TaintNode extends RubyBaseNode {
         return object;
     }
 
-    @Specialization(guards = {"!isRubySymbol(object)", "!isNil(object)"})
+    @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
     public Object taint(
-        DynamicObject object,
-        @Cached WriteObjectFieldNode writeTaintNode) {
+            DynamicObject object,
+            @Cached WriteObjectFieldNode writeTaintNode) {
 
         if (isTaintedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

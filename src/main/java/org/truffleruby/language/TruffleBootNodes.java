@@ -178,19 +178,22 @@ public abstract class TruffleBootNodes {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
+                    }
+                        break;
 
                     case "STDIN": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromStandardIn(this, "-");
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                    } break;
+                    }
+                        break;
 
                     case "INLINE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromCommandLineArgument(toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                    } break;
+                    }
+                        break;
 
                     default:
                         throw new IllegalStateException();
@@ -329,8 +332,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "resilient_gem_home?", onSingleton = true)
     public abstract static class IsResilientGemHomeNode extends CoreMethodArrayArgumentsNode {
 
-        private static final boolean RESILIENT_GEM_HOME = TruffleOptions.AOT ?
-                Boolean.getBoolean("truffleruby.native.resilient_gem_home") : false;
+        private static final boolean RESILIENT_GEM_HOME = TruffleOptions.AOT ? Boolean.getBoolean("truffleruby.native.resilient_gem_home") : false;
 
         @TruffleBoundary
         @Specialization

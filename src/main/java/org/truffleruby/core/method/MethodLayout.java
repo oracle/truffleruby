@@ -20,14 +20,16 @@ import org.truffleruby.language.methods.InternalMethod;
 public interface MethodLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createMethodShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createMethod(DynamicObjectFactory factory,
-                               Object receiver,
-                               InternalMethod method);
+            Object receiver,
+            InternalMethod method);
 
     boolean isMethod(DynamicObject object);
+
     boolean isMethod(Object object);
+
     boolean isMethod(ObjectType objectType);
 
     Object getReceiver(DynamicObject object);

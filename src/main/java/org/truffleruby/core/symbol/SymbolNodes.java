@@ -101,7 +101,7 @@ public abstract class SymbolNodes {
 
         @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
         public DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
-                                     @Cached("symbol") DynamicObject cachedSymbol,
+                @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
                 @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
             return cachedProc;
@@ -116,8 +116,7 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
-            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend()
-                    .getEncapsulatingSourceSection();
+            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -175,7 +174,7 @@ public abstract class SymbolNodes {
 
         @Specialization
         public DynamicObject toS(DynamicObject symbol,
-                                 @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
         }
 

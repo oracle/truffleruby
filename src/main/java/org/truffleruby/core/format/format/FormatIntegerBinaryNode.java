@@ -33,7 +33,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
     private final boolean hasZeroFlag;
 
     public FormatIntegerBinaryNode(char format, boolean hasPlusFlag, boolean useAlternativeFormat,
-                                   boolean hasMinusFlag, boolean hasSpaceFlag, boolean hasZeroFlag) {
+            boolean hasMinusFlag, boolean hasSpaceFlag, boolean hasZeroFlag) {
         this.format = format;
         this.hasPlusFlag = hasPlusFlag;
         this.useAlternativeFormat = useAlternativeFormat;
@@ -48,7 +48,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
         final String formatted = negativeAndPadded ? Integer.toBinaryString(-value) : Integer.toBinaryString(value);
         return getFormattedString(formatted, width, precision, isNegative, this.hasSpaceFlag, this.hasPlusFlag,
-            this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
+                this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
     }
 
     @Specialization
@@ -57,7 +57,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
         final String formatted = negativeAndPadded ? Long.toBinaryString(-value) : Long.toBinaryString(value);
         return getFormattedString(formatted, width, precision, isNegative, this.hasSpaceFlag, this.hasPlusFlag,
-            this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
+                this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
     }
 
     @TruffleBoundary
@@ -81,14 +81,14 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
             formatted = builder.toString();
         }
         return getFormattedString(formatted, width, precision, isNegative, this.hasSpaceFlag, this.hasPlusFlag,
-            this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
+                this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
     }
 
     @TruffleBoundary
     private static byte[] getFormattedString(String formatted, int width, int precision, boolean isNegative,
-                                             boolean isSpacePadded, boolean hasPlusFlag, boolean hasZeroFlag,
-                                             boolean useAlternativeFormat, boolean hasMinusFlag,
-                                             char format) {
+            boolean isSpacePadded, boolean hasPlusFlag, boolean hasZeroFlag,
+            boolean useAlternativeFormat, boolean hasMinusFlag,
+            char format) {
         if (width < 0 && width != PrintfSimpleTreeBuilder.DEFAULT) {
             width = -width;
             hasMinusFlag = true;
@@ -126,7 +126,6 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
             }
 
         }
-
 
 
         if (useAlternativeFormat) {

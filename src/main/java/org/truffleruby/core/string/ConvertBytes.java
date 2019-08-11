@@ -149,7 +149,7 @@ public class ConvertBytes {
         int len = 0;
         byte second = ((str + 1 < end) && data[str] == '0') ? data[str + 1] : (byte) 0;
 
-        switch(base) {
+        switch (base) {
             case 2:
                 len = 1;
                 if (second == 'b' || second == 'B') {
@@ -163,15 +163,22 @@ public class ConvertBytes {
                 if (second == 'o' || second == 'O') {
                     str += 2;
                 }
-            case 4: case 5: case 6: case 7:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
                 len = 3;
                 break;
             case 10:
                 if (second == 'd' || second == 'D') {
                     str += 2;
                 }
-            case 9: case 11: case 12:
-            case 13: case 14: case 15:
+            case 9:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
                 len = 4;
                 break;
             case 16:
@@ -335,7 +342,7 @@ public class ConvertBytes {
         }
 
         if (len < Long.SIZE - 1) {
-            int[] endPlace = new int[]{str};
+            int[] endPlace = new int[]{ str };
             long val = stringToLong(str, endPlace, base);
 
             if (endPlace[0] < end && data[endPlace[0]] == '_') {
@@ -509,14 +516,18 @@ public class ConvertBytes {
             Overflow,
             Underflow
         }
+
         private ConvertBytes.ERange.Kind kind;
+
         public ERange() {
             super();
         }
+
         public ERange(ConvertBytes.ERange.Kind kind) {
             super();
             this.kind = kind;
         }
+
         public ConvertBytes.ERange.Kind getKind() {
             return kind;
         }
@@ -629,9 +640,11 @@ public class ConvertBytes {
     public static final byte[] twosComplementToBinaryBytes(byte[] in) {
         return twosComplementToUnsignedBytes(in, 1, false);
     }
+
     public static final byte[] twosComplementToOctalBytes(byte[] in) {
         return twosComplementToUnsignedBytes(in, 3, false);
     }
+
     public static final byte[] twosComplementToHexBytes(byte[] in, boolean upper) {
         return twosComplementToUnsignedBytes(in, 4, upper);
     }
@@ -639,21 +652,21 @@ public class ConvertBytes {
     private static final byte[] ZERO_BYTES = new byte[]{ (byte) '0' };
 
     private static final byte[] LOWER_DIGITS = {
-            '0' , '1' , '2' , '3' , '4' , '5' ,
-            '6' , '7' , '8' , '9' , 'a' , 'b' ,
-            'c' , 'd' , 'e' , 'f' , 'g' , 'h' ,
-            'i' , 'j' , 'k' , 'l' , 'm' , 'n' ,
-            'o' , 'p' , 'q' , 'r' , 's' , 't' ,
-            'u' , 'v' , 'w' , 'x' , 'y' , 'z'
+            '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'a', 'b',
+            'c', 'd', 'e', 'f', 'g', 'h',
+            'i', 'j', 'k', 'l', 'm', 'n',
+            'o', 'p', 'q', 'r', 's', 't',
+            'u', 'v', 'w', 'x', 'y', 'z'
     };
 
     private static final byte[] UPPER_DIGITS = {
-            '0' , '1' , '2' , '3' , '4' , '5' ,
-            '6' , '7' , '8' , '9' , 'A' , 'B' ,
-            'C' , 'D' , 'E' , 'F' , 'G' , 'H' ,
-            'I' , 'J' , 'K' , 'L' , 'M' , 'N' ,
-            'O' , 'P' , 'Q' , 'R' , 'S' , 'T' ,
-            'U' , 'V' , 'W' , 'X' , 'Y' , 'Z'
+            '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B',
+            'C', 'D', 'E', 'F', 'G', 'H',
+            'I', 'J', 'K', 'L', 'M', 'N',
+            'O', 'P', 'Q', 'R', 'S', 'T',
+            'U', 'V', 'W', 'X', 'Y', 'Z'
     };
 
     public static final byte[] twosComplementToUnsignedBytes(byte[] in, int shift, boolean upper) {

@@ -52,7 +52,7 @@ public class ConstParseNode extends ParseNode implements INameNode {
     public NodeType getNodeType() {
         return NodeType.CONSTNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -69,12 +69,12 @@ public class ConstParseNode extends ParseNode implements INameNode {
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }

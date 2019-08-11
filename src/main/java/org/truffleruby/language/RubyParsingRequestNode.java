@@ -71,8 +71,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             // Just do Truffle::Boot.INTERACTIVE_BINDING.eval(code) for interactive sources.
             // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
-            final Object interactiveBinding = Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule())
-                    .getConstant("INTERACTIVE_BINDING").getValue();
+            final Object interactiveBinding = Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule()).getConstant("INTERACTIVE_BINDING").getValue();
             return context.send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
         }
 

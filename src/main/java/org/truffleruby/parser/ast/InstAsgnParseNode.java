@@ -50,7 +50,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
      **/
     public InstAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
         super(position, valueNode);
-        
+
         this.name = name;
     }
 
@@ -58,7 +58,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
     public NodeType getNodeType() {
         return NodeType.INSTASGNNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -75,7 +75,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

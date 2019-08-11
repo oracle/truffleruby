@@ -18,14 +18,15 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface PointerLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createPointerShape(DynamicObject logicalClass,
-                                            DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createPointer(DynamicObjectFactory factory,
-                                Pointer pointer);
+            Pointer pointer);
 
     boolean isPointer(DynamicObject object);
 
     Pointer getPointer(DynamicObject object);
+
     void setPointer(DynamicObject object, Pointer value);
 
 }

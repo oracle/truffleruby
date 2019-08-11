@@ -64,11 +64,9 @@ public class ThreadManager {
     private final Map<Thread, DynamicObject> foreignThreadMap = new ConcurrentHashMap<>();
     private final ThreadLocal<DynamicObject> currentThread = ThreadLocal.withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
 
-    private final Set<DynamicObject> runningRubyThreads =
-            Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+    private final Set<DynamicObject> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
-    private final Set<Thread> rubyManagedThreads =
-            Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+    private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
@@ -270,7 +268,7 @@ public class ThreadManager {
         try {
             final Object result = task.get();
             setThreadValue(context, thread, result);
-        // Handlers in the same order as in FiberManager
+            // Handlers in the same order as in FiberManager
         } catch (KillException e) {
             setThreadValue(context, thread, nil());
         } catch (ExitException e) {

@@ -68,7 +68,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         public int getByte(DynamicObject bytes, int index,
-                              @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
 
             // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
@@ -176,11 +176,11 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
         public Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
-                                        @Cached RopeNodes.BytesNode bytesNode,
-                                        @Cached BranchProfile tooSmallStartProfile,
-                                        @Cached BranchProfile tooLargeStartProfile,
-                                        @Cached BranchProfile matchFoundProfile,
-                                        @Cached BranchProfile noMatchProfile) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached BranchProfile tooSmallStartProfile,
+                @Cached BranchProfile tooLargeStartProfile,
+                @Cached BranchProfile matchFoundProfile,
+                @Cached BranchProfile noMatchProfile) {
 
             final ByteArrayBuilder in = Layouts.BYTE_ARRAY.getBytes(bytes);
             final Rope rope = StringOperations.rope(pattern);
@@ -203,9 +203,9 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
-                              @Cached RopeNodes.BytesNode bytesNode,
-                              @Cached RopeNodes.CharacterLengthNode characterLengthNode,
-                              @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));
 
@@ -234,7 +234,7 @@ public abstract class ByteArrayNodes {
                 return fromIndex;
             }
 
-            byte first  = target[0];
+            byte first = target[0];
             int max = length - targetCount;
 
             for (int i = fromIndex; i <= max; i++) {

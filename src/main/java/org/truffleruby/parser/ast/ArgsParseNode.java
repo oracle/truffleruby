@@ -65,13 +65,13 @@ public class ArgsParseNode extends ParseNode {
 
     private final Arity arity;
 
-    private static final ParseNode[] NO_ARGS = new ParseNode[] {};
+    private static final ParseNode[] NO_ARGS = new ParseNode[]{};
 
     /**
      * Construct a new ArgsParseNode with no keyword arguments.
      */
     public ArgsParseNode(SourceIndexLength position, ListParseNode pre, ListParseNode optionalArguments,
-                         RestArgParseNode rest, ListParseNode post, BlockArgParseNode blockArgNode) {
+            RestArgParseNode rest, ListParseNode post, BlockArgParseNode blockArgNode) {
         this(position, pre, optionalArguments, rest, post, null, null, blockArgNode);
     }
 
@@ -79,7 +79,7 @@ public class ArgsParseNode extends ParseNode {
      * Construct a new ArgsParseNode with keyword arguments.
      */
     public ArgsParseNode(SourceIndexLength position, ListParseNode pre, ListParseNode optionalArguments,
-                         RestArgParseNode rest, ListParseNode post, ListParseNode keywords, KeywordRestArgParseNode keyRest, BlockArgParseNode blockArgNode) {
+            RestArgParseNode rest, ListParseNode post, ListParseNode keywords, KeywordRestArgParseNode keyRest, BlockArgParseNode blockArgNode) {
         super(position);
 
         int preSize = pre != null ? pre.size() : 0;

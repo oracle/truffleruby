@@ -58,7 +58,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public NodeType getNodeType() {
         return NodeType.DASGNNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -67,7 +67,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDAsgnNode(this);
     }
-    
+
     /**
      * Gets the name.
      * @return Returns a String
@@ -84,7 +84,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
@@ -94,7 +94,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public int getIndex() {
         return location & 0xffff;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

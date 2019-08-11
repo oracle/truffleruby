@@ -53,7 +53,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
     public NodeType getNodeType() {
         return NodeType.COLON3NODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -70,7 +70,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

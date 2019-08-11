@@ -30,7 +30,7 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface BindingLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createBindingShape(DynamicObject logicalClass,
-                                            DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createBinding(DynamicObjectFactory factory,
             MaterializedFrame frame,
@@ -39,6 +39,7 @@ public interface BindingLayout extends BasicObjectLayout {
     boolean isBinding(DynamicObject object);
 
     MaterializedFrame getFrame(DynamicObject object);
+
     void setFrame(DynamicObject object, MaterializedFrame value);
 
     SourceSection getSourceSection(DynamicObject object);

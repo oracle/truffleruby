@@ -120,7 +120,7 @@ public abstract class ReadBERNode extends FormatNode {
         public int getPos() {
             return pos;
         }
-        
+
     }
 
 }

@@ -71,7 +71,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
     public ParseNode getValueNode() {
         return valueNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(valueNode);

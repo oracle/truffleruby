@@ -61,7 +61,7 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRedoNode(this);
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

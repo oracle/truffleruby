@@ -85,7 +85,7 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = {"equal?", "=="}, required = 1)
+    @CoreMethod(names = { "equal?", "==" }, required = 1)
     public abstract static class ReferenceEqualNode extends CoreMethodArrayArgumentsNode {
 
         public static ReferenceEqualNode create() {

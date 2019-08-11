@@ -180,7 +180,8 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity, boolean neverSplit) {
+    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity,
+            boolean neverSplit) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         for (String name : names) {

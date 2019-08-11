@@ -57,7 +57,7 @@ public class CaseParseNode extends ParseNode {
         assert cases != null : "caseBody is not null";
         // TODO: Rewriter and compiler assume case when empty expression.  In MRI this is just
         // a when.
-//        assert caseNode != null : "caseNode is not null";
+        //        assert caseNode != null : "caseNode is not null";
 
         this.caseNode = caseNode;
         this.cases = cases;

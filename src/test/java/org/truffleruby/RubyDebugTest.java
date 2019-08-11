@@ -74,8 +74,7 @@ public class RubyDebugTest {
 
         context = RubyTest.setupContext(Context.newBuilder())
                 // We also want to test instrumentation works well with lazy nodes
-                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString())
-                .out(out).err(err).build();
+                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString()).out(out).err(err).build();
 
         Instrument debugInstrument = context.getEngine().getInstruments().get("debugger");
         debugger = debugInstrument.lookup(Debugger.class);
@@ -120,10 +119,10 @@ public class RubyDebugTest {
         Assert.assertFalse("all methods are lazily translated (by the option)", breakpoint.isResolved());
 
         assertLocation(13, "1",
-                        "n", "1",
-                        "nMinusOne", "nil",
-                        "nMOFact", "nil",
-                        "res", "nil");
+                "n", "1",
+                "nMinusOne", "nil",
+                "nMOFact", "nil",
+                "res", "nil");
 
         continueExecution();
 
@@ -151,27 +150,27 @@ public class RubyDebugTest {
         assertLocation(23, "res = fac(2)", "res", "nil");
         stepInto(1);
         assertLocation(12, "if n <= 1",
-                        "n", "2",
-                        "nMinusOne", "nil",
-                        "nMOFact", "nil",
-                        "res", "nil");
+                "n", "2",
+                "nMinusOne", "nil",
+                "nMOFact", "nil",
+                "res", "nil");
         stepOver(1);
         assertLocation(15, "nMinusOne = n - 1",
-                        "n", "2",
-                        "nMinusOne", "nil",
-                        "nMOFact", "nil",
-                        "res", "nil");
+                "n", "2",
+                "nMinusOne", "nil",
+                "nMOFact", "nil",
+                "res", "nil");
         stepOver(1);
         assertLocation(16, "nMOFact = fac(nMinusOne)",
-                        "n", "2",
-                        "nMinusOne", "1",
-                        "nMOFact", "nil",
-                        "res", "nil");
+                "n", "2",
+                "nMinusOne", "1",
+                "nMOFact", "nil",
+                "res", "nil");
         stepOver(1);
         assertLocation(17, "res = n * nMOFact",
-                        "n", "2", "nMinusOne", "1",
-                        "nMOFact", "1",
-                        "res", "nil");
+                "n", "2", "nMinusOne", "1",
+                "nMOFact", "1",
+                "res", "nil");
         continueExecution();
 
         // Init before eval:
@@ -248,22 +247,22 @@ public class RubyDebugTest {
             debuggerSession.install(breakpoint);
         });
         assertLocation(27, "nme + nm1",
-                        "name", "\"Panama\"", // Possible bug: should really the quotes be included?
-                        "cityArray", "[80, 97, 110, 97, 109, 97]",
-                        "citySum", "590",
-                        "weatherTemperature", "14",
-                        "blt", "true",
-                        "blf", "false",
-                        "null", "nil",
-                        "nm1", "1",
-                        "nm11", "1.111",
-                        "nme", "3.5e+46",
-                        "nc", "(2+3i)",
-                        "nr", "(5404319552844595/18014398509481984)",
-                        "str", "\"A String\"",
-                        "symbol", ":symbolic",
-                        "arr", "[1, \"2\", 3.56, true, nil, \"A String\"]",
-                        "hash", "{:a=>1, \"b\"=>2}");
+                "name", "\"Panama\"", // Possible bug: should really the quotes be included?
+                "cityArray", "[80, 97, 110, 97, 109, 97]",
+                "citySum", "590",
+                "weatherTemperature", "14",
+                "blt", "true",
+                "blf", "false",
+                "null", "nil",
+                "nm1", "1",
+                "nm11", "1.111",
+                "nme", "3.5e+46",
+                "nc", "(2+3i)",
+                "nr", "(5404319552844595/18014398509481984)",
+                "str", "\"A String\"",
+                "symbol", ":symbolic",
+                "arr", "[1, \"2\", 3.56, true, nil, \"A String\"]",
+                "hash", "{:a=>1, \"b\"=>2}");
         run.addLast(() -> {
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
             DebugValue value = frame.getScope().getDeclaredValue("name");
@@ -320,7 +319,9 @@ public class RubyDebugTest {
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
 
             final AtomicInteger numFrameVars = new AtomicInteger(0);
-            frame.getScope().getDeclaredValues().forEach(var -> { numFrameVars.incrementAndGet(); });
+            frame.getScope().getDeclaredValues().forEach(var -> {
+                numFrameVars.incrementAndGet();
+            });
             assertEquals(expectedFrame.length / 2, numFrameVars.get());
 
             for (int i = 0; i < expectedFrame.length; i = i + 2) {

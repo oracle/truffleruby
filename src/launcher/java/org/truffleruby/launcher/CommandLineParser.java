@@ -130,8 +130,7 @@ public class CommandLineParser {
 
                 // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise it would not be
                 // possible to determine if the value is suppose to be `true` or `"true"`.
-                final OptionDescriptor optionDescription =
-                        value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
+                final OptionDescriptor optionDescription = value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
                 // replace dashes with underscores make it a valid global variable name
                 config.appendOptionValue(optionDescription, key.replace('-', '_'));
                 if (value != null) {
@@ -171,30 +170,28 @@ public class CommandLineParser {
             return;
         }
 
-        FOR:
-        for (characterIndex = 1; characterIndex < argument.length(); characterIndex++) {
+        FOR: for (characterIndex = 1; characterIndex < argument.length(); characterIndex++) {
             switch (argument.charAt(characterIndex)) {
-                case '0':
-                    {
-                        disallowedInRubyOpts(argument);
-                        String temp = grabOptionalValue();
-                        if (null == temp) {
-                            //config.setRecordSeparator("\u0000");
-                        } else if (temp.equals("0")) {
-                            //config.setRecordSeparator("\n\n");
-                        } else if (temp.equals("777")) {
-                            //config.setRecordSeparator("\uffff"); // Specify something that can't separate
-                        } else {
-                            try {
-                                Integer.parseInt(temp, 8);
-                                //config.setRecordSeparator(String.valueOf((char) val));
-                            } catch (Exception e) {
-                                throw new CommandLineException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"), true);
-                            }
+                case '0': {
+                    disallowedInRubyOpts(argument);
+                    String temp = grabOptionalValue();
+                    if (null == temp) {
+                        //config.setRecordSeparator("\u0000");
+                    } else if (temp.equals("0")) {
+                        //config.setRecordSeparator("\n\n");
+                    } else if (temp.equals("777")) {
+                        //config.setRecordSeparator("\uffff"); // Specify something that can't separate
+                    } else {
+                        try {
+                            Integer.parseInt(temp, 8);
+                            //config.setRecordSeparator(String.valueOf((char) val));
+                        } catch (Exception e) {
+                            throw new CommandLineException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"), true);
                         }
-                        //break FOR;
-                        throw notImplemented("-0");
                     }
+                    //break FOR;
+                    throw notImplemented("-0");
+                }
                 case 'a':
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-a");
@@ -338,28 +335,27 @@ public class CommandLineParser {
                 case 'w':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                     break;
-                case 'W':
-                    {
-                        String temp = grabOptionalValue();
-                        if (temp == null) {
-                            config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                        } else {
-                            switch (temp) {
-                                case "0":
-                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.NIL);
-                                    break;
-                                case "1":
-                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
-                                    break;
-                                case "2":
-                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                                    break;
-                                default:
-                                    throw new CommandLineException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"), true);
-                            }
+                case 'W': {
+                    String temp = grabOptionalValue();
+                    if (temp == null) {
+                        config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
+                    } else {
+                        switch (temp) {
+                            case "0":
+                                config.setOption(OptionsCatalog.VERBOSITY, Verbosity.NIL);
+                                break;
+                            case "1":
+                                config.setOption(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
+                                break;
+                            case "2":
+                                config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
+                                break;
+                            default:
+                                throw new CommandLineException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"), true);
                         }
-                        break FOR;
                     }
+                    break FOR;
+                }
                 case 'x':
                     disallowedInRubyOpts(argument);
                     config.setOption(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG, true);
@@ -504,22 +500,24 @@ public class CommandLineParser {
      */
     private static List<String> split(final String str, final char sep, final int lim) {
         final int len = str.length();
-        if ( len == 0 ) {
+        if (len == 0) {
             return Collections.singletonList(str);
         }
 
         final ArrayList<String> result = new ArrayList<>(lim <= 0 ? 8 : lim);
 
-        int e; int s = 0; int count = 0;
-        while ( (e = str.indexOf(sep, s)) != -1 ) {
-            if ( lim == ++count ) { // limited (lim > 0) case
+        int e;
+        int s = 0;
+        int count = 0;
+        while ((e = str.indexOf(sep, s)) != -1) {
+            if (lim == ++count) { // limited (lim > 0) case
                 result.add(str.substring(s));
                 return result;
             }
             result.add(str.substring(s, e));
             s = e + 1;
         }
-        if ( s < len || ( s == len && lim > 0 ) ) {
+        if (s < len || (s == len && lim > 0)) {
             result.add(str.substring(s));
         }
 
@@ -590,7 +588,7 @@ public class CommandLineParser {
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.DID_YOU_MEAN, enable));
 
         FEATURES.put("did-you-mean",
-            FEATURES.get("did_you_mean"));
+                FEATURES.get("did_you_mean"));
 
         FEATURES.put("gem",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.RUBYGEMS, enable));

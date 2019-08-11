@@ -287,7 +287,7 @@ public class StaticScope {
     }
 
     public AssignableParseNode assign(SourceIndexLength position, String name, ParseNode value,
-                                      StaticScope topScope, int depth) {
+            StaticScope topScope, int depth) {
         int slot = exists(name);
 
         // We can assign if we already have variable of that name here or we are the only

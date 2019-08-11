@@ -36,8 +36,8 @@ public abstract class StringToPointerNode extends FormatNode {
     @SuppressWarnings("unchecked")
     @Specialization(guards = "isRubyString(string)")
     public long toPointer(VirtualFrame frame, DynamicObject string,
-                          @Cached CExtNodes.StringToNativeNode stringToNativeNode,
-                          @Cached TaintNode taintNode) {
+            @Cached CExtNodes.StringToNativeNode stringToNativeNode,
+            @Cached TaintNode taintNode) {
         taintNode.executeTaint(string);
 
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();

@@ -33,10 +33,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
 
     public abstract Object execute(DynamicObject object, Object name, Object defaultValue);
 
-    @Specialization(
-            guards = {"receiver.getShape() == cachedShape", "name == cachedName"},
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "receiver.getShape() == cachedShape", "name == cachedName" }, assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
     protected Object readObjectFieldCached(DynamicObject receiver, Object name, Object defaultValue,
             @Cached("receiver.getShape()") Shape cachedShape,
             @Cached("name") Object cachedName,

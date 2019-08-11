@@ -69,12 +69,12 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }

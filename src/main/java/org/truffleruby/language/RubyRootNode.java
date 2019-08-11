@@ -31,7 +31,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
-                        SharedMethodInfo sharedMethodInfo, RubyNode body, boolean allowCloning) {
+            SharedMethodInfo sharedMethodInfo, RubyNode body, boolean allowCloning) {
         super(context.getLanguage(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;

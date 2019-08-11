@@ -19,13 +19,15 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface ModuleLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createModuleShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createModule(DynamicObjectFactory factory,
-                               ModuleFields fields);
+            ModuleFields fields);
 
     boolean isModule(ObjectType objectType);
+
     boolean isModule(DynamicObject object);
+
     boolean isModule(Object object);
 
     ModuleFields getFields(DynamicObject object);

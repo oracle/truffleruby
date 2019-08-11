@@ -51,7 +51,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
 
         pairs = new ArrayList<>();
     }
-    
+
     public HashParseNode(SourceIndexLength position, ParseNodeTuple pair) {
         this(position);
 

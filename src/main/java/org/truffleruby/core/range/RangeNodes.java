@@ -49,8 +49,8 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "isIntRange(range)")
         public DynamicObject map(DynamicObject range, DynamicObject block,
-                                 @Cached ArrayBuilderNode arrayBuilder,
-                                 @Cached YieldNode yieldNode) {
+                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached YieldNode yieldNode) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);

@@ -208,9 +208,9 @@ public abstract class DigestNodes {
          * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          */
         public static ByteArrayBuilder bubblebabble(byte[] message, int begin, int length) {
-            char[] vowels = new char[]{'a', 'e', 'i', 'o', 'u', 'y'};
-            char[] consonants = new char[]{'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
-                    'n', 'p', 'r', 's', 't', 'v', 'z', 'x'};
+            char[] vowels = new char[]{ 'a', 'e', 'i', 'o', 'u', 'y' };
+            char[] consonants = new char[]{ 'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
+                    'n', 'p', 'r', 's', 't', 'v', 'z', 'x' };
 
             long seed = 1;
 
@@ -238,7 +238,8 @@ public abstract class DigestNodes {
                         retval.append(consonants[idx4]);
                         seed = ((seed * 5) +
                                 ((b * 7) +
-                                        b2)) % 36;
+                                        b2)) %
+                                36;
                     }
                 } else {
                     idx0 = (int) (seed % 6) & 0xFFFFFFFF;

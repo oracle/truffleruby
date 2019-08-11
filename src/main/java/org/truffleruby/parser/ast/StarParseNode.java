@@ -60,7 +60,7 @@ public class StarParseNode extends ParseNode {
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitStarNode(this);
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

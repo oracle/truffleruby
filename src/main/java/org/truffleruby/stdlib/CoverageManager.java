@@ -86,11 +86,8 @@ public class CoverageManager {
             return;
         }
 
-        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                .sourceIs(coveredSources::contains)
-                .tagIs(LineTag.class)
-                .build(), eventContext -> new ExecutionEventNode() {
+        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(coveredSources::contains).tagIs(LineTag.class).build(),
+                eventContext -> new ExecutionEventNode() {
 
                     @CompilationFinal private boolean configured;
                     @CompilationFinal private int lineNumber;
@@ -132,7 +129,7 @@ public class CoverageManager {
 
         enabled = false;
     }
-    
+
     private AtomicLongArray getCounters(Source source) {
         if (source.getName() == null) {
             return null;

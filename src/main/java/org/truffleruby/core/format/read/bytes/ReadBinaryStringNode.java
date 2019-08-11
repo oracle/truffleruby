@@ -33,7 +33,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     final boolean trimToFirstNull;
 
     public ReadBinaryStringNode(boolean readToEnd, boolean readToNull, int count,
-                                boolean trimTrailingSpaces, boolean trimTrailingNulls, boolean trimToFirstNull) {
+            boolean trimTrailingSpaces, boolean trimTrailingNulls, boolean trimToFirstNull) {
 
         this.readToEnd = readToEnd;
         this.readToNull = readToNull;
@@ -53,7 +53,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     public DynamicObject read(VirtualFrame frame, byte[] source,
-                              @Cached StringNodes.MakeStringNode makeStringNode) {
+            @Cached StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 
         int length;
@@ -61,8 +61,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
         if (readToEnd) {
             length = 0;
 
-            while (start + length < getSourceLength(frame)
-                    && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
+            while (start + length < getSourceLength(frame) && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
                 length++;
             }
 
@@ -72,9 +71,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
         } else if (readToNull) {
             length = 0;
 
-            while (start + length < getSourceLength(frame)
-                    && length < count
-                    && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
+            while (start + length < getSourceLength(frame) && length < count && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
                 length++;
             }
 
@@ -91,8 +88,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         int usedLength = length;
 
-        while (usedLength > 0 && ((trimTrailingSpaces && source[start + usedLength - 1] == ' ')
-                                    || (trimTrailingNulls && source[start + usedLength - 1] == 0))) {
+        while (usedLength > 0 && ((trimTrailingSpaces && source[start + usedLength - 1] == ' ') || (trimTrailingNulls && source[start + usedLength - 1] == 0))) {
             usedLength--;
         }
 

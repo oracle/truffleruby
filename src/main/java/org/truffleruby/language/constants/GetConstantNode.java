@@ -114,9 +114,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(
-            guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" },
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" }, limit = "getCacheLimit()")
     protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,

@@ -53,10 +53,10 @@ public class SClassParseNode extends ParseNode {
 
     public SClassParseNode(SourceIndexLength position, ParseNode recvNode, StaticScope scope, ParseNode bodyNode) {
         super(position);
-        
+
         assert scope != null : "scope is not null";
         assert recvNode != null : "receiverNode is not null";
-        
+
         this.receiverNode = recvNode;
         this.scope = scope;
         this.bodyNode = bodyNode;
@@ -84,7 +84,7 @@ public class SClassParseNode extends ParseNode {
     public ParseNode getBodyNode() {
         return bodyNode;
     }
-    
+
     /**
      * Gets the scope of this class
      * 
@@ -101,7 +101,7 @@ public class SClassParseNode extends ParseNode {
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, bodyNode);

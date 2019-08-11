@@ -51,12 +51,9 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         return executeLookupConstant(module, name);
     }
 
-    @Specialization(
-            guards = {
-                    "module == cachedModule",
-                    "guardName(name, cachedName, sameNameProfile)" },
-            assumptions = "constant.getAssumptions()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = {
+            "module == cachedModule",
+            "guardName(name, cachedName, sameNameProfile)" }, assumptions = "constant.getAssumptions()", limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(DynamicObject module, String name,
             @Cached("module") DynamicObject cachedModule,
             @Cached("name") String cachedName,

@@ -52,9 +52,9 @@ public class ForParseNode extends IterParseNode {
         // just deal with this lack of scope throughout its lifespan.  We should probably
         // change the way this works to get rid of multiple null checks.
         super(position, varNode, scope, bodyNode);
-        
+
         assert iterNode != null : "iterNode is not null";
-        
+
         this.iterNode = iterNode;
     }
 
@@ -67,7 +67,7 @@ public class ForParseNode extends IterParseNode {
     public NodeType getNodeType() {
         return NodeType.FORNODE;
     }
-    
+
     public ParseNode getIterNode() {
         return iterNode;
     }
@@ -80,7 +80,7 @@ public class ForParseNode extends IterParseNode {
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitForNode(this);
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(getVarNode(), getBodyNode(), iterNode);

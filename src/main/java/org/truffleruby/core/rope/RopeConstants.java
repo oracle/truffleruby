@@ -27,7 +27,7 @@ public class RopeConstants {
 
     static {
         for (int i = 0; i < 128; i++) {
-            final byte[] bytes = new byte[] { (byte) i };
+            final byte[] bytes = new byte[]{ (byte) i };
 
             UTF8_SINGLE_BYTE_ROPES[i] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE).computeHashCode();
             US_ASCII_SINGLE_BYTE_ROPES[i] = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
@@ -35,7 +35,7 @@ public class RopeConstants {
         }
 
         for (int i = 128; i < 256; i++) {
-            final byte[] bytes = new byte[] { (byte) i };
+            final byte[] bytes = new byte[]{ (byte) i };
 
             UTF8_SINGLE_BYTE_ROPES[i] = new InvalidLeafRope(bytes, UTF8Encoding.INSTANCE, 1).computeHashCode();
             US_ASCII_SINGLE_BYTE_ROPES[i] = new InvalidLeafRope(bytes, USASCIIEncoding.INSTANCE, 1).computeHashCode();

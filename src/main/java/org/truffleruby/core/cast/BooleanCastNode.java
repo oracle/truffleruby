@@ -75,7 +75,7 @@ public abstract class BooleanCastNode extends RubyBaseWithoutContextNode {
         return true;
     }
 
-    @Specialization(guards = {"!isTruffleObject(object)", "!isBoxedPrimitive(object)"})
+    @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
     public boolean doOther(Object object) {
         return true;
     }

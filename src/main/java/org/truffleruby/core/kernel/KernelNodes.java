@@ -214,7 +214,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean sameOrEql(Object a, Object b,
-                        @Cached ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
@@ -618,7 +618,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,  newBindingDescriptor);
+            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
             return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -850,7 +850,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = {"!isRubySymbol(object)", "!isNil(object)"})
+        @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
         public boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
@@ -970,7 +970,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject lambda(NotProvided block,
-                                    @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
@@ -1140,7 +1140,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization(guards = "regular")
         public DynamicObject methodsRegular(Object self, boolean regular,
-                                            @Cached MetaClassNode metaClassNode) {
+                @Cached MetaClassNode metaClassNode) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED).toArray();
@@ -1149,7 +1149,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "!regular")
         public DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
-                                              @Cached SingletonMethodsNode singletonMethodsNode) {
+                @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
         }
 
@@ -1701,8 +1701,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         protected RootCallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
             try {
-                return new PrintfCompiler(getContext(), this)
-                        .compile(StringOperations.rope(format), arguments, isDebug);
+                return new PrintfCompiler(getContext(), this).compile(StringOperations.rope(format), arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -1783,7 +1782,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = {"to_s", "inspect"}) // Basic inspect, refined later in core
+    @CoreMethod(names = { "to_s", "inspect" }) // Basic inspect, refined later in core
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {

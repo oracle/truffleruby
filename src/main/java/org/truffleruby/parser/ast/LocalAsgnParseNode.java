@@ -59,7 +59,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     public NodeType getNodeType() {
         return NodeType.LOCALASGNNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -68,14 +68,14 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitLocalAsgnNode(this);
     }
-    
+
     /**
      * Name of the local assignment.
      **/
     public String getName() {
         return name;
     }
-    
+
     /**
      * Change the name of this local assignment (for refactoring)
      * @param name
@@ -92,7 +92,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
@@ -102,7 +102,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     public int getIndex() {
         return location & 0xffff;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

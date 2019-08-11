@@ -32,7 +32,7 @@ public abstract class BytesToInteger16LittleNode extends FormatNode {
     public short decode(byte[] bytes) {
         short value = 0;
         value |= (bytes[1] & 0xff) << 8;
-        value |=  bytes[0] & 0xff;
+        value |= bytes[0] & 0xff;
         return value;
     }
 

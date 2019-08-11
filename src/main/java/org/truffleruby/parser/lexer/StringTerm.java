@@ -52,8 +52,7 @@ import java.util.Set;
 public class StringTerm extends StrTerm {
 
     // Chanacters that can be escaped in a %r style regexp literal when they are also the terminator.
-    private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS =
-        new HashSet<>(Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
+    private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS = new HashSet<>(Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
 
     // Expand variables, Indentation of final marker
     private int flags;
@@ -70,8 +69,8 @@ public class StringTerm extends StrTerm {
     public StringTerm(int flags, int begin, int end) {
         this.flags = flags;
         this.begin = (char) begin;
-        this.end   = (char) end;
-        this.nest  = 0;
+        this.end = (char) end;
+        this.nest = 0;
     }
 
     @Override
@@ -86,22 +85,22 @@ public class StringTerm extends StrTerm {
     }
 
     private int endFound(RubyLexer lexer) {
-            if ((flags & STR_FUNC_QWORDS) != 0) {
-                flags = -1;
-                lexer.getPosition();
-                return ' ';
-            }
+        if ((flags & STR_FUNC_QWORDS) != 0) {
+            flags = -1;
+            lexer.getPosition();
+            return ' ';
+        }
 
-            if ((flags & STR_FUNC_REGEXP) != 0) {
-                RegexpOptions options = parseRegexpFlags(lexer);
-                Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
+        if ((flags & STR_FUNC_REGEXP) != 0) {
+            RegexpOptions options = parseRegexpFlags(lexer);
+            Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
 
-                lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
-                return Tokens.tREGEXP_END;
-            }
+            lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
+            return Tokens.tREGEXP_END;
+        }
 
-            lexer.setValue("" + end);
-            return Tokens.tSTRING_END;
+        lexer.setValue("" + end);
+        return Tokens.tSTRING_END;
     }
 
     // Return of 0 means failed to find anything.  Non-zero means return that from lexer.
@@ -116,17 +115,20 @@ public class StringTerm extends StrTerm {
                     int c3 = lexer.nextc();
 
                     if (c3 == EOF) {
-                        lexer.pushback(c3); lexer.pushback(c2);
+                        lexer.pushback(c3);
+                        lexer.pushback(c2);
                         return 0;
                     }
 
                     significant = c3;                              // $-0 potentially
-                    lexer.pushback(c3); lexer.pushback(c2);
+                    lexer.pushback(c3);
+                    lexer.pushback(c2);
                     break;
                 } else if (lexer.isGlobalCharPunct(c2)) {          // $_ potentially
                     lexer.setValue("#" + (char) c2);
 
-                    lexer.pushback(c2); lexer.pushback(c);
+                    lexer.pushback(c2);
+                    lexer.pushback(c);
                     return Tokens.tSTRING_DVAR;
                 }
 
@@ -141,12 +143,14 @@ public class StringTerm extends StrTerm {
                     int c3 = lexer.nextc();
 
                     if (c3 == EOF) {
-                        lexer.pushback(c3); lexer.pushback(c2);
+                        lexer.pushback(c3);
+                        lexer.pushback(c2);
                         return 0;
                     }
 
                     significant = c3;                                // #@@foo potentially
-                    lexer.pushback(c3); lexer.pushback(c2);
+                    lexer.pushback(c3);
+                    lexer.pushback(c2);
                     break;
                 }
 
@@ -233,39 +237,38 @@ public class StringTerm extends StrTerm {
         StringBuilder unknownFlags = new StringBuilder(10);
 
         lexer.newtok(true);
-        for (c = lexer.nextc(); c != EOF
-                && Character.isLetter(c); c = lexer.nextc()) {
+        for (c = lexer.nextc(); c != EOF && Character.isLetter(c); c = lexer.nextc()) {
             switch (c) {
-            case 'i':
-                options.setIgnorecase(true);
-                break;
-            case 'x':
-                options.setExtended(true);
-                break;
-            case 'm':
-                options.setMultiline(true);
-                break;
-            case 'o':
-                options.setOnce(true);
-                break;
-            case 'n':
-                options.setExplicitKCode(KCode.NONE);
-                break;
-            case 'e':
-                options.setExplicitKCode(KCode.EUC);
-                break;
-            case 's':
-                options.setExplicitKCode(KCode.SJIS);
-                break;
-            case 'u':
-                options.setExplicitKCode(KCode.UTF8);
-                break;
-            case 'j':
-                options.setJava(true);
-                break;
-            default:
-                unknownFlags.append((char) c);
-                break;
+                case 'i':
+                    options.setIgnorecase(true);
+                    break;
+                case 'x':
+                    options.setExtended(true);
+                    break;
+                case 'm':
+                    options.setMultiline(true);
+                    break;
+                case 'o':
+                    options.setOnce(true);
+                    break;
+                case 'n':
+                    options.setExplicitKCode(KCode.NONE);
+                    break;
+                case 'e':
+                    options.setExplicitKCode(KCode.EUC);
+                    break;
+                case 's':
+                    options.setExplicitKCode(KCode.SJIS);
+                    break;
+                case 'u':
+                    options.setExplicitKCode(KCode.UTF8);
+                    break;
+                case 'j':
+                    options.setJava(true);
+                    break;
+                default:
+                    unknownFlags.append((char) c);
+                    break;
             }
         }
         lexer.pushback(c);
@@ -315,92 +318,92 @@ public class StringTerm extends StrTerm {
             } else if (c == '\\') {
                 c = lexer.nextc();
                 switch (c) {
-                case '\n':
-                    if (qwords) {
-                        break;
-                    }
-                    if (expand) {
-                        continue;
-                    }
-                    buffer.append('\\');
-                    break;
-
-                case '\\':
-                    if (escape) {
-                        buffer.append(c);
-                    }
-                    break;
-
-                case 'u':
-                    if (!expand) {
+                    case '\n':
+                        if (qwords) {
+                            break;
+                        }
+                        if (expand) {
+                            continue;
+                        }
                         buffer.append('\\');
                         break;
-                    }
 
-                    if (regexp) {
-                        lexer.readUTFEscapeRegexpLiteral(buffer);
-                    } else {
-                        lexer.readUTFEscape(buffer, true, symbol);
-                    }
+                    case '\\':
+                        if (escape) {
+                            buffer.append(c);
+                        }
+                        break;
 
-                    if (hasNonAscii && buffer.getEncoding() != enc[0]) {
-                        mixedEscape(lexer, buffer.getEncoding(), enc[0]);
-                    }
-
-                    continue;
-                default:
-                    if (c == EOF) {
-                        return EOF;
-                    }
-
-                    if (!lexer.isASCII(c)) {
+                    case 'u':
                         if (!expand) {
                             buffer.append('\\');
+                            break;
                         }
 
-                        // goto non_ascii
-                        hasNonAscii = true;
-
-                        if (buffer.getEncoding() != enc[0]) {
-                            mixedEscape(lexer, buffer.getEncoding(), enc[0]);
-                            continue;
+                        if (regexp) {
+                            lexer.readUTFEscapeRegexpLiteral(buffer);
+                        } else {
+                            lexer.readUTFEscape(buffer, true, symbol);
                         }
-
-                        if (!lexer.tokadd_mbchar(c, buffer)) {
-                            lexer.compile_error(SyntaxException.PID.INVALID_MULTIBYTE_CHAR, "invalid multibyte char (" + enc[0] + ")");
-                        }
-
-                        continue;
-                        // end of goto non_ascii
-                    }
-
-                    if (regexp) {
-                        if (c == end && !simple_re_meta(c)) {
-                            buffer.append('\\');
-                            buffer.append(c);
-                            continue;
-                        }
-                        lexer.pushback(c);
-                        parseEscapeIntoBuffer(regexp, lexer, buffer);
 
                         if (hasNonAscii && buffer.getEncoding() != enc[0]) {
                             mixedEscape(lexer, buffer.getEncoding(), enc[0]);
                         }
-                        
+
                         continue;
-                    } else if (expand) {
-                        lexer.pushback(c);
-                        if (escape) {
-                            buffer.append('\\');
+                    default:
+                        if (c == EOF) {
+                            return EOF;
                         }
-                        c = lexer.readEscape();
-                    } else if (qwords && Character.isWhitespace(c)) {
-                        /* ignore backslashed spaces in %w */
-                    } else if (c != end && !(begin != '\0' && c == begin)) {
-                        buffer.append('\\');
-                        lexer.pushback(c);
-                        continue;
-                    }
+
+                        if (!lexer.isASCII(c)) {
+                            if (!expand) {
+                                buffer.append('\\');
+                            }
+
+                            // goto non_ascii
+                            hasNonAscii = true;
+
+                            if (buffer.getEncoding() != enc[0]) {
+                                mixedEscape(lexer, buffer.getEncoding(), enc[0]);
+                                continue;
+                            }
+
+                            if (!lexer.tokadd_mbchar(c, buffer)) {
+                                lexer.compile_error(SyntaxException.PID.INVALID_MULTIBYTE_CHAR, "invalid multibyte char (" + enc[0] + ")");
+                            }
+
+                            continue;
+                            // end of goto non_ascii
+                        }
+
+                        if (regexp) {
+                            if (c == end && !simple_re_meta(c)) {
+                                buffer.append('\\');
+                                buffer.append(c);
+                                continue;
+                            }
+                            lexer.pushback(c);
+                            parseEscapeIntoBuffer(regexp, lexer, buffer);
+
+                            if (hasNonAscii && buffer.getEncoding() != enc[0]) {
+                                mixedEscape(lexer, buffer.getEncoding(), enc[0]);
+                            }
+
+                            continue;
+                        } else if (expand) {
+                            lexer.pushback(c);
+                            if (escape) {
+                                buffer.append('\\');
+                            }
+                            c = lexer.readEscape();
+                        } else if (qwords && Character.isWhitespace(c)) {
+                            /* ignore backslashed spaces in %w */
+                        } else if (c != end && !(begin != '\0' && c == begin)) {
+                            buffer.append('\\');
+                            lexer.pushback(c);
+                            continue;
+                        }
                 }
             } else if (!lexer.isASCII(c)) {
                 hasNonAscii = true; // nonascii:
@@ -432,7 +435,7 @@ public class StringTerm extends StrTerm {
         }
 
         enc[0] = buffer.getEncoding();
-        
+
         return c;
     }
 
@@ -440,13 +443,23 @@ public class StringTerm extends StrTerm {
         if (c == end) {
             return true;
         }
-        switch(c) {
-            case '$': case '*': case '+': case '.': case '?': case '^': case '|': case ')': case ']': case '}': case '>':
+        switch (c) {
+            case '$':
+            case '*':
+            case '+':
+            case '.':
+            case '?':
+            case '^':
+            case '|':
+            case ')':
+            case ']':
+            case '}':
+            case '>':
                 return true;
         }
 
         return false;
-    }    
+    }
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
@@ -454,13 +467,13 @@ public class StringTerm extends StrTerm {
         int c;
 
         switch (c = lexer.nextc()) {
-        case '\\':
-            parseEscapeIntoBuffer(regexp, lexer, buffer);
-            break;
-        case EOF:
-            lexer.compile_error("Invalid escape character syntax");
-        default:
-            buffer.append(c);
+            case '\\':
+                parseEscapeIntoBuffer(regexp, lexer, buffer);
+                break;
+            case EOF:
+                lexer.compile_error("Invalid escape character syntax");
+            default:
+                buffer.append(c);
         }
     }
 
@@ -469,71 +482,71 @@ public class StringTerm extends StrTerm {
         int c;
 
         switch (c = lexer.nextc()) {
-        case '\n':
-            break; /* just ignore */
-        case '0':
-        case '1':
-        case '2':
-        case '3': /* octal constant */
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-            buffer.append('\\');
-            buffer.append(c);
-            for (int i = 0; i < 2; i++) {
+            case '\n':
+                break; /* just ignore */
+            case '0':
+            case '1':
+            case '2':
+            case '3': /* octal constant */
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+                buffer.append('\\');
+                buffer.append(c);
+                for (int i = 0; i < 2; i++) {
+                    c = lexer.nextc();
+                    if (c == EOF) {
+                        lexer.compile_error("Invalid escape character syntax");
+                    }
+                    if (!isOctChar(c)) {
+                        lexer.pushback(c);
+                        break;
+                    }
+                    buffer.append(c);
+                }
+                break;
+            case 'x': /* hex constant */
+                buffer.append('\\');
+                buffer.append(c);
                 c = lexer.nextc();
-                if (c == EOF) {
+                if (!isHexChar(c)) {
                     lexer.compile_error("Invalid escape character syntax");
                 }
-                if (!isOctChar(c)) {
+                buffer.append(c);
+                c = lexer.nextc();
+                if (isHexChar(c)) {
+                    buffer.append(c);
+                } else {
                     lexer.pushback(c);
-                    break;
                 }
-                buffer.append(c);
-            }
-            break;
-        case 'x': /* hex constant */
-            buffer.append('\\');
-            buffer.append(c);
-            c = lexer.nextc();
-            if (!isHexChar(c)) {
+                break;
+            case 'M':
+                if ((lexer.nextc()) != '-') {
+                    lexer.compile_error("Invalid escape character syntax");
+                }
+                buffer.append(new byte[]{ '\\', 'M', '-' });
+                escaped(regexp, lexer, buffer);
+                break;
+            case 'C':
+                if ((lexer.nextc()) != '-') {
+                    lexer.compile_error("Invalid escape character syntax");
+                }
+                buffer.append(new byte[]{ '\\', 'C', '-' });
+                escaped(regexp, lexer, buffer);
+                break;
+            case 'c':
+                buffer.append(new byte[]{ '\\', 'c' });
+                escaped(regexp, lexer, buffer);
+                break;
+            case EOF:
                 lexer.compile_error("Invalid escape character syntax");
-            }
-            buffer.append(c);
-            c = lexer.nextc();
-            if (isHexChar(c)) {
-                buffer.append(c);
-            } else {
-                lexer.pushback(c);
-            }
-            break;
-        case 'M':
-            if ((lexer.nextc()) != '-') {
-                lexer.compile_error("Invalid escape character syntax");
-            }
-            buffer.append(new byte[] { '\\', 'M', '-' });
-            escaped(regexp, lexer, buffer);
-            break;
-        case 'C':
-            if ((lexer.nextc()) != '-') {
-                lexer.compile_error("Invalid escape character syntax");
-            }
-            buffer.append(new byte[] { '\\', 'C', '-' });
-            escaped(regexp, lexer, buffer);
-            break;
-        case 'c':
-            buffer.append(new byte[] { '\\', 'c' });
-            escaped(regexp, lexer, buffer);
-            break;
-        case EOF:
-            lexer.compile_error("Invalid escape character syntax");
-        default:
-            if (regexp) {
-                simpleRegexpEscape(buffer, c);
-            } else {
-                simpleStringEscape(buffer, c);
-            }
+            default:
+                if (regexp) {
+                    simpleRegexpEscape(buffer, c);
+                } else {
+                    simpleStringEscape(buffer, c);
+                }
         }
     }
 

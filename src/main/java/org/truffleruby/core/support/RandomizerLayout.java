@@ -19,12 +19,13 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface RandomizerLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createRandomizerShape(DynamicObject logicalClass,
-                                               DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createRandomizer(DynamicObjectFactory factory,
-                                   Randomizer randomizer);
+            Randomizer randomizer);
 
     Randomizer getRandomizer(DynamicObject object);
+
     void setRandomizer(DynamicObject object, Randomizer value);
 
 }

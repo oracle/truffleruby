@@ -158,6 +158,7 @@ public abstract class RubyDateFormatter {
         Format(char conversion) {
             CONVERSION2TOKEN[conversion] = new Token(this);
         }
+
         Format(char conversion, char alias) {
             this(conversion);
             CONVERSION2TOKEN[alias] = CONVERSION2TOKEN[conversion];
@@ -172,7 +173,7 @@ public abstract class RubyDateFormatter {
     public static class Token {
         private final Format format;
         private final Object data;
-        
+
         protected Token(Format format) {
             this(format, null);
         }
@@ -334,6 +335,7 @@ public abstract class RubyDateFormatter {
 
         char defaultPadder;
         int defaultWidth;
+
         FieldType(char padder, int width) {
             defaultPadder = padder;
             defaultWidth = width;
@@ -345,7 +347,7 @@ public abstract class RubyDateFormatter {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
-        for (Token token: compiledPattern) {
+        for (Token token : compiledPattern) {
             String output = null;
             long value = 0;
             FieldType type = TEXT;

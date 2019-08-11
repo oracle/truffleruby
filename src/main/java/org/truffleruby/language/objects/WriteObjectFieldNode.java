@@ -55,10 +55,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
         executeWithGeneralize(object, name, value, generalize);
     }
 
-    @Specialization(
-            guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" },
-            assumptions = { "cachedShape.getValidAssumption()", "validLocation" },
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" }, assumptions = { "cachedShape.getValidAssumption()",
+            "validLocation" }, limit = "getCacheLimit()")
     public void writeExistingField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,
@@ -101,10 +99,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
         }
     }
 
-    @Specialization(
-            guards = { "location == null", "object.getShape() == cachedOldShape", "name == cachedName" },
-            assumptions = { "cachedOldShape.getValidAssumption()", "cachedNewShape.getValidAssumption()", "validLocation" },
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "location == null", "object.getShape() == cachedOldShape", "name == cachedName" }, assumptions = { "cachedOldShape.getValidAssumption()",
+            "cachedNewShape.getValidAssumption()", "validLocation" }, limit = "getCacheLimit()")
     public void writeNewField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,

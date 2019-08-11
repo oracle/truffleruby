@@ -44,7 +44,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
-    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
+    @Specialization(guards = { "!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar" })
     public Object writeInstanceVariable(
             DynamicObject receiver,
             Object name,
@@ -94,7 +94,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
     // TODO CS 9-Aug-17 test method defined once and then run specialisations
 
     protected static boolean methodDefined(DynamicObject receiver, Object stringName,
-                                    DoesRespondDispatchHeadNode definedNode) {
+            DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {

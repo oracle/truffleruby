@@ -84,12 +84,8 @@ public abstract class TruffleDebugNodes {
         public DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
             final String fileString = StringOperations.getString(file);
 
-            final SourceSectionFilter filter = SourceSectionFilter.newBuilder()
-                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                    .sourceIs(source -> source != null && getContext().getPath(source).equals(fileString))
-                    .lineIs(line)
-                    .tagIs(StandardTags.StatementTag.class)
-                    .build();
+            final SourceSectionFilter filter = SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(
+                    source -> source != null && getContext().getPath(source).equals(fileString)).lineIs(line).tagIs(StandardTags.StatementTag.class).build();
 
             final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(filter,
                     eventContext -> new ExecutionEventNode() {
@@ -313,8 +309,7 @@ public abstract class TruffleDebugNodes {
     @ImportStatic(SharedObjects.class)
     public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "object.getShape() == cachedShape",
-                assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
+        @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
         public boolean isSharedCached(DynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
                 @Cached("isShared(getContext(), cachedShape)") boolean shared) {
@@ -479,7 +474,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "foreign_object",  onSingleton = true)
+    @CoreMethod(names = "foreign_object", onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
@@ -494,7 +489,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @CoreMethod(names = "foreign_object_from_map", required = 1, onSingleton = true)
     public abstract static class ForeignObjectFromMapNode extends CoreMethodArrayArgumentsNode {
 
@@ -720,8 +715,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         private String getThreadDebugInfo() {
-            return getContext().getThreadManager().getThreadDebugInfo()
-                    + getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
+            return getContext().getThreadManager().getThreadDebugInfo() + getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
         }
 
     }

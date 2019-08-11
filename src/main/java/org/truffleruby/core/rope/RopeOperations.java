@@ -77,10 +77,13 @@ public class RopeOperations {
             characterLength = strLength(encoding, bytes, 0, bytes.length);
         }
 
-        switch(codeRange) {
-            case CR_7BIT: return new AsciiOnlyLeafRope(bytes, encoding);
-            case CR_VALID: return new ValidLeafRope(bytes, encoding, characterLength);
-            case CR_BROKEN: return new InvalidLeafRope(bytes, encoding, characterLength);
+        switch (codeRange) {
+            case CR_7BIT:
+                return new AsciiOnlyLeafRope(bytes, encoding);
+            case CR_VALID:
+                return new ValidLeafRope(bytes, encoding, characterLength);
+            case CR_BROKEN:
+                return new InvalidLeafRope(bytes, encoding, characterLength);
             default: {
                 throw new RuntimeException(StringUtils.format("Unknown code range type: %d", codeRange));
             }
@@ -103,7 +106,7 @@ public class RopeOperations {
             return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
         }
 
-        return create(new byte[] { b }, encoding, codeRange);
+        return create(new byte[]{ b }, encoding, codeRange);
     }
 
     public static Rope emptyRope(Encoding encoding) {
@@ -498,10 +501,7 @@ public class RopeOperations {
         // have extra repetitions. However it cannot ever be longer than repeatingRope.getTimes().
         return Integer.min(
                 times,
-                (offset
-                        + patternLength * length / patternLength
-                        + patternLength - 1
-                ) / patternLength);
+                (offset + patternLength * length / patternLength + patternLength - 1) / patternLength);
     }
 
     @TruffleBoundary
@@ -613,7 +613,7 @@ public class RopeOperations {
         }
 
         final int size = value.byteLength();
-        final int len =  Math.min(size, other.byteLength());
+        final int len = Math.min(size, other.byteLength());
         final byte[] other_bytes = other.getBytes();
 
         for (int offset = -1; ++offset < len;) {

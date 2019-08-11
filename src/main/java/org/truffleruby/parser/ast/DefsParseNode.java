@@ -43,8 +43,9 @@ import java.util.List;
  */
 public class DefsParseNode extends MethodDefParseNode implements INameNode {
     private final ParseNode receiverNode;
+
     public DefsParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ArgsParseNode argsNode,
-                         StaticScope scope, ParseNode bodyNode) {
+            StaticScope scope, ParseNode bodyNode) {
         super(position, name, argsNode, scope, bodyNode);
 
         assert receiverNode != null : "receiverNode is not null";

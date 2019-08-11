@@ -41,7 +41,7 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     protected Object defaultVisit(ParseNode node) {
-       return null;
+        return null;
     }
 
     @Override
@@ -61,6 +61,7 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
         visitChildren(node);
         return null;
     }
+
     @Override
     public Object visitBlockArgNode(BlockArgParseNode node) {
         parameters.add(node.getName());

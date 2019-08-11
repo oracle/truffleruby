@@ -40,15 +40,7 @@ import org.truffleruby.stdlib.CoverageManager;
 import java.util.Arrays;
 import java.util.Collections;
 
-@TruffleLanguage.Registration(
-        name = "Ruby",
-        id = TruffleRuby.LANGUAGE_ID,
-        implementationName = TruffleRuby.FORMAL_NAME,
-        version = BuildInformationImpl.RUBY_VERSION,
-        characterMimeTypes = TruffleRuby.MIME_TYPE,
-        defaultMimeType = TruffleRuby.MIME_TYPE,
-        dependentLanguages = TruffleRuby.LLVM_ID,
-        fileTypeDetectors = RubyFileTypeDetector.class)
+@TruffleLanguage.Registration(name = "Ruby", id = TruffleRuby.LANGUAGE_ID, implementationName = TruffleRuby.FORMAL_NAME, version = BuildInformationImpl.RUBY_VERSION, characterMimeTypes = TruffleRuby.MIME_TYPE, defaultMimeType = TruffleRuby.MIME_TYPE, dependentLanguages = TruffleRuby.LLVM_ID, fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -174,7 +166,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected String toString(RubyContext context, Object value) {
         if (value == null) {
             return "<null>";
-        } else if (RubyGuards.isBoxedPrimitive(value) ||  RubyGuards.isRubyBasicObject(value)) {
+        } else if (RubyGuards.isBoxedPrimitive(value) || RubyGuards.isRubyBasicObject(value)) {
             return context.send(value, "inspect").toString();
         } else if (value instanceof NotProvided) {
             return "<undefined>";

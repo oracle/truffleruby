@@ -165,10 +165,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     private InlineSnippet createInlineSnippet(Context context, Source mainSource, int line, String inlineSource, int expected) {
         final Snippet mainSnippet = Snippet.newBuilder(mainSource.getName(), context.eval(mainSource), TypeDescriptor.ANY).build();
 
-        return InlineSnippet.newBuilder(mainSnippet, inlineSource)
-                .locationPredicate(sourceSection ->
-                        sourceSection.getSource().getName().endsWith(mainSource.getName()) && sourceSection.getStartLine() == line)
-                .resultVerifier(snippetRun -> {
+        return InlineSnippet.newBuilder(mainSnippet, inlineSource).locationPredicate(
+                sourceSection -> sourceSection.getSource().getName().endsWith(mainSource.getName()) && sourceSection.getStartLine() == line).resultVerifier(snippetRun -> {
                     final PolyglotException exception = snippetRun.getException();
                     if (exception != null) {
                         throw exception;
@@ -192,10 +190,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
              * doesn't fit into a long.
              */
 
-            if (snippetRun.getResult() != null
-                    && returnType == TypeDescriptor.NUMBER
-                    && TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT
-                    && !snippetRun.getResult().fitsInLong()) {
+            if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER && TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&
+                    !snippetRun.getResult().fitsInLong()) {
                 Assert.assertTrue(TypeDescriptor.OBJECT.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
             } else {
                 ResultVerifier.getDefaultResultVerifier().accept(snippetRun);

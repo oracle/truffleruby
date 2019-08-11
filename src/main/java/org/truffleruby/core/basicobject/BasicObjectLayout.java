@@ -20,20 +20,27 @@ import org.truffleruby.interop.RubyObjectType;
 public interface BasicObjectLayout {
 
     DynamicObjectFactory createBasicObjectShape(@Nullable DynamicObject logicalClass,
-                                                @Nullable DynamicObject metaClass);
+            @Nullable DynamicObject metaClass);
 
     DynamicObject createBasicObject(DynamicObjectFactory factory);
 
     boolean isBasicObject(ObjectType objectType);
+
     boolean isBasicObject(Object object);
 
     DynamicObjectFactory setLogicalClass(DynamicObjectFactory factory, DynamicObject value);
+
     DynamicObject getLogicalClass(ObjectType objectType);
+
     DynamicObject getLogicalClass(DynamicObject object);
+
     void setLogicalClass(DynamicObject object, DynamicObject value);
 
     DynamicObjectFactory setMetaClass(DynamicObjectFactory factory, DynamicObject value);
+
     DynamicObject getMetaClass(ObjectType objectType);
+
     DynamicObject getMetaClass(DynamicObject object);
+
     void setMetaClass(DynamicObject object, DynamicObject value);
 }

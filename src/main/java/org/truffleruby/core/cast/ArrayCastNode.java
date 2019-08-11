@@ -78,7 +78,7 @@ public abstract class ArrayCastNode extends RubyNode {
                 return createArray(null, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{nil()}, 1);
+                return createArray(new Object[]{ nil() }, 1);
 
             case NIL:
                 return nil;
@@ -89,7 +89,7 @@ public abstract class ArrayCastNode extends RubyNode {
         }
     }
 
-    @Specialization(guards = {"!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)"})
+    @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)" })
     public Object cast(VirtualFrame frame, DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");

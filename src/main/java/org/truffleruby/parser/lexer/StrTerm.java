@@ -29,5 +29,6 @@ package org.truffleruby.parser.lexer;
 
 public abstract class StrTerm {
     public abstract int getFlags();
+
     public abstract int parseString(RubyLexer lexer);
 }

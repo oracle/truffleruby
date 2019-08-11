@@ -153,7 +153,7 @@ public class RubyLexer implements MagicCommentHandler {
     private FixnumParseNode newFixnumNode(String value, int radix) throws NumberFormatException {
         return new FixnumParseNode(getPosition(), Long.parseLong(value, radix));
     }
-    
+
     private ParseNode newRationalNode(String value, int radix) throws NumberFormatException {
         try {
             return new RationalParseNode(getPosition(), Long.parseLong(value, radix), 1);
@@ -161,7 +161,7 @@ public class RubyLexer implements MagicCommentHandler {
             return new BigRationalParseNode(getPosition(), new BigInteger(value, radix), BigInteger.ONE);
         }
     }
-    
+
     private ComplexParseNode newComplexNode(NumericParseNode number) {
         return new ComplexParseNode(getPosition(), number);
     }
@@ -217,12 +217,12 @@ public class RubyLexer implements MagicCommentHandler {
         WHILE("while", Tokens.kWHILE, Tokens.kWHILE_MOD, EXPR_BEG),
         ALIAS("alias", Tokens.kALIAS, Tokens.kALIAS, EXPR_FNAME),
         __ENCODING__("__ENCODING__", Tokens.k__ENCODING__, Tokens.k__ENCODING__, EXPR_END);
-        
+
         public final String name;
         public final int id0;
         public final int id1;
         public final int state;
-        
+
         Keyword(String name, int id0, int id1, int state) {
             this.name = name;
             this.id0 = id0;
@@ -230,11 +230,11 @@ public class RubyLexer implements MagicCommentHandler {
             this.state = state;
         }
     }
-    
+
     public static Keyword getKeyword(String str) {
         return map.get(str);
     }
-    
+
     // Used for tiny smidgen of grammar in lexer (see setParserSupport())
     private ParserSupport parserSupport = null;
 
@@ -475,7 +475,7 @@ public class RubyLexer implements MagicCommentHandler {
                 description = "Polyglot API Source";
             }
 
-            throw argumentError(context, String.format("%s cannot be used as an encoding for a %s as it is not UTF-8 or a subset of UTF-8",  RopeOperations.decodeRope(name), description));
+            throw argumentError(context, String.format("%s cannot be used as an encoding for a %s as it is not UTF-8 or a subset of UTF-8", RopeOperations.decodeRope(name), description));
         }
 
         setEncoding(newEncoding);
@@ -618,7 +618,7 @@ public class RubyLexer implements MagicCommentHandler {
             begin = c;
             c = 'Q';
             shortHand = true;
-        // Long-hand (e.g. %Q{}).
+            // Long-hand (e.g. %Q{}).
         } else {
             shortHand = false;
             begin = nextc();
@@ -631,79 +631,87 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         // Figure end-char.  '\0' is special to indicate begin=end and that no nesting?
-        switch(begin) {
-        case '(': end = ')'; break;
-        case '[': end = ']'; break;
-        case '{': end = '}'; break;
-        case '<': end = '>'; break;
-        default:
-            end = begin;
-            begin = '\0';
+        switch (begin) {
+            case '(':
+                end = ')';
+                break;
+            case '[':
+                end = ']';
+                break;
+            case '{':
+                end = '}';
+                break;
+            case '<':
+                end = '>';
+                break;
+            default:
+                end = begin;
+                begin = '\0';
         }
 
         switch (c) {
-        case 'Q':
-            lex_strterm = new StringTerm(str_dquote, begin, end);
-            yaccValue = "%" + (shortHand ? ("" + end) : ("" + c + begin));
-            return Tokens.tSTRING_BEG;
+            case 'Q':
+                lex_strterm = new StringTerm(str_dquote, begin, end);
+                yaccValue = "%" + (shortHand ? ("" + end) : ("" + c + begin));
+                return Tokens.tSTRING_BEG;
 
-        case 'q':
-            lex_strterm = new StringTerm(str_squote, begin, end);
-            yaccValue = "%" + c + begin; 
-            return Tokens.tSTRING_BEG;
+            case 'q':
+                lex_strterm = new StringTerm(str_squote, begin, end);
+                yaccValue = "%" + c + begin;
+                return Tokens.tSTRING_BEG;
 
-        case 'W':
-            lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-            do {
-                c = nextc();
-            } while (Character.isWhitespace(c));
-            pushback(c);
-            yaccValue = "%" + c + begin;
-            return Tokens.tWORDS_BEG;
+            case 'W':
+                lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
+                do {
+                    c = nextc();
+                } while (Character.isWhitespace(c));
+                pushback(c);
+                yaccValue = "%" + c + begin;
+                return Tokens.tWORDS_BEG;
 
-        case 'w':
-            lex_strterm = new StringTerm(/* str_squote | */ STR_FUNC_QWORDS, begin, end);
-            do {
-                c = nextc();
-            } while (Character.isWhitespace(c));
-            pushback(c);
-            yaccValue = "%" + c + begin;
-            return Tokens.tQWORDS_BEG;
+            case 'w':
+                lex_strterm = new StringTerm(/* str_squote | */ STR_FUNC_QWORDS, begin, end);
+                do {
+                    c = nextc();
+                } while (Character.isWhitespace(c));
+                pushback(c);
+                yaccValue = "%" + c + begin;
+                return Tokens.tQWORDS_BEG;
 
-        case 'x':
-            lex_strterm = new StringTerm(str_xquote, begin, end);
-            yaccValue = "%" + c + begin;
-            return Tokens.tXSTRING_BEG;
+            case 'x':
+                lex_strterm = new StringTerm(str_xquote, begin, end);
+                yaccValue = "%" + c + begin;
+                return Tokens.tXSTRING_BEG;
 
-        case 'r':
-            lex_strterm = new StringTerm(str_regexp, begin, end);
-            yaccValue = "%" + c + begin;
-            return Tokens.tREGEXP_BEG;
+            case 'r':
+                lex_strterm = new StringTerm(str_regexp, begin, end);
+                yaccValue = "%" + c + begin;
+                return Tokens.tREGEXP_BEG;
 
-        case 's':
-            lex_strterm = new StringTerm(str_ssym, begin, end);
-            setState(EXPR_FNAME);
-            yaccValue = "%" + c + begin;
-            return Tokens.tSYMBEG;
+            case 's':
+                lex_strterm = new StringTerm(str_ssym, begin, end);
+                setState(EXPR_FNAME);
+                yaccValue = "%" + c + begin;
+                return Tokens.tSYMBEG;
 
-        case 'I':
-            lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-            do {
-                c = nextc();
-            } while (Character.isWhitespace(c));
-            pushback(c);
-            yaccValue = "%" + c + begin;
-            return Tokens.tSYMBOLS_BEG;
-        case 'i':
-            lex_strterm = new StringTerm(/* str_squote | */STR_FUNC_QWORDS, begin, end);
-            do {
-                c = nextc();
-            } while (Character.isWhitespace(c));
-            pushback(c);
-            yaccValue = "%" + c + begin;
-            return Tokens.tQSYMBOLS_BEG;
-        default:
-            compile_error(SyntaxException.PID.STRING_UNKNOWN_TYPE, "unknown type of %string");
+            case 'I':
+                lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
+                do {
+                    c = nextc();
+                } while (Character.isWhitespace(c));
+                pushback(c);
+                yaccValue = "%" + c + begin;
+                return Tokens.tSYMBOLS_BEG;
+            case 'i':
+                lex_strterm = new StringTerm(/* str_squote | */STR_FUNC_QWORDS, begin, end);
+                do {
+                    c = nextc();
+                } while (Character.isWhitespace(c));
+                pushback(c);
+                yaccValue = "%" + c + begin;
+                return Tokens.tQSYMBOLS_BEG;
+            default:
+                compile_error(SyntaxException.PID.STRING_UNKNOWN_TYPE, "unknown type of %string");
         }
         return -1; // not-reached
     }
@@ -833,218 +841,233 @@ public class RubyLexer implements MagicCommentHandler {
         loop: for (;;) {
             last_state = lex_state;
             c = nextc();
-            switch(c) {
-            case '\000': /* NUL */
-            case '\004': /* ^D */
-            case '\032': /* ^Z */
-            case EOF:    /* end of script. */ 
-                return EOF;
+            switch (c) {
+                case '\000': /* NUL */
+                case '\004': /* ^D */
+                case '\032': /* ^Z */
+                case EOF: /* end of script. */
+                    return EOF;
 
                 /* white spaces */
-            case ' ': case '\t': case '\f': case '\r':
-            case '\13': /* '\v' */
-                getPosition();
-                spaceSeen = true;
-                continue;
-            case '#': { /* it's a comment */
-                this.tokenSeen = tokenSeen;
+                case ' ':
+                case '\t':
+                case '\f':
+                case '\r':
+                case '\13': /* '\v' */
+                    getPosition();
+                    spaceSeen = true;
+                    continue;
+                case '#': { /* it's a comment */
+                    this.tokenSeen = tokenSeen;
 
-                // There are no magic comments that can affect any runtime options after a token has been seen, so there's
-                // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
-                // so we can report that it will be ignored.
-                if (!tokenSeen || (parserSupport.getContext() != null && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
-                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
+                    // There are no magic comments that can affect any runtime options after a token has been seen, so there's
+                    // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
+                    // so we can report that it will be ignored.
+                    if (!tokenSeen || (parserSupport.getContext() != null && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
+                        if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
-                    }
-                }
-
-                lex_p = lex_pend;
-            }
-            /* fall through */
-            case '\n': {
-                this.tokenSeen = tokenSeen;
-                boolean normalArg = isLexState(lex_state, EXPR_BEG | EXPR_CLASS | EXPR_FNAME | EXPR_DOT) &&
-                        !isLexState(lex_state, EXPR_LABELED);
-                if (normalArg || isLexStateAll(lex_state, EXPR_ARG | EXPR_LABELED)) {
-                    if (!normalArg && inKwarg) {
-                        commandStart = true;
-                        setState(EXPR_BEG);
-                        return '\n';
-                    }
-                    continue loop;
-                }
-
-                boolean done = false;
-                while (!done) {
-                    c = nextc();
-
-                    switch (c) {
-                    case ' ': case '\t': case '\f': case '\r': case '\13': /* '\v' */
-                        spaceSeen = true;
-                        continue;
-                    case '&':
-                    case '.': {
-                        if (peek('.') == (c == '&')) {
-                            pushback(c);
-
-                            continue loop;
                         }
                     }
-                    default:
-                    case -1:    // EOF (ENEBO: After default?
-                        done = true;
-                    }
+
+                    lex_p = lex_pend;
                 }
+                /* fall through */
+                case '\n': {
+                    this.tokenSeen = tokenSeen;
+                    boolean normalArg = isLexState(lex_state, EXPR_BEG | EXPR_CLASS | EXPR_FNAME | EXPR_DOT) &&
+                            !isLexState(lex_state, EXPR_LABELED);
+                    if (normalArg || isLexStateAll(lex_state, EXPR_ARG | EXPR_LABELED)) {
+                        if (!normalArg && inKwarg) {
+                            commandStart = true;
+                            setState(EXPR_BEG);
+                            return '\n';
+                        }
+                        continue loop;
+                    }
+
+                    boolean done = false;
+                    while (!done) {
+                        c = nextc();
+
+                        switch (c) {
+                            case ' ':
+                            case '\t':
+                            case '\f':
+                            case '\r':
+                            case '\13': /* '\v' */
+                                spaceSeen = true;
+                                continue;
+                            case '&':
+                            case '.': {
+                                if (peek('.') == (c == '&')) {
+                                    pushback(c);
+
+                                    continue loop;
+                                }
+                            }
+                            default:
+                            case -1:    // EOF (ENEBO: After default?
+                                done = true;
+                        }
+                    }
 
                     if (c == -1) {
                         return EOF;
                     }
 
-                pushback(c);
-                getPosition();
+                    pushback(c);
+                    getPosition();
 
-                commandStart = true;
-                setState(EXPR_BEG);
-                return '\n';
-            }
-            case '*':
-                return star(spaceSeen);
-            case '!':
-                return bang();
-            case '=':
-                // documentation nodes
-                if (was_bol()) {
-                    if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.byteLength()) &&
-                            Character.isWhitespace(p(lex_p + 5))) {
-                        for (;;) {
+                    commandStart = true;
+                    setState(EXPR_BEG);
+                    return '\n';
+                }
+                case '*':
+                    return star(spaceSeen);
+                case '!':
+                    return bang();
+                case '=':
+                    // documentation nodes
+                    if (was_bol()) {
+                        if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.byteLength()) &&
+                                Character.isWhitespace(p(lex_p + 5))) {
+                            for (;;) {
+                                lex_goto_eol();
+
+                                c = nextc();
+
+                                if (c == EOF) {
+                                    compile_error("embedded document meets end of file");
+                                    return EOF;
+                                }
+
+                                if (c != '=') {
+                                    continue;
+                                }
+
+                                if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.byteLength()) &&
+                                        (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
+                                    break;
+                                }
+                            }
                             lex_goto_eol();
 
-                            c = nextc();
-
-                            if (c == EOF) {
-                                compile_error("embedded document meets end of file");
-                                return EOF;
-                            }
-
-                            if (c != '=') {
-                                continue;
-                            }
-
-                            if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.byteLength()) &&
-                                    (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
-                                break;
-                            }
+                            continue loop;
                         }
-                        lex_goto_eol();
-
-                        continue loop;
                     }
-                }
 
-                setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
+                    setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
-                c = nextc();
-                if (c == '=') {
                     c = nextc();
                     if (c == '=') {
-                        yaccValue = "===";
-                        return Tokens.tEQQ;
+                        c = nextc();
+                        if (c == '=') {
+                            yaccValue = "===";
+                            return Tokens.tEQQ;
+                        }
+                        pushback(c);
+                        yaccValue = "==";
+                        return Tokens.tEQ;
+                    }
+                    if (c == '~') {
+                        yaccValue = "=~";
+                        return Tokens.tMATCH;
+                    } else if (c == '>') {
+                        yaccValue = "=>";
+                        return Tokens.tASSOC;
                     }
                     pushback(c);
-                    yaccValue = "==";
-                    return Tokens.tEQ;
-                }
-                if (c == '~') {
-                    yaccValue = "=~";
-                    return Tokens.tMATCH;
-                } else if (c == '>') {
-                    yaccValue = "=>";
-                    return Tokens.tASSOC;
-                }
-                pushback(c);
-                yaccValue = "=";
-                return '=';
+                    yaccValue = "=";
+                    return '=';
 
-            case '<':
-                return lessThan(spaceSeen);
-            case '>':
-                return greaterThan();
-            case '"':
-                return doubleQuote(commandState);
-            case '`':
-                return backtick(commandState);
-            case '\'':
-                return singleQuote(commandState);
-            case '?':
-                return questionMark();
-            case '&':
-                return ampersand(spaceSeen);
-            case '|':
-                return pipe();
-            case '+':
-                return plus(spaceSeen);
-            case '-':
-                return minus(spaceSeen);
-            case '.':
-                return dot();
-            case '0' : case '1' : case '2' : case '3' : case '4' :
-            case '5' : case '6' : case '7' : case '8' : case '9' :
-                return parseNumber(c);
-            case ')':
-                return rightParen();
-            case ']':
-                return rightBracket();
-            case '}':
-                return rightCurly();
-            case ':':
-                return colon(spaceSeen);
-            case '/':
-                return slash(spaceSeen);
-            case '^':
-                return caret();
-            case ';':
-                commandStart = true;
-                setState(EXPR_BEG);
-                yaccValue = ";";
-                return ';';
-            case ',':
-                return comma(c);
-            case '~':
-                return tilde();
-            case '(':
-                return leftParen(spaceSeen);
-            case '[':
-                return leftBracket(spaceSeen);
-            case '{':
-                return leftCurly();
-            case '\\':
-                c = nextc();
-                if (c == '\n') {
-                    spaceSeen = true;
-                    continue;
-                }
-                pushback(c);
-                yaccValue = "\\";
-                return '\\';
-            case '%':
-                return percent(spaceSeen);
-            case '$':
-                return dollar();
-            case '@':
-                return at();
-            case '_':
-                if (was_bol() && whole_match_p(END_MARKER, false)) {
-                    endPosition = src.getOffset();
-                    eofp = true;
+                case '<':
+                    return lessThan(spaceSeen);
+                case '>':
+                    return greaterThan();
+                case '"':
+                    return doubleQuote(commandState);
+                case '`':
+                    return backtick(commandState);
+                case '\'':
+                    return singleQuote(commandState);
+                case '?':
+                    return questionMark();
+                case '&':
+                    return ampersand(spaceSeen);
+                case '|':
+                    return pipe();
+                case '+':
+                    return plus(spaceSeen);
+                case '-':
+                    return minus(spaceSeen);
+                case '.':
+                    return dot();
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    return parseNumber(c);
+                case ')':
+                    return rightParen();
+                case ']':
+                    return rightBracket();
+                case '}':
+                    return rightCurly();
+                case ':':
+                    return colon(spaceSeen);
+                case '/':
+                    return slash(spaceSeen);
+                case '^':
+                    return caret();
+                case ';':
+                    commandStart = true;
+                    setState(EXPR_BEG);
+                    yaccValue = ";";
+                    return ';';
+                case ',':
+                    return comma(c);
+                case '~':
+                    return tilde();
+                case '(':
+                    return leftParen(spaceSeen);
+                case '[':
+                    return leftBracket(spaceSeen);
+                case '{':
+                    return leftCurly();
+                case '\\':
+                    c = nextc();
+                    if (c == '\n') {
+                        spaceSeen = true;
+                        continue;
+                    }
+                    pushback(c);
+                    yaccValue = "\\";
+                    return '\\';
+                case '%':
+                    return percent(spaceSeen);
+                case '$':
+                    return dollar();
+                case '@':
+                    return at();
+                case '_':
+                    if (was_bol() && whole_match_p(END_MARKER, false)) {
+                        endPosition = src.getOffset();
+                        eofp = true;
 
-                    lex_goto_eol();
-                    return EOF;
-                }
-                return identifier(c, commandState);
-            default:
-                return identifier(c, commandState);
+                        lex_goto_eol();
+                        return EOF;
+                    }
+                    return identifier(c, commandState);
+                default:
+                    return identifier(c, commandState);
             }
         }
     }
@@ -1063,24 +1086,24 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
 
         switch (c) {
-        case '&':
-            setState(EXPR_BEG);
-            if ((c = nextc()) == '=') {
+            case '&':
+                setState(EXPR_BEG);
+                if ((c = nextc()) == '=') {
+                    yaccValue = "&&";
+                    setState(EXPR_BEG);
+                    return Tokens.tOP_ASGN;
+                }
+                pushback(c);
                 yaccValue = "&&";
+                return Tokens.tANDOP;
+            case '=':
+                yaccValue = "&";
                 setState(EXPR_BEG);
                 return Tokens.tOP_ASGN;
-            }
-            pushback(c);
-            yaccValue = "&&";
-            return Tokens.tANDOP;
-        case '=':
-            yaccValue = "&";
-            setState(EXPR_BEG);
-            return Tokens.tOP_ASGN;
-        case '.':
-            setState(EXPR_DOT);
-            yaccValue = "&.";
-            return Tokens.tANDDOT;
+            case '.':
+                setState(EXPR_DOT);
+                yaccValue = "&.";
+                return Tokens.tANDDOT;
         }
         pushback(c);
 
@@ -1299,7 +1322,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     private static boolean isIgnoredMagicLineCharacter(byte c) {
         switch (c) {
-            case '\'': case '"': case ':': case ';':
+            case '\'':
+            case '"':
+            case ':':
+            case ';':
                 return true;
             default:
                 return false;
@@ -1438,19 +1464,19 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         switch (c) {
-        case '=':
-            yaccValue = "!=";
+            case '=':
+                yaccValue = "!=";
 
-            return Tokens.tNEQ;
-        case '~':
-            yaccValue = "!~";
+                return Tokens.tNEQ;
+            case '~':
+                yaccValue = "!~";
 
-            return Tokens.tNMATCH;
-        default: // Just a plain bang
-            pushback(c);
-            yaccValue = "!";
+                return Tokens.tNMATCH;
+            default: // Just a plain bang
+                pushback(c);
+                yaccValue = "!";
 
-            return Tokens.tBANG;
+                return Tokens.tBANG;
         }
     }
 
@@ -1492,15 +1518,15 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         switch (c) {
-        case '\'':
-            lex_strterm = new StringTerm(str_ssym, '\0', c);
-            break;
-        case '"':
-            lex_strterm = new StringTerm(str_dsym, '\0', c);
-            break;
-        default:
-            pushback(c);
-            break;
+            case '\'':
+                lex_strterm = new StringTerm(str_ssym, '\0', c);
+                break;
+            case '"':
+                lex_strterm = new StringTerm(str_dsym, '\0', c);
+                break;
+            default:
+                pushback(c);
+                break;
         }
 
         setState(EXPR_FNAME);
@@ -1543,111 +1569,118 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
 
         switch (c) {
-        case '_':       /* $_: last read line string */
-            c = nextc();
-            if (isIdentifierChar(c)) {
-                if (!tokadd_ident(c)) {
-                    return EOF;
+            case '_': /* $_: last read line string */
+                c = nextc();
+                if (isIdentifierChar(c)) {
+                    if (!tokadd_ident(c)) {
+                        return EOF;
+                    }
+
+                    last_state = lex_state;
+                    setState(EXPR_END);
+                    yaccValue = createTokenString().intern();
+                    return Tokens.tGVAR;
+                }
+                pushback(c);
+                c = '_';
+                // fall through
+            case '~': /* $~: match-data */
+            case '*': /* $*: argv */
+            case '$': /* $$: pid */
+            case '?': /* $?: last status */
+            case '!': /* $!: error string */
+            case '@': /* $@: error position */
+            case '/': /* $/: input record separator */
+            case '\\': /* $\: output record separator */
+            case ';': /* $;: field separator */
+            case ',': /* $,: output field separator */
+            case '.': /* $.: last read line number */
+            case '=': /* $=: ignorecase */
+            case ':': /* $:: load path */
+            case '<': /* $<: reading filename */
+            case '>': /* $>: default output handle */
+            case '\"': /* $": already loaded files */
+                yaccValue = "$" + (char) c;
+                return Tokens.tGVAR;
+
+            case '-':
+                c = nextc();
+                if (isIdentifierChar(c)) {
+                    if (!tokadd_mbchar(c)) {
+                        return EOF;
+                    }
+                } else {
+                    pushback(c);
+                    pushback('-');
+                    return '$';
+                }
+                yaccValue = createTokenString().intern();
+                /* xxx shouldn't check if valid option variable */
+                return Tokens.tGVAR;
+
+            case '&': /* $&: last match */
+            case '`': /* $`: string before last match */
+            case '\'': /* $': string after last match */
+            case '+': /* $+: string matches last paren. */
+                // Explicit reference to these vars as symbols...
+                if (isLexState(last_state, EXPR_FNAME)) {
+                    yaccValue = "$" + (char) c;
+                    return Tokens.tGVAR;
+                }
+
+                yaccValue = new BackRefParseNode(getPosition(), c);
+                return Tokens.tBACK_REF;
+
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                do {
+                    c = nextc();
+                } while (Character.isDigit(c));
+                pushback(c);
+                if (isLexState(last_state, EXPR_FNAME)) {
+                    yaccValue = createTokenString().intern();
+                    return Tokens.tGVAR;
+                }
+
+                int ref;
+                String refAsString = createTokenString();
+
+                try {
+                    ref = Integer.parseInt(refAsString.substring(1).intern());
+                } catch (NumberFormatException e) {
+                    warnings.warn("`" + refAsString + "' is too big for a number variable, always nil");
+                    ref = 0;
+                }
+
+                yaccValue = new NthRefParseNode(getPosition(), ref);
+                return Tokens.tNTH_REF;
+            case '0':
+                setState(EXPR_END);
+
+                return identifierToken(Tokens.tGVAR, ("$" + (char) c).intern());
+            default:
+                if (!isIdentifierChar(c)) {
+                    if (c == EOF || Character.isSpaceChar(c)) {
+                        compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$' without identifiers is not allowed as a global variable name");
+                    } else {
+                        pushback(c);
+                        compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$" + ((char) c) + "' is not allowed as a global variable name");
+                    }
                 }
 
                 last_state = lex_state;
                 setState(EXPR_END);
-                yaccValue = createTokenString().intern();
-                return Tokens.tGVAR;
-            }
-            pushback(c);
-            c = '_';
-            // fall through
-        case '~':       /* $~: match-data */
-        case '*':       /* $*: argv */
-        case '$':       /* $$: pid */
-        case '?':       /* $?: last status */
-        case '!':       /* $!: error string */
-        case '@':       /* $@: error position */
-        case '/':       /* $/: input record separator */
-        case '\\':      /* $\: output record separator */
-        case ';':       /* $;: field separator */
-        case ',':       /* $,: output field separator */
-        case '.':       /* $.: last read line number */
-        case '=':       /* $=: ignorecase */
-        case ':':       /* $:: load path */
-        case '<':       /* $<: reading filename */
-        case '>':       /* $>: default output handle */
-        case '\"':      /* $": already loaded files */
-            yaccValue = "$" + (char) c;
-            return Tokens.tGVAR;
 
-        case '-':
-            c = nextc();
-            if (isIdentifierChar(c)) {
-                if (!tokadd_mbchar(c)) {
-                    return EOF;
-                }
-            } else {
-                pushback(c);
-                pushback('-');
-                return '$';
-            }
-            yaccValue = createTokenString().intern();
-            /* xxx shouldn't check if valid option variable */
-            return Tokens.tGVAR;
+                tokadd_ident(c);
 
-        case '&':       /* $&: last match */
-        case '`':       /* $`: string before last match */
-        case '\'':      /* $': string after last match */
-        case '+':       /* $+: string matches last paren. */
-            // Explicit reference to these vars as symbols...
-            if (isLexState(last_state, EXPR_FNAME)) {
-                yaccValue = "$" + (char) c;
-                return Tokens.tGVAR;
-            }
-
-            yaccValue = new BackRefParseNode(getPosition(), c);
-            return Tokens.tBACK_REF;
-
-        case '1': case '2': case '3': case '4': case '5': case '6':
-        case '7': case '8': case '9':
-            do {
-                c = nextc();
-            } while (Character.isDigit(c));
-            pushback(c);
-            if (isLexState(last_state, EXPR_FNAME)) {
-                yaccValue = createTokenString().intern();
-                return Tokens.tGVAR;
-            }
-
-            int ref;
-            String refAsString = createTokenString();
-
-            try {
-                ref = Integer.parseInt(refAsString.substring(1).intern());
-            } catch (NumberFormatException e) {
-                warnings.warn("`" + refAsString + "' is too big for a number variable, always nil");
-                ref = 0;
-            }
-
-            yaccValue = new NthRefParseNode(getPosition(), ref);
-            return Tokens.tNTH_REF;
-        case '0':
-            setState(EXPR_END);
-
-            return identifierToken(Tokens.tGVAR, ("$" + (char) c).intern());
-        default:
-            if (!isIdentifierChar(c)) {
-                if (c == EOF || Character.isSpaceChar(c)) {
-                    compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$' without identifiers is not allowed as a global variable name");
-                } else {
-                    pushback(c);
-                    compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$" + ((char) c) + "' is not allowed as a global variable name");
-                }
-            }
-
-            last_state = lex_state;
-            setState(EXPR_END);
-
-            tokadd_ident(c);
-
-            return identifierToken(Tokens.tGVAR, createTokenString().intern());  // $blah
+                return identifierToken(Tokens.tGVAR, createTokenString().intern());  // $blah
         }
     }
 
@@ -1689,24 +1722,24 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
 
         switch (c) {
-        case '=':
-            yaccValue = ">=";
+            case '=':
+                yaccValue = ">=";
 
-            return Tokens.tGEQ;
-        case '>':
-            if ((c = nextc()) == '=') {
-                setState(EXPR_BEG);
+                return Tokens.tGEQ;
+            case '>':
+                if ((c = nextc()) == '=') {
+                    setState(EXPR_BEG);
+                    yaccValue = ">>";
+                    return Tokens.tOP_ASGN;
+                }
+                pushback(c);
+
                 yaccValue = ">>";
-                return Tokens.tOP_ASGN;
-            }
-            pushback(c);
-
-            yaccValue = ">>";
-            return Tokens.tRSHFT;
-        default:
-            pushback(c);
-            yaccValue = ">";
-            return Tokens.tGT;
+                return Tokens.tRSHFT;
+            default:
+                pushback(c);
+                yaccValue = ">";
+                return Tokens.tGT;
         }
     }
 
@@ -1935,28 +1968,28 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         switch (c) {
-        case '=':
-            if ((c = nextc()) == '>') {
-                yaccValue = "<=>";
-                return Tokens.tCMP;
-            }
-            pushback(c);
-            yaccValue = "<=";
-            return Tokens.tLEQ;
-        case '<':
-            if ((c = nextc()) == '=') {
-                setState(EXPR_BEG);
+            case '=':
+                if ((c = nextc()) == '>') {
+                    yaccValue = "<=>";
+                    return Tokens.tCMP;
+                }
+                pushback(c);
+                yaccValue = "<=";
+                return Tokens.tLEQ;
+            case '<':
+                if ((c = nextc()) == '=') {
+                    setState(EXPR_BEG);
+                    yaccValue = "<<";
+                    return Tokens.tOP_ASGN;
+                }
+                pushback(c);
                 yaccValue = "<<";
-                return Tokens.tOP_ASGN;
-            }
-            pushback(c);
-            yaccValue = "<<";
-            warn_balanced(c, spaceSeen, "<<", "here document");
-            return Tokens.tLSHFT;
-        default:
-            yaccValue = "<";
-            pushback(c);
-            return Tokens.tLT;
+                warn_balanced(c, spaceSeen, "<<", "here document");
+                return Tokens.tLSHFT;
+            default:
+                yaccValue = "<";
+                pushback(c);
+                return Tokens.tLT;
         }
     }
 
@@ -2028,26 +2061,26 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
 
         switch (c) {
-        case '|':
-            setState(EXPR_BEG);
-            if ((c = nextc()) == '=') {
+            case '|':
                 setState(EXPR_BEG);
+                if ((c = nextc()) == '=') {
+                    setState(EXPR_BEG);
+                    yaccValue = "||";
+                    return Tokens.tOP_ASGN;
+                }
+                pushback(c);
                 yaccValue = "||";
+                return Tokens.tOROP;
+            case '=':
+                setState(EXPR_BEG);
+                yaccValue = "|";
                 return Tokens.tOP_ASGN;
-            }
-            pushback(c);
-            yaccValue = "||";
-            return Tokens.tOROP;
-        case '=':
-            setState(EXPR_BEG);
-            yaccValue = "|";
-            return Tokens.tOP_ASGN;
-        default:
-            setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG | EXPR_LABEL);
+            default:
+                setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG | EXPR_LABEL);
 
-            pushback(c);
-            yaccValue = "|";
-            return Tokens.tPIPE;
+                pushback(c);
+                yaccValue = "|";
+                return Tokens.tPIPE;
         }
     }
 
@@ -2106,26 +2139,26 @@ public class RubyLexer implements MagicCommentHandler {
             if (!isARG()) {
                 int c2 = 0;
                 switch (c) {
-                case ' ':
-                    c2 = 's';
-                    break;
-                case '\n':
-                    c2 = 'n';
-                    break;
-                case '\t':
-                    c2 = 't';
-                    break;
-                        /* What is \v in C?
-                    case '\v':
-                        c2 = 'v';
+                    case ' ':
+                        c2 = 's';
                         break;
-                        */
-                case '\r':
-                    c2 = 'r';
+                    case '\n':
+                        c2 = 'n';
+                        break;
+                    case '\t':
+                        c2 = 't';
+                        break;
+                    /* What is \v in C?
+                    case '\v':
+                    c2 = 'v';
                     break;
-                case '\f':
-                    c2 = 'f';
-                    break;
+                    */
+                    case '\r':
+                        c2 = 'r';
+                        break;
+                    case '\f':
+                        c2 = 'f';
+                        break;
                 }
                 if (c2 != 0) {
                     warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "invalid character syntax; use ?\\" + c2);
@@ -2219,9 +2252,9 @@ public class RubyLexer implements MagicCommentHandler {
             yaccValue = "/";
             return Tokens.tREGEXP_BEG;
         }
-        
+
         int c = nextc();
-        
+
         if (c == '=') {
             setState(EXPR_BEG);
             yaccValue = "/";
@@ -2244,48 +2277,48 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int star(boolean spaceSeen) {
         int c = nextc();
-        
+
         switch (c) {
-        case '*':
-            if ((c = nextc()) == '=') {
-                setState(EXPR_BEG);
+            case '*':
+                if ((c = nextc()) == '=') {
+                    setState(EXPR_BEG);
+                    yaccValue = "**";
+                    return Tokens.tOP_ASGN;
+                }
+
+                pushback(c); // not a '=' put it back
                 yaccValue = "**";
+
+                if (isSpaceArg(c, spaceSeen)) {
+                    if (warnings.isVerbose()) {
+                        warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
+                    }
+                    c = Tokens.tDSTAR;
+                } else if (isBEG()) {
+                    c = Tokens.tDSTAR;
+                } else {
+                    warn_balanced(c, spaceSeen, "**", "argument prefix");
+                    c = Tokens.tPOW;
+                }
+                break;
+            case '=':
+                setState(EXPR_BEG);
+                yaccValue = "*";
                 return Tokens.tOP_ASGN;
-            }
-
-            pushback(c); // not a '=' put it back
-            yaccValue = "**";
-
-            if (isSpaceArg(c, spaceSeen)) {
-                if (warnings.isVerbose()) {
-                    warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
+            default:
+                pushback(c);
+                if (isSpaceArg(c, spaceSeen)) {
+                    if (warnings.isVerbose()) {
+                        warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`*' interpreted as argument prefix");
+                    }
+                    c = Tokens.tSTAR;
+                } else if (isBEG()) {
+                    c = Tokens.tSTAR;
+                } else {
+                    warn_balanced(c, spaceSeen, "*", "argument prefix");
+                    c = Tokens.tSTAR2;
                 }
-                c = Tokens.tDSTAR;
-            } else if (isBEG()) {
-                c = Tokens.tDSTAR;
-            } else {
-                warn_balanced(c, spaceSeen, "**", "argument prefix");
-                c = Tokens.tPOW;
-            }
-            break;
-        case '=':
-            setState(EXPR_BEG);
-            yaccValue = "*";
-            return Tokens.tOP_ASGN;
-        default:
-            pushback(c);
-            if (isSpaceArg(c, spaceSeen)) {
-                if (warnings.isVerbose()) {
-                    warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`*' interpreted as argument prefix");
-                }
-                c = Tokens.tSTAR;
-            } else if (isBEG()) {
-                c = Tokens.tSTAR;
-            } else {
-                warn_balanced(c, spaceSeen, "*", "argument prefix");
-                c = Tokens.tSTAR2;
-            }
-            yaccValue = "*";
+                yaccValue = "*";
         }
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
@@ -2294,7 +2327,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int tilde() {
         int c;
-        
+
         if (isAfterOperator()) {
             if ((c = nextc()) != '@') {
                 pushback(c);
@@ -2303,12 +2336,13 @@ public class RubyLexer implements MagicCommentHandler {
         } else {
             setState(EXPR_BEG);
         }
-        
+
         yaccValue = "~";
         return Tokens.tTILDE;
     }
 
     private ByteArrayBuilder numberBuffer = new ByteArrayBuilder(); // ascii is good enough.
+
     /**
      *  Parse a number from the input stream.
      *
@@ -2329,15 +2363,15 @@ public class RubyLexer implements MagicCommentHandler {
             // We don't append '+' since Java number parser gets confused
             c = nextc();
         }
-        
+
         int nondigit = 0;
 
         if (c == '0') {
             int startLen = numberBuffer.getLength();
 
             switch (c = nextc()) {
-                case 'x' :
-                case 'X' : //  hexadecimal
+                case 'x':
+                case 'X': //  hexadecimal
                     c = nextc();
                     if (isHexChar(c)) {
                         for (;; c = nextc()) {
@@ -2362,8 +2396,8 @@ public class RubyLexer implements MagicCommentHandler {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
                     return getIntegerToken(numberBuffer.toString(), 16, numberLiteralSuffix(SUFFIX_ALL));
-                case 'b' :
-                case 'B' : // binary
+                case 'b':
+                case 'B': // binary
                     c = nextc();
                     if (c == '0' || c == '1') {
                         for (;; c = nextc()) {
@@ -2388,8 +2422,8 @@ public class RubyLexer implements MagicCommentHandler {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
                     return getIntegerToken(numberBuffer.toString(), 2, numberLiteralSuffix(SUFFIX_ALL));
-                case 'd' :
-                case 'D' : // decimal
+                case 'd':
+                case 'D': // decimal
                     c = nextc();
                     if (Character.isDigit(c)) {
                         for (;; c = nextc()) {
@@ -2417,8 +2451,15 @@ public class RubyLexer implements MagicCommentHandler {
                 case 'o':
                 case 'O':
                     c = nextc();
-                case '0': case '1': case '2': case '3': case '4': //Octal
-                case '5': case '6': case '7': case '_': 
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4': //Octal
+                case '5':
+                case '6':
+                case '7':
+                case '_':
                     for (;; c = nextc()) {
                         if (c == '_') {
                             if (nondigit != '\0') {
@@ -2442,15 +2483,15 @@ public class RubyLexer implements MagicCommentHandler {
 
                         return getIntegerToken(numberBuffer.toString(), 8, numberLiteralSuffix(SUFFIX_ALL));
                     }
-                case '8' :
-                case '9' :
+                case '8':
+                case '9':
                     compile_error(SyntaxException.PID.BAD_OCTAL_DIGIT, "Illegal octal digit.");
-                case '.' :
-                case 'e' :
-                case 'E' :
+                case '.':
+                case 'e':
+                case 'E':
                     numberBuffer.append('0');
                     break;
-                default :
+                default:
                     pushback(c);
                     numberBuffer.append('0');
                     return getIntegerToken(numberBuffer.toString(), 10, numberLiteralSuffix(SUFFIX_ALL));
@@ -2462,20 +2503,20 @@ public class RubyLexer implements MagicCommentHandler {
 
         for (;; c = nextc()) {
             switch (c) {
-                case '0' :
-                case '1' :
-                case '2' :
-                case '3' :
-                case '4' :
-                case '5' :
-                case '6' :
-                case '7' :
-                case '8' :
-                case '9' :
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
                     nondigit = '\0';
                     numberBuffer.append((char) c);
                     break;
-                case '.' :
+                case '.':
                     if (nondigit != '\0') {
                         pushback(c);
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
@@ -2487,7 +2528,7 @@ public class RubyLexer implements MagicCommentHandler {
                         if (!Character.isDigit(c2 = nextc())) {
                             pushback(c2);
                             pushback('.');
-                            if (c == '_') { 
+                            if (c == '_') {
                                 // Enebo: c can never be antrhign but '.'
                                 // Why did I put this here?
                             } else {
@@ -2501,8 +2542,8 @@ public class RubyLexer implements MagicCommentHandler {
                         }
                     }
                     break;
-                case 'e' :
-                case 'E' :
+                case 'e':
+                case 'E':
                     if (nondigit != '\0') {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     } else if (seen_e) {
@@ -2521,13 +2562,13 @@ public class RubyLexer implements MagicCommentHandler {
                         }
                     }
                     break;
-                case '_' : //  '_' in number just ignored
+                case '_': //  '_' in number just ignored
                     if (nondigit != '\0') {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
                     nondigit = c;
                     break;
-                default :
+                default:
                     pushback(c);
                     return getNumberToken(numberBuffer.toString(), seen_e, seen_point, nondigit);
             }
@@ -2580,7 +2621,7 @@ public class RubyLexer implements MagicCommentHandler {
                 nextc(); // Eat curly or whitespace
                 codepoint = scanHex(6, false, "invalid Unicode escape");
                 if (codepoint > 0x10ffff) {
-                    compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX,  "invalid Unicode codepoint (too large)");
+                    compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "invalid Unicode codepoint (too large)");
                 }
                 if (buffer != null) {
                     readUTF8EscapeIntoBuffer(codepoint, buffer, stringLiteral);
@@ -2600,7 +2641,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         return codepoint;
     }
-    
+
     private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) {
         if (codepoint >= 0x80) {
             buffer.setEncoding(UTF8_ENCODING);
@@ -2617,46 +2658,52 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
 
         switch (c) {
-            case '\\' : // backslash
+            case '\\': // backslash
                 return c;
-            case 'n' : // newline
+            case 'n': // newline
                 return '\n';
-            case 't' : // horizontal tab
+            case 't': // horizontal tab
                 return '\t';
-            case 'r' : // carriage return
+            case 'r': // carriage return
                 return '\r';
-            case 'f' : // form feed
+            case 'f': // form feed
                 return '\f';
-            case 'v' : // vertical tab
+            case 'v': // vertical tab
                 return '\u000B';
-            case 'a' : // alarm(bell)
+            case 'a': // alarm(bell)
                 return '\u0007';
-            case 'e' : // escape
+            case 'e': // escape
                 return '\u001B';
-            case '0' : case '1' : case '2' : case '3' : // octal constant
-            case '4' : case '5' : case '6' : case '7' :
+            case '0':
+            case '1':
+            case '2':
+            case '3': // octal constant
+            case '4':
+            case '5':
+            case '6':
+            case '7':
                 pushback(c);
                 return scanOct(3);
-            case 'x' : // hex constant
+            case 'x': // hex constant
                 return scanHex(2, false, "Invalid escape character syntax");
-            case 'b' : // backspace
+            case 'b': // backspace
                 return '\010';
-            case 's' : // space
+            case 's': // space
                 return ' ';
-            case 'M' :
+            case 'M':
                 if ((c = nextc()) != '-') {
                     compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "Invalid escape character syntax");
                 } else if ((c = nextc()) == '\\') {
                     return (char) (readEscape() | 0x80);
                 } else if (c == EOF) {
                     compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "Invalid escape character syntax");
-                } 
+                }
                 return (char) ((c & 0xff) | 0x80);
-            case 'C' :
+            case 'C':
                 if (nextc() != '-') {
                     compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "Invalid escape character syntax");
                 }
-            case 'c' :
+            case 'c':
                 if ((c = nextc()) == '\\') {
                     c = readEscape();
                 } else if (c == '?') {
@@ -2665,9 +2712,9 @@ public class RubyLexer implements MagicCommentHandler {
                     compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "Invalid escape character syntax");
                 }
                 return (char) (c & 0x9f);
-            case EOF :
+            case EOF:
                 compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "Invalid escape character syntax");
-            default :
+            default:
                 return c;
         }
     }
@@ -2732,7 +2779,7 @@ public class RubyLexer implements MagicCommentHandler {
         return hexValue;
     }
 
-    public static final int EXPR_BEG     = 1;
+    public static final int EXPR_BEG = 1;
     public static final int EXPR_END = 1 << 1;
     public static final int EXPR_ENDARG = 1 << 2;
     public static final int EXPR_ENDFN = 1 << 3;
@@ -2919,11 +2966,38 @@ public class RubyLexer implements MagicCommentHandler {
     // FIXME: I added number gvars here and they did not.
     public boolean isGlobalCharPunct(int c) {
         switch (c) {
-            case '_': case '~': case '*': case '$': case '?': case '!': case '@':
-            case '/': case '\\': case ';': case ',': case '.': case '=': case ':':
-            case '<': case '>': case '\"': case '-': case '&': case '`': case '\'':
-            case '+': case '1': case '2': case '3': case '4': case '5': case '6':
-            case '7': case '8': case '9': case '0':
+            case '_':
+            case '~':
+            case '*':
+            case '$':
+            case '?':
+            case '!':
+            case '@':
+            case '/':
+            case '\\':
+            case ';':
+            case ',':
+            case '.':
+            case '=':
+            case ':':
+            case '<':
+            case '>':
+            case '\"':
+            case '-':
+            case '&':
+            case '`':
+            case '\'':
+            case '+':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            case '0':
                 return true;
         }
         return isIdentifierChar(c);
@@ -3006,7 +3080,7 @@ public class RubyLexer implements MagicCommentHandler {
     public void parser_prepare() {
         int c = nextc();
 
-        switch(c) {
+        switch (c) {
             case '#':
                 if (peek('!')) {
                     has_shebang = true;
@@ -3131,6 +3205,7 @@ public class RubyLexer implements MagicCommentHandler {
     public void setCurrentEncoding(Encoding encoding) {
         current_enc = encoding;
     }
+
     // FIXME: This is mucked up...current line knows it's own encoding so that must be changed.  but we also have two
     // other sources.  I am thinking current_enc should be removed in favor of src since it needs to know encoding to
     // provide next line.
@@ -3148,13 +3223,32 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             switch (p(str + 6)) {
-                case 'C': case 'c': str += 6; continue;
-                case 'O': case 'o': str += 5; continue;
-                case 'D': case 'd': str += 4; continue;
-                case 'I': case 'i': str += 3; continue;
-                case 'N': case 'n': str += 2; continue;
-                case 'G': case 'g': str += 1; continue;
-                case '=': case ':':
+                case 'C':
+                case 'c':
+                    str += 6;
+                    continue;
+                case 'O':
+                case 'o':
+                    str += 5;
+                    continue;
+                case 'D':
+                case 'd':
+                    str += 4;
+                    continue;
+                case 'I':
+                case 'i':
+                    str += 3;
+                    continue;
+                case 'N':
+                case 'n':
+                    str += 2;
+                    continue;
+                case 'G':
+                case 'g':
+                    str += 1;
+                    continue;
+                case '=':
+                case ':':
                     sep = true;
                     str += 6;
                     break;
@@ -3331,7 +3425,7 @@ public class RubyLexer implements MagicCommentHandler {
             compile_error("formal argument cannot be a constant");
         }
 
-        switch(first) {
+        switch (first) {
             case '@':
                 if (identifier.charAt(1) == '@') {
                     compile_error("formal argument cannot be a class variable");
@@ -3411,15 +3505,15 @@ public class RubyLexer implements MagicCommentHandler {
     public static final int STR_FUNC_SYMBOL = 0x10;
     // When the heredoc identifier specifies <<-EOF that indents before ident. are ok (the '-').
     public static final int STR_FUNC_INDENT = 0x20;
-    public static final int STR_FUNC_LABEL  = 0x40;
+    public static final int STR_FUNC_LABEL = 0x40;
 
     public static final int str_label = STR_FUNC_LABEL;
     public static final int str_squote = 0;
     public static final int str_dquote = STR_FUNC_EXPAND;
     public static final int str_xquote = STR_FUNC_EXPAND;
     public static final int str_regexp = STR_FUNC_REGEXP | STR_FUNC_ESCAPE | STR_FUNC_EXPAND;
-    public static final int str_ssym   = STR_FUNC_SYMBOL;
-    public static final int str_dsym   = STR_FUNC_SYMBOL | STR_FUNC_EXPAND;
+    public static final int str_ssym = STR_FUNC_SYMBOL;
+    public static final int str_dsym = STR_FUNC_SYMBOL | STR_FUNC_EXPAND;
 
     public static final int EOF = -1; // 0 in MRI
 

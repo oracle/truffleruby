@@ -42,7 +42,7 @@ public class ArgsCatParseNode extends ParseNode {
 
     public ArgsCatParseNode(SourceIndexLength position, ParseNode firstNode, ParseNode secondNode) {
         super(position);
-        
+
         assert firstNode != null : "ArgsCatParseNode.first == null";
         assert secondNode != null : "ArgsCatParseNode.second == null";
 
@@ -59,15 +59,15 @@ public class ArgsCatParseNode extends ParseNode {
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitArgsCatNode(this);
     }
-    
+
     public ParseNode getFirstNode() {
         return firstNode;
     }
-    
+
     public ParseNode getSecondNode() {
         return secondNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);

@@ -52,7 +52,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffe
     public NodeType getNodeType() {
         return NodeType.GLOBALVARNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor

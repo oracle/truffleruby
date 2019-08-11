@@ -30,8 +30,7 @@ public abstract class CallInternalMethodNode extends RubyBaseWithoutContextNode 
 
     public abstract Object executeCallMethod(InternalMethod method, Object[] frameArguments);
 
-    @Specialization(
-            guards = "method.getCallTarget() == cachedCallTarget",
+    @Specialization(guards = "method.getCallTarget() == cachedCallTarget",
             // TODO(eregon, 12 June 2015) we should maybe check an Assumption here to remove the cache entry when the lookup changes (redefined method, hierarchy changes)
             limit = "getCacheLimit()")
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,

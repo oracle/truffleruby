@@ -42,9 +42,7 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
     @Specialization(guards = {
             "getCurrentMethod(frame) == currentMethod",
             "metaClass(self) == selfMetaClass"
-    },
-            assumptions = "superMethod.getAssumptions()",
-            limit = "getCacheLimit()")
+    }, assumptions = "superMethod.getAssumptions()", limit = "getCacheLimit()")
     protected InternalMethod lookupSuperMethodCachedDynamicObject(VirtualFrame frame, DynamicObject self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached("metaClass(self)") DynamicObject selfMetaClass,

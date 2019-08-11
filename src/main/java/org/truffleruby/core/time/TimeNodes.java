@@ -87,7 +87,7 @@ public abstract class TimeNodes {
 
         @Specialization(guards = "isNil(offset)")
         public DynamicObject localtime(DynamicObject time, DynamicObject offset,
-                                       @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
@@ -402,7 +402,7 @@ public abstract class TimeNodes {
         @Specialization(guards = { "isRubyString(format)",
                 "equalNode.execute(rope(format), cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
-                                          @Cached("privatizeRope(format)") Rope cachedFormat,
+                @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
@@ -426,7 +426,7 @@ public abstract class TimeNodes {
 
     }
 
-    @Primitive(name = "time_s_from_array", needsSelf = true, lowerFixnum = { 1 /*sec*/, 2 /* min */, 3 /* hour */, 4 /* mday */, 5 /* month */, 6 /* year */, 7 /*nsec*/, 8 /*isdst*/})
+    @Primitive(name = "time_s_from_array", needsSelf = true, lowerFixnum = { 1 /*sec*/, 2 /* min */, 3 /* hour */, 4 /* mday */, 5 /* month */, 6 /* year */, 7 /*nsec*/, 8 /*isdst*/ })
     public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();

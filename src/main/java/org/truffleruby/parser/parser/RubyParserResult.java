@@ -44,7 +44,7 @@ public class RubyParserResult {
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;
-    
+
     public ParseNode getAST() {
         return ast;
     }
@@ -56,14 +56,14 @@ public class RubyParserResult {
     public void setAST(ParseNode ast) {
         this.ast = ast;
     }
-    
+
     public void addBeginNode(PreExeParseNode node) {
         if (beginNodes == null) {
             beginNodes = new ArrayList<>();
         }
         beginNodes.add(node);
     }
-    
+
     public List<ParseNode> getBeginNodes() {
         return beginNodes == null ? Collections.emptyList() : beginNodes;
     }

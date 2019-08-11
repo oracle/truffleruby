@@ -105,7 +105,8 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod,
+            BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
         this.isMethod = isMethod;
@@ -536,11 +537,10 @@ public class LoadArgumentsTranslator extends Translator {
                 final String name = ((INameNode) node.getRest()).getName();
 
                 if (node.getPreCount() == 0 && node.getPostCount() == 0) {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
-                            .makeWriteNode(ArrayLiteralNode.create(new RubyNode[] { new NilLiteralNode(true) })));
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(
+                            ArrayLiteralNode.create(new RubyNode[]{ new NilLiteralNode(true) })));
                 } else {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
-                            .makeWriteNode(ArrayLiteralNode.create(null)));
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(ArrayLiteralNode.create(null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
                 // Don't think we need to do anything

@@ -164,7 +164,8 @@ public class SafepointManager {
                 // retry
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
-                    RubyLanguage.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                    RubyLanguage.LOGGER.severe(String.format(
+                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME_IN_SECONDS, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
                     printStacktracesOfBlockedThreads();
 

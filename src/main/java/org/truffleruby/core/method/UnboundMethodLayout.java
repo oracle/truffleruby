@@ -19,13 +19,14 @@ import org.truffleruby.language.methods.InternalMethod;
 public interface UnboundMethodLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createUnboundMethodShape(DynamicObject logicalClass,
-                                                  DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createUnboundMethod(DynamicObjectFactory factory,
-                                      DynamicObject origin,
-                                      InternalMethod method);
+            DynamicObject origin,
+            InternalMethod method);
 
     boolean isUnboundMethod(DynamicObject object);
+
     boolean isUnboundMethod(Object object);
 
     DynamicObject getOrigin(DynamicObject object);

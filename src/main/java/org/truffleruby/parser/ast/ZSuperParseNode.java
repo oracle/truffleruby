@@ -71,7 +71,7 @@ public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNod
 
     public ParseNode setIterNode(ParseNode iterNode) {
         this.iterNode = iterNode;
-        
+
         return this;
     }
 }

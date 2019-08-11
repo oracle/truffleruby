@@ -422,7 +422,7 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = {"each", "each_pair"}, needsBlock = true, enumeratorSize = "size")
+    @CoreMethod(names = { "each", "each_pair" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
@@ -480,7 +480,7 @@ public abstract class HashNodes {
             if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
-                return yield(block, createArray(new Object[]{key, value}, 2));
+                return yield(block, createArray(new Object[]{ key, value }, 2));
             }
         }
 
@@ -516,7 +516,7 @@ public abstract class HashNodes {
 
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
-                                        @Cached PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
             propagateSharingNode.propagate(hash, block);
@@ -526,7 +526,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "wasProvided(defaultValue)")
         public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
-                                        @Cached PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.propagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
@@ -541,7 +541,7 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = {"initialize_copy", "replace"}, required = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = { "initialize_copy", "replace" }, required = 1, raiseIfFrozenSelf = true)
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
@@ -553,7 +553,7 @@ public abstract class HashNodes {
 
         public abstract DynamicObject executeReplace(DynamicObject self, DynamicObject from);
 
-        @Specialization(guards = {"isRubyHash(from)", "isNullHash(from)"})
+        @Specialization(guards = { "isRubyHash(from)", "isNullHash(from)" })
         public DynamicObject replaceNull(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
@@ -572,7 +572,7 @@ public abstract class HashNodes {
             return self;
         }
 
-        @Specialization(guards = {"isRubyHash(from)", "isPackedHash(from)"})
+        @Specialization(guards = { "isRubyHash(from)", "isPackedHash(from)" })
         public DynamicObject replacePackedArray(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
@@ -595,7 +595,7 @@ public abstract class HashNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = {"isRubyHash(from)", "isBucketHash(from)"})
+        @Specialization(guards = { "isRubyHash(from)", "isBucketHash(from)" })
         public DynamicObject replaceBuckets(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
@@ -627,7 +627,7 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = {"map", "collect"}, needsBlock = true, enumeratorSize = "size")
+    @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
@@ -641,7 +641,7 @@ public abstract class HashNodes {
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
         public DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
-                        @Cached ArrayBuilderNode arrayBuilderNode) {
+                @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -668,7 +668,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isBucketHash(hash)")
         public DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
-                        @Cached ArrayBuilderNode arrayBuilderNode) {
+                @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final int length = Layouts.HASH.getSize(hash);
@@ -691,7 +691,7 @@ public abstract class HashNodes {
         }
 
         private Object yieldPair(DynamicObject block, Object key, Object value) {
-            return yield(block, createArray(new Object[]{key, value}, 2));
+            return yield(block, createArray(new Object[]{ key, value }, 2));
         }
 
     }
@@ -701,7 +701,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isRubyProc(defaultProc)")
         public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
-                                            @Cached PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultProc);
 
             Layouts.HASH.setDefaultValue(hash, nil());
@@ -723,7 +723,7 @@ public abstract class HashNodes {
 
         @Specialization
         public Object setDefault(DynamicObject hash, Object defaultValue,
-                                 @Cached PropagateSharingNode propagateSharingNode) {
+                @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultValue);
 
             Layouts.HASH.setDefaultValue(hash, defaultValue);
@@ -743,7 +743,7 @@ public abstract class HashNodes {
             return callDefaultNode.call(hash, "default", nil());
         }
 
-        @Specialization(guards = {"!isEmptyHash(hash)", "isPackedHash(hash)"})
+        @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })
         public DynamicObject shiftPackedArray(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -758,11 +758,11 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            Object[] objects = new Object[]{key, value};
+            Object[] objects = new Object[]{ key, value };
             return createArray(objects, objects.length);
         }
 
-        @Specialization(guards = {"!isEmptyHash(hash)", "isBucketHash(hash)"})
+        @Specialization(guards = { "!isEmptyHash(hash)", "isBucketHash(hash)" })
         public DynamicObject shiftBuckets(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -806,13 +806,13 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            Object[] objects = new Object[]{key, value};
+            Object[] objects = new Object[]{ key, value };
             return createArray(objects, objects.length);
         }
 
     }
 
-    @CoreMethod(names = {"size", "length"})
+    @CoreMethod(names = { "size", "length" })
     @ImportStatic(HashGuards.class)
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 

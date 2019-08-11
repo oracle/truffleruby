@@ -162,8 +162,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
             try {
                 if (isPatched && !patchLoaded) {
-                    Path expandedPatchPath =
-                            Paths.get(getContext().getRubyHome(), "lib", "patches", feature + ".rb");
+                    Path expandedPatchPath = Paths.get(getContext().getRubyHome(), "lib", "patches", feature + ".rb");
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
                     final boolean loaded = parseAndCall(feature, expandedPatchPath.toString());
                     assert loaded;
@@ -297,7 +296,8 @@ public abstract class RequireNode extends RubyBaseNode {
         }
 
         if (!(initObject instanceof TruffleObject)) {
-            throw new RaiseException(getContext(), coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
+            throw new RaiseException(getContext(),
+                    coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
         }
 
         return (TruffleObject) initObject;
@@ -320,7 +320,8 @@ public abstract class RequireNode extends RubyBaseNode {
             } else if (linkError.contains("libc++abi.")) {
                 message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md", linkError);
             } else if (feature.equals("openssl.so")) {
-                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md", linkError);
+                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md",
+                        linkError);
             } else {
                 message = linkError;
             }

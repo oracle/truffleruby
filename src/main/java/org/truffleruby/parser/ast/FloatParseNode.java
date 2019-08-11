@@ -65,7 +65,7 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
     public double getValue() {
         return value;
     }
-    
+
     /**
      * Sets the value
      * @param value to set
@@ -74,7 +74,7 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
         this.value = value;
     }
 
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

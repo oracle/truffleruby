@@ -15,7 +15,7 @@ import org.truffleruby.core.string.StringOperations;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AutoloadConstant  {
+public class AutoloadConstant {
 
     private final DynamicObject feature;
     private final String autoloadPath;

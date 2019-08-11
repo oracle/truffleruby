@@ -68,10 +68,10 @@ public class ConsoleHolder {
 
     @TruffleBoundary
     private ConsoleHolder(RubyContext context,
-                          int inFd, DynamicObject inIo,
-                          int outFd, DynamicObject outIo,
-                          boolean historyEnabled, boolean paginationEnabled, boolean bellEnabled,
-                          Completer completer, History history) {
+            int inFd, DynamicObject inIo,
+            int outFd, DynamicObject outIo,
+            boolean historyEnabled, boolean paginationEnabled, boolean bellEnabled,
+            Completer completer, History history) {
         this.context = context;
         this.in = new IoStream(context, inFd, inIo);
         this.out = new IoStream(context, outFd, outIo);

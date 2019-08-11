@@ -119,15 +119,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
             } else {
                 return OutgoingForeignCallNodeGen.IsReferenceEqualOutgoingNodeGen.create();
             }
-        } else if (name.equals("delete")
-                || name.equals("size")
-                || name.equals("keys")
-                || name.equals("class")
-                || name.equals("inspect")
-                || name.equals("to_s")
-                || name.equals("to_str")
-                || name.equals("is_a?")
-                || name.equals("kind_of?")) {
+        } else if (name.equals("delete") || name.equals("size") || name.equals("keys") || name.equals("class") || name.equals("inspect") || name.equals("to_s") || name.equals("to_str") ||
+                name.equals("is_a?") || name.equals("kind_of?")) {
             if (uncached) {
                 return OutgoingForeignCallNodeGen.SpecialFormOutgoingNodeGen.getUncached();
             } else {
@@ -451,8 +444,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
         // TODO (pitr-ch 30-Mar-2019): does it make sense to have paths for smaller numbers?
 
-        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
-                limit = "getCacheLimit()")
+        @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" }, limit = "getCacheLimit()")
         public Object callInt(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -464,8 +456,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
             }
         }
 
-        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInInt(receiver)", "receivers.fitsInLong(receiver)" },
-                limit = "getCacheLimit()")
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInInt(receiver)", "receivers.fitsInLong(receiver)" }, limit = "getCacheLimit()")
         public Object callLong(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -477,8 +468,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
             }
         }
 
-        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInLong(receiver)", "receivers.fitsInDouble(receiver)" },
-                limit = "getCacheLimit()")
+        @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInLong(receiver)", "receivers.fitsInDouble(receiver)" }, limit = "getCacheLimit()")
         public Object callDouble(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,

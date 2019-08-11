@@ -46,7 +46,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
     public SuperParseNode(SourceIndexLength position, ParseNode argsNode) {
         this(position, argsNode, null);
     }
-    
+
     public SuperParseNode(SourceIndexLength position, ParseNode argsNode, ParseNode iterNode) {
         super(position);
         this.argsNode = argsNode;
@@ -74,10 +74,10 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
     public ParseNode getArgsNode() {
         return argsNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
-        return iterNode != null ? createList(argsNode, iterNode) : createList(argsNode); 
+        return iterNode != null ? createList(argsNode, iterNode) : createList(argsNode);
     }
 
     public ParseNode getIterNode() {
@@ -86,7 +86,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
 
     public ParseNode setIterNode(ParseNode iterNode) {
         this.iterNode = iterNode;
-        
+
         return this;
     }
 }

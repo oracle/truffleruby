@@ -40,7 +40,7 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
 
     @Specialization(guards = { "strategy.matches(array)", "!isInBounds(array, index, strategy)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readOutOfBounds(DynamicObject array, int index,
-                    @Cached("of(array)") ArrayStrategy strategy) {
+            @Cached("of(array)") ArrayStrategy strategy) {
         return nil();
     }
 

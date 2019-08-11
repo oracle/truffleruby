@@ -49,7 +49,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
      */
     public ClassVarAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
         super(position, valueNode);
-        
+
         this.name = name;
     }
 
@@ -74,7 +74,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
     public String getName() {
         return name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

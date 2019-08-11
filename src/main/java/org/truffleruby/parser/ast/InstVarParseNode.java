@@ -53,7 +53,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public NodeType getNodeType() {
         return NodeType.INSTVARNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -75,7 +75,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }

@@ -34,7 +34,7 @@ public abstract class BytesToInteger32LittleNode extends FormatNode {
         value |= (bytes[3] & 0xff) << 24;
         value |= (bytes[2] & 0xff) << 16;
         value |= (bytes[1] & 0xff) << 8;
-        value |=  bytes[0] & 0xff;
+        value |= bytes[0] & 0xff;
         return value;
     }
 

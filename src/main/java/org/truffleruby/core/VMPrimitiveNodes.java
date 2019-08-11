@@ -484,10 +484,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(salt)")
         public Object startHashNotNumber(Object salt,
-                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
@@ -518,10 +518,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(value)")
         public Object updateHash(long hash, Object value,
-                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);

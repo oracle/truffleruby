@@ -23,7 +23,7 @@ public class ReadPreArgumentNode extends RubyNode {
     private final MissingArgumentBehavior missingArgumentBehavior;
 
     public ReadPreArgumentNode(int index,
-                               MissingArgumentBehavior missingArgumentBehavior) {
+            MissingArgumentBehavior missingArgumentBehavior) {
         this.index = index;
         this.missingArgumentBehavior = missingArgumentBehavior;
     }

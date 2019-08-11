@@ -444,7 +444,7 @@ public abstract class ModuleNodes {
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
                 setter = (boolean) names[1];
-                names = new Object[] { names[0] };
+                names = new Object[]{ names[0] };
             } else {
                 setter = false;
             }
@@ -522,11 +522,13 @@ public abstract class ModuleNodes {
     @NodeChild(value = "filename", type = RubyNode.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
-        @CreateCast("name") public RubyNode coerceNameToString(RubyNode name) {
+        @CreateCast("name")
+        public RubyNode coerceNameToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
-        @CreateCast("filename") public RubyNode coerceFilenameToPath(RubyNode filename) {
+        @CreateCast("filename")
+        public RubyNode coerceFilenameToPath(RubyNode filename) {
             return ToPathNodeGen.create(filename);
         }
 
@@ -594,13 +596,13 @@ public abstract class ModuleNodes {
             return classEvalSource(module, code, "(eval)", callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
+        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(file), callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
+        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, StringOperations.getString(file), line);
@@ -613,7 +615,7 @@ public abstract class ModuleNodes {
             return classEvalSource(module, toStr(frame, code), "(eval)", callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
+        @Specialization(guards = { "isRubyString(code)", "wasProvided(file)" })
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(toStr(frame, file)), callNode);
@@ -1139,7 +1141,7 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ClassExecNode.create());
             }
-            classExecNode.executeClassExec(module, new Object[]{module}, block);
+            classExecNode.executeClassExec(module, new Object[]{ module }, block);
         }
 
         @Specialization
@@ -1171,7 +1173,7 @@ public abstract class ModuleNodes {
             return nil();
         }
 
-        @Specialization(guards = {"isRubyClass(self)", "isRubyClass(from)"})
+        @Specialization(guards = { "isRubyClass(self)", "isRubyClass(from)" })
         public Object initializeCopyClass(DynamicObject self, DynamicObject from,
                 @Cached BranchProfile errorProfile) {
             if (from == coreLibrary().getBasicObjectClass()) {
@@ -1480,6 +1482,7 @@ public abstract class ModuleNodes {
         }
 
     }
+
     @CoreMethod(names = "private_instance_methods", optional = 1)
     public abstract static class PrivateInstanceMethodsNode extends AbstractInstanceMethodsNode {
 

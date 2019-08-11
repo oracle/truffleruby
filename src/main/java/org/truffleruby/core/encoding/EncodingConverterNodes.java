@@ -178,21 +178,21 @@ public abstract class EncodingConverterNodes {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
-        @Specialization(guards = {"isRubyString(source)", "isRubyString(target)", "isRubyHash(options)"})
+        @Specialization(guards = { "isRubyString(source)", "isRubyString(target)", "isRubyHash(options)" })
         public Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
-                                                        DynamicObject target, int offset, int size, DynamicObject options) {
+                DynamicObject target, int offset, int size, DynamicObject options) {
             throw new UnsupportedOperationException("not implemented");
         }
 
-        @Specialization(guards = {"isNil(source)", "isRubyString(target)"})
+        @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
         public Object primitiveConvertNilSource(DynamicObject encodingConverter, DynamicObject source,
-                                                DynamicObject target, int offset, int size, int options) {
+                DynamicObject target, int offset, int size, int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
-        @Specialization(guards = {"isRubyString(source)", "isRubyString(target)"})
+        @Specialization(guards = { "isRubyString(source)", "isRubyString(target)" })
         public Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
-                                                        DynamicObject target, int offset, int size, int options) {
+                DynamicObject target, int offset, int size, int options) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
@@ -201,7 +201,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         private Object primitiveConvertHelper(DynamicObject encodingConverter, DynamicObject source,
-                                              DynamicObject target, int offset, int size, int options) {
+                DynamicObject target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             final boolean nonNullSource = source != nil();
@@ -235,8 +235,7 @@ public abstract class EncodingConverterNodes {
 
                 if (outBytes.getLength() < offset) {
                     throw new RaiseException(
-                            getContext(), coreExceptions().argumentError("output offset too big", this)
-                    );
+                            getContext(), coreExceptions().argumentError("output offset too big", this));
                 }
 
                 long outputByteEnd = offset + size;
@@ -244,8 +243,7 @@ public abstract class EncodingConverterNodes {
                 if (outputByteEnd > Integer.MAX_VALUE) {
                     // overflow check
                     throw new RaiseException(
-                            getContext(), coreExceptions().argumentError("output offset + bytesize too big", this)
-                    );
+                            getContext(), coreExceptions().argumentError("output offset + bytesize too big", this));
                 }
 
                 outBytes.unsafeEnsureSpace((int) outputByteEnd);
@@ -265,8 +263,7 @@ public abstract class EncodingConverterNodes {
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
                     if (Integer.MAX_VALUE / 2 < size) {
                         throw new RaiseException(
-                                getContext(), coreExceptions().argumentError("too long conversion result", this)
-                        );
+                                getContext(), coreExceptions().argumentError("too long conversion result", this));
                     }
                     size *= 2;
                     continue;
@@ -335,7 +332,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         public Object encodingConverterLastError(DynamicObject encodingConverter,
-                                                 @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final EConv.LastError lastError = ec.lastError;
 
@@ -357,22 +354,29 @@ public abstract class EncodingConverterNodes {
 
             if (readAgain) {
                 store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
-                    lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                    lastError.getReadAgainLength()), CR_UNKNOWN);
+                        lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
+                        lastError.getReadAgainLength()), CR_UNKNOWN);
             }
 
             return createArray(store, size);
         }
 
         private DynamicObject eConvResultToSymbol(EConvResult result) {
-            switch(result) {
-                case InvalidByteSequence: return getSymbol("invalid_byte_sequence");
-                case UndefinedConversion: return getSymbol("undefined_conversion");
-                case DestinationBufferFull: return getSymbol("destination_buffer_full");
-                case SourceBufferEmpty: return getSymbol("source_buffer_empty");
-                case Finished: return getSymbol("finished");
-                case AfterOutput: return getSymbol("after_output");
-                case IncompleteInput: return getSymbol("incomplete_input");
+            switch (result) {
+                case InvalidByteSequence:
+                    return getSymbol("invalid_byte_sequence");
+                case UndefinedConversion:
+                    return getSymbol("undefined_conversion");
+                case DestinationBufferFull:
+                    return getSymbol("destination_buffer_full");
+                case SourceBufferEmpty:
+                    return getSymbol("source_buffer_empty");
+                case Finished:
+                    return getSymbol("finished");
+                case AfterOutput:
+                    return getSymbol("after_output");
+                case IncompleteInput:
+                    return getSymbol("incomplete_input");
             }
 
             throw new UnsupportedOperationException(StringUtils.format("Unknown EConv result: %s", result));
@@ -386,7 +390,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         public Object encodingConverterLastError(DynamicObject encodingConverter,
-                                                 @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
@@ -401,7 +405,8 @@ public abstract class EncodingConverterNodes {
 
             if (ec.lastError.getErrorBytes() != null) {
                 ret[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()), CR_UNKNOWN);
-                ret[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()), CR_UNKNOWN);
+                ret[4] = makeStringNode.fromBuilderUnsafe(
+                        RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()), CR_UNKNOWN);
             }
 
             return createArray(ret, ret.length);

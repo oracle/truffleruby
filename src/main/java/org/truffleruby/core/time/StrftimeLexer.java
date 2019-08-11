@@ -269,7 +269,7 @@ public class StrftimeLexer {
                         return null;
                 }
 
-            // Zone
+                // Zone
             case 'z':
                 n++;
                 return Token.zoneOffsetColons(0);

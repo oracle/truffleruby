@@ -79,7 +79,7 @@ public abstract class CoverageNodes {
                     }
                 }
 
-                results.add(createArray(new Object[] {
+                results.add(createArray(new Object[]{
                         makeStringNode.executeMake(getContext().getPath(source.getKey()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN),
                         createArray(countsStore, countsStore.length)
                 }, 2));

@@ -56,9 +56,9 @@ public class TranslatorEnvironment {
     private static AtomicInteger tempIndex = new AtomicInteger();
 
     public TranslatorEnvironment(TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-                                 ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-                                 boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
-                                 BreakID breakID, FrameDescriptor frameDescriptor) {
+            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
+            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
+            BreakID breakID, FrameDescriptor frameDescriptor) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;

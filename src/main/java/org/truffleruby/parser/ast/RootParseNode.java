@@ -71,7 +71,7 @@ public class RootParseNode extends ParseNode {
     public String getFile() {
         return file;
     }
-    
+
     /**
      * First real AST node to be interpreted
      * 

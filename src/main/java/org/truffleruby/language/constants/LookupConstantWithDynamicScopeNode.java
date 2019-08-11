@@ -38,9 +38,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
         return executeLookupConstant(lexicalScope);
     }
 
-    @Specialization(guards = "lexicalScope == cachedLexicalScope",
-                    assumptions = "constant.getAssumptions()",
-                    limit = "getCacheLimit()")
+    @Specialization(guards = "lexicalScope == cachedLexicalScope", assumptions = "constant.getAssumptions()", limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
             @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant,

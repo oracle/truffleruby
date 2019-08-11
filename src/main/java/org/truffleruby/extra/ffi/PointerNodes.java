@@ -593,7 +593,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_PTR")
         public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
-                                                @Cached AllocateObjectNode allocateObjectNode) {
+                @Cached AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(offset);
@@ -718,7 +718,7 @@ public abstract class PointerNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = {"type == TYPE_CHARARR", "isRubyString(string)"})
+        @Specialization(guards = { "type == TYPE_CHARARR", "isRubyString(string)" })
         public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);

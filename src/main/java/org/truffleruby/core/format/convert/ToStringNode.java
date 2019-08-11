@@ -45,8 +45,8 @@ public abstract class ToStringNode extends FormatNode {
     private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
 
     public ToStringNode(boolean convertNumbersToStrings,
-                        String conversionMethod, boolean inspectOnConversionFailure,
-                        Object valueOnNil) {
+            String conversionMethod, boolean inspectOnConversionFailure,
+            Object valueOnNil) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
@@ -122,7 +122,7 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
+    @Specialization(guards = { "!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     public byte[] toString(VirtualFrame frame, Object object,
             @Cached RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(object, conversionMethod);

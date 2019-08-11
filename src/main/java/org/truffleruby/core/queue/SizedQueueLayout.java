@@ -19,12 +19,13 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface SizedQueueLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createSizedQueueShape(DynamicObject logicalClass,
-                                               DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createSizedQueue(DynamicObjectFactory factory,
-                                   @Nullable SizedQueue queue);
+            @Nullable SizedQueue queue);
 
     SizedQueue getQueue(DynamicObject object);
+
     void setQueue(DynamicObject object, SizedQueue value);
 
 }

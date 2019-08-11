@@ -41,13 +41,11 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
             return createBigDecimal(BigDecimalType.NAN);
         }
 
-        if (posInfinityProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY
-                || bType == BigDecimalType.POSITIVE_INFINITY)) {
+        if (posInfinityProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.POSITIVE_INFINITY)) {
             return createBigDecimal(BigDecimalType.POSITIVE_INFINITY);
         }
 
-        if (negInfinityProfile.profile(aType == BigDecimalType.NEGATIVE_INFINITY
-                || bType == BigDecimalType.NEGATIVE_INFINITY)) {
+        if (negInfinityProfile.profile(aType == BigDecimalType.NEGATIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
             return createBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
         }
 

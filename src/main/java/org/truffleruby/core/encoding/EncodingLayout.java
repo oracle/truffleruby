@@ -19,13 +19,14 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface EncodingLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createEncodingShape(DynamicObject logicalClass,
-                                             DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createEncoding(DynamicObjectFactory factory,
-                                 Encoding encoding,
-                                 DynamicObject name);
+            Encoding encoding,
+            DynamicObject name);
 
     boolean isEncoding(DynamicObject object);
+
     boolean isEncoding(Object object);
 
     Encoding getEncoding(DynamicObject object);

@@ -192,8 +192,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             "WET", "Europe/Lisbon" // Western European Time
     );
 
-    private static final Pattern TZ_PATTERN =
-            Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
+    private static final Pattern TZ_PATTERN = Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
     private TimeZoneAndName parse(String zone) {
         final Matcher tzMatcher = TZ_PATTERN.matcher(zone);

@@ -33,7 +33,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 public interface ProcLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createProcShape(DynamicObject logicalClass,
-                                         DynamicObject metaClass);
+            DynamicObject metaClass);
 
     Object[] build(
             ProcType type,
@@ -47,7 +47,9 @@ public interface ProcLayout extends BasicObjectLayout {
             DeclarationContext declarationContext);
 
     boolean isProc(ObjectType objectType);
+
     boolean isProc(DynamicObject object);
+
     boolean isProc(Object object);
 
     ProcType getType(DynamicObject object);

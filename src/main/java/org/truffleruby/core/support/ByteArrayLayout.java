@@ -19,10 +19,10 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface ByteArrayLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createByteArrayShape(DynamicObject logicalClass,
-                                              DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createByteArray(DynamicObjectFactory factory,
-                                  ByteArrayBuilder bytes);
+            ByteArrayBuilder bytes);
 
     boolean isByteArray(DynamicObject object);
 

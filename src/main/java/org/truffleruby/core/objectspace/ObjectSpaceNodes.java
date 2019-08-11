@@ -179,7 +179,7 @@ public abstract class ObjectSpaceNodes {
                 }
 
                 defineFinalizer(object, finalizer);
-                Object[] objects = new Object[] { 0, finalizer };
+                Object[] objects = new Object[]{ 0, finalizer };
                 return createArray(objects, objects.length);
             } else {
                 errorProfile.enter();

@@ -28,7 +28,7 @@ public class RunModuleDefinitionNode extends RubyNode {
     @Child private IndirectCallNode callModuleDefinitionNode = Truffle.getRuntime().createIndirectCallNode();
 
     public RunModuleDefinitionNode(LexicalScope lexicalScope,
-                                   ModuleBodyDefinitionNode definition, RubyNode definingModule) {
+            ModuleBodyDefinitionNode definition, RubyNode definingModule) {
         this.definingModule = definingModule;
         this.definitionMethod = definition;
         this.lexicalScope = lexicalScope;

@@ -20,14 +20,15 @@ public interface IOLayout extends BasicObjectLayout {
     String DESCRIPTOR_IDENTIFIER = "@descriptor";
 
     DynamicObjectFactory createIOShape(DynamicObject logicalClass,
-                                       DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createIO(DynamicObjectFactory factory,
-                           int descriptor);
+            int descriptor);
 
     boolean isIO(DynamicObject object);
 
     int getDescriptor(DynamicObject object);
+
     void setDescriptor(DynamicObject object, int value);
 
 }

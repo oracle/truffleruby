@@ -99,7 +99,8 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "characters", type = RubyNode.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
-        @CreateCast("characters") public RubyNode coerceCharactersToString(RubyNode characters) {
+        @CreateCast("characters")
+        public RubyNode coerceCharactersToString(RubyNode characters) {
             return ToStrNodeGen.create(characters);
         }
 
@@ -150,11 +151,13 @@ public abstract class ReadlineNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
-        @CreateCast("prompt") public RubyNode coercePromptToJavaString(RubyNode prompt) {
+        @CreateCast("prompt")
+        public RubyNode coercePromptToJavaString(RubyNode prompt) {
             return ToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
         }
 
-        @CreateCast("addToHistory") public RubyNode coerceToBoolean(RubyNode addToHistory) {
+        @CreateCast("addToHistory")
+        public RubyNode coerceToBoolean(RubyNode addToHistory) {
             return BooleanCastWithDefaultNodeGen.create(false, addToHistory);
         }
 
@@ -215,7 +218,8 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "text", type = RubyNode.class)
     public abstract static class InsertTextNode extends CoreMethodNode {
 
-        @CreateCast("text") public RubyNode coerceTextToString(RubyNode text) {
+        @CreateCast("text")
+        public RubyNode coerceTextToString(RubyNode text) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(text);
         }
 
@@ -315,7 +319,7 @@ public abstract class ReadlineNodes {
     private static class ProcCompleter implements Completer {
 
         //\t\n\"\\'`@$><=;|&{(
-        static private String[] delimiters = {" ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "("};
+        static private String[] delimiters = { " ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "(" };
 
         private final RubyContext context;
         private final DynamicObject proc;

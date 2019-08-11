@@ -52,12 +52,15 @@ public interface ThreadLayout extends BasicObjectLayout {
             DynamicObject name);
 
     boolean isThread(ObjectType objectType);
+
     boolean isThread(DynamicObject object);
 
     FiberManager getFiberManager(DynamicObject object);
+
     void setFiberManagerUnsafe(DynamicObject object, FiberManager value);
 
     CountDownLatch getFinishedLatch(DynamicObject object);
+
     void setFinishedLatch(DynamicObject object, CountDownLatch value);
 
     ThreadLocalGlobals getThreadLocalGlobals(DynamicObject object);
@@ -65,38 +68,49 @@ public interface ThreadLayout extends BasicObjectLayout {
     List<Lock> getOwnedLocks(DynamicObject object);
 
     boolean getAbortOnException(DynamicObject object);
+
     void setAbortOnException(DynamicObject object, boolean value);
 
     InterruptMode getInterruptMode(DynamicObject object);
+
     void setInterruptMode(DynamicObject object, InterruptMode value);
 
     Thread getThread(DynamicObject object);
+
     void setThread(DynamicObject object, Thread value);
 
     ThreadStatus getStatus(DynamicObject object);
+
     void setStatus(DynamicObject object, ThreadStatus value);
 
     DynamicObject getException(DynamicObject object);
+
     void setException(DynamicObject object, DynamicObject value);
 
     Object getValue(DynamicObject object);
+
     void setValue(DynamicObject object, Object value);
 
     AtomicBoolean getWakeUp(DynamicObject object);
 
     int getPriority(DynamicObject object);
+
     void setPriority(DynamicObject object, int value);
 
     Pointer getIoBuffer(DynamicObject object);
+
     void setIoBuffer(DynamicObject object, Pointer value);
 
     DynamicObject getThreadGroup(DynamicObject object);
+
     void setThreadGroup(DynamicObject object, DynamicObject value);
 
     DynamicObject getName(DynamicObject object);
+
     void setName(DynamicObject object, DynamicObject value);
 
     String getSourceLocation(DynamicObject object);
+
     void setSourceLocation(DynamicObject object, String value);
 
 }

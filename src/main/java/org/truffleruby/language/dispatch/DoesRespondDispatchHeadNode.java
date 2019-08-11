@@ -64,6 +64,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
         public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
             throw new AssertionError("never called");
         }
+
         @Override
         public void reset(String reason) {
             throw new AssertionError("never called");

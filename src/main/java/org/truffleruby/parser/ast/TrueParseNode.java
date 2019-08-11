@@ -58,14 +58,14 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitTrueNode(this);
     }
-    
+
     /**
      * Name of the true node.
      */
     public String getName() {
         return "true";
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

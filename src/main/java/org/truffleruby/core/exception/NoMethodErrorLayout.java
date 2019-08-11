@@ -19,19 +19,20 @@ import org.truffleruby.language.backtrace.Backtrace;
 public interface NoMethodErrorLayout extends NameErrorLayout {
 
     DynamicObjectFactory createNoMethodErrorShape(
-        DynamicObject logicalClass,
-        DynamicObject metaClass);
+            DynamicObject logicalClass,
+            DynamicObject metaClass);
 
     Object[] build(
-        @Nullable Object message,
-        @Nullable DynamicObject formatter,
-        @Nullable Backtrace backtrace,
-        DynamicObject cause,
-        @Nullable Object receiver,
-        Object name,
-        Object args);
+            @Nullable Object message,
+            @Nullable DynamicObject formatter,
+            @Nullable Backtrace backtrace,
+            DynamicObject cause,
+            @Nullable Object receiver,
+            Object name,
+            Object args);
 
     Object getArgs(DynamicObject object);
+
     void setArgs(DynamicObject object, Object value);
 
 }

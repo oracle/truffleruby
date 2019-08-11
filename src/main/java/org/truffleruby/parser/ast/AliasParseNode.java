@@ -52,7 +52,7 @@ public class AliasParseNode extends ParseNode {
     public NodeType getNodeType() {
         return NodeType.ALIASNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -77,7 +77,7 @@ public class AliasParseNode extends ParseNode {
     public ParseNode getOldName() {
         return oldName;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(newName, oldName);

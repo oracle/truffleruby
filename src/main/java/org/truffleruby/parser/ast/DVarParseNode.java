@@ -43,7 +43,7 @@ import java.util.List;
 public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
-    
+
     // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
     // is what index in the right scope to set the value.
     private int location;
@@ -58,7 +58,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public NodeType getNodeType() {
         return NodeType.DVARNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -67,7 +67,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDVarNode(this);
     }
-    
+
     /**
      * How many scopes should we burrow down to until we need to set the block variable value.
      * 
@@ -76,7 +76,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
@@ -94,7 +94,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public String getName() {
         return name;
     }
-    
+
     /**
      * Sets the name of this variable (for refactoring support)
      * @param name to set the variable to
@@ -102,7 +102,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public void setName(String name) {
         this.name = name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

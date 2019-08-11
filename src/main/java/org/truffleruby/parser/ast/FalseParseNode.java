@@ -58,14 +58,14 @@ public class FalseParseNode extends ParseNode implements INameNode, SideEffectFr
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFalseNode(this);
     }
-    
+
     /**
      * Name of false node.
      */
     public String getName() {
         return "false";
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

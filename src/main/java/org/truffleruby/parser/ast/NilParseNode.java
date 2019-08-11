@@ -58,14 +58,14 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNilNode(this);
     }
-    
+
     /**
      * Name of nil node.
      **/
     public String getName() {
         return "nil";
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

@@ -21,7 +21,7 @@ public class BigRationalParseNode extends NumericParseNode implements SideEffect
 
     public BigRationalParseNode(SourceIndexLength position, BigInteger numerator, BigInteger denominator) {
         super(position);
-        
+
         this.numerator = numerator;
         this.denominator = denominator;
     }

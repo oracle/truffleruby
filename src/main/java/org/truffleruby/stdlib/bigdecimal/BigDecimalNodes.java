@@ -111,7 +111,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object addCoerced(DynamicObject a, Object b, int precision,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("add"), b, precision);
         }
     }
@@ -166,7 +166,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object subCoerced(DynamicObject a, Object b, int precision,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("sub"), b, precision);
         }
     }
@@ -255,7 +255,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object multCoerced(DynamicObject a, Object b,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
     }
@@ -302,7 +302,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object multCoerced(DynamicObject a, Object b, int precision,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("mult"), b, precision);
         }
     }
@@ -345,7 +345,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object divCoerced(DynamicObject a, Object b,
-                                  @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
     }
@@ -424,8 +424,7 @@ public abstract class BigDecimalNodes {
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else if (infinityProfile.profile(
-                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.POSITIVE_INFINITY
-                            || Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NEGATIVE_INFINITY)) {
+                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.POSITIVE_INFINITY || Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NEGATIVE_INFINITY)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
             } else {
                 return divSpecialNormal(a, b, 0);
@@ -451,8 +450,7 @@ public abstract class BigDecimalNodes {
             if (negZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(
-                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN
-                            || Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
+                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN || Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else {
                 return divSpecialSpecial(a, b, 0);
@@ -470,13 +468,13 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object divCoerced(DynamicObject a, Object b, NotProvided precision,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b);
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object divCoerced(DynamicObject a, Object b, int precision,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b, precision);
         }
     }
@@ -577,7 +575,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object divmodCoerced(DynamicObject a, Object b,
-                                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("divmod"), b);
         }
 
@@ -627,7 +625,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object remainderCoerced(DynamicObject a, Object b,
-                                    @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("remainder"), b);
         }
     }
@@ -677,28 +675,23 @@ public abstract class BigDecimalNodes {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
-            if (nanProfile.profile(aType == BigDecimalType.NAN
-                    || bType == BigDecimalType.NAN)) {
+            if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN)) {
                 return createBigDecimal(BigDecimalType.NAN);
             }
 
-            if (normalNegProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO
-                    || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
+            if (normalNegProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
-            if (negNormalProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO
-                    || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
+            if (negNormalProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
                 return createBigDecimal(BigDecimal.ZERO);
             }
 
-            if (posNegInfProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY
-                    || aType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (posNegInfProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
                 return createBigDecimal(BigDecimalType.NAN);
             }
 
-            if (negPosInfProfile.profile(bType == BigDecimalType.POSITIVE_INFINITY
-                    || bType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (negPosInfProfile.profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
                 return createBigDecimal(a);
             }
 
@@ -707,7 +700,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         public Object moduloCoerced(DynamicObject a, Object b,
-                                       @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("modulo"), b);
         }
     }
@@ -789,8 +782,8 @@ public abstract class BigDecimalNodes {
                     negInfinityProfile.enter();
                     value = Integer.signum(exponent) == 1
                             ? (exponent % 2 == 0
-                                ? BigDecimalType.POSITIVE_INFINITY
-                                : BigDecimalType.NEGATIVE_INFINITY)
+                                    ? BigDecimalType.POSITIVE_INFINITY
+                                    : BigDecimalType.NEGATIVE_INFINITY)
                             : BigDecimal.ZERO;
                     break;
                 case NEGATIVE_ZERO:
@@ -1288,9 +1281,9 @@ public abstract class BigDecimalNodes {
             return createBigDecimal(round(value, digit, getRoundMode()));
         }
 
-        @Specialization(guards = {"isNormal(value)", "isRubySymbol(roundingMode)"})
+        @Specialization(guards = { "isNormal(value)", "isRubySymbol(roundingMode)" })
         public Object round(DynamicObject value, int digit, DynamicObject roundingMode,
-                            @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
+                @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
             return createBigDecimal(round(value, digit, toRoundingMode((int) callRoundModeFromSymbol.call(value, "round_mode_from_symbol", roundingMode))));
         }
 
@@ -1348,10 +1341,7 @@ public abstract class BigDecimalNodes {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(value);
 
             if (digit <= valueBigDecimal.scale()) {
-                return valueBigDecimal.
-                        movePointRight(digit).
-                        setScale(0, roundingMode).
-                        movePointLeft(digit);
+                return valueBigDecimal.movePointRight(digit).setScale(0, roundingMode).movePointLeft(digit);
             } else {
                 // Do not perform rounding when not required
                 return valueBigDecimal;
@@ -1412,12 +1402,12 @@ public abstract class BigDecimalNodes {
         public Object precsNormal(DynamicObject value) {
             final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value).abs();
             final int precs = nearestBiggerMultipleOf9(bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
-            return createArray(new int[] { precs, precs + 9 }, 2);
+            return createArray(new int[]{ precs, precs + 9 }, 2);
         }
 
         @Specialization(guards = "!isNormal(value)")
         public Object precsSpecial(DynamicObject value) {
-            return createArray(new int[] { 9, 9 }, 2);
+            return createArray(new int[]{ 9, 9 }, 2);
         }
 
     }

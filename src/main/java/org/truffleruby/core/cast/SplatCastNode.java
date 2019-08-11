@@ -65,7 +65,7 @@ public abstract class SplatCastNode extends RubyNode {
                 return createArray(null, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[] { nil() }, 1);
+                return createArray(new Object[]{ nil() }, 1);
 
             case CONVERT:
                 return callToA(frame, nil);
@@ -90,7 +90,7 @@ public abstract class SplatCastNode extends RubyNode {
         }
     }
 
-    @Specialization(guards = {"!isNil(object)", "!isRubyArray(object)"})
+    @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
     public DynamicObject splat(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
@@ -98,11 +98,11 @@ public abstract class SplatCastNode extends RubyNode {
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;
         } else if (array == nil()) {
-            return createArray(new Object[]{object}, 1);
+            return createArray(new Object[]{ object }, 1);
         } else {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(object, "Array",
-                Layouts.SYMBOL.getString(conversionMethod), array, this));
+                    Layouts.SYMBOL.getString(conversionMethod), array, this));
         }
     }
 

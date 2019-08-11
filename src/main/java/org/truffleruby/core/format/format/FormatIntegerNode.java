@@ -33,13 +33,13 @@ import java.math.BigInteger;
 @NodeChild("value")
 public abstract class FormatIntegerNode extends FormatNode {
 
-    private static final byte[] PREFIX_OCTAL = {'0'};
-    private static final byte[] PREFIX_HEX_LC = {'0', 'x'};
-    private static final byte[] PREFIX_HEX_UC = {'0', 'X'};
-    private static final byte[] PREFIX_BINARY_LC = {'0', 'b'};
-    private static final byte[] PREFIX_BINARY_UC = {'0', 'B'};
+    private static final byte[] PREFIX_OCTAL = { '0' };
+    private static final byte[] PREFIX_HEX_LC = { '0', 'x' };
+    private static final byte[] PREFIX_HEX_UC = { '0', 'X' };
+    private static final byte[] PREFIX_BINARY_LC = { '0', 'b' };
+    private static final byte[] PREFIX_BINARY_UC = { '0', 'B' };
 
-    private static final byte[] PREFIX_NEGATIVE = {'.', '.'};
+    private static final byte[] PREFIX_NEGATIVE = { '.', '.' };
 
     private static final BigInteger BIG_32 = BigInteger.valueOf((Integer.MAX_VALUE + 1L) << 1);
     private static final BigInteger BIG_64 = BIG_32.shiftLeft(32);
@@ -226,8 +226,8 @@ public abstract class FormatIntegerNode extends FormatNode {
         if (len < precision) {
             if (leadChar == 0) {
                 if (fchar != 'd' || !negative ||
-                    hasPrecisionFlag ||
-                    (hasZeroFlag && !hasMinusFlag)) {
+                        hasPrecisionFlag ||
+                        (hasZeroFlag && !hasMinusFlag)) {
                     buf.append('0', precision - len);
                 }
             } else if (leadChar == '.') {
@@ -250,7 +250,7 @@ public abstract class FormatIntegerNode extends FormatNode {
         if (width > 0) {
             buf.append(' ', width);
         }
-        if (len < precision && fchar == 'd' && negative  && hasMinusFlag) {
+        if (len < precision && fchar == 'd' && negative && hasMinusFlag) {
             buf.append(' ', precision - len);
         }
         return buf.getBytes();
@@ -380,9 +380,7 @@ public abstract class FormatIntegerNode extends FormatNode {
         // ok, now it gets expensive...
         int shift = 0;
         // go through negated powers of 32 until we find one small enough
-        for (BigInteger minus = BIG_MINUS_64;
-             bigval.compareTo(minus) < 0;
-             minus = minus.shiftLeft(32), shift++) {
+        for (BigInteger minus = BIG_MINUS_64; bigval.compareTo(minus) < 0; minus = minus.shiftLeft(32), shift++) {
         }
         // add to the corresponding positive power of 32 for the result.
         // meaningful? no. conformant? yes. I just write the code...

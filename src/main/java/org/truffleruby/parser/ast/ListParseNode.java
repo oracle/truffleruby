@@ -173,12 +173,12 @@ public abstract class ListParseNode extends ParseNode {
     public List<ParseNode> childNodes() {
         return Arrays.asList(children());
     }
-    
+
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitListNode(this);
     }
-    
+
     public ParseNode get(int idx) {
         return list[idx];
     }

@@ -82,7 +82,7 @@ public abstract class ParseNode {
         sourceCharIndex = position.getCharIndex();
         sourceLength = position.getLength();
     }
-    
+
     public abstract <T> T accept(NodeVisitor<T> visitor);
 
     /** Only for debugging, cast and use getters on specific classes instead. */
@@ -113,13 +113,13 @@ public abstract class ParseNode {
 
     protected static List<ParseNode> createList(ParseNode... nodes) {
         ArrayList<ParseNode> list = new ArrayList<>(nodes.length);
-        
-        for (ParseNode node: nodes) {
+
+        for (ParseNode node : nodes) {
             if (node != null) {
                 list.add(node);
             }
         }
-        
+
         return list;
     }
 

@@ -93,7 +93,7 @@ public abstract class MatchDataNodes {
         Arrays.sort(pairs);
 
         int length = pairs.length;
-        byte[]bytes = source.getBytes();
+        byte[] bytes = source.getBytes();
         int p = 0;
         int s = p;
         int c = 0;

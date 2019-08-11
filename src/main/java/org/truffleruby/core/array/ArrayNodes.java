@@ -1456,7 +1456,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[] { getStore(array), getSize(array), false, null });
+                        new Object[]{ getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1474,7 +1474,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format),
-                        new Object[] { getStore(array), getSize(array), false, null });
+                        new Object[]{ getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1790,9 +1790,9 @@ public abstract class ArrayNodes {
             return ToAryNodeGen.create(index);
         }
 
-        @Specialization(guards = {"arrayStrategy.matches(array)", "otherStrategy.matches(other)"}, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "arrayStrategy.matches(array)", "otherStrategy.matches(other)" }, limit = "ARRAY_STRATEGIES")
         public DynamicObject replace(DynamicObject array, DynamicObject other,
-                        @Cached("of(array)") ArrayStrategy arrayStrategy,
+                @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
             propagateSharingNode.propagate(array, other);
@@ -2044,7 +2044,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         public int size(DynamicObject array,
-                        @Cached("createIdentityProfile()") IntValueProfile profile) {
+                @Cached("createIdentityProfile()") IntValueProfile profile) {
             return profile.profile(Layouts.ARRAY.getSize(array));
         }
 
@@ -2104,8 +2104,8 @@ public abstract class ArrayNodes {
             return createArray(store, size);
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
-                assumptions = { "getContext().getCoreMethods().integerCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" }, assumptions = {
+                "getContext().getCoreMethods().integerCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
         public Object sortPrimitiveArrayNoBlock(DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
@@ -2148,7 +2148,7 @@ public abstract class ArrayNodes {
             return array;
         }
 
-        @Specialization(guards = {"array != other", "strategy.matches(array)", "otherStrategy.matches(other)"}, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "array != other", "strategy.matches(array)", "otherStrategy.matches(other)" }, limit = "ARRAY_STRATEGIES")
         public DynamicObject stealStorage(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,

@@ -20,12 +20,13 @@ import java.math.BigInteger;
 public interface BignumLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createBignumShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createBignum(DynamicObjectFactory factory,
-                               BigInteger value);
+            BigInteger value);
 
     boolean isBignum(Object object);
+
     boolean isBignum(DynamicObject object);
 
     BigInteger getValue(DynamicObject object);

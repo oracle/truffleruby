@@ -27,8 +27,7 @@ public abstract class MethodFilter {
     public static final MethodFilter PUBLIC_PROTECTED = new MethodFilter() {
         @Override
         public boolean filter(InternalMethod method) {
-            return isNotDefinedInRefinementOnly(method) && (
-                    method.getVisibility() == Visibility.PUBLIC ||
+            return isNotDefinedInRefinementOnly(method) && (method.getVisibility() == Visibility.PUBLIC ||
                     method.getVisibility() == Visibility.PROTECTED);
         }
     };

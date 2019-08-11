@@ -60,7 +60,7 @@ public class RetryParseNode extends ParseNode implements NonLocalControlFlowPars
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRetryNode(this);
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

@@ -47,7 +47,7 @@ public class DotParseNode extends ParseNode {
     private final boolean isLiteral;
 
     public DotParseNode(SourceIndexLength position, ParseNode beginNode, ParseNode endNode, boolean exclusive,
-                        boolean isLiteral) {
+            boolean isLiteral) {
         super(position);
 
         assert beginNode != null : "beginNode is not null";

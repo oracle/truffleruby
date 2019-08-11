@@ -66,7 +66,7 @@ public abstract class ToLongNode extends FormatNode {
             "!isLong(object)",
             "!isBigInteger(object)",
             "!isRubyBignum(object)",
-            "!isNil(object)"})
+            "!isNil(object)" })
     public long toLong(VirtualFrame frame, Object object) {
         if (errorIfNeedsConversion) {
             throw new CantConvertException("can't convert Object to Integer");

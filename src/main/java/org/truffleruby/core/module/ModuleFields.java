@@ -349,7 +349,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private RubyConstant newConstant(Node currentNode, String name, Object value, boolean autoload, RubyConstant previous) {
         final boolean isPrivate = previous != null && previous.isPrivate();
         final boolean isDeprecated = previous != null && previous.isDeprecated();
-        final SourceSection sourceSection = currentNode != null ?  currentNode.getSourceSection() : null;
+        final SourceSection sourceSection = currentNode != null ? currentNode.getSourceSection() : null;
         return new RubyConstant(rubyModuleObject, name, value, isPrivate, autoload, isDeprecated, sourceSection);
     }
 

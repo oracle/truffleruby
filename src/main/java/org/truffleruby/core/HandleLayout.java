@@ -18,10 +18,10 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 public interface HandleLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createHandleShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createHandle(DynamicObjectFactory factory,
-                               Object object);
+            Object object);
 
     boolean isHandle(DynamicObject object);
 

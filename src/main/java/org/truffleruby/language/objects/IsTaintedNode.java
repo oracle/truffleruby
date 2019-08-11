@@ -49,10 +49,10 @@ public abstract class IsTaintedNode extends RubyBaseNode {
         return false;
     }
 
-    @Specialization(guards = {"!isRubySymbol(object)", "!isNil(object)"})
+    @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
     protected boolean isTainted(
-        DynamicObject object,
-        @Cached ReadObjectFieldNode readTaintedNode) {
+            DynamicObject object,
+            @Cached ReadObjectFieldNode readTaintedNode) {
         return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
     }
 

@@ -80,6 +80,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     public NodeType getNodeType() {
         return NodeType.STRNODE;
     }
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -105,7 +106,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     public CodeRange getCodeRange() {
         return codeRange;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

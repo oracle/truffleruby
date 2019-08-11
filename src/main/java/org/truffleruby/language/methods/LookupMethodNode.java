@@ -62,10 +62,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
 
     protected abstract InternalMethod executeLookupMethod(Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic);
 
-    @Specialization(
-            guards = { "metaClass(metaClassNode, self) == cachedSelfMetaClass", "name == cachedName", "context == cachedContext" },
-            assumptions = "methodLookupResult.getAssumptions()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "metaClass(metaClassNode, self) == cachedSelfMetaClass", "name == cachedName",
+            "context == cachedContext" }, assumptions = "methodLookupResult.getAssumptions()", limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
             Frame frame,
             Object self,

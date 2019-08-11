@@ -246,20 +246,20 @@ public class InternalMethod implements ObjectGraphNode {
             return this;
         } else {
             return new InternalMethod(
-                sharedMethodInfo,
-                lexicalScope,
-                declarationContext,
-                name,
-                declaringModule,
-                visibility,
-                undefined,
-                unimplemented,
-                builtIn,
-                refined,
-                proc,
-                callTarget,
-                capturedBlock,
-                newOriginalMethod);
+                    sharedMethodInfo,
+                    lexicalScope,
+                    declarationContext,
+                    name,
+                    declaringModule,
+                    visibility,
+                    undefined,
+                    unimplemented,
+                    builtIn,
+                    refined,
+                    proc,
+                    callTarget,
+                    capturedBlock,
+                    newOriginalMethod);
         }
     }
 

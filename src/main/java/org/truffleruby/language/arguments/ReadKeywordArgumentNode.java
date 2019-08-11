@@ -22,7 +22,7 @@ public class ReadKeywordArgumentNode extends RubyNode implements BiFunctionNode 
 
     private final DynamicObject name;
     private final ConditionProfile defaultProfile = ConditionProfile.createBinaryProfile();
-    
+
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private HashLookupOrExecuteDefaultNode hashLookupNode;

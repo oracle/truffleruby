@@ -95,7 +95,7 @@ public class EncodingUtils {
                 } while (++s < end && (!hasLower || !hasUpper));
             }
 
-            byte[]constName = new byte[end - p];
+            byte[] constName = new byte[end - p];
             System.arraycopy(name, p, constName, 0, end - p);
             s = 0;
             code = constName[s] & 0xff;

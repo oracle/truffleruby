@@ -32,15 +32,19 @@ public interface ExceptionLayout extends BasicObjectLayout {
     boolean isException(DynamicObject object);
 
     Object getMessage(DynamicObject object);
+
     void setMessage(DynamicObject object, Object value);
 
     DynamicObject getFormatter(DynamicObject object);
+
     void setFormatter(DynamicObject object, DynamicObject value);
 
     Backtrace getBacktrace(DynamicObject object);
+
     void setBacktrace(DynamicObject object, Backtrace value);
 
     DynamicObject getCause(DynamicObject object);
+
     void setCause(DynamicObject object, DynamicObject value);
 
 }
