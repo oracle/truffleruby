@@ -15,7 +15,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.FinalizationService.FinalizerReference;
+import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;

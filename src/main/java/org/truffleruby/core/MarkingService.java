@@ -38,20 +38,10 @@ import com.oracle.truffle.api.object.DynamicObject;
  * themselves stop the object from being garbage collected.
  *
  */
-public class MarkingService extends ReferenceProcessingService<MarkingService.MarkerReference> {
+public class MarkingService extends ReferenceProcessingService<MarkerReference> {
 
     public static interface MarkerAction {
         public abstract void mark(DynamicObject owner);
-    }
-
-    public static class MarkerReference extends WeakProcessingReference<MarkerReference, DynamicObject> {
-
-        private final MarkerAction action;
-
-        private MarkerReference(DynamicObject object, ReferenceQueue<? super Object> queue, MarkerAction action, MarkingService service) {
-            super(object, queue, service);
-            this.action = action;
-        }
     }
 
     public static class MarkRunnerReference extends WeakProcessingReference<MarkRunnerReference, Object> {

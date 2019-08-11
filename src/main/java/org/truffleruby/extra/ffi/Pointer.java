@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.FinalizationService.FinalizerReference;
+import org.truffleruby.core.FinalizerReference;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
