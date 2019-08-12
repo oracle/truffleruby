@@ -4,6 +4,10 @@ Bug fixes:
 
 * `rb_undef_method` now works for private methods (#1731).
 
+Compatibility:
+
+* `GC.stat` can now take an option (#1716).
+
 # 19.2.0
 
 New features:
