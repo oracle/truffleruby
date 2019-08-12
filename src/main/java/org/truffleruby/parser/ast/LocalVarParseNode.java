@@ -16,7 +16,7 @@
  * Copyright (C) 2002 Jan Arne Petersen <jpetersen@uni-bonn.de>
  * Copyright (C) 2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2004-2006 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,19 +31,19 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-import java.util.List;
-
 /**
- * Access a local variable 
+ * Access a local variable
  */
 public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
-    
+
     // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
     // is what index in the right scope to set the value.
     private final int location;
@@ -70,17 +70,17 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
 
     /**
      * How many scopes should we burrow down to until we need to set the block variable value.
-     * 
+     *
      * @return 0 for current scope, 1 for one down, ...
      */
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
-     * 
+     *
      * @return Returns an int offset into storage structure
      */
     public int getIndex() {
@@ -89,13 +89,13 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
 
     /**
      * What is the name of this variable
-     * 
+     *
      * @return the name of the variable
      */
     public String getName() {
         return name;
     }
-    
+
     /**
      * Set the name of this variable (for refactoring support)
      * @param name the new name
@@ -103,7 +103,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
     public void setName(String name) {
         this.name = name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

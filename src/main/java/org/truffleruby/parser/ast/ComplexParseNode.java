@@ -26,10 +26,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  *
@@ -46,7 +46,7 @@ public class ComplexParseNode extends NumericParseNode implements SideEffectFree
 
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
-       return visitor.visitComplexNode(this);
+        return visitor.visitComplexNode(this);
     }
 
     @Override

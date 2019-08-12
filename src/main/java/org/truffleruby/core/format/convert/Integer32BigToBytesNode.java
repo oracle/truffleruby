@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.format.convert;
 
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.core.format.FormatNode;
 
 @NodeChild("value")
 public abstract class Integer32BigToBytesNode extends FormatNode {

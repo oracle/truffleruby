@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayIsAtLeastAsLargeAsNode extends RubyNode {
 

@@ -9,6 +9,18 @@
  */
 package org.truffleruby.core.kernel;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.tracepoint.TraceBaseEventNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.LogicalClassNode;
+import org.truffleruby.shared.TruffleRuby;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -22,17 +34,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.tracepoint.TraceBaseEventNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.shared.TruffleRuby;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class TraceManager {
     public static class LineTag extends Tag {
@@ -43,7 +44,7 @@ public class TraceManager {
 
     public static class ClassTag extends Tag {
     }
-    
+
     private final RubyContext context;
     private final Instrumenter instrumenter;
     private final CyclicAssumption unusedAssumption;
@@ -83,24 +84,14 @@ public class TraceManager {
 
         instruments = new ArrayList<>();
 
-        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                        .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                        .tagIs(LineTag.class)
-                        .build(),
+        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(LineTag.class).build(),
                 eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().LINE.createInstance())));
 
-        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                        .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                        .tagIs(ClassTag.class)
-                        .build(),
+        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(ClassTag.class).build(),
                 eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CLASS.createInstance())));
 
         if (context.getOptions().TRACE_CALLS) {
-            instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                            .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                            .tagIs(CallTag.class)
-                            .includeInternal(false)
-                            .build(),
+            instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(CallTag.class).includeInternal(false).build(),
                     eventContext -> new CallEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CALL.createInstance())));
         }
     }

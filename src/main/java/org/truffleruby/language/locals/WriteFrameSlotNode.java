@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyGuards;
 
 @ImportStatic(RubyGuards.class)
 public abstract class WriteFrameSlotNode extends RubyBaseWithoutContextNode {
@@ -52,8 +53,7 @@ public abstract class WriteFrameSlotNode extends RubyBaseWithoutContextNode {
         return value;
     }
 
-    @Specialization(guards = "checkObjectKind(frame)",
-            replaces = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
+    @Specialization(guards = "checkObjectKind(frame)", replaces = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
     public Object writeObject(Frame frame, Object value) {
         frame.setObject(frameSlot, value);
         return value;

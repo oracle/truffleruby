@@ -269,7 +269,7 @@ public class Options {
     public final boolean SHARED_OBJECTS_DEBUG;
     /** --shared-objects-force=false */
     public final boolean SHARED_OBJECTS_FORCE;
-    
+
     public Options(Env env, OptionValues options) {
         LOAD_PATHS = options.get(OptionsCatalog.LOAD_PATHS_KEY);
         REQUIRED_LIBRARIES = options.get(OptionsCatalog.REQUIRED_LIBRARIES_KEY);

@@ -38,15 +38,15 @@
  */
 package org.truffleruby.core.objectspace;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.utilities.AssumedValue;
-
-import org.truffleruby.cext.ValueWrapperManager;
-
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.truffleruby.cext.ValueWrapperManager;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.utilities.AssumedValue;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}

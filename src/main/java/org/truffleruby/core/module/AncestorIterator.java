@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 import java.util.Iterator;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class AncestorIterator implements Iterator<DynamicObject> {
 

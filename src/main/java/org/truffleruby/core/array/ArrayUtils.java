@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.RubyContext;
-
 import java.lang.reflect.Array;
+
+import org.truffleruby.RubyContext;
 
 public abstract class ArrayUtils {
 

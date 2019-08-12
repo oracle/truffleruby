@@ -12,11 +12,11 @@ package org.truffleruby.core.rope;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.FinalizationService;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class NativeRope extends Rope {
 

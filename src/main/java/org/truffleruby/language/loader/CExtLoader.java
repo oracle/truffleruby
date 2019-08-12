@@ -9,11 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.source.Source;
-import org.graalvm.polyglot.io.ByteSequence;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.shared.TruffleRuby;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,6 +17,12 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.graalvm.polyglot.io.ByteSequence;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.shared.TruffleRuby;
+
+import com.oracle.truffle.api.source.Source;
 
 /*
  * Loads C extension '.su' files.

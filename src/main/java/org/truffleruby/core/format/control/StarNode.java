@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.format.control;
 
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.format.FormatNode;
 
 public class StarNode extends FormatNode {
 

@@ -9,13 +9,14 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.adapters.InputStreamAdapter;
 import org.truffleruby.core.adapters.OutputStreamAdapter;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.oracle.truffle.api.object.DynamicObject;
 
 /**
  * A simple file descriptor -> IO stream class.

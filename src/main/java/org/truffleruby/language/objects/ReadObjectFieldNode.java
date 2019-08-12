@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -18,9 +22,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyGuards;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -33,10 +34,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
 
     public abstract Object execute(DynamicObject object, Object name, Object defaultValue);
 
-    @Specialization(
-            guards = {"receiver.getShape() == cachedShape", "name == cachedName"},
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "receiver.getShape() == cachedShape", "name == cachedName" }, assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
     protected Object readObjectFieldCached(DynamicObject receiver, Object name, Object defaultValue,
             @Cached("receiver.getShape()") Shape cachedShape,
             @Cached("name") Object cachedName,

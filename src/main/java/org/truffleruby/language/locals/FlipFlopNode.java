@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.locals;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class FlipFlopNode extends RubyNode {
 
@@ -23,7 +24,7 @@ public class FlipFlopNode extends RubyNode {
     @Child private FlipFlopStateNode stateNode;
 
     public FlipFlopNode(RubyNode begin, RubyNode end,
-                        FlipFlopStateNode stateNode, boolean exclusive) {
+            FlipFlopStateNode stateNode, boolean exclusive) {
         this.exclusive = exclusive;
         this.begin = BooleanCastNodeGen.create(begin);
         this.end = BooleanCastNodeGen.create(end);

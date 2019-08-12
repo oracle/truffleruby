@@ -135,8 +135,7 @@ public class SimplePackParser {
                             break;
                     }
 
-                    modifierLoop:
-                    while (n < bytes.length) {
+                    modifierLoop: while (n < bytes.length) {
                         final byte m = bytes[n];
 
                         switch (m) {
@@ -211,7 +210,8 @@ public class SimplePackParser {
                     final int count = count();
 
                     listener.integer(size, signed, byteOrder, count);
-                } break;
+                }
+                    break;
 
                 case 'U':
                     n++;
@@ -285,7 +285,8 @@ public class SimplePackParser {
                     final int count = count();
 
                     listener.floatingPoint(size, byteOrder, count);
-                } break;
+                }
+                    break;
 
                 case 'A':
                     n++;

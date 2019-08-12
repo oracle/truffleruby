@@ -9,9 +9,12 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -58,11 +61,9 @@ import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.List;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 public class LoadArgumentsTranslator extends Translator {
 
@@ -105,7 +106,8 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod,
+            BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
         this.isMethod = isMethod;
@@ -536,11 +538,10 @@ public class LoadArgumentsTranslator extends Translator {
                 final String name = ((INameNode) node.getRest()).getName();
 
                 if (node.getPreCount() == 0 && node.getPostCount() == 0) {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
-                            .makeWriteNode(ArrayLiteralNode.create(new RubyNode[] { new NilLiteralNode(true) })));
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(
+                            ArrayLiteralNode.create(new RubyNode[]{ new NilLiteralNode(true) })));
                 } else {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection)
-                            .makeWriteNode(ArrayLiteralNode.create(null)));
+                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(ArrayLiteralNode.create(null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
                 // Don't think we need to do anything

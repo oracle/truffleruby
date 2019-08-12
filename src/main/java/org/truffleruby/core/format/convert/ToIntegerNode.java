@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.format.convert;
 
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
@@ -47,7 +48,7 @@ public abstract class ToIntegerNode extends FormatNode {
     @Specialization(guards = {
             "!isInteger(value)",
             "!isLong(value)",
-            "!isRubyBignum(value)"})
+            "!isRubyBignum(value)" })
     public Object toInteger(VirtualFrame frame, Object value) {
         if (integerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

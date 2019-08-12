@@ -22,24 +22,28 @@ import com.oracle.truffle.api.object.dsl.Nullable;
 public interface RegexpLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createRegexpShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createRegexp(DynamicObjectFactory factory,
-                               @Nullable Regex regex,
-                               @Nullable Rope source,
-                               RegexpOptions options,
-                               @Nullable EncodingCache cachedEncodings);
+            @Nullable Regex regex,
+            @Nullable Rope source,
+            RegexpOptions options,
+            @Nullable EncodingCache cachedEncodings);
 
     boolean isRegexp(DynamicObject object);
+
     boolean isRegexp(Object object);
 
     Regex getRegex(DynamicObject object);
+
     void setRegex(DynamicObject object, Regex value);
 
     Rope getSource(DynamicObject object);
+
     void setSource(DynamicObject object, Rope value);
 
     RegexpOptions getOptions(DynamicObject object);
+
     void setOptions(DynamicObject object, RegexpOptions value);
 
     EncodingCache getCachedEncodings(DynamicObject object);

@@ -9,12 +9,13 @@
  */
 package org.truffleruby.services.scriptengine;
 
-import org.graalvm.polyglot.Context;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import java.util.Arrays;
-import java.util.List;
+
+import org.graalvm.polyglot.Context;
 
 public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
 

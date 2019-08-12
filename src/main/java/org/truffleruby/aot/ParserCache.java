@@ -9,21 +9,21 @@
  */
 package org.truffleruby.aot;
 
-import com.oracle.truffle.api.TruffleOptions;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.ResourceLoader;
-import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
+import org.truffleruby.shared.options.OptionsCatalog;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import com.oracle.truffle.api.TruffleOptions;
 
 public class ParserCache {
 

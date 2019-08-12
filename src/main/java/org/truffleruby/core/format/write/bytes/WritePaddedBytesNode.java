@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.format.FormatNode;
 
 /**
  * Simply write bytes.

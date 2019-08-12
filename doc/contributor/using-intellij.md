@@ -29,6 +29,10 @@ source code always formatted to match the project's guidelines.
 
 4.  The plugin will be fully configured in next step where the project files are
     generated.
+    
+To format the source code use the usual idea shortcut for formatting the file.
+If imports are not being optimised as well, use idea action "Show Reformat File
+Dialog" and make sure the checkbox "Optimize imports" is checked.
 
 ### Install Ruby and Python plugins
 

@@ -16,26 +16,27 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+
 @NodeChild("width")
 @NodeChild("precision")
 @NodeChild("value")
 public abstract class FormatFloatNode extends FormatNode {
 
-    private static final byte[] NAN_VALUE = {'N', 'a', 'N'};
-    private static final byte[] INFINITY_VALUE = {'I', 'n', 'f'};
+    private static final byte[] NAN_VALUE = { 'N', 'a', 'N' };
+    private static final byte[] INFINITY_VALUE = { 'I', 'n', 'f' };
 
     private final char format;
     private final boolean hasSpaceFlag;
@@ -56,21 +57,21 @@ public abstract class FormatFloatNode extends FormatNode {
     @TruffleBoundary
     @Specialization
     public byte[] formatInfinite(int width, int precision, double dval) {
-//        if (arg == null || name != null) {
-//            arg = args.next(name);
-//            name = null;
-//        }
+        //        if (arg == null || name != null) {
+        //            arg = args.next(name);
+        //            name = null;
+        //        }
 
-//        if (!(arg instanceof RubyFloat)) {
-//            // FIXME: what is correct 'recv' argument?
-//            // (this does produce the desired behavior)
-//            if (usePrefixForZero) {
-//                arg = RubyKernel.new_float(arg,arg);
-//            } else {
-//                arg = RubyKernel.new_float19(arg,arg);
-//            }
-//        }
-//        double dval = ((RubyFloat)arg).getDoubleValue();
+        //        if (!(arg instanceof RubyFloat)) {
+        //            // FIXME: what is correct 'recv' argument?
+        //            // (this does produce the desired behavior)
+        //            if (usePrefixForZero) {
+        //                arg = RubyKernel.new_float(arg,arg);
+        //            } else {
+        //                arg = RubyKernel.new_float19(arg,arg);
+        //            }
+        //        }
+        //        double dval = ((RubyFloat)arg).getDoubleValue();
         boolean hasPrecisionFlag = precision != PrintfSimpleTreeBuilder.DEFAULT;
         final char fchar = this.format;
 
@@ -126,9 +127,9 @@ public abstract class FormatFloatNode extends FormatNode {
                 buf.append(' ', width);
             }
 
-//            offset++;
-//            incomplete = false;
-//            break;
+            //            offset++;
+            //            incomplete = false;
+            //            break;
             return buf.getBytes();
         }
 
@@ -146,8 +147,7 @@ public abstract class FormatFloatNode extends FormatNode {
         int i = negative ? 1 : 0;
         int decPos = 0;
         byte ival;
-        int_loop:
-        while (i < strlen) {
+        int_loop: while (i < strlen) {
             switch (ival = (byte) str.charAt(i++)) {
                 case '0':
                     if (nDigits > 0) {
@@ -174,8 +174,7 @@ public abstract class FormatFloatNode extends FormatNode {
             }
         }
         decPos = nDigits + nTrailingZeroes;
-        dec_loop:
-        while (i < strlen) {
+        dec_loop: while (i < strlen) {
             switch (ival = (byte) str.charAt(i++)) {
                 case '0':
                     if (nDigits > 0) {
@@ -275,13 +274,13 @@ public abstract class FormatFloatNode extends FormatNode {
                 // for exponent form</clarif> is greater than the
                 // precision, use exponent form
                 boolean expForm = (exponent + nDigits - 1 < -4 ||
-                    exponent + nDigits > (precision == 0 ? 1 : precision));
+                        exponent + nDigits > (precision == 0 ? 1 : precision));
                 // it would be nice (and logical!) if exponent form
                 // behaved like E/e, and decimal form behaved like f,
                 // but no such luck. hence:
                 if (expForm) {
                     // intDigits isn't used here, but if it were, it would be 1
-                            /* intDigits = 1; */
+                    /* intDigits = 1; */
                     decDigits = nDigits - 1;
                     // precision for G/g includes integer digits
                     precision = Math.max(0, precision - 1);
@@ -357,8 +356,7 @@ public abstract class FormatFloatNode extends FormatNode {
                     // now some data...
                     buf.append(digits[0]);
 
-                    boolean dotToPrint = isSharp
-                        || (precision > 0 && decDigits > 0);
+                    boolean dotToPrint = isSharp || (precision > 0 && decDigits > 0);
 
                     if (dotToPrint) {
                         buf.append(decimalSeparator); // '.' // args.getDecimalSeparator()
@@ -550,7 +548,7 @@ public abstract class FormatFloatNode extends FormatNode {
             case 'E':
             case 'e':
                 // intDigits isn't used here, but if it were, it would be 1
-                        /* intDigits = 1; */
+                /* intDigits = 1; */
                 decDigits = nDigits - 1;
 
                 if (precision < decDigits) {
@@ -698,9 +696,9 @@ public abstract class FormatFloatNode extends FormatNode {
     private static int round(byte[] bytes, int nDigits, int roundPos, boolean roundDown) {
         int next = roundPos + 1;
         if (next >= nDigits || bytes[next] < '5' ||
-            // MRI rounds up on nnn5nnn, but not nnn5 --
-            // except for when they do
-            (roundDown && bytes[next] == '5' && next == nDigits - 1)) {
+                // MRI rounds up on nnn5nnn, but not nnn5 --
+                // except for when they do
+                (roundDown && bytes[next] == '5' && next == nDigits - 1)) {
             return nDigits;
         }
         if (roundPos < 0) { // "%.0f" % 0.99

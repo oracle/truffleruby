@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.source.Source;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
@@ -21,9 +22,9 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.source.Source;
 
 /*
  * Loads the main script, whether it comes from an argument, standard in, or a file.

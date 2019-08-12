@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.adapters;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class OutputStreamAdapter extends OutputStream {
 

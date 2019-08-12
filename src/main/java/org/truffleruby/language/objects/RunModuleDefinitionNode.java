@@ -9,15 +9,16 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
+
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class RunModuleDefinitionNode extends RubyNode {
 
@@ -28,7 +29,7 @@ public class RunModuleDefinitionNode extends RubyNode {
     @Child private IndirectCallNode callModuleDefinitionNode = Truffle.getRuntime().createIndirectCallNode();
 
     public RunModuleDefinitionNode(LexicalScope lexicalScope,
-                                   ModuleBodyDefinitionNode definition, RubyNode definingModule) {
+            ModuleBodyDefinitionNode definition, RubyNode definingModule) {
         this.definingModule = definingModule;
         this.definitionMethod = definition;
         this.lexicalScope = lexicalScope;

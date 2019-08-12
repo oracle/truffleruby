@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseNode;
 
 /**
  * Caches {@link ModuleOperations#canBindMethodTo} for a method.
@@ -26,9 +27,7 @@ public abstract class CanBindMethodToModuleNode extends RubyBaseNode {
 
     public abstract boolean executeCanBindMethodToModule(InternalMethod method, DynamicObject module);
 
-    @Specialization(
-            guards = { "isRubyModule(module)", "method.getDeclaringModule() == declaringModule", "module == cachedModule" },
-            limit = "getCacheLimit()")
+    @Specialization(guards = { "isRubyModule(module)", "method.getDeclaringModule() == declaringModule", "module == cachedModule" }, limit = "getCacheLimit()")
     protected boolean canBindMethodToCached(InternalMethod method, DynamicObject module,
             @Cached("method.getDeclaringModule()") DynamicObject declaringModule,
             @Cached("module") DynamicObject cachedModule,

@@ -17,7 +17,7 @@
  * Copyright (C) 2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2006 Lukas Felber <lfelber@hsr.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -32,13 +32,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-import java.util.List;
-
-/** 
+/**
  * Represents an instance variable accessor.
  */
 public class InstVarParseNode extends ParseNode implements INameNode, SideEffectFree {
@@ -53,7 +53,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public NodeType getNodeType() {
         return NodeType.INSTVARNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -75,7 +75,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }

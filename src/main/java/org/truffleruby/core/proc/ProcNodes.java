@@ -70,7 +70,7 @@ public abstract class ProcNodes {
 
         @Specialization
         public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
-                                  @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
 
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
@@ -282,7 +282,7 @@ public abstract class ProcNodes {
             } else {
                 final DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-                final Object[] objects = new Object[]{file, sourceSection.getStartLine()};
+                final Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects, objects.length);
             }
         }

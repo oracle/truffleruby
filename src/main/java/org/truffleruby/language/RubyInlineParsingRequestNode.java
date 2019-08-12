@@ -9,6 +9,16 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.TranslatorDriver;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
@@ -19,16 +29,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.source.Source;
-
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
 
 public class RubyInlineParsingRequestNode extends ExecutableNode {
 

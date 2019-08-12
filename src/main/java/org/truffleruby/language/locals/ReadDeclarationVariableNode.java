@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.parser.ReadLocalNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.parser.ReadLocalNode;
 
 public class ReadDeclarationVariableNode extends ReadLocalNode {
 
@@ -26,7 +27,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     @Child private ReadFrameSlotNode readFrameSlotNode;
 
     public ReadDeclarationVariableNode(LocalVariableType type,
-                                       int frameDepth, FrameSlot frameSlot) {
+            int frameDepth, FrameSlot frameSlot) {
         this.type = type;
         this.frameDepth = frameDepth;
         this.frameSlot = frameSlot;

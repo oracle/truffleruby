@@ -9,9 +9,9 @@
  */
 package org.truffleruby.shared.options;
 
-import org.graalvm.options.OptionDescriptor;
-
 import java.util.Collection;
+
+import org.graalvm.options.OptionDescriptor;
 
 public class RubyOptionTypes {
 
@@ -19,7 +19,8 @@ public class RubyOptionTypes {
     public static <T> T parseValue(OptionDescriptor descriptor, Object value) {
         if (value == null) {
             return (T) descriptor.getKey().getDefaultValue();
-        } if (value instanceof String) {
+        }
+        if (value instanceof String) {
             try {
                 return (T) descriptor.getKey().getType().convert((String) value);
             } catch (IllegalArgumentException e) {

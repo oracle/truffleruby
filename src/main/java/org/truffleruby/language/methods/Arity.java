@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.parser.ArgumentDescriptor;
-import org.truffleruby.parser.ArgumentType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.ArgumentType;
 
 public class Arity {
 

@@ -36,7 +36,7 @@ def jt(*args):
 
 def build_truffleruby(args):
     mx.command_function('sversions')([])
-    jt('build', '--no-sforceimports')
+    jt('build', '--no-sforceimports', '--no-ee-checkout')
 
 def miniruby_for_building_cexts(args):
     jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
@@ -74,9 +74,9 @@ def ruby_testdownstream_aot(args):
     spec_format = args[1] if len(args) >= 2 else 'dot'
 
     fast = ['--excl-tag', 'slow']
-    mspec_args = ['--native', '--format', spec_format, '--excl-tag', 'ci']
+    mspec_args = ['--format', spec_format, '--excl-tag', 'ci']
 
-    os.environ['AOT_BIN'] = aot_bin
+    os.environ['RUBY_BIN'] = aot_bin
     ruby_run_specs(mspec_args)
 
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native

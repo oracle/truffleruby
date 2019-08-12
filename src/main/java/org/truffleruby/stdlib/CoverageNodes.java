@@ -9,10 +9,10 @@
  */
 package org.truffleruby.stdlib;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -21,9 +21,10 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 
 @CoreClass("Truffle::Coverage")
 public abstract class CoverageNodes {
@@ -79,7 +80,7 @@ public abstract class CoverageNodes {
                     }
                 }
 
-                results.add(createArray(new Object[] {
+                results.add(createArray(new Object[]{
                         makeStringNode.executeMake(getContext().getPath(source.getKey()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN),
                         createArray(countsStore, countsStore.length)
                 }, 2));

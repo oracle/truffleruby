@@ -11,17 +11,18 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
+import com.oracle.truffle.api.object.DynamicObject;
+
 public class ArgumentDescriptorUtils {
 
     public static DynamicObject argumentDescriptorsToParameters(RubyContext context,
-                                                                ArgumentDescriptor[] argsDesc,
-                                                                boolean isLambda) {
+            ArgumentDescriptor[] argsDesc,
+            boolean isLambda) {
         final Object[] params = new Object[argsDesc.length];
 
         for (int i = 0; i < argsDesc.length; i++) {
@@ -32,8 +33,8 @@ public class ArgumentDescriptorUtils {
     }
 
     public static DynamicObject toArray(RubyContext context,
-                                        ArgumentDescriptor argDesc,
-                                        boolean isLambda) {
+            ArgumentDescriptor argDesc,
+            boolean isLambda) {
         if ((argDesc.type == ArgumentType.req) && !isLambda) {
             return toArray(context, ArgumentType.opt, argDesc.name);
         }
@@ -42,16 +43,16 @@ public class ArgumentDescriptorUtils {
     }
 
     public static DynamicObject toArray(RubyContext context,
-                                        ArgumentType argType,
-                                        String name) {
+            ArgumentType argType,
+            String name) {
         final Object[] store;
 
         if (argType.anonymous || name == null) {
-            store = new Object[] {
+            store = new Object[]{
                     context.getSymbolTable().getSymbol(argType.symbolicName)
             };
         } else {
-            store = new Object[] {
+            store = new Object[]{
                     context.getSymbolTable().getSymbol(argType.symbolicName),
                     context.getSymbolTable().getSymbol(name)
             };

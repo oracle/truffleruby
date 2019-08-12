@@ -9,15 +9,16 @@
  */
 package org.truffleruby.builtins;
 
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
 

@@ -11,9 +11,6 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -38,10 +35,12 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {

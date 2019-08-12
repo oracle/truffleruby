@@ -12,9 +12,10 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class EncodingOperations {
 

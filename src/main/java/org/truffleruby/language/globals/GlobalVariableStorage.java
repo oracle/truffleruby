@@ -9,14 +9,15 @@
  */
 package org.truffleruby.language.globals;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.NotProvided;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.NotProvided;
 
 public class GlobalVariableStorage {
 

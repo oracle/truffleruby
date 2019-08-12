@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.core.format.FormatNode;
 
 @NodeChild("value")
 public abstract class WriteBinaryStringNode extends FormatNode {
@@ -25,7 +26,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     private final boolean appendNull;
 
     public WriteBinaryStringNode(boolean pad, boolean padOnNil,
-                                 int width, byte padding, boolean takeAll, boolean appendNull) {
+            int width, byte padding, boolean takeAll, boolean appendNull) {
         this.pad = pad;
         this.padOnNil = padOnNil;
         this.width = width;

@@ -9,16 +9,17 @@
  */
 package org.truffleruby.core.format.convert;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild("value")
 public abstract class ToLongNode extends FormatNode {
@@ -66,7 +67,7 @@ public abstract class ToLongNode extends FormatNode {
             "!isLong(object)",
             "!isBigInteger(object)",
             "!isRubyBignum(object)",
-            "!isNil(object)"})
+            "!isNil(object)" })
     public long toLong(VirtualFrame frame, Object object) {
         if (errorIfNeedsConversion) {
             throw new CantConvertException("can't convert Object to Integer");

@@ -14,7 +14,9 @@ import org.truffleruby.core.format.exceptions.InvalidFormatException;
 public class SprintfConfig {
 
     public enum FormatType {
-        INTEGER, FLOAT, OTHER
+        INTEGER,
+        FLOAT,
+        OTHER
     }
 
     private boolean literal = false;

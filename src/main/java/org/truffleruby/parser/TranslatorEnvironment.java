@@ -9,8 +9,10 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -23,9 +25,8 @@ import org.truffleruby.language.locals.ReadDeclarationVariableNode;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
 
 public class TranslatorEnvironment {
 
@@ -56,9 +57,9 @@ public class TranslatorEnvironment {
     private static AtomicInteger tempIndex = new AtomicInteger();
 
     public TranslatorEnvironment(TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-                                 ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-                                 boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
-                                 BreakID breakID, FrameDescriptor frameDescriptor) {
+            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
+            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
+            BreakID breakID, FrameDescriptor frameDescriptor) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;

@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface TracePointLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createTracePointShape(DynamicObject logicalClass,
-                                               DynamicObject metaClass);
+            DynamicObject metaClass);
 
     Object[] build(
             @Nullable TracePointEvent[] events,
@@ -33,24 +34,31 @@ public interface TracePointLayout extends BasicObjectLayout {
     boolean isTracePoint(DynamicObject object);
 
     TracePointEvent[] getEvents(DynamicObject object);
+
     void setEvents(DynamicObject object, TracePointEvent[] value);
 
     DynamicObject getEvent(DynamicObject object);
+
     void setEvent(DynamicObject object, DynamicObject value);
 
     DynamicObject getPath(DynamicObject object);
+
     void setPath(DynamicObject object, DynamicObject value);
 
     int getLine(DynamicObject object);
+
     void setLine(DynamicObject object, int value);
 
     DynamicObject getBinding(DynamicObject object);
+
     void setBinding(DynamicObject object, DynamicObject value);
 
     DynamicObject getProc(DynamicObject object);
+
     void setProc(DynamicObject object, DynamicObject value);
 
     boolean getInsideProc(DynamicObject object);
+
     void setInsideProc(DynamicObject object, boolean value);
 
 }

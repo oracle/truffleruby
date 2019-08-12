@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 
 /**
  * Read a string that contains UU-encoded data and write as actual binary

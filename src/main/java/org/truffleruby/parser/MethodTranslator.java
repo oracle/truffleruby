@@ -9,13 +9,8 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.Arrays;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.ArrayCastNodeGen;
@@ -58,7 +53,13 @@ import org.truffleruby.parser.ast.SuperParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
-import java.util.Arrays;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class MethodTranslator extends BodyTranslator {
 
@@ -66,7 +67,8 @@ public class MethodTranslator extends BodyTranslator {
     private boolean isBlock;
     private final boolean shouldLazyTranslate;
 
-    public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext, ArgsParseNode argsNode) {
+    public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext,
+            ArgsParseNode argsNode) {
         super(currentNode, context, parent, environment, source, parserContext, false);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
@@ -190,8 +192,8 @@ public class MethodTranslator extends BodyTranslator {
         // If we do not accept any arguments or only one required, there's never any need to destructure
         if (!arity.hasRest() && arity.getOptional() == 0 && arity.getRequired() <= 1) {
             return false;
-        // If there are only a rest argument and optional arguments, there is no need to destructure.
-        // Because the first optional argument (or the rest if no optional) will take the whole array.
+            // If there are only a rest argument and optional arguments, there is no need to destructure.
+            // Because the first optional argument (or the rest if no optional) will take the whole array.
         } else if (arity.hasRest() && arity.getRequired() == 0) {
             return false;
         } else {

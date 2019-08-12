@@ -9,6 +9,10 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.language.RubyBaseNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,9 +21,6 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-import org.truffleruby.collections.BiFunctionNode;
-import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(HashGuards.class)
 public abstract class LookupPackedEntryNode extends RubyBaseNode {

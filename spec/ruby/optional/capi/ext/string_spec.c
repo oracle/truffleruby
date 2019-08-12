@@ -14,14 +14,9 @@ extern "C" {
  * On TruffleRuby RSTRING_PTR and the bytes remain in managed memory
  * until they must be written to native memory.
  * In some specs we want to test using the native memory. */
-char* NATIVE_RSTRING_PTR(VALUE str) {
-  char* ptr = RSTRING_PTR(str);
-  char** native = malloc(sizeof(char*));
-  *native = ptr;
-  ptr = *native;
-  free(native);
-  return ptr;
-}
+#ifndef NATIVE_RSTRING_PTR
+#define NATIVE_RSTRING_PTR(str) RSTRING_PTR(str)
+#endif
 
 VALUE string_spec_rb_cstr2inum(VALUE self, VALUE str, VALUE inum) {
   int num = FIX2INT(inum);

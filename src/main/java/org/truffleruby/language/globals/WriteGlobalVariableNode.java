@@ -9,15 +9,15 @@
  */
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-
 import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "value")
 public abstract class WriteGlobalVariableNode extends RubyNode {
@@ -38,9 +38,9 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
 
     @Specialization(guards = { "storage.hasHooks()", "arity != 2" }, assumptions = "storage.getValidAssumption()")
     public Object writeHooks(VirtualFrame frame, Object value,
-                             @Cached("getStorage()") GlobalVariableStorage storage,
-                             @Cached("setterArity(storage)") int arity,
-                             @Cached YieldNode yieldNode) {
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("setterArity(storage)") int arity,
+            @Cached YieldNode yieldNode) {
         yieldNode.executeDispatch(storage.getSetter(), value);
         return value;
     }

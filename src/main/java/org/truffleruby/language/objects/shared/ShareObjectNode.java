@@ -9,6 +9,16 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.interop.RubyObjectType;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -18,15 +28,6 @@ import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.interop.RubyObjectType;
-import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ShapeCachingGuards;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Share the object and all that is reachable from it
@@ -45,10 +46,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     public abstract void executeShare(DynamicObject object);
 
-    @Specialization(
-            guards = "object.getShape() == cachedShape",
-            assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
-            limit = "CACHE_LIMIT")
+    @Specialization(guards = "object.getShape() == cachedShape", assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" }, limit = "CACHE_LIMIT")
     @ExplodeLoop
     protected void shareCached(DynamicObject object,
             @Cached("ensureSharedClasses(getContext(), object.getShape())") Shape cachedShape,
@@ -69,7 +67,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     private boolean allFieldsAreShared(DynamicObject object) {
         for (DynamicObject value : ObjectGraph.getAdjacentObjects(object)) {
-             assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
+            assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
         }
 
         return true;

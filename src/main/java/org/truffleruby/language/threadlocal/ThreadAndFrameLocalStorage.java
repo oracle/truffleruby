@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.threadlocal;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.lang.ref.WeakReference;
+
 import org.truffleruby.RubyContext;
 
-import java.lang.ref.WeakReference;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ThreadAndFrameLocalStorage {
 

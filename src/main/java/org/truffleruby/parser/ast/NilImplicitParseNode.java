@@ -33,7 +33,7 @@ package org.truffleruby.parser.ast;
  */
 public class NilImplicitParseNode extends NilParseNode implements InvisibleNode {
     public static final NilImplicitParseNode NIL = new NilImplicitParseNode();
-    
+
     public NilImplicitParseNode() {
         super(null);
     }

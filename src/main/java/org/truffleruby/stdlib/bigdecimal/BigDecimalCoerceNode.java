@@ -9,15 +9,16 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
 
 /**
  * This node implements the front part of the coercion logic in BigDecimal - the types it handles before going into
@@ -28,31 +29,31 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
 
     @Specialization
     public Object coerce(int value,
-                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+            @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
     }
 
     @Specialization
     public Object coerce(long value,
-                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+            @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
     public Object coerceBignum(DynamicObject value,
-                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+            @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
     }
 
     @Specialization
     public Object coerce(double value,
-                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+            @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_float_to_bigdecimal", value);
     }
 
     @Specialization(guards = "isRubyRational(value)")
     public Object coerceRational(DynamicObject value,
-                         @Cached("createPublic()") CallDispatchHeadNode coerce) {
+            @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_rational_to_bigdecimal", value);
     }
 

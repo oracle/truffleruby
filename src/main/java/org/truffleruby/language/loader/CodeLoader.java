@@ -9,14 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -29,6 +21,14 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+
 public class CodeLoader {
 
     private final RubyContext context;
@@ -39,20 +39,20 @@ public class CodeLoader {
 
     @TruffleBoundary
     public RubyRootNode parse(RubySource source,
-                              ParserContext parserContext,
-                              MaterializedFrame parentFrame,
-                              boolean ownScopeForAssignments,
-                              Node currentNode) {
+            ParserContext parserContext,
+            MaterializedFrame parentFrame,
+            boolean ownScopeForAssignments,
+            Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
         return translator.parse(source, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary
     public DeferredCall prepareExecute(ParserContext parserContext,
-                          DeclarationContext declarationContext,
-                          RubyRootNode rootNode,
-                          MaterializedFrame parentFrame,
-                          Object self) {
+            DeclarationContext declarationContext,
+            RubyRootNode rootNode,
+            MaterializedFrame parentFrame,
+            Object self) {
         final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
         final DynamicObject declaringModule;

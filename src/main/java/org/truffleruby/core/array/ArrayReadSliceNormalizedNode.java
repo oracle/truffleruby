@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {

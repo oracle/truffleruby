@@ -9,23 +9,26 @@
  */
 package org.truffleruby.core.module;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface ModuleLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createModuleShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createModule(DynamicObjectFactory factory,
-                               ModuleFields fields);
+            ModuleFields fields);
 
     boolean isModule(ObjectType objectType);
+
     boolean isModule(DynamicObject object);
+
     boolean isModule(Object object);
 
     ModuleFields getFields(DynamicObject object);

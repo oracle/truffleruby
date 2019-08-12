@@ -1,3 +1,4 @@
+// @formatter:off
 // created by jay 1.0.2 (c) 2002-2004 ats@cs.rit.edu
 // skeleton Java 1.0 (c) 2002 ats@cs.rit.edu
 
@@ -3603,3 +3604,4 @@ states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // line 10092 "-"
+// @formatter:on

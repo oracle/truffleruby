@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2006-2007 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -28,11 +28,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 public class ArgsPushParseNode extends ParseNode {
     private ParseNode firstNode;

@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.source.Source;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -22,9 +23,9 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.source.Source;
 
 /*
  * Loads normal Ruby source files from the file system.
@@ -88,12 +89,7 @@ public class FileLoader {
          * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
          */
 
-        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file)
-                    .mimeType(TruffleRuby.MIME_TYPE)
-                    .name(name)
-                    .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
-                    .internal(internal)
-                    .build();
+        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).mimeType(TruffleRuby.MIME_TYPE).name(name).content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope)).internal(internal).build();
     }
 
     private boolean isInternal(String path) {

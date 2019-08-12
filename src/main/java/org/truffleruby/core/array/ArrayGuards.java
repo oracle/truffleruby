@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayGuards {
 

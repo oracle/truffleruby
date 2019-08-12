@@ -9,9 +9,8 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.Set;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
@@ -19,7 +18,9 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.object.DynamicObject;
 
 /**
  * A Ruby method: either a method in a module,
@@ -246,20 +247,20 @@ public class InternalMethod implements ObjectGraphNode {
             return this;
         } else {
             return new InternalMethod(
-                sharedMethodInfo,
-                lexicalScope,
-                declarationContext,
-                name,
-                declaringModule,
-                visibility,
-                undefined,
-                unimplemented,
-                builtIn,
-                refined,
-                proc,
-                callTarget,
-                capturedBlock,
-                newOriginalMethod);
+                    sharedMethodInfo,
+                    lexicalScope,
+                    declarationContext,
+                    name,
+                    declaringModule,
+                    visibility,
+                    undefined,
+                    unimplemented,
+                    builtIn,
+                    refined,
+                    proc,
+                    callTarget,
+                    capturedBlock,
+                    newOriginalMethod);
         }
     }
 

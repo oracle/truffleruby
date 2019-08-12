@@ -9,16 +9,17 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 @GenerateUncached
 abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContextNode {
@@ -44,7 +45,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
-    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
+    @Specialization(guards = { "!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar" })
     public Object writeInstanceVariable(
             DynamicObject receiver,
             Object name,
@@ -94,7 +95,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
     // TODO CS 9-Aug-17 test method defined once and then run specialisations
 
     protected static boolean methodDefined(DynamicObject receiver, Object stringName,
-                                    DoesRespondDispatchHeadNode definedNode) {
+            DoesRespondDispatchHeadNode definedNode) {
         if (stringName == null) {
             return false;
         } else {

@@ -1,5 +1,12 @@
 # Code Patterns
 
+## Java code formatting
+
+The java source code is formatted with Eclipse Code Formatter. Our CI checks
+that the code is properly formatted. See [using IntelliJ](using-intellij.md) and
+[using Eclipse](using-eclipse.md) documents about how to configure your IDE to
+format the files automatically.
+
 ## Where to allocate helper nodes (a node used in another node)
 
 * If the parent node does not use the DSL (use `@Specialization`), allocate the

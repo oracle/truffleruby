@@ -10,10 +10,11 @@
 
 package org.truffleruby.core.regexp;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringOperations;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class RegexpGuards {
 

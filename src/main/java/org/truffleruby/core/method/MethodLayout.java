@@ -9,25 +9,28 @@
  */
 package org.truffleruby.core.method;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.methods.InternalMethod;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.language.methods.InternalMethod;
 
 @Layout
 public interface MethodLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createMethodShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createMethod(DynamicObjectFactory factory,
-                               Object receiver,
-                               InternalMethod method);
+            Object receiver,
+            InternalMethod method);
 
     boolean isMethod(DynamicObject object);
+
     boolean isMethod(Object object);
+
     boolean isMethod(ObjectType objectType);
 
     Object getReceiver(DynamicObject object);

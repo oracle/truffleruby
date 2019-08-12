@@ -20,7 +20,7 @@
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
  * Copyright (C) 2006-2007 Mirko Stocker <me@misto.ch>
  * Copyright (C) 2006 Thomas Corbat <tcorbat@hsr.ch>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -34,6 +34,15 @@
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
+
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
+import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
+import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -133,15 +142,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
-
 public class ParserSupport {
     // Parser states:
     protected StaticScope currentScope;
@@ -224,22 +224,22 @@ public class ParserSupport {
      */
     public ParseNode gettable2(ParseNode node) {
         switch (node.getNodeType()) {
-        case DASGNNODE: // LOCALVAR
-        case LOCALASGNNODE:
-            String name = ((INameNode) node).getName();
-            if (name.equals(lexer.getCurrentArg())) {
-                warn(node.getPosition(), "circular argument reference - " + name);
-            }
-            return currentScope.declare(node.getPosition(), name);
-        case CONSTDECLNODE: // CONSTANT
-            return new ConstParseNode(node.getPosition(), ((INameNode) node).getName());
-        case INSTASGNNODE: // INSTANCE VARIABLE
-            return new InstVarParseNode(node.getPosition(), ((INameNode) node).getName());
-        case CLASSVARDECLNODE:
-        case CLASSVARASGNNODE:
-            return new ClassVarParseNode(node.getPosition(), ((INameNode) node).getName());
-        case GLOBALASGNNODE:
-            return new GlobalVarParseNode(node.getPosition(), ((INameNode) node).getName());
+            case DASGNNODE: // LOCALVAR
+            case LOCALASGNNODE:
+                String name = ((INameNode) node).getName();
+                if (name.equals(lexer.getCurrentArg())) {
+                    warn(node.getPosition(), "circular argument reference - " + name);
+                }
+                return currentScope.declare(node.getPosition(), name);
+            case CONSTDECLNODE: // CONSTANT
+                return new ConstParseNode(node.getPosition(), ((INameNode) node).getName());
+            case INSTASGNNODE: // INSTANCE VARIABLE
+                return new InstVarParseNode(node.getPosition(), ((INameNode) node).getName());
+            case CLASSVARDECLNODE:
+            case CLASSVARASGNNODE:
+                return new ClassVarParseNode(node.getPosition(), ((INameNode) node).getName());
+            case GLOBALASGNNODE:
+                return new GlobalVarParseNode(node.getPosition(), ((INameNode) node).getName());
         }
 
         getterIdentifierError(node.getPosition(), ((INameNode) node).getName());
@@ -483,11 +483,14 @@ public class ParserSupport {
             }
 
             switch (node.getNodeType()) {
-            case BREAKNODE: case NEXTNODE: case REDONODE:
-            case RETRYNODE: case RETURNNODE:
-                return true;
-            default:
-                return false;
+                case BREAKNODE:
+                case NEXTNODE:
+                case REDONODE:
+                case RETRYNODE:
+                case RETURNNODE:
+                    return true;
+                default:
+                    return false;
             }
         } while (true);
     }
@@ -504,31 +507,35 @@ public class ParserSupport {
 
         while (node != null) {
             switch (node.getNodeType()) {
-            case RETURNNODE: case BREAKNODE: case NEXTNODE: case REDONODE:
-            case RETRYNODE:
+                case RETURNNODE:
+                case BREAKNODE:
+                case NEXTNODE:
+                case REDONODE:
+                case RETRYNODE:
                     if (!conditional) {
                         lexer.compile_error(PID.VOID_VALUE_EXPRESSION, "void value expression");
                     }
 
-                return false;
-            case BLOCKNODE:
-                node = ((BlockParseNode) node).getLast();
-                break;
-            case BEGINNODE:
-                node = ((BeginParseNode) node).getBodyNode();
-                break;
-            case IFNODE:
+                    return false;
+                case BLOCKNODE:
+                    node = ((BlockParseNode) node).getLast();
+                    break;
+                case BEGINNODE:
+                    node = ((BeginParseNode) node).getBodyNode();
+                    break;
+                case IFNODE:
                     if (!checkExpression(((IfParseNode) node).getThenBody())) {
                         return false;
                     }
-                node = ((IfParseNode) node).getElseBody();
-                break;
-            case ANDNODE: case ORNODE:
-                conditional = true;
-                node = ((BinaryOperatorParseNode) node).getSecondNode();
-                break;
-            default: // ParseNode
-                return true;
+                    node = ((IfParseNode) node).getElseBody();
+                    break;
+                case ANDNODE:
+                case ORNODE:
+                    conditional = true;
+                    node = ((BinaryOperatorParseNode) node).getSecondNode();
+                    break;
+                default: // ParseNode
+                    return true;
             }
         }
 
@@ -705,40 +712,40 @@ public class ParserSupport {
         ParseNode rightNode;
 
         // FIXME: DSTR,EVSTR,STR: warning "string literal in condition"
-        switch(node.getNodeType()) {
-        case DREGEXPNODE: {
-            SourceIndexLength position = node.getPosition();
+        switch (node.getNodeType()) {
+            case DREGEXPNODE: {
+                SourceIndexLength position = node.getPosition();
 
-            return new Match2ParseNode(position, node, new GlobalVarParseNode(position, "$_"));
-        }
-        case ANDNODE:
-            leftNode = cond0(((AndParseNode) node).getFirstNode());
-            rightNode = cond0(((AndParseNode) node).getSecondNode());
-
-            return new AndParseNode(node.getPosition(), makeNullNil(leftNode), makeNullNil(rightNode));
-        case ORNODE:
-            leftNode = cond0(((OrParseNode) node).getFirstNode());
-            rightNode = cond0(((OrParseNode) node).getSecondNode());
-
-            return new OrParseNode(node.getPosition(), makeNullNil(leftNode), makeNullNil(rightNode));
-        case DOTNODE: {
-            DotParseNode dotNode = (DotParseNode) node;
-            if (dotNode.isLiteral()) {
-                return node;
+                return new Match2ParseNode(position, node, new GlobalVarParseNode(position, "$_"));
             }
+            case ANDNODE:
+                leftNode = cond0(((AndParseNode) node).getFirstNode());
+                rightNode = cond0(((AndParseNode) node).getSecondNode());
 
-            String label = String.valueOf("FLIP" + node.hashCode());
-            currentScope.getLocalScope().addVariable(label);
-            int slot = currentScope.isDefined(label);
+                return new AndParseNode(node.getPosition(), makeNullNil(leftNode), makeNullNil(rightNode));
+            case ORNODE:
+                leftNode = cond0(((OrParseNode) node).getFirstNode());
+                rightNode = cond0(((OrParseNode) node).getSecondNode());
 
-            return new FlipParseNode(node.getPosition(),
-                    getFlipConditionNode(((DotParseNode) node).getBeginNode()),
-                    getFlipConditionNode(((DotParseNode) node).getEndNode()),
-                    dotNode.isExclusive(), slot);
-        }
-        case REGEXPNODE:
-            warnUnlessEOption(node, "regex literal in condition");
-            return new MatchParseNode(node.getPosition(), node);
+                return new OrParseNode(node.getPosition(), makeNullNil(leftNode), makeNullNil(rightNode));
+            case DOTNODE: {
+                DotParseNode dotNode = (DotParseNode) node;
+                if (dotNode.isLiteral()) {
+                    return node;
+                }
+
+                String label = String.valueOf("FLIP" + node.hashCode());
+                currentScope.getLocalScope().addVariable(label);
+                int slot = currentScope.isDefined(label);
+
+                return new FlipParseNode(node.getPosition(),
+                        getFlipConditionNode(((DotParseNode) node).getBeginNode()),
+                        getFlipConditionNode(((DotParseNode) node).getEndNode()),
+                        dotNode.isExclusive(), slot);
+            }
+            case REGEXPNODE:
+                warnUnlessEOption(node, "regex literal in condition");
+                return new MatchParseNode(node.getPosition(), node);
         }
 
         return node;
@@ -925,16 +932,24 @@ public class ParserSupport {
     private boolean isNumericOperator(String name) {
         if (name.length() == 1) {
             switch (name.charAt(0)) {
-                case '+': case '-': case '*': case '/': case '<': case '>':
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '<':
+                case '>':
                     return true;
             }
         } else if (name.length() == 2) {
             switch (name.charAt(0)) {
-            case '<': case '>': case '=':
-                switch (name.charAt(1)) {
-                case '=': case '<':
-                    return true;
-                }
+                case '<':
+                case '>':
+                case '=':
+                    switch (name.charAt(1)) {
+                        case '=':
+                        case '<':
+                            return true;
+                    }
             }
         }
 
@@ -1236,8 +1251,8 @@ public class ParserSupport {
 
     public RationalParseNode negateRational(RationalParseNode rationalNode) {
         return new RationalParseNode(rationalNode.getPosition(),
-                                -rationalNode.getNumerator(),
-                                rationalNode.getDenominator());
+                -rationalNode.getNumerator(),
+                rationalNode.getDenominator());
     }
 
     public BigRationalParseNode negateBigRational(BigRationalParseNode rationalNode) {
@@ -1251,7 +1266,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_args(SourceIndexLength position, ListParseNode pre, ListParseNode optional, RestArgParseNode rest,
-                              ListParseNode post, ArgsTailHolder tail) {
+            ListParseNode post, ArgsTailHolder tail) {
         ArgsParseNode argsNode;
         if (tail == null) {
             argsNode = new ArgsParseNode(position, pre, optional, rest, post, null);
@@ -1264,7 +1279,7 @@ public class ParserSupport {
     }
 
     public ArgsTailHolder new_args_tail(SourceIndexLength position, ListParseNode keywordArg,
-                                        String keywordRestArgName, BlockArgParseNode blockArg) {
+            String keywordRestArgName, BlockArgParseNode blockArg) {
         if (keywordRestArgName == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         }
@@ -1603,7 +1618,7 @@ public class ParserSupport {
             }
         }
         return value;
-    }    
+    }
 
     protected void checkRegexpSyntax(Rope value, RegexpOptions options) {
         try {
@@ -1633,16 +1648,16 @@ public class ParserSupport {
             return new RegexpParseNode(contents.getPosition(), meat, options.withoutOnce());
         } else if (contents instanceof DStrParseNode) {
             DStrParseNode dStrNode = (DStrParseNode) contents;
-            
+
             for (int i = 0; i < dStrNode.size(); i++) {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
                     Rope frag = ((StrParseNode) fragment).getValue();
                     frag = regexpFragmentCheck(end, frag);
-//                    if (!lexer.isOneEight()) encoding = frag.getEncoding();
+                    //                    if (!lexer.isOneEight()) encoding = frag.getEncoding();
                 }
             }
-            
+
             DRegexpParseNode dRegexpNode = new DRegexpParseNode(position, options, encoding);
             dRegexpNode.add(new StrParseNode(contents.getPosition(), createMaster(options)));
             dRegexpNode.addAll(dStrNode);
@@ -1658,7 +1673,7 @@ public class ParserSupport {
         node.add(contents);
         return node;
     }
-    
+
     // Create the magical empty 'master' string which will be encoded with
     // regexp options encoding so dregexps can end up starting with the
     // right encoding.
@@ -1668,11 +1683,11 @@ public class ParserSupport {
 
         return rope;
     }
-    
+
     public KeywordArgParseNode keyword_arg(SourceIndexLength position, AssignableParseNode assignable) {
         return new KeywordArgParseNode(position, assignable);
     }
-    
+
     public NumericParseNode negateNumeric(NumericParseNode node) {
         switch (node.getNodeType()) {
             case FIXNUMNODE:
@@ -1687,11 +1702,11 @@ public class ParserSupport {
             case BIGRATIONALNODE:
                 return negateBigRational((BigRationalParseNode) node);
         }
-        
+
         yyerror("Invalid or unimplemented numeric to negate: " + node.toString());
         return null;
     }
-    
+
     public ParseNode new_defined(SourceIndexLength position, ParseNode something) {
         return new DefinedParseNode(position, something);
     }

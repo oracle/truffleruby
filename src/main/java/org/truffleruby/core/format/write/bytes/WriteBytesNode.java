@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import org.truffleruby.core.format.FormatNode;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.core.format.FormatNode;
 
 @NodeChild("value")
 public abstract class WriteBytesNode extends FormatNode {

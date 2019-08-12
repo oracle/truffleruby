@@ -9,16 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -35,6 +25,17 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.shared.Metrics;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 
 public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
@@ -71,8 +72,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             // Just do Truffle::Boot.INTERACTIVE_BINDING.eval(code) for interactive sources.
             // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
-            final Object interactiveBinding = Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule())
-                    .getConstant("INTERACTIVE_BINDING").getValue();
+            final Object interactiveBinding = Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleBootModule()).getConstant("INTERACTIVE_BINDING").getValue();
             return context.send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
         }
 

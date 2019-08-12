@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 public class PropagateTaintNode extends RubyBaseWithoutContextNode {
 

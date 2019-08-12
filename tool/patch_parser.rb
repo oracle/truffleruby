@@ -15,13 +15,15 @@ def get_numbers_until_end_block(table)
   table
 end
 
-# We use this script to generate our normal parser and the parser for 
+# We use this script to generate our normal parser and the parser for
 # the ripper extension.
 if ARGV[0] =~ /Ripper/
   package = 'org.jruby.ext.ripper'
 else
   package = 'org.jruby.parser'
 end
+
+puts "// @formatter:off"
 
 while gets
   break if /protected static final short\[\] yyTable = \{/ =~ $_
@@ -78,6 +80,7 @@ end
 
 open("#{yytable_prefix}YyTables.java", "w") { |f|
   f.print <<END
+// @formatter:off
 /*
  ***** BEGIN LICENSE BLOCK *****
  * Version: EPL 1.0/GPL 2.0/LGPL 2.1
@@ -105,7 +108,7 @@ open("#{yytable_prefix}YyTables.java", "w") { |f|
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- ***** END LICENSE BLOCK *****/
+ ***** END LICENSE BLOCK *****/          
 package #{package};
 
 public class #{yytable_prefix}YyTables {
@@ -143,4 +146,7 @@ END
   printShortMethod(f, check4, "Check4")
 
   f.puts "}"
+  f.puts "// @formatter:on"
 }
+
+puts "// @formatter:on"

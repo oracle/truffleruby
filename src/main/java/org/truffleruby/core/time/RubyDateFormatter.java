@@ -23,7 +23,7 @@
  * Copyright (C) 2006 Miguel Covarrubias <mlcovarrubias@gmail.com>
  * Copyright (C) 2009 Joseph LaFata <joe@quibb.org>
  * Copyright (C) 2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -38,9 +38,22 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.time;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2BLANK;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC3;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC4;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC5;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.TEXT;
+
+import java.text.DateFormatSymbols;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -52,22 +65,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
-import java.text.DateFormatSymbols;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2BLANK;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC3;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC4;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC5;
-import static org.truffleruby.core.time.RubyDateFormatter.FieldType.TEXT;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyDateFormatter {
     private static final DateFormatSymbols FORMAT_SYMBOLS = new DateFormatSymbols(Locale.US);
@@ -158,6 +158,7 @@ public abstract class RubyDateFormatter {
         Format(char conversion) {
             CONVERSION2TOKEN[conversion] = new Token(this);
         }
+
         Format(char conversion, char alias) {
             this(conversion);
             CONVERSION2TOKEN[alias] = CONVERSION2TOKEN[conversion];
@@ -172,7 +173,7 @@ public abstract class RubyDateFormatter {
     public static class Token {
         private final Format format;
         private final Object data;
-        
+
         protected Token(Format format) {
             this(format, null);
         }
@@ -334,6 +335,7 @@ public abstract class RubyDateFormatter {
 
         char defaultPadder;
         int defaultWidth;
+
         FieldType(char padder, int width) {
             defaultPadder = padder;
             defaultWidth = width;
@@ -345,7 +347,7 @@ public abstract class RubyDateFormatter {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
-        for (Token token: compiledPattern) {
+        for (Token token : compiledPattern) {
             String output = null;
             long value = 0;
             FieldType type = TEXT;

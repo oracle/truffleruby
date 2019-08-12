@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.rope;
 
+import java.nio.charset.StandardCharsets;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
-
-import java.nio.charset.StandardCharsets;
 
 public class LazyIntRope extends LazyRope {
 
@@ -47,15 +47,7 @@ public class LazyIntRope extends LazyRope {
             sign = 0;
         }
 
-        return sign + (value < 1E5 ?
-                value < 1E2 ?
-                        value < 1E1 ? 1 : 2 :
-                        value < 1E3 ? 3 :
-                                value < 1E4 ? 4 : 5 :
-                value < 1E7 ?
-                        value < 1E6 ? 6 : 7 :
-                        value < 1E8 ? 8 :
-                                value < 1E9 ? 9 : 10);
+        return sign + (value < 1E5 ? value < 1E2 ? value < 1E1 ? 1 : 2 : value < 1E3 ? 3 : value < 1E4 ? 4 : 5 : value < 1E7 ? value < 1E6 ? 6 : 7 : value < 1E8 ? 8 : value < 1E9 ? 9 : 10);
     }
 
     @Override

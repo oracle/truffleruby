@@ -9,6 +9,12 @@
  */
 package org.truffleruby.core.proc;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
+
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -16,11 +22,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.language.control.FrameOnStackMarker;
-import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.SharedMethodInfo;
 
 // A instance of Proc behaves either as a proc or lambda (its type).
 // Kernel#lambda is the only primitive which can produce a lambda-semantics Proc from a proc-semantics one.
@@ -33,7 +34,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 public interface ProcLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createProcShape(DynamicObject logicalClass,
-                                         DynamicObject metaClass);
+            DynamicObject metaClass);
 
     Object[] build(
             ProcType type,
@@ -47,7 +48,9 @@ public interface ProcLayout extends BasicObjectLayout {
             DeclarationContext declarationContext);
 
     boolean isProc(ObjectType objectType);
+
     boolean isProc(DynamicObject object);
+
     boolean isProc(Object object);
 
     ProcType getType(DynamicObject object);

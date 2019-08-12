@@ -9,31 +9,36 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface ArrayLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createArrayShape(DynamicObject logicalClass,
-                                          DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createArray(DynamicObjectFactory factory,
-                              @Nullable Object store,
-                              int size);
+            @Nullable Object store,
+            int size);
 
     boolean isArray(ObjectType objectType);
+
     boolean isArray(DynamicObject object);
+
     boolean isArray(Object object);
 
     Object getStore(DynamicObject object);
+
     void setStore(DynamicObject object, Object value);
 
     int getSize(DynamicObject object);
+
     void setSize(DynamicObject object, int value);
 
 }

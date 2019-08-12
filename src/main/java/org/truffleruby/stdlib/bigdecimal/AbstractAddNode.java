@@ -9,13 +9,14 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
+import org.truffleruby.Layouts;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public abstract class AbstractAddNode extends BigDecimalOpNode {
 
@@ -41,13 +42,11 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
             return createBigDecimal(BigDecimalType.NAN);
         }
 
-        if (posInfinityProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY
-                || bType == BigDecimalType.POSITIVE_INFINITY)) {
+        if (posInfinityProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.POSITIVE_INFINITY)) {
             return createBigDecimal(BigDecimalType.POSITIVE_INFINITY);
         }
 
-        if (negInfinityProfile.profile(aType == BigDecimalType.NEGATIVE_INFINITY
-                || bType == BigDecimalType.NEGATIVE_INFINITY)) {
+        if (negInfinityProfile.profile(aType == BigDecimalType.NEGATIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
             return createBigDecimal(BigDecimalType.NEGATIVE_INFINITY);
         }
 
