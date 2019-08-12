@@ -99,7 +99,7 @@ for tests.
 $ jt test fast --native
 ```
 
-Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt test path/to/spec.rb -t ruby` to run the test on MRI, assuming you have MRI in your PATH.
+Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt -u mri/bin/ruby path/to/spec.rb` to run the test on MRI, assuming you have MRI in your PATH.
 
 ## Running
 
