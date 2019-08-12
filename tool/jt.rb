@@ -1677,7 +1677,7 @@ EOS
     metrics_time_format_results(samples, use_json, flamegraph)
   end
 
-  def format(*args)
+  def command_format(*args)
     mx "eclipseformat", "--primary", *args, continue_on_failure: true
   end
 
