@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class GeneralDivModNode extends RubyBaseNode {
 
@@ -102,13 +102,13 @@ public class GeneralDivModNode extends RubyBaseNode {
 
         if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) && CoreLibrary.fitsIntoInteger(mod)) {
             useFixnumPairProfile.enter();
-            return createArray(new int[] { (int) (long) integerDiv, (int) mod }, 2);
+            return createArray(new int[]{ (int) (long) integerDiv, (int) mod }, 2);
         } else if (integerDiv instanceof Long) {
             useObjectPairProfile.enter();
             return createArray(new long[]{ (long) integerDiv, mod }, 2);
         } else {
             useObjectPairProfile.enter();
-            return createArray(new Object[] {
+            return createArray(new Object[]{
                     fixnumOrBignumQuotient.fixnumOrBignum((BigInteger) integerDiv),
                     mod
             }, 2);
@@ -135,9 +135,9 @@ public class GeneralDivModNode extends RubyBaseNode {
             mod += b;
         }
 
-        return createArray(new Object[] {
+        return createArray(new Object[]{
                 fixnumOrBignumQuotient.fixnumOrBignum(div),
-                mod}, 2);
+                mod }, 2);
     }
 
     @TruffleBoundary
@@ -155,9 +155,9 @@ public class GeneralDivModNode extends RubyBaseNode {
             bigIntegerResults[1] = b.add(bigIntegerResults[1]);
         }
 
-        return createArray(new Object[] {
+        return createArray(new Object[]{
                 fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]),
-                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1])}, 2);
+                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]) }, 2);
     }
 
 }

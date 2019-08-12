@@ -9,6 +9,9 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -16,8 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 @GenerateUncached
 @ImportStatic(StringCachingGuards.class)

@@ -9,6 +9,10 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -16,9 +20,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyBaseNode {
@@ -103,10 +104,10 @@ public abstract class SetNode extends RubyBaseNode {
 
     @Specialization(guards = "isBucketHash(hash)")
     public Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-                    @Cached("createBinaryProfile()") ConditionProfile foundProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
-                    @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile foundProfile,
+            @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
+            @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
+            @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);

@@ -9,6 +9,9 @@
  */
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -25,9 +28,6 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
 import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Collects parameter names from a JRuby AST.
  */
@@ -41,7 +41,7 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     protected Object defaultVisit(ParseNode node) {
-       return null;
+        return null;
     }
 
     @Override
@@ -61,6 +61,7 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
         visitChildren(node);
         return null;
     }
+
     @Override
     public Object visitBlockArgNode(BlockArgParseNode node) {
         parameters.add(node.getName());

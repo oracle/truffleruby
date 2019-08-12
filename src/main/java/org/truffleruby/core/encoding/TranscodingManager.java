@@ -32,18 +32,19 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.TruffleOptions;
-import org.jcodings.transcode.Transcoder;
-import org.jcodings.transcode.TranscoderDB;
-import org.jcodings.util.CaseInsensitiveBytesHash;
-import org.jcodings.util.Hash;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.jcodings.transcode.Transcoder;
+import org.jcodings.transcode.TranscoderDB;
+import org.jcodings.util.CaseInsensitiveBytesHash;
+import org.jcodings.util.Hash;
+
+import com.oracle.truffle.api.TruffleOptions;
 
 public class TranscodingManager {
 

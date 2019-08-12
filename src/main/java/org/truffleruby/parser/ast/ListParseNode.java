@@ -14,7 +14,7 @@
  *
  * Copyright (C) 2004-2005 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -29,11 +29,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
  * All Nodes which have a list representation inherit this.  This is also used
@@ -173,12 +173,12 @@ public abstract class ListParseNode extends ParseNode {
     public List<ParseNode> childNodes() {
         return Arrays.asList(children());
     }
-    
+
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitListNode(this);
     }
-    
+
     public ParseNode get(int idx) {
         return list[idx];
     }

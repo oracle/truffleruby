@@ -9,23 +9,25 @@
  */
 package org.truffleruby.extra.ffi;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface PointerLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createPointerShape(DynamicObject logicalClass,
-                                            DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createPointer(DynamicObjectFactory factory,
-                                Pointer pointer);
+            Pointer pointer);
 
     boolean isPointer(DynamicObject object);
 
     Pointer getPointer(DynamicObject object);
+
     void setPointer(DynamicObject object, Pointer value);
 
 }

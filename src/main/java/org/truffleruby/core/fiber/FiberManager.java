@@ -71,8 +71,7 @@ public class FiberManager {
     }
 
     public DynamicObject getCurrentFiber() {
-        assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this :
-            "Trying to read the current Fiber of another Thread which is inherently racy";
+        assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
 
@@ -171,7 +170,7 @@ public class FiberManager {
             }
             resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
 
-        // Handlers in the same order as in ThreadManager
+            // Handlers in the same order as in ThreadManager
         } catch (KillException | ExitException | RaiseException e) {
             // Propagate the exception until it reaches the root Fiber
             sendExceptionToParentFiber(fiber, e, currentNode);

@@ -99,7 +99,7 @@ public abstract class UTF8Operations {
         if (b >= 0) {
             return 1;
         } else {
-            switch(b & 0xf0) {
+            switch (b & 0xf0) {
                 case 0xe0:
                     return 3;
                 case 0xf0:

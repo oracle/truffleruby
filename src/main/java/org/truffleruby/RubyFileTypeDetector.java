@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
-import com.oracle.truffle.api.TruffleFile;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -24,6 +24,8 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
+
+import com.oracle.truffle.api.TruffleFile;
 
 public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
 

@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeCost;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
@@ -64,6 +64,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
         public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
             throw new AssertionError("never called");
         }
+
         @Override
         public void reset(String reason) {
             throw new AssertionError("never called");

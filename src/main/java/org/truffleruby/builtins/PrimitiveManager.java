@@ -9,14 +9,14 @@
  */
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.dsl.NodeFactory;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.language.RubyNode;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.NodeFactory;
 
 /**
  * Manages the available primitive calls.

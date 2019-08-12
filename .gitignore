@@ -78,6 +78,7 @@ Info.plist
 /mx.truffleruby/eclipse-launches
 /mxbuild
 /TRUFFLERUBY*.dist
+/eclipseformat.backup.zip
 
 # ruby/spec
 /rubyspec_temp

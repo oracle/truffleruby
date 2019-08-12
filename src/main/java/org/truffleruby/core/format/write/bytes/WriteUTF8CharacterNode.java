@@ -45,22 +45,23 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.RangeException;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.UTF8Operations;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
 @NodeChild("value")
 public abstract class WriteUTF8CharacterNode extends FormatNode {
 
-    @Specialization(guards = {"value >= 0", "value <= 0x7f"})
+    @Specialization(guards = { "value >= 0", "value <= 0x7f" })
     public Object writeSingleByte(VirtualFrame frame, long value,
-                                  @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         writeByte(frame, (byte) value);
 
         if (rangeProfile.profile(UTF8Operations.isUTF8ValidOneByte((byte) value))) {
@@ -72,9 +73,9 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = {"value > 0x7f", "value <= 0x7ff"})
+    @Specialization(guards = { "value > 0x7f", "value <= 0x7ff" })
     public Object writeTwoBytes(VirtualFrame frame, long value,
-                                @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 6) & 0xff) | 0xc0),
                 (byte) ((value & 0x3f) | 0x80)
@@ -92,9 +93,9 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = {"value > 0x7ff", "value <= 0xffff"})
+    @Specialization(guards = { "value > 0x7ff", "value <= 0xffff" })
     public Object writeThreeBytes(VirtualFrame frame, long value,
-                                  @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 12) & 0xff) | 0xe0),
                 (byte) (((value >>> 6) & 0x3f) | 0x80),
@@ -113,9 +114,9 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = {"value > 0xffff", "value <= 0x1fffff"})
+    @Specialization(guards = { "value > 0xffff", "value <= 0x1fffff" })
     public Object writeFourBytes(VirtualFrame frame, long value,
-                                 @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 18) & 0xff) | 0xf0),
                 (byte) (((value >>> 12) & 0x3f) | 0x80),
@@ -135,9 +136,9 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = {"value > 0x1fffff", "value <= 0x3ffffff"})
+    @Specialization(guards = { "value > 0x1fffff", "value <= 0x3ffffff" })
     public Object writeFiveBytes(VirtualFrame frame, long value,
-                                 @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 24) & 0xff) | 0xf8),
                 (byte) (((value >>> 18) & 0x3f) | 0x80),
@@ -158,9 +159,9 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = {"value > 0x3ffffff", "value <= 0x7fffffff"})
+    @Specialization(guards = { "value > 0x3ffffff", "value <= 0x7fffffff" })
     public Object writeSixBytes(VirtualFrame frame, long value,
-                                @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 30) & 0xff) | 0xfc),
                 (byte) (((value >>> 24) & 0x3f) | 0x80),

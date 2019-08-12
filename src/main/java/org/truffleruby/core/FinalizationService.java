@@ -9,25 +9,19 @@
  */
 package org.truffleruby.core;
 
-import java.lang.ref.ReferenceQueue;
 import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Set;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.ReferenceProcessingService.PhantomProcessingReference;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.objects.ObjectGraphNode;
 
 /**
  * Finalizers are implemented with phantom references and reference queues, and are run in a
  * dedicated Ruby thread.
  */
-public class FinalizationService extends ReferenceProcessingService<FinalizationService.FinalizerReference> {
+public class FinalizationService extends ReferenceProcessingService<FinalizerReference> {
 
-    private static class Finalizer {
+    static class Finalizer {
 
         private final Class<?> owner;
         private final Runnable action;
@@ -49,52 +43,6 @@ public class FinalizationService extends ReferenceProcessingService<Finalization
 
         public DynamicObject getRoot() {
             return root;
-        }
-    }
-
-    public static class FinalizerReference extends PhantomProcessingReference<FinalizerReference, Object> implements ObjectGraphNode {
-
-        /**
-         * All accesses to this Deque must be synchronized by taking the
-         * {@link FinalizationService} monitor, to avoid concurrent access.
-         */
-        private final Deque<Finalizer> finalizers = new LinkedList<>();
-
-        private FinalizerReference(Object object, ReferenceQueue<? super Object> queue, FinalizationService service) {
-            super(object, queue, service);
-        }
-
-        private void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
-            finalizers.addLast(new Finalizer(owner, action, root));
-        }
-
-        private FinalizerReference removeFinalizers(FinalizationService finalizationService, Class<?> owner) {
-            finalizers.removeIf(f -> f.getOwner() == owner);
-
-            if (finalizers.isEmpty()) {
-                finalizationService.remove(this);
-                return null;
-            } else {
-                return this;
-            }
-        }
-
-        private Finalizer getFirstFinalizer() {
-            return finalizers.pollFirst();
-        }
-
-        private void collectRoots(Collection<DynamicObject> roots) {
-            for (Finalizer finalizer : finalizers) {
-                final DynamicObject root = finalizer.getRoot();
-                if (root != null) {
-                    roots.add(root);
-                }
-            }
-        }
-
-        @Override
-        public void getAdjacentObjects(Set<DynamicObject> reachable) {
-            collectRoots(reachable);
         }
     }
 

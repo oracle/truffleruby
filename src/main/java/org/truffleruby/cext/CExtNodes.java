@@ -9,35 +9,14 @@
  */
 package org.truffleruby.cext;
 
+import static org.truffleruby.core.string.StringOperations.rope;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -52,8 +31,8 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
+import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -106,7 +85,29 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
 
-import static org.truffleruby.core.string.StringOperations.rope;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
@@ -439,7 +440,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         public Object dbl2big(double num,
-                              @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile) {
             if (Double.isInfinite(num)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
@@ -460,7 +461,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rb_class_of(Object object,
-                                      @Cached MetaClassNode metaClassNode) {
+                @Cached MetaClassNode metaClassNode) {
             return metaClassNode.executeMetaClass(object);
         }
 
@@ -537,7 +538,7 @@ public class CExtNodes {
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
             final int codePoint = StringSupport.preciseCodePoint(enc, ropeCodeRange, bytes, 0, bytes.length);
 
-            return createArray(new Object[]{len_p, codePoint}, 2);
+            return createArray(new Object[]{ len_p, codePoint }, 2);
         }
 
     }
@@ -704,9 +705,9 @@ public class CExtNodes {
 
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
-        @Specialization(guards = {"isRubyModule(module)", "isRubySymbol(name)"})
+        @Specialization(guards = { "isRubyModule(module)", "isRubySymbol(name)" })
         public DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
-            return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{name});
+            return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
     }
@@ -758,7 +759,7 @@ public class CExtNodes {
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
-        public static SourceSection getTopUserSourceSection(String...  methodNames) {
+        public static SourceSection getTopUserSourceSection(String... methodNames) {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
 
@@ -775,7 +776,7 @@ public class CExtNodes {
             });
         }
 
-        private static boolean nameMatches(String name, String...methodNames) {
+        private static boolean nameMatches(String name, String... methodNames) {
             for (String methodName : methodNames) {
                 if (methodName.equals(name)) {
                     return true;
@@ -868,9 +869,8 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_call_super")
-                        || method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion")
-                        || method.getName().equals(/* Truffle::CExt. */ "rb_call_super_splatted")) {
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_call_super") || method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion") ||
+                        method.getName().equals(/* Truffle::CExt. */ "rb_call_super_splatted")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
                 } else {
@@ -900,8 +900,7 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func")
-                        || method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func") || method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
                 } else {
@@ -1013,8 +1012,8 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject toNative(DynamicObject string,
-                                      @Cached StringToNativeNode stringToNativeNode,
-                                      @Cached AllocateObjectNode allocateObjectNode) {
+                @Cached StringToNativeNode stringToNativeNode,
+                @Cached AllocateObjectNode allocateObjectNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return allocateObjectNode.allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
@@ -1051,7 +1050,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3, lowerFixnum = {2, 3})
+    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
     public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -1172,8 +1171,8 @@ public class CExtNodes {
 
         @Specialization
         public TruffleObject executeWithProtect(DynamicObject block,
-                                                @Cached BranchProfile exceptionProfile,
-                                                @Cached BranchProfile noExceptionProfile) {
+                @Cached BranchProfile exceptionProfile,
+                @Cached BranchProfile noExceptionProfile) {
             try {
                 yield(block);
                 noExceptionProfile.enter();

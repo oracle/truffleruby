@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class ConcatRope extends ManagedRope {
 

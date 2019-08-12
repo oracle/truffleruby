@@ -9,10 +9,10 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -29,9 +29,10 @@ import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 

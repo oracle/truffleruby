@@ -43,11 +43,11 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
     protected final ParseNode bodyNode;
 
     public MethodDefParseNode(SourceIndexLength position, String name, ArgsParseNode argsNode,
-                              StaticScope scope, ParseNode bodyNode) {
+            StaticScope scope, ParseNode bodyNode) {
         super(position);
 
         assert bodyNode != null : "bodyNode must not be null";
-            
+
         this.name = name;
         this.argsNode = argsNode;
         this.scope = scope;

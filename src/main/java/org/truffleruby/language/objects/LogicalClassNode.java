@@ -9,14 +9,15 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyBaseNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(ShapeCachingGuards.class)
 public abstract class LogicalClassNode extends RubyBaseNode {
@@ -52,12 +53,10 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return coreLibrary().getFloatClass();
     }
 
-    @Specialization(guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
     protected DynamicObject logicalClassCached(DynamicObject object,
-                                            @Cached("object.getShape()") Shape cachedShape,
-                                            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass) {
+            @Cached("object.getShape()") Shape cachedShape,
+            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass) {
         return logicalClass;
     }
 

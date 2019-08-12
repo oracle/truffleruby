@@ -45,17 +45,18 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.numeric.FixnumOrBignumNode;
-
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBERNode extends FormatNode {
@@ -120,7 +121,7 @@ public abstract class ReadBERNode extends FormatNode {
         public int getPos() {
             return pos;
         }
-        
+
     }
 
 }

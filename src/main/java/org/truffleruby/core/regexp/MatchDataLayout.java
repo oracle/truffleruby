@@ -21,18 +21,22 @@ import com.oracle.truffle.api.object.dsl.Nullable;
 public interface MatchDataLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createMatchDataShape(DynamicObject logicalClass,
-                                              DynamicObject metaClass);
+            DynamicObject metaClass);
 
     Object[] build(DynamicObject source, DynamicObject regexp, Region region, @Nullable Region charOffsets);
 
     boolean isMatchData(DynamicObject object);
+
     boolean isMatchData(Object object);
 
     DynamicObject getSource(DynamicObject object);
+
     DynamicObject getRegexp(DynamicObject object);
+
     Region getRegion(DynamicObject object);
 
     Region getCharOffsets(DynamicObject object);
+
     void setCharOffsets(DynamicObject object, Region value);
 
 }

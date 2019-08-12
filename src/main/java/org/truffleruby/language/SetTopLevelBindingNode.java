@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.module.ModuleFields;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.module.ModuleFields;
 
 public class SetTopLevelBindingNode extends RubyNode {
 

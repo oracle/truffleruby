@@ -9,18 +9,18 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.control.RaiseException;
 
 /**
  * Casts a value into an int.
@@ -51,7 +51,7 @@ public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
         throw new RaiseException(context, notAFixnum(context, value));
     }
 
-    @Specialization(guards = {"!isBasicInteger(value)"})
+    @Specialization(guards = { "!isBasicInteger(value)" })
     public int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));
@@ -59,8 +59,7 @@ public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
 
     @TruffleBoundary
     private DynamicObject notAFixnum(RubyContext context, Object object) {
-        return context.getCoreExceptions().
-                typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
+        return context.getCoreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
     }
 
 }

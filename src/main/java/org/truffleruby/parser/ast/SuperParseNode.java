@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,10 +31,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * A call to super(...) with arguments to a method.
@@ -46,7 +46,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
     public SuperParseNode(SourceIndexLength position, ParseNode argsNode) {
         this(position, argsNode, null);
     }
-    
+
     public SuperParseNode(SourceIndexLength position, ParseNode argsNode, ParseNode iterNode) {
         super(position);
         this.argsNode = argsNode;
@@ -74,10 +74,10 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
     public ParseNode getArgsNode() {
         return argsNode;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
-        return iterNode != null ? createList(argsNode, iterNode) : createList(argsNode); 
+        return iterNode != null ? createList(argsNode, iterNode) : createList(argsNode);
     }
 
     public ParseNode getIterNode() {
@@ -86,7 +86,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
 
     public ParseNode setIterNode(ParseNode iterNode) {
         this.iterNode = iterNode;
-        
+
         return this;
     }
 }

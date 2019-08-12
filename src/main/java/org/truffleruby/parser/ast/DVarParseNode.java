@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004-2006 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,11 +31,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * Access a dynamic variable (e.g. block scope local variable).
@@ -43,7 +43,7 @@ import java.util.List;
 public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
-    
+
     // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
     // is what index in the right scope to set the value.
     private int location;
@@ -58,7 +58,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public NodeType getNodeType() {
         return NodeType.DVARNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -67,20 +67,20 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDVarNode(this);
     }
-    
+
     /**
      * How many scopes should we burrow down to until we need to set the block variable value.
-     * 
+     *
      * @return 0 for current scope, 1 for one down, ...
      */
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
-     * 
+     *
      * @return Returns an int offset into storage structure
      */
     public int getIndex() {
@@ -94,7 +94,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public String getName() {
         return name;
     }
-    
+
     /**
      * Sets the name of this variable (for refactoring support)
      * @param name to set the variable to
@@ -102,7 +102,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     public void setName(String name) {
         this.name = name;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;

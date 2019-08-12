@@ -9,9 +9,9 @@
  */
 package org.truffleruby.shared.options;
 
-import org.graalvm.options.OptionType;
-
 import java.util.Locale;
+
+import org.graalvm.options.OptionType;
 
 public class EnumOptionType {
 

@@ -9,13 +9,13 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
@@ -25,17 +25,17 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
-    @Specialization(guards = {"isRubyString(string)", "isFrozen(string)"})
+    @Specialization(guards = { "isRubyString(string)", "isFrozen(string)" })
     Object alreadyFrozen(DynamicObject string, boolean compareByIdentity) {
         return string;
     }
 
-    @Specialization(guards = {"isRubyString(string)", "!isFrozen(string)", "!compareByIdentity"})
+    @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "!compareByIdentity" })
     Object dupAndFreeze(DynamicObject string, boolean compareByIdentity) {
         return freeze(dup(string));
     }
 
-    @Specialization(guards = {"isRubyString(string)", "!isFrozen(string)", "compareByIdentity"})
+    @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "compareByIdentity" })
     Object compareByIdentity(DynamicObject string, boolean compareByIdentity) {
         return string;
     }

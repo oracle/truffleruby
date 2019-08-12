@@ -9,11 +9,8 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.TruffleLanguage;
-import org.junit.Test;
-import org.truffleruby.RubyTest;
-import org.truffleruby.shared.TruffleRuby;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -24,11 +21,14 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import org.graalvm.polyglot.Source;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import org.graalvm.polyglot.Source;
+import org.junit.Test;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.shared.TruffleRuby;
+
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.TruffleLanguage;
 
 public class RubyFileTypeDetectorTest extends RubyTest {
 

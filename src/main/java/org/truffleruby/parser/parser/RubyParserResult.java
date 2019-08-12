@@ -16,7 +16,7 @@
  * Copyright (C) 2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,12 +31,12 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
-import org.truffleruby.parser.ast.ParseNode;
-import org.truffleruby.parser.ast.PreExeParseNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.PreExeParseNode;
 
 /**
  */
@@ -44,7 +44,7 @@ public class RubyParserResult {
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;
-    
+
     public ParseNode getAST() {
         return ast;
     }
@@ -56,14 +56,14 @@ public class RubyParserResult {
     public void setAST(ParseNode ast) {
         this.ast = ast;
     }
-    
+
     public void addBeginNode(PreExeParseNode node) {
         if (beginNodes == null) {
             beginNodes = new ArrayList<>();
         }
         beginNodes.add(node);
     }
-    
+
     public List<ParseNode> getBeginNodes() {
         return beginNodes == null ? Collections.emptyList() : beginNodes;
     }

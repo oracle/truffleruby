@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.arguments.RubyArguments;
+
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.arguments.RubyArguments;
 
 public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
 

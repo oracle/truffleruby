@@ -9,11 +9,11 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.language.RubyBaseWithoutContextNode;
+
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 @GenerateUncached
 public abstract class IsStringLikeNode extends RubyBaseWithoutContextNode {

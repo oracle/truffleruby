@@ -9,11 +9,12 @@
  */
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.yield.YieldNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 

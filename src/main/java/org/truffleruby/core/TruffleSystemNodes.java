@@ -38,12 +38,9 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.util.Set;
+import java.util.logging.Level;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -64,8 +61,12 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
-import java.util.Set;
-import java.util.logging.Level;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -96,9 +97,9 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject javaGetEnv(DynamicObject name,
-                                        @Cached ToJavaStringNode toJavaStringNode,
-                                        @Cached FromJavaStringNode fromJavaStringNode,
-                                        @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
             final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);
 
@@ -172,10 +173,10 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", isModuleFunction = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel"})
+        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
         public Object logCached(DynamicObject level, DynamicObject message,
-                        @Cached("level") DynamicObject cachedLevel,
-                        @Cached("getLevel(cachedLevel)") Level javaLevel) {
+                @Cached("level") DynamicObject cachedLevel,
+                @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
             return nil();
         }
@@ -213,7 +214,7 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "isRubyString(name)")
         protected DynamicObject setProcessTitle(DynamicObject name) {
             if (TruffleOptions.AOT) {
-                Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", StringOperations.getString(name) });
+                Compiler.command(new Object[]{ "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", StringOperations.getString(name) });
             } else {
                 throw new UnsupportedOperationException();
             }

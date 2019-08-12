@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.mutex;
 
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 @Layout
 public interface MutexLayout extends BasicObjectLayout {

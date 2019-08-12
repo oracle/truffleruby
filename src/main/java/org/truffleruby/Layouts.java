@@ -9,8 +9,6 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.object.HiddenKey;
-
 import org.truffleruby.core.HandleLayout;
 import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
@@ -65,15 +63,14 @@ import org.truffleruby.core.regexp.MatchDataLayout;
 import org.truffleruby.core.regexp.MatchDataLayoutImpl;
 import org.truffleruby.core.regexp.RegexpLayout;
 import org.truffleruby.core.regexp.RegexpLayoutImpl;
-import org.truffleruby.extra.AtomicReferenceLayout;
+import org.truffleruby.core.string.StringLayout;
+import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.support.ByteArrayLayout;
 import org.truffleruby.core.support.ByteArrayLayoutImpl;
 import org.truffleruby.core.support.IOLayout;
 import org.truffleruby.core.support.IOLayoutImpl;
 import org.truffleruby.core.support.RandomizerLayout;
 import org.truffleruby.core.support.RandomizerLayoutImpl;
-import org.truffleruby.core.string.StringLayout;
-import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.symbol.SymbolLayout;
 import org.truffleruby.core.symbol.SymbolLayoutImpl;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
@@ -84,6 +81,7 @@ import org.truffleruby.core.time.TimeLayout;
 import org.truffleruby.core.time.TimeLayoutImpl;
 import org.truffleruby.core.tracepoint.TracePointLayout;
 import org.truffleruby.core.tracepoint.TracePointLayoutImpl;
+import org.truffleruby.extra.AtomicReferenceLayout;
 import org.truffleruby.extra.AtomicReferenceLayoutImpl;
 import org.truffleruby.extra.ffi.PointerLayout;
 import org.truffleruby.extra.ffi.PointerLayoutImpl;
@@ -91,6 +89,8 @@ import org.truffleruby.stdlib.bigdecimal.BigDecimalLayout;
 import org.truffleruby.stdlib.bigdecimal.BigDecimalLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
+
+import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 

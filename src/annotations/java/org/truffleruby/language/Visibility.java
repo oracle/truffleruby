@@ -26,14 +26,17 @@
 package org.truffleruby.language;
 
 public enum Visibility {
-    PUBLIC, PROTECTED, PRIVATE, MODULE_FUNCTION;
+    PUBLIC,
+    PROTECTED,
+    PRIVATE,
+    MODULE_FUNCTION;
 
     private static final Visibility[] VALUES = values();
 
     public boolean isPublic() {
         return this == PUBLIC;
     }
-    
+
     public boolean isProtected() {
         return this == PROTECTED;
     }

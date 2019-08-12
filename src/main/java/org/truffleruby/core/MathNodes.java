@@ -37,11 +37,6 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -52,6 +47,12 @@ import org.truffleruby.core.cast.ToFNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreClass("Math")
 public abstract class MathNodes {
@@ -310,7 +311,7 @@ public abstract class MathNodes {
                 }
             }
 
-            return createArray(new Object[] { sign * mantissa, exponent }, 2);
+            return createArray(new Object[]{ sign * mantissa, exponent }, 2);
         }
 
         @Fallback
@@ -424,7 +425,7 @@ public abstract class MathNodes {
 
             final NemesLogGamma l = new NemesLogGamma(a);
 
-            return createArray(new Object[] { l.value, l.sign }, 2);
+            return createArray(new Object[]{ l.value, l.sign }, 2);
         }
 
         @Fallback
@@ -464,7 +465,7 @@ public abstract class MathNodes {
 
         @Specialization
         public double function(Object a, NotProvided b,
-                        @Cached ToFNode toFNode) {
+                @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
@@ -684,7 +685,7 @@ public abstract class MathNodes {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), b);
         }
 
-        @Specialization(guards = {"isRubyBignum(a)", "isRubyBignum(b)"})
+        @Specialization(guards = { "isRubyBignum(a)", "isRubyBignum(b)" })
         public double function(DynamicObject a, DynamicObject b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), Layouts.BIGNUM.getValue(b).doubleValue());
         }
@@ -850,7 +851,7 @@ public abstract class MathNodes {
     };
 
     public static double chebylevSerie(double x, double coef[]) {
-        double  b0, b1, b2, twox;
+        double b0, b1, b2, twox;
         int i;
         b1 = 0.0;
         b0 = 0.0;
@@ -885,12 +886,14 @@ public abstract class MathNodes {
 
         public NemesLogGamma(double x) {
             if (Double.isInfinite(x)) {
-                value = Double.POSITIVE_INFINITY; sign = 1;
+                value = Double.POSITIVE_INFINITY;
+                sign = 1;
                 return;
             }
 
             if (Double.isNaN(x)) {
-                value = Double.NaN; sign = 1;
+                value = Double.NaN;
+                sign = 1;
                 return;
             }
 
@@ -927,52 +930,52 @@ public abstract class MathNodes {
     }
 
     private static final double FACTORIAL[] = {
-        /*  0! */ 1.0,
-        /*  1! */ 1.0,
-        /*  2! */ 2.0,
-        /*  3! */ 6.0,
-        /*  4! */ 24.0,
-        /*  5! */ 120.0,
-        /*  6! */ 720.0,
-        /*  7! */ 5040.0,
-        /*  8! */ 40320.0,
-        /*  9! */ 362880.0,
-        /* 10! */ 3628800.0,
-        /* 11! */ 39916800.0,
-        /* 12! */ 479001600.0,
-        /* 13! */ 6227020800.0,
-        /* 14! */ 87178291200.0,
-        /* 15! */ 1307674368000.0,
-        /* 16! */ 20922789888000.0,
-        /* 17! */ 355687428096000.0,
-        /* 18! */ 6402373705728000.0,
-        /* 19! */ 121645100408832000.0,
-        /* 20! */ 2432902008176640000.0,
-        /* 21! */ 51090942171709440000.0,
-        /* 22! */ 1124000727777607680000.0
+            /*  0! */ 1.0,
+            /*  1! */ 1.0,
+            /*  2! */ 2.0,
+            /*  3! */ 6.0,
+            /*  4! */ 24.0,
+            /*  5! */ 120.0,
+            /*  6! */ 720.0,
+            /*  7! */ 5040.0,
+            /*  8! */ 40320.0,
+            /*  9! */ 362880.0,
+            /* 10! */ 3628800.0,
+            /* 11! */ 39916800.0,
+            /* 12! */ 479001600.0,
+            /* 13! */ 6227020800.0,
+            /* 14! */ 87178291200.0,
+            /* 15! */ 1307674368000.0,
+            /* 16! */ 20922789888000.0,
+            /* 17! */ 355687428096000.0,
+            /* 18! */ 6402373705728000.0,
+            /* 19! */ 121645100408832000.0,
+            /* 20! */ 2432902008176640000.0,
+            /* 21! */ 51090942171709440000.0,
+            /* 22! */ 1124000727777607680000.0
     };
 
     private static final double NEMES_GAMMA_COEFF[] = {
             1.00000000000000000000000000000000000,
-            0                                    ,
+            0,
             0.08333333333333333333333333333333333,
-            0                                    ,
+            0,
             0.00069444444444444444444444444444444,
-            0                                    ,
+            0,
             0.00065861992945326278659611992945326,
-            0                                    ,
+            0,
             -0.00053287817827748383303938859494415,
-            0                                    ,
+            0,
             0.00079278588700608376534302460228386,
-            0                                    ,
+            0,
             -0.00184758189322033028400606295961969,
-            0                                    ,
+            0,
             0.00625067824784941846328836824623616,
-            0                                    ,
+            0,
             -0.02901710246301150993444701506844402,
-            0                                    ,
+            0,
             0.17718457242491308890302832366796470,
-            0                                    ,
+            0,
             -1.37747681703993534399676348903067470
     };
 

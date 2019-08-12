@@ -37,14 +37,15 @@
  */
 package org.truffleruby.platform;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class DefaultNativeConfiguration {
 

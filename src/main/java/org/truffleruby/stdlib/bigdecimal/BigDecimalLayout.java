@@ -9,12 +9,13 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import java.math.BigDecimal;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.math.BigDecimal;
 
 @Layout
 public interface BigDecimalLayout extends BasicObjectLayout {

@@ -9,17 +9,8 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
+import java.io.IOException;
+
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -32,7 +23,17 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
-import java.io.IOException;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 
 @CoreClass("Polyglot")
 public abstract class PolyglotNodes {
@@ -55,12 +56,11 @@ public abstract class PolyglotNodes {
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(id, source))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode idEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode
-        ) {
+                @Cached RopeNodes.EqualNode sourceEqualNode) {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
-        @Specialization(guards = {"isRubyString(id)", "isRubyString(source)"}, replaces = "evalCached")
+        @Specialization(guards = { "isRubyString(id)", "isRubyString(source)" }, replaces = "evalCached")
         public Object evalUncached(DynamicObject id, DynamicObject source,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(id, source), RubyNode.EMPTY_ARGUMENTS);

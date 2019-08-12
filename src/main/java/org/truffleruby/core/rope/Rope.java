@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.rope;
 
+import java.util.Arrays;
+
 import org.jcodings.Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
-import java.util.Arrays;
 
 public abstract class Rope {
 

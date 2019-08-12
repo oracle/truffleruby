@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.adapters;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.io.InputStream;
+
 import org.truffleruby.RubyContext;
 
-import java.io.InputStream;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class InputStreamAdapter extends InputStream {
 

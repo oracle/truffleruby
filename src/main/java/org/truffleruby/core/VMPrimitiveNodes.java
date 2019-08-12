@@ -37,17 +37,9 @@
  */
 package org.truffleruby.core;
 
+import java.io.PrintStream;
 import java.util.Map.Entry;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -77,7 +69,15 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
 
-import java.io.PrintStream;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -484,10 +484,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(salt)")
         public Object startHashNotNumber(Object salt,
-                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
@@ -518,10 +518,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(value)")
         public Object updateHash(long hash, Object value,
-                                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
+                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);

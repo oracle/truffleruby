@@ -9,6 +9,12 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.MetaClassNode;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
@@ -16,11 +22,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.MetaClassNode;
 
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
@@ -57,8 +58,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          * method, and possibly to modify the arguments. In both cases, but especially the latter,
          * it makes a lot of sense to manually clone the call target and to inline it.
          */
-        if (callNode.isCallTargetCloningAllowed()
-                && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
+        if (callNode.isCallTargetCloningAllowed() && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
             callNode.cloneCallTarget();
         }

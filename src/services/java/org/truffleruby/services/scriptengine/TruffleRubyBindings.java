@@ -9,11 +9,12 @@
  */
 package org.truffleruby.services.scriptengine;
 
-import javax.script.Bindings;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import javax.script.Bindings;
 
 public class TruffleRubyBindings implements Bindings {
 

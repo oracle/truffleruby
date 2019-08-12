@@ -9,9 +9,9 @@
  */
 package org.truffleruby.stdlib.digest;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
@@ -27,8 +27,9 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("Truffle::Digest")
 public abstract class DigestNodes {
@@ -208,9 +209,9 @@ public abstract class DigestNodes {
          * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          */
         public static ByteArrayBuilder bubblebabble(byte[] message, int begin, int length) {
-            char[] vowels = new char[]{'a', 'e', 'i', 'o', 'u', 'y'};
-            char[] consonants = new char[]{'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
-                    'n', 'p', 'r', 's', 't', 'v', 'z', 'x'};
+            char[] vowels = new char[]{ 'a', 'e', 'i', 'o', 'u', 'y' };
+            char[] consonants = new char[]{ 'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
+                    'n', 'p', 'r', 's', 't', 'v', 'z', 'x' };
 
             long seed = 1;
 
@@ -238,7 +239,8 @@ public abstract class DigestNodes {
                         retval.append(consonants[idx4]);
                         seed = ((seed * 5) +
                                 ((b * 7) +
-                                        b2)) % 36;
+                                        b2)) %
+                                36;
                     }
                 } else {
                     idx0 = (int) (seed % 6) & 0xFFFFFFFF;

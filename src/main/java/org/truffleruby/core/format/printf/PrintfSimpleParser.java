@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.format.printf;
 
-import org.truffleruby.core.format.exceptions.InvalidFormatException;
-import org.truffleruby.language.RubyGuards;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.language.RubyGuards;
 
 public class PrintfSimpleParser {
 
@@ -196,7 +196,7 @@ public class PrintfSimpleParser {
                             throw new InvalidFormatException("invalid format character - %");
                         }
                         config.setLiteral(true);
-                        byte[] literal = {(byte) '%'};
+                        byte[] literal = { (byte) '%' };
                         config.setLiteralBytes(literal);
                         i++;
                         finished = true;
@@ -265,7 +265,7 @@ public class PrintfSimpleParser {
             }
         }
         if ((argType == ArgType.UNNUMBERED || argType == ArgType.NONE) &&
-            arguments.length > argCount) {
+                arguments.length > argCount) {
             if (isDebug) {
                 throw new InvalidFormatException("too many arguments for format string");
             }
@@ -276,7 +276,7 @@ public class PrintfSimpleParser {
 
     private static void checkHash(Object[] arguments) {
         if (arguments.length != 1 ||
-            !RubyGuards.isRubyHash(arguments[0])) {
+                !RubyGuards.isRubyHash(arguments[0])) {
             throw new InvalidFormatException("one hash required");
         }
     }

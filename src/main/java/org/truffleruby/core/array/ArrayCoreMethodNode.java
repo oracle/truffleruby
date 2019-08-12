@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.ImportStatic;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+
+import com.oracle.truffle.api.dsl.ImportStatic;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayCoreMethodNode extends CoreMethodArrayArgumentsNode {

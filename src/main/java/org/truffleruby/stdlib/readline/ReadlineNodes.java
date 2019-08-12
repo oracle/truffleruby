@@ -40,16 +40,11 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.io.IOException;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
-import jline.console.ConsoleReader;
-import jline.console.CursorBuffer;
-import jline.console.completer.Completer;
-import jline.console.completer.FileNameCompleter;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
@@ -62,23 +57,29 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
-import org.truffleruby.interop.ToJavaStringNodeGen;
-import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.interop.ToJavaStringNodeGen;
+import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
 
-import java.io.IOException;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+
+import jline.console.ConsoleReader;
+import jline.console.CursorBuffer;
+import jline.console.completer.Completer;
+import jline.console.completer.FileNameCompleter;
 
 @CoreClass("Truffle::Readline")
 public abstract class ReadlineNodes {
@@ -99,7 +100,8 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "characters", type = RubyNode.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
-        @CreateCast("characters") public RubyNode coerceCharactersToString(RubyNode characters) {
+        @CreateCast("characters")
+        public RubyNode coerceCharactersToString(RubyNode characters) {
             return ToStrNodeGen.create(characters);
         }
 
@@ -150,11 +152,13 @@ public abstract class ReadlineNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
-        @CreateCast("prompt") public RubyNode coercePromptToJavaString(RubyNode prompt) {
+        @CreateCast("prompt")
+        public RubyNode coercePromptToJavaString(RubyNode prompt) {
             return ToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
         }
 
-        @CreateCast("addToHistory") public RubyNode coerceToBoolean(RubyNode addToHistory) {
+        @CreateCast("addToHistory")
+        public RubyNode coerceToBoolean(RubyNode addToHistory) {
             return BooleanCastWithDefaultNodeGen.create(false, addToHistory);
         }
 
@@ -215,7 +219,8 @@ public abstract class ReadlineNodes {
     @NodeChild(value = "text", type = RubyNode.class)
     public abstract static class InsertTextNode extends CoreMethodNode {
 
-        @CreateCast("text") public RubyNode coerceTextToString(RubyNode text) {
+        @CreateCast("text")
+        public RubyNode coerceTextToString(RubyNode text) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(text);
         }
 
@@ -315,7 +320,7 @@ public abstract class ReadlineNodes {
     private static class ProcCompleter implements Completer {
 
         //\t\n\"\\'`@$><=;|&{(
-        static private String[] delimiters = {" ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "("};
+        static private String[] delimiters = { " ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "(" };
 
         private final RubyContext context;
         private final DynamicObject proc;

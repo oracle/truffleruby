@@ -9,12 +9,6 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
@@ -23,6 +17,13 @@ import org.truffleruby.core.array.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
  * Share the internal fields of an object, accessible by its Layout
@@ -40,9 +41,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     public abstract void executeShare(DynamicObject object);
 
-    @Specialization(
-            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isObjectArray(array)"},
-            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedObjectArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
@@ -53,12 +52,11 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(
-            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isDelegatedObjectArray(array)"},
-            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)",
+            "isDelegatedObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedDelegatedArray(DynamicObject array,
-                                          @Cached("array.getShape()") Shape cachedShape,
-                                          @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
+            @Cached("array.getShape()") Shape cachedShape,
+            @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
         final DelegatedArrayStorage delegated = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
         final Object[] store = (Object[]) delegated.storage;
         for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
@@ -66,18 +64,15 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(
-            guards = {"array.getShape() == cachedShape", "isArrayShape(cachedShape)", "!isObjectArray(array)", "!isDelegatedObjectArray(array)"},
-            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "!isObjectArray(array)",
+            "!isDelegatedObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedOtherArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape) {
         /* null, int[], long[] or double[] storage */
         assert ArrayOperations.isPrimitiveStorage(array);
     }
 
-    @Specialization(
-            guards = { "object.getShape() == cachedShape", "isQueueShape(cachedShape)" },
-            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(guards = { "object.getShape() == cachedShape", "isQueueShape(cachedShape)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedQueue(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createBinaryProfile()") ConditionProfile profileEmpty,
@@ -90,9 +85,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(
-            guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)" },
-            assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void shareCachedBasicObject(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape) {
         /* No internal fields */

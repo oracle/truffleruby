@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class AliasGlobalVarNode extends RubyNode {
 

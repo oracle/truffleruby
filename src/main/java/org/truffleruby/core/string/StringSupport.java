@@ -25,7 +25,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+
+import java.util.Arrays;
+
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -40,12 +46,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 
-import java.util.Arrays;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public final class StringSupport {
     public static final int TRANS_SIZE = 256;
@@ -136,7 +137,7 @@ public final class StringSupport {
      *
      * Corresponding MRI method: rb_enc_mbclen
      */
-    public static int length(Encoding enc, byte[]bytes, int p, int end) {
+    public static int length(Encoding enc, byte[] bytes, int p, int end) {
         int n = encLength(enc, bytes, p, end);
         if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) {
             return MBCLEN_CHARFOUND_LEN(n);
@@ -158,7 +159,7 @@ public final class StringSupport {
      *
      * Corresponding MRI method: rb_enc_precise_mbclen
      */
-    private static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
+    private static int preciseLength(Encoding enc, byte[] bytes, int p, int end) {
         if (p >= end) {
             return MBCLEN_NEEDMORE(1);
         }
@@ -200,7 +201,7 @@ public final class StringSupport {
     }
 
     // MRI: search_nonascii
-    public static int searchNonAscii(byte[]bytes, int p, int end) {
+    public static int searchNonAscii(byte[] bytes, int p, int end) {
         while (p < end) {
             if (!Encoding.isAscii(bytes[p])) {
                 return p;
@@ -211,13 +212,13 @@ public final class StringSupport {
     }
 
     // MRI: rb_enc_strlen
-    public static int strLength(Encoding enc, byte[]bytes, int p, int end) {
+    public static int strLength(Encoding enc, byte[] bytes, int p, int end) {
         return strLength(enc, bytes, p, end, CR_UNKNOWN);
     }
 
     // MRI: enc_strlen
     @TruffleBoundary
-    public static int strLength(Encoding enc, byte[]bytes, int p, int e, CodeRange cr) {
+    public static int strLength(Encoding enc, byte[] bytes, int p, int e, CodeRange cr) {
         int c;
         if (enc.isFixedWidth()) {
             return (e - p + enc.minLength() - 1) / enc.minLength();
@@ -259,7 +260,7 @@ public final class StringSupport {
         return c;
     }
 
-    public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
+    public static StringAttributes strLengthWithCodeRangeAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
         int c = 0;
         while (p < end) {
@@ -286,7 +287,7 @@ public final class StringSupport {
         return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
-    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[]bytes, int p, int end) {
+    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
         CodeRange cr = CR_UNKNOWN;
         int c;
         for (c = 0; p < end; c++) {
@@ -323,7 +324,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[]bytes, int p, int end) {
+    public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
         int l = characterLength(enc, codeRange, bytes, p, end);
         if (l > 0) {
             return enc.mbcToCode(bytes, p, end);
@@ -335,7 +336,7 @@ public final class StringSupport {
         return charEnd == -1 ? end - start : Math.min(end, charEnd) - start;
     }
 
-    public static int caseCmp(byte[]bytes1, int p1, byte[]bytes2, int p2, int len) {
+    public static int caseCmp(byte[] bytes1, int p1, byte[] bytes2, int p2, int len) {
         int i = -1;
         for (; ++i < len && bytes1[p1 + i] == bytes2[p2 + i];) {
         }
@@ -345,12 +346,12 @@ public final class StringSupport {
         return 0;
     }
 
-    public static int scanHex(byte[]bytes, int p, int len) {
+    public static int scanHex(byte[] bytes, int p, int len) {
         return scanHex(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
-    public static int scanHex(byte[]bytes, int p, int len, Encoding enc) {
+    public static int scanHex(byte[] bytes, int p, int len, Encoding enc) {
         int v = 0;
         int c;
         while (len-- > 0 && enc.isXDigit(c = bytes[p++] & 0xff)) {
@@ -359,12 +360,12 @@ public final class StringSupport {
         return v;
     }
 
-    public static int hexLength(byte[]bytes, int p, int len) {
+    public static int hexLength(byte[] bytes, int p, int len) {
         return hexLength(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
-    public static int hexLength(byte[]bytes, int p, int len, Encoding enc) {
+    public static int hexLength(byte[] bytes, int p, int len, Encoding enc) {
         int hlen = 0;
         while (len-- > 0 && enc.isXDigit(bytes[p++] & 0xff)) {
             hlen++;
@@ -372,12 +373,12 @@ public final class StringSupport {
         return hlen;
     }
 
-    public static int scanOct(byte[]bytes, int p, int len) {
+    public static int scanOct(byte[] bytes, int p, int len) {
         return scanOct(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
-    public static int scanOct(byte[]bytes, int p, int len, Encoding enc) {
+    public static int scanOct(byte[] bytes, int p, int len, Encoding enc) {
         int v = 0;
         int c;
         while (len-- > 0 && enc.isDigit(c = bytes[p++] & 0xff) && c < '8') {
@@ -386,12 +387,12 @@ public final class StringSupport {
         return v;
     }
 
-    public static int octLength(byte[]bytes, int p, int len) {
+    public static int octLength(byte[] bytes, int p, int len) {
         return octLength(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
-    public static int octLength(byte[]bytes, int p, int len, Encoding enc) {
+    public static int octLength(byte[] bytes, int p, int len, Encoding enc) {
         int olen = 0;
         int c;
         while (len-- > 0 && enc.isDigit(c = bytes[p++] & 0xff) && c < '8') {
@@ -480,8 +481,8 @@ public final class StringSupport {
     private static final Object DUMMY_VALUE = "";
 
     public static TrTables trSetupTable(final Rope str,
-                                        final boolean[] stable, TrTables tables, final boolean first, final Encoding enc) {
-        int i, l[] = {0};
+            final boolean[] stable, TrTables tables, final boolean first, final Encoding enc) {
+        int i, l[] = { 0 };
         final boolean cflag;
 
         final TR tr = new TR(str);
@@ -574,7 +575,7 @@ public final class StringSupport {
 
         if (del != null) {
             if (del.get(c) != null &&
-                (noDel == null || noDel.get(c) == null)) {
+                    (noDel == null || noDel.get(c) == null)) {
                 return true;
             }
         } else if (noDel != null && noDel.get(c) != null) {
@@ -606,7 +607,7 @@ public final class StringSupport {
     }
 
     private static int trNext_nextpart(final TR tr, Encoding enc, CodeRange codeRange) {
-        final int[] n = {0};
+        final int[] n = { 0 };
 
         if (tr.p == tr.pend) {
             return -1;
@@ -623,8 +624,7 @@ public final class StringSupport {
                 tr.p += n[0];
                 if (tr.now > c) {
                     if (tr.now < 0x80 && c < 0x80) {
-                        throw new IllegalArgumentException("invalid range \""
-                                + (char) tr.now + '-' + (char) c + "\" in string transliteration");
+                        throw new IllegalArgumentException("invalid range \"" + (char) tr.now + '-' + (char) c + "\" in string transliteration");
                     }
 
                     throw new IllegalArgumentException("invalid range in string transliteration");
@@ -636,7 +636,11 @@ public final class StringSupport {
         return tr.now;
     }
 
-    public enum NeighborChar {NOT_CHAR, FOUND, WRAPPED}
+    public enum NeighborChar {
+        NOT_CHAR,
+        FOUND,
+        WRAPPED
+    }
 
     // MRI: str_succ
     @TruffleBoundary
@@ -651,7 +655,7 @@ public final class StringSupport {
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
-        byte[]bytes = valueCopy.getUnsafeBytes();
+        byte[] bytes = valueCopy.getUnsafeBytes();
 
         NeighborChar neighbor = NeighborChar.FOUND;
         int lastAlnum = -1;
@@ -659,10 +663,7 @@ public final class StringSupport {
         while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
             if (neighbor == NeighborChar.NOT_CHAR && lastAlnum != -1) {
                 ASCIIEncoding ascii = ASCIIEncoding.INSTANCE;
-                if (ascii.isAlpha(bytes[lastAlnum] & 0xff) ?
-                        ascii.isDigit(bytes[s] & 0xff) :
-                        ascii.isDigit(bytes[lastAlnum] & 0xff) ?
-                                ascii.isAlpha(bytes[s] & 0xff) : false) {
+                if (ascii.isAlpha(bytes[lastAlnum] & 0xff) ? ascii.isDigit(bytes[s] & 0xff) : ascii.isDigit(bytes[lastAlnum] & 0xff) ? ascii.isAlpha(bytes[s] & 0xff) : false) {
                     s = lastAlnum;
                     break;
                 }
@@ -673,9 +674,12 @@ public final class StringSupport {
                 continue;
             }
             switch (neighbor = succAlnumChar(enc, bytes, s, cl, carry, 0)) {
-                case NOT_CHAR: continue;
-                case FOUND:    return valueCopy;
-                case WRAPPED:  lastAlnum = s;
+                case NOT_CHAR:
+                    continue;
+                case FOUND:
+                    return valueCopy;
+                case WRAPPED:
+                    lastAlnum = s;
             }
             alnumSeen = true;
             carryP = s - p;
@@ -773,7 +777,7 @@ public final class StringSupport {
     }
 
     // MRI: enc_succ_alnum_char
-    private static NeighborChar succAlnumChar(Encoding enc, byte[]bytes, int p, int len, byte[]carry, int carryP) {
+    private static NeighborChar succAlnumChar(Encoding enc, byte[] bytes, int p, int len, byte[] carry, int carryP) {
         byte save[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int c = enc.mbcToCode(bytes, p, p + len);
 
@@ -828,7 +832,7 @@ public final class StringSupport {
         return NeighborChar.WRAPPED;
     }
 
-    private static NeighborChar predChar(Encoding enc, byte[]bytes, int p, int len) {
+    private static NeighborChar predChar(Encoding enc, byte[] bytes, int p, int len) {
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
@@ -899,7 +903,7 @@ public final class StringSupport {
         int s = 0;
         int t = s;
         int send = s + rubyString.byteLength();
-        byte[]bytes = rubyString.getBytesCopy();
+        byte[] bytes = rubyString.getBytesCopy();
         boolean modify = false;
         boolean asciiCompatible = enc.isAsciiCompatible();
         CodeRange cr = asciiCompatible ? CR_7BIT : CR_VALID;
@@ -957,7 +961,7 @@ public final class StringSupport {
 
         final StringSupport.TR trSrc = new StringSupport.TR(srcStr);
         boolean cflag = false;
-        int[] l = {0};
+        int[] l = { 0 };
 
         if (srcStr.byteLength() > 1 &&
                 EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
@@ -967,7 +971,7 @@ public final class StringSupport {
         }
 
         int c, c0, last = 0;
-        final int[]trans = new int[StringSupport.TRANS_SIZE];
+        final int[] trans = new int[StringSupport.TRANS_SIZE];
         final StringSupport.TR trRepl = new StringSupport.TR(replStr);
         boolean modify = false;
         IntHash<Integer> hash = null;
@@ -1154,12 +1158,12 @@ public final class StringSupport {
                     buf = Arrays.copyOf(buf, max);
                 }
                 // headius: I don't see how s and t could ever be the same, since they refer to different buffers
-//                if (s != t) {
+                //                if (s != t) {
                 enc.codeToMbc(c, buf, t);
                 if (mayModify && ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0) {
                     modify = true;
                 }
-//                }
+                //                }
 
                 cr = CHECK_IF_ASCII(c, cr);
                 s += clen;
@@ -1176,7 +1180,7 @@ public final class StringSupport {
         return null;
     }
 
-    private static int trCode(int c, int[]trans, IntHash<Integer> hash, boolean cflag, int last, boolean set) {
+    private static int trCode(int c, int[] trans, IntHash<Integer> hash, boolean cflag, int last, boolean set) {
         if (c < StringSupport.TRANS_SIZE) {
             return trans[c];
         } else if (hash != null) {
@@ -1193,11 +1197,11 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static int multiByteCasecmp(Encoding enc, Rope value, Rope otherValue) {
-        byte[]bytes = value.getBytes();
+        byte[] bytes = value.getBytes();
         int p = 0;
         int end = value.byteLength();
 
-        byte[]obytes = otherValue.getBytes();
+        byte[] obytes = otherValue.getBytes();
         int op = 0;
         int oend = otherValue.byteLength();
 
@@ -1268,7 +1272,7 @@ public final class StringSupport {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
-        byte[]bytes = value.getUnsafeBytes();
+        byte[] bytes = value.getUnsafeBytes();
         int save = -1;
         int c;
 

@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.format.control;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.OutsideOfStringException;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReverseOutputPositionNode extends FormatNode {
 

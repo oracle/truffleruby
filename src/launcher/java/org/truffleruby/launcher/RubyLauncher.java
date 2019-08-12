@@ -9,18 +9,6 @@
  */
 package org.truffleruby.launcher;
 
-import org.graalvm.launcher.AbstractLanguageLauncher;
-import org.graalvm.nativeimage.ProcessProperties;
-import org.graalvm.options.OptionCategory;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.Metrics;
-
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,6 +17,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.nativeimage.ProcessProperties;
+import org.graalvm.options.OptionCategory;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 public class RubyLauncher extends AbstractLanguageLauncher {
 

@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.Set;
+
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public final class DelegatedArrayStorage implements ObjectGraphNode {
 

@@ -9,9 +9,9 @@
  */
 package org.truffleruby.collections;
 
-import com.oracle.truffle.api.CompilerDirectives;
-
 import java.util.Iterator;
+
+import com.oracle.truffle.api.CompilerDirectives;
 
 public final class BoundaryIterator<E> implements Iterator<E> {
 

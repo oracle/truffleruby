@@ -9,19 +9,19 @@
  */
 package org.truffleruby;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Value;
-import org.junit.Assert;
-import org.junit.Test;
-import org.truffleruby.shared.options.OptionsCatalog;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
+import org.junit.Assert;
+import org.junit.Test;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 public class MiscTest {
 
@@ -88,9 +88,7 @@ public class MiscTest {
 
     @Test
     public void testFiberFromIntegratorThread() throws Throwable {
-        try (Context context = RubyTest.setupContext(Context.newBuilder())
-                .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
-                .allowCreateThread(true).build()) {
+        try (Context context = RubyTest.setupContext(Context.newBuilder()).option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString()).allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
 
             TestingThread thread = new TestingThread(() -> {

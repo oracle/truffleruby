@@ -9,11 +9,12 @@
  */
 package org.truffleruby.parser.parser;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyBaseNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
 
 public class ParserRopeOperations {
 

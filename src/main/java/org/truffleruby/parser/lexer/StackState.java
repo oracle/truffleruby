@@ -70,7 +70,7 @@ public class StackState implements Cloneable {
         stack |= (stack & 1) << 1;
         stack >>= 1;
     }
-    
+
     // SET_P
     public boolean isInState() {
         return (stack & 1) != 0;

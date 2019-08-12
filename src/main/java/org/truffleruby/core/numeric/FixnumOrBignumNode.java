@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class FixnumOrBignumNode extends RubyBaseNode {
 

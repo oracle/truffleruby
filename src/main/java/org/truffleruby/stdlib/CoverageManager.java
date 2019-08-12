@@ -9,6 +9,19 @@
  */
 package org.truffleruby.stdlib;
 
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLongArray;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.shared.TruffleRuby;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,18 +33,6 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.RubyContext;
-import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.shared.TruffleRuby;
-
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 public class CoverageManager {
 
@@ -86,11 +87,8 @@ public class CoverageManager {
             return;
         }
 
-        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
-                .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                .sourceIs(coveredSources::contains)
-                .tagIs(LineTag.class)
-                .build(), eventContext -> new ExecutionEventNode() {
+        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(coveredSources::contains).tagIs(LineTag.class).build(),
+                eventContext -> new ExecutionEventNode() {
 
                     @CompilationFinal private boolean configured;
                     @CompilationFinal private int lineNumber;
@@ -132,7 +130,7 @@ public class CoverageManager {
 
         enabled = false;
     }
-    
+
     private AtomicLongArray getCounters(Source source) {
         if (source.getName() == null) {
             return null;

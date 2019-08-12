@@ -88,5 +88,5 @@ public enum FormatEncoding {
                 throw new UnsupportedOperationException();
         }
     }
-    
+
 }

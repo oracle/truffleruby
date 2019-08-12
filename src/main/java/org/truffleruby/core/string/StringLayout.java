@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.string;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface StringLayout extends BasicObjectLayout {
@@ -25,21 +26,26 @@ public interface StringLayout extends BasicObjectLayout {
     HiddenKey FROZEN_IDENTIFIER = Layouts.FROZEN_IDENTIFIER;
 
     DynamicObjectFactory createStringShape(DynamicObject logicalClass,
-                                           DynamicObject metaClass);
+            DynamicObject metaClass);
 
     Object[] build(boolean frozen, boolean tainted, Rope rope);
 
     boolean isString(ObjectType objectType);
+
     boolean isString(DynamicObject object);
+
     boolean isString(Object object);
 
     boolean getFrozen(DynamicObject object);
+
     void setFrozen(DynamicObject object, boolean value);
 
     boolean getTainted(DynamicObject object);
+
     void setTainted(DynamicObject object, boolean value);
 
     Rope getRope(DynamicObject object);
+
     void setRope(DynamicObject object, Rope value);
 
 }

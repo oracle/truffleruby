@@ -36,13 +36,9 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -70,7 +66,6 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.shared.Metrics;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -78,10 +73,15 @@ import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.parser.RubyParser;
 import org.truffleruby.parser.parser.RubyParserResult;
 import org.truffleruby.parser.scope.StaticScope;
+import org.truffleruby.shared.Metrics;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class TranslatorDriver {
 
@@ -94,7 +94,7 @@ public class TranslatorDriver {
     }
 
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
-                              MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+            MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
         assert parserContext.isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame;
 
         final Source source = rubySource.getSource();

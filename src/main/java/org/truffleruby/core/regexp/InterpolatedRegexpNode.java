@@ -83,7 +83,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
         @Specialization(replaces = "executeFast")
         public Object executeSlow(Rope[] parts,
-                                  @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
+                @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
             notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
             return createRegexp(parts);
         }

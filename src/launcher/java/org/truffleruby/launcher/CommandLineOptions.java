@@ -28,16 +28,16 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.launcher;
 
-import org.graalvm.options.OptionDescriptor;
-import org.graalvm.options.OptionType;
-import org.truffleruby.shared.options.RubyOptionTypes;
-import org.truffleruby.shared.options.StringArrayOptionType;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionType;
+import org.truffleruby.shared.options.RubyOptionTypes;
+import org.truffleruby.shared.options.StringArrayOptionType;
 
 public class CommandLineOptions {
 

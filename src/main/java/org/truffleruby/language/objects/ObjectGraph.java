@@ -9,6 +9,20 @@
  */
 package org.truffleruby.language.objects;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.IdentityHashMap;
+import java.util.Set;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.hash.Entry;
+import org.truffleruby.core.queue.SizedQueue;
+import org.truffleruby.core.queue.UnsizedQueue;
+import org.truffleruby.language.arguments.RubyArguments;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
@@ -17,19 +31,6 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.hash.Entry;
-import org.truffleruby.core.queue.SizedQueue;
-import org.truffleruby.core.queue.UnsizedQueue;
-import org.truffleruby.language.arguments.RubyArguments;
-
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.IdentityHashMap;
-import java.util.Set;
 
 public abstract class ObjectGraph {
 

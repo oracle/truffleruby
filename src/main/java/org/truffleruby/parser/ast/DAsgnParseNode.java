@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004-2006 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,11 +31,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * An assignment to a dynamic variable (e.g. block scope local variable).
@@ -58,7 +58,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public NodeType getNodeType() {
         return NodeType.DASGNNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -67,7 +67,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDAsgnNode(this);
     }
-    
+
     /**
      * Gets the name.
      * @return Returns a String
@@ -78,23 +78,23 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
 
     /**
      * How many scopes should we burrow down to until we need to set the block variable value.
-     * 
+     *
      * @return 0 for current scope, 1 for one down, ...
      */
     public int getDepth() {
         return location >> 16;
     }
-    
+
     /**
      * Gets the index within the scope construct that actually holds the eval'd value
      * of this local variable
-     * 
+     *
      * @return Returns an int offset into storage structure
      */
     public int getIndex() {
         return location & 0xffff;
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());

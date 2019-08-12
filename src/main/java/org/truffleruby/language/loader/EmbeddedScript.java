@@ -9,13 +9,13 @@
  */
 package org.truffleruby.language.loader;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 /*
  * An embedded script is one with some other language first, and then a Ruby shebang, and then a Ruby program. They're

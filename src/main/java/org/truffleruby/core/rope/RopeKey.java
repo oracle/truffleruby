@@ -45,5 +45,5 @@ public class RopeKey {
     public String toString() {
         return key.toString();
     }
-    
+
 }

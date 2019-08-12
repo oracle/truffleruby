@@ -10,9 +10,10 @@
 
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyNode;
 
 public class SingleBlockArgNode extends RubyNode {
 

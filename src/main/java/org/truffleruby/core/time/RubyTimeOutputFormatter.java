@@ -45,7 +45,7 @@ public class RubyTimeOutputFormatter {
         if (flags.indexOf('-') != -1) { // no padding
             return 0;
         }
-        return this.width != 0 ? this.width : defaultWidth; 
+        return this.width != 0 ? this.width : defaultWidth;
     }
 
     public char getPadder(char defaultPadder) {

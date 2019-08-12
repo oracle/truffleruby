@@ -9,12 +9,12 @@
  */
 package org.truffleruby.parser;
 
+import java.io.File;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
-
-import java.io.File;
 
 /**
  * Translator environment, unique per parse/translation.

@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.format;
 
+import java.util.Deque;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.control.RepeatExplodedNode;
 import org.truffleruby.core.format.control.RepeatLoopNode;
 import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.StarNode;
 import org.truffleruby.core.format.pack.SimplePackParser;
-
-import java.util.Deque;
-import java.util.List;
 
 public class SharedTreeBuilder {
 

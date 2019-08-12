@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Load libraries required from the command line (-r LIBRARY) */
 public class LoadRequiredLibrariesNode extends RubyNode {

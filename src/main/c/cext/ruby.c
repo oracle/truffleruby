@@ -1217,6 +1217,10 @@ int rb_encdb_alias(const char *alias, const char *orig) {
   rb_tr_error("rb_encdb_alias not implemented");
 }
 
+int rb_enc_alias(const char *alias, const char *orig) {
+  rb_tr_error("rb_enc_alias not implemented");
+}
+
 VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
   return rb_enc_associate_index(obj, rb_enc_to_index(enc));
 }
@@ -2174,6 +2178,14 @@ void rb_memerror(void) {
   rb_tr_error("rb_memerror should not return");
 }
 
+void rb_name_error_str(VALUE str, const char *fmt, ...) {
+  rb_tr_error("rb_name_error_str not implemented");
+}
+
+void rb_sys_fail_str(VALUE mesg) {
+  rb_tr_error("rb_sys_fail_str not implemented");
+}
+
 // Defining classes, modules and methods
 
 VALUE rb_define_class(const char *name, VALUE superclass) {
@@ -2377,6 +2389,10 @@ out_of_range:
              origbeg, excl ? "." : "", origend);
   }
   return Qnil;
+}
+
+int rb_arithmetic_sequence_extract(VALUE obj, rb_arithmetic_sequence_components_t *component) {
+  rb_tr_error("rb_arithmetic_sequence_extract not implemented");
 }
 
 // Time
@@ -4808,3 +4824,11 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
 }
+
+#ifndef HAVE_GNU_QSORT_R
+typedef int (cmpfunc_t)(const void*, const void*, void*);
+
+void ruby_qsort(void* base, const size_t nel, const size_t size, cmpfunc_t *cmp, void *d) {
+  rb_tr_error("ruby_qsort not implemented");
+}
+#endif

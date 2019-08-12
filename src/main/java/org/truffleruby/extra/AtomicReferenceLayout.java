@@ -9,24 +9,28 @@
  */
 package org.truffleruby.extra;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Volatile;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface AtomicReferenceLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createAtomicReferenceShape(DynamicObject logicalClass,
-                                                    DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createAtomicReference(DynamicObjectFactory factory,
-                                        @Volatile Object value);
+            @Volatile Object value);
 
     Object getValue(DynamicObject object);
+
     void setValue(DynamicObject object, Object value);
+
     boolean compareAndSetValue(DynamicObject object, Object expectedValue, Object value);
+
     Object getAndSetValue(DynamicObject object, Object value);
 
 }

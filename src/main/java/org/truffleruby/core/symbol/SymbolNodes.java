@@ -9,16 +9,6 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -38,6 +28,17 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.SymbolProcNode;
 import org.truffleruby.parser.ArgumentDescriptor;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Symbol")
 public abstract class SymbolNodes {
@@ -101,7 +102,7 @@ public abstract class SymbolNodes {
 
         @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
         public DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
-                                     @Cached("symbol") DynamicObject cachedSymbol,
+                @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
                 @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
             return cachedProc;
@@ -116,8 +117,7 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
-            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend()
-                    .getEncapsulatingSourceSection();
+            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -175,7 +175,7 @@ public abstract class SymbolNodes {
 
         @Specialization
         public DynamicObject toS(DynamicObject symbol,
-                                 @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
         }
 

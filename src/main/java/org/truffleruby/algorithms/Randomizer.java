@@ -55,8 +55,7 @@ public class Randomizer {
         int j = 0;
         int k = N > len ? N : len;
         for (; k > 0; k--) {
-            state[i] = (state[i] ^ ((state[i - 1] ^ (state[i - 1] >>> 30)) * 1664525)) + initKey[j]
-                    + j;
+            state[i] = (state[i] ^ ((state[i - 1] ^ (state[i - 1] >>> 30)) * 1664525)) + initKey[j] + j;
             i++;
             j++;
             if (i >= N) {

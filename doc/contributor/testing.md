@@ -26,7 +26,7 @@ to test at the Ruby level.
 
 Java unit tests live in `src/test/java/org/truffleruby`.
 
-To run Java unit tests run `mx unittest`.
+To run Java unit tests run `jt test unittest`.
 
 ### TCK
 
@@ -36,7 +36,7 @@ interoperability.
 The TCK Ruby parameters are in
 `src/test/java/org/truffleruby/RubyTCKLanguageProvider.java`.
 
-Run the TCK with `mx tck`.
+Run the TCK with `jt test tck` or `mx tck`.
 
 ### Specs
 

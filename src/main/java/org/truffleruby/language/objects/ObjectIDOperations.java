@@ -9,15 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.cext.ValueWrapperManager;
-import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.language.objects.shared.SharedObjects;
-
 import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.MAX_FIXNUM_VALUE;
 import static org.truffleruby.cext.ValueWrapperManager.MIN_FIXNUM_VALUE;
@@ -25,6 +16,16 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 
 import java.math.BigInteger;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.cext.ValueWrapperManager;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.language.objects.shared.SharedObjects;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
 
 /**
  * <pre>

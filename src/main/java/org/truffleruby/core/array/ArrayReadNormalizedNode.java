@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
 
 @NodeChild("array")
 @NodeChild("index")
@@ -40,7 +40,7 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
 
     @Specialization(guards = { "strategy.matches(array)", "!isInBounds(array, index, strategy)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readOutOfBounds(DynamicObject array, int index,
-                    @Cached("of(array)") ArrayStrategy strategy) {
+            @Cached("of(array)") ArrayStrategy strategy) {
         return nil();
     }
 

@@ -9,6 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.shared.SharedObjects;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,12 +23,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.klass.ClassNodes;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.shared.SharedObjects;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class SingletonClassNode extends RubyNode {
@@ -75,14 +76,11 @@ public abstract class SingletonClassNode extends RubyNode {
         return noSingletonClass();
     }
 
-    @Specialization(
-            guards = {
-                    "isRubyClass(rubyClass)",
-                    "rubyClass.getShape() == cachedShape",
-                    "cachedSingletonClass != null"
-            },
-            limit = "getCacheLimit()"
-    )
+    @Specialization(guards = {
+            "isRubyClass(rubyClass)",
+            "rubyClass.getShape() == cachedShape",
+            "cachedSingletonClass != null"
+    }, limit = "getCacheLimit()")
     protected DynamicObject singletonClassClassCached(
             DynamicObject rubyClass,
             @Cached("rubyClass.getShape()") Shape cachedShape,
@@ -91,23 +89,18 @@ public abstract class SingletonClassNode extends RubyNode {
         return cachedSingletonClass;
     }
 
-    @Specialization(
-            guards = "isRubyClass(rubyClass)",
-            replaces = "singletonClassClassCached"
-    )
+    @Specialization(guards = "isRubyClass(rubyClass)", replaces = "singletonClassClassCached")
     protected DynamicObject singletonClassClassUncached(DynamicObject rubyClass) {
         return ClassNodes.getSingletonClass(getContext(), rubyClass);
     }
 
-    @Specialization(
-            guards = {
-                    "object == cachedObject",
-                    "!isNil(cachedObject)",
-                    "!isRubyBignum(cachedObject)",
-                    "!isRubySymbol(cachedObject)",
-                    "!isRubyClass(cachedObject)"
-            },
-            limit = "getCacheLimit()")
+    @Specialization(guards = {
+            "object == cachedObject",
+            "!isNil(cachedObject)",
+            "!isRubyBignum(cachedObject)",
+            "!isRubySymbol(cachedObject)",
+            "!isRubyClass(cachedObject)"
+    }, limit = "getCacheLimit()")
     protected DynamicObject singletonClassInstanceCached(
             DynamicObject object,
             @Cached("object") DynamicObject cachedObject,
@@ -115,15 +108,12 @@ public abstract class SingletonClassNode extends RubyNode {
         return cachedSingletonClass;
     }
 
-    @Specialization(
-            guards = {
-                "!isNil(object)",
-                "!isRubyBignum(object)",
-                "!isRubySymbol(object)",
-                "!isRubyClass(object)"
-            },
-            replaces = "singletonClassInstanceCached"
-    )
+    @Specialization(guards = {
+            "!isNil(object)",
+            "!isRubyBignum(object)",
+            "!isRubySymbol(object)",
+            "!isRubyClass(object)"
+    }, replaces = "singletonClassInstanceCached")
     protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);
     }
