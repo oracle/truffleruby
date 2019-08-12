@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.format.printf;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatNode;
@@ -33,8 +35,7 @@ import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class PrintfSimpleTreeBuilder {
 
@@ -87,7 +88,7 @@ public class PrintfSimpleTreeBuilder {
                 }
 
 
-                switch (config.getFormatType()){
+                switch (config.getFormatType()) {
                     case INTEGER:
                         final char format;
                         switch (config.getFormat()) {
@@ -113,24 +114,24 @@ public class PrintfSimpleTreeBuilder {
 
                         if (config.getFormat() == 'b' || config.getFormat() == 'B') {
                             node = WriteBytesNodeGen.create(
-                                FormatIntegerBinaryNodeGen.create(format,
-                                    config.isPlus(), config.isFsharp(),
-                                    config.isMinus(),
-                                    config.isHasSpace(),
-                                    config.isZero(),
-                                    widthNode,
-                                    precisionNode,
-                                    ToIntegerNodeGen.create(valueNode)));
+                                    FormatIntegerBinaryNodeGen.create(format,
+                                            config.isPlus(), config.isFsharp(),
+                                            config.isMinus(),
+                                            config.isHasSpace(),
+                                            config.isZero(),
+                                            widthNode,
+                                            precisionNode,
+                                            ToIntegerNodeGen.create(valueNode)));
                         } else {
                             node = WriteBytesNodeGen.create(
-                                FormatIntegerNodeGen.create(format, config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
-                                    widthNode,
-                                    precisionNode,
-                                    ToIntegerNodeGen.create(valueNode)));
+                                    FormatIntegerNodeGen.create(format, config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
+                                            widthNode,
+                                            precisionNode,
+                                            ToIntegerNodeGen.create(valueNode)));
                         }
                         break;
                     case FLOAT:
-                        switch (config.getFormat()){
+                        switch (config.getFormat()) {
                             case 'a':
                             case 'A':
                             case 'f':
@@ -139,23 +140,23 @@ public class PrintfSimpleTreeBuilder {
                             case 'g':
                             case 'G':
                                 node = WriteBytesNodeGen.create(
-                                    FormatFloatNodeGen.create(
-                                        config.getFormat(), config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
-                                        widthNode,
-                                        precisionNode,
-                                        ToDoubleWithCoercionNodeGen.create(
-                                            valueNode)));
+                                        FormatFloatNodeGen.create(
+                                                config.getFormat(), config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
+                                                widthNode,
+                                                precisionNode,
+                                                ToDoubleWithCoercionNodeGen.create(
+                                                        valueNode)));
                                 break;
                             default:
                                 throw new UnsupportedOperationException();
                         }
                         break;
                     case OTHER:
-                        switch (config.getFormat()){
+                        switch (config.getFormat()) {
                             case 'c':
                                 node = WriteBytesNodeGen.create(
-                                    FormatCharacterNodeGen.create(config.isMinus(), widthNode,
-                                        valueNode));
+                                        FormatCharacterNodeGen.create(config.isMinus(), widthNode,
+                                                valueNode));
                                 break;
                             case 's':
                             case 'p':
@@ -188,7 +189,6 @@ public class PrintfSimpleTreeBuilder {
 
 
     }
-
 
 
     public FormatNode getNode() {

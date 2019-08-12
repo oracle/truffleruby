@@ -21,8 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class TimeZoneAndName {
 
-    private static final DateTimeFormatter SHORT_ZONE_NAME_FORMATTER =
-            new DateTimeFormatterBuilder().appendZoneText(TextStyle.SHORT).toFormatter(Locale.ENGLISH);
+    private static final DateTimeFormatter SHORT_ZONE_NAME_FORMATTER = new DateTimeFormatterBuilder().appendZoneText(TextStyle.SHORT).toFormatter(Locale.ENGLISH);
 
     private final ZoneId zone;
 

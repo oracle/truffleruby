@@ -300,7 +300,7 @@ public class TruffleRegexpNodes {
     public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
         try {
             Encoding enc = bytes.getEncoding();
-            Encoding[] fixedEnc = new Encoding[]{null};
+            Encoding[] fixedEnc = new Encoding[]{ null };
             RopeBuilder unescaped = ClassicRegexp.preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
             if (fixedEnc[0] != null) {
                 if ((fixedEnc[0] != enc && options.isFixed()) ||

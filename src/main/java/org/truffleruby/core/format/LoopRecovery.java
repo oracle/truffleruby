@@ -74,8 +74,7 @@ public abstract class LoopRecovery {
                 final boolean repetitionExists = beforeIndex.equals(afterIndex);
                 final boolean charactersAfterRepetition = index + tryLengthOfLoopedString < format.length();
 
-                if (repetitionExists && !(charactersAfterRepetition
-                        && DIRECTIVES.indexOf(format.charAt(index + tryLengthOfLoopedString)) == -1)) {
+                if (repetitionExists && !(charactersAfterRepetition && DIRECTIVES.indexOf(format.charAt(index + tryLengthOfLoopedString)) == -1)) {
                     successfulLengthOfLoopedString = tryLengthOfLoopedString;
                 }
 
@@ -110,8 +109,8 @@ public abstract class LoopRecovery {
 
                     // If this repetition isn't followed by a directive, stop looking
 
-                    if (indexOfEndOfRepetitions + successfulLengthOfLoopedString < format.length()
-                            && DIRECTIVES.indexOf(format.charAt(indexOfEndOfRepetitions + successfulLengthOfLoopedString)) == -1) {
+                    if (indexOfEndOfRepetitions + successfulLengthOfLoopedString < format.length() &&
+                            DIRECTIVES.indexOf(format.charAt(indexOfEndOfRepetitions + successfulLengthOfLoopedString)) == -1) {
                         break;
                     }
 

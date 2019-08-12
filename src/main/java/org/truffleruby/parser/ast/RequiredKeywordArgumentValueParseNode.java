@@ -26,9 +26,9 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
 import java.util.List;
+
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
  * Marker to indicate that rather than assigning nil (where in multiple

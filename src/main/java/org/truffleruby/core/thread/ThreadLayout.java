@@ -9,22 +9,23 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.object.ObjectType;
-import com.oracle.truffle.api.object.dsl.Layout;
-import com.oracle.truffle.api.object.dsl.Nullable;
-import com.oracle.truffle.api.object.dsl.Volatile;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.ObjectType;
+import com.oracle.truffle.api.object.dsl.Layout;
+import com.oracle.truffle.api.object.dsl.Nullable;
+import com.oracle.truffle.api.object.dsl.Volatile;
 
 @Layout
 public interface ThreadLayout extends BasicObjectLayout {
@@ -52,12 +53,15 @@ public interface ThreadLayout extends BasicObjectLayout {
             DynamicObject name);
 
     boolean isThread(ObjectType objectType);
+
     boolean isThread(DynamicObject object);
 
     FiberManager getFiberManager(DynamicObject object);
+
     void setFiberManagerUnsafe(DynamicObject object, FiberManager value);
 
     CountDownLatch getFinishedLatch(DynamicObject object);
+
     void setFinishedLatch(DynamicObject object, CountDownLatch value);
 
     ThreadLocalGlobals getThreadLocalGlobals(DynamicObject object);
@@ -65,38 +69,49 @@ public interface ThreadLayout extends BasicObjectLayout {
     List<Lock> getOwnedLocks(DynamicObject object);
 
     boolean getAbortOnException(DynamicObject object);
+
     void setAbortOnException(DynamicObject object, boolean value);
 
     InterruptMode getInterruptMode(DynamicObject object);
+
     void setInterruptMode(DynamicObject object, InterruptMode value);
 
     Thread getThread(DynamicObject object);
+
     void setThread(DynamicObject object, Thread value);
 
     ThreadStatus getStatus(DynamicObject object);
+
     void setStatus(DynamicObject object, ThreadStatus value);
 
     DynamicObject getException(DynamicObject object);
+
     void setException(DynamicObject object, DynamicObject value);
 
     Object getValue(DynamicObject object);
+
     void setValue(DynamicObject object, Object value);
 
     AtomicBoolean getWakeUp(DynamicObject object);
 
     int getPriority(DynamicObject object);
+
     void setPriority(DynamicObject object, int value);
 
     Pointer getIoBuffer(DynamicObject object);
+
     void setIoBuffer(DynamicObject object, Pointer value);
 
     DynamicObject getThreadGroup(DynamicObject object);
+
     void setThreadGroup(DynamicObject object, DynamicObject value);
 
     DynamicObject getName(DynamicObject object);
+
     void setName(DynamicObject object, DynamicObject value);
 
     String getSourceLocation(DynamicObject object);
+
     void setSourceLocation(DynamicObject object, String value);
 
 }

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
@@ -22,6 +21,8 @@ import org.truffleruby.core.format.exceptions.RangeException;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+
+import com.oracle.truffle.api.CompilerDirectives;
 
 public abstract class FormatExceptionTranslator {
 

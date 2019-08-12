@@ -77,6 +77,7 @@ public class RubyWarnings implements WarnCallback {
         buffer.append("warning: ").append(message).append('\n');
         printWarning(buffer.toString());
     }
+
     /**
      * Prints a warning, unless $VERBOSE is nil.
      */

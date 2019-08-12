@@ -13,13 +13,13 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -51,9 +51,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     }
 
     public abstract Object start();
+
     public abstract Object start(int length);
+
     public abstract Object appendArray(Object store, int index, DynamicObject array);
+
     public abstract Object appendValue(Object store, int index, Object value);
+
     public abstract Object finish(Object store, int length);
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
@@ -234,8 +238,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
-                                   "arrayStrategy == generalized" },
-                        limit = "STORAGE_STRATEGIES")
+                "arrayStrategy == generalized" }, limit = "STORAGE_STRATEGIES")
         public Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
@@ -259,8 +262,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
-                                   "arrayStrategy != generalized" },
-                        limit = "STORAGE_STRATEGIES")
+                "arrayStrategy != generalized" }, limit = "STORAGE_STRATEGIES")
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
@@ -287,7 +289,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
         }
 
-        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode, ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode, ArrayNewStoreNode newStoreNode,
+        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode, ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode,
+                ArrayNewStoreNode newStoreNode,
                 ArrayStrategy generalized) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;

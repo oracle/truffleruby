@@ -148,110 +148,216 @@ import org.truffleruby.parser.ast.ZSuperParseNode;
  **/
 public interface NodeVisitor<T> {
     T visitAliasNode(AliasParseNode iVisited);
+
     T visitAndNode(AndParseNode iVisited);
+
     T visitArgsNode(ArgsParseNode iVisited);
+
     T visitArgsCatNode(ArgsCatParseNode iVisited);
+
     T visitArgsPushNode(ArgsPushParseNode iVisited);
+
     T visitArgumentNode(ArgumentParseNode iVisited);
+
     T visitArrayNode(ArrayParseNode iVisited);
+
     T visitAttrAssignNode(AttrAssignParseNode iVisited);
+
     T visitBackRefNode(BackRefParseNode iVisited);
+
     T visitBeginNode(BeginParseNode iVisited);
+
     T visitBignumNode(BignumParseNode iVisited);
+
     T visitBlockArgNode(BlockArgParseNode iVisited);
+
     T visitBlockNode(BlockParseNode iVisited);
+
     T visitBlockPassNode(BlockPassParseNode iVisited);
+
     T visitBreakNode(BreakParseNode iVisited);
+
     T visitConstDeclNode(ConstDeclParseNode iVisited);
+
     T visitClassVarAsgnNode(ClassVarAsgnParseNode iVisited);
+
     T visitClassVarNode(ClassVarParseNode iVisited);
+
     T visitCallNode(CallParseNode iVisited);
+
     T visitCaseNode(CaseParseNode iVisited);
+
     T visitClassNode(ClassParseNode iVisited);
+
     T visitColon2Node(Colon2ParseNode iVisited);
+
     T visitColon3Node(Colon3ParseNode iVisited);
+
     T visitComplexNode(ComplexParseNode iVisited);
+
     T visitConstNode(ConstParseNode iVisited);
+
     T visitDAsgnNode(DAsgnParseNode iVisited);
+
     T visitDRegxNode(DRegexpParseNode iVisited);
+
     T visitDStrNode(DStrParseNode iVisited);
+
     T visitDSymbolNode(DSymbolParseNode iVisited);
+
     T visitDVarNode(DVarParseNode iVisited);
+
     T visitDXStrNode(DXStrParseNode iVisited);
+
     T visitDefinedNode(DefinedParseNode iVisited);
+
     T visitDefnNode(DefnParseNode iVisited);
+
     T visitDefsNode(DefsParseNode iVisited);
+
     T visitDotNode(DotParseNode iVisited);
+
     T visitEncodingNode(EncodingParseNode iVisited);
+
     T visitEnsureNode(EnsureParseNode iVisited);
+
     T visitEvStrNode(EvStrParseNode iVisited);
+
     T visitFCallNode(FCallParseNode iVisited);
+
     T visitFalseNode(FalseParseNode iVisited);
+
     T visitFixnumNode(FixnumParseNode iVisited);
+
     T visitFlipNode(FlipParseNode iVisited);
+
     T visitFloatNode(FloatParseNode iVisited);
+
     T visitForNode(ForParseNode iVisited);
+
     T visitGlobalAsgnNode(GlobalAsgnParseNode iVisited);
+
     T visitGlobalVarNode(GlobalVarParseNode iVisited);
+
     T visitHashNode(HashParseNode iVisited);
+
     T visitInstAsgnNode(InstAsgnParseNode iVisited);
+
     T visitInstVarNode(InstVarParseNode iVisited);
+
     T visitIfNode(IfParseNode iVisited);
+
     T visitIterNode(IterParseNode iVisited);
+
     T visitKeywordArgNode(KeywordArgParseNode iVisited);
+
     T visitKeywordRestArgNode(KeywordRestArgParseNode iVisited);
+
     T visitLambdaNode(LambdaParseNode iVisited);
+
     T visitListNode(ListParseNode iVisited);
+
     T visitLiteralNode(LiteralParseNode iVisited);
+
     T visitLocalAsgnNode(LocalAsgnParseNode iVisited);
+
     T visitLocalVarNode(LocalVarParseNode iVisited);
+
     T visitMultipleAsgnNode(MultipleAsgnParseNode iVisited);
+
     T visitMatch2Node(Match2ParseNode iVisited);
+
     T visitMatch3Node(Match3ParseNode iVisited);
+
     T visitMatchNode(MatchParseNode iVisited);
+
     T visitModuleNode(ModuleParseNode iVisited);
+
     T visitNextNode(NextParseNode iVisited);
+
     T visitNilNode(NilParseNode iVisited);
+
     T visitNthRefNode(NthRefParseNode iVisited);
+
     T visitOpElementAsgnNode(OpElementAsgnParseNode iVisited);
+
     T visitOpAsgnNode(OpAsgnParseNode iVisited);
+
     T visitOpAsgnAndNode(OpAsgnAndParseNode iVisited);
+
     T visitOpAsgnConstDeclNode(OpAsgnConstDeclParseNode iVisited);
+
     T visitOpAsgnOrNode(OpAsgnOrParseNode iVisited);
+
     T visitOptArgNode(OptArgParseNode iVisited);
+
     T visitOrNode(OrParseNode iVisited);
+
     T visitPreExeNode(PreExeParseNode iVisited);
+
     T visitPostExeNode(PostExeParseNode iVisited);
+
     T visitRationalNode(RationalParseNode iVisited);
+
     T visitBigRationalNode(BigRationalParseNode iVisited);
+
     T visitRedoNode(RedoParseNode iVisited);
+
     T visitRegexpNode(RegexpParseNode iVisited);
+
     T visitRequiredKeywordArgumentValueNode(RequiredKeywordArgumentValueParseNode iVisited);
+
     T visitRescueBodyNode(RescueBodyParseNode iVisited);
+
     T visitRescueNode(RescueParseNode iVisited);
+
     T visitRestArgNode(RestArgParseNode iVisited);
+
     T visitRetryNode(RetryParseNode iVisited);
+
     T visitReturnNode(ReturnParseNode iVisited);
+
     T visitRootNode(RootParseNode iVisited);
+
     T visitSClassNode(SClassParseNode iVisited);
+
     T visitSelfNode(SelfParseNode iVisited);
+
     T visitSplatNode(SplatParseNode iVisited);
+
     T visitStarNode(StarParseNode iVisited);
+
     T visitStrNode(StrParseNode iVisited);
+
     T visitSuperNode(SuperParseNode iVisited);
+
     T visitSValueNode(SValueParseNode iVisited);
+
     T visitSymbolNode(SymbolParseNode iVisited);
+
     T visitTrueNode(TrueParseNode iVisited);
+
     T visitUndefNode(UndefParseNode iVisited);
+
     T visitUntilNode(UntilParseNode iVisited);
+
     T visitVAliasNode(VAliasParseNode iVisited);
+
     T visitVCallNode(VCallParseNode iVisited);
+
     T visitWhenNode(WhenParseNode iVisited);
+
     T visitWhileNode(WhileParseNode iVisited);
+
     T visitXStrNode(XStrParseNode iVisited);
+
     T visitYieldNode(YieldParseNode iVisited);
+
     T visitZArrayNode(ZArrayParseNode iVisited);
+
     T visitZSuperNode(ZSuperParseNode iVisited);
+
     T visitTruffleFragmentNode(TruffleFragmentParseNode iVisited);
+
     T visitOther(ParseNode iVisited);
 }

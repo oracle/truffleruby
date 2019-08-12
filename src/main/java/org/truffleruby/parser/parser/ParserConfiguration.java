@@ -75,7 +75,7 @@ public class ParserConfiguration {
         if (defaultEncoding == null) {
             defaultEncoding = UTF8Encoding.INSTANCE;
         }
-        
+
         return defaultEncoding;
     }
 
@@ -130,7 +130,7 @@ public class ParserConfiguration {
     public boolean isSaveData() {
         return saveData;
     }
-    
+
     /**
      * Are we parsing source provided as part of the '-e' option to Ruby.
      * 

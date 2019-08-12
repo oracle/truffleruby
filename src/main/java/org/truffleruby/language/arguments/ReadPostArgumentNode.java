@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadPostArgumentNode extends RubyNode {
 

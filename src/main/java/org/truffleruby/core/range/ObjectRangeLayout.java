@@ -9,33 +9,38 @@
  */
 package org.truffleruby.core.range;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface ObjectRangeLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createObjectRangeShape(DynamicObject logicalClass,
-                                                DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createObjectRange(DynamicObjectFactory factory,
-                                    boolean excludedEnd,
-                                    @Nullable Object begin,
-                                    @Nullable Object end);
+            boolean excludedEnd,
+            @Nullable Object begin,
+            @Nullable Object end);
 
     boolean isObjectRange(Object object);
+
     boolean isObjectRange(DynamicObject object);
 
     boolean getExcludedEnd(DynamicObject object);
+
     void setExcludedEnd(DynamicObject object, boolean value);
 
     Object getBegin(DynamicObject object);
+
     void setBegin(DynamicObject object, Object value);
 
     Object getEnd(DynamicObject object);
+
     void setEnd(DynamicObject object, Object value);
 
 }

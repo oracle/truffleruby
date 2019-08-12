@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
+
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class LookupEntryNode extends RubyBaseNode {
 

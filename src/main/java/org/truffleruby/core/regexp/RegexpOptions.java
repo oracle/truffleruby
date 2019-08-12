@@ -24,15 +24,15 @@ import org.truffleruby.parser.ReOptions;
 public class RegexpOptions implements Cloneable {
 
     public static final RegexpOptions NULL_OPTIONS = new RegexpOptions(KCode.NONE, true);
-    
+
     public RegexpOptions() {
         this(KCode.NONE, true);
     }
-    
+
     public RegexpOptions(KCode kcode, boolean isKCodeDefault) {
         this.kcode = kcode;
         this.kcodeDefault = isKCodeDefault;
-        
+
         assert kcode != null : "kcode must always be set to something";
     }
 
@@ -74,12 +74,12 @@ public class RegexpOptions implements Cloneable {
         this.kcode = kcode;
         kcodeDefault = false;
     }
-    
+
     private KCode getExplicitKCode() {
         if (kcodeDefault == true) {
             return null;
         }
-        
+
         return kcode;
     }
 
@@ -178,7 +178,7 @@ public class RegexpOptions implements Cloneable {
         }
         return options;
     }
-    
+
     /**
      * This int value is used by Regex#options
      */
@@ -208,7 +208,7 @@ public class RegexpOptions implements Cloneable {
         options.kcodeDefault = (embeddedOptions & ReOptions.RE_DEFAULT) != 0;
         options.literal = (embeddedOptions & ReOptions.RE_LITERAL) != 0;
         options.encodingNone = (embeddedOptions & ReOptions.RE_NONE) != 0;
-        
+
         return options;
     }
 
@@ -265,10 +265,10 @@ public class RegexpOptions implements Cloneable {
         // not affect Ruby equality.
         RegexpOptions o = (RegexpOptions) other;
         boolean equality = o.extended == extended &&
-                           o.fixed == fixed &&
-                           o.ignorecase == ignorecase &&
-                           o.java == java &&
-                           o.multiline == multiline;
+                o.fixed == fixed &&
+                o.ignorecase == ignorecase &&
+                o.java == java &&
+                o.multiline == multiline;
         if (encodingNone || o.encodingNone) {
             return equality && o.kcode == kcode;
         } else {
@@ -278,10 +278,10 @@ public class RegexpOptions implements Cloneable {
                     o.kcodeDefault == kcodeDefault;
         }
     }
-    
+
     @Override
     public String toString() {
-        return "RegexpOptions(kcode: " + kcode + 
+        return "RegexpOptions(kcode: " + kcode +
                 (encodingNone == true ? ", encodingNone" : "") +
                 (extended == true ? ", extended" : "") +
                 (fixed == true ? ", fixed" : "") +
@@ -290,10 +290,10 @@ public class RegexpOptions implements Cloneable {
                 (kcodeDefault == true ? ", kcodeDefault" : "") +
                 (literal == true ? ", literal" : "") +
                 (multiline == true ? ", multiline" : "") +
-                (once == true ? ", once" : "") +                
+                (once == true ? ", once" : "") +
                 ")";
     }
-    
+
     private KCode kcode;
     private boolean fixed;
     private boolean once;

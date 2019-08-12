@@ -9,29 +9,31 @@
  */
 package org.truffleruby.core.exception;
 
+import org.truffleruby.language.backtrace.Backtrace;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.language.backtrace.Backtrace;
 
 @Layout
 public interface NoMethodErrorLayout extends NameErrorLayout {
 
     DynamicObjectFactory createNoMethodErrorShape(
-        DynamicObject logicalClass,
-        DynamicObject metaClass);
+            DynamicObject logicalClass,
+            DynamicObject metaClass);
 
     Object[] build(
-        @Nullable Object message,
-        @Nullable DynamicObject formatter,
-        @Nullable Backtrace backtrace,
-        DynamicObject cause,
-        @Nullable Object receiver,
-        Object name,
-        Object args);
+            @Nullable Object message,
+            @Nullable DynamicObject formatter,
+            @Nullable Backtrace backtrace,
+            DynamicObject cause,
+            @Nullable Object receiver,
+            Object name,
+            Object args);
 
     Object getArgs(DynamicObject object);
+
     void setArgs(DynamicObject object, Object value);
 
 }

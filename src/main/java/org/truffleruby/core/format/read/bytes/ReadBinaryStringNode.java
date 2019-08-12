@@ -9,18 +9,19 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.Arrays;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
-import java.util.Arrays;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBinaryStringNode extends FormatNode {
@@ -33,7 +34,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     final boolean trimToFirstNull;
 
     public ReadBinaryStringNode(boolean readToEnd, boolean readToNull, int count,
-                                boolean trimTrailingSpaces, boolean trimTrailingNulls, boolean trimToFirstNull) {
+            boolean trimTrailingSpaces, boolean trimTrailingNulls, boolean trimToFirstNull) {
 
         this.readToEnd = readToEnd;
         this.readToNull = readToNull;
@@ -53,7 +54,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     public DynamicObject read(VirtualFrame frame, byte[] source,
-                              @Cached StringNodes.MakeStringNode makeStringNode) {
+            @Cached StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 
         int length;
@@ -61,8 +62,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
         if (readToEnd) {
             length = 0;
 
-            while (start + length < getSourceLength(frame)
-                    && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
+            while (start + length < getSourceLength(frame) && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
                 length++;
             }
 
@@ -72,9 +72,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
         } else if (readToNull) {
             length = 0;
 
-            while (start + length < getSourceLength(frame)
-                    && length < count
-                    && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
+            while (start + length < getSourceLength(frame) && length < count && (!readToNull || (start + length < getSourceLength(frame) && source[start + length] != 0))) {
                 length++;
             }
 
@@ -91,8 +89,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         int usedLength = length;
 
-        while (usedLength > 0 && ((trimTrailingSpaces && source[start + usedLength - 1] == ' ')
-                                    || (trimTrailingNulls && source[start + usedLength - 1] == 0))) {
+        while (usedLength > 0 && ((trimTrailingSpaces && source[start + usedLength - 1] == ' ') || (trimTrailingNulls && source[start + usedLength - 1] == 0))) {
             usedLength--;
         }
 

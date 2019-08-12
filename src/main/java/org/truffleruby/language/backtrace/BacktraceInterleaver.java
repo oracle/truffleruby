@@ -50,8 +50,7 @@ public class BacktraceInterleaver {
     }
 
     public static boolean isCallBoundary(StackTraceElement element) {
-        return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy")
-                || element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
+        return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy") || element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
     }
 
     private static boolean isIntoRuby(StackTraceElement[] elements, int index) {
@@ -59,8 +58,8 @@ public class BacktraceInterleaver {
             return false;
         }
 
-        return elements[index].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign")
-                && !elements[index + 1].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign");
+        return elements[index].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign") &&
+                !elements[index + 1].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign");
     }
 
     private static boolean isForeignCall(StackTraceElement element) {

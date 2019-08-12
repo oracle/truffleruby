@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.symbol;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface SymbolLayout extends BasicObjectLayout {
@@ -29,6 +30,7 @@ public interface SymbolLayout extends BasicObjectLayout {
             long hashCode);
 
     boolean isSymbol(Object object);
+
     boolean isSymbol(DynamicObject object);
 
     String getString(DynamicObject object);
@@ -36,6 +38,7 @@ public interface SymbolLayout extends BasicObjectLayout {
     Rope getRope(DynamicObject object);
 
     long getHashCode(DynamicObject object);
+
     void setHashCode(DynamicObject object, long value);
 
 }

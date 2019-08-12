@@ -9,6 +9,25 @@
  */
 package org.truffleruby;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.graalvm.options.OptionDescriptors;
+import org.truffleruby.cext.ValueWrapper;
+import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.debug.GlobalScope;
+import org.truffleruby.debug.LexicalScope;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyInlineParsingRequestNode;
+import org.truffleruby.language.RubyParsingRequestNode;
+import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.BuildInformationImpl;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.stdlib.CoverageManager;
+
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
@@ -21,34 +40,8 @@ import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.graalvm.options.OptionDescriptors;
-import org.truffleruby.cext.ValueWrapper;
-import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.debug.GlobalScope;
-import org.truffleruby.language.RubyInlineParsingRequestNode;
-import org.truffleruby.debug.LexicalScope;
-import org.truffleruby.language.RubyParsingRequestNode;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.shared.BuildInformationImpl;
-import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.platform.Platform;
-import org.truffleruby.stdlib.CoverageManager;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-@TruffleLanguage.Registration(
-        name = "Ruby",
-        id = TruffleRuby.LANGUAGE_ID,
-        implementationName = TruffleRuby.FORMAL_NAME,
-        version = BuildInformationImpl.RUBY_VERSION,
-        characterMimeTypes = TruffleRuby.MIME_TYPE,
-        defaultMimeType = TruffleRuby.MIME_TYPE,
-        dependentLanguages = TruffleRuby.LLVM_ID,
-        fileTypeDetectors = RubyFileTypeDetector.class)
+@TruffleLanguage.Registration(name = "Ruby", id = TruffleRuby.LANGUAGE_ID, implementationName = TruffleRuby.FORMAL_NAME, version = BuildInformationImpl.RUBY_VERSION, characterMimeTypes = TruffleRuby.MIME_TYPE, defaultMimeType = TruffleRuby.MIME_TYPE, dependentLanguages = TruffleRuby.LLVM_ID, fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -174,7 +167,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected String toString(RubyContext context, Object value) {
         if (value == null) {
             return "<null>";
-        } else if (RubyGuards.isBoxedPrimitive(value) ||  RubyGuards.isRubyBasicObject(value)) {
+        } else if (RubyGuards.isBoxedPrimitive(value) || RubyGuards.isRubyBasicObject(value)) {
             return context.send(value, "inspect").toString();
         } else if (value instanceof NotProvided) {
             return "<undefined>";

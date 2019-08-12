@@ -9,10 +9,11 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 
 /**
  * Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided.

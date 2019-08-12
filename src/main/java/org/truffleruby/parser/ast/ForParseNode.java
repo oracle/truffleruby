@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004-2006 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,16 +31,16 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-import java.util.List;
-
 /**
  * A 'for' statement.  This is implemented using iter and that is how MRI does things,
  * but 'for's do not have their own stack, so doing this way is mildly painful.
- * 
+ *
  * @see IterParseNode
  */
 public class ForParseNode extends IterParseNode {
@@ -52,9 +52,9 @@ public class ForParseNode extends IterParseNode {
         // just deal with this lack of scope throughout its lifespan.  We should probably
         // change the way this works to get rid of multiple null checks.
         super(position, varNode, scope, bodyNode);
-        
+
         assert iterNode != null : "iterNode is not null";
-        
+
         this.iterNode = iterNode;
     }
 
@@ -67,7 +67,7 @@ public class ForParseNode extends IterParseNode {
     public NodeType getNodeType() {
         return NodeType.FORNODE;
     }
-    
+
     public ParseNode getIterNode() {
         return iterNode;
     }
@@ -80,7 +80,7 @@ public class ForParseNode extends IterParseNode {
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitForNode(this);
     }
-    
+
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(getVarNode(), getBodyNode(), iterNode);

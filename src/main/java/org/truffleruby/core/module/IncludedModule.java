@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyGuards;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 /**
  * A reference to an included RubyModule.

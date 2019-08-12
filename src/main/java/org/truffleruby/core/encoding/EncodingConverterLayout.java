@@ -9,25 +9,27 @@
  */
 package org.truffleruby.core.encoding;
 
+import org.jcodings.transcode.EConv;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.jcodings.transcode.EConv;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface EncodingConverterLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createEncodingConverterShape(DynamicObject logicalClass,
-                                                      DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createEncodingConverter(DynamicObjectFactory factory,
-                                          @Nullable EConv econv);
+            @Nullable EConv econv);
 
     boolean isEncodingConverter(DynamicObject object);
 
     EConv getEconv(DynamicObject object);
+
     void setEconv(DynamicObject object, EConv value);
 
 }

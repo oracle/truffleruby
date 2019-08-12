@@ -26,10 +26,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  * This is not a node in the classic sense in that it has no defined or

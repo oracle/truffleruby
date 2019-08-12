@@ -9,10 +9,10 @@
  */
 package org.truffleruby.shared.options;
 
-import org.graalvm.options.OptionType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.graalvm.options.OptionType;
 
 public class StringArrayOptionType {
 

@@ -9,26 +9,16 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -90,10 +80,10 @@ import org.truffleruby.language.methods.AddMethodNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.IsANode;
@@ -107,15 +97,26 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.Translator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ValueProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Module")
 public abstract class ModuleNodes {
@@ -444,7 +445,7 @@ public abstract class ModuleNodes {
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
                 setter = (boolean) names[1];
-                names = new Object[] { names[0] };
+                names = new Object[]{ names[0] };
             } else {
                 setter = false;
             }
@@ -522,11 +523,13 @@ public abstract class ModuleNodes {
     @NodeChild(value = "filename", type = RubyNode.class)
     public abstract static class AutoloadNode extends CoreMethodNode {
 
-        @CreateCast("name") public RubyNode coerceNameToString(RubyNode name) {
+        @CreateCast("name")
+        public RubyNode coerceNameToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
-        @CreateCast("filename") public RubyNode coerceFilenameToPath(RubyNode filename) {
+        @CreateCast("filename")
+        public RubyNode coerceFilenameToPath(RubyNode filename) {
             return ToPathNodeGen.create(filename);
         }
 
@@ -594,13 +597,13 @@ public abstract class ModuleNodes {
             return classEvalSource(module, code, "(eval)", callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
+        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(file), callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
+        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, StringOperations.getString(file), line);
@@ -613,7 +616,7 @@ public abstract class ModuleNodes {
             return classEvalSource(module, toStr(frame, code), "(eval)", callNode);
         }
 
-        @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
+        @Specialization(guards = { "isRubyString(code)", "wasProvided(file)" })
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(toStr(frame, file)), callNode);
@@ -1139,7 +1142,7 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ClassExecNode.create());
             }
-            classExecNode.executeClassExec(module, new Object[]{module}, block);
+            classExecNode.executeClassExec(module, new Object[]{ module }, block);
         }
 
         @Specialization
@@ -1171,7 +1174,7 @@ public abstract class ModuleNodes {
             return nil();
         }
 
-        @Specialization(guards = {"isRubyClass(self)", "isRubyClass(from)"})
+        @Specialization(guards = { "isRubyClass(self)", "isRubyClass(from)" })
         public Object initializeCopyClass(DynamicObject self, DynamicObject from,
                 @Cached BranchProfile errorProfile) {
             if (from == coreLibrary().getBasicObjectClass()) {
@@ -1480,6 +1483,7 @@ public abstract class ModuleNodes {
         }
 
     }
+
     @CoreMethod(names = "private_instance_methods", optional = 1)
     public abstract static class PrivateInstanceMethodsNode extends AbstractInstanceMethodsNode {
 

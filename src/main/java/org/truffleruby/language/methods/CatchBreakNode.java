@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class CatchBreakNode extends RubyNode {
 

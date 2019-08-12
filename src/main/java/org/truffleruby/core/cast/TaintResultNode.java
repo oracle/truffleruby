@@ -10,15 +10,16 @@
 
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.IsTaintedNode;
+import org.truffleruby.language.objects.TaintNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.IsTaintedNode;
-import org.truffleruby.language.objects.TaintNode;
 
 public class TaintResultNode extends RubyNode {
 

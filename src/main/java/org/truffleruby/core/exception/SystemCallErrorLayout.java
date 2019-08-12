@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.exception;
 
+import org.truffleruby.language.backtrace.Backtrace;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.language.backtrace.Backtrace;
 
 @Layout
 public interface SystemCallErrorLayout extends ExceptionLayout {
@@ -30,6 +31,7 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             Object errno);
 
     Object getErrno(DynamicObject object);
+
     void setErrno(DynamicObject object, Object value);
 
 }

@@ -1,3 +1,4 @@
+// @formatter:off
 /*
  ***** BEGIN LICENSE BLOCK *****
  * Version: EPL 1.0/GPL 2.0/LGPL 2.1
@@ -25,7 +26,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- ***** END LICENSE BLOCK *****/
+ ***** END LICENSE BLOCK *****/          
 package org.truffleruby.parser.parser;
 
 public class YyTables {
@@ -4827,3 +4828,4 @@ public class YyTables {
    }
 
 }
+// @formatter:on

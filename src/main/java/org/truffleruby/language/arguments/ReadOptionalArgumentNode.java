@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
 
 public class ReadOptionalArgumentNode extends RubyNode {
 

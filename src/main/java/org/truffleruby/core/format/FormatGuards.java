@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.format;
 
-import org.truffleruby.language.RubyGuards;
-
 import java.math.BigInteger;
+
+import org.truffleruby.language.RubyGuards;
 
 public class FormatGuards {
 

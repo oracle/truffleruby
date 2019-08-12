@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.rope;
 
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.collections.ByteArrayBuilder;
-
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 public class RopeBuilder extends ByteArrayBuilder {
 

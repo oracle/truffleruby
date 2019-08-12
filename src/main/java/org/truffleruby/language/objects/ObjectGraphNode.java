@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 import java.util.Set;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public interface ObjectGraphNode {
 

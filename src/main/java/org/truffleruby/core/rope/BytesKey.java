@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.rope;
 
+import java.util.Arrays;
+
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
-
-import java.util.Arrays;
 
 public class BytesKey {
 

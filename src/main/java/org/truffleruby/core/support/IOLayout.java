@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.support;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface IOLayout extends BasicObjectLayout {
@@ -20,14 +21,15 @@ public interface IOLayout extends BasicObjectLayout {
     String DESCRIPTOR_IDENTIFIER = "@descriptor";
 
     DynamicObjectFactory createIOShape(DynamicObject logicalClass,
-                                       DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createIO(DynamicObjectFactory factory,
-                           int descriptor);
+            int descriptor);
 
     boolean isIO(DynamicObject object);
 
     int getDescriptor(DynamicObject object);
+
     void setDescriptor(DynamicObject object, int value);
 
 }

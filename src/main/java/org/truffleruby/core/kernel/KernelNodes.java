@@ -9,32 +9,15 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import static org.truffleruby.core.string.StringOperations.rope;
+
+import java.io.File;
+import java.io.PrintStream;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -80,11 +63,11 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
-import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
+import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -133,15 +116,32 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.truffleruby.core.string.StringOperations.rope;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Kernel")
 public abstract class KernelNodes {
@@ -214,7 +214,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public boolean sameOrEql(Object a, Object b,
-                        @Cached ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
@@ -618,7 +618,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,  newBindingDescriptor);
+            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
             return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -850,7 +850,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = {"!isRubySymbol(object)", "!isNil(object)"})
+        @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
         public boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
@@ -970,7 +970,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject lambda(NotProvided block,
-                                    @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
@@ -1140,7 +1140,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization(guards = "regular")
         public DynamicObject methodsRegular(Object self, boolean regular,
-                                            @Cached MetaClassNode metaClassNode) {
+                @Cached MetaClassNode metaClassNode) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED).toArray();
@@ -1149,7 +1149,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "!regular")
         public DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
-                                              @Cached SingletonMethodsNode singletonMethodsNode) {
+                @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
         }
 
@@ -1701,8 +1701,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         protected RootCallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
             try {
-                return new PrintfCompiler(getContext(), this)
-                        .compile(StringOperations.rope(format), arguments, isDebug);
+                return new PrintfCompiler(getContext(), this).compile(StringOperations.rope(format), arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -1783,7 +1782,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = {"to_s", "inspect"}) // Basic inspect, refined later in core
+    @CoreMethod(names = { "to_s", "inspect" }) // Basic inspect, refined later in core
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {

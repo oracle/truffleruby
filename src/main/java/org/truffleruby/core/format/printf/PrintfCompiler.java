@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.format.printf;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyNode;
 
-import java.util.List;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 
 public class PrintfCompiler {
 
@@ -35,8 +36,8 @@ public class PrintfCompiler {
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(context, configs);
 
         return Truffle.getRuntime().createCallTarget(
-            new FormatRootNode(context, currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.find(format.getEncoding()), builder.getNode()));
+                new FormatRootNode(context, currentNode.getEncapsulatingSourceSection(),
+                        FormatEncoding.find(format.getEncoding()), builder.getNode()));
     }
 
     private static char[] bytesToChars(byte[] bytes) {

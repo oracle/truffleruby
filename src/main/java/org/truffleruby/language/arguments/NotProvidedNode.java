@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class NotProvidedNode extends RubyNode {
 

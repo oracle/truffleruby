@@ -9,10 +9,11 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyLanguage;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
@@ -33,8 +34,8 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RestArgParseNode;
 import org.truffleruby.parser.ast.types.INameNode;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 /**
  * Produces code to reload arguments from local variables back into the
@@ -114,7 +115,7 @@ public class ReloadArgumentsTranslator extends Translator {
             if (kwArgsNode == null) {
                 kwArgsNode = keyRest;
             } else {
-                kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{kwArgsNode, keyRest});
+                kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{ kwArgsNode, keyRest });
             }
 
         }

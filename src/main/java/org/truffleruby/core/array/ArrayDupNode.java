@@ -13,6 +13,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -20,9 +23,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
 
 /**
  * Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class.

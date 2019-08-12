@@ -9,6 +9,10 @@
  */
 package org.truffleruby.platform;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.JavaException;
+
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -17,9 +21,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.JavaException;
 
 public class TruffleNFIPlatform {
 

@@ -9,6 +9,14 @@
  */
 package org.truffleruby;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.IntConsumer;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
@@ -16,14 +24,6 @@ import org.graalvm.polyglot.Value;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.shared.TruffleRuby;
-
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.IntConsumer;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class PolyglotInteropTest {
 
@@ -51,10 +51,9 @@ public class PolyglotInteropTest {
     @Test
     public void testPassingBlocks() {
         try (Context polyglot = Context.newBuilder().allowHostAccess(HostAccess.ALL).build()) {
-            final int[] counter = new int[]{0};
+            final int[] counter = new int[]{ 0 };
 
-            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }")
-                    .execute(polyglot.asValue((IntConsumer) n -> counter[0] += n));
+            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }").execute(polyglot.asValue((IntConsumer) n -> counter[0] += n));
 
             assertEquals(6, counter[0]);
         }
@@ -93,7 +92,7 @@ public class PolyglotInteropTest {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test
     public void testImplementLambda() {
         try (Context polyglot = Context.create()) {

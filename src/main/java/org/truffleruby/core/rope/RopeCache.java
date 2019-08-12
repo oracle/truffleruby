@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class RopeCache {
 

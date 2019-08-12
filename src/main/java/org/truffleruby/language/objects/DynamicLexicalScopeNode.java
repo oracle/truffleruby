@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DynamicLexicalScopeNode extends RubyNode {
 

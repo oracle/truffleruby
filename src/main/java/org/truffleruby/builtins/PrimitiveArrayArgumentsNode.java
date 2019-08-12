@@ -9,8 +9,9 @@
  */
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.dsl.NodeChild;
 
 @NodeChild(value = "arguments", type = RubyNode[].class)
 public abstract class PrimitiveArrayArgumentsNode extends PrimitiveNode {

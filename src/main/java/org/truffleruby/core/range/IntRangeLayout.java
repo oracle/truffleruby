@@ -9,10 +9,11 @@
  */
 package org.truffleruby.core.range;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface IntRangeLayout extends BasicObjectLayout {
@@ -26,6 +27,7 @@ public interface IntRangeLayout extends BasicObjectLayout {
             int end);
 
     boolean isIntRange(Object object);
+
     boolean isIntRange(DynamicObject object);
 
     boolean getExcludedEnd(DynamicObject object);

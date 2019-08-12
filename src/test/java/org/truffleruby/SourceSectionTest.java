@@ -9,18 +9,18 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.RubyTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
 import org.truffleruby.language.methods.AddMethodNode;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class SourceSectionTest extends RubyTest {
 
@@ -56,7 +56,8 @@ public class SourceSectionTest extends RubyTest {
 
     @Test
     public void testDeeplyNestedCallSections() {
-        testSourceSection(" [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ", RubyCallNode.class, "5 + 6", 5, 5, 85, 5, 16, 20);
+        testSourceSection(" [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ", RubyCallNode.class,
+                "5 + 6", 5, 5, 85, 5, 16, 20);
     }
 
     @Test

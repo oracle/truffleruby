@@ -9,12 +9,8 @@
  */
 package org.truffleruby.core.format.format;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import java.nio.charset.StandardCharsets;
+
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToIntegerNode;
@@ -26,7 +22,12 @@ import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.control.RaiseException;
 
-import java.nio.charset.StandardCharsets;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("width")
 @NodeChild("value")
@@ -41,15 +42,12 @@ public abstract class FormatCharacterNode extends FormatNode {
         this.hasMinusFlag = hasMinusFlag;
     }
 
-    @Specialization(
-        guards = {
+    @Specialization(guards = {
             "width == cachedWidth"
-        },
-        limit = "getLimit()"
-    )
+    }, limit = "getLimit()")
     byte[] formatCached(VirtualFrame frame, int width, Object value,
-                        @Cached("width") int cachedWidth,
-                        @Cached("makeFormatString(width)") String cachedFormatString) {
+            @Cached("width") int cachedWidth,
+            @Cached("makeFormatString(width)") String cachedFormatString) {
         final String charString = getCharString(frame, value);
         return doFormat(charString, cachedFormatString);
     }
@@ -64,11 +62,11 @@ public abstract class FormatCharacterNode extends FormatNode {
         if (toStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toStringNode = insert(ToStringNodeGen.create(
-                false,
-                "to_str",
-                false,
-                null,
-                WriteByteNodeGen.create(new LiteralFormatNode(value))));
+                    false,
+                    "to_str",
+                    false,
+                    null,
+                    WriteByteNodeGen.create(new LiteralFormatNode(value))));
         }
         Object toStrResult;
         try {

@@ -28,6 +28,10 @@ package org.truffleruby.core.regexp;
 
 public class RegexpSupport {
 
-    public enum ErrorMode {RAISE, PREPROCESS, DESC}
+    public enum ErrorMode {
+        RAISE,
+        PREPROCESS,
+        DESC
+    }
 
 }

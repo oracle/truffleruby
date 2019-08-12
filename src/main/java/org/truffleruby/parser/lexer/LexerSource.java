@@ -21,7 +21,7 @@
  * Copyright (C) 2007 Nick Sieger <nicksieger@gmail.com>
  * Copyright (C) 2007 Ola Bini <ola@ologix.com>
  * Copyright (C) 2007 William N Dortch <bill.dortch@gmail.com>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -36,16 +36,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
-import com.oracle.truffle.api.source.Source;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+
+import java.nio.charset.StandardCharsets;
+
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
-import java.nio.charset.StandardCharsets;
-
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import com.oracle.truffle.api.source.Source;
 
 public class LexerSource {
 

@@ -35,6 +35,13 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.regexp;
 
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -55,13 +62,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
@@ -156,7 +156,7 @@ public class ClassicRegexp implements ReOptions {
         return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
     }
 
-    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[]fixedEnc, RegexpSupport.ErrorMode mode) {
+    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
         } else {
@@ -204,8 +204,13 @@ public class ClassicRegexp implements ReOptions {
                     }
 
                     switch (c = bytes[p++] & 0xff) {
-                        case '1': case '2': case '3':
-                        case '4': case '5': case '6': case '7': /* \O, \OO, \OOO or backref */
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7': /* \O, \OO, \OOO or backref */
                             if (StringSupport.scanOct(bytes, p - 1, end - (p - 1)) <= 0177) {
                                 if (to != null) {
                                     to.append('\\');
@@ -293,7 +298,7 @@ public class ClassicRegexp implements ReOptions {
         return p + 4;
     }
 
-    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[]bytes, int p, int end, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
             p++;
         }
@@ -344,7 +349,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    public static int utf8Decode(RubyContext context, byte[]to, int p, int code) {
+    public static int utf8Decode(RubyContext context, byte[] to, int p, int code) {
         if (code <= 0x7f) {
             to[p] = (byte) code;
             return 1;
@@ -394,8 +399,8 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[]bytes, int p, int end, Encoding enc, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
-        byte[]chBuf = new byte[enc.maxLength()];
+    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+        byte[] chBuf = new byte[enc.maxLength()];
         int chLen = 0;
 
         p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
@@ -452,18 +457,40 @@ public class ClassicRegexp implements ReOptions {
             }
 
             switch (bytes[p++]) {
-                case '\\': code = '\\'; break;
-                case 'n': code = '\n'; break;
-                case 't': code = '\t'; break;
-                case 'r': code = '\r'; break;
-                case 'f': code = '\f'; break;
-                case 'v': code = '\013'; break;
-                case 'a': code = '\007'; break;
-                case 'e': code = '\033'; break;
+                case '\\':
+                    code = '\\';
+                    break;
+                case 'n':
+                    code = '\n';
+                    break;
+                case 't':
+                    code = '\t';
+                    break;
+                case 'r':
+                    code = '\r';
+                    break;
+                case 'f':
+                    code = '\f';
+                    break;
+                case 'v':
+                    code = '\013';
+                    break;
+                case 'a':
+                    code = '\007';
+                    break;
+                case 'e':
+                    code = '\033';
+                    break;
 
-            /* \OOO */
-                case '0': case '1': case '2': case '3':
-                case '4': case '5': case '6': case '7':
+                /* \OOO */
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
                     p--;
                     int olen = end < p + 3 ? end - p : 3;
                     code = StringSupport.scanOct(bytes, p, olen);
@@ -537,7 +564,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static void preprocessCheck(RubyContext runtime, Rope bytes) {
-        preprocess(runtime, bytes, bytes.getEncoding(), new Encoding[]{null}, RegexpSupport.ErrorMode.RAISE);
+        preprocess(runtime, bytes, bytes.getEncoding(), new Encoding[]{ null }, RegexpSupport.ErrorMode.RAISE);
     }
 
     public static RopeBuilder preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
@@ -566,7 +593,7 @@ public class ClassicRegexp implements ReOptions {
 
         for (int i = 0; i < strings.length; i++) {
             Rope str = strings[i];
-            final Encoding[] encodingHolder = new Encoding[]{null};
+            final Encoding[] encodingHolder = new Encoding[]{ null };
             regexpEnc = processDRegexpElement(context, options, regexpEnc, encodingHolder, str);
             if (string == null) {
                 string = RopeOperations.getRopeBuilderReadOnly(str);
@@ -601,7 +628,7 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
                 throw new RaiseException(context, context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
-                                new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
+                        new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
             }
             regexpEnc = fixedEnc[0];
         }
@@ -639,13 +666,29 @@ public class ClassicRegexp implements ReOptions {
                 }
 
                 switch (c) {
-                case '[': case ']': case '{': case '}':
-                case '(': case ')': case '|': case '-':
-                case '*': case '.': case '\\':
-                case '?': case '+': case '^': case '$':
-                case ' ': case '#':
-                case '\t': case '\f': case QUOTED_V: case '\n': case '\r':
-                    break metaFound;
+                    case '[':
+                    case ']':
+                    case '{':
+                    case '}':
+                    case '(':
+                    case ')':
+                    case '|':
+                    case '-':
+                    case '*':
+                    case '.':
+                    case '\\':
+                    case '?':
+                    case '+':
+                    case '^':
+                    case '$':
+                    case ' ':
+                    case '#':
+                    case '\t':
+                    case '\f':
+                    case QUOTED_V:
+                    case '\n':
+                    case '\r':
+                        break metaFound;
                 }
                 p += cl;
             }
@@ -657,7 +700,7 @@ public class ClassicRegexp implements ReOptions {
 
         RopeBuilder result = RopeBuilder.createRopeBuilder(end * 2);
         result.setEncoding(asciiOnly ? USASCIIEncoding.INSTANCE : bs.getEncoding());
-        byte[]obytes = result.getUnsafeBytes();
+        byte[] obytes = result.getUnsafeBytes();
         int op = p;
         System.arraycopy(bytes, 0, obytes, 0, op);
 
@@ -681,37 +724,48 @@ public class ClassicRegexp implements ReOptions {
             }
             p += cl;
             switch (c) {
-            case '[': case ']': case '{': case '}':
-            case '(': case ')': case '|': case '-':
-            case '*': case '.': case '\\':
-            case '?': case '+': case '^': case '$':
-            case '#':
-                op += enc.codeToMbc('\\', obytes, op);
-                break;
-            case ' ':
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc(' ', obytes, op);
-                continue;
-            case '\t':
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc('t', obytes, op);
-                continue;
-            case '\n':
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc('n', obytes, op);
-                continue;
-            case '\r':
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc('r', obytes, op);
-                continue;
-            case '\f':
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc('f', obytes, op);
-                continue;
-            case QUOTED_V:
-                op += enc.codeToMbc('\\', obytes, op);
-                op += enc.codeToMbc('v', obytes, op);
-                continue;
+                case '[':
+                case ']':
+                case '{':
+                case '}':
+                case '(':
+                case ')':
+                case '|':
+                case '-':
+                case '*':
+                case '.':
+                case '\\':
+                case '?':
+                case '+':
+                case '^':
+                case '$':
+                case '#':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    break;
+                case ' ':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc(' ', obytes, op);
+                    continue;
+                case '\t':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc('t', obytes, op);
+                    continue;
+                case '\n':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc('n', obytes, op);
+                    continue;
+                case '\r':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc('r', obytes, op);
+                    continue;
+                case '\f':
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc('f', obytes, op);
+                    continue;
+                case QUOTED_V:
+                    op += enc.codeToMbc('\\', obytes, op);
+                    op += enc.codeToMbc('v', obytes, op);
+                    continue;
             }
             op += enc.codeToMbc(c, obytes, op);
         }
@@ -735,13 +789,13 @@ public class ClassicRegexp implements ReOptions {
             throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
         }
 
-        Encoding[]fixedEnc = new Encoding[]{null};
+        Encoding[] fixedEnc = new Encoding[]{ null };
         RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
-               (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                    throw new UnsupportedOperationException();
-                    //RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "incompatible character encoding");
+                    (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
+                throw new UnsupportedOperationException();
+                //RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "incompatible character encoding");
             }
             if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                 options.setFixed(true);

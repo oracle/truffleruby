@@ -38,10 +38,7 @@ public class ContextPermissionsTest {
 
     @Test
     public void testRequireGem() {
-        try (Context context = Context.newBuilder("ruby")
-                .allowIO(true)
-                .allowNativeAccess(true)
-                .build()) {
+        try (Context context = Context.newBuilder("ruby").allowIO(true).allowNativeAccess(true).build()) {
             // NOTE: rake is a bundled gem, so it needs RubyGems to be required
             Assert.assertEquals("Rake", context.eval("ruby", "require 'rake'; Rake.to_s").asString());
         }

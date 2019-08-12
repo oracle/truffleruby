@@ -126,7 +126,7 @@ public class IntHashMap<V> {
         Entry<V>[] oldMap = table;
 
         int newCapacity = oldCapacity * 2 + 1;
-        @SuppressWarnings({"unchecked", "rawtypes"})
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         Entry<V>[] newMap = new Entry[newCapacity];
 
         threshold = (int) (newCapacity * loadFactor);

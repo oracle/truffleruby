@@ -9,23 +9,25 @@
  */
 package org.truffleruby.core.method;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.methods.InternalMethod;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.language.methods.InternalMethod;
 
 @Layout
 public interface UnboundMethodLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createUnboundMethodShape(DynamicObject logicalClass,
-                                                  DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createUnboundMethod(DynamicObjectFactory factory,
-                                      DynamicObject origin,
-                                      InternalMethod method);
+            DynamicObject origin,
+            InternalMethod method);
 
     boolean isUnboundMethod(DynamicObject object);
+
     boolean isUnboundMethod(Object object);
 
     DynamicObject getOrigin(DynamicObject object);

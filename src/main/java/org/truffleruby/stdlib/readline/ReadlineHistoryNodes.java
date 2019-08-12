@@ -40,27 +40,29 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import jline.console.history.History;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
-import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+
+import jline.console.history.History;
 
 @CoreClass("Truffle::ReadlineHistory")
 public abstract class ReadlineHistoryNodes {
@@ -213,11 +215,13 @@ public abstract class ReadlineHistoryNodes {
     @NodeChild(value = "line", type = RubyNode.class)
     public abstract static class SetIndexNode extends CoreMethodNode {
 
-        @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {
+        @CreateCast("index")
+        public RubyNode coerceIndexToInt(RubyNode index) {
             return ToIntNodeGen.create(index);
         }
 
-        @CreateCast("line") public RubyNode coerceLineToJavaString(RubyNode line) {
+        @CreateCast("line")
+        public RubyNode coerceLineToJavaString(RubyNode line) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(line);
         }
 

@@ -10,8 +10,9 @@
 
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 
 @GenerateNodeFactory
 public abstract class PrimitiveNode extends RubyNode {

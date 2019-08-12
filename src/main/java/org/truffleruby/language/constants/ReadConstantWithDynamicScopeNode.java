@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.constants;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
@@ -18,6 +16,9 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a constant using a dynamic lexical scope: class << expr; CONST; end */
 public class ReadConstantWithDynamicScopeNode extends RubyNode {

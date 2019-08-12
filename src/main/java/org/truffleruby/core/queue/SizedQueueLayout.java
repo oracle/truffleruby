@@ -9,22 +9,24 @@
  */
 package org.truffleruby.core.queue;
 
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface SizedQueueLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createSizedQueueShape(DynamicObject logicalClass,
-                                               DynamicObject metaClass);
+            DynamicObject metaClass);
 
     DynamicObject createSizedQueue(DynamicObjectFactory factory,
-                                   @Nullable SizedQueue queue);
+            @Nullable SizedQueue queue);
 
     SizedQueue getQueue(DynamicObject object);
+
     void setQueue(DynamicObject object, SizedQueue value);
 
 }

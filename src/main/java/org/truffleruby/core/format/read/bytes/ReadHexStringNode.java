@@ -45,9 +45,9 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
@@ -55,8 +55,9 @@ import org.truffleruby.core.format.write.bytes.EncodeUM;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadHexStringNode extends FormatNode {

@@ -9,10 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-
 import java.util.ArrayList;
 
 import org.truffleruby.Layouts;
@@ -26,6 +22,10 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.control.RaiseException;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 

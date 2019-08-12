@@ -9,11 +9,8 @@
  */
 package org.truffleruby.language.constants;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.util.ArrayList;
+
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
@@ -22,7 +19,11 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
-import java.util.ArrayList;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
  * Caches {@link ModuleOperations#lookupConstant}
@@ -51,12 +52,9 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         return executeLookupConstant(module, name);
     }
 
-    @Specialization(
-            guards = {
-                    "module == cachedModule",
-                    "guardName(name, cachedName, sameNameProfile)" },
-            assumptions = "constant.getAssumptions()",
-            limit = "getCacheLimit()")
+    @Specialization(guards = {
+            "module == cachedModule",
+            "guardName(name, cachedName, sameNameProfile)" }, assumptions = "constant.getAssumptions()", limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(DynamicObject module, String name,
             @Cached("module") DynamicObject cachedModule,
             @Cached("name") String cachedName,

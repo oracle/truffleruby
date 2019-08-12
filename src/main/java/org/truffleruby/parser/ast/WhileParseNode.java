@@ -16,7 +16,7 @@
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
  * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -31,38 +31,38 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-import java.util.List;
-
-/** 
+/**
  * Represents a while statement. This could be the both versions:
- * 
+ *
  * while &lt;condition&gt;
  *    &lt;body&gt;
  * end
- * 
+ *
  * and
- * 
+ *
  * &lt;body&gt; 'while' &lt;condition&gt;
  */
 public class WhileParseNode extends ParseNode {
     private final ParseNode conditionNode;
     private final ParseNode bodyNode;
     private final boolean evaluateAtStart;
-    
+
     public WhileParseNode(SourceIndexLength position, ParseNode conditionNode, ParseNode bodyNode) {
         this(position, conditionNode, bodyNode, true);
     }
 
     public WhileParseNode(SourceIndexLength position, ParseNode conditionNode, ParseNode bodyNode,
-                          boolean evalAtStart) {
+            boolean evalAtStart) {
         super(position);
-        
+
         assert conditionNode != null : "conditionNode is not null";
         assert bodyNode != null : "bodyNode is not null";
-        
+
         this.conditionNode = conditionNode;
         this.bodyNode = bodyNode;
         this.evaluateAtStart = evalAtStart;
@@ -72,7 +72,7 @@ public class WhileParseNode extends ParseNode {
     public NodeType getNodeType() {
         return NodeType.WHILENODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
@@ -81,7 +81,7 @@ public class WhileParseNode extends ParseNode {
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitWhileNode(this);
     }
-    
+
     /**
      * Gets the bodyNode.
      * @return Returns a ParseNode
@@ -97,7 +97,7 @@ public class WhileParseNode extends ParseNode {
     public ParseNode getConditionNode() {
         return conditionNode;
     }
-    
+
     /**
      * Determine whether this is while or do while
      * @return true if you are a while, false if do while

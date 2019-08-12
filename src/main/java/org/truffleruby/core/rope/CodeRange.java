@@ -31,12 +31,17 @@ public enum CodeRange {
     }
 
     public static CodeRange fromInt(int codeRange) {
-        switch(codeRange) {
-            case 0: return CR_UNKNOWN;
-            case 1: return CR_7BIT;
-            case 2: return CR_VALID;
-            case 3: return CR_BROKEN;
-            default: throw new UnsupportedOperationException("Don't know how to convert code range: " + codeRange);
+        switch (codeRange) {
+            case 0:
+                return CR_UNKNOWN;
+            case 1:
+                return CR_7BIT;
+            case 2:
+                return CR_VALID;
+            case 3:
+                return CR_BROKEN;
+            default:
+                throw new UnsupportedOperationException("Don't know how to convert code range: " + codeRange);
         }
     }
 }

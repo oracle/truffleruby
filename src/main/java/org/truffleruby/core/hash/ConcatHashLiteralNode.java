@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.hash;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConcatHashLiteralNode extends RubyNode {
 

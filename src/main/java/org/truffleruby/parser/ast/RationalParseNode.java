@@ -26,10 +26,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import java.util.List;
+
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.List;
 
 /**
  *
@@ -41,7 +41,7 @@ public class RationalParseNode extends NumericParseNode implements SideEffectFre
 
     public RationalParseNode(SourceIndexLength position, long numerator, long denominator) {
         super(position);
-        
+
         this.numerator = numerator;
         this.denominator = denominator;
     }

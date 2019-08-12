@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.ShapeCachingGuards;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 
 @ImportStatic(ShapeCachingGuards.class)
 public abstract class WriteBarrierNode extends RubyBaseNode {
@@ -35,10 +36,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     public abstract void executeWriteBarrier(Object value);
 
-    @Specialization(
-            guards = { "value.getShape() == cachedShape", "depth < MAX_DEPTH" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
+    @Specialization(guards = { "value.getShape() == cachedShape", "depth < MAX_DEPTH" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
     protected void writeBarrierCached(DynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
             @Cached("isShared(cachedShape)") boolean alreadyShared,

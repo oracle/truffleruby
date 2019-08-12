@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language;
 
+import java.util.function.BiConsumer;
+
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import java.util.function.BiConsumer;
 
 public interface SafepointAction extends BiConsumer<DynamicObject, Node> {
 

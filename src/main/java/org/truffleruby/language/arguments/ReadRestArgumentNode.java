@@ -9,17 +9,17 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRestArgumentNode extends RubyNode {
 
@@ -37,7 +37,7 @@ public class ReadRestArgumentNode extends RubyNode {
     @Child private ArrayAppendOneNode arrayAppendOneNode;
 
     public ReadRestArgumentNode(int startIndex, int indexFromCount,
-                                boolean keywordArguments, int minimumForKWargs) {
+            boolean keywordArguments, int minimumForKWargs) {
         this.startIndex = startIndex;
         this.indexFromCount = indexFromCount;
         this.keywordArguments = keywordArguments;

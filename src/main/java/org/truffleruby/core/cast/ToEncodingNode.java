@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
+
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 /**
  * Take a Ruby object that has an encoding and extracts the Java-level encoding object.

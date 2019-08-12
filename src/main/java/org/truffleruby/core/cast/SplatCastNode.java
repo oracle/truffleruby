@@ -9,6 +9,14 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayDupNode;
+import org.truffleruby.core.array.ArrayDupNodeGen;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Cached;
@@ -17,13 +25,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.array.ArrayDupNode;
-import org.truffleruby.core.array.ArrayDupNodeGen;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 /**
  * Splat as used to cast a value to an array if it isn't already, as in {@code *value}.
@@ -65,7 +66,7 @@ public abstract class SplatCastNode extends RubyNode {
                 return createArray(null, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[] { nil() }, 1);
+                return createArray(new Object[]{ nil() }, 1);
 
             case CONVERT:
                 return callToA(frame, nil);
@@ -90,7 +91,7 @@ public abstract class SplatCastNode extends RubyNode {
         }
     }
 
-    @Specialization(guards = {"!isNil(object)", "!isRubyArray(object)"})
+    @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
     public DynamicObject splat(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
@@ -98,11 +99,11 @@ public abstract class SplatCastNode extends RubyNode {
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;
         } else if (array == nil()) {
-            return createArray(new Object[]{object}, 1);
+            return createArray(new Object[]{ object }, 1);
         } else {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(object, "Array",
-                Layouts.SYMBOL.getString(conversionMethod), array, this));
+                    Layouts.SYMBOL.getString(conversionMethod), array, this));
         }
     }
 

@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.format.control;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatNode;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class SetOutputPositionNode extends FormatNode {
 

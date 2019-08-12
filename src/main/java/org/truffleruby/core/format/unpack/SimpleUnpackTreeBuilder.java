@@ -9,7 +9,12 @@
  */
 package org.truffleruby.core.format.unpack;
 
-import com.oracle.truffle.api.nodes.Node;
+import java.nio.ByteOrder;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -45,11 +50,7 @@ import org.truffleruby.core.format.write.OutputNode;
 import org.truffleruby.core.format.write.array.WriteValueNodeGen;
 import org.truffleruby.language.control.RaiseException;
 
-import java.nio.ByteOrder;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import com.oracle.truffle.api.nodes.Node;
 
 public class SimpleUnpackTreeBuilder implements SimplePackListener {
 

@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import org.truffleruby.language.RubyNode;
 
 /**
  * This node has a pair of children. One has side effects and the other returns the

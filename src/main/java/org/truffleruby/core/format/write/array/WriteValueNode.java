@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.format.write.array;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.format.write.OutputNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "output", type = OutputNode.class)
 @NodeChild(value = "value", type = FormatNode.class)

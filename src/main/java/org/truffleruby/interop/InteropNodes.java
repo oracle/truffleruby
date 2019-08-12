@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -49,6 +48,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -1259,8 +1259,7 @@ public abstract class InteropNodes {
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode
-        ) {
+                @Cached RopeNodes.EqualNode sourceEqualNode) {
             return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
@@ -1335,8 +1334,7 @@ public abstract class InteropNodes {
         }
 
         protected boolean isJavaClassOrInterface(TruffleObject object) {
-            return getContext().getEnv().isHostObject(object)
-                    && getContext().getEnv().asHostObject(object) instanceof Class<?>;
+            return getContext().getEnv().isHostObject(object) && getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
 
     }
@@ -1456,8 +1454,7 @@ public abstract class InteropNodes {
 
         @Specialization
         public boolean isJavaClass(Object value) {
-            return getContext().getEnv().isHostObject(value)
-                    && getContext().getEnv().asHostObject(value) instanceof Class;
+            return getContext().getEnv().isHostObject(value) && getContext().getEnv().asHostObject(value) instanceof Class;
         }
 
     }

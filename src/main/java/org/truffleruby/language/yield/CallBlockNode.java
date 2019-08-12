@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.yield;
 
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -21,6 +19,8 @@ import org.truffleruby.language.methods.DeclarationContext;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -38,9 +38,7 @@ public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
     public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
-    @Specialization(
-            guards = "getBlockCallTarget(block) == cachedCallTarget",
-            limit = "getCacheLimit()")
+    @Specialization(guards = "getBlockCallTarget(block) == cachedCallTarget", limit = "getCacheLimit()")
     protected Object callBlockCached(
             DeclarationContext declarationContext,
             DynamicObject block,

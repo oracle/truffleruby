@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.util.Arrays;
+
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.format.read.SourceNode;
 
-import java.util.Arrays;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBytesNode extends FormatNode {

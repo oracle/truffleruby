@@ -9,11 +9,12 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.IsANode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.IsANode;
 
 @NodeChild(value = "a", type = RubyNode.class)
 @NodeChild(value = "b", type = RubyNode.class)

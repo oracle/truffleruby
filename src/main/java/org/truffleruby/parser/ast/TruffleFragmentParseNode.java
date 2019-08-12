@@ -9,12 +9,12 @@
  */
 package org.truffleruby.parser.ast;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-
-import java.util.Collections;
-import java.util.List;
 
 public class TruffleFragmentParseNode extends ParseNode {
 

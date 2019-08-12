@@ -9,10 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -21,6 +17,11 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("Truffle::Ropes")
 public abstract class TruffleRopesNodes {
@@ -132,8 +133,8 @@ public abstract class TruffleRopesNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject flattenRope(DynamicObject string,
-                                         @Cached RopeNodes.FlattenNode flattenNode,
-                                         @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached RopeNodes.FlattenNode flattenNode,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
 
             final Rope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
 
@@ -152,8 +153,8 @@ public abstract class TruffleRopesNodes {
 
         @Specialization
         public DynamicObject createSimpleString(
-                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(new AsciiOnlyLeafRope(new byte[]{'t', 'e', 's', 't'}, UTF8Encoding.INSTANCE));
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));
         }
 
     }
