@@ -2079,8 +2079,9 @@ EOS
     sh "tool/lint.sh"
     mx 'gate', '--tags', 'style'
 
-    # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`,
-    #   includes verifylibraryurls though
+    # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
+    #  - includes verifylibraryurls though
+    #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
     mx 'spotbugs'
 
     check_dsl_usage unless args.delete '--no-build'
