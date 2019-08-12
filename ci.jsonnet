@@ -295,7 +295,10 @@ local part_definitions = {
 
     lint: {
       is_after:: ["$.use.build"],
-      mx_build_options:: ["--warning-as-error", "--force-deprecation-as-warning"],
+      downloads+: {
+        JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
+      },
+      mx_build_options:: ["--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
       },
