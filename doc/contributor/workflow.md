@@ -7,6 +7,7 @@ You will need:
 * Java JDK 8 or 10
 * Ruby 2
 * [LLVM](../user/installing-llvm.md)
+  * You may need to follow the output of `brew install llvm@4` and add llvm@4 to your `PATH` to make `opt` and `llvm-link` discoverable to build [Sulong](https://github.com/oracle/graal/tree/master/sulong#macos).
 * [`libssl`](../user/installing-libssl.md)
 
 ## Workspace directory
@@ -97,6 +98,8 @@ for tests.
 ```bash
 $ jt test fast --native
 ```
+
+Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt -u mri/bin/ruby path/to/spec.rb` to run the test on MRI, assuming you have MRI in your PATH.
 
 ## Running
 
