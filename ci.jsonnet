@@ -67,13 +67,8 @@ local part_definitions = {
     },
 
     maven: {
-      downloads+: {
-        MAVEN_HOME: { name: "maven", version: "3.3.9" },
-      },
-
-      environment+: {
-        path+:: ["$MAVEN_HOME/bin"],
-      },
+      downloads+: { MAVEN_HOME: { name: "maven", version: "3.3.9" } },
+      environment+: { path+:: ["$MAVEN_HOME/bin"] },
     },
 
     build: {
@@ -148,6 +143,10 @@ local part_definitions = {
         JRUBY_OPTS: "-Xcompile.invokedynamic=true",
       },
     },
+    node: {
+      downloads+: { NODE: { name: "node", version: "v10.15.2", platformspecific: true } },
+      environment+: { path+:: ["$NODE/bin"] },
+    },
   },
 
   env: {
@@ -219,9 +218,7 @@ local part_definitions = {
         },
       },
 
-      environment+: {
-        path+:: ["$JAVA_HOME/bin"],
-      },
+      environment+: { path+:: ["$JAVA_HOME/bin"] },
     },
 
     openjdk8: {
@@ -233,9 +230,7 @@ local part_definitions = {
         },
       },
 
-      environment+: {
-        path+:: ["$JAVA_HOME/bin"],
-      },
+      environment+: { path+:: ["$JAVA_HOME/bin"] },
     },
   },
 
@@ -309,8 +304,10 @@ local part_definitions = {
     test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
-    test_ecosystem: { run+: jt(["test", "ecosystem"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
+    test_ecosystem: {
+      run+: [["node", "--version"]] + jt(["test", "ecosystem"]),
+    },
 
     test_cexts: {
       is_after+:: ["$.use.common"],
@@ -445,7 +442,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-integration-linux": linux_gate_jvm + $.run.test_integration,
       "ruby-test-cexts-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.node + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux": linux_gate_without_build + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_ce + $.use.truffleruby + $.run.test_compiler,
