@@ -12,7 +12,6 @@ package org.truffleruby.core.kernel;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.truffleruby.Layouts;
@@ -55,10 +54,8 @@ public class AtExitManager {
         DynamicObject lastException = null;
 
         while (true) {
-            DynamicObject block;
-            try {
-                block = stack.pop();
-            } catch (NoSuchElementException e) {
+            DynamicObject block = stack.poll();
+            if (block == null) {
                 return lastException;
             }
 
