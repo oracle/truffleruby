@@ -1,3 +1,4 @@
+// @formatter:off
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -145,374 +146,866 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
 
-    public static final OptionDescriptor LOAD_PATHS = OptionDescriptor.newBuilder(LOAD_PATHS_KEY, "ruby.load-paths").help("Load paths (configured by the -I Ruby option)").category(
-            OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor REQUIRED_LIBRARIES = OptionDescriptor.newBuilder(REQUIRED_LIBRARIES_KEY, "ruby.required-libraries").help(
-            "Required libraries (configured by the -r Ruby option)").category(OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor WORKING_DIRECTORY = OptionDescriptor.newBuilder(WORKING_DIRECTORY_KEY, "ruby.working-directory").help(
-            "Interpreter will switch to this directory (configured by the -C Ruby option)").category(OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor DEBUG = OptionDescriptor.newBuilder(DEBUG_KEY, "ruby.debug").help("Sets $DEBUG to this value (configured by the -d Ruby option)").category(
-            OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor VERBOSITY = OptionDescriptor.newBuilder(VERBOSITY_KEY, "ruby.verbose").help(
-            "Sets $VERBOSE to this value (configured by the -v, -w, -W Ruby options)").category(OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor SOURCE_ENCODING = OptionDescriptor.newBuilder(SOURCE_ENCODING_KEY, "ruby.source-encoding").help("Source encoding (configured by the -K Ruby option)").category(
-            OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor INTERNAL_ENCODING = OptionDescriptor.newBuilder(INTERNAL_ENCODING_KEY, "ruby.internal-encoding").help(
-            "Internal encoding (configured by the -E, -U Ruby options)").category(OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor EXTERNAL_ENCODING = OptionDescriptor.newBuilder(EXTERNAL_ENCODING_KEY, "ruby.external-encoding").help(
-            "External encoding (configured by the -E Ruby option)").category(OptionCategory.USER).stability(OptionStability.STABLE).build();
-
-    public static final OptionDescriptor HOME = OptionDescriptor.newBuilder(HOME_KEY, "ruby.home").help("The location of the TruffleRuby installation files").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor.newBuilder(NO_HOME_PROVIDED_KEY, "ruby.no-home-provided").help(
-            "set to true to explicitly state that no home is provided (silences the warnings)").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAUNCHER = OptionDescriptor.newBuilder(LAUNCHER_KEY, "ruby.launcher").help("The location of the TruffleRuby launcher program").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CORE_LOAD_PATH = OptionDescriptor.newBuilder(CORE_LOAD_PATH_KEY, "ruby.core-load-path").help("Location to load the Truffle core library from").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor FROZEN_STRING_LITERALS = OptionDescriptor.newBuilder(FROZEN_STRING_LITERALS_KEY, "ruby.frozen-string-literals").help("Use frozen string literals").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor RUBYGEMS = OptionDescriptor.newBuilder(RUBYGEMS_KEY, "ruby.rubygems").help("Use RubyGems").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor DEFAULT_LAZY = OptionDescriptor.newBuilder(DEFAULT_LAZY_KEY, "ruby.lazy-default").help("Enable default lazy options").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_RUBYGEMS = OptionDescriptor.newBuilder(LAZY_RUBYGEMS_KEY, "ruby.rubygems-lazy").help("Load RubyGems lazily on first failing require").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PATCHING = OptionDescriptor.newBuilder(PATCHING_KEY, "ruby.patching").help("Use patching").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor DID_YOU_MEAN = OptionDescriptor.newBuilder(DID_YOU_MEAN_KEY, "ruby.did-you-mean").help("Use did_you_mean").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor.newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic").help(
-            "Produce deterministic hash values").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EMBEDDED = OptionDescriptor.newBuilder(EMBEDDED_KEY, "ruby.embedded").help(
-            "Set default options for an embedded use of TruffleRuby, rather than top-level use").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor NATIVE_PLATFORM = OptionDescriptor.newBuilder(NATIVE_PLATFORM_KEY, "ruby.platform-native").help(
-            "Enables native calls via Truffle NFI for internal functionality").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor NATIVE_INTERRUPT = OptionDescriptor.newBuilder(NATIVE_INTERRUPT_KEY, "ruby.platform-native-interrupt").help(
-            "Use the SIGVTALRM signal to interrupt native blocking calls").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor HANDLE_INTERRUPT = OptionDescriptor.newBuilder(HANDLE_INTERRUPT_KEY, "ruby.platform-handle-interrupt").help(
-            "Handle the interrupt signal and raise an Interrupt exception").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SINGLE_THREADED = OptionDescriptor.newBuilder(SINGLE_THREADED_KEY, "ruby.single-threaded").help(
-            "Use only a single thread to be compatible with languages not supporting multithreading").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor POLYGLOT_STDIO = OptionDescriptor.newBuilder(POLYGLOT_STDIO_KEY, "ruby.polyglot-stdio").help(
-            "Use standard IO streams from the Graal-SDK polyglot API configuration").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor HOST_INTEROP = OptionDescriptor.newBuilder(HOST_INTEROP_KEY, "ruby.interop-host").help("Allow interoperability with the host language (Java)").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor TRACE_CALLS = OptionDescriptor.newBuilder(TRACE_CALLS_KEY, "ruby.trace-calls").help("Support tracing (set_trace_func, TracePoint) of method calls").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor COVERAGE_GLOBAL = OptionDescriptor.newBuilder(COVERAGE_GLOBAL_KEY, "ruby.coverage-global").help(
-            "Run coverage for all code and print results on exit").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CORE_AS_INTERNAL = OptionDescriptor.newBuilder(CORE_AS_INTERNAL_KEY, "ruby.core-as-internal").help("Mark core library sources as internal").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor STDLIB_AS_INTERNAL = OptionDescriptor.newBuilder(STDLIB_AS_INTERNAL_KEY, "ruby.stdlib-as-internal").help("Mark stdlib sources as internal").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_TRANSLATION_USER = OptionDescriptor.newBuilder(LAZY_TRANSLATION_USER_KEY, "ruby.lazy-translation-user").help(
-            "Lazily translation of stdlib, gem and user source files").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_STORE_JAVA = OptionDescriptor.newBuilder(EXCEPTIONS_STORE_JAVA_KEY, "ruby.exceptions-store-java").help(
-            "Store the Java exception with the Ruby backtrace").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_PRINT_JAVA = OptionDescriptor.newBuilder(EXCEPTIONS_PRINT_JAVA_KEY, "ruby.exceptions-print-java").help(
-            "Print Java exceptions at the point of translating them to Ruby exceptions").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_PRINT_UNCAUGHT_JAVA = OptionDescriptor.newBuilder(EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY, "ruby.exceptions-print-uncaught-java").help(
-            "Print uncaught Java exceptions at the point of translating them to Ruby exceptions").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_PRINT_RUBY_FOR_JAVA = OptionDescriptor.newBuilder(EXCEPTIONS_PRINT_RUBY_FOR_JAVA_KEY, "ruby.exceptions-print-ruby-for-java").help(
-            "When printing a Java backtrace, also print the Ruby backtrace at that point").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_TRANSLATE_ASSERT = OptionDescriptor.newBuilder(EXCEPTIONS_TRANSLATE_ASSERT_KEY, "ruby.exceptions-translate-assert").help(
-            "Translate failed Java assertions to Ruby exceptions").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_WARN_STACKOVERFLOW = OptionDescriptor.newBuilder(EXCEPTIONS_WARN_STACKOVERFLOW_KEY, "ruby.exceptions-warn-stackoverflow").help(
-            "Warn when a stack overflow error is thrown").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EXCEPTIONS_WARN_OUT_OF_MEMORY = OptionDescriptor.newBuilder(EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY, "ruby.exceptions-warn-out-of-memory").help(
-            "Warn when an out-of-memory error is thrown").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACES_HIDE_CORE_FILES = OptionDescriptor.newBuilder(BACKTRACES_HIDE_CORE_FILES_KEY, "ruby.backtraces-hide-core-files").help(
-            "Hide core source files in backtraces, like MRI does").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACES_INTERLEAVE_JAVA = OptionDescriptor.newBuilder(BACKTRACES_INTERLEAVE_JAVA_KEY, "ruby.backtraces-interleave-java").help(
-            "Interleave Java stacktraces into the Ruby backtrace").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACES_LIMIT = OptionDescriptor.newBuilder(BACKTRACES_LIMIT_KEY, "ruby.backtraces-limit").help("Limit the size of Ruby backtraces").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACES_OMIT_UNUSED = OptionDescriptor.newBuilder(BACKTRACES_OMIT_UNUSED_KEY, "ruby.backtraces-omit-unused").help(
-            "Omit backtraces that should be unused as they have pure rescue expressions").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACE_ON_INTERRUPT = OptionDescriptor.newBuilder(BACKTRACE_ON_INTERRUPT_KEY, "ruby.backtraces-on-interrupt").help(
-            "Show the backtraces of all Threads on Ctrl+C").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACE_ON_SIGALRM = OptionDescriptor.newBuilder(BACKTRACE_ON_SIGALRM_KEY, "ruby.backtraces-sigalrm").help(
-            "Show the backtraces of all Threads on SIGALRM").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BACKTRACE_ON_RAISE = OptionDescriptor.newBuilder(BACKTRACE_ON_RAISE_KEY, "ruby.backtraces-raise").help(
-            "Show the backtraces of exceptions at the point of them being raised").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXTS = OptionDescriptor.newBuilder(CEXTS_KEY, "ruby.cexts").help("Enable use of C extensions").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXT_LOCK = OptionDescriptor.newBuilder(CEXT_LOCK_KEY, "ruby.cexts-lock").help("Use a Global Lock when running C extensions").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXTS_LIBRARY_REMAP = OptionDescriptor.newBuilder(CEXTS_LIBRARY_REMAP_KEY, "ruby.cexts-remap").help(
-            "Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so").category(OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor OPTIONS_LOG = OptionDescriptor.newBuilder(OPTIONS_LOG_KEY, "ruby.options-log").help("Log the final value of all options").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LOG_LOAD = OptionDescriptor.newBuilder(LOG_LOAD_KEY, "ruby.log-load").help("Log loading files").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LOG_AUTOLOAD = OptionDescriptor.newBuilder(LOG_AUTOLOAD_KEY, "ruby.log-autoload").help("Log autoloading").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LOG_FEATURE_LOCATION = OptionDescriptor.newBuilder(LOG_FEATURE_LOCATION_KEY, "ruby.log-feature-location").help("Log the process of finding features").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXTS_LOG_LOAD = OptionDescriptor.newBuilder(CEXTS_LOG_LOAD_KEY, "ruby.cexts-log-load").help("Log loading of cexts").category(OptionCategory.EXPERT).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXTS_LOG_WARNINGS = OptionDescriptor.newBuilder(CEXTS_LOG_WARNINGS_KEY, "ruby.cexts-log-warnings").help("Log cexts warnings").category(
-            OptionCategory.EXPERT).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARGV_GLOBALS = OptionDescriptor.newBuilder(ARGV_GLOBALS_KEY, "ruby.argv-globals").help(
-            "Parse options in script argv into global variables (configured by the -s Ruby option)").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor IGNORE_LINES_BEFORE_RUBY_SHEBANG = OptionDescriptor.newBuilder(IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY, "ruby.ignore-lines-before-ruby-shebang").help(
-            "strip off text before #!ruby line (configured by the -x Ruby option)").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SYNTAX_CHECK = OptionDescriptor.newBuilder(SYNTAX_CHECK_KEY, "ruby.syntax-check").help(
-            "Do not execute just check syntax (configured by the -c Ruby option)").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARGV_GLOBAL_VALUES = OptionDescriptor.newBuilder(ARGV_GLOBAL_VALUES_KEY, "ruby.argv-global-values").help(
-            "Parsed options from script argv with a value").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARGV_GLOBAL_FLAGS = OptionDescriptor.newBuilder(ARGV_GLOBAL_FLAGS_KEY, "ruby.argv-global-flags").help(
-            "Parsed options from script argv acting as flags (no value)").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BUILDING_CORE_CEXTS = OptionDescriptor.newBuilder(BUILDING_CORE_CEXTS_KEY, "ruby.building-core-cexts").help(
-            "Used while building TruffleRuby to build core C extensions").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_TRANSLATION_LOG = OptionDescriptor.newBuilder(LAZY_TRANSLATION_LOG_KEY, "ruby.lazy-translation-log").help(
-            "Log lazy translations from the parser AST to the Truffle AST").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LOG_DYNAMIC_CONSTANT_LOOKUP = OptionDescriptor.newBuilder(LOG_DYNAMIC_CONSTANT_LOOKUP_KEY, "ruby.constant-dynamic-lookup-log").help(
-            "Log source code positions where dynamic constant lookup is performed").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ROPE_PRINT_INTERN_STATS = OptionDescriptor.newBuilder(ROPE_PRINT_INTERN_STATS_KEY, "ruby.rope-print-intern-stats").help(
-            "Print interned rope stats at application exit").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PREINITIALIZATION = OptionDescriptor.newBuilder(PREINITIALIZATION_KEY, "ruby.preinit").help("Use the pre-initialized context when available").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor.newBuilder(LAZY_BUILTINS_KEY, "ruby.lazy-builtins").help(
-            "Load builtin classes (core methods & primitives) lazily on first use").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_CORE_METHOD_NODES = OptionDescriptor.newBuilder(LAZY_CORE_METHOD_NODES_KEY, "ruby.lazy-core-method-nodes").help(
-            "Lazily create core method nodes").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor LAZY_TRANSLATION_CORE = OptionDescriptor.newBuilder(LAZY_TRANSLATION_CORE_KEY, "ruby.lazy-translation-core").help(
-            "Lazily translation of core source files").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor.newBuilder(BASICOPS_INLINE_KEY, "ruby.basic-ops-inline").help(
-            "Inline basic operations (like Fixnum operators) in the AST without a call").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ROPE_LAZY_SUBSTRINGS = OptionDescriptor.newBuilder(ROPE_LAZY_SUBSTRINGS_KEY, "ruby.rope-lazy-substrings").help(
-            "Indicates whether a substring operation on a rope should be performed lazily").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor DEFAULT_CACHE = OptionDescriptor.newBuilder(DEFAULT_CACHE_KEY, "ruby.default-cache").help("Default size for caches").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METHOD_LOOKUP_CACHE = OptionDescriptor.newBuilder(METHOD_LOOKUP_CACHE_KEY, "ruby.method-lookup-cache").help("Method lookup cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor DISPATCH_CACHE = OptionDescriptor.newBuilder(DISPATCH_CACHE_KEY, "ruby.dispatch-cache").help("Dispatch (various forms of method call) cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor YIELD_CACHE = OptionDescriptor.newBuilder(YIELD_CACHE_KEY, "ruby.yield-cache").help("Yield cache size").category(OptionCategory.INTERNAL).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METHOD_TO_PROC_CACHE = OptionDescriptor.newBuilder(METHOD_TO_PROC_CACHE_KEY, "ruby.to-proc-cache").help("Method#to_proc cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor IS_A_CACHE = OptionDescriptor.newBuilder(IS_A_CACHE_KEY, "ruby.is-a-cache").help("Kernel#is_a? and #kind_of? cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BIND_CACHE = OptionDescriptor.newBuilder(BIND_CACHE_KEY, "ruby.bind-cache").help("Cache size of test for being able to bind a method to a module").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CONSTANT_CACHE = OptionDescriptor.newBuilder(CONSTANT_CACHE_KEY, "ruby.constant-cache").help("Constant cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INSTANCE_VARIABLE_CACHE = OptionDescriptor.newBuilder(INSTANCE_VARIABLE_CACHE_KEY, "ruby.instance-variable-cache").help(
-            "Instance variable cache size").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor BINDING_LOCAL_VARIABLE_CACHE = OptionDescriptor.newBuilder(BINDING_LOCAL_VARIABLE_CACHE_KEY, "ruby.binding-local-variable-cache").help(
-            "Binding#local_variable_get/set cache size").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SYMBOL_TO_PROC_CACHE = OptionDescriptor.newBuilder(SYMBOL_TO_PROC_CACHE_KEY, "ruby.symbol-to-proc-cache").help("Symbol#to_proc cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ALLOCATE_CLASS_CACHE = OptionDescriptor.newBuilder(ALLOCATE_CLASS_CACHE_KEY, "ruby.allocate-class-cache").help("Allocation size class cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PACK_CACHE = OptionDescriptor.newBuilder(PACK_CACHE_KEY, "ruby.pack-cache").help("Array#pack cache size").category(OptionCategory.INTERNAL).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor UNPACK_CACHE = OptionDescriptor.newBuilder(UNPACK_CACHE_KEY, "ruby.unpack-cache").help("String#unpack cache size").category(OptionCategory.INTERNAL).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor EVAL_CACHE = OptionDescriptor.newBuilder(EVAL_CACHE_KEY, "ruby.eval-cache").help("eval cache size").category(OptionCategory.INTERNAL).stability(
-            OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CLASS_CACHE = OptionDescriptor.newBuilder(CLASS_CACHE_KEY, "ruby.class-cache").help(".class and .metaclass cache size").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ENCODING_COMPATIBLE_QUERY_CACHE = OptionDescriptor.newBuilder(ENCODING_COMPATIBLE_QUERY_CACHE_KEY, "ruby.encoding-compatible-query-cache").help(
-            "Encoding.compatible? cache size").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ENCODING_LOADED_CLASSES_CACHE = OptionDescriptor.newBuilder(ENCODING_LOADED_CLASSES_CACHE_KEY, "ruby.encoding-loaded-classes-cache").help(
-            "Cache size of encoding operations based on anticipated number of total active encodings").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor THREAD_CACHE = OptionDescriptor.newBuilder(THREAD_CACHE_KEY, "ruby.thread-cache").help("Cache size of operations that depend on a particular thread").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ROPE_CLASS_CACHE = OptionDescriptor.newBuilder(ROPE_CLASS_CACHE_KEY, "ruby.rope-class-cache").help(
-            "Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INTEROP_CONVERT_CACHE = OptionDescriptor.newBuilder(INTEROP_CONVERT_CACHE_KEY, "ruby.interop-convert-cache").help(
-            "Cache size for converting values for interop").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INTEROP_EXECUTE_CACHE = OptionDescriptor.newBuilder(INTEROP_EXECUTE_CACHE_KEY, "ruby.interop-execute-cache").help(
-            "Cache size for interop EXECUTE messages").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INTEROP_INVOKE_CACHE = OptionDescriptor.newBuilder(INTEROP_INVOKE_CACHE_KEY, "ruby.interop-invoke-cache").help(
-            "Cache size for interop INVOKE messages").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INTEROP_NEW_CACHE = OptionDescriptor.newBuilder(INTEROP_NEW_CACHE_KEY, "ruby.interop-new-cache").help("Cache size for interop NEW messages").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor TIME_FORMAT_CACHE = OptionDescriptor.newBuilder(TIME_FORMAT_CACHE_KEY, "ruby.time-format-cache").help("Cache size for parsed time format specifiers").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor POW_CACHE = OptionDescriptor.newBuilder(POW_CACHE_KEY, "ruby.integer-pow-cache").help("Cache size for Integer#** with a constant exponent").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARRAY_DUP_CACHE = OptionDescriptor.newBuilder(ARRAY_DUP_CACHE_KEY, "ruby.array-dup-cache").help("Cache size for copying small arrays").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor FRAME_VARIABLE_ACCESS_CACHE = OptionDescriptor.newBuilder(FRAME_VARIABLE_ACCESS_CACHE_KEY, "ruby.frame-variable-access-cache").help(
-            "Cache size for accessing variables in another frame").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARRAY_UNINITIALIZED_SIZE = OptionDescriptor.newBuilder(ARRAY_UNINITIALIZED_SIZE_KEY, "ruby.array-uninitialized-size").help(
-            "How large an Array to allocate when we have no other information to go on").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ARRAY_SMALL = OptionDescriptor.newBuilder(ARRAY_SMALL_KEY, "ruby.array-small").help("Maximum size of an Array to consider small for optimisations").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor HASH_PACKED_ARRAY_MAX = OptionDescriptor.newBuilder(HASH_PACKED_ARRAY_MAX_KEY, "ruby.hash-packed-array-max").help(
-            "Maximum size of a Hash to consider using the packed array storage strategy for").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PACK_UNROLL_LIMIT = OptionDescriptor.newBuilder(PACK_UNROLL_LIMIT_KEY, "ruby.pack-unroll").help(
-            "If a pack or unpack expression has a loop less than this many iterations, unroll it").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PACK_RECOVER_LOOP_MIN = OptionDescriptor.newBuilder(PACK_RECOVER_LOOP_MIN_KEY, "ruby.pack-recover").help(
-            "If a pack or unpack expression is longer than this, attempt to recover loops").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CEXTS_MARKING_CACHE = OptionDescriptor.newBuilder(CEXTS_MARKING_CACHE_KEY, "ruby.cexts-marking-cache").help(
-            "Number of objects converted to native handles before the marking service is run").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ROPE_DEPTH_THRESHOLD = OptionDescriptor.newBuilder(ROPE_DEPTH_THRESHOLD_KEY, "ruby.rope-depth-threshold").help(
-            "Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor GLOBAL_VARIABLE_MAX_INVALIDATIONS = OptionDescriptor.newBuilder(GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY, "ruby.global-variable-max-invalidations").help(
-            "Maximum number of times a global variable can be changed to be considered constant").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CLONE_DEFAULT = OptionDescriptor.newBuilder(CLONE_DEFAULT_KEY, "ruby.clone-default").help("Default option for cloning").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INLINE_DEFAULT = OptionDescriptor.newBuilder(INLINE_DEFAULT_KEY, "ruby.inline-default").help("Default option for inlining").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CORE_ALWAYS_CLONE = OptionDescriptor.newBuilder(CORE_ALWAYS_CLONE_KEY, "ruby.core-always-clone").help("Always clone built-in core methods").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor PRIMITIVE_CALLERS_ALWAYS_CLONE = OptionDescriptor.newBuilder(PRIMITIVE_CALLERS_ALWAYS_CLONE_KEY, "ruby.primitive-callers-always-clone").help(
-            "Always clone methods which call primitives").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor ALWAYS_SPLIT_HONOR = OptionDescriptor.newBuilder(ALWAYS_SPLIT_HONOR_KEY, "ruby.always-split-honor").help(
-            "Honor Truffle::Graal.always_split annotations").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor INLINE_NEEDS_CALLER_FRAME = OptionDescriptor.newBuilder(INLINE_NEEDS_CALLER_FRAME_KEY, "ruby.inline-needs-caller-frame").help(
-            "Inline methods that need their caller frame").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor YIELD_ALWAYS_CLONE = OptionDescriptor.newBuilder(YIELD_ALWAYS_CLONE_KEY, "ruby.yield-always-clone").help("Always clone yields").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor YIELD_ALWAYS_INLINE = OptionDescriptor.newBuilder(YIELD_ALWAYS_INLINE_KEY, "ruby.yield-always-inline").help("Always inline yields").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METHODMISSING_ALWAYS_CLONE = OptionDescriptor.newBuilder(METHODMISSING_ALWAYS_CLONE_KEY, "ruby.method-missing-always-clone").help(
-            "Always clone #method_missing").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METHODMISSING_ALWAYS_INLINE = OptionDescriptor.newBuilder(METHODMISSING_ALWAYS_INLINE_KEY, "ruby.method-missing-always-inline").help(
-            "Always inline #method_missing").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor CALL_WITH_BLOCK_ALWAYS_CLONE = OptionDescriptor.newBuilder(CALL_WITH_BLOCK_ALWAYS_CLONE_KEY, "ruby.call-with-block-always-clone").help(
-            "Always clone calls with a literal block").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor REGEXP_INSTRUMENT_CREATION = OptionDescriptor.newBuilder(REGEXP_INSTRUMENT_CREATION_KEY, "ruby.regexp-instrument-creation").help(
-            "Enable instrumentation to gather stats on regexp creation").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor REGEXP_INSTRUMENT_MATCH = OptionDescriptor.newBuilder(REGEXP_INSTRUMENT_MATCH_KEY, "ruby.regexp-instrument-match").help(
-            "Enable instrumentation to gather stats on regexp matching").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor.newBuilder(METRICS_TIME_PARSING_FILE_KEY, "ruby.metrics-time-parsing-file").help(
-            "Measure time for parsing, translating and executing files, per file").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor METRICS_TIME_REQUIRE = OptionDescriptor.newBuilder(METRICS_TIME_REQUIRE_KEY, "ruby.metrics-time-require").help(
-            "Measure time for #require and executing the required file").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SHARED_OBJECTS_ENABLED = OptionDescriptor.newBuilder(SHARED_OBJECTS_ENABLED_KEY, "ruby.shared-objects").help("Enable thread-safe objects").category(
-            OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SHARED_OBJECTS_DEBUG = OptionDescriptor.newBuilder(SHARED_OBJECTS_DEBUG_KEY, "ruby.shared-objects-debug").help(
-            "Print information about shared objects").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
-
-    public static final OptionDescriptor SHARED_OBJECTS_FORCE = OptionDescriptor.newBuilder(SHARED_OBJECTS_FORCE_KEY, "ruby.shared-objects-force").help(
-            "Force sharing of objects roots at startup").category(OptionCategory.INTERNAL).stability(OptionStability.EXPERIMENTAL).build();
+    public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
+            .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")
+            .help("Load paths (configured by the -I Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor REQUIRED_LIBRARIES = OptionDescriptor
+            .newBuilder(REQUIRED_LIBRARIES_KEY, "ruby.required-libraries")
+            .help("Required libraries (configured by the -r Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor WORKING_DIRECTORY = OptionDescriptor
+            .newBuilder(WORKING_DIRECTORY_KEY, "ruby.working-directory")
+            .help("Interpreter will switch to this directory (configured by the -C Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor DEBUG = OptionDescriptor
+            .newBuilder(DEBUG_KEY, "ruby.debug")
+            .help("Sets $DEBUG to this value (configured by the -d Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor VERBOSITY = OptionDescriptor
+            .newBuilder(VERBOSITY_KEY, "ruby.verbose")
+            .help("Sets $VERBOSE to this value (configured by the -v, -w, -W Ruby options)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor SOURCE_ENCODING = OptionDescriptor
+            .newBuilder(SOURCE_ENCODING_KEY, "ruby.source-encoding")
+            .help("Source encoding (configured by the -K Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor INTERNAL_ENCODING = OptionDescriptor
+            .newBuilder(INTERNAL_ENCODING_KEY, "ruby.internal-encoding")
+            .help("Internal encoding (configured by the -E, -U Ruby options)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor EXTERNAL_ENCODING = OptionDescriptor
+            .newBuilder(EXTERNAL_ENCODING_KEY, "ruby.external-encoding")
+            .help("External encoding (configured by the -E Ruby option)")
+            .category(OptionCategory.USER)
+            .stability(OptionStability.STABLE)
+            .build();
+
+    public static final OptionDescriptor HOME = OptionDescriptor
+            .newBuilder(HOME_KEY, "ruby.home")
+            .help("The location of the TruffleRuby installation files")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor
+            .newBuilder(NO_HOME_PROVIDED_KEY, "ruby.no-home-provided")
+            .help("set to true to explicitly state that no home is provided (silences the warnings)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAUNCHER = OptionDescriptor
+            .newBuilder(LAUNCHER_KEY, "ruby.launcher")
+            .help("The location of the TruffleRuby launcher program")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CORE_LOAD_PATH = OptionDescriptor
+            .newBuilder(CORE_LOAD_PATH_KEY, "ruby.core-load-path")
+            .help("Location to load the Truffle core library from")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor FROZEN_STRING_LITERALS = OptionDescriptor
+            .newBuilder(FROZEN_STRING_LITERALS_KEY, "ruby.frozen-string-literals")
+            .help("Use frozen string literals")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor RUBYGEMS = OptionDescriptor
+            .newBuilder(RUBYGEMS_KEY, "ruby.rubygems")
+            .help("Use RubyGems")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor DEFAULT_LAZY = OptionDescriptor
+            .newBuilder(DEFAULT_LAZY_KEY, "ruby.lazy-default")
+            .help("Enable default lazy options")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_RUBYGEMS = OptionDescriptor
+            .newBuilder(LAZY_RUBYGEMS_KEY, "ruby.rubygems-lazy")
+            .help("Load RubyGems lazily on first failing require")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PATCHING = OptionDescriptor
+            .newBuilder(PATCHING_KEY, "ruby.patching")
+            .help("Use patching")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor DID_YOU_MEAN = OptionDescriptor
+            .newBuilder(DID_YOU_MEAN_KEY, "ruby.did-you-mean")
+            .help("Use did_you_mean")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
+            .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
+            .help("Produce deterministic hash values")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EMBEDDED = OptionDescriptor
+            .newBuilder(EMBEDDED_KEY, "ruby.embedded")
+            .help("Set default options for an embedded use of TruffleRuby, rather than top-level use")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor NATIVE_PLATFORM = OptionDescriptor
+            .newBuilder(NATIVE_PLATFORM_KEY, "ruby.platform-native")
+            .help("Enables native calls via Truffle NFI for internal functionality")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor NATIVE_INTERRUPT = OptionDescriptor
+            .newBuilder(NATIVE_INTERRUPT_KEY, "ruby.platform-native-interrupt")
+            .help("Use the SIGVTALRM signal to interrupt native blocking calls")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor HANDLE_INTERRUPT = OptionDescriptor
+            .newBuilder(HANDLE_INTERRUPT_KEY, "ruby.platform-handle-interrupt")
+            .help("Handle the interrupt signal and raise an Interrupt exception")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SINGLE_THREADED = OptionDescriptor
+            .newBuilder(SINGLE_THREADED_KEY, "ruby.single-threaded")
+            .help("Use only a single thread to be compatible with languages not supporting multithreading")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor POLYGLOT_STDIO = OptionDescriptor
+            .newBuilder(POLYGLOT_STDIO_KEY, "ruby.polyglot-stdio")
+            .help("Use standard IO streams from the Graal-SDK polyglot API configuration")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor HOST_INTEROP = OptionDescriptor
+            .newBuilder(HOST_INTEROP_KEY, "ruby.interop-host")
+            .help("Allow interoperability with the host language (Java)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor TRACE_CALLS = OptionDescriptor
+            .newBuilder(TRACE_CALLS_KEY, "ruby.trace-calls")
+            .help("Support tracing (set_trace_func, TracePoint) of method calls")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor COVERAGE_GLOBAL = OptionDescriptor
+            .newBuilder(COVERAGE_GLOBAL_KEY, "ruby.coverage-global")
+            .help("Run coverage for all code and print results on exit")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CORE_AS_INTERNAL = OptionDescriptor
+            .newBuilder(CORE_AS_INTERNAL_KEY, "ruby.core-as-internal")
+            .help("Mark core library sources as internal")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor STDLIB_AS_INTERNAL = OptionDescriptor
+            .newBuilder(STDLIB_AS_INTERNAL_KEY, "ruby.stdlib-as-internal")
+            .help("Mark stdlib sources as internal")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_TRANSLATION_USER = OptionDescriptor
+            .newBuilder(LAZY_TRANSLATION_USER_KEY, "ruby.lazy-translation-user")
+            .help("Lazily translation of stdlib, gem and user source files")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_STORE_JAVA = OptionDescriptor
+            .newBuilder(EXCEPTIONS_STORE_JAVA_KEY, "ruby.exceptions-store-java")
+            .help("Store the Java exception with the Ruby backtrace")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_PRINT_JAVA = OptionDescriptor
+            .newBuilder(EXCEPTIONS_PRINT_JAVA_KEY, "ruby.exceptions-print-java")
+            .help("Print Java exceptions at the point of translating them to Ruby exceptions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_PRINT_UNCAUGHT_JAVA = OptionDescriptor
+            .newBuilder(EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY, "ruby.exceptions-print-uncaught-java")
+            .help("Print uncaught Java exceptions at the point of translating them to Ruby exceptions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_PRINT_RUBY_FOR_JAVA = OptionDescriptor
+            .newBuilder(EXCEPTIONS_PRINT_RUBY_FOR_JAVA_KEY, "ruby.exceptions-print-ruby-for-java")
+            .help("When printing a Java backtrace, also print the Ruby backtrace at that point")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_TRANSLATE_ASSERT = OptionDescriptor
+            .newBuilder(EXCEPTIONS_TRANSLATE_ASSERT_KEY, "ruby.exceptions-translate-assert")
+            .help("Translate failed Java assertions to Ruby exceptions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_WARN_STACKOVERFLOW = OptionDescriptor
+            .newBuilder(EXCEPTIONS_WARN_STACKOVERFLOW_KEY, "ruby.exceptions-warn-stackoverflow")
+            .help("Warn when a stack overflow error is thrown")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EXCEPTIONS_WARN_OUT_OF_MEMORY = OptionDescriptor
+            .newBuilder(EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY, "ruby.exceptions-warn-out-of-memory")
+            .help("Warn when an out-of-memory error is thrown")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACES_HIDE_CORE_FILES = OptionDescriptor
+            .newBuilder(BACKTRACES_HIDE_CORE_FILES_KEY, "ruby.backtraces-hide-core-files")
+            .help("Hide core source files in backtraces, like MRI does")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACES_INTERLEAVE_JAVA = OptionDescriptor
+            .newBuilder(BACKTRACES_INTERLEAVE_JAVA_KEY, "ruby.backtraces-interleave-java")
+            .help("Interleave Java stacktraces into the Ruby backtrace")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACES_LIMIT = OptionDescriptor
+            .newBuilder(BACKTRACES_LIMIT_KEY, "ruby.backtraces-limit")
+            .help("Limit the size of Ruby backtraces")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACES_OMIT_UNUSED = OptionDescriptor
+            .newBuilder(BACKTRACES_OMIT_UNUSED_KEY, "ruby.backtraces-omit-unused")
+            .help("Omit backtraces that should be unused as they have pure rescue expressions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_INTERRUPT = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_INTERRUPT_KEY, "ruby.backtraces-on-interrupt")
+            .help("Show the backtraces of all Threads on Ctrl+C")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_SIGALRM = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_SIGALRM_KEY, "ruby.backtraces-sigalrm")
+            .help("Show the backtraces of all Threads on SIGALRM")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_RAISE = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_RAISE_KEY, "ruby.backtraces-raise")
+            .help("Show the backtraces of exceptions at the point of them being raised")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXTS = OptionDescriptor
+            .newBuilder(CEXTS_KEY, "ruby.cexts")
+            .help("Enable use of C extensions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXT_LOCK = OptionDescriptor
+            .newBuilder(CEXT_LOCK_KEY, "ruby.cexts-lock")
+            .help("Use a Global Lock when running C extensions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXTS_LIBRARY_REMAP = OptionDescriptor
+            .newBuilder(CEXTS_LIBRARY_REMAP_KEY, "ruby.cexts-remap")
+            .help("Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor OPTIONS_LOG = OptionDescriptor
+            .newBuilder(OPTIONS_LOG_KEY, "ruby.options-log")
+            .help("Log the final value of all options")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_LOAD = OptionDescriptor
+            .newBuilder(LOG_LOAD_KEY, "ruby.log-load")
+            .help("Log loading files")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_AUTOLOAD = OptionDescriptor
+            .newBuilder(LOG_AUTOLOAD_KEY, "ruby.log-autoload")
+            .help("Log autoloading")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_FEATURE_LOCATION = OptionDescriptor
+            .newBuilder(LOG_FEATURE_LOCATION_KEY, "ruby.log-feature-location")
+            .help("Log the process of finding features")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXTS_LOG_LOAD = OptionDescriptor
+            .newBuilder(CEXTS_LOG_LOAD_KEY, "ruby.cexts-log-load")
+            .help("Log loading of cexts")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXTS_LOG_WARNINGS = OptionDescriptor
+            .newBuilder(CEXTS_LOG_WARNINGS_KEY, "ruby.cexts-log-warnings")
+            .help("Log cexts warnings")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARGV_GLOBALS = OptionDescriptor
+            .newBuilder(ARGV_GLOBALS_KEY, "ruby.argv-globals")
+            .help("Parse options in script argv into global variables (configured by the -s Ruby option)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor IGNORE_LINES_BEFORE_RUBY_SHEBANG = OptionDescriptor
+            .newBuilder(IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY, "ruby.ignore-lines-before-ruby-shebang")
+            .help("strip off text before #!ruby line (configured by the -x Ruby option)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SYNTAX_CHECK = OptionDescriptor
+            .newBuilder(SYNTAX_CHECK_KEY, "ruby.syntax-check")
+            .help("Do not execute just check syntax (configured by the -c Ruby option)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARGV_GLOBAL_VALUES = OptionDescriptor
+            .newBuilder(ARGV_GLOBAL_VALUES_KEY, "ruby.argv-global-values")
+            .help("Parsed options from script argv with a value")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARGV_GLOBAL_FLAGS = OptionDescriptor
+            .newBuilder(ARGV_GLOBAL_FLAGS_KEY, "ruby.argv-global-flags")
+            .help("Parsed options from script argv acting as flags (no value)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BUILDING_CORE_CEXTS = OptionDescriptor
+            .newBuilder(BUILDING_CORE_CEXTS_KEY, "ruby.building-core-cexts")
+            .help("Used while building TruffleRuby to build core C extensions")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_TRANSLATION_LOG = OptionDescriptor
+            .newBuilder(LAZY_TRANSLATION_LOG_KEY, "ruby.lazy-translation-log")
+            .help("Log lazy translations from the parser AST to the Truffle AST")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_DYNAMIC_CONSTANT_LOOKUP = OptionDescriptor
+            .newBuilder(LOG_DYNAMIC_CONSTANT_LOOKUP_KEY, "ruby.constant-dynamic-lookup-log")
+            .help("Log source code positions where dynamic constant lookup is performed")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ROPE_PRINT_INTERN_STATS = OptionDescriptor
+            .newBuilder(ROPE_PRINT_INTERN_STATS_KEY, "ruby.rope-print-intern-stats")
+            .help("Print interned rope stats at application exit")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PREINITIALIZATION = OptionDescriptor
+            .newBuilder(PREINITIALIZATION_KEY, "ruby.preinit")
+            .help("Use the pre-initialized context when available")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor
+            .newBuilder(LAZY_BUILTINS_KEY, "ruby.lazy-builtins")
+            .help("Load builtin classes (core methods & primitives) lazily on first use")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_CORE_METHOD_NODES = OptionDescriptor
+            .newBuilder(LAZY_CORE_METHOD_NODES_KEY, "ruby.lazy-core-method-nodes")
+            .help("Lazily create core method nodes")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_TRANSLATION_CORE = OptionDescriptor
+            .newBuilder(LAZY_TRANSLATION_CORE_KEY, "ruby.lazy-translation-core")
+            .help("Lazily translation of core source files")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor
+            .newBuilder(BASICOPS_INLINE_KEY, "ruby.basic-ops-inline")
+            .help("Inline basic operations (like Fixnum operators) in the AST without a call")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ROPE_LAZY_SUBSTRINGS = OptionDescriptor
+            .newBuilder(ROPE_LAZY_SUBSTRINGS_KEY, "ruby.rope-lazy-substrings")
+            .help("Indicates whether a substring operation on a rope should be performed lazily")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor DEFAULT_CACHE = OptionDescriptor
+            .newBuilder(DEFAULT_CACHE_KEY, "ruby.default-cache")
+            .help("Default size for caches")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METHOD_LOOKUP_CACHE = OptionDescriptor
+            .newBuilder(METHOD_LOOKUP_CACHE_KEY, "ruby.method-lookup-cache")
+            .help("Method lookup cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor DISPATCH_CACHE = OptionDescriptor
+            .newBuilder(DISPATCH_CACHE_KEY, "ruby.dispatch-cache")
+            .help("Dispatch (various forms of method call) cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor YIELD_CACHE = OptionDescriptor
+            .newBuilder(YIELD_CACHE_KEY, "ruby.yield-cache")
+            .help("Yield cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METHOD_TO_PROC_CACHE = OptionDescriptor
+            .newBuilder(METHOD_TO_PROC_CACHE_KEY, "ruby.to-proc-cache")
+            .help("Method#to_proc cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor IS_A_CACHE = OptionDescriptor
+            .newBuilder(IS_A_CACHE_KEY, "ruby.is-a-cache")
+            .help("Kernel#is_a? and #kind_of? cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BIND_CACHE = OptionDescriptor
+            .newBuilder(BIND_CACHE_KEY, "ruby.bind-cache")
+            .help("Cache size of test for being able to bind a method to a module")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CONSTANT_CACHE = OptionDescriptor
+            .newBuilder(CONSTANT_CACHE_KEY, "ruby.constant-cache")
+            .help("Constant cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INSTANCE_VARIABLE_CACHE = OptionDescriptor
+            .newBuilder(INSTANCE_VARIABLE_CACHE_KEY, "ruby.instance-variable-cache")
+            .help("Instance variable cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BINDING_LOCAL_VARIABLE_CACHE = OptionDescriptor
+            .newBuilder(BINDING_LOCAL_VARIABLE_CACHE_KEY, "ruby.binding-local-variable-cache")
+            .help("Binding#local_variable_get/set cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SYMBOL_TO_PROC_CACHE = OptionDescriptor
+            .newBuilder(SYMBOL_TO_PROC_CACHE_KEY, "ruby.symbol-to-proc-cache")
+            .help("Symbol#to_proc cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ALLOCATE_CLASS_CACHE = OptionDescriptor
+            .newBuilder(ALLOCATE_CLASS_CACHE_KEY, "ruby.allocate-class-cache")
+            .help("Allocation size class cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PACK_CACHE = OptionDescriptor
+            .newBuilder(PACK_CACHE_KEY, "ruby.pack-cache")
+            .help("Array#pack cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor UNPACK_CACHE = OptionDescriptor
+            .newBuilder(UNPACK_CACHE_KEY, "ruby.unpack-cache")
+            .help("String#unpack cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor EVAL_CACHE = OptionDescriptor
+            .newBuilder(EVAL_CACHE_KEY, "ruby.eval-cache")
+            .help("eval cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CLASS_CACHE = OptionDescriptor
+            .newBuilder(CLASS_CACHE_KEY, "ruby.class-cache")
+            .help(".class and .metaclass cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ENCODING_COMPATIBLE_QUERY_CACHE = OptionDescriptor
+            .newBuilder(ENCODING_COMPATIBLE_QUERY_CACHE_KEY, "ruby.encoding-compatible-query-cache")
+            .help("Encoding.compatible? cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ENCODING_LOADED_CLASSES_CACHE = OptionDescriptor
+            .newBuilder(ENCODING_LOADED_CLASSES_CACHE_KEY, "ruby.encoding-loaded-classes-cache")
+            .help("Cache size of encoding operations based on anticipated number of total active encodings")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor THREAD_CACHE = OptionDescriptor
+            .newBuilder(THREAD_CACHE_KEY, "ruby.thread-cache")
+            .help("Cache size of operations that depend on a particular thread")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ROPE_CLASS_CACHE = OptionDescriptor
+            .newBuilder(ROPE_CLASS_CACHE_KEY, "ruby.rope-class-cache")
+            .help("Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INTEROP_CONVERT_CACHE = OptionDescriptor
+            .newBuilder(INTEROP_CONVERT_CACHE_KEY, "ruby.interop-convert-cache")
+            .help("Cache size for converting values for interop")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INTEROP_EXECUTE_CACHE = OptionDescriptor
+            .newBuilder(INTEROP_EXECUTE_CACHE_KEY, "ruby.interop-execute-cache")
+            .help("Cache size for interop EXECUTE messages")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INTEROP_INVOKE_CACHE = OptionDescriptor
+            .newBuilder(INTEROP_INVOKE_CACHE_KEY, "ruby.interop-invoke-cache")
+            .help("Cache size for interop INVOKE messages")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INTEROP_NEW_CACHE = OptionDescriptor
+            .newBuilder(INTEROP_NEW_CACHE_KEY, "ruby.interop-new-cache")
+            .help("Cache size for interop NEW messages")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor TIME_FORMAT_CACHE = OptionDescriptor
+            .newBuilder(TIME_FORMAT_CACHE_KEY, "ruby.time-format-cache")
+            .help("Cache size for parsed time format specifiers")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor POW_CACHE = OptionDescriptor
+            .newBuilder(POW_CACHE_KEY, "ruby.integer-pow-cache")
+            .help("Cache size for Integer#** with a constant exponent")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARRAY_DUP_CACHE = OptionDescriptor
+            .newBuilder(ARRAY_DUP_CACHE_KEY, "ruby.array-dup-cache")
+            .help("Cache size for copying small arrays")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor FRAME_VARIABLE_ACCESS_CACHE = OptionDescriptor
+            .newBuilder(FRAME_VARIABLE_ACCESS_CACHE_KEY, "ruby.frame-variable-access-cache")
+            .help("Cache size for accessing variables in another frame")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARRAY_UNINITIALIZED_SIZE = OptionDescriptor
+            .newBuilder(ARRAY_UNINITIALIZED_SIZE_KEY, "ruby.array-uninitialized-size")
+            .help("How large an Array to allocate when we have no other information to go on")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ARRAY_SMALL = OptionDescriptor
+            .newBuilder(ARRAY_SMALL_KEY, "ruby.array-small")
+            .help("Maximum size of an Array to consider small for optimisations")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor HASH_PACKED_ARRAY_MAX = OptionDescriptor
+            .newBuilder(HASH_PACKED_ARRAY_MAX_KEY, "ruby.hash-packed-array-max")
+            .help("Maximum size of a Hash to consider using the packed array storage strategy for")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PACK_UNROLL_LIMIT = OptionDescriptor
+            .newBuilder(PACK_UNROLL_LIMIT_KEY, "ruby.pack-unroll")
+            .help("If a pack or unpack expression has a loop less than this many iterations, unroll it")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PACK_RECOVER_LOOP_MIN = OptionDescriptor
+            .newBuilder(PACK_RECOVER_LOOP_MIN_KEY, "ruby.pack-recover")
+            .help("If a pack or unpack expression is longer than this, attempt to recover loops")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CEXTS_MARKING_CACHE = OptionDescriptor
+            .newBuilder(CEXTS_MARKING_CACHE_KEY, "ruby.cexts-marking-cache")
+            .help("Number of objects converted to native handles before the marking service is run")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ROPE_DEPTH_THRESHOLD = OptionDescriptor
+            .newBuilder(ROPE_DEPTH_THRESHOLD_KEY, "ruby.rope-depth-threshold")
+            .help("Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor GLOBAL_VARIABLE_MAX_INVALIDATIONS = OptionDescriptor
+            .newBuilder(GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY, "ruby.global-variable-max-invalidations")
+            .help("Maximum number of times a global variable can be changed to be considered constant")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CLONE_DEFAULT = OptionDescriptor
+            .newBuilder(CLONE_DEFAULT_KEY, "ruby.clone-default")
+            .help("Default option for cloning")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INLINE_DEFAULT = OptionDescriptor
+            .newBuilder(INLINE_DEFAULT_KEY, "ruby.inline-default")
+            .help("Default option for inlining")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CORE_ALWAYS_CLONE = OptionDescriptor
+            .newBuilder(CORE_ALWAYS_CLONE_KEY, "ruby.core-always-clone")
+            .help("Always clone built-in core methods")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PRIMITIVE_CALLERS_ALWAYS_CLONE = OptionDescriptor
+            .newBuilder(PRIMITIVE_CALLERS_ALWAYS_CLONE_KEY, "ruby.primitive-callers-always-clone")
+            .help("Always clone methods which call primitives")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor ALWAYS_SPLIT_HONOR = OptionDescriptor
+            .newBuilder(ALWAYS_SPLIT_HONOR_KEY, "ruby.always-split-honor")
+            .help("Honor Truffle::Graal.always_split annotations")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor INLINE_NEEDS_CALLER_FRAME = OptionDescriptor
+            .newBuilder(INLINE_NEEDS_CALLER_FRAME_KEY, "ruby.inline-needs-caller-frame")
+            .help("Inline methods that need their caller frame")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor YIELD_ALWAYS_CLONE = OptionDescriptor
+            .newBuilder(YIELD_ALWAYS_CLONE_KEY, "ruby.yield-always-clone")
+            .help("Always clone yields")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor YIELD_ALWAYS_INLINE = OptionDescriptor
+            .newBuilder(YIELD_ALWAYS_INLINE_KEY, "ruby.yield-always-inline")
+            .help("Always inline yields")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METHODMISSING_ALWAYS_CLONE = OptionDescriptor
+            .newBuilder(METHODMISSING_ALWAYS_CLONE_KEY, "ruby.method-missing-always-clone")
+            .help("Always clone #method_missing")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METHODMISSING_ALWAYS_INLINE = OptionDescriptor
+            .newBuilder(METHODMISSING_ALWAYS_INLINE_KEY, "ruby.method-missing-always-inline")
+            .help("Always inline #method_missing")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CALL_WITH_BLOCK_ALWAYS_CLONE = OptionDescriptor
+            .newBuilder(CALL_WITH_BLOCK_ALWAYS_CLONE_KEY, "ruby.call-with-block-always-clone")
+            .help("Always clone calls with a literal block")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor REGEXP_INSTRUMENT_CREATION = OptionDescriptor
+            .newBuilder(REGEXP_INSTRUMENT_CREATION_KEY, "ruby.regexp-instrument-creation")
+            .help("Enable instrumentation to gather stats on regexp creation")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor REGEXP_INSTRUMENT_MATCH = OptionDescriptor
+            .newBuilder(REGEXP_INSTRUMENT_MATCH_KEY, "ruby.regexp-instrument-match")
+            .help("Enable instrumentation to gather stats on regexp matching")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor
+            .newBuilder(METRICS_TIME_PARSING_FILE_KEY, "ruby.metrics-time-parsing-file")
+            .help("Measure time for parsing, translating and executing files, per file")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METRICS_TIME_REQUIRE = OptionDescriptor
+            .newBuilder(METRICS_TIME_REQUIRE_KEY, "ruby.metrics-time-require")
+            .help("Measure time for #require and executing the required file")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SHARED_OBJECTS_ENABLED = OptionDescriptor
+            .newBuilder(SHARED_OBJECTS_ENABLED_KEY, "ruby.shared-objects")
+            .help("Enable thread-safe objects")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SHARED_OBJECTS_DEBUG = OptionDescriptor
+            .newBuilder(SHARED_OBJECTS_DEBUG_KEY, "ruby.shared-objects-debug")
+            .help("Print information about shared objects")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor SHARED_OBJECTS_FORCE = OptionDescriptor
+            .newBuilder(SHARED_OBJECTS_FORCE_KEY, "ruby.shared-objects-force")
+            .help("Force sharing of objects roots at startup")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
 
     public static OptionDescriptor fromName(String name) {
         switch (name) {
@@ -768,131 +1261,132 @@ public class OptionsCatalog {
     }
 
     public static OptionDescriptor[] allDescriptors() {
-        return new OptionDescriptor[]{
-                LOAD_PATHS,
-                REQUIRED_LIBRARIES,
-                WORKING_DIRECTORY,
-                DEBUG,
-                VERBOSITY,
-                SOURCE_ENCODING,
-                INTERNAL_ENCODING,
-                EXTERNAL_ENCODING,
-                HOME,
-                NO_HOME_PROVIDED,
-                LAUNCHER,
-                CORE_LOAD_PATH,
-                FROZEN_STRING_LITERALS,
-                RUBYGEMS,
-                DEFAULT_LAZY,
-                LAZY_RUBYGEMS,
-                PATCHING,
-                DID_YOU_MEAN,
-                HASHING_DETERMINISTIC,
-                EMBEDDED,
-                NATIVE_PLATFORM,
-                NATIVE_INTERRUPT,
-                HANDLE_INTERRUPT,
-                SINGLE_THREADED,
-                POLYGLOT_STDIO,
-                HOST_INTEROP,
-                TRACE_CALLS,
-                COVERAGE_GLOBAL,
-                CORE_AS_INTERNAL,
-                STDLIB_AS_INTERNAL,
-                LAZY_TRANSLATION_USER,
-                EXCEPTIONS_STORE_JAVA,
-                EXCEPTIONS_PRINT_JAVA,
-                EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
-                EXCEPTIONS_PRINT_RUBY_FOR_JAVA,
-                EXCEPTIONS_TRANSLATE_ASSERT,
-                EXCEPTIONS_WARN_STACKOVERFLOW,
-                EXCEPTIONS_WARN_OUT_OF_MEMORY,
-                BACKTRACES_HIDE_CORE_FILES,
-                BACKTRACES_INTERLEAVE_JAVA,
-                BACKTRACES_LIMIT,
-                BACKTRACES_OMIT_UNUSED,
-                BACKTRACE_ON_INTERRUPT,
-                BACKTRACE_ON_SIGALRM,
-                BACKTRACE_ON_RAISE,
-                CEXTS,
-                CEXT_LOCK,
-                CEXTS_LIBRARY_REMAP,
-                OPTIONS_LOG,
-                LOG_LOAD,
-                LOG_AUTOLOAD,
-                LOG_FEATURE_LOCATION,
-                CEXTS_LOG_LOAD,
-                CEXTS_LOG_WARNINGS,
-                ARGV_GLOBALS,
-                IGNORE_LINES_BEFORE_RUBY_SHEBANG,
-                SYNTAX_CHECK,
-                ARGV_GLOBAL_VALUES,
-                ARGV_GLOBAL_FLAGS,
-                BUILDING_CORE_CEXTS,
-                LAZY_TRANSLATION_LOG,
-                LOG_DYNAMIC_CONSTANT_LOOKUP,
-                ROPE_PRINT_INTERN_STATS,
-                PREINITIALIZATION,
-                LAZY_BUILTINS,
-                LAZY_CORE_METHOD_NODES,
-                LAZY_TRANSLATION_CORE,
-                BASICOPS_INLINE,
-                ROPE_LAZY_SUBSTRINGS,
-                DEFAULT_CACHE,
-                METHOD_LOOKUP_CACHE,
-                DISPATCH_CACHE,
-                YIELD_CACHE,
-                METHOD_TO_PROC_CACHE,
-                IS_A_CACHE,
-                BIND_CACHE,
-                CONSTANT_CACHE,
-                INSTANCE_VARIABLE_CACHE,
-                BINDING_LOCAL_VARIABLE_CACHE,
-                SYMBOL_TO_PROC_CACHE,
-                ALLOCATE_CLASS_CACHE,
-                PACK_CACHE,
-                UNPACK_CACHE,
-                EVAL_CACHE,
-                CLASS_CACHE,
-                ENCODING_COMPATIBLE_QUERY_CACHE,
-                ENCODING_LOADED_CLASSES_CACHE,
-                THREAD_CACHE,
-                ROPE_CLASS_CACHE,
-                INTEROP_CONVERT_CACHE,
-                INTEROP_EXECUTE_CACHE,
-                INTEROP_INVOKE_CACHE,
-                INTEROP_NEW_CACHE,
-                TIME_FORMAT_CACHE,
-                POW_CACHE,
-                ARRAY_DUP_CACHE,
-                FRAME_VARIABLE_ACCESS_CACHE,
-                ARRAY_UNINITIALIZED_SIZE,
-                ARRAY_SMALL,
-                HASH_PACKED_ARRAY_MAX,
-                PACK_UNROLL_LIMIT,
-                PACK_RECOVER_LOOP_MIN,
-                CEXTS_MARKING_CACHE,
-                ROPE_DEPTH_THRESHOLD,
-                GLOBAL_VARIABLE_MAX_INVALIDATIONS,
-                CLONE_DEFAULT,
-                INLINE_DEFAULT,
-                CORE_ALWAYS_CLONE,
-                PRIMITIVE_CALLERS_ALWAYS_CLONE,
-                ALWAYS_SPLIT_HONOR,
-                INLINE_NEEDS_CALLER_FRAME,
-                YIELD_ALWAYS_CLONE,
-                YIELD_ALWAYS_INLINE,
-                METHODMISSING_ALWAYS_CLONE,
-                METHODMISSING_ALWAYS_INLINE,
-                CALL_WITH_BLOCK_ALWAYS_CLONE,
-                REGEXP_INSTRUMENT_CREATION,
-                REGEXP_INSTRUMENT_MATCH,
-                METRICS_TIME_PARSING_FILE,
-                METRICS_TIME_REQUIRE,
-                SHARED_OBJECTS_ENABLED,
-                SHARED_OBJECTS_DEBUG,
-                SHARED_OBJECTS_FORCE,
+        return new OptionDescriptor[] {
+            LOAD_PATHS,
+            REQUIRED_LIBRARIES,
+            WORKING_DIRECTORY,
+            DEBUG,
+            VERBOSITY,
+            SOURCE_ENCODING,
+            INTERNAL_ENCODING,
+            EXTERNAL_ENCODING,
+            HOME,
+            NO_HOME_PROVIDED,
+            LAUNCHER,
+            CORE_LOAD_PATH,
+            FROZEN_STRING_LITERALS,
+            RUBYGEMS,
+            DEFAULT_LAZY,
+            LAZY_RUBYGEMS,
+            PATCHING,
+            DID_YOU_MEAN,
+            HASHING_DETERMINISTIC,
+            EMBEDDED,
+            NATIVE_PLATFORM,
+            NATIVE_INTERRUPT,
+            HANDLE_INTERRUPT,
+            SINGLE_THREADED,
+            POLYGLOT_STDIO,
+            HOST_INTEROP,
+            TRACE_CALLS,
+            COVERAGE_GLOBAL,
+            CORE_AS_INTERNAL,
+            STDLIB_AS_INTERNAL,
+            LAZY_TRANSLATION_USER,
+            EXCEPTIONS_STORE_JAVA,
+            EXCEPTIONS_PRINT_JAVA,
+            EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
+            EXCEPTIONS_PRINT_RUBY_FOR_JAVA,
+            EXCEPTIONS_TRANSLATE_ASSERT,
+            EXCEPTIONS_WARN_STACKOVERFLOW,
+            EXCEPTIONS_WARN_OUT_OF_MEMORY,
+            BACKTRACES_HIDE_CORE_FILES,
+            BACKTRACES_INTERLEAVE_JAVA,
+            BACKTRACES_LIMIT,
+            BACKTRACES_OMIT_UNUSED,
+            BACKTRACE_ON_INTERRUPT,
+            BACKTRACE_ON_SIGALRM,
+            BACKTRACE_ON_RAISE,
+            CEXTS,
+            CEXT_LOCK,
+            CEXTS_LIBRARY_REMAP,
+            OPTIONS_LOG,
+            LOG_LOAD,
+            LOG_AUTOLOAD,
+            LOG_FEATURE_LOCATION,
+            CEXTS_LOG_LOAD,
+            CEXTS_LOG_WARNINGS,
+            ARGV_GLOBALS,
+            IGNORE_LINES_BEFORE_RUBY_SHEBANG,
+            SYNTAX_CHECK,
+            ARGV_GLOBAL_VALUES,
+            ARGV_GLOBAL_FLAGS,
+            BUILDING_CORE_CEXTS,
+            LAZY_TRANSLATION_LOG,
+            LOG_DYNAMIC_CONSTANT_LOOKUP,
+            ROPE_PRINT_INTERN_STATS,
+            PREINITIALIZATION,
+            LAZY_BUILTINS,
+            LAZY_CORE_METHOD_NODES,
+            LAZY_TRANSLATION_CORE,
+            BASICOPS_INLINE,
+            ROPE_LAZY_SUBSTRINGS,
+            DEFAULT_CACHE,
+            METHOD_LOOKUP_CACHE,
+            DISPATCH_CACHE,
+            YIELD_CACHE,
+            METHOD_TO_PROC_CACHE,
+            IS_A_CACHE,
+            BIND_CACHE,
+            CONSTANT_CACHE,
+            INSTANCE_VARIABLE_CACHE,
+            BINDING_LOCAL_VARIABLE_CACHE,
+            SYMBOL_TO_PROC_CACHE,
+            ALLOCATE_CLASS_CACHE,
+            PACK_CACHE,
+            UNPACK_CACHE,
+            EVAL_CACHE,
+            CLASS_CACHE,
+            ENCODING_COMPATIBLE_QUERY_CACHE,
+            ENCODING_LOADED_CLASSES_CACHE,
+            THREAD_CACHE,
+            ROPE_CLASS_CACHE,
+            INTEROP_CONVERT_CACHE,
+            INTEROP_EXECUTE_CACHE,
+            INTEROP_INVOKE_CACHE,
+            INTEROP_NEW_CACHE,
+            TIME_FORMAT_CACHE,
+            POW_CACHE,
+            ARRAY_DUP_CACHE,
+            FRAME_VARIABLE_ACCESS_CACHE,
+            ARRAY_UNINITIALIZED_SIZE,
+            ARRAY_SMALL,
+            HASH_PACKED_ARRAY_MAX,
+            PACK_UNROLL_LIMIT,
+            PACK_RECOVER_LOOP_MIN,
+            CEXTS_MARKING_CACHE,
+            ROPE_DEPTH_THRESHOLD,
+            GLOBAL_VARIABLE_MAX_INVALIDATIONS,
+            CLONE_DEFAULT,
+            INLINE_DEFAULT,
+            CORE_ALWAYS_CLONE,
+            PRIMITIVE_CALLERS_ALWAYS_CLONE,
+            ALWAYS_SPLIT_HONOR,
+            INLINE_NEEDS_CALLER_FRAME,
+            YIELD_ALWAYS_CLONE,
+            YIELD_ALWAYS_INLINE,
+            METHODMISSING_ALWAYS_CLONE,
+            METHODMISSING_ALWAYS_INLINE,
+            CALL_WITH_BLOCK_ALWAYS_CLONE,
+            REGEXP_INSTRUMENT_CREATION,
+            REGEXP_INSTRUMENT_MATCH,
+            METRICS_TIME_PARSING_FILE,
+            METRICS_TIME_REQUIRE,
+            SHARED_OBJECTS_ENABLED,
+            SHARED_OBJECTS_DEBUG,
+            SHARED_OBJECTS_FORCE,
         };
     }
 
 }
+// @formatter:on

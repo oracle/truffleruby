@@ -1,3 +1,4 @@
+// @formatter:off
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -649,3 +650,4 @@ public class Options {
         }
     }
 }
+// @formatter:on
