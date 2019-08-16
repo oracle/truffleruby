@@ -65,6 +65,7 @@ set -x
 test "$(curl -s "$url")" = '[]'
 
 kill_server
+sleep 5 # wait for the server to finish
 
 # put back the original bin/rake, as it gets overwritten by bundle install
 cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/bin/rake
