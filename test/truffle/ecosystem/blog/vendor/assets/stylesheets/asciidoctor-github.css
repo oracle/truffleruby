@@ -689,13 +689,13 @@ h2 { color: #325D72; border-bottom: 1px solid #dddddd; }
 #header, #content, #footnotes { max-width: 660px; padding-left: 0; padding-right: 0; }
 
 #content ul { list-style-type: none; }
-#content ul li { background: url('../images/github/li-chevron.png?1476387596') 0 0.4em no-repeat; padding-left: .7em; }
+#content ul li { background: url('/assets/github/li-chevron.png?1476387596') 0 0.4em no-repeat; padding-left: .7em; }
 
 .olist.procedure > ol { counter-reset: li; list-style: none; position: relative; }
 .olist.procedure > ol > li { position: relative; padding: 5px 0 5px 55px; margin-bottom: 5px; }
 .olist.procedure > ol > li:before { content: counter(li); counter-increment: li; position: absolute; top: 0; left: 0; height: 100%; width: 30px; padding: 0 10px 0 0; color: #999; font-size: 1.46667em; font-weight: bold; line-height: 1.6; text-align: right; border-right: 1px solid #ddd; }
 
-.quoteblock blockquote { background: url('../images/github/blockquote-arrow.png?1476387596') 0 2px no-repeat; padding-left: 1em; }
+.quoteblock blockquote { background: url('/assets/github/blockquote-arrow.png?1476387596') 0 2px no-repeat; padding-left: 1em; }
 
 .sidebarblock > .content > .title { margin-top: -20px; margin-right: -20px; margin-left: -20px; margin-bottom: 20px; padding: 1em; font-size: 0.8em; background: #eaeaea; }
 

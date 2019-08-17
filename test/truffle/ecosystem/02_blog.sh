@@ -17,11 +17,11 @@ truffle=$(dirname "$ecosystem")
 test=$(dirname "$truffle")
 repo=$(dirname "$test")
 
-function jt {
+function jt() {
   ruby "${repo}/tool/jt.rb" "$@"
 }
 
-function truffleruby {
+function truffleruby() {
   jt ruby -S "$@"
 }
 
@@ -41,32 +41,31 @@ truffleruby bin/rails log:clear tmp:clear
 
 truffleruby bin/rails test
 
-if [ -f tmp/pids/server.pid ]
-then
-    kill "$(cat tmp/pids/server.pid)" || true
-    rm tmp/pids/server.pid
+if [ -f tmp/pids/server.pid ]; then
+  kill "$(cat tmp/pids/server.pid)" || true
+  rm tmp/pids/server.pid
 fi
 
 port=57085
 truffleruby bundle exec bin/rails server --port="$port" &
 
-function kill_server {
+function kill_server() {
   kill %1
   kill "$(cat tmp/pids/server.pid)"
 }
 
 set +x
 url="http://localhost:$port/posts.json"
-while ! curl -s "$url";
-do
-    echo -n .
-    sleep 1
+while ! curl -s "$url"; do
+  echo -n .
+  sleep 1
 done
 set -x
 
 test "$(curl -s "$url")" = '[]'
 
 kill_server
+sleep 5 # wait for the server to finish
 
 # put back the original bin/rake, as it gets overwritten by bundle install
 cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/bin/rake

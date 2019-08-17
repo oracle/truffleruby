@@ -10,42 +10,20 @@ you are using MRI, TruffleRuby or Rubinius.)
 
 On macOS:
 
-```
-$ brew install sqlite mysql postgresql
-$ brew tap homebrew/services
+```shell script
+brew install sqlite mysql postgresql
 ```
 
 ## Initial generation
 
 The base of the application was generated with:
 
-```
-$ rails new blog \
-  --database=sqlite3 \
-  --skip-git \
-  --skip-bundle \
-  --skip-action-cable \
-  --skip-active-storage \
-  --skip-action-mailer \
-  --skip-action-cable \
-  --skip-puma \
-  --skip-turbolinks \
-  --skip-coffee \
-  --skip-javascript \
-  --skip-spring \
-  --skip-sprockets \
-  --skip-yarn \
-  --skip-bootsnap \
-  --skip-listen
+```shell script
+rails new blog --database=sqlite3 --skip-bootsnap --skip-listen
 ```
 
 These skip options are needed for TruffleRuby at the moment but we're working
 on removing them.
-
-In our `Gemfile` we had depended on Concurrent Ruby `>= 1.1.0.pre2` to get
-some fixes. By default we would be using `1.0.5`, and when it is released we
-will be able to use `1.1.0`. You will see an error about TruffleRuby being
-an unsupported Ruby implementation if you try to use `1.0.5`.
 
 ## Setup
 
@@ -55,20 +33,20 @@ sub-rubies using `system`.
 
 This is the standard command to install Bundler.
 
-```
-$ gem install bundler
+```shell script
+gem install bundler
 ```
 
 Then the standard command to install dependencies and setup the database.
 
-```
-$ bin/setup
+```shell script
+bin/setup
 ```
 
 And the standard command to start Rails.
 
-```
-$ bundle exec rails server
+```shell script
+bundle exec rails server
 ```
 
 You can now visit http://localhost:3000.
@@ -87,18 +65,18 @@ driver. `development-postgresql`, `test-postgresql` and
 To switch to a different database driver, set the `RAILS_ENV` environment
 variable, then run `bin/setup` again.
 
-```
-$ export RAILS_ENV=development-mysql
-$ bin/setup
-$ bundle exec rails server
+```shell script
+export RAILS_ENV=development-mysql
+bin/setup
+bundle exec rails server
 ```
 
 Except for SQLite, you will need to actually run the database service for the
 application separately.
 
-```
-$ brew services start mysql
-$ brew services stop mysql
+```shell script
+brew services start mysql
+brew services stop mysql
 ```
 
 PostgreSQL will not work on TruffleRuby yet.
@@ -125,16 +103,16 @@ The `mysql2` C extension does not compile on Rubinius, as `ST_CONTINUE` is not
 supported https://github.com/rubinius/rubinius/issues/3795. MySQL can be
 disabled using `config`.
 
-```
-$ bundle config --local without mysql
+```shell script
+bundle config --local without mysql
 ```
 
 PostgreSQL also does not compile on Rubinius, as `ENCODING_SET_INLINED` is not
 supported https://owo.codes/owo/ruby-pg/commit/fab02db59c5158e350702869809fd9deb9009641.
 PostgreSQL can be disabled as well using `config`.
 
-```
-$ bundle config --local without postgresql mysql
+```shell script
+bundle config --local without postgresql mysql
 ```
 
 `bin/setup` then fails on Rubinus 3.107 while preparing the database, either
@@ -147,3 +125,18 @@ You can add `gem "racc"` to your `Gemfile` to work around this.
 You will then see
 `Circular dependency detected while autoloading constant PostsController`
 while attempting to view a page.
+
+# Maintenance of the blog app
+
+If the gems need to be updated: 
+
+* check that `truffleruby bundle config --local cache_path "$gem_test_pack/gem-cache"`
+  is set
+
+* run `bundle install --no-prune` which will install missing gems and it will 
+  also update the cache at `$gem_test_pack/gem-cache`. `--no-prune` will prevent
+  deletion of other gems in the directory which are used by other tests.
+  
+* push the updates in gem test pack repository
+
+
