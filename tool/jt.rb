@@ -520,17 +520,17 @@ module Commands
   def help
     # <<~ cannot be used since idea thinks TR is 2.1 and displays it as error
     puts <<-TXT.gsub(/^ {6}/, '')
-      Usage: jt [options] COMMAND [command-options] 
+      Usage: jt [options] COMMAND [command-options]
           Where options are:
           --build                   Runs `jt build` before the command
           --rebuild                 Runs `jt rebuild` before the command
-          --use|-u [RUBY_SELECTOR]  Specifies which Ruby interpreter should be used in a given command. jt will apply 
+          --use|-u [RUBY_SELECTOR]  Specifies which Ruby interpreter should be used in a given command. jt will apply
                                     options based on the given Ruby interpreter. Allowed values are:
                                     * name given to the --name option during build
                                     * absolute path of a Ruby interpreter
                                     * 'ruby' which uses the current Ruby executable in the PATH
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
-                                    The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`   
+                                    The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
@@ -538,13 +538,13 @@ module Commands
             parser                            build the parser
             options                           build the options
         jt build graalvm [options] [mx_options] [-- mx_build_options]
-            graalvm                           build a GraalVM based on the given env file, the default is a minimal 
-                                              GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm, 
+            graalvm                           build a GraalVM based on the given env file, the default is a minimal
+                                              GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
               --[no-]sforceimports            run sforceimports before building (default: !ci?)
               --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
-              --env|-e                        mx env file used to build the GraalVM, default is "jvm"  
+              --env|-e                        mx env file used to build the GraalVM, default is "jvm"
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
                                               it is also linked in your ruby manager (if found) under the same name,
                                               by default it is the name of the mx env file,
@@ -560,7 +560,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal        enable assertions, show core Ruby files in backtrace 
+          --reveal        enable assertions, show core Ruby files in backtrace
           --asm           show assembly
           --igv           make sure IGV is running and dump Graal graphs after partial escape
           --igv-full      show all phases, not just up to the Truffle partial escape
@@ -590,7 +590,7 @@ module Commands
       jt test compiler                               run compiler tests
       jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
-      jt test gems [TESTS]                           tests using gems 
+      jt test gems [TESTS]                           tests using gems
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
