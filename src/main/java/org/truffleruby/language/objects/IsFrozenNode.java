@@ -37,22 +37,22 @@ public abstract class IsFrozenNode extends RubyBaseNode {
     }
 
     @Specialization
-    public boolean isFrozen(boolean object) {
+    protected boolean isFrozen(boolean object) {
         return true;
     }
 
     @Specialization
-    public boolean isFrozen(int object) {
+    protected boolean isFrozen(int object) {
         return true;
     }
 
     @Specialization
-    public boolean isFrozen(long object) {
+    protected boolean isFrozen(long object) {
         return true;
     }
 
     @Specialization
-    public boolean isFrozen(double object) {
+    protected boolean isFrozen(double object) {
         return true;
     }
 

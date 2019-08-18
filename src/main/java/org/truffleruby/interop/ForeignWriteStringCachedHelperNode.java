@@ -34,7 +34,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
 
     @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
-    public Object writeArrayHash(
+    protected Object writeArrayHash(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -46,7 +46,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
     }
 
     @Specialization(guards = { "!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar" })
-    public Object writeInstanceVariable(
+    protected Object writeInstanceVariable(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -61,7 +61,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
     })
-    public Object index(
+    protected Object index(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -77,7 +77,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "!methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
     })
-    public Object unknownIdentifier(
+    protected Object unknownIdentifier(
             DynamicObject receiver,
             Object name,
             Object stringName,

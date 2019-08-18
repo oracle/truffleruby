@@ -27,13 +27,13 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @Specialization(guards = "isNull(source)")
-    public void read(VirtualFrame frame, Object source) {
+    protected void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame, 1);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, byte[] source,
+    protected Object read(VirtualFrame frame, byte[] source,
             @Cached BranchProfile errorProfile,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);

@@ -35,7 +35,7 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     @NodeChild(value = "value", type = RubyNode.class)
     public static abstract class RubyNodeWrapperNode extends RubyNode {
         @Specialization
-        public Object call(Object value,
+        protected Object call(Object value,
                 @Cached ToJavaStringNode toJavaString) {
             return toJavaString.executeToJavaString(value);
         }
@@ -48,7 +48,7 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
-    String stringCached(DynamicObject value,
+    protected String stringCached(DynamicObject value,
             @Cached("privatizeRope(value)") Rope cachedRope,
             @Cached("getString(value)") String convertedString,
             @Cached RopeNodes.EqualNode equalsNode) {
@@ -56,7 +56,7 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
-    public String stringUncached(DynamicObject value,
+    protected String stringUncached(DynamicObject value,
             @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
             @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached RopeNodes.BytesNode bytesNode) {
@@ -71,14 +71,14 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" }, limit = "getLimit()")
-    public String symbolCached(DynamicObject symbol,
+    protected String symbolCached(DynamicObject symbol,
             @Cached("symbol") DynamicObject cachedSymbol,
             @Cached("symbolToString(symbol)") String convertedString) {
         return convertedString;
     }
 
     @Specialization(guards = "isRubySymbol(symbol)", replaces = "symbolCached")
-    public String symbolUncached(DynamicObject symbol) {
+    protected String symbolUncached(DynamicObject symbol) {
         return symbolToString(symbol);
     }
 
@@ -87,13 +87,13 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "string == cachedString", limit = "getLimit()")
-    public String javaStringCached(String string,
+    protected String javaStringCached(String string,
             @Cached("string") String cachedString) {
         return cachedString;
     }
 
     @Specialization(replaces = "javaStringCached")
-    public String javaStringUncached(String value) {
+    protected String javaStringUncached(String value) {
         return value;
     }
 

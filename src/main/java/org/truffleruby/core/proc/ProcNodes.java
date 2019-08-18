@@ -50,7 +50,7 @@ public abstract class ProcNodes {
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -69,7 +69,7 @@ public abstract class ProcNodes {
                 Object block);
 
         @Specialization
-        public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
+        protected DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
 
@@ -103,7 +103,7 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
-        public DynamicObject procNormalOptimized(DynamicObject procClass, Object[] args, DynamicObject block) {
+        protected DynamicObject procNormalOptimized(DynamicObject procClass, Object[] args, DynamicObject block) {
             return block;
         }
 
@@ -116,12 +116,12 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
-        public DynamicObject procNormal(DynamicObject procClass, Object[] args, DynamicObject block) {
+        protected DynamicObject procNormal(DynamicObject procClass, Object[] args, DynamicObject block) {
             return block;
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        public DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args, DynamicObject block) {
+        protected DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args, DynamicObject block) {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final DynamicObject proc = getAllocateObjectNode().allocate(procClass, Layouts.PROC.build(
@@ -170,7 +170,7 @@ public abstract class ProcNodes {
         @Child private AllocateObjectNode allocateObjectNode;
 
         @Specialization
-        public DynamicObject dup(DynamicObject proc) {
+        protected DynamicObject dup(DynamicObject proc) {
             final DynamicObject copy = getAllocateObjectNode().allocate(Layouts.BASIC_OBJECT.getLogicalClass(proc), Layouts.PROC.build(
                     Layouts.PROC.getType(proc),
                     Layouts.PROC.getSharedMethodInfo(proc),
@@ -200,7 +200,7 @@ public abstract class ProcNodes {
     public abstract static class ArityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int arity(DynamicObject proc) {
+        protected int arity(DynamicObject proc) {
             return Layouts.PROC.getSharedMethodInfo(proc).getArity().getArityNumber();
         }
 
@@ -210,7 +210,7 @@ public abstract class ProcNodes {
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject binding(DynamicObject proc) {
+        protected DynamicObject binding(DynamicObject proc) {
             final MaterializedFrame frame = Layouts.PROC.getDeclarationFrame(proc);
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
             return BindingNodes.createBinding(getContext(), frame, sourceSection);
@@ -223,7 +223,7 @@ public abstract class ProcNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        public Object call(DynamicObject proc, Object[] args, NotProvided block) {
+        protected Object call(DynamicObject proc, Object[] args, NotProvided block) {
             return callBlockNode.executeCallBlock(
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
@@ -233,7 +233,7 @@ public abstract class ProcNodes {
         }
 
         @Specialization
-        public Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
+        protected Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
             return callBlockNode.executeCallBlock(
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
@@ -248,7 +248,7 @@ public abstract class ProcNodes {
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean lambda(DynamicObject proc) {
+        protected boolean lambda(DynamicObject proc) {
             return Layouts.PROC.getType(proc) == ProcType.LAMBDA;
         }
 
@@ -259,7 +259,7 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject parameters(DynamicObject proc) {
+        protected DynamicObject parameters(DynamicObject proc) {
             final ArgumentDescriptor[] argsDesc = Layouts.PROC.getSharedMethodInfo(proc).getArgumentDescriptors();
             final boolean isLambda = Layouts.PROC.getType(proc) == ProcType.LAMBDA;
             return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, isLambda);
@@ -274,7 +274,7 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object sourceLocation(DynamicObject proc) {
+        protected Object sourceLocation(DynamicObject proc) {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
             if (sourceSection.getSource() == null || sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
@@ -293,7 +293,7 @@ public abstract class ProcNodes {
     public abstract static class ProcSymbolToProcSymbolNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject symbolToProcSymbol(DynamicObject proc) {
+        protected DynamicObject symbolToProcSymbol(DynamicObject proc) {
             if (Layouts.PROC.getSharedMethodInfo(proc).getArity() == SymbolNodes.ToProcNode.ARITY) {
                 return getSymbol(Layouts.PROC.getSharedMethodInfo(proc).getName());
             } else {

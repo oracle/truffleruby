@@ -158,7 +158,7 @@ public abstract class RegexpNodes {
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int hash(DynamicObject regexp) {
+        protected int hash(DynamicObject regexp) {
             int options = Layouts.REGEXP.getRegex(regexp).getOptions() & ~32 /* option n, NO_ENCODING in common/regexp.rb */;
             return options ^ Layouts.REGEXP.getSource(regexp).hashCode();
         }
@@ -173,7 +173,7 @@ public abstract class RegexpNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public Object matchOnwards(DynamicObject regexp, DynamicObject string, int startPos, boolean atStart) {
+        protected Object matchOnwards(DynamicObject regexp, DynamicObject string, int startPos, boolean atStart) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, startPos);
             int range = rope.byteLength();
@@ -195,14 +195,14 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(raw)")
-        public DynamicObject quoteString(DynamicObject raw) {
+        protected DynamicObject quoteString(DynamicObject raw) {
             final Rope rope = StringOperations.rope(raw);
             boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && rope.getCodeRange() == CodeRange.CR_7BIT;
             return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope, isAsciiOnly));
         }
 
         @Specialization(guards = "isRubySymbol(raw)")
-        public DynamicObject quoteSymbol(DynamicObject raw) {
+        protected DynamicObject quoteSymbol(DynamicObject raw) {
             return quoteString(getMakeStringNode().executeMake(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
@@ -247,7 +247,7 @@ public abstract class RegexpNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public Object searchFrom(DynamicObject regexp, DynamicObject string, int startPos) {
+        protected Object searchFrom(DynamicObject regexp, DynamicObject string, int startPos) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false, startPos);
             final int endPos = rope.byteLength();
@@ -263,7 +263,7 @@ public abstract class RegexpNodes {
     public abstract static class SourceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject source(DynamicObject regexp,
+        protected DynamicObject source(DynamicObject regexp,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.REGEXP.getSource(regexp));
         }
@@ -283,14 +283,14 @@ public abstract class RegexpNodes {
         public abstract DynamicObject execute(DynamicObject regexp);
 
         @Specialization(guards = "isSameRegexp(regexp,cachedRegexp)")
-        public DynamicObject toSCached(DynamicObject regexp,
+        protected DynamicObject toSCached(DynamicObject regexp,
                 @Cached("regexp") DynamicObject cachedRegexp,
                 @Cached("createRope(regexp)") Rope rope) {
             return makeStringNode.fromRope(rope);
         }
 
         @Specialization
-        public DynamicObject toS(DynamicObject regexp) {
+        protected DynamicObject toS(DynamicObject regexp) {
             final Rope rope = createRope(regexp);
             return makeStringNode.fromRope(rope);
         }
@@ -307,7 +307,7 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object regexpNames(DynamicObject regexp) {
+        protected Object regexpNames(DynamicObject regexp) {
             final int size = Layouts.REGEXP.getRegex(regexp).numberOfNames();
             if (size == 0) {
                 return createArray(null, size);
@@ -338,7 +338,7 @@ public abstract class RegexpNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, null, null, RegexpOptions.NULL_OPTIONS, null);
         }
 
@@ -348,7 +348,7 @@ public abstract class RegexpNodes {
     public static abstract class RegexpFixedEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public boolean fixedEncoding(DynamicObject regexp) {
+        protected boolean fixedEncoding(DynamicObject regexp) {
             return Layouts.REGEXP.getOptions(regexp).isFixed();
         }
 
@@ -359,17 +359,17 @@ public abstract class RegexpNodes {
     public static abstract class RegexpInitializePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyString(pattern)" })
-        public DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject pattern, int options) {
+        protected DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject pattern, int options) {
             throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)", "isRubyString(pattern)" })
-        public DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject pattern, int options) {
+        protected DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject pattern, int options) {
             throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyString(pattern)" })
-        public DynamicObject initialize(DynamicObject regexp, DynamicObject pattern, int options) {
+        protected DynamicObject initialize(DynamicObject regexp, DynamicObject pattern, int options) {
             RegexpNodes.initialize(getContext(), regexp, this, StringOperations.rope(pattern), options);
             return regexp;
         }
@@ -380,17 +380,17 @@ public abstract class RegexpNodes {
     public static abstract class RegexpInitializeCopyPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyRegexp(other)" })
-        public DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject other) {
+        protected DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)", "isRubyRegexp(other)" })
-        public DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject other) {
+        protected DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyRegexp(other)" })
-        public DynamicObject initialize(DynamicObject regexp, DynamicObject other) {
+        protected DynamicObject initialize(DynamicObject regexp, DynamicObject other) {
             Layouts.REGEXP.setRegex(regexp, Layouts.REGEXP.getRegex(other));
             Layouts.REGEXP.setSource(regexp, Layouts.REGEXP.getSource(other));
             Layouts.REGEXP.setOptions(regexp, Layouts.REGEXP.getOptions(other));
@@ -404,12 +404,12 @@ public abstract class RegexpNodes {
     public static abstract class RegexpOptionsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isInitialized(regexp)")
-        public int options(DynamicObject regexp) {
+        protected int options(DynamicObject regexp) {
             return Layouts.REGEXP.getOptions(regexp).toOptions();
         }
 
         @Specialization(guards = "!isInitialized(regexp)")
-        public int optionsNotInitialized(DynamicObject regexp) {
+        protected int optionsNotInitialized(DynamicObject regexp) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
@@ -420,12 +420,12 @@ public abstract class RegexpNodes {
     public static abstract class RegexpSearchRegionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
-        public Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
+        protected Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string)" })
-        public Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
+        protected Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }
 
@@ -435,7 +435,7 @@ public abstract class RegexpNodes {
         }
 
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
-        public Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
+        protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode) {

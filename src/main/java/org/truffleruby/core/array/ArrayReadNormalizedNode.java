@@ -30,7 +30,7 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
     // Read within the bounds of an array with actual storage
 
     @Specialization(guards = { "strategy.matches(array)", "isInBounds(array, index, strategy)" }, limit = "STORAGE_STRATEGIES")
-    public Object readInBounds(DynamicObject array, int index,
+    protected Object readInBounds(DynamicObject array, int index,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         return getNode.execute(Layouts.ARRAY.getStore(array), index);
@@ -39,7 +39,7 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
     // Reading out of bounds is nil for any array
 
     @Specialization(guards = { "strategy.matches(array)", "!isInBounds(array, index, strategy)" }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject readOutOfBounds(DynamicObject array, int index,
+    protected DynamicObject readOutOfBounds(DynamicObject array, int index,
             @Cached("of(array)") ArrayStrategy strategy) {
         return nil();
     }

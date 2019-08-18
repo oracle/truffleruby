@@ -71,7 +71,7 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" })
-        public Object getVariable(MaterializedFrame frame, String name,
+        protected Object getVariable(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
@@ -80,7 +80,7 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" })
-        public Object getVariableDefaultValue(MaterializedFrame frame, String name,
+        protected Object getVariableDefaultValue(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
@@ -90,7 +90,7 @@ public class FindDeclarationVariableNodes {
 
         @Specialization
         @TruffleBoundary
-        public Object getVariableSlow(MaterializedFrame frame, String name) {
+        protected Object getVariableSlow(MaterializedFrame frame, String name) {
             FrameSlotAndDepth slotAndDepth = findFrameSlotOrNull(name, frame);
             if (slotAndDepth == null) {
                 return defaultValue;

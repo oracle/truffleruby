@@ -54,7 +54,7 @@ public abstract class TypeNodes {
         @Child private IsANode isANode = IsANode.create();
 
         @Specialization
-        public boolean objectKindOf(Object object, DynamicObject rubyClass) {
+        protected boolean objectKindOf(Object object, DynamicObject rubyClass) {
             return isANode.executeIsA(object, rubyClass);
         }
 
@@ -66,7 +66,7 @@ public abstract class TypeNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        public DynamicObject objectClass(VirtualFrame frame, Object object) {
+        protected DynamicObject objectClass(VirtualFrame frame, Object object) {
             return classNode.executeLogicalClass(object);
         }
 
@@ -76,7 +76,7 @@ public abstract class TypeNodes {
     public static abstract class ObjectEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean objectEqual(Object a, Object b,
+        protected boolean objectEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
         }
@@ -90,7 +90,7 @@ public abstract class TypeNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "!isNil(self)", "!isRubySymbol(self)" })
-        public DynamicObject instanceVariables(DynamicObject self) {
+        protected DynamicObject instanceVariables(DynamicObject self) {
             Shape shape = self.getShape();
             List<String> names = new ArrayList<>();
 
@@ -114,27 +114,27 @@ public abstract class TypeNodes {
         }
 
         @Specialization
-        public DynamicObject instanceVariables(int self) {
+        protected DynamicObject instanceVariables(int self) {
             return createArray(null, 0);
         }
 
         @Specialization
-        public DynamicObject instanceVariables(long self) {
+        protected DynamicObject instanceVariables(long self) {
             return createArray(null, 0);
         }
 
         @Specialization
-        public DynamicObject instanceVariables(boolean self) {
+        protected DynamicObject instanceVariables(boolean self) {
             return createArray(null, 0);
         }
 
         @Specialization(guards = "isNil(object)")
-        public DynamicObject instanceVariablesNil(DynamicObject object) {
+        protected DynamicObject instanceVariablesNil(DynamicObject object) {
             return createArray(null, 0);
         }
 
         @Specialization(guards = "isRubySymbol(object)")
-        public DynamicObject instanceVariablesSymbol(DynamicObject object) {
+        protected DynamicObject instanceVariablesSymbol(DynamicObject object) {
             return createArray(null, 0);
         }
 
@@ -150,7 +150,7 @@ public abstract class TypeNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object ivarIsDefined(DynamicObject object, DynamicObject name) {
+        protected Object ivarIsDefined(DynamicObject object, DynamicObject name) {
             final String ivar = Layouts.SYMBOL.getString(name);
             final Property property = object.getShape().getProperty(ivar);
             return PropertyFlags.isDefined(property);
@@ -162,7 +162,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object ivarGet(DynamicObject object, DynamicObject name,
+        protected Object ivarGet(DynamicObject object, DynamicObject name,
                 @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, Layouts.SYMBOL.getString(name));
         }
@@ -172,7 +172,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarSetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object ivarSet(DynamicObject object, DynamicObject name, Object value,
+        protected Object ivarSet(DynamicObject object, DynamicObject name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, Layouts.SYMBOL.getString(name), value);
         }
@@ -207,7 +207,7 @@ public abstract class TypeNodes {
     public abstract static class ObjectToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject toS(Object obj,
+        protected DynamicObject toS(Object obj,
                 @Cached ToSNode kernelToSNode) {
             return kernelToSNode.executeToS(obj);
         }
@@ -221,7 +221,7 @@ public abstract class TypeNodes {
         @Child private TaintNode taintNode;
 
         @Specialization
-        public Object infect(Object host, Object source) {
+        protected Object infect(Object host, Object source) {
             if (isTaintedNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 isTaintedNode = insert(IsTaintedNode.create());
@@ -249,7 +249,7 @@ public abstract class TypeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject moduleName(DynamicObject module) {
+        protected DynamicObject moduleName(DynamicObject module) {
             final String name = Layouts.MODULE.getFields(module).getName();
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -260,7 +260,7 @@ public abstract class TypeNodes {
     public static abstract class DoubleToFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        float doubleToFloat(double value) {
+        protected float doubleToFloat(double value) {
             return (float) value;
         }
 

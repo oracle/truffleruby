@@ -78,7 +78,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject envVars() {
+        protected DynamicObject envVars() {
             final Set<String> variables = System.getenv().keySet();
             final int size = variables.size();
             final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
@@ -96,7 +96,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(name)")
-        public DynamicObject javaGetEnv(DynamicObject name,
+        protected DynamicObject javaGetEnv(DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
@@ -123,7 +123,7 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "isRubyString(property)")
-        public DynamicObject getJavaProperty(DynamicObject property) {
+        protected DynamicObject getJavaProperty(DynamicObject property) {
             String value = System.getProperty(StringOperations.getString(property));
             if (value == null) {
                 return nil();
@@ -140,7 +140,7 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject hostCPU() {
+        protected DynamicObject hostCPU() {
             return makeStringNode.executeMake(Platform.getArchitecture(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -152,7 +152,7 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject hostOS() {
+        protected DynamicObject hostOS() {
             return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
@@ -163,7 +163,7 @@ public abstract class TruffleSystemNodes {
 
         // We must not allow to synchronize on boxed primitives.
         @Specialization
-        public Object synchronize(DynamicObject self, DynamicObject block) {
+        protected Object synchronize(DynamicObject self, DynamicObject block) {
             synchronized (self) {
                 return yield(block);
             }
@@ -174,7 +174,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
-        public Object logCached(DynamicObject level, DynamicObject message,
+        protected Object logCached(DynamicObject level, DynamicObject message,
                 @Cached("level") DynamicObject cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
@@ -182,7 +182,7 @@ public abstract class TruffleSystemNodes {
         }
 
         @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)" }, replaces = "logCached")
-        public Object log(DynamicObject level, DynamicObject message) {
+        protected Object log(DynamicObject level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
             return nil();
         }
@@ -228,7 +228,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        public int availableProcessors() {
+        protected int availableProcessors() {
             return Runtime.getRuntime().availableProcessors();
         }
 

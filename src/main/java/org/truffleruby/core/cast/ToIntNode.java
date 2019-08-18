@@ -70,22 +70,22 @@ public abstract class ToIntNode extends RubyNode {
     public abstract Object executeIntOrLong(Object object);
 
     @Specialization
-    public int coerceInt(int value) {
+    protected int coerceInt(int value) {
         return value;
     }
 
     @Specialization
-    public long coerceLong(long value) {
+    protected long coerceLong(long value) {
         return value;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public DynamicObject coerceRubyBignum(DynamicObject value) {
+    protected DynamicObject coerceRubyBignum(DynamicObject value) {
         throw new RaiseException(getContext(), coreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
-    public Object coerceDouble(double value) {
+    protected Object coerceDouble(double value) {
         if (floatToIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatToIntNode = insert(FloatNodesFactory.ToINodeFactory.create(null));
@@ -94,13 +94,13 @@ public abstract class ToIntNode extends RubyNode {
     }
 
     @Specialization
-    public Object coerceBoolean(boolean value,
+    protected Object coerceBoolean(boolean value,
             @Cached BranchProfile errorProfile) {
         return coerceObject(value, errorProfile);
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    public Object coerceBasicObject(DynamicObject object,
+    protected Object coerceBasicObject(DynamicObject object,
             @Cached BranchProfile errorProfile) {
         return coerceObject(object, errorProfile);
     }

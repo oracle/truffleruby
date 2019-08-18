@@ -30,12 +30,12 @@ public abstract class ToAryNode extends RubyNode {
     @Child private CallDispatchHeadNode toAryNode;
 
     @Specialization(guards = "isRubyArray(array)")
-    public DynamicObject coerceRubyArray(DynamicObject array) {
+    protected DynamicObject coerceRubyArray(DynamicObject array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    public DynamicObject coerceObject(VirtualFrame frame, Object object,
+    protected DynamicObject coerceObject(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile) {
         if (toAryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

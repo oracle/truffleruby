@@ -30,7 +30,7 @@ public class MarkingServiceNodes {
         public abstract void execute(Object object);
 
         @Specialization
-        public void keepObjectAlive(Object object,
+        protected void keepObjectAlive(Object object,
                 @Cached GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
             MarkerThreadLocalData data = getThreadLocalDataNode.execute();
             addToList(data.getExtensionCallStack().getKeptObjects(), object);
@@ -57,7 +57,7 @@ public class MarkingServiceNodes {
         public abstract MarkerThreadLocalData execute(Object dynamicParameter);
 
         @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
-        public MarkerThreadLocalData getDataOnKnownThread(
+        protected MarkerThreadLocalData getDataOnKnownThread(
                 Object dynamicParameter,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("currentJavaThread(dynamicParameter)") Thread thread,

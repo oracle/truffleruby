@@ -65,7 +65,7 @@ public abstract class WriteHexStringNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         int currentByte = 0;
 
         final int lengthToUse;

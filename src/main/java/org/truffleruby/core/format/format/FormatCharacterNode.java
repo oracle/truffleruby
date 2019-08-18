@@ -45,7 +45,7 @@ public abstract class FormatCharacterNode extends FormatNode {
     @Specialization(guards = {
             "width == cachedWidth"
     }, limit = "getLimit()")
-    byte[] formatCached(VirtualFrame frame, int width, Object value,
+    protected byte[] formatCached(VirtualFrame frame, int width, Object value,
             @Cached("width") int cachedWidth,
             @Cached("makeFormatString(width)") String cachedFormatString) {
         final String charString = getCharString(frame, value);

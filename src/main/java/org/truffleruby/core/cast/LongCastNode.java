@@ -36,17 +36,17 @@ public abstract class LongCastNode extends RubyBaseWithoutContextNode {
     public abstract long executeCastLong(Object value);
 
     @Specialization
-    public long doInt(int value) {
+    protected long doInt(int value) {
         return value;
     }
 
     @Specialization
-    public long doLong(long value) {
+    protected long doLong(long value) {
         return value;
     }
 
     @Specialization(guards = "!isBasicInteger(value)")
-    public long doBasicObject(
+    protected long doBasicObject(
             Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));

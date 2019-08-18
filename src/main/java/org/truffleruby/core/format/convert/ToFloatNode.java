@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class ToFloatNode extends FormatNode {
 
     @Specialization
-    public float toFloat(double object) {
+    protected float toFloat(double object) {
         return (float) object;
     }
 

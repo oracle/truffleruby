@@ -45,7 +45,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isNull(source)")
-    public void read(VirtualFrame frame, Object source) {
+    protected void read(VirtualFrame frame, Object source) {
         // Advance will handle the error
         advanceSourcePosition(frame, count);
 
@@ -53,7 +53,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    public DynamicObject read(VirtualFrame frame, byte[] source,
+    protected DynamicObject read(VirtualFrame frame, byte[] source,
             @Cached StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 

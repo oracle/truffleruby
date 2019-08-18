@@ -67,7 +67,7 @@ public abstract class WriteBitStringNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         int occurrences;
 
         if (star) {

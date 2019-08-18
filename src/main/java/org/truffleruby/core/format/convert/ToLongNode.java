@@ -36,28 +36,28 @@ public abstract class ToLongNode extends FormatNode {
     public abstract long executeToLong(VirtualFrame frame, Object object);
 
     @Specialization
-    public long toLong(boolean object) {
+    protected long toLong(boolean object) {
         throw new NoImplicitConversionException(object, "Integer");
     }
 
     @Specialization
-    public long toLong(int object) {
+    protected long toLong(int object) {
         return object;
     }
 
     @Specialization
-    public long toLong(long object) {
+    protected long toLong(long object) {
         return object;
     }
 
     @Specialization(guards = "isRubyBignum(object)")
-    public long toLong(DynamicObject object) {
+    protected long toLong(DynamicObject object) {
         // A truncated value is exactly what we want
         return Layouts.BIGNUM.getValue(object).longValue();
     }
 
     @Specialization(guards = "isNil(nil)")
-    public long toLongNil(Object nil) {
+    protected long toLongNil(Object nil) {
         throw new NoImplicitConversionException(nil, "Integer");
     }
 
@@ -68,7 +68,7 @@ public abstract class ToLongNode extends FormatNode {
             "!isBigInteger(object)",
             "!isRubyBignum(object)",
             "!isNil(object)" })
-    public long toLong(VirtualFrame frame, Object object) {
+    protected long toLong(VirtualFrame frame, Object object) {
         if (errorIfNeedsConversion) {
             throw new CantConvertException("can't convert Object to Integer");
         }

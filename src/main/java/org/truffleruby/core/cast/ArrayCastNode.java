@@ -43,37 +43,37 @@ public abstract class ArrayCastNode extends RubyNode {
     protected abstract RubyNode getChild();
 
     @Specialization
-    public DynamicObject cast(boolean value) {
+    protected DynamicObject cast(boolean value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(int value) {
+    protected DynamicObject cast(int value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(long value) {
+    protected DynamicObject cast(long value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(double value) {
+    protected DynamicObject cast(double value) {
         return nil();
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public DynamicObject castBignum(DynamicObject value) {
+    protected DynamicObject castBignum(DynamicObject value) {
         return nil();
     }
 
     @Specialization(guards = "isRubyArray(array)")
-    public DynamicObject castArray(DynamicObject array) {
+    protected DynamicObject castArray(DynamicObject array) {
         return array;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public Object cast(Object nil) {
+    protected Object cast(Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
                 return createArray(null, 0);
@@ -91,7 +91,7 @@ public abstract class ArrayCastNode extends RubyNode {
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)" })
-    public Object cast(VirtualFrame frame, DynamicObject object,
+    protected Object cast(VirtualFrame frame, DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 

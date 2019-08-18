@@ -35,7 +35,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     @Specialization(guards = {
             "isInBounds(array, index)", "strategy.matches(array)", "strategy.accepts(value)"
     }, limit = "STORAGE_STRATEGIES")
-    public Object writeWithin(DynamicObject array, int index, Object value,
+    protected Object writeWithin(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
         propagateSharingNode.propagate(array, value);
@@ -49,7 +49,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
             "isInBounds(array, index)", "currentStrategy.matches(array)",
             "valueStrategy.specializesFor(value)",
     }, limit = "ARRAY_STRATEGIES")
-    public Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
+    protected Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy currentStrategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
             @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
@@ -70,7 +70,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     // Extending an array of compatible type by just one
 
     @Specialization(guards = "isExtendingByOne(array, index)")
-    public Object writeExtendByOne(DynamicObject array, int index, Object value,
+    protected Object writeExtendByOne(DynamicObject array, int index, Object value,
             @Cached ArrayAppendOneNode appendNode) {
         appendNode.executeAppendOne(array, value);
         return value;
@@ -80,7 +80,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     @Specialization(guards = {
             "!isInBounds(array, index)", "!isExtendingByOne(array, index)", "strategy.matches(array)", "mutableStrategy.isPrimitive()"
     }, limit = "STORAGE_STRATEGIES")
-    public Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
+    protected Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
             @Cached ArrayGeneralizeNode generalizeNode) {
@@ -98,7 +98,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
     @Specialization(guards = {
             "!isInBounds(array, index)", "!isExtendingByOne(array, index)", "strategy.matches(array)", "!mutableStrategy.isPrimitive()"
     }, limit = "STORAGE_STRATEGIES")
-    public Object writeBeyondObject(DynamicObject array, int index, Object value,
+    protected Object writeBeyondObject(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
             @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,

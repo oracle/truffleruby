@@ -48,7 +48,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     }
 
     @Specialization(guards = "arrayIndex(receiver, stringName)")
-    public Object readArray(
+    protected Object readArray(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -71,7 +71,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     }
 
     @Specialization(guards = "isRubyHash(receiver)")
-    public Object readArrayHash(
+    protected Object readArrayHash(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -106,7 +106,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
     }
 
     @Specialization(guards = { "!isRubyHash(receiver)", "isIVar" })
-    public Object readInstanceVariable(
+    protected Object readInstanceVariable(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -124,7 +124,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar", "!isRubyProc(receiver)", "!isRubyClass(receiver)",
             "methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode)"
     })
-    public Object callIndex(
+    protected Object callIndex(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -152,7 +152,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             "noIndexMethod(definedIndexNode, receiver)",
             "methodDefined(receiver, stringName, definedNode)"
     })
-    public Object getBoundMethod(
+    protected Object getBoundMethod(
             DynamicObject receiver,
             Object name,
             Object stringName,
@@ -169,7 +169,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             "noIndexMethod(definedIndexNode, receiver)",
             "!methodDefined(receiver, stringName, definedNode)"
     })
-    public Object unknownIdentifier(
+    protected Object unknownIdentifier(
             DynamicObject receiver,
             Object name,
             Object stringName,

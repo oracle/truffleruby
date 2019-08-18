@@ -118,7 +118,7 @@ public class CExtNodes {
         public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
 
         @Specialization(limit = "getCacheLimit()")
-        public Object callCWithMutex(
+        protected Object callCWithMutex(
                 TruffleObject receiver,
                 DynamicObject argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -168,7 +168,7 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
 
         @Specialization
-        public Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
+        protected Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -185,7 +185,7 @@ public class CExtNodes {
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public Object callCWithoutMutex(
+        protected Object callCWithoutMutex(
                 TruffleObject receiver,
                 DynamicObject argsArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -235,7 +235,7 @@ public class CExtNodes {
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
         @Specialization
-        public Object ulong2num(long num,
+        protected Object ulong2num(long num,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             if (positiveProfile.profile(num >= 0)) {
                 return num;
@@ -286,21 +286,21 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        public DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
         @Specialization
         @TruffleBoundary
-        public DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        public DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = Layouts.BIGNUM.getValue(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
@@ -370,19 +370,19 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        public int bitLength(int num) {
+        protected int bitLength(int num) {
             return BigInteger.valueOf(num).abs().bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        public int bitLength(long num) {
+        protected int bitLength(long num) {
             return BigInteger.valueOf(num).abs().bitLength();
         }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        public int bitLength(DynamicObject num) {
+        protected int bitLength(DynamicObject num) {
             return Layouts.BIGNUM.getValue(num).abs().bitLength();
         }
     }
@@ -392,19 +392,19 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        public int bitLength(int num) {
+        protected int bitLength(int num) {
             return BigInteger.valueOf(num).bitLength();
         }
 
         @Specialization
         @TruffleBoundary
-        public int bitLength(long num) {
+        protected int bitLength(long num) {
             return BigInteger.valueOf(num).bitLength();
         }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        public int bitLength(DynamicObject num) {
+        protected int bitLength(DynamicObject num) {
             return Layouts.BIGNUM.getValue(num).bitLength();
         }
     }
@@ -413,20 +413,20 @@ public class CExtNodes {
     public abstract static class IntSinglebitPPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int intSinglebitP(int num) {
+        protected int intSinglebitP(int num) {
             assert num >= 0;
             return Integer.bitCount(num) == 1 ? 1 : 0;
         }
 
         @Specialization
-        public int intSinglebitP(long num) {
+        protected int intSinglebitP(long num) {
             assert num >= 0;
             return Long.bitCount(num) == 1 ? 1 : 0;
         }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        public int intSinglebitP(DynamicObject num) {
+        protected int intSinglebitP(DynamicObject num) {
             assert Layouts.BIGNUM.getValue(num).signum() >= 0;
             return Layouts.BIGNUM.getValue(num).bitCount() == 1 ? 1 : 0;
         }
@@ -439,7 +439,7 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        public Object dbl2big(double num,
+        protected Object dbl2big(double num,
                 @Cached BranchProfile errorProfile) {
             if (Double.isInfinite(num)) {
                 errorProfile.enter();
@@ -460,7 +460,7 @@ public class CExtNodes {
     public abstract static class RBClassOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rb_class_of(Object object,
+        protected DynamicObject rb_class_of(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.executeMetaClass(object);
         }
@@ -471,17 +471,17 @@ public class CExtNodes {
     public abstract static class Long2Int extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int long2fix(int num) {
+        protected int long2fix(int num) {
             return num;
         }
 
         @Specialization(guards = "fitsIntoInteger(num)")
-        public int long2fixInRange(long num) {
+        protected int long2fixInRange(long num) {
             return (int) num;
         }
 
         @Specialization(guards = "!fitsIntoInteger(num)")
-        public int long2fixOutOfRange(long num) {
+        protected int long2fixOutOfRange(long num) {
             throw new RaiseException(getContext(), coreExceptions().rangeErrorConvertToInt(num, this));
         }
 
@@ -495,7 +495,7 @@ public class CExtNodes {
     public abstract static class RbEncCodeRangeClear extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject clearCodeRange(DynamicObject string,
+        protected DynamicObject clearCodeRange(DynamicObject string,
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
             nativeRope.clearCodeRange();
@@ -510,7 +510,7 @@ public class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
+        protected DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -547,7 +547,7 @@ public class CExtNodes {
     public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rbStrNewNul(int byteLength,
+        protected DynamicObject rbStrNewNul(int byteLength,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
 
@@ -560,7 +560,7 @@ public class CExtNodes {
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public long capacity(DynamicObject string,
+        protected long capacity(DynamicObject string,
                 @Cached StringToNativeNode stringToNativeNode) {
             return stringToNativeNode.executeToNative(string).getCapacity();
         }
@@ -571,7 +571,7 @@ public class CExtNodes {
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject strSetLen(DynamicObject string, int newByteLength,
+        protected DynamicObject strSetLen(DynamicObject string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
@@ -598,7 +598,7 @@ public class CExtNodes {
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rbStrResize(DynamicObject string, int newByteLength,
+        protected DynamicObject rbStrResize(DynamicObject string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
@@ -622,7 +622,7 @@ public class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject block(VirtualFrame frame,
+        protected DynamicObject block(VirtualFrame frame,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }
@@ -634,7 +634,7 @@ public class CExtNodes {
         @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
 
         @Specialization
-        public boolean rb_check_frozen(Object object) {
+        protected boolean rb_check_frozen(Object object) {
             isFrozenNode.raiseIfFrozen(object);
             return true;
         }
@@ -655,7 +655,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        public Object rbConstGet(DynamicObject module, String name) {
+        protected Object rbConstGet(DynamicObject module, String name) {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
@@ -675,7 +675,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        public Object rbConstGetFrom(DynamicObject module, String name) {
+        protected Object rbConstGetFrom(DynamicObject module, String name) {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
@@ -693,7 +693,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        public Object rbConstSet(DynamicObject module, String name, Object value,
+        protected Object rbConstSet(DynamicObject module, String name, Object value,
                 @Cached ConstSetNode constSetNode) {
             return constSetNode.setConstantNoCheckName(module, name, value);
         }
@@ -706,7 +706,7 @@ public class CExtNodes {
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization(guards = { "isRubyModule(module)", "isRubySymbol(name)" })
-        public DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
+        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
             return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
@@ -717,7 +717,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(visibility)")
-        public boolean checkCallerVisibility(DynamicObject visibility) {
+        protected boolean checkCallerVisibility(DynamicObject visibility) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
@@ -739,7 +739,7 @@ public class CExtNodes {
     public abstract static class IterBreakValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object iterBreakValue(Object value) {
+        protected Object iterBreakValue(Object value) {
             throw new BreakException(BreakID.ANY_BLOCK, value);
         }
 
@@ -752,7 +752,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject sourceFile() {
+        protected DynamicObject sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getContext().getPath(sourceSection.getSource());
 
@@ -791,7 +791,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        public int sourceLine() {
+        protected int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
             return sourceSection.getStartLine();
         }
@@ -802,7 +802,7 @@ public class CExtNodes {
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public boolean isInstanceId(DynamicObject symbol) {
+        protected boolean isInstanceId(DynamicObject symbol) {
             return Identifiers.isValidInstanceVariableName(Layouts.SYMBOL.getString(symbol));
         }
 
@@ -812,7 +812,7 @@ public class CExtNodes {
     public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public boolean isConstId(DynamicObject symbol) {
+        protected boolean isConstId(DynamicObject symbol) {
             return Identifiers.isValidConstantName(Layouts.SYMBOL.getString(symbol));
         }
 
@@ -822,7 +822,7 @@ public class CExtNodes {
     public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public boolean isClassVariableId(DynamicObject symbol) {
+        protected boolean isClassVariableId(DynamicObject symbol) {
             return Identifiers.isValidClassVariableName(Layouts.SYMBOL.getString(symbol));
         }
 
@@ -832,12 +832,12 @@ public class CExtNodes {
     public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isBoxedPrimitive(object)")
-        public boolean rubyObjectPrimitive(Object object) {
+        protected boolean rubyObjectPrimitive(Object object) {
             return true;
         }
 
         @Specialization(guards = "!isBoxedPrimitive(object)")
-        public boolean rubyObject(Object object) {
+        protected boolean rubyObject(Object object) {
             return RubyGuards.isRubyBasicObject(object);
         }
 
@@ -850,7 +850,7 @@ public class CExtNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        public Object callSuper(VirtualFrame frame, Object[] args) {
+        protected Object callSuper(VirtualFrame frame, Object[] args) {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
@@ -885,7 +885,7 @@ public class CExtNodes {
     public abstract static class FrameThisFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object frameThisFunc(VirtualFrame frame, Object[] args) {
+        protected Object frameThisFunc(VirtualFrame frame, Object[] args) {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             return getSymbol(callingMethod.getName());
@@ -915,12 +915,12 @@ public class CExtNodes {
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(nil)")
-        public Object rbSysErrFailNoMessage(int errno, DynamicObject nil) {
+        protected Object rbSysErrFailNoMessage(int errno, DynamicObject nil) {
             throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", this));
         }
 
         @Specialization(guards = "isRubyString(message)")
-        public Object rbSysErrFail(int errno, DynamicObject message) {
+        protected Object rbSysErrFail(int errno, DynamicObject message) {
             throw new RaiseException(getContext(), coreExceptions().errnoError(errno, StringOperations.getString(message), this));
         }
 
@@ -932,7 +932,7 @@ public class CExtNodes {
         @Child private HashNode hash;
 
         @Specialization
-        public Object rbHash(Object object) {
+        protected Object rbHash(Object object) {
             if (hash == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 hash = insert(new HashNode());
@@ -946,7 +946,7 @@ public class CExtNodes {
     public abstract static class StringPointerSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public int size(DynamicObject string) {
+        protected int size(DynamicObject string) {
             final Rope rope = rope(string);
             final int byteLength = rope.byteLength();
             int i = 0;
@@ -998,7 +998,7 @@ public class CExtNodes {
     public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public long toNative(DynamicObject string,
+        protected long toNative(DynamicObject string,
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
@@ -1011,7 +1011,7 @@ public class CExtNodes {
     public abstract static class StringToPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject toNative(DynamicObject string,
+        protected DynamicObject toNative(DynamicObject string,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached AllocateObjectNode allocateObjectNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
@@ -1025,7 +1025,7 @@ public class CExtNodes {
     public abstract static class StringPointerIsNativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public boolean isNative(DynamicObject string) {
+        protected boolean isNative(DynamicObject string) {
             return rope(string) instanceof NativeRope;
         }
 
@@ -1035,7 +1035,7 @@ public class CExtNodes {
     public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public Object read(DynamicObject string, int index,
+        protected Object read(DynamicObject string, int index,
                 @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile inBoundsProfile,
                 @Cached RopeNodes.GetByteNode getByteNode) {
@@ -1054,7 +1054,7 @@ public class CExtNodes {
     public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public int write(DynamicObject string, int index, int value,
+        protected int write(DynamicObject string, int index, int value,
                 @Cached("createBinaryProfile()") ConditionProfile newRopeProfile,
                 @Cached RopeNodes.SetByteNode setByteNode) {
             final Rope rope = rope(string);
@@ -1076,7 +1076,7 @@ public class CExtNodes {
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        public DynamicObject classNew(DynamicObject superclass) {
+        protected DynamicObject classNew(DynamicObject superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 allocateNode = insert(CallDispatchHeadNode.createPrivate());
@@ -1096,7 +1096,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object debug(Object... objects) {
+        protected Object debug(Object... objects) {
             if (objects.length > 1) {
                 System.err.printf("Printing %d values%n", objects.length);
             }
@@ -1145,13 +1145,13 @@ public class CExtNodes {
     public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object hiddenVariableGet(DynamicObject object, DynamicObject name,
+        protected Object hiddenVariableGet(DynamicObject object, DynamicObject name,
                 @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, name);
         }
 
         @Specialization(guards = { "!isDynamicObject(object)", "isRubySymbol(name)" })
-        public Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
+        protected Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
             return nil();
         }
     }
@@ -1160,7 +1160,7 @@ public class CExtNodes {
     public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
+        protected Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, name, value);
         }
@@ -1170,7 +1170,7 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public TruffleObject executeWithProtect(DynamicObject block,
+        protected TruffleObject executeWithProtect(DynamicObject block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
@@ -1188,7 +1188,7 @@ public class CExtNodes {
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object executeThrow(CapturedException captured,
+        protected Object executeThrow(CapturedException captured,
                 @Cached("createBinaryProfile()") ConditionProfile runtimeExceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
             final Throwable e = captured.getException();
@@ -1207,7 +1207,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)", "libraryStrategy.matches(libraries)", "fileStrategy.matches(bitcodeFiles)" })
-        public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
+        protected Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
                 @Cached("of(libraries)") ArrayStrategy libraryStrategy,
                 @Cached("of(bitcodeFiles)") ArrayStrategy fileStrategy,
                 @Cached("libraryStrategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode libBoxCopyNode,
@@ -1236,7 +1236,7 @@ public class CExtNodes {
     public abstract static class MBCLEN_NEEDMORE_PNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object mbclenNeedMoreP(int r) {
+        protected Object mbclenNeedMoreP(int r) {
             return StringSupport.MBCLEN_NEEDMORE_P(r);
         }
 
@@ -1246,7 +1246,7 @@ public class CExtNodes {
     public abstract static class MBCLEN_NEEDMORE_LENNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object mbclenNeedMoreLen(int r) {
+        protected Object mbclenNeedMoreLen(int r) {
             return StringSupport.MBCLEN_NEEDMORE_LEN(r);
         }
 
@@ -1256,7 +1256,7 @@ public class CExtNodes {
     public abstract static class MBCLEN_CHARFOUND_PNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object mbclenCharFoundP(int r) {
+        protected Object mbclenCharFoundP(int r) {
             return StringSupport.MBCLEN_CHARFOUND_P(r);
         }
 
@@ -1266,7 +1266,7 @@ public class CExtNodes {
     public abstract static class MBCLEN_CHARFOUND_LENNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object mbclenCharFoundLen(int r) {
+        protected Object mbclenCharFoundLen(int r) {
             return StringSupport.MBCLEN_CHARFOUND_LEN(r);
         }
 
@@ -1276,7 +1276,7 @@ public class CExtNodes {
     public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(value)")
-        public Object rbEncMaxLen(DynamicObject value) {
+        protected Object rbEncMaxLen(DynamicObject value) {
             return EncodingOperations.getEncoding(value).maxLength();
         }
 
@@ -1286,7 +1286,7 @@ public class CExtNodes {
     public abstract static class RbEncMinLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(value)")
-        public Object rbEncMinLen(DynamicObject value) {
+        protected Object rbEncMinLen(DynamicObject value) {
             return EncodingOperations.getEncoding(value).minLength();
         }
 
@@ -1296,7 +1296,7 @@ public class CExtNodes {
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
+        protected Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
@@ -1319,7 +1319,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        public Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
+        protected Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
             return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
                     StringOperations.rope(str).getBytes(), start, p, end);
         }
@@ -1332,7 +1332,7 @@ public class CExtNodes {
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
+        protected Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
@@ -1362,7 +1362,7 @@ public class CExtNodes {
     public abstract static class RbTrNewManagedStructNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject newManagedStruct(Object type) {
+        protected DynamicObject newManagedStruct(Object type) {
             return ManagedStructObjectType.createManagedStruct(type);
         }
 
@@ -1372,7 +1372,7 @@ public class CExtNodes {
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public TruffleObject wrapInt(Object value,
+        protected TruffleObject wrapInt(Object value,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }
@@ -1383,7 +1383,7 @@ public class CExtNodes {
     public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object unwrap(TruffleObject value,
+        protected Object unwrap(TruffleObject value,
                 @Cached BranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
@@ -1407,7 +1407,7 @@ public class CExtNodes {
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject createNewMarkList(VirtualFrame frmae) {
+        protected DynamicObject createNewMarkList(VirtualFrame frmae) {
             setThreadLocal();
             return nil();
         }
@@ -1422,7 +1422,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
+        protected DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1451,7 +1451,7 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject addToMarkList(VirtualFrame frame, TruffleObject guardedObject,
+        protected DynamicObject addToMarkList(VirtualFrame frame, TruffleObject guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1479,7 +1479,7 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject setMarkList(DynamicObject structOwner,
+        protected DynamicObject setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getArray());
             return nil();
@@ -1497,7 +1497,7 @@ public class CExtNodes {
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
 
         @Specialization
-        public DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
+        protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
                 @Cached BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 addObjectToMarkingService(object, marker);
@@ -1526,7 +1526,7 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject pushFrame(DynamicObject block,
+        protected DynamicObject pushFrame(DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
             return nil();
@@ -1537,7 +1537,7 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject popFrame(
+        protected DynamicObject popFrame(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
             return nil();

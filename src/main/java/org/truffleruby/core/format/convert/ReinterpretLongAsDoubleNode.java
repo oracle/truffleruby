@@ -20,17 +20,17 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class ReinterpretLongAsDoubleNode extends FormatNode {
 
     @Specialization
-    public MissingValue decode(MissingValue missingValue) {
+    protected MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject decode(DynamicObject nil) {
+    protected DynamicObject decode(DynamicObject nil) {
         return nil;
     }
 
     @Specialization
-    public double decode(long value) {
+    protected double decode(long value) {
         return Double.longBitsToDouble(value);
     }
 

@@ -43,7 +43,7 @@ public abstract class ConditionVariableNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             ReentrantLock lock = new ReentrantLock();
             return allocateNode.allocate(rubyClass, lock, lock.newCondition(), 0, 0);
         }
@@ -54,7 +54,7 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        public DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
+        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
@@ -66,7 +66,7 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
+        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
@@ -175,7 +175,7 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject signal(DynamicObject self) {
+        protected DynamicObject signal(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
@@ -204,7 +204,7 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject broadcast(DynamicObject self) {
+        protected DynamicObject broadcast(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 

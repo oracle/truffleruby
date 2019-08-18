@@ -66,7 +66,7 @@ public abstract class BasicObjectNodes {
     public abstract static class NotNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean not(Object value,
+        protected boolean not(Object value,
                 @Cached BooleanCastNode cast) {
             return !cast.executeToBoolean(value);
         }
@@ -80,7 +80,7 @@ public abstract class BasicObjectNodes {
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
-        public boolean equal(VirtualFrame frame, Object a, Object b) {
+        protected boolean equal(VirtualFrame frame, Object a, Object b) {
             return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
         }
 
@@ -96,47 +96,47 @@ public abstract class BasicObjectNodes {
         public abstract boolean executeReferenceEqual(Object a, Object b);
 
         @Specialization
-        public boolean equal(boolean a, boolean b) {
+        protected boolean equal(boolean a, boolean b) {
             return a == b;
         }
 
         @Specialization
-        public boolean equal(int a, int b) {
+        protected boolean equal(int a, int b) {
             return a == b;
         }
 
         @Specialization
-        public boolean equal(long a, long b) {
+        protected boolean equal(long a, long b) {
             return a == b;
         }
 
         @Specialization
-        public boolean equal(double a, double b) {
+        protected boolean equal(double a, double b) {
             return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
         }
 
         @Specialization
-        public boolean equal(DynamicObject a, DynamicObject b) {
+        protected boolean equal(DynamicObject a, DynamicObject b) {
             return a == b;
         }
 
         @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "!sameClass(a, b)", "isNotIntLong(a) || isNotIntLong(b)" })
-        public boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
+        protected boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
             return false;
         }
 
         @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "sameClass(a, b)", "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
-        public boolean equalOtherSameClass(Object a, Object b) {
+        protected boolean equalOtherSameClass(Object a, Object b) {
             return a == b;
         }
 
         @Specialization(guards = "isNotDynamicObject(a)")
-        public boolean equal(Object a, DynamicObject b) {
+        protected boolean equal(Object a, DynamicObject b) {
             return false;
         }
 
         @Specialization(guards = "isNotDynamicObject(b)")
-        public boolean equal(DynamicObject a, Object b) {
+        protected boolean equal(DynamicObject a, Object b) {
             return false;
         }
 
@@ -164,32 +164,32 @@ public abstract class BasicObjectNodes {
         public abstract Object executeObjectID(Object value);
 
         @Specialization(guards = "isNil(nil)")
-        public long objectIDNil(Object nil) {
+        protected long objectIDNil(Object nil) {
             return ObjectIDOperations.NIL;
         }
 
         @Specialization(guards = "value")
-        public long objectIDTrue(boolean value) {
+        protected long objectIDTrue(boolean value) {
             return ObjectIDOperations.TRUE;
         }
 
         @Specialization(guards = "!value")
-        public long objectIDFalse(boolean value) {
+        protected long objectIDFalse(boolean value) {
             return ObjectIDOperations.FALSE;
         }
 
         @Specialization
-        public long objectID(int value) {
+        protected long objectID(int value) {
             return ObjectIDOperations.smallFixnumToID(value);
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
-        public long objectIDSmallFixnumOverflow(long value) throws ArithmeticException {
+        protected long objectIDSmallFixnumOverflow(long value) throws ArithmeticException {
             return ObjectIDOperations.smallFixnumToIDOverflow(value);
         }
 
         @Specialization
-        public Object objectID(long value,
+        protected Object objectID(long value,
                 @Cached("createCountingProfile()") ConditionProfile smallProfile) {
             if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
@@ -199,12 +199,12 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        public Object objectID(double value) {
+        protected Object objectID(double value) {
             return ObjectIDOperations.floatToID(getContext(), value);
         }
 
         @Specialization(guards = "!isNil(object)")
-        public long objectID(DynamicObject object,
+        protected long objectID(DynamicObject object,
                 @Cached ReadObjectFieldNode readObjectIdNode,
                 @Cached WriteObjectFieldNode writeObjectIdNode) {
             final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
@@ -233,7 +233,7 @@ public abstract class BasicObjectNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize() {
+        protected DynamicObject initialize() {
             return nil();
         }
 
@@ -245,7 +245,7 @@ public abstract class BasicObjectNodes {
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -254,7 +254,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -263,7 +263,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -272,7 +272,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
+        protected Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
@@ -317,13 +317,13 @@ public abstract class BasicObjectNodes {
         public abstract Object executeInstanceExec(Object self, Object[] args, Object block);
 
         @Specialization
-        public Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
+        protected Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
             return callBlockNode.executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
         }
 
         @Specialization
-        public Object instanceExec(Object receiver, Object[] arguments, NotProvided block) {
+        protected Object instanceExec(Object receiver, Object[] arguments, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
 
@@ -333,17 +333,17 @@ public abstract class BasicObjectNodes {
     public abstract static class MethodMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object methodMissingNoName(Object self, NotProvided name, Object[] args, NotProvided block) {
+        protected Object methodMissingNoName(Object self, NotProvided name, Object[] args, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
         @Specialization
-        public Object methodMissingNoBlock(Object self, DynamicObject name, Object[] args, NotProvided block) {
+        protected Object methodMissingNoBlock(Object self, DynamicObject name, Object[] args, NotProvided block) {
             return methodMissing(self, name, args, null);
         }
 
         @Specialization
-        public Object methodMissingBlock(Object self, DynamicObject name, Object[] args, DynamicObject block) {
+        protected Object methodMissingBlock(Object self, DynamicObject name, Object[] args, DynamicObject block) {
             return methodMissing(self, name, args, block);
         }
 
@@ -451,12 +451,12 @@ public abstract class BasicObjectNodes {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
-        public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
             return send(frame, self, name, args, (DynamicObject) null);
         }
 
         @Specialization
-        public Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
@@ -474,7 +474,7 @@ public abstract class BasicObjectNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass);
         }
 

@@ -29,19 +29,19 @@ public abstract class ForeignToRubyNode extends RubyBaseWithoutContextNode {
     public abstract Object executeConvert(Object value);
 
     @Specialization
-    public DynamicObject convertCharacterCached(char value,
+    protected DynamicObject convertCharacterCached(char value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
     }
 
     @Specialization
-    public DynamicObject convertStringCached(String value,
+    protected DynamicObject convertStringCached(String value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(value);
     }
 
     @Specialization(guards = { "!isCharacter(value)", "!isString(value)" })
-    public Object convert(Object value) {
+    protected Object convert(Object value) {
         return value;
     }
 

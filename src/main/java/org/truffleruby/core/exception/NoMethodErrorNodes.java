@@ -30,7 +30,7 @@ public abstract class NoMethodErrorNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocateNoMethodError(DynamicObject rubyClass) {
+        protected DynamicObject allocateNoMethodError(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, Layouts.NO_METHOD_ERROR.build(nil(), null, null, nil(), null, nil(), nil()));
         }
 
@@ -40,7 +40,7 @@ public abstract class NoMethodErrorNodes {
     public abstract static class ArgsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object args(DynamicObject self) {
+        protected Object args(DynamicObject self) {
             return Layouts.NO_METHOD_ERROR.getArgs(self);
         }
 
@@ -50,7 +50,7 @@ public abstract class NoMethodErrorNodes {
     public abstract static class ArgsSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object setArgs(DynamicObject error, Object args) {
+        protected Object setArgs(DynamicObject error, Object args) {
             Layouts.NO_METHOD_ERROR.setArgs(error, args);
             return args;
         }

@@ -60,7 +60,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class WriteUTF8CharacterNode extends FormatNode {
 
     @Specialization(guards = { "value >= 0", "value <= 0x7f" })
-    public Object writeSingleByte(VirtualFrame frame, long value,
+    protected Object writeSingleByte(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         writeByte(frame, (byte) value);
 
@@ -74,7 +74,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x7f", "value <= 0x7ff" })
-    public Object writeTwoBytes(VirtualFrame frame, long value,
+    protected Object writeTwoBytes(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 6) & 0xff) | 0xc0),
@@ -94,7 +94,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x7ff", "value <= 0xffff" })
-    public Object writeThreeBytes(VirtualFrame frame, long value,
+    protected Object writeThreeBytes(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 12) & 0xff) | 0xe0),
@@ -115,7 +115,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0xffff", "value <= 0x1fffff" })
-    public Object writeFourBytes(VirtualFrame frame, long value,
+    protected Object writeFourBytes(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 18) & 0xff) | 0xf0),
@@ -137,7 +137,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x1fffff", "value <= 0x3ffffff" })
-    public Object writeFiveBytes(VirtualFrame frame, long value,
+    protected Object writeFiveBytes(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 24) & 0xff) | 0xf8),
@@ -160,7 +160,7 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = { "value > 0x3ffffff", "value <= 0x7fffffff" })
-    public Object writeSixBytes(VirtualFrame frame, long value,
+    protected Object writeSixBytes(VirtualFrame frame, long value,
             @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final byte[] bytes = {
                 (byte) (((value >>> 30) & 0xff) | 0xfc),
@@ -184,12 +184,12 @@ public abstract class WriteUTF8CharacterNode extends FormatNode {
     }
 
     @Specialization(guards = "value < 0")
-    public Object writeNegative(long value) {
+    protected Object writeNegative(long value) {
         throw new RangeException("pack(U): value out of range");
     }
 
     @Specialization(guards = "value > 0x7fffffff")
-    public Object writeOutOfRange(long value) {
+    protected Object writeOutOfRange(long value) {
         throw new RangeException("pack(U): value out of range");
     }
 

@@ -74,14 +74,14 @@ public class TruffleRegexpNodes {
         @Child private RopeNodes.AsciiOnlyNode asciiOnlyNode = RopeNodes.AsciiOnlyNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
-        public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
+        protected Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(str, sep, args)") DynamicObject union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
-        public Object executeSlowUnion(DynamicObject str, DynamicObject sep, Object[] args) {
+        protected Object executeSlowUnion(DynamicObject str, DynamicObject sep, Object[] args) {
             return buildUnion(str, sep, args);
         }
 
@@ -152,7 +152,7 @@ public class TruffleRegexpNodes {
     public static abstract class CompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        public Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
+        protected Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(compiledRegexps, arrayBuilderNode, getContext());
         }
     }
@@ -161,7 +161,7 @@ public class TruffleRegexpNodes {
     public static abstract class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        public Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
+        protected Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(matchedRegexps, arrayBuilderNode, getContext());
         }
     }

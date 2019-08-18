@@ -46,7 +46,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     public abstract ValueWrapper execute(Object value);
 
     @Specialization
-    public ValueWrapper wrapLong(long value,
+    protected ValueWrapper wrapLong(long value,
             @Cached BranchProfile smallFixnumProfile,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
@@ -59,35 +59,35 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization
-    public ValueWrapper wrapDouble(double value,
+    protected ValueWrapper wrapDouble(double value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getValueWrapperManager().doubleWrapper(value);
     }
 
     @Specialization
-    public ValueWrapper wrapBoolean(boolean value) {
+    protected ValueWrapper wrapBoolean(boolean value) {
         return new ValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
     }
 
     @Specialization
-    public ValueWrapper wrapUndef(NotProvided value) {
+    protected ValueWrapper wrapUndef(NotProvided value) {
         return new ValueWrapper(value, UNDEF_HANDLE);
     }
 
     @Specialization
-    public ValueWrapper wrapWrappedValue(ValueWrapper value,
+    protected ValueWrapper wrapWrappedValue(ValueWrapper value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
     @Specialization(guards = "isNil(context, value)")
-    public ValueWrapper wrapNil(DynamicObject value,
+    protected ValueWrapper wrapNil(DynamicObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE);
     }
 
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(context, value)" })
-    public ValueWrapper wrapValue(DynamicObject value,
+    protected ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
             @Cached BranchProfile noHandleProfile,
@@ -112,7 +112,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "!isRubyBasicObject(value)")
-    public ValueWrapper wrapNonRubyObject(TruffleObject value,
+    protected ValueWrapper wrapNonRubyObject(TruffleObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }

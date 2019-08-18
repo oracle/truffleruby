@@ -30,31 +30,31 @@ public abstract class WriteFrameSlotNode extends RubyBaseWithoutContextNode {
     public abstract Object executeWrite(Frame frame, Object value);
 
     @Specialization(guards = "checkBooleanKind(frame)")
-    public boolean writeBoolean(Frame frame, boolean value) {
+    protected boolean writeBoolean(Frame frame, boolean value) {
         frame.setBoolean(frameSlot, value);
         return value;
     }
 
     @Specialization(guards = "checkIntegerKind(frame)")
-    public int writeInteger(Frame frame, int value) {
+    protected int writeInteger(Frame frame, int value) {
         frame.setInt(frameSlot, value);
         return value;
     }
 
     @Specialization(guards = "checkLongKind(frame)")
-    public long writeLong(Frame frame, long value) {
+    protected long writeLong(Frame frame, long value) {
         frame.setLong(frameSlot, value);
         return value;
     }
 
     @Specialization(guards = "checkDoubleKind(frame)")
-    public double writeDouble(Frame frame, double value) {
+    protected double writeDouble(Frame frame, double value) {
         frame.setDouble(frameSlot, value);
         return value;
     }
 
     @Specialization(guards = "checkObjectKind(frame)", replaces = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
-    public Object writeObject(Frame frame, Object value) {
+    protected Object writeObject(Frame frame, Object value) {
         frame.setObject(frameSlot, value);
         return value;
     }

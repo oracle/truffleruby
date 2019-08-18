@@ -30,13 +30,13 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class StringToPointerNode extends FormatNode {
 
     @Specialization(guards = "isNil(nil)")
-    public long toPointer(DynamicObject nil) {
+    protected long toPointer(DynamicObject nil) {
         return 0;
     }
 
     @SuppressWarnings("unchecked")
     @Specialization(guards = "isRubyString(string)")
-    public long toPointer(VirtualFrame frame, DynamicObject string,
+    protected long toPointer(VirtualFrame frame, DynamicObject string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
             @Cached TaintNode taintNode) {
         taintNode.executeTaint(string);

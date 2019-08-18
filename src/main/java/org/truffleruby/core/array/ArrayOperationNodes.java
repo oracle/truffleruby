@@ -72,7 +72,7 @@ public class ArrayOperationNodes {
         public abstract Object[] execute(Object store, int size);
 
         @Specialization
-        public Object[] boxedCopy(Object store, int size,
+        protected Object[] boxedCopy(Object store, int size,
                 @Cached("strategy.copyToNode()") ArrayCopyToNode copyToNode,
                 @Cached("strategy.capacityNode()") ArrayCapacityNode capacityNode) {
             final Object[] newStore = new Object[size];
@@ -93,7 +93,7 @@ public class ArrayOperationNodes {
     public static abstract class ArrayCommonUnshareStorageNode extends ArrayUnshareStorageNode {
 
         @Specialization
-        public Object unshareStoreNode(DynamicObject array) {
+        protected Object unshareStoreNode(DynamicObject array) {
             return Layouts.ARRAY.getStore(array);
         }
 
@@ -110,7 +110,7 @@ public class ArrayOperationNodes {
     public static abstract class ArrayCommonExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
 
         @Specialization
-        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+        protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             final Object oldStore = Layouts.ARRAY.getStore(array);
             DelegatedArrayStorage newStore = new DelegatedArrayStorage(oldStore, 0, Layouts.ARRAY.getSize(array));
             Layouts.ARRAY.setStore(array, newStore);

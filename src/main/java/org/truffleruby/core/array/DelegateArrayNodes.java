@@ -29,7 +29,7 @@ public class DelegateArrayNodes {
     public static abstract class DelegateArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
-        public int length(DelegatedArrayStorage store) {
+        protected int length(DelegatedArrayStorage store) {
             return store.length;
         }
 
@@ -41,7 +41,7 @@ public class DelegateArrayNodes {
     public static abstract class DelegateArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization(guards = "strategy.matchesStore(store.storage)")
-        public Object get(DelegatedArrayStorage store, int index,
+        protected Object get(DelegatedArrayStorage store, int index,
                 @Cached("ofStore(store.storage)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             return getNode.execute(store.storage, index + store.offset);
@@ -61,7 +61,7 @@ public class DelegateArrayNodes {
         }
 
         @Specialization
-        public DelegatedArrayStorage newStore(int size,
+        protected DelegatedArrayStorage newStore(int size,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
             Object rawStorage = newStoreNode.execute(size);
             return new DelegatedArrayStorage(rawStorage, 0, size);
@@ -81,7 +81,7 @@ public class DelegateArrayNodes {
         }
 
         @Specialization
-        public Object newStoreCopying(DelegatedArrayStorage store, int size,
+        protected Object newStoreCopying(DelegatedArrayStorage store, int size,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
             Object newStore = newStoreNode.execute(size);
@@ -103,7 +103,7 @@ public class DelegateArrayNodes {
         }
 
         @Specialization
-        public void copyToOther(DelegatedArrayStorage from, Object to, int sourceStart, int destinationStart, int length,
+        protected void copyToOther(DelegatedArrayStorage from, Object to, int sourceStart, int destinationStart, int length,
                 @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
             copyToNode.execute(from.storage, to, sourceStart + from.offset, destinationStart, length);
         }
@@ -116,7 +116,7 @@ public class DelegateArrayNodes {
     public static abstract class DelegateArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
-        public Object extractRange(DelegatedArrayStorage store, int start, int end) {
+        protected Object extractRange(DelegatedArrayStorage store, int start, int end) {
             return new DelegatedArrayStorage(store.storage, store.offset + start, end - start);
         }
 
@@ -134,7 +134,7 @@ public class DelegateArrayNodes {
         }
 
         @Specialization
-        public Object unshareStore(DynamicObject array,
+        protected Object unshareStore(DynamicObject array,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("create(strategy)") DelegateArrayCopyToNode copyToNode) {
             DelegatedArrayStorage store = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
@@ -152,7 +152,7 @@ public class DelegateArrayNodes {
     public static abstract class DelegateArrayExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
 
         @Specialization
-        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+        protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             DelegatedArrayStorage oldStore = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
             return new DelegatedArrayStorage(oldStore.storage, start + oldStore.offset, end - start);
         }

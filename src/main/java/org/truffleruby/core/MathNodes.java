@@ -290,7 +290,7 @@ public abstract class MathNodes {
     public abstract static class FrExpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject frexp(double a) {
+        protected DynamicObject frexp(double a) {
             double mantissa = a;
             short sign = 1;
             long exponent = 0;
@@ -382,7 +382,7 @@ public abstract class MathNodes {
     public abstract static class LdexpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public double ldexp(double a, int b) {
+        protected double ldexp(double a, int b) {
             return a * Math.pow(2, b);
         }
 
@@ -402,22 +402,22 @@ public abstract class MathNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @Specialization
-        public DynamicObject lgamma(int a) {
+        protected DynamicObject lgamma(int a) {
             return lgamma((double) a);
         }
 
         @Specialization
-        public DynamicObject lgamma(long a) {
+        protected DynamicObject lgamma(long a) {
             return lgamma((double) a);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public DynamicObject lgamma(DynamicObject a) {
+        protected DynamicObject lgamma(DynamicObject a) {
             return lgamma(Layouts.BIGNUM.getValue(a).doubleValue());
         }
 
         @Specialization
-        public DynamicObject lgamma(double a) {
+        protected DynamicObject lgamma(double a) {
             if (a < 0 && Double.isInfinite(a)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog2(this));
@@ -444,27 +444,27 @@ public abstract class MathNodes {
     public abstract static class LogNode extends SimpleDyadicMathNode {
 
         @Specialization
-        public double function(int a, NotProvided b) {
+        protected double function(int a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization
-        public double function(long a, NotProvided b) {
+        protected double function(long a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(DynamicObject a, NotProvided b) {
+        protected double function(DynamicObject a, NotProvided b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue());
         }
 
         @Specialization
-        public double function(double a, NotProvided b) {
+        protected double function(double a, NotProvided b) {
             return doFunction(a);
         }
 
         @Specialization
-        public double function(Object a, NotProvided b,
+        protected double function(Object a, NotProvided b,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
@@ -590,22 +590,22 @@ public abstract class MathNodes {
         }
 
         @Specialization
-        public double function(int a) {
+        protected double function(int a) {
             return doFunction(a);
         }
 
         @Specialization
-        public double function(long a) {
+        protected double function(long a) {
             return doFunction(a);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(DynamicObject a) {
+        protected double function(DynamicObject a) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue());
         }
 
         @Specialization
-        public double function(double a) {
+        protected double function(double a) {
             return doFunction(a);
         }
 
@@ -636,82 +636,82 @@ public abstract class MathNodes {
         }
 
         @Specialization
-        public double function(int a, int b) {
+        protected double function(int a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        public double function(int a, long b) {
+        protected double function(int a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization(guards = "isRubyBignum(b)")
-        public double function(int a, DynamicObject b) {
+        protected double function(int a, DynamicObject b) {
             return doFunction(a, Layouts.BIGNUM.getValue(b).doubleValue());
         }
 
         @Specialization
-        public double function(int a, double b) {
+        protected double function(int a, double b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        public double function(long a, int b) {
+        protected double function(long a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        public double function(long a, long b) {
+        protected double function(long a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(long a, DynamicObject b) {
+        protected double function(long a, DynamicObject b) {
             return doFunction(a, Layouts.BIGNUM.getValue(b).doubleValue());
         }
 
         @Specialization
-        public double function(long a, double b) {
+        protected double function(long a, double b) {
             return doFunction(a, b);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(DynamicObject a, int b) {
+        protected double function(DynamicObject a, int b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), b);
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(DynamicObject a, long b) {
+        protected double function(DynamicObject a, long b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), b);
         }
 
         @Specialization(guards = { "isRubyBignum(a)", "isRubyBignum(b)" })
-        public double function(DynamicObject a, DynamicObject b) {
+        protected double function(DynamicObject a, DynamicObject b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), Layouts.BIGNUM.getValue(b).doubleValue());
         }
 
         @Specialization(guards = "isRubyBignum(a)")
-        public double function(DynamicObject a, double b) {
+        protected double function(DynamicObject a, double b) {
             return doFunction(Layouts.BIGNUM.getValue(a).doubleValue(), b);
         }
 
         @Specialization
-        public double function(double a, int b) {
+        protected double function(double a, int b) {
             return doFunction(a, b);
         }
 
         @Specialization
-        public double function(double a, long b) {
+        protected double function(double a, long b) {
             return doFunction(a, b);
         }
 
         @Specialization(guards = "isRubyBignum(b)")
-        public double function(double a, DynamicObject b) {
+        protected double function(double a, DynamicObject b) {
             return doFunction(a, Layouts.BIGNUM.getValue(b).doubleValue());
         }
 
         @Specialization
-        public double function(double a, double b) {
+        protected double function(double a, double b) {
             return doFunction(a, b);
         }
 

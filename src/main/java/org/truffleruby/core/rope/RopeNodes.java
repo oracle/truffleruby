@@ -64,13 +64,13 @@ public abstract class RopeNodes {
         public abstract Rope executeSubstring(Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "byteLength == 0")
-        public Rope substringZeroBytes(Rope base, int byteOffset, int byteLength,
+        protected Rope substringZeroBytes(Rope base, int byteOffset, int byteLength,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
             return makeLeafRopeNode.executeMake(RopeConstants.EMPTY_BYTES, base.getEncoding(), CR_UNKNOWN, 0);
         }
 
         @Specialization(guards = "byteLength == 1")
-        public Rope substringOneByte(Rope base, int byteOffset, int byteLength,
+        protected Rope substringOneByte(Rope base, int byteOffset, int byteLength,
                 @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                 @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                 @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
@@ -93,17 +93,17 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
-        public Rope substringSameAsBase(Rope base, int byteOffset, int byteLength) {
+        protected Rope substringSameAsBase(Rope base, int byteOffset, int byteLength) {
             return base;
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringLeafRope(LeafRope base, int byteOffset, int byteLength) {
+        protected Rope substringLeafRope(LeafRope base, int byteOffset, int byteLength) {
             return makeSubstringRopeNode.executeMake(base.getEncoding(), base, byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringSubstringRope(SubstringRope base, int byteOffset, int byteLength) {
+        protected Rope substringSubstringRope(SubstringRope base, int byteOffset, int byteLength) {
             return substringSubstringRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength);
         }
 
@@ -112,7 +112,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringRepeatingRope(RepeatingRope base, int byteOffset, int byteLength,
+        protected Rope substringRepeatingRope(RepeatingRope base, int byteOffset, int byteLength,
                 @Cached("createBinaryProfile()") ConditionProfile matchesChildProfile) {
             return substringRepeatingRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength, matchesChildProfile);
         }
@@ -130,18 +130,18 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringLazyRope(LazyRope base, int byteOffset, int byteLength) {
+        protected Rope substringLazyRope(LazyRope base, int byteOffset, int byteLength) {
             return makeSubstringRopeNode.executeMake(base.getEncoding(), base, byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
+        protected Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
             return makeLeafRopeNode.executeMake(base.getBytes(byteOffset, byteLength), base.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
+        protected Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
                 @Cached("createBinaryProfile()") ConditionProfile matchesChildProfile) {
             Rope root = base;
 
@@ -208,7 +208,7 @@ public abstract class RopeNodes {
         public abstract Rope executeMake(Encoding encoding, Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "base.isAsciiOnly()")
-        public Rope makeSubstring7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength) {
+        protected Rope makeSubstring7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength) {
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
                 return new SubstringRope(encoding, base, byteOffset, byteLength, byteLength, CR_7BIT);
             } else {
@@ -217,7 +217,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "!base.isAsciiOnly()")
-        public Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
+        protected Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
                 @Cached CalculateAttributesNode calculateAttributesNode) {
 
             final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
@@ -240,7 +240,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        public Rope makeSubstringNativeRope(Encoding encoding, NativeRope base, int byteOffset, int byteLength,
+        protected Rope makeSubstringNativeRope(Encoding encoding, NativeRope base, int byteOffset, int byteLength,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
                 @Cached AsciiOnlyNode asciiOnlyNode,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
@@ -274,14 +274,14 @@ public abstract class RopeNodes {
         abstract StringAttributes executeCalculateAttributes(Encoding encoding, byte[] bytes);
 
         @Specialization(guards = "isEmpty(bytes)")
-        public StringAttributes calculateAttributesEmpty(Encoding encoding, byte[] bytes,
+        protected StringAttributes calculateAttributesEmpty(Encoding encoding, byte[] bytes,
                 @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible) {
             return new StringAttributes(0,
                     isAsciiCompatible.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID);
         }
 
         @Specialization(guards = { "!isEmpty(bytes)", "isBinaryString(encoding)" })
-        public StringAttributes calculateAttributesBinaryString(Encoding encoding, byte[] bytes,
+        protected StringAttributes calculateAttributesBinaryString(Encoding encoding, byte[] bytes,
                 @Cached BranchProfile nonAsciiStringProfile) {
             CodeRange codeRange = CR_7BIT;
 
@@ -297,7 +297,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(rewriteOn = NonAsciiCharException.class, guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, byte[] bytes) throws NonAsciiCharException {
+        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, byte[] bytes) throws NonAsciiCharException {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
             for (int i = 0; i < bytes.length; i++) {
@@ -310,7 +310,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(replaces = "calculateAttributesAsciiCompatible", guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
+        protected StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
@@ -352,7 +352,7 @@ public abstract class RopeNodes {
 
 
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
-        public StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
+        protected StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile validCharacterProfile,
                 @Cached("createBinaryProfile()") ConditionProfile fixedWidthProfile) {
@@ -403,7 +403,7 @@ public abstract class RopeNodes {
         public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
         @Specialization
-        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
+        protected Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
                 @Cached NativeToManagedNode nativeToManagedNode,
                 @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
             if (emptyNativeRopeProfile.profile(left.isEmpty())) {
@@ -414,7 +414,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
+        protected Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
                 @Cached NativeToManagedNode nativeToManagedNode,
                 @Cached("createBinaryProfile()") ConditionProfile emptyNativeRopeProfile) {
             if (emptyNativeRopeProfile.profile(right.isEmpty())) {
@@ -425,19 +425,19 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "left.isEmpty()")
-        public Rope concatLeftEmpty(Rope left, ManagedRope right, Encoding encoding,
+        protected Rope concatLeftEmpty(Rope left, ManagedRope right, Encoding encoding,
                 @Cached WithEncodingNode withEncodingNode) {
             return withEncodingNode.executeWithEncoding(right, encoding);
         }
 
         @Specialization(guards = "right.isEmpty()")
-        public Rope concatRightEmpty(ManagedRope left, Rope right, Encoding encoding,
+        protected Rope concatRightEmpty(ManagedRope left, Rope right, Encoding encoding,
                 @Cached WithEncodingNode withEncodingNode) {
             return withEncodingNode.executeWithEncoding(left, encoding);
         }
 
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "!isCodeRangeBroken(left, right)" })
-        public Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
+        protected Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isLeftSingleByteOptimizableProfile,
@@ -566,7 +566,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
-        public Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
+        protected Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
             // may concat to form a valid code range.
@@ -632,24 +632,24 @@ public abstract class RopeNodes {
         public abstract LeafRope executeMake(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength);
 
         @Specialization(guards = "is7Bit(codeRange)")
-        public LeafRope makeAsciiOnlyLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
+        protected LeafRope makeAsciiOnlyLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
             return new AsciiOnlyLeafRope(bytes, encoding);
         }
 
         @Specialization(guards = "isValid(codeRange)")
-        public LeafRope makeValidLeafRopeWithCharacterLength(byte[] bytes, Encoding encoding, CodeRange codeRange, int characterLength) {
+        protected LeafRope makeValidLeafRopeWithCharacterLength(byte[] bytes, Encoding encoding, CodeRange codeRange, int characterLength) {
             return new ValidLeafRope(bytes, encoding, characterLength);
         }
 
         @Specialization(guards = { "isValid(codeRange)", "isFixedWidth(encoding)" })
-        public LeafRope makeValidLeafRopeFixedWidthEncoding(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
+        protected LeafRope makeValidLeafRopeFixedWidthEncoding(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
             final int calculatedCharacterLength = bytes.length / encoding.minLength();
 
             return new ValidLeafRope(bytes, encoding, calculatedCharacterLength);
         }
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
+        protected LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
                 @Cached BranchProfile errorProfile,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode) {
             // Extracted from StringSupport.strLength.
@@ -683,7 +683,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "!isAsciiCompatible(encoding)" })
-        public LeafRope makeValidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
+        protected LeafRope makeValidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength;
@@ -698,12 +698,12 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "isBroken(codeRange)")
-        public LeafRope makeInvalidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
+        protected LeafRope makeInvalidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
             return new InvalidLeafRope(bytes, encoding, RopeOperations.strLength(encoding, bytes, 0, bytes.length));
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "isEmpty(bytes)" })
-        public LeafRope makeUnknownLeafRopeEmpty(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
+        protected LeafRope makeUnknownLeafRopeEmpty(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
                 @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                 @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                 @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
@@ -728,7 +728,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)" })
-        public LeafRope makeUnknownLeafRopeGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
+        protected LeafRope makeUnknownLeafRopeGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached BranchProfile asciiOnlyProfile,
                 @Cached BranchProfile validProfile,
@@ -796,19 +796,19 @@ public abstract class RopeNodes {
         public abstract Rope executeRepeat(Rope base, int times);
 
         @Specialization(guards = "times == 0")
-        public Rope repeatZero(Rope base, int times,
+        protected Rope repeatZero(Rope base, int times,
                 @Cached WithEncodingNode withEncodingNode) {
             return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_UTF8_ROPE, base.getEncoding());
         }
 
         @Specialization(guards = "times == 1")
-        public Rope repeatOne(Rope base, int times) {
+        protected Rope repeatOne(Rope base, int times) {
             return base;
         }
 
         @TruffleBoundary
         @Specialization(guards = { "isSingleByteString(base)", "times > 1" })
-        public Rope multiplySingleByteString(Rope base, int times,
+        protected Rope multiplySingleByteString(Rope base, int times,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
             final byte filler = base.getBytes()[0];
 
@@ -819,7 +819,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
-        public Rope repeatManaged(ManagedRope base, int times) {
+        protected Rope repeatManaged(ManagedRope base, int times) {
             try {
                 Math.multiplyExact(base.byteLength(), times);
             } catch (ArithmeticException e) {
@@ -830,7 +830,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
-        public Rope repeatNative(NativeRope base, int times,
+        protected Rope repeatNative(NativeRope base, int times,
                 @Cached NativeToManagedNode nativeToManagedNode) {
             return executeRepeat(nativeToManagedNode.execute(base), times);
         }
@@ -843,7 +843,7 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrintLeafRope(LeafRope rope, int currentLevel, boolean printString) {
+        protected DynamicObject debugPrintLeafRope(LeafRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -864,7 +864,7 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrintSubstringRope(SubstringRope rope, int currentLevel, boolean printString) {
+        protected DynamicObject debugPrintSubstringRope(SubstringRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -888,7 +888,7 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
+        protected DynamicObject debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -914,7 +914,7 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrintRepeatingRope(RepeatingRope rope, int currentLevel, boolean printString) {
+        protected DynamicObject debugPrintRepeatingRope(RepeatingRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -938,7 +938,7 @@ public abstract class RopeNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrintLazyInt(LazyIntRope rope, int currentLevel, boolean printString) {
+        protected DynamicObject debugPrintLazyInt(LazyIntRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -1070,22 +1070,22 @@ public abstract class RopeNodes {
         public abstract int executeGetByte(Rope rope, int index);
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public int getByte(Rope rope, int index) {
+        protected int getByte(Rope rope, int index) {
             return rope.getRawBytes()[index] & 0xff;
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        public int getByte(NativeRope rope, int index) {
+        protected int getByte(NativeRope rope, int index) {
             return rope.getByteSlow(index) & 0xff;
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        public int getByte(LazyRope rope, int index) {
+        protected int getByte(LazyRope rope, int index) {
             return rope.getBytes()[index] & 0xff;
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        public int getByteSubstringRope(SubstringRope rope, int index,
+        protected int getByteSubstringRope(SubstringRope rope, int index,
                 @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile,
                 @Cached ByteSlowNode slowByte) {
             if (childRawBytesNullProfile.profile(rope.getChild().getRawBytes() == null)) {
@@ -1096,7 +1096,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        public int getByteRepeatingRope(RepeatingRope rope, int index,
+        protected int getByteRepeatingRope(RepeatingRope rope, int index,
                 @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile) {
             if (childRawBytesNullProfile.profile(rope.getChild().getRawBytes() == null)) {
                 return rope.getByteSlow(index) & 0xff;
@@ -1106,7 +1106,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        public int getByteConcatRope(ConcatRope rope, int index,
+        protected int getByteConcatRope(ConcatRope rope, int index,
                 @Cached("createBinaryProfile()") ConditionProfile chooseLeftChildProfile,
                 @Cached("createBinaryProfile()") ConditionProfile leftChildRawBytesNullProfile,
                 @Cached("createBinaryProfile()") ConditionProfile rightChildRawBytesNullProfile,
@@ -1144,7 +1144,7 @@ public abstract class RopeNodes {
         public abstract Rope executeSetByte(Rope string, int index, int value);
 
         @Specialization
-        public Rope setByte(ManagedRope rope, int index, int value) {
+        protected Rope setByte(ManagedRope rope, int index, int value) {
             assert 0 <= index && index < rope.byteLength();
 
             final Rope left = leftSubstringNode.executeSubstring(rope, 0, index);
@@ -1156,7 +1156,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        public Rope setByte(NativeRope rope, int index, int value) {
+        protected Rope setByte(NativeRope rope, int index, int value) {
             rope.set(index, value);
             return rope;
         }
@@ -1175,13 +1175,13 @@ public abstract class RopeNodes {
         public abstract int executeGetCodePoint(Rope rope, int index);
 
         @Specialization(guards = "singleByteOptimizableNode.execute(rope)")
-        public int getCodePointSingleByte(Rope rope, int index,
+        protected int getCodePointSingleByte(Rope rope, int index,
                 @Cached GetByteNode getByteNode) {
             return getByteNode.executeGetByte(rope, index);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
-        public int getCodePointUTF8(Rope rope, int index,
+        protected int getCodePointUTF8(Rope rope, int index,
                 @Cached GetByteNode getByteNode,
                 @Cached BytesNode bytesNode,
                 @Cached CodeRangeNode codeRangeNode,
@@ -1197,7 +1197,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
-        public int getCodePointMultiByte(Rope rope, int index,
+        protected int getCodePointMultiByte(Rope rope, int index,
                 @Cached BranchProfile errorProfile,
                 @Cached BytesNode bytesNode,
                 @Cached CodeRangeNode codeRangeNode,
@@ -1244,23 +1244,23 @@ public abstract class RopeNodes {
         public abstract LeafRope executeFlatten(Rope rope);
 
         @Specialization
-        public LeafRope flattenLeafRope(LeafRope rope) {
+        protected LeafRope flattenLeafRope(LeafRope rope) {
             return rope;
         }
 
         @Specialization
-        public LeafRope flattenNativeRope(NativeRope rope,
+        protected LeafRope flattenNativeRope(NativeRope rope,
                 @Cached NativeToManagedNode nativeToManagedNode) {
             return nativeToManagedNode.execute(rope);
         }
 
         @Specialization(guards = { "!isLeafRope(rope)", "rope.getRawBytes() != null" })
-        public LeafRope flattenNonLeafWithBytes(ManagedRope rope) {
+        protected LeafRope flattenNonLeafWithBytes(ManagedRope rope) {
             return makeLeafRopeNode.executeMake(rope.getRawBytes(), rope.getEncoding(), rope.getCodeRange(), rope.characterLength());
         }
 
         @Specialization(guards = { "!isLeafRope(rope)", "rope.getRawBytes() == null" })
-        public LeafRope flatten(ManagedRope rope) {
+        protected LeafRope flatten(ManagedRope rope) {
             // NB: We call RopeOperations.flatten here rather than Rope#getBytes so we don't populate the byte[] in
             // the source `rope`. Otherwise, we'll end up a fully populated reference in both the source `rope` and the
             // flattened one, which could adversely affect GC.
@@ -1280,12 +1280,12 @@ public abstract class RopeNodes {
         public abstract boolean execute(Rope a, Rope b);
 
         @Specialization(guards = "a == b")
-        public boolean sameRopeEqual(Rope a, Rope b) {
+        protected boolean sameRopeEqual(Rope a, Rope b) {
             return true;
         }
 
         @Specialization
-        public boolean ropesEqual(Rope a, Rope b,
+        protected boolean ropesEqual(Rope a, Rope b,
                 @Cached BranchProfile differentEncodingProfile,
                 @Cached BytesEqualNode bytesEqualNode) {
             if (a.getEncoding() != b.getEncoding()) {
@@ -1310,7 +1310,7 @@ public abstract class RopeNodes {
         public abstract boolean execute(Rope a, Rope b);
 
         @Specialization(guards = "a == b")
-        public boolean sameRopes(Rope a, Rope b) {
+        protected boolean sameRopes(Rope a, Rope b) {
             return true;
         }
 
@@ -1318,7 +1318,7 @@ public abstract class RopeNodes {
                 "a == cachedA",
                 "b == cachedB",
         }, limit = "getDefaultCacheLimit()")
-        public boolean cachedRopes(Rope a, Rope b,
+        protected boolean cachedRopes(Rope a, Rope b,
                 @Cached("a") Rope cachedA,
                 @Cached("b") Rope cachedB,
                 @Cached("a.bytesEqual(b)") boolean equal) {
@@ -1329,7 +1329,7 @@ public abstract class RopeNodes {
                 "a != b",
                 "a.getRawBytes() != null",
                 "a.getRawBytes() == b.getRawBytes()" })
-        public boolean sameByteArrays(Rope a, Rope b) {
+        protected boolean sameByteArrays(Rope a, Rope b) {
             return true;
         }
 
@@ -1339,12 +1339,12 @@ public abstract class RopeNodes {
                 "b.getRawBytes() != null",
                 "a.byteLength() == 1",
                 "b.byteLength() == 1" })
-        public boolean characterEqual(Rope a, Rope b) {
+        protected boolean characterEqual(Rope a, Rope b) {
             return a.getRawBytes()[0] == b.getRawBytes()[0];
         }
 
         @Specialization(guards = "a != b", replaces = { "sameByteArrays", "characterEqual" })
-        public boolean fullRopeEqual(Rope a, Rope b,
+        protected boolean fullRopeEqual(Rope a, Rope b,
                 @Cached("createBinaryProfile()") ConditionProfile aRawBytesProfile,
                 @Cached BranchProfile sameByteArraysProfile,
                 @Cached BranchProfile differentLengthProfile,
@@ -1418,24 +1418,24 @@ public abstract class RopeNodes {
         public abstract byte execute(Rope rope, int index);
 
         @Specialization
-        public byte getByteFromSubString(SubstringRope rope, int index,
+        protected byte getByteFromSubString(SubstringRope rope, int index,
                 @Cached ByteSlowNode childNode) {
             return childNode.execute(rope.getChild(), rope.getByteOffset() + index);
         }
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte fastByte(ManagedRope rope, int index) {
+        protected byte fastByte(ManagedRope rope, int index) {
             return rope.getRawBytes()[index];
         }
 
         @Specialization
-        public byte getByteFromNativeRope(NativeRope rope, int index) {
+        protected byte getByteFromNativeRope(NativeRope rope, int index) {
             return rope.getByteSlow(index);
         }
 
         @TruffleBoundary
         @Specialization(guards = "rope.getRawBytes() == null")
-        public byte getByteFromRope(ManagedRope rope, int index) {
+        protected byte getByteFromRope(ManagedRope rope, int index) {
             return rope.getByteSlow(index);
         }
     }
@@ -1450,7 +1450,7 @@ public abstract class RopeNodes {
         public abstract boolean execute(Rope rope);
 
         @Specialization
-        public boolean asciiOnly(Rope rope,
+        protected boolean asciiOnly(Rope rope,
                 @Cached CodeRangeNode codeRangeNode) {
             return codeRangeNode.execute(rope) == CR_7BIT;
         }
@@ -1467,12 +1467,12 @@ public abstract class RopeNodes {
         public abstract CodeRange execute(Rope rope);
 
         @Specialization
-        public CodeRange getCodeRangeManaged(ManagedRope rope) {
+        protected CodeRange getCodeRangeManaged(ManagedRope rope) {
             return rope.getCodeRange();
         }
 
         @Specialization
-        public CodeRange getCodeRangeNative(NativeRope rope,
+        protected CodeRange getCodeRangeNative(NativeRope rope,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
@@ -1495,12 +1495,12 @@ public abstract class RopeNodes {
         public abstract int execute(Rope rope);
 
         @Specialization(guards = "rope.isHashCodeCalculated()")
-        public int executeHashCalculated(Rope rope) {
+        protected int executeHashCalculated(Rope rope) {
             return rope.calculatedHashCode();
         }
 
         @Specialization(guards = "!rope.isHashCodeCalculated()")
-        public int executeHashNotCalculated(Rope rope) {
+        protected int executeHashNotCalculated(Rope rope) {
             return rope.hashCode();
         }
 
@@ -1515,12 +1515,12 @@ public abstract class RopeNodes {
         public abstract int execute(Rope rope);
 
         @Specialization
-        public int getCharacterLengthManaged(ManagedRope rope) {
+        protected int getCharacterLengthManaged(ManagedRope rope) {
             return rope.characterLength();
         }
 
         @Specialization
-        public int getCharacterLengthNative(NativeRope rope,
+        protected int getCharacterLengthNative(NativeRope rope,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached("createBinaryProfile()") ConditionProfile unknownCharacterLengthProfile) {
             if (unknownCharacterLengthProfile.profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
@@ -1543,7 +1543,7 @@ public abstract class RopeNodes {
         public abstract boolean execute(Rope rope);
 
         @Specialization
-        public boolean isSingleByteOptimizable(Rope rope,
+        protected boolean isSingleByteOptimizable(Rope rope,
                 @Cached AsciiOnlyNode asciiOnlyNode,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             final boolean asciiOnly = asciiOnlyNode.execute(rope);

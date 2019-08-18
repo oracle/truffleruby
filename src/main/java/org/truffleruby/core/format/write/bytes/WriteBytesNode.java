@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class WriteBytesNode extends FormatNode {
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, bytes);
         return null;
     }

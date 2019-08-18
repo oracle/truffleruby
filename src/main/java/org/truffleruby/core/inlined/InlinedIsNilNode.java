@@ -27,7 +27,7 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
     }
 
     @Specialization(guards = "isNil(self)", assumptions = "assumptions")
-    boolean nil(Object self) {
+    protected boolean nil(Object self) {
         return true;
     }
 
@@ -35,13 +35,13 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
             "!isForeignObject(self)",
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL",
     }, assumptions = "assumptions", limit = "1")
-    boolean notNil(VirtualFrame frame, Object self,
+    protected boolean notNil(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode) {
         return false;
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object self) {
+    protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

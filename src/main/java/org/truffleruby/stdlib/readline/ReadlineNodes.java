@@ -90,7 +90,7 @@ public abstract class ReadlineNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject basicWordBreakCharacters() {
+        protected DynamicObject basicWordBreakCharacters() {
             return makeStringNode.executeMake(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -107,7 +107,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject setBasicWordBreakCharacters(DynamicObject characters) {
+        protected DynamicObject setBasicWordBreakCharacters(DynamicObject characters) {
             ProcCompleter.setDelimiter(StringOperations.getString(characters));
             return characters;
         }
@@ -119,7 +119,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject setCompletionProc(DynamicObject proc) {
+        protected DynamicObject setCompletionProc(DynamicObject proc) {
             final ProcCompleter completer = new ProcCompleter(getContext(), proc);
             getContext().getConsoleHolder().setCurrentCompleter(completer);
             return proc;
@@ -132,7 +132,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject getScreenSize() {
+        protected DynamicObject getScreenSize() {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
             final int[] store = {
                     readline.getTerminal().getHeight(),
@@ -164,7 +164,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object readline(String prompt, boolean addToHistory) {
+        protected Object readline(String prompt, boolean addToHistory) {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry
@@ -208,7 +208,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public int point() {
+        protected int point() {
             return getContext().getConsoleHolder().getReadline().getCursorBuffer().cursor;
         }
 
@@ -226,7 +226,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject insertText(DynamicObject readline, String text) {
+        protected DynamicObject insertText(DynamicObject readline, String text) {
             getContext().getConsoleHolder().getReadline().getCursorBuffer().write(text);
 
             return readline;
@@ -239,7 +239,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject deleteText(DynamicObject readline) {
+        protected DynamicObject deleteText(DynamicObject readline) {
             getContext().getConsoleHolder().getReadline().getCursorBuffer().clear();
 
             return readline;
@@ -255,7 +255,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object lineBuffer() {
+        protected Object lineBuffer() {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
             final DynamicObject ret = makeStringNode.executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
@@ -269,7 +269,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject refreshLine() {
+        protected DynamicObject refreshLine() {
             try {
                 getContext().getConsoleHolder().getReadline().redrawLine();
             } catch (IOException e) {
@@ -285,7 +285,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetInputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int setInput(int fd, DynamicObject io) {
+        protected int setInput(int fd, DynamicObject io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateIn(fd, io);
 
@@ -302,7 +302,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetOutputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int setOutput(int fd, DynamicObject io) {
+        protected int setOutput(int fd, DynamicObject io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateOut(fd, io);
 

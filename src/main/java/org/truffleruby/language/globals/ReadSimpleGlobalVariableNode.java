@@ -20,14 +20,14 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     public abstract Object execute();
 
     @Specialization(assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
-    public Object readConstant(
+    protected Object readConstant(
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value) {
         return value;
     }
 
     @Specialization(assumptions = "storage.getValidAssumption()")
-    public Object read(
+    protected Object read(
             @Cached("getStorage()") GlobalVariableStorage storage) {
         return storage.getValue();
     }

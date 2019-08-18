@@ -28,7 +28,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     public abstract Object executeEnsureCapacity(DynamicObject array, int requiredCapacity);
 
     @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
-    public boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
+    protected boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutationStrategy,
             @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
@@ -52,7 +52,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-    public boolean ensureCapacity(DynamicObject array, int requiredCapacity,
+    protected boolean ensureCapacity(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,

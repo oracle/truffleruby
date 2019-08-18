@@ -79,7 +79,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(fileName)")
-        public Object importFile(DynamicObject fileName) {
+        protected Object importFile(DynamicObject fileName) {
             try {
                 final TruffleFile file = getContext().getEnv().getTruffleFile(StringOperations.getString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
@@ -109,7 +109,7 @@ public abstract class InteropNodes {
     public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean isExecutable(
+        protected boolean isExecutable(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isExecutable(receiver);
@@ -126,7 +126,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object executeForeignCached(
+        protected Object executeForeignCached(
                 TruffleObject receiver,
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
@@ -172,7 +172,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization
-        public Object executeForeignCached(TruffleObject receiver, Object[] args,
+        protected Object executeForeignCached(TruffleObject receiver, Object[] args,
                 @Cached ExecuteUncacheableNode executeUncacheableNode) {
             return executeUncacheableNode.execute(receiver, args);
         }
@@ -183,7 +183,7 @@ public abstract class InteropNodes {
     public abstract static class ExecuteWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public Object executeWithoutConversionForeignCached(
+        protected Object executeWithoutConversionForeignCached(
                 TruffleObject receiver,
                 Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -207,7 +207,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getCacheLimit()")
-        public Object invokeCached(
+        protected Object invokeCached(
                 TruffleObject receiver,
                 Object identifier,
                 Object[] args,
@@ -250,7 +250,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
 
         @Specialization
-        public Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
+        protected Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
                 @Cached InvokeUncacheableNode invokeUncacheableNode) {
             return invokeUncacheableNode.execute(receiver, identifier, args);
         }
@@ -260,7 +260,7 @@ public abstract class InteropNodes {
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean isInstantiable(
+        protected boolean isInstantiable(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isInstantiable(receiver);
@@ -319,7 +319,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object[] args);
 
         @Specialization
-        public Object newCached(TruffleObject receiver, Object[] args,
+        protected Object newCached(TruffleObject receiver, Object[] args,
                 @Cached NewUncacheableNode newUncacheableNode) {
             return newUncacheableNode.execute(receiver, args);
         }
@@ -330,7 +330,7 @@ public abstract class InteropNodes {
     public abstract static class HasSizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean hasSize(
+        protected boolean hasSize(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasArrayElements(receiver);
@@ -342,12 +342,12 @@ public abstract class InteropNodes {
     public abstract static class SizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object size(String receiver) {
+        protected Object size(String receiver) {
             return receiver.length();
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object size(
+        protected Object size(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {
@@ -364,7 +364,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_string?", isModuleFunction = true, required = 1)
     public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isString(
+        protected boolean isString(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isString(receiver);
@@ -374,7 +374,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_string", isModuleFunction = true, required = 1)
     public abstract static class AsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public DynamicObject asString(
+        protected DynamicObject asString(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FromJavaStringNode fromJavaStringNode) {
@@ -391,7 +391,7 @@ public abstract class InteropNodes {
     public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public String asString(
+        protected String asString(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
@@ -405,7 +405,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_boolean?", isModuleFunction = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isBoolean(
+        protected boolean isBoolean(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isBoolean(receiver);
@@ -415,7 +415,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_boolean", isModuleFunction = true, required = 1)
     public abstract static class AsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean asBoolean(
+        protected boolean asBoolean(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
@@ -429,7 +429,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_number?", isModuleFunction = true, required = 1)
     public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isNumber(
+        protected boolean isNumber(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNumber(receiver);
@@ -439,7 +439,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "fits_in_int?", isModuleFunction = true, required = 1)
     public abstract static class FitsInIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean fitsInInt(
+        protected boolean fitsInInt(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInInt(receiver);
@@ -449,7 +449,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "fits_in_long?", isModuleFunction = true, required = 1)
     public abstract static class FitsInLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean fitsInLong(
+        protected boolean fitsInLong(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInLong(receiver);
@@ -459,7 +459,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "fits_in_double?", isModuleFunction = true, required = 1)
     public abstract static class FitsInDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean fitsInDouble(
+        protected boolean fitsInDouble(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInDouble(receiver);
@@ -469,7 +469,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_int", isModuleFunction = true, required = 1)
     public abstract static class AsIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public int asInt(
+        protected int asInt(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
@@ -483,7 +483,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_long", isModuleFunction = true, required = 1)
     public abstract static class AsLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public long asLong(
+        protected long asLong(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
@@ -497,7 +497,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_double", isModuleFunction = true, required = 1)
     public abstract static class AsDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public double asDouble(
+        protected double asDouble(
                 Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             try {
@@ -518,7 +518,7 @@ public abstract class InteropNodes {
         abstract boolean execute(Object receiver);
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean isNull(Object receiver,
+        protected boolean isNull(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
@@ -538,7 +538,7 @@ public abstract class InteropNodes {
         abstract Object execute(Object receiver);
 
         @Specialization
-        public boolean isNull(Object receiver,
+        protected boolean isNull(Object receiver,
                 @Cached NullUncacheableNode nullUncacheableNode) {
             return nullUncacheableNode.execute(receiver);
         }
@@ -549,7 +549,7 @@ public abstract class InteropNodes {
     public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean isPointer(
+        protected boolean isPointer(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isPointer(receiver);
@@ -566,7 +566,7 @@ public abstract class InteropNodes {
     public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public Object asPointer(
+        protected Object asPointer(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {
@@ -583,7 +583,7 @@ public abstract class InteropNodes {
     public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public Object toNative(
+        protected Object toNative(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
@@ -604,7 +604,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        public Object readMember(
+        protected Object readMember(
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -631,7 +631,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object readArrayElement(
+        protected Object readArrayElement(
                 TruffleObject receiver,
                 long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -684,7 +684,7 @@ public abstract class InteropNodes {
     public abstract static class ReadWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        public Object readMember(
+        protected Object readMember(
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -706,7 +706,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object readArrayElement(
+        protected Object readArrayElement(
                 TruffleObject receiver,
                 long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -736,7 +736,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object identifier, Object value);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        public Object write(
+        protected Object write(
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object value,
@@ -764,7 +764,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object write(
+        protected Object write(
                 TruffleObject receiver,
                 long identifier, // TODO (pitr-ch 01-Apr-2019): allow only long? (unify other similar cases)
                 Object value,
@@ -818,7 +818,7 @@ public abstract class InteropNodes {
         abstract Object execute(TruffleObject receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        public Object remove(
+        protected Object remove(
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -842,7 +842,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object remove(
+        protected Object remove(
                 TruffleObject receiver,
                 long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -870,7 +870,7 @@ public abstract class InteropNodes {
     public abstract static class InteropHasKeysNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean hasKeys(
+        protected boolean hasKeys(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMembers(receiver);
@@ -879,7 +879,7 @@ public abstract class InteropNodes {
         // TODO (pitr-ch 28-Mar-2019): delete this specialization and fix failing tests
         //   or rather implement members for primitive types, so Ruby Integer methods can be invoked on long
         @Specialization(guards = "!isTruffleObject(receiver)")
-        public Object hasKeys(Object receiver) {
+        protected Object hasKeys(Object receiver) {
             return true;
         }
     }
@@ -890,12 +890,12 @@ public abstract class InteropNodes {
         protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
 
         @Specialization
-        public Object keys(TruffleObject receiver, NotProvided internal) {
+        protected Object keys(TruffleObject receiver, NotProvided internal) {
             return executeKeys(receiver, false);
         }
 
         @Specialization(limit = "getCacheLimit()")
-        public Object keys(
+        protected Object keys(
                 TruffleObject receiver,
                 boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -913,7 +913,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_readable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberReadable(
+        protected boolean isMemberReadable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -925,7 +925,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_modifiable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberModifiable(
+        protected boolean isMemberModifiable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -937,7 +937,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_insertable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberInsertable(
+        protected boolean isMemberInsertable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -949,7 +949,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_removable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberRemovable(
+        protected boolean isMemberRemovable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -961,7 +961,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_invocable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberInvocable(
+        protected boolean isMemberInvocable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -973,7 +973,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_internal?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberInternal(
+        protected boolean isMemberInternal(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -985,7 +985,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_writable?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberWritable(
+        protected boolean isMemberWritable(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -997,7 +997,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_existing?", isModuleFunction = true, required = 2)
     public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isMemberExisting(
+        protected boolean isMemberExisting(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1009,7 +1009,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_read_side_effects?", isModuleFunction = true, required = 2)
     public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean hasMemberReadSideEffects(
+        protected boolean hasMemberReadSideEffects(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1021,7 +1021,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_write_side_effects?", isModuleFunction = true, required = 2)
     public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean hasMemberWriteSideEffects(
+        protected boolean hasMemberWriteSideEffects(
                 TruffleObject receiver,
                 DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1036,7 +1036,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementReadable(
+        protected boolean isArrayElementReadable(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1044,7 +1044,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementReadable(
+        protected boolean isArrayElementReadable(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1059,7 +1059,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_modifiable?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementModifiable(
+        protected boolean isArrayElementModifiable(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1069,7 +1069,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementModifiable(
+        protected boolean isArrayElementModifiable(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1084,7 +1084,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_insertable?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementInsertable(
+        protected boolean isArrayElementInsertable(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1094,7 +1094,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementInsertable(
+        protected boolean isArrayElementInsertable(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1109,7 +1109,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_removable?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementRemovable(
+        protected boolean isArrayElementRemovable(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1119,7 +1119,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementRemovable(
+        protected boolean isArrayElementRemovable(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1134,7 +1134,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_writable?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementWritable(
+        protected boolean isArrayElementWritable(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1144,7 +1144,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementWritable(
+        protected boolean isArrayElementWritable(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1159,7 +1159,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_array_element_existing?", isModuleFunction = true, required = 2)
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        public boolean isArrayElementExisting(
+        protected boolean isArrayElementExisting(
                 TruffleObject receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1169,7 +1169,7 @@ public abstract class InteropNodes {
         public abstract boolean execute(TruffleObject receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        public boolean isArrayElementExisting(
+        protected boolean isArrayElementExisting(
                 TruffleObject receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
@@ -1194,7 +1194,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object export(String name, Object object) {
+        protected Object export(String name, Object object) {
             getContext().getInteropManager().exportObject(name, object);
             return object;
         }
@@ -1211,7 +1211,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization
-        public Object importObject(
+        protected Object importObject(
                 String name,
                 @Cached BranchProfile errorProfile) {
             final Object value = doImport(name);
@@ -1235,7 +1235,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(mimeType)")
-        public boolean isMimeTypeSupported(DynamicObject mimeType) {
+        protected boolean isMimeTypeSupported(DynamicObject mimeType) {
             return getContext().getEnv().isMimeTypeSupported(StringOperations.getString(mimeType));
         }
 
@@ -1252,7 +1252,7 @@ public abstract class InteropNodes {
                 "mimeTypeEqualNode.execute(rope(mimeType), cachedMimeType)",
                 "sourceEqualNode.execute(rope(source), cachedSource)"
         }, limit = "getCacheLimit()")
-        public Object evalCached(
+        protected Object evalCached(
                 DynamicObject mimeType,
                 DynamicObject source,
                 @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
@@ -1264,7 +1264,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = { "isRubyString(mimeType)", "isRubyString(source)" }, replaces = "evalCached")
-        public Object evalUncached(
+        protected Object evalUncached(
                 DynamicObject mimeType, DynamicObject source,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), RubyNode.EMPTY_ARGUMENTS);
@@ -1297,7 +1297,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIsJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isJavaString(Object value) {
+        protected boolean isJavaString(Object value) {
             return value instanceof String;
         }
 
@@ -1310,7 +1310,7 @@ public abstract class InteropNodes {
                 "isJavaObject(boxedInstance)",
                 "isJavaClassOrInterface(boxedJavaClass)"
         })
-        public boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
+        protected boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
             final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
             if (hostInstance == null) {
                 return false;
@@ -1324,7 +1324,7 @@ public abstract class InteropNodes {
                 "!isJavaObject(instance)",
                 "isJavaClassOrInterface(boxedJavaClass)"
         })
-        public boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
+        protected boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
             final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
             return javaClass.isInstance(instance);
         }
@@ -1343,7 +1343,7 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object toJavaString(
+        protected Object toJavaString(
                 Object value,
                 @Cached RubyToForeignNode toForeignNode) {
             return toForeignNode.executeConvert(value);
@@ -1355,7 +1355,7 @@ public abstract class InteropNodes {
     public abstract static class InteropFromJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object fromJavaString(
+        protected Object fromJavaString(
                 Object value,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             return foreignToRubyNode.executeConvert(value);
@@ -1368,7 +1368,7 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public Object toJavaArray(
+        protected Object toJavaArray(
                 DynamicObject interopModule, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
@@ -1378,7 +1378,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = "!isRubyArray(object)")
-        public Object coerce(DynamicObject interopModule, DynamicObject object) {
+        protected Object coerce(DynamicObject interopModule, DynamicObject object) {
             return FAILURE;
         }
 
@@ -1389,7 +1389,7 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public Object toJavaList(
+        protected Object toJavaList(
                 DynamicObject interopModule, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
@@ -1399,7 +1399,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = "!isRubyArray(object)")
-        public Object coerce(DynamicObject interopModule, DynamicObject object) {
+        protected Object coerce(DynamicObject interopModule, DynamicObject object) {
             return FAILURE;
         }
 
@@ -1409,17 +1409,17 @@ public abstract class InteropNodes {
     public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isJavaObject(object)")
-        public Object deproxyJavaObject(TruffleObject object) {
+        protected Object deproxyJavaObject(TruffleObject object) {
             return getContext().getEnv().asHostObject(object);
         }
 
         @Specialization(guards = "!isJavaObject(object)")
-        public Object deproxyNotJavaObject(TruffleObject object) {
+        protected Object deproxyNotJavaObject(TruffleObject object) {
             return object;
         }
 
         @Specialization(guards = "!isTruffleObject(object)")
-        public Object deproxyNotTruffle(Object object) {
+        protected Object deproxyNotTruffle(Object object) {
             return object;
         }
 
@@ -1433,7 +1433,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIsForeignNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isForeign(Object value) {
+        protected boolean isForeign(Object value) {
             return RubyGuards.isForeignObject(value);
         }
 
@@ -1443,7 +1443,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isJava(Object value) {
+        protected boolean isJava(Object value) {
             return getContext().getEnv().isHostObject(value);
         }
 
@@ -1453,7 +1453,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isJavaClass(Object value) {
+        protected boolean isJavaClass(Object value) {
             return getContext().getEnv().isHostObject(value) && getContext().getEnv().asHostObject(value) instanceof Class;
         }
 
@@ -1464,7 +1464,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object metaObject(Object value) {
+        protected Object metaObject(Object value) {
             return getContext().getLanguage().findMetaObject(getContext(), value);
         }
 
@@ -1477,13 +1477,13 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
-        public Object javaTypeSymbol(DynamicObject name) {
+        protected Object javaTypeSymbol(DynamicObject name) {
             return javaType(Layouts.SYMBOL.getString(name));
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
-        public Object javaTypeString(DynamicObject name) {
+        protected Object javaTypeString(DynamicObject name) {
             return javaType(StringOperations.getString(name));
         }
 
@@ -1506,7 +1506,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        public TruffleObject loggingForeignObject() {
+        protected TruffleObject loggingForeignObject() {
             return new LoggingForeignObject();
         }
 
@@ -1519,7 +1519,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject toString(Object value) {
+        protected DynamicObject toString(Object value) {
             return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -1530,7 +1530,7 @@ public abstract class InteropNodes {
 
         @Specialization
         @TruffleBoundary
-        public int identityHashCode(Object value) {
+        protected int identityHashCode(Object value) {
             final int code = System.identityHashCode(value);
             assert code >= 0;
             return code;
@@ -1542,7 +1542,7 @@ public abstract class InteropNodes {
     public abstract static class IsPolyglotAccessAllowedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isPolyglotAccessAllowed() {
+        protected boolean isPolyglotAccessAllowed() {
             return getContext().getEnv().isPolyglotAccessAllowed();
         }
 

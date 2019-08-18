@@ -43,7 +43,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    public Object updateShapeAndRead(DynamicObject object, Object name, Object defaultValue) {
+    protected Object updateShapeAndRead(DynamicObject object, Object name, Object defaultValue) {
         return execute(object, name, defaultValue);
     }
 

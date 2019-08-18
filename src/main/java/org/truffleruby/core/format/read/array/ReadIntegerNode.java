@@ -34,28 +34,28 @@ public abstract class ReadIntegerNode extends FormatNode {
     private final ConditionProfile convertedTypeProfile = ConditionProfile.createBinaryProfile();
 
     @Specialization(guards = "isNull(source)")
-    public double read(VirtualFrame frame, Object source) {
+    protected double read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public int read(VirtualFrame frame, int[] source) {
+    protected int read(VirtualFrame frame, int[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public int read(VirtualFrame frame, long[] source) {
+    protected int read(VirtualFrame frame, long[] source) {
         return (int) source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public int read(VirtualFrame frame, double[] source) {
+    protected int read(VirtualFrame frame, double[] source) {
         return (int) source[advanceSourcePosition(frame)];
     }
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
-    public Object read(VirtualFrame frame, Object source,
+    protected Object read(VirtualFrame frame, Object source,
             @Cached("ofStore(source)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         if (toIntegerNode == null) {

@@ -29,7 +29,7 @@ public abstract class ArrayGetTailNode extends RubyNode {
     }
 
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-    public DynamicObject getTail(DynamicObject array,
+    protected DynamicObject getTail(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {

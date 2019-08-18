@@ -32,13 +32,13 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
     @Specialization(guards = {
             "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BLOCK_GIVEN",
     }, assumptions = "assumptions", limit = "1")
-    boolean blockGiven(VirtualFrame frame, Object self,
+    protected boolean blockGiven(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode) {
         return readMethodBlockNode.execute(frame) != nil();
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object self) {
+    protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

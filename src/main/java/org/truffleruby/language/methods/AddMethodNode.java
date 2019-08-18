@@ -40,7 +40,7 @@ public abstract class AddMethodNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(guards = "isRubyModule(module)")
-    public void addMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
+    protected void addMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
         if (!ignoreNameVisibility && ModuleOperations.isMethodPrivateFromName(method.getName())) {
             visibility = Visibility.PRIVATE;
         }

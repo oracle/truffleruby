@@ -26,28 +26,28 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class ReadValueNode extends FormatNode {
 
     @Specialization(guards = "isNull(source)")
-    public void read(VirtualFrame frame, Object source) {
+    protected void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public long read(VirtualFrame frame, int[] source) {
+    protected long read(VirtualFrame frame, int[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public long read(VirtualFrame frame, long[] source) {
+    protected long read(VirtualFrame frame, long[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public long read(VirtualFrame frame, double[] source) {
+    protected long read(VirtualFrame frame, double[] source) {
         return (long) source[advanceSourcePosition(frame)];
     }
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
-    public Object read(VirtualFrame frame, Object source,
+    protected Object read(VirtualFrame frame, Object source,
             @Cached("ofStore(source)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         return getNode.execute(source, advanceSourcePosition(frame));

@@ -44,7 +44,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
+        protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
             final String path = getContext().getAbsolutePath(sourceSection.getSource());
@@ -70,7 +70,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject path(DynamicObject threadBacktraceLocation,
+        protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
             final String path = getContext().getPath(sourceSection.getSource());
@@ -90,7 +90,7 @@ public class ThreadBacktraceLocationNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject label(DynamicObject threadBacktraceLocation) {
+        protected DynamicObject label(DynamicObject threadBacktraceLocation) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
             final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
             final Activation activation = backtrace.getActivations()[activationIndex];
@@ -108,7 +108,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        public int lineno(DynamicObject threadBacktraceLocation) {
+        protected int lineno(DynamicObject threadBacktraceLocation) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
 
             return sourceSection.getStartLine();
@@ -122,7 +122,7 @@ public class ThreadBacktraceLocationNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject toS(DynamicObject threadBacktraceLocation) {
+        protected DynamicObject toS(DynamicObject threadBacktraceLocation) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
             final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 

@@ -27,7 +27,7 @@ public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithout
     public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name) throws UnknownIdentifierException, InvalidArrayIndexException;
 
     @Specialization(guards = "isStringLike.executeIsStringLike(name)")
-    public Object cacheStringLikeAndForward(DynamicObject receiver, Object name,
+    protected Object cacheStringLikeAndForward(DynamicObject receiver, Object name,
             @Cached ToJavaStringNode toJavaStringNode,
             @Cached IsStringLikeNode isStringLike,
             @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
@@ -37,7 +37,7 @@ public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithout
     }
 
     @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
-    public Object indexObject(DynamicObject receiver, Object name,
+    protected Object indexObject(DynamicObject receiver, Object name,
             @Cached IsStringLikeNode isStringLike,
             @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
         return nextHelper.executeStringCachedHelper(receiver, name, null, false);

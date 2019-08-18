@@ -37,7 +37,7 @@ public abstract class DefineModuleNode extends RubyNode {
     }
 
     @Specialization(guards = "isRubyModule(lexicalParentModule)")
-    public Object defineModule(VirtualFrame frame, DynamicObject lexicalParentModule) {
+    protected Object defineModule(VirtualFrame frame, DynamicObject lexicalParentModule) {
         final Object existing = lookupForExistingModule(frame, name, lexicalParentModule);
 
         final DynamicObject definingModule;
@@ -58,7 +58,7 @@ public abstract class DefineModuleNode extends RubyNode {
     }
 
     @Specialization(guards = "!isRubyModule(lexicalParentObject)")
-    public Object defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
+    protected Object defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
     }
 

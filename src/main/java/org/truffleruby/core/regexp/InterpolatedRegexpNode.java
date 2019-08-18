@@ -74,7 +74,7 @@ public class InterpolatedRegexpNode extends RubyNode {
         public abstract Object execute(Rope[] parts);
 
         @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
-        public Object executeFast(Rope[] parts,
+        protected Object executeFast(Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
                 @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
             final Object clone = copyNode.call(regexp, "clone");
@@ -82,7 +82,7 @@ public class InterpolatedRegexpNode extends RubyNode {
         }
 
         @Specialization(replaces = "executeFast")
-        public Object executeSlow(Rope[] parts,
+        protected Object executeSlow(Rope[] parts,
                 @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
             notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
             return createRegexp(parts);

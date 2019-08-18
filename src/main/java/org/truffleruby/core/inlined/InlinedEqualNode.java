@@ -23,17 +23,17 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    boolean intEqual(int a, int b) {
+    protected boolean intEqual(int a, int b) {
         return a == b;
     }
 
     @Specialization(assumptions = "assumptions")
-    boolean longEqual(long a, long b) {
+    protected boolean longEqual(long a, long b) {
         return a == b;
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object a, Object b) {
+    protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

@@ -36,7 +36,7 @@ public abstract class ReadHashValueNode extends FormatNode {
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, Object[] source) {
+    protected Object read(VirtualFrame frame, Object[] source) {
         if (oneHashProfile.profile(source.length != 1 || !RubyGuards.isRubyHash(source[0]))) {
             throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentErrorOneHashRequired(this));
         }

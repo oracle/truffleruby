@@ -24,7 +24,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     public abstract Object execute(Object value);
 
     @Specialization(guards = "referenceEqualNode.executeReferenceEqual(value, previousValue)", assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
-    public Object writeTryToKeepConstant(Object value,
+    protected Object writeTryToKeepConstant(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {
         // NOTE: we still do the volatile write to get the proper memory barrier,
@@ -34,7 +34,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "storage.isAssumeConstant()", assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
-    public Object writeAssumeConstant(Object value,
+    protected Object writeAssumeConstant(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);
@@ -45,7 +45,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!storage.isAssumeConstant()", assumptions = "storage.getValidAssumption()", replaces = "writeAssumeConstant")
-    public Object write(Object value,
+    protected Object write(Object value,
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);

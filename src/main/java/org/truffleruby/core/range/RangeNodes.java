@@ -49,7 +49,7 @@ public abstract class RangeNodes {
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject map(DynamicObject range, DynamicObject block,
+        protected DynamicObject map(DynamicObject range, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached YieldNode yieldNode) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
@@ -91,7 +91,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode eachInternalCall;
 
         @Specialization(guards = "isIntRange(range)")
-        public Object eachInt(DynamicObject range, DynamicObject block) {
+        protected Object eachInt(DynamicObject range, DynamicObject block) {
             int result;
             if (Layouts.INT_RANGE.getExcludedEnd(range)) {
                 result = Layouts.INT_RANGE.getEnd(range);
@@ -120,7 +120,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public Object eachLong(DynamicObject range, DynamicObject block) {
+        protected Object eachLong(DynamicObject range, DynamicObject block) {
             long result;
             if (Layouts.LONG_RANGE.getExcludedEnd(range)) {
                 result = Layouts.LONG_RANGE.getEnd(range);
@@ -158,17 +158,17 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public Object eachObject(VirtualFrame frame, DynamicObject range, NotProvided block) {
+        protected Object eachObject(VirtualFrame frame, DynamicObject range, NotProvided block) {
             return eachInternal(frame, range, null);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object each(VirtualFrame frame, DynamicObject range, NotProvided block) {
+        protected Object each(VirtualFrame frame, DynamicObject range, NotProvided block) {
             return eachInternal(frame, range, null);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object each(VirtualFrame frame, DynamicObject range, DynamicObject block) {
+        protected Object each(VirtualFrame frame, DynamicObject range, DynamicObject block) {
             return eachInternal(frame, range, block);
         }
 
@@ -178,17 +178,17 @@ public abstract class RangeNodes {
     public abstract static class ExcludeEndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public boolean excludeEndInt(DynamicObject range) {
+        protected boolean excludeEndInt(DynamicObject range) {
             return Layouts.INT_RANGE.getExcludedEnd(range);
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public boolean excludeEndLong(DynamicObject range) {
+        protected boolean excludeEndLong(DynamicObject range) {
             return Layouts.LONG_RANGE.getExcludedEnd(range);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public boolean excludeEndObject(DynamicObject range) {
+        protected boolean excludeEndObject(DynamicObject range) {
             return Layouts.OBJECT_RANGE.getExcludedEnd(range);
         }
 
@@ -198,17 +198,17 @@ public abstract class RangeNodes {
     public abstract static class BeginNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public int eachInt(DynamicObject range) {
+        protected int eachInt(DynamicObject range) {
             return Layouts.INT_RANGE.getBegin(range);
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public long eachLong(DynamicObject range) {
+        protected long eachLong(DynamicObject range) {
             return Layouts.LONG_RANGE.getBegin(range);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object eachObject(DynamicObject range) {
+        protected Object eachObject(DynamicObject range) {
             return Layouts.OBJECT_RANGE.getBegin(range);
         }
 
@@ -220,7 +220,7 @@ public abstract class RangeNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject dupIntRange(DynamicObject range) {
+        protected DynamicObject dupIntRange(DynamicObject range) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     Layouts.INT_RANGE.getExcludedEnd(range),
@@ -229,7 +229,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public DynamicObject dupLongRange(DynamicObject range) {
+        protected DynamicObject dupLongRange(DynamicObject range) {
             return Layouts.LONG_RANGE.createLongRange(
                     coreLibrary().getIntRangeFactory(),
                     Layouts.LONG_RANGE.getExcludedEnd(range),
@@ -238,7 +238,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public DynamicObject dup(DynamicObject range) {
+        protected DynamicObject dup(DynamicObject range) {
             DynamicObject copy = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(range),
                     Layouts.OBJECT_RANGE.getExcludedEnd(range),
@@ -253,17 +253,17 @@ public abstract class RangeNodes {
     public abstract static class EndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public int lastInt(DynamicObject range) {
+        protected int lastInt(DynamicObject range) {
             return Layouts.INT_RANGE.getEnd(range);
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public long lastLong(DynamicObject range) {
+        protected long lastLong(DynamicObject range) {
             return Layouts.LONG_RANGE.getEnd(range);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object lastObject(DynamicObject range) {
+        protected Object lastObject(DynamicObject range) {
             return Layouts.OBJECT_RANGE.getEnd(range);
         }
 
@@ -275,7 +275,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode stepInternalCall;
 
         @Specialization(guards = { "isIntRange(range)", "step > 0" })
-        public Object stepInt(DynamicObject range, int step, DynamicObject block) {
+        protected Object stepInt(DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -302,7 +302,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "isLongRange(range)", "step > 0" })
-        public Object stepLong(DynamicObject range, int step, DynamicObject block) {
+        protected Object stepLong(DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -357,7 +357,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode toAInternalCall;
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject toA(DynamicObject range) {
+        protected DynamicObject toA(DynamicObject range) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             int result;
             if (Layouts.INT_RANGE.getExcludedEnd(range)) {
@@ -381,7 +381,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object toA(VirtualFrame frame, DynamicObject range) {
+        protected Object toA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -398,12 +398,12 @@ public abstract class RangeNodes {
         @Child private ToIntNode toIntNode;
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject intRange(DynamicObject range) {
+        protected DynamicObject intRange(DynamicObject range) {
             return range;
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public DynamicObject longRange(DynamicObject range) {
+        protected DynamicObject longRange(DynamicObject range) {
             int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
             int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
@@ -411,7 +411,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public DynamicObject objectRange(DynamicObject range) {
+        protected DynamicObject objectRange(DynamicObject range) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
@@ -432,7 +432,7 @@ public abstract class RangeNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isObjectRange(range)")
-        public boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
+        protected boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
             Layouts.OBJECT_RANGE.setBegin(range, begin);
             Layouts.OBJECT_RANGE.setEnd(range, end);
             Layouts.OBJECT_RANGE.setExcludedEnd(range, excludeEnd);
@@ -459,7 +459,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "rubyClass == rangeClass")
-        public DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
+        protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
@@ -468,7 +468,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
-        public DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
@@ -477,7 +477,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
-        public DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.LONG_RANGE.createLongRange(
                     coreLibrary().getLongRangeFactory(),
                     excludeEnd,
@@ -486,7 +486,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
-        public Object objectRange(
+        protected Object objectRange(
                 VirtualFrame frame,
                 DynamicObject rubyClass,
                 Object begin,
@@ -531,7 +531,7 @@ public abstract class RangeNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, false, nil(), nil());
         }
 

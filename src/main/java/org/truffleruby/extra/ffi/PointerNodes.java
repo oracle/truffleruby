@@ -72,7 +72,7 @@ public abstract class PointerNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject pointerClass) {
+        protected DynamicObject allocate(DynamicObject pointerClass) {
             return allocateObjectNode.allocate(pointerClass, Pointer.NULL);
         }
 
@@ -130,7 +130,7 @@ public abstract class PointerNodes {
     public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int typeSize(int type) {
+        protected int typeSize(int type) {
             switch (type) {
                 case NativeTypes.TYPE_CHAR:
                 case NativeTypes.TYPE_UCHAR:
@@ -172,7 +172,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "!isInteger(type)")
-        public Object fallback(Object type) {
+        protected Object fallback(Object type) {
             return FAILURE;
         }
 
@@ -182,7 +182,7 @@ public abstract class PointerNodes {
     public static abstract class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public long setAddress(DynamicObject pointer, long address) {
+        protected long setAddress(DynamicObject pointer, long address) {
             Layouts.POINTER.setPointer(pointer, new Pointer(address));
             return address;
         }
@@ -193,7 +193,7 @@ public abstract class PointerNodes {
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public long address(DynamicObject pointer) {
+        protected long address(DynamicObject pointer) {
             return Layouts.POINTER.getPointer(pointer).getAddress();
         }
 
@@ -203,7 +203,7 @@ public abstract class PointerNodes {
     public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isAutorelease(DynamicObject pointer) {
+        protected boolean isAutorelease(DynamicObject pointer) {
             return Layouts.POINTER.getPointer(pointer).isAutorelease();
         }
 
@@ -213,13 +213,13 @@ public abstract class PointerNodes {
     public static abstract class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "autorelease")
-        public boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
+        protected boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
             Layouts.POINTER.getPointer(pointer).enableAutorelease(getContext().getFinalizationService());
             return autorelease;
         }
 
         @Specialization(guards = "!autorelease")
-        public boolean disableAutorelease(DynamicObject pointer, boolean autorelease) {
+        protected boolean disableAutorelease(DynamicObject pointer, boolean autorelease) {
             Layouts.POINTER.getPointer(pointer).disableAutorelease(getContext().getFinalizationService());
             return autorelease;
         }
@@ -230,7 +230,7 @@ public abstract class PointerNodes {
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject malloc(DynamicObject pointer, long size) {
+        protected DynamicObject malloc(DynamicObject pointer, long size) {
             Layouts.POINTER.setPointer(pointer, Pointer.malloc(size));
             return pointer;
         }
@@ -241,7 +241,7 @@ public abstract class PointerNodes {
     public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject free(DynamicObject pointer) {
+        protected DynamicObject free(DynamicObject pointer) {
             Layouts.POINTER.getPointer(pointer).free(getContext().getFinalizationService());
             return pointer;
         }
@@ -252,7 +252,7 @@ public abstract class PointerNodes {
     public abstract static class PointerClearNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyPointer(pointer)")
-        public DynamicObject clear(DynamicObject pointer, long length) {
+        protected DynamicObject clear(DynamicObject pointer, long length) {
             Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) 0);
             return pointer;
         }
@@ -263,7 +263,7 @@ public abstract class PointerNodes {
     public static abstract class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject copyMemory(long to, long from, long size) {
+        protected DynamicObject copyMemory(long to, long from, long size) {
             final Pointer ptr = new Pointer(to);
             checkNull(ptr);
             ptr.writeBytes(0, new Pointer(from), 0, size);
@@ -280,12 +280,12 @@ public abstract class PointerNodes {
         @Child private AllocateObjectNode allocateObjectNode;
 
         @Specialization(guards = "limit == 0")
-        public DynamicObject readNullPointer(long address, long limit) {
+        protected DynamicObject readNullPointer(long address, long limit) {
             return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
         @Specialization(guards = "limit != 0")
-        public DynamicObject readStringToNull(long address, long limit,
+        protected DynamicObject readStringToNull(long address, long limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
@@ -295,7 +295,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "isNil(noLimit)")
-        public DynamicObject readStringToNull(long address, DynamicObject noLimit,
+        protected DynamicObject readStringToNull(long address, DynamicObject noLimit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
@@ -318,7 +318,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject readBytes(long address, int length,
+        protected DynamicObject readBytes(long address, int length,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @Cached AllocateObjectNode allocateObjectNode) {
@@ -341,7 +341,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject writeBytes(long address, DynamicObject string, int index, int length) {
+        protected DynamicObject writeBytes(long address, DynamicObject string, int index, int length) {
             final Pointer ptr = new Pointer(address);
             final Rope rope = StringOperations.rope(string);
             assert index + length <= rope.byteLength();
@@ -362,7 +362,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int readCharSigned(long address) {
+        protected int readCharSigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readByte(0);
@@ -374,7 +374,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int readCharUnsigned(long address) {
+        protected int readCharUnsigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return Byte.toUnsignedInt(ptr.readByte(0));
@@ -386,7 +386,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int readShortSigned(long address) {
+        protected int readShortSigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readShort(0);
@@ -397,7 +397,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int readShortUnsigned(long address) {
+        protected int readShortUnsigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return Short.toUnsignedInt(ptr.readShort(0));
@@ -409,7 +409,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int readIntSigned(long address) {
+        protected int readIntSigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readInt(0);
@@ -421,7 +421,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadUIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long readIntUnsigned(long address) {
+        protected long readIntUnsigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return Integer.toUnsignedLong(ptr.readInt(0));
@@ -433,7 +433,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long readLongSigned(long address) {
+        protected long readLongSigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readLong(0);
@@ -445,7 +445,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object readLongUnsigned(long address) {
+        protected Object readLongUnsigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return readUnsignedLong(getContext(), ptr, 0);
@@ -467,7 +467,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public double readFloat(long address) {
+        protected double readFloat(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readFloat(0);
@@ -479,7 +479,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public double readDouble(long address) {
+        protected double readDouble(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             return ptr.readDouble(0);
@@ -493,7 +493,7 @@ public abstract class PointerNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject readPointer(long address) {
+        protected DynamicObject readPointer(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(0);
@@ -507,70 +507,70 @@ public abstract class PointerNodes {
     public static abstract class PointerGetAtOffsetPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "type == TYPE_CHAR")
-        public int getAtOffsetChar(DynamicObject pointer, int offset, int type) {
+        protected int getAtOffsetChar(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return ptr.readByte(offset);
         }
 
         @Specialization(guards = "type == TYPE_UCHAR")
-        public int getAtOffsetUChar(DynamicObject pointer, int offset, int type) {
+        protected int getAtOffsetUChar(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return Byte.toUnsignedInt(ptr.readByte(offset));
         }
 
         @Specialization(guards = "type == TYPE_SHORT")
-        public int getAtOffsetShort(DynamicObject pointer, int offset, int type) {
+        protected int getAtOffsetShort(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return ptr.readShort(offset);
         }
 
         @Specialization(guards = "type == TYPE_USHORT")
-        public int getAtOffsetUShort(DynamicObject pointer, int offset, int type) {
+        protected int getAtOffsetUShort(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return Short.toUnsignedInt(ptr.readShort(offset));
         }
 
         @Specialization(guards = "type == TYPE_INT")
-        public int getAtOffsetInt(DynamicObject pointer, int offset, int type) {
+        protected int getAtOffsetInt(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return ptr.readInt(offset);
         }
 
         @Specialization(guards = "type == TYPE_UINT")
-        public long getAtOffsetUInt(DynamicObject pointer, int offset, int type) {
+        protected long getAtOffsetUInt(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return Integer.toUnsignedLong(ptr.readInt(offset));
         }
 
         @Specialization(guards = "type == TYPE_LONG")
-        public long getAtOffsetLong(DynamicObject pointer, int offset, int type) {
+        protected long getAtOffsetLong(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return ptr.readLong(offset);
         }
 
         @Specialization(guards = "type == TYPE_ULONG")
-        public Object getAtOffsetULong(DynamicObject pointer, int offset, int type) {
+        protected Object getAtOffsetULong(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return PointerReadULongNode.readUnsignedLong(getContext(), ptr, offset);
         }
 
         @Specialization(guards = "type == TYPE_LL")
-        public long getAtOffsetLL(DynamicObject pointer, int offset, int type) {
+        protected long getAtOffsetLL(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return ptr.readLong(offset);
         }
 
         @Specialization(guards = "type == TYPE_ULL")
-        public Object getAtOffsetULL(DynamicObject pointer, int offset, int type) {
+        protected Object getAtOffsetULL(DynamicObject pointer, int offset, int type) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             return PointerReadULongNode.readUnsignedLong(getContext(), ptr, offset);
@@ -578,7 +578,7 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         @Specialization(guards = "type == TYPE_STRING")
-        public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
+        protected DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
@@ -593,7 +593,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_PTR")
-        public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
+        protected DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
                 @Cached AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
@@ -608,7 +608,7 @@ public abstract class PointerNodes {
     public static abstract class PointerSetAtOffsetPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "type == TYPE_CHAR")
-        public int setAtOffsetChar(DynamicObject pointer, int offset, int type, int value) {
+        protected int setAtOffsetChar(DynamicObject pointer, int offset, int type, int value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert ((byte) value) == value;
@@ -617,7 +617,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_UCHAR")
-        public int setAtOffsetUChar(DynamicObject pointer, int offset, int type, int value) {
+        protected int setAtOffsetUChar(DynamicObject pointer, int offset, int type, int value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert value >= 0 && value < (1 << Byte.SIZE);
@@ -626,7 +626,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_SHORT")
-        public int setAtOffsetShort(DynamicObject pointer, int offset, int type, int value) {
+        protected int setAtOffsetShort(DynamicObject pointer, int offset, int type, int value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert ((short) value) == value;
@@ -635,7 +635,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_USHORT")
-        public int setAtOffsetUShort(DynamicObject pointer, int offset, int type, int value) {
+        protected int setAtOffsetUShort(DynamicObject pointer, int offset, int type, int value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert value >= 0 && value < (1 << Short.SIZE);
@@ -644,7 +644,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_INT")
-        public int setAtOffsetInt(DynamicObject pointer, int offset, int type, int value) {
+        protected int setAtOffsetInt(DynamicObject pointer, int offset, int type, int value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             ptr.writeInt(offset, value);
@@ -652,7 +652,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_UINT")
-        public long setAtOffsetUInt(DynamicObject pointer, int offset, int type, long value) {
+        protected long setAtOffsetUInt(DynamicObject pointer, int offset, int type, long value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert value >= 0 && value < (1L << Integer.SIZE);
@@ -661,7 +661,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_LONG")
-        public long setAtOffsetLong(DynamicObject pointer, int offset, int type, long value) {
+        protected long setAtOffsetLong(DynamicObject pointer, int offset, int type, long value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             ptr.writeLong(offset, value);
@@ -669,7 +669,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_ULONG")
-        public long setAtOffsetULong(DynamicObject pointer, int offset, int type, long value) {
+        protected long setAtOffsetULong(DynamicObject pointer, int offset, int type, long value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             assert value >= 0L;
@@ -678,7 +678,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "type == TYPE_ULONG", "isRubyBignum(value)" })
-        public DynamicObject setAtOffsetULong(DynamicObject pointer, int offset, int type, DynamicObject value) {
+        protected DynamicObject setAtOffsetULong(DynamicObject pointer, int offset, int type, DynamicObject value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             PointerWriteULongNode.writeUnsignedLong(ptr, offset, value);
@@ -686,7 +686,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_LL")
-        public long setAtOffsetLL(DynamicObject pointer, int offset, int type, long value) {
+        protected long setAtOffsetLL(DynamicObject pointer, int offset, int type, long value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             ptr.writeLong(offset, value);
@@ -694,7 +694,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_ULL")
-        public long setAtOffsetULL(DynamicObject pointer, int offset, int type, long value) {
+        protected long setAtOffsetULL(DynamicObject pointer, int offset, int type, long value) {
             assert value >= 0L;
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
@@ -703,7 +703,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "type == TYPE_ULL", "isRubyBignum(value)" })
-        public DynamicObject setAtOffsetULL(DynamicObject pointer, int offset, int type, DynamicObject value) {
+        protected DynamicObject setAtOffsetULL(DynamicObject pointer, int offset, int type, DynamicObject value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             PointerWriteULongNode.writeUnsignedLong(ptr, offset, value);
@@ -711,7 +711,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "type == TYPE_PTR", "isRubyPointer(value)" })
-        public DynamicObject setAtOffsetPtr(DynamicObject pointer, int offset, int type, DynamicObject value) {
+        protected DynamicObject setAtOffsetPtr(DynamicObject pointer, int offset, int type, DynamicObject value) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             ptr.writePointer(offset, Layouts.POINTER.getPointer(value).getAddress());
@@ -720,7 +720,7 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "type == TYPE_CHARARR", "isRubyString(string)" })
-        public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
+        protected DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             final byte[] bytes = StringOperations.rope(string).getBytes();
@@ -735,7 +735,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        public DynamicObject writeChar(long address, int value) {
+        protected DynamicObject writeChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte byteValue = (byte) value;
@@ -750,7 +750,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        public DynamicObject writeChar(long address, int value) {
+        protected DynamicObject writeChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte byteValue = (byte) value;
@@ -759,7 +759,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 256" })
-        public DynamicObject writeUnsignedChar(long address, int value) {
+        protected DynamicObject writeUnsignedChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte signed = (byte) value; // Same as value - 2^8
@@ -774,7 +774,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        public DynamicObject writeShort(long address, int value) {
+        protected DynamicObject writeShort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short shortValue = (short) value;
@@ -789,7 +789,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        public DynamicObject writeShort(long address, int value) {
+        protected DynamicObject writeShort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short shortValue = (short) value;
@@ -798,7 +798,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 65536" })
-        public DynamicObject writeUnsignedSort(long address, int value) {
+        protected DynamicObject writeUnsignedSort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short signed = (short) value; // Same as value - 2^16
@@ -812,7 +812,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject writeInt(long address, int value) {
+        protected DynamicObject writeInt(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
@@ -828,7 +828,7 @@ public abstract class PointerNodes {
         static final long MAX_UNSIGNED_INT_PLUS_ONE = 1L << Integer.SIZE;
 
         @Specialization(guards = "value >= 0")
-        public DynamicObject writeInt(long address, int value) {
+        protected DynamicObject writeInt(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
@@ -836,7 +836,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < MAX_UNSIGNED_INT_PLUS_ONE" })
-        public DynamicObject writeUnsignedInt(long address, long value) {
+        protected DynamicObject writeUnsignedInt(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             int signed = (int) value; // Same as value - 2^32
@@ -850,7 +850,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject writeLong(long address, long value) {
+        protected DynamicObject writeLong(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
@@ -863,7 +863,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "value >= 0")
-        public DynamicObject writeLong(long address, long value) {
+        protected DynamicObject writeLong(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
@@ -871,7 +871,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "isRubyBignum(value)")
-        public DynamicObject writeUnsignedLong(long address, DynamicObject value) {
+        protected DynamicObject writeUnsignedLong(long address, DynamicObject value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             writeUnsignedLong(ptr, 0, value);
@@ -893,7 +893,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject writeFloat(long address, double value) {
+        protected DynamicObject writeFloat(long address, double value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeFloat(0, (float) value);
@@ -906,7 +906,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject writeDouble(long address, double value) {
+        protected DynamicObject writeDouble(long address, double value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeDouble(0, value);
@@ -919,7 +919,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject writePointer(long address, long value) {
+        protected DynamicObject writePointer(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writePointer(0, value);
@@ -932,7 +932,7 @@ public abstract class PointerNodes {
     public static abstract class PointerRawMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long realloc(long size) {
+        protected long realloc(long size) {
             return Pointer.rawMalloc(size);
         }
 
@@ -942,7 +942,7 @@ public abstract class PointerNodes {
     public static abstract class PointerRawReallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long malloc(long address, long size) {
+        protected long malloc(long address, long size) {
             return Pointer.rawRealloc(address, size);
         }
 
@@ -952,7 +952,7 @@ public abstract class PointerNodes {
     public static abstract class PointerRawFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long free(long address) {
+        protected long free(long address) {
             Pointer.rawFree(address);
             return address;
         }

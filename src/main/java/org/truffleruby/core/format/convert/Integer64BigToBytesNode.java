@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class Integer64BigToBytesNode extends FormatNode {
 
     @Specialization
-    public byte[] encode(long value) {
+    protected byte[] encode(long value) {
         return new byte[]{
                 (byte) (value >>> 56),
                 (byte) (value >>> 48),

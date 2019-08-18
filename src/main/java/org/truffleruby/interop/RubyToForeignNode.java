@@ -29,13 +29,13 @@ public abstract class RubyToForeignNode extends RubyBaseWithoutContextNode {
     public abstract Object executeConvert(Object value);
 
     @Specialization(guards = "isRubySymbol(value) || isRubyString(value)")
-    public String convertString(DynamicObject value,
+    protected String convertString(DynamicObject value,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization(guards = { "!isRubyString(value)", "!isRubySymbol(value)" })
-    public Object noConversion(Object value) {
+    protected Object noConversion(Object value) {
         return value;
     }
 

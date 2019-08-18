@@ -44,28 +44,28 @@ public abstract class ObjectSpaceNodes {
     public abstract static class ID2RefNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "id == NIL")
-        public Object id2RefNil(long id) {
+        protected Object id2RefNil(long id) {
             return nil();
         }
 
         @Specialization(guards = "id == TRUE")
-        public boolean id2RefTrue(long id) {
+        protected boolean id2RefTrue(long id) {
             return true;
         }
 
         @Specialization(guards = "id == FALSE")
-        public boolean id2RefFalse(long id) {
+        protected boolean id2RefFalse(long id) {
             return false;
         }
 
         @Specialization(guards = "isSmallFixnumID(id)")
-        public long id2RefSmallInt(long id) {
+        protected long id2RefSmallInt(long id) {
             return ObjectIDOperations.toFixnum(id);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isBasicObjectID(id)")
-        public DynamicObject id2Ref(
+        protected DynamicObject id2Ref(
                 final long id,
                 @Cached ReadObjectFieldNode readObjectIdNode) {
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
@@ -79,12 +79,12 @@ public abstract class ObjectSpaceNodes {
         }
 
         @Specialization(guards = { "isRubyBignum(id)", "isLargeFixnumID(id)" })
-        public Object id2RefLargeFixnum(DynamicObject id) {
+        protected Object id2RefLargeFixnum(DynamicObject id) {
             return Layouts.BIGNUM.getValue(id).longValue();
         }
 
         @Specialization(guards = { "isRubyBignum(id)", "isFloatID(id)" })
-        public double id2RefFloat(DynamicObject id) {
+        protected double id2RefFloat(DynamicObject id) {
             return Double.longBitsToDouble(Layouts.BIGNUM.getValue(id).longValue());
         }
 
@@ -103,7 +103,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization
-        public int eachObject(NotProvided ofClass, DynamicObject block) {
+        protected int eachObject(NotProvided ofClass, DynamicObject block) {
             int count = 0;
 
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
@@ -118,7 +118,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization(guards = "isRubyModule(ofClass)")
-        public int eachObject(DynamicObject ofClass, DynamicObject block,
+        protected int eachObject(DynamicObject ofClass, DynamicObject block,
                 @Cached IsANode isANode) {
             int count = 0;
 
@@ -170,7 +170,7 @@ public abstract class ObjectSpaceNodes {
         @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @Specialization
-        public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
+        protected DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
@@ -212,7 +212,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object undefineFinalizer(DynamicObject object) {
+        protected Object undefineFinalizer(DynamicObject object) {
             synchronized (getContext().getFinalizationService()) {
                 FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref != null) {

@@ -21,12 +21,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class ToPathNode extends RubyNode {
 
     @Specialization(guards = "isRubyString(path)")
-    public DynamicObject coerceRubyString(DynamicObject path) {
+    protected DynamicObject coerceRubyString(DynamicObject path) {
         return path;
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    public DynamicObject coerceObject(Object object,
+    protected DynamicObject coerceObject(Object object,
             @Cached("createPrivate()") CallDispatchHeadNode toPathNode) {
         return (DynamicObject) toPathNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_path", object);
     }

@@ -73,7 +73,7 @@ public abstract class ReadlineHistoryNodes {
         @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create();
 
         @Specialization
-        public DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
+        protected DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
             for (Object line : lines) {
                 final String asString = toJavaStringNode.executeToJavaString(line);
                 addToHistory(asString);
@@ -97,7 +97,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object pop() {
+        protected Object pop() {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
@@ -120,7 +120,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object shift() {
+        protected Object shift() {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             if (consoleHolder.getHistory().isEmpty()) {
@@ -140,7 +140,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public int length() {
+        protected int length() {
             return getContext().getConsoleHolder().getHistory().size();
         }
 
@@ -151,7 +151,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject clear() {
+        protected DynamicObject clear() {
             getContext().getConsoleHolder().getHistory().clear();
 
             return nil();
@@ -166,7 +166,7 @@ public abstract class ReadlineHistoryNodes {
         @Child private TaintNode taintNode = TaintNode.create();
 
         @Specialization
-        public DynamicObject each(DynamicObject history, DynamicObject block) {
+        protected DynamicObject each(DynamicObject history, DynamicObject block) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
@@ -193,7 +193,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object getIndex(int index) {
+        protected Object getIndex(int index) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
@@ -227,7 +227,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object setIndex(int index, String line) {
+        protected Object setIndex(int index, String line) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
@@ -251,7 +251,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object deleteAt(int index) {
+        protected Object deleteAt(int index) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;

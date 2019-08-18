@@ -213,7 +213,7 @@ public abstract class KernelNodes {
         public abstract boolean executeSameOrEql(Object a, Object b);
 
         @Specialization
-        public boolean sameOrEql(Object a, Object b,
+        protected boolean sameOrEql(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
@@ -244,7 +244,7 @@ public abstract class KernelNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
-        public Object compare(VirtualFrame frame, Object self, Object other) {
+        protected Object compare(VirtualFrame frame, Object self, Object other) {
             if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
                 return 0;
             } else {
@@ -280,7 +280,7 @@ public abstract class KernelNodes {
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
-        public boolean blockGiven(VirtualFrame frame,
+        protected boolean blockGiven(VirtualFrame frame,
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -292,7 +292,7 @@ public abstract class KernelNodes {
     public abstract static class CalleeNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject calleeName() {
+        protected DynamicObject calleeName() {
             // the "called name" of a method.
             return getSymbol(getContext().getCallStack().getCallingMethodIgnoringSend().getName());
         }
@@ -302,17 +302,17 @@ public abstract class KernelNodes {
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject callerLocations(NotProvided omit, NotProvided length) {
+        protected DynamicObject callerLocations(NotProvided omit, NotProvided length) {
             return innerCallerLocations(1, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        public DynamicObject callerLocations(int omit, NotProvided length) {
+        protected DynamicObject callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization(guards = "length >= 0")
-        public DynamicObject callerLocations(int omit, int length) {
+        protected DynamicObject callerLocations(int omit, int length) {
             return innerCallerLocations(omit, length);
         }
 
@@ -344,7 +344,7 @@ public abstract class KernelNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        public DynamicObject getClass(VirtualFrame frame, Object self) {
+        protected DynamicObject getClass(VirtualFrame frame, Object self) {
             return classNode.executeLogicalClass(self);
         }
 
@@ -453,7 +453,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
+        protected DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isFrozenProfile,
@@ -505,7 +505,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization(guards = "!isSpecialDup(self)")
-        public DynamicObject dup(VirtualFrame frame, DynamicObject self) {
+        protected DynamicObject dup(VirtualFrame frame, DynamicObject self) {
             final DynamicObject newObject = copyNode.executeCopy(frame, self);
 
             initializeDupNode.call(newObject, "initialize_dup", self);
@@ -514,27 +514,27 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isSpecialDup(self)")
-        public DynamicObject dupSpecial(DynamicObject self) {
+        protected DynamicObject dupSpecial(DynamicObject self) {
             return self;
         }
 
         @Specialization
-        public Object dup(boolean self) {
+        protected Object dup(boolean self) {
             return self;
         }
 
         @Specialization
-        public Object dup(int self) {
+        protected Object dup(int self) {
             return self;
         }
 
         @Specialization
-        public Object dup(long self) {
+        protected Object dup(long self) {
             return self;
         }
 
         @Specialization
-        public Object dup(double self) {
+        protected Object dup(double self) {
             return self;
         }
 
@@ -576,7 +576,7 @@ public abstract class KernelNodes {
                 "!assignsNewUserVariables(getDescriptor(cachedRootNode))",
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
-        public Object evalBindingNoAddsVarsCached(
+        protected Object evalBindingNoAddsVarsCached(
                 Object self,
                 DynamicObject source,
                 DynamicObject binding,
@@ -602,7 +602,7 @@ public abstract class KernelNodes {
                 "!assignsNewUserVariables(getDescriptor(rootNodeToEval))",
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
-        public Object evalBindingAddsVarsCached(
+        protected Object evalBindingAddsVarsCached(
                 Object self,
                 DynamicObject source,
                 DynamicObject binding,
@@ -623,7 +623,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
+        protected Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(self, rope(source), binding, rope(file), line, false);
             return deferredCall.call(callNode);
@@ -710,7 +710,7 @@ public abstract class KernelNodes {
         @Child private FreezeNode freezeNode = FreezeNode.create();
 
         @Specialization
-        public Object freeze(Object self) {
+        protected Object freeze(Object self) {
             return freezeNode.executeFreeze(self);
         }
 
@@ -722,7 +722,7 @@ public abstract class KernelNodes {
         @Child private IsFrozenNode isFrozenNode;
 
         @Specialization
-        public boolean isFrozen(Object self) {
+        protected boolean isFrozen(Object self) {
             if (isFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 isFrozenNode = insert(IsFrozenNode.create());
@@ -739,33 +739,33 @@ public abstract class KernelNodes {
         private static final int CLASS_SALT = 55927484; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization
-        public long hash(int value) {
+        protected long hash(int value) {
             return getContext().getHashing(this).hash(CLASS_SALT, value);
         }
 
         @Specialization
-        public long hash(long value) {
+        protected long hash(long value) {
             return getContext().getHashing(this).hash(CLASS_SALT, value);
         }
 
         @Specialization
-        public long hash(double value) {
+        protected long hash(double value) {
             return getContext().getHashing(this).hash(CLASS_SALT, Double.doubleToRawLongBits(value));
         }
 
         @Specialization
-        public long hash(boolean value) {
+        protected long hash(boolean value) {
             return getContext().getHashing(this).hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
         }
 
         @Specialization(guards = "isRubyBignum(value)")
-        public long hashBignum(DynamicObject value) {
+        protected long hashBignum(DynamicObject value) {
             return getContext().getHashing(this).hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
         @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
-        public int hash(DynamicObject self) {
+        protected int hash(DynamicObject self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
             // own @CoreMethod hash
             return System.identityHashCode(self);
@@ -779,7 +779,7 @@ public abstract class KernelNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        public Object initializeCopy(DynamicObject self, DynamicObject from) {
+        protected Object initializeCopy(DynamicObject self, DynamicObject from) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(self) != Layouts.BASIC_OBJECT.getLogicalClass(from)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("initialize_copy should take same class object", this));
@@ -796,7 +796,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
+        protected Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
             return initializeCopyNode.call(self, "initialize_copy", from);
         }
 
@@ -808,7 +808,7 @@ public abstract class KernelNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization(guards = "isRubyModule(rubyClass)")
-        public boolean instanceOf(Object self, DynamicObject rubyClass) {
+        protected boolean instanceOf(Object self, DynamicObject rubyClass) {
             return classNode.executeLogicalClass(self) == rubyClass;
         }
 
@@ -825,33 +825,33 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public boolean isInstanceVariableDefinedBoolean(boolean object, String name) {
+        protected boolean isInstanceVariableDefinedBoolean(boolean object, String name) {
             return false;
         }
 
         @Specialization
-        public boolean isInstanceVariableDefinedInt(int object, String name) {
+        protected boolean isInstanceVariableDefinedInt(int object, String name) {
             return false;
         }
 
         @Specialization
-        public boolean isInstanceVariableDefinedLong(long object, String name) {
+        protected boolean isInstanceVariableDefinedLong(long object, String name) {
             return false;
         }
 
         @Specialization
-        public boolean isInstanceVariableDefinedDouble(double object, String name) {
+        protected boolean isInstanceVariableDefinedDouble(double object, String name) {
             return false;
         }
 
         @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-        public boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
+        protected boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
             return false;
         }
 
         @TruffleBoundary
         @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
-        public boolean isInstanceVariableDefined(DynamicObject object, String name) {
+        protected boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
             return PropertyFlags.isDefined(property);
@@ -870,7 +870,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public Object instanceVariableGetSymbol(DynamicObject object, String name,
+        protected Object instanceVariableGetSymbol(DynamicObject object, String name,
                 @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, name, true);
         }
@@ -888,7 +888,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public Object instanceVariableSet(DynamicObject object, String name, Object value,
+        protected Object instanceVariableSet(DynamicObject object, String name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, name, value, true);
         }
@@ -906,7 +906,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object removeInstanceVariable(DynamicObject object, String name) {
+        protected Object removeInstanceVariable(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil());
 
@@ -940,7 +940,7 @@ public abstract class KernelNodes {
         @Child private ObjectInstanceVariablesNode instanceVariablesNode = ObjectInstanceVariablesNodeFactory.create(null);
 
         @Specialization
-        public DynamicObject instanceVariables(Object self) {
+        protected DynamicObject instanceVariables(Object self) {
             return instanceVariablesNode.executeGetIVars(self);
         }
 
@@ -950,13 +950,13 @@ public abstract class KernelNodes {
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isA(Object self, DynamicObject module,
+        protected boolean isA(Object self, DynamicObject module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(self, module);
         }
 
         @Specialization(guards = "!isRubyModule(module)")
-        public boolean isATypeError(Object self, Object module) {
+        protected boolean isATypeError(Object self, Object module) {
             throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
         }
 
@@ -969,7 +969,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject lambda(NotProvided block,
+        protected DynamicObject lambda(NotProvided block,
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
             DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
@@ -989,12 +989,12 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isLiteralBlock(block)")
-        public DynamicObject lambdaFromBlock(DynamicObject block) {
+        protected DynamicObject lambdaFromBlock(DynamicObject block) {
             return ProcOperations.createLambdaFromBlock(getContext(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
-        public DynamicObject lambdaFromExistingProc(DynamicObject block) {
+        protected DynamicObject lambdaFromExistingProc(DynamicObject block) {
             return block;
         }
 
@@ -1029,7 +1029,7 @@ public abstract class KernelNodes {
     public abstract static class MethodNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject methodName() {
+        protected DynamicObject methodName() {
             // the "original/definition name" of the method.
             return getSymbol(getContext().getCallStack().getCallingMethodIgnoringSend().getSharedMethodInfo().getName());
         }
@@ -1139,7 +1139,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "regular")
-        public DynamicObject methodsRegular(Object self, boolean regular,
+        protected DynamicObject methodsRegular(Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
@@ -1148,7 +1148,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!regular")
-        public DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
+        protected DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
         }
@@ -1159,7 +1159,7 @@ public abstract class KernelNodes {
     public abstract static class NilNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isNil() {
+        protected boolean isNil() {
             return false;
         }
     }
@@ -1172,7 +1172,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public Object p(VirtualFrame frame, Object value) {
+        protected Object p(VirtualFrame frame, Object value) {
             Object inspected = callInspectNode.call(value, "inspect");
             print(inspected);
             return value;
@@ -1199,7 +1199,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject privateMethods(Object self, boolean includeAncestors) {
+        protected DynamicObject privateMethods(Object self, boolean includeAncestors) {
             DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PRIVATE).toArray();
@@ -1214,7 +1214,7 @@ public abstract class KernelNodes {
         @Child private ProcNewNode procNewNode = ProcNewNodeFactory.create(null);
 
         @Specialization
-        public DynamicObject proc(VirtualFrame frame, Object maybeBlock) {
+        protected DynamicObject proc(VirtualFrame frame, Object maybeBlock) {
             return procNewNode.executeProcNew(frame, coreLibrary().getProcClass(), ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
 
@@ -1234,7 +1234,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject protectedMethods(Object self, boolean includeAncestors) {
+        protected DynamicObject protectedMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED).toArray();
@@ -1276,7 +1276,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject publicMethods(Object self, boolean includeAncestors) {
+        protected DynamicObject publicMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PUBLIC).toArray();
@@ -1292,12 +1292,12 @@ public abstract class KernelNodes {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
-        public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
             return send(frame, self, name, args, (DynamicObject) null);
         }
 
         @Specialization
-        public Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
@@ -1316,7 +1316,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(featureString)")
-        public boolean require(DynamicObject featureString,
+        protected boolean require(DynamicObject featureString,
                 @Cached RequireNode requireNode) {
             String feature = StringOperations.getString(featureString);
             return requireNode.executeRequire(feature);
@@ -1334,7 +1334,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public boolean requireRelative(String feature,
+        protected boolean requireRelative(String feature,
                 @Cached RequireNode requireNode) {
             return requireNode.executeRequire(getFullPath(feature));
         }
@@ -1399,7 +1399,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(name)")
-        public boolean doesRespondToString(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
+        protected boolean doesRespondToString(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
@@ -1418,7 +1418,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubySymbol(name)")
-        public boolean doesRespondToSymbol(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
+        protected boolean doesRespondToSymbol(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
@@ -1455,12 +1455,12 @@ public abstract class KernelNodes {
     public abstract static class RespondToMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(name)")
-        public boolean doesRespondToMissingString(Object object, DynamicObject name, Object unusedIncludeAll) {
+        protected boolean doesRespondToMissingString(Object object, DynamicObject name, Object unusedIncludeAll) {
             return false;
         }
 
         @Specialization(guards = "isRubySymbol(name)")
-        public boolean doesRespondToMissingSymbol(Object object, DynamicObject name, Object unusedIncludeAll) {
+        protected boolean doesRespondToMissingSymbol(Object object, DynamicObject name, Object unusedIncludeAll) {
             return false;
         }
 
@@ -1470,13 +1470,13 @@ public abstract class KernelNodes {
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(nil)")
-        public DynamicObject setTraceFunc(Object nil) {
+        protected DynamicObject setTraceFunc(Object nil) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil();
         }
 
         @Specialization(guards = "isRubyProc(traceFunc)")
-        public DynamicObject setTraceFunc(DynamicObject traceFunc) {
+        protected DynamicObject setTraceFunc(DynamicObject traceFunc) {
             getContext().getTraceManager().setTraceFunc(traceFunc);
             return traceFunc;
         }
@@ -1490,7 +1490,7 @@ public abstract class KernelNodes {
         public abstract DynamicObject executeSingletonClass(Object self);
 
         @Specialization
-        public DynamicObject singletonClass(Object self) {
+        protected DynamicObject singletonClass(Object self) {
             return singletonClassNode.executeSingletonClass(self);
         }
 
@@ -1509,7 +1509,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public DynamicObject singletonMethod(Object self, String name,
+        protected DynamicObject singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
                 @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile methodProfile) {
@@ -1548,7 +1548,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject singletonMethods(Object self, boolean includeAncestors) {
+        protected DynamicObject singletonMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             if (!Layouts.CLASS.getIsSingleton(metaClass)) {
@@ -1571,7 +1571,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public long sleep(VirtualFrame frame, long durationInMillis,
+        protected long sleep(VirtualFrame frame, long durationInMillis,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             if (durationInMillis < 0) {
@@ -1626,7 +1626,7 @@ public abstract class KernelNodes {
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)", "isDebug(frame) == cachedIsDebug" })
-        public DynamicObject formatCached(
+        protected DynamicObject formatCached(
                 VirtualFrame frame,
                 DynamicObject format,
                 Object[] arguments,
@@ -1650,7 +1650,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(format)", replaces = "formatCached")
-        public DynamicObject formatUncached(
+        protected DynamicObject formatUncached(
                 VirtualFrame frame,
                 DynamicObject format,
                 Object[] arguments,
@@ -1720,7 +1720,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject globalVariables() {
+        protected DynamicObject globalVariables() {
             final String[] keys = coreLibrary().getGlobalVariables().keys();
             final Object[] store = new Object[keys.length];
             for (int i = 0; i < keys.length; i++) {
@@ -1737,7 +1737,7 @@ public abstract class KernelNodes {
         @Child private TaintNode taintNode;
 
         @Specialization
-        public Object taint(Object object) {
+        protected Object taint(Object object) {
             if (taintNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 taintNode = insert(TaintNode.create());
@@ -1753,7 +1753,7 @@ public abstract class KernelNodes {
         @Child private IsTaintedNode isTaintedNode;
 
         @Specialization
-        public boolean isTainted(Object object) {
+        protected boolean isTainted(Object object) {
             if (isTaintedNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 isTaintedNode = insert(IsTaintedNode.create());
@@ -1768,17 +1768,17 @@ public abstract class KernelNodes {
         public abstract String executeToHexString(Object value);
 
         @Specialization
-        public String toHexString(int value) {
+        protected String toHexString(int value) {
             return toHexString((long) value);
         }
 
         @Specialization
-        public String toHexString(long value) {
+        protected String toHexString(long value) {
             return Long.toHexString(value);
         }
 
         @Specialization(guards = "isRubyBignum(value)")
-        public String toHexString(DynamicObject value) {
+        protected String toHexString(DynamicObject value) {
             return Layouts.BIGNUM.getValue(value).toString(16);
         }
 
@@ -1800,7 +1800,7 @@ public abstract class KernelNodes {
         public abstract DynamicObject executeToS(Object self);
 
         @Specialization
-        public DynamicObject toS(Object self) {
+        protected DynamicObject toS(Object self) {
             String className = Layouts.MODULE.getFields(classNode.executeLogicalClass(self)).getName();
             Object id = objectIDNode.executeObjectID(self);
             String hexID = toHexStringNode.executeToHexString(id);
@@ -1820,27 +1820,27 @@ public abstract class KernelNodes {
         @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
         @Specialization
-        public int untaint(int num) {
+        protected int untaint(int num) {
             return num;
         }
 
         @Specialization
-        public long untaint(long num) {
+        protected long untaint(long num) {
             return num;
         }
 
         @Specialization
-        public double untaint(double num) {
+        protected double untaint(double num) {
             return num;
         }
 
         @Specialization
-        public boolean untaint(boolean bool) {
+        protected boolean untaint(boolean bool) {
             return bool;
         }
 
         @Specialization
-        public Object taint(DynamicObject object) {
+        protected Object taint(DynamicObject object) {
             if (!isTaintedNode.executeIsTainted(object)) {
                 return object;
             }

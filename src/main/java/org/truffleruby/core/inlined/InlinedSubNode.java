@@ -29,22 +29,22 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    Object intSub(int a, int b) {
+    protected Object intSub(int a, int b) {
         return getSubNode().executeSub(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    Object longSub(long a, long b) {
+    protected Object longSub(long a, long b) {
         return getSubNode().executeSub(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    double floatSub(double a, double b) {
+    protected double floatSub(double a, double b) {
         return a - b;
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object a, Object b) {
+    protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

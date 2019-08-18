@@ -32,7 +32,7 @@ public abstract class YieldNode extends RubyBaseWithoutContextNode {
     public abstract Object executeDispatchWithArrayArguments(DynamicObject block, Object[] argumentsObjects);
 
     @Specialization
-    public Object dispatch(DynamicObject block, Object[] argumentsObjects,
+    protected Object dispatch(DynamicObject block, Object[] argumentsObjects,
             @Cached CallBlockNode callBlockNode) {
         return callBlockNode.executeCallBlock(
                 Layouts.PROC.getDeclarationContext(block),

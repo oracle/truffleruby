@@ -27,14 +27,14 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
     // Pop from an empty array
 
     @Specialization(guards = "isEmptyArray(array)")
-    public DynamicObject popOneEmpty(DynamicObject array) {
+    protected DynamicObject popOneEmpty(DynamicObject array) {
         return nil();
     }
 
     // Pop from a non-empty array
 
     @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
-    public Object popOne(DynamicObject array,
+    protected Object popOne(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         final int size = Layouts.ARRAY.getSize(array);

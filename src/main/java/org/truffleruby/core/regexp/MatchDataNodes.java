@@ -186,7 +186,7 @@ public abstract class MatchDataNodes {
         public abstract Object executeGetIndex(Object matchData, Object index, Object length);
 
         @Specialization
-        public Object getIndex(DynamicObject matchData, int index, NotProvided length,
+        protected Object getIndex(DynamicObject matchData, int index, NotProvided length,
                 @Cached("createBinaryProfile()") ConditionProfile normalizedIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasValueProfile) {
@@ -210,7 +210,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        public Object getIndex(DynamicObject matchData, int index, int length) {
+        protected Object getIndex(DynamicObject matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
@@ -220,7 +220,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = { "isRubySymbol(cachedIndex)", "name != null",
                 "getRegexp(matchData) == regexp", "cachedIndex == index" })
-        public Object getIndexSymbolSingleMatch(DynamicObject matchData, DynamicObject index, NotProvided length,
+        protected Object getIndexSymbolSingleMatch(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached("index") DynamicObject cachedIndex,
                 @Cached("getRegexp(matchData)") DynamicObject regexp,
                 @Cached("findNameEntry(regexp, index)") NameEntry name,
@@ -236,18 +236,18 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization(guards = "isRubySymbol(index)")
-        public Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
+        protected Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached BranchProfile errorProfile) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyString(index)")
-        public Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length) {
+        protected Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length) {
             return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        public Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
+        protected Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
@@ -258,7 +258,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isIntRange(range)")
-        public Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
+        protected Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
             final int end = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getEnd(range));
@@ -341,13 +341,13 @@ public abstract class MatchDataNodes {
     public abstract static class BeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        public Object begin(DynamicObject matchData, int index) {
+        protected Object begin(DynamicObject matchData, int index) {
             return MatchDataNodes.begin(getContext(), matchData, index);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        public Object beginError(DynamicObject matchData, int index) {
+        protected Object beginError(DynamicObject matchData, int index) {
             throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
@@ -371,7 +371,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object[] getValuesSlow(DynamicObject matchData) {
+        protected Object[] getValuesSlow(DynamicObject matchData) {
             final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             final Rope sourceRope = StringOperations.rope(source);
             final Region region = Layouts.MATCH_DATA.getRegion(matchData);
@@ -402,7 +402,7 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        public DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
+        protected DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
             Object[] objects = getCaptures(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
         }
@@ -416,13 +416,13 @@ public abstract class MatchDataNodes {
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        public Object end(DynamicObject matchData, int index) {
+        protected Object end(DynamicObject matchData, int index) {
             return MatchDataNodes.end(getContext(), matchData, index);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        public Object endError(DynamicObject matchData, int index) {
+        protected Object endError(DynamicObject matchData, int index) {
             throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
@@ -436,7 +436,7 @@ public abstract class MatchDataNodes {
     public abstract static class ByteBeginNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        public Object byteBegin(DynamicObject matchData, int index) {
+        protected Object byteBegin(DynamicObject matchData, int index) {
             int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
             if (b < 0) {
                 return nil();
@@ -455,7 +455,7 @@ public abstract class MatchDataNodes {
     public abstract static class ByteEndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        public Object byteEnd(DynamicObject matchData, int index) {
+        protected Object byteEnd(DynamicObject matchData, int index) {
             int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
             if (e < 0) {
                 return nil();
@@ -475,7 +475,7 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode getValues = ValuesNode.create();
 
         @Specialization
-        public int length(DynamicObject matchData) {
+        protected int length(DynamicObject matchData) {
             return getValues.execute(matchData).length;
         }
 
@@ -490,7 +490,7 @@ public abstract class MatchDataNodes {
         public abstract DynamicObject execute(DynamicObject matchData);
 
         @Specialization
-        public Object preMatch(DynamicObject matchData) {
+        protected Object preMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
             Region region = Layouts.MATCH_DATA.getRegion(matchData);
@@ -511,7 +511,7 @@ public abstract class MatchDataNodes {
         public abstract DynamicObject execute(DynamicObject matchData);
 
         @Specialization
-        public Object postMatch(DynamicObject matchData) {
+        protected Object postMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
             Region region = Layouts.MATCH_DATA.getRegion(matchData);
@@ -529,7 +529,7 @@ public abstract class MatchDataNodes {
         @Child ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        public DynamicObject toA(DynamicObject matchData) {
+        protected DynamicObject toA(DynamicObject matchData) {
             Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
         }
@@ -539,7 +539,7 @@ public abstract class MatchDataNodes {
     public abstract static class RegexpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject regexp(DynamicObject matchData) {
+        protected DynamicObject regexp(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getRegexp(matchData);
         }
     }
@@ -550,7 +550,7 @@ public abstract class MatchDataNodes {
         // MatchData can be allocated in MRI but it does not seem to be any useful
         @TruffleBoundary
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -560,7 +560,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject getSource(DynamicObject matchData) {
+        protected DynamicObject getSource(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getSource(matchData);
         }
     }

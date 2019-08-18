@@ -23,17 +23,17 @@ public abstract class InlinedGreaterThanNode extends BinaryInlinedOperationNode 
     }
 
     @Specialization(assumptions = "assumptions")
-    boolean doInt(int a, int b) {
+    protected boolean doInt(int a, int b) {
         return a > b;
     }
 
     @Specialization(assumptions = "assumptions")
-    boolean doLong(long a, long b) {
+    protected boolean doLong(long a, long b) {
         return a > b;
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object a, Object b) {
+    protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

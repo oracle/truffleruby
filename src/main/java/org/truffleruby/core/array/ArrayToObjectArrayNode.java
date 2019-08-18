@@ -34,7 +34,7 @@ public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
     public abstract Object[] executeToObjectArray(DynamicObject array);
 
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-    public Object[] toObjectArrayOther(DynamicObject array,
+    protected Object[] toObjectArrayOther(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
         final int size = strategy.getSize(array);

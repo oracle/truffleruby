@@ -23,7 +23,7 @@ public abstract class ToDoubleWithCoercionNode extends FormatNode {
     @Child private CallDispatchHeadNode floatNode;
 
     @Specialization
-    public Object toDouble(VirtualFrame frame, Object value) {
+    protected Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatNode = insert(CallDispatchHeadNode.createPrivate());

@@ -35,23 +35,23 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
     private final ConditionProfile bignumProfile = ConditionProfile.createBinaryProfile();
 
     @Specialization(guards = "isNull(source)")
-    public void read(VirtualFrame frame, Object source) {
+    protected void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public int read(VirtualFrame frame, int[] source) {
+    protected int read(VirtualFrame frame, int[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public long read(VirtualFrame frame, long[] source) {
+    protected long read(VirtualFrame frame, long[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
-    public Object read(VirtualFrame frame, Object source,
+    protected Object read(VirtualFrame frame, Object source,
             @Cached("ofStore(source)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         final Object value = getNode.execute(source, advanceSourcePosition(frame));

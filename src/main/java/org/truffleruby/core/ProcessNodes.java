@@ -27,7 +27,7 @@ public abstract class ProcessNodes {
     public abstract static class ProcessTimeNanoTimeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long nanoTime() {
+        protected long nanoTime() {
             return System.nanoTime();
         }
 
@@ -38,7 +38,7 @@ public abstract class ProcessNodes {
 
         @TruffleBoundary
         @Specialization
-        public long currentTimeMillis() {
+        protected long currentTimeMillis() {
             return System.currentTimeMillis();
         }
 
@@ -49,7 +49,7 @@ public abstract class ProcessNodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubySymbol(signalName)")
-        public int raise(DynamicObject signalName) {
+        protected int raise(DynamicObject signalName) {
             final Signal signal = new Signal(Layouts.SYMBOL.getString(signalName));
             try {
                 Signal.raise(signal);

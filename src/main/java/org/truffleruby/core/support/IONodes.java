@@ -108,7 +108,7 @@ public abstract class IONodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
+        protected DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
             return allocateNode.allocate(classToAllocate, CLOSED_FD);
         }
 
@@ -119,7 +119,7 @@ public abstract class IONodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(pattern)", "isRubyString(path)" })
-        public boolean fnmatch(DynamicObject pattern, DynamicObject path, int flags) {
+        protected boolean fnmatch(DynamicObject pattern, DynamicObject path, int flags) {
             final Rope patternRope = rope(pattern);
             final Rope pathRope = rope(path);
 
@@ -386,7 +386,7 @@ public abstract class IONodes {
     public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject ensureOpen(DynamicObject file,
+        protected DynamicObject ensureOpen(DynamicObject file,
                 @Cached BranchProfile errorProfile) {
             final int fd = Layouts.IO.getDescriptor(file);
             if (fd == CLOSED_FD) {
@@ -405,7 +405,7 @@ public abstract class IONodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        public DynamicObject read(int length,
+        protected DynamicObject read(int length,
                 @Cached MakeStringNode makeStringNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
@@ -438,7 +438,7 @@ public abstract class IONodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
-        public int write(int fd, DynamicObject string) {
+        protected int write(int fd, DynamicObject string) {
             final OutputStream stream;
 
             switch (fd) {
@@ -472,7 +472,7 @@ public abstract class IONodes {
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject getThreadBuffer(long size,
+        protected DynamicObject getThreadBuffer(long size,
                 @Cached AllocateObjectNode allocateObjectNode) {
             return allocateObjectNode.allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
         }

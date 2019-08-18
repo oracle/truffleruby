@@ -47,28 +47,28 @@ public abstract class ReadStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isNull(source)")
-    public Object read(VirtualFrame frame, Object source) {
+    protected Object read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, int[] source) {
+    protected Object read(VirtualFrame frame, int[] source) {
         return readAndConvert(frame, source[advanceSourcePosition(frame)]);
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, long[] source) {
+    protected Object read(VirtualFrame frame, long[] source) {
         return readAndConvert(frame, source[advanceSourcePosition(frame)]);
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, double[] source) {
+    protected Object read(VirtualFrame frame, double[] source) {
         return readAndConvert(frame, source[advanceSourcePosition(frame)]);
     }
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
-    public Object read(VirtualFrame frame, Object source,
+    protected Object read(VirtualFrame frame, Object source,
             @Cached("ofStore(source)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         return readAndConvert(frame, getNode.execute(source, advanceSourcePosition(frame)));

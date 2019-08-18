@@ -28,12 +28,12 @@ public abstract class DefaultValueNode extends RubyNode {
     }
 
     @Specialization
-    public Object doDefault(NotProvided value) {
+    protected Object doDefault(NotProvided value) {
         return defaultValue;
     }
 
     @Specialization(guards = "wasProvided(value)")
-    public Object doProvided(Object value) {
+    protected Object doProvided(Object value) {
         return value;
     }
 

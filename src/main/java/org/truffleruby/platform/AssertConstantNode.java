@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class AssertConstantNode extends RubyNode {
 
     @Specialization
-    public Object assertCompilationConstant(Object value) {
+    protected Object assertCompilationConstant(Object value) {
         if (!CompilerDirectives.isCompilationConstant(value)) {
             notConstantBoundary();
         }

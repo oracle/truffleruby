@@ -35,7 +35,7 @@ public abstract class TruffleRubyNodes {
 
         @TruffleBoundary
         @Specialization
-        public static boolean isGraal() {
+        protected static boolean isGraal() {
             return Truffle.getRuntime().getName().contains("Graal");
         }
 
@@ -45,7 +45,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class NativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isNative() {
+        protected boolean isNative() {
             return TruffleOptions.AOT;
         }
 
@@ -55,7 +55,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class SulongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isSulong() {
+        protected boolean isSulong() {
             return isSulongAvailable(getContext());
         }
 
@@ -71,7 +71,7 @@ public abstract class TruffleRubyNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject revision() {
+        protected DynamicObject revision() {
             return StringOperations.createFrozenString(getContext(),
                     RopeOperations.encodeAscii(BuildInformationImpl.INSTANCE.getRevision(), USASCIIEncoding.INSTANCE));
         }
@@ -82,7 +82,7 @@ public abstract class TruffleRubyNodes {
     public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
 
         @Specialization
-        public Object fullMemoryBarrier() {
+        protected Object fullMemoryBarrier() {
             Pointer.UNSAFE.fullFence();
 
             return nil();

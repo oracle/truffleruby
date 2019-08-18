@@ -31,7 +31,7 @@ public abstract class NameErrorNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocateNameError(DynamicObject rubyClass) {
+        protected DynamicObject allocateNameError(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, Layouts.NAME_ERROR.build(nil(), null, null, nil(), null, nil()));
         }
 
@@ -41,7 +41,7 @@ public abstract class NameErrorNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object name(DynamicObject self) {
+        protected Object name(DynamicObject self) {
             return Layouts.NAME_ERROR.getName(self);
         }
 
@@ -51,7 +51,7 @@ public abstract class NameErrorNodes {
     public abstract static class ReceiverNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object receiver(DynamicObject self) {
+        protected Object receiver(DynamicObject self) {
             final Object receiver = Layouts.NAME_ERROR.getReceiver(self);
 
             // TODO BJF July 21, 2016 Implement name error in message field
@@ -68,7 +68,7 @@ public abstract class NameErrorNodes {
     public abstract static class NameSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object setName(DynamicObject error, Object name) {
+        protected Object setName(DynamicObject error, Object name) {
             Layouts.NAME_ERROR.setName(error, name);
             return name;
         }

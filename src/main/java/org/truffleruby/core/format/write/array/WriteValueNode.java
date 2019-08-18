@@ -24,12 +24,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class WriteValueNode extends FormatNode {
 
     @Specialization
-    public Object doWrite(Object output, MissingValue value) {
+    protected Object doWrite(Object output, MissingValue value) {
         return null;
     }
 
     @Specialization(guards = "!isMissingValue(value)")
-    public Object doWrite(VirtualFrame frame, Object[] output, Object value) {
+    protected Object doWrite(VirtualFrame frame, Object[] output, Object value) {
         final Object[] outputWithEnoughSize = ensureCapacity(frame, output, 1);
         final int outputPosition = getOutputPosition(frame);
         outputWithEnoughSize[outputPosition] = value;

@@ -40,12 +40,12 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    public MissingValue decode(DynamicObject nil) {
+    protected MissingValue decode(DynamicObject nil) {
         return MissingValue.INSTANCE;
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, long address,
+    protected Object read(VirtualFrame frame, long address,
             @Cached TaintNode taintNode) {
         final Pointer pointer = new Pointer(address);
         checkAssociated((Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);

@@ -24,12 +24,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class TaintFromSourceNode extends FormatNode {
 
     @Specialization(guards = "!isSourceTainted(frame)")
-    public Object noTaintNeeded(VirtualFrame frame, Object object) {
+    protected Object noTaintNeeded(VirtualFrame frame, Object object) {
         return object;
     }
 
     @Specialization(guards = "isSourceTainted(frame)")
-    public Object taintNeeded(VirtualFrame frame, Object object,
+    protected Object taintNeeded(VirtualFrame frame, Object object,
             @Cached TaintNode taintNode) {
         taintNode.executeTaint(object);
         return object;

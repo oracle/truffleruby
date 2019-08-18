@@ -52,7 +52,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject rubyHome() {
+        protected DynamicObject rubyHome() {
             if (getContext().getRubyHome() == null) {
                 return nil();
             } else {
@@ -66,7 +66,7 @@ public abstract class TruffleBootNodes {
     public abstract static class ForceContextNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject forceContext() {
+        protected DynamicObject forceContext() {
             return nil();
         }
     }
@@ -94,7 +94,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public int main(DynamicObject kind, DynamicObject toExecute,
+        protected int main(DynamicObject kind, DynamicObject toExecute,
                 @Cached IndirectCallNode callNode,
                 @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
@@ -216,7 +216,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject originalArgv() {
+        protected DynamicObject originalArgv() {
             final String[] argv = getContext().getEnv().getApplicationArguments();
             final Object[] array = new Object[argv.length];
 
@@ -236,7 +236,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject extraLoadPaths() {
+        protected DynamicObject extraLoadPaths() {
             final String[] paths = getContext().getOptions().LOAD_PATHS;
             final Object[] array = new Object[paths.length];
 
@@ -256,7 +256,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject sourceOfCaller() {
+        protected DynamicObject sourceOfCaller() {
             final Memo<Integer> frameCount = new Memo<>(0);
 
             final Source source = Truffle.getRuntime().iterateFrames(frameInstance -> {
@@ -282,7 +282,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax(RubySource source) {
+        protected DynamicObject innerCheckSyntax(RubySource source) {
             getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, null);
 
             return nil();
@@ -297,7 +297,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
-        public Object getOption(DynamicObject optionName) {
+        protected Object getOption(DynamicObject optionName) {
             final String optionNameString = StringOperations.getString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
@@ -337,7 +337,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public boolean resilientGemHome() {
+        protected boolean resilientGemHome() {
             if (!getContext().getOptions().NATIVE_PLATFORM) {
                 return false; // Cannot remove environment variables
             }
@@ -355,7 +355,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
-        public Object printTimeMetric(DynamicObject name) {
+        protected Object printTimeMetric(DynamicObject name) {
             Metrics.printTime(Layouts.SYMBOL.getString(name));
             return nil();
         }
@@ -366,7 +366,7 @@ public abstract class TruffleBootNodes {
     public abstract static class SingleThreadedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean singleThreaded() {
+        protected boolean singleThreaded() {
             return getContext().getOptions().SINGLE_THREADED;
         }
 

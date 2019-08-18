@@ -74,7 +74,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    public void updateShapeAndShare(DynamicObject object) {
+    protected void updateShapeAndShare(DynamicObject object) {
         executeShare(object);
     }
 

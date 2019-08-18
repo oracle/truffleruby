@@ -64,29 +64,29 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
     public abstract Object execute(Object value, int digits, RoundingMode roundingMode);
 
     @Specialization
-    public BigDecimal doInt(long value, int digits, RoundingMode roundingMode) {
+    protected BigDecimal doInt(long value, int digits, RoundingMode roundingMode) {
         return BigDecimal.valueOf(value);
     }
 
     @TruffleBoundary
     @Specialization
-    public BigDecimal doDouble(double value, int digits, RoundingMode roundingMode) {
+    protected BigDecimal doDouble(double value, int digits, RoundingMode roundingMode) {
         assert !RubyGuards.isNegativeZero(value);
         return BigDecimal.valueOf(value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public BigDecimal doBignum(DynamicObject value, int digits, RoundingMode roundingMode) {
+    protected BigDecimal doBignum(DynamicObject value, int digits, RoundingMode roundingMode) {
         return new BigDecimal(Layouts.BIGNUM.getValue(value));
     }
 
     @Specialization(guards = "isNormalRubyBigDecimal(value)")
-    public BigDecimal doBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
+    protected BigDecimal doBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
         return Layouts.BIG_DECIMAL.getValue(value);
     }
 
     @Specialization(guards = "isSpecialRubyBigDecimal(value)")
-    public DynamicObject doSpecialBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
+    protected DynamicObject doSpecialBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
         return value;
     }
 
@@ -94,7 +94,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
             "!isRubyNumber(value)",
             "!isRubyBigDecimal(value)"
     })
-    public Object doOther(Object value, int digits, RoundingMode roundingMode,
+    protected Object doOther(Object value, int digits, RoundingMode roundingMode,
             @Cached IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
             @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {

@@ -25,7 +25,7 @@ public abstract class TrueClassNodes {
     public abstract static class AndNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean and(Object other,
+        protected boolean and(Object other,
                 @Cached BooleanCastNode cast) {
             return cast.executeToBoolean(other);
         }
@@ -35,7 +35,7 @@ public abstract class TrueClassNodes {
     public abstract static class OrNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean or(Object other) {
+        protected boolean or(Object other) {
             return true;
         }
     }
@@ -44,7 +44,7 @@ public abstract class TrueClassNodes {
     public abstract static class XorNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean xor(Object other,
+        protected boolean xor(Object other,
                 @Cached BooleanCastNode cast) {
             return !cast.executeToBoolean(other);
         }

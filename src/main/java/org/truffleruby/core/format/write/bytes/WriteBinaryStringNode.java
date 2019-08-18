@@ -36,7 +36,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    public Object write(VirtualFrame frame, Object nil) {
+    protected Object write(VirtualFrame frame, Object nil) {
         if (padOnNil) {
             for (int n = 0; n < width; n++) {
                 writeByte(frame, padding);
@@ -49,7 +49,7 @@ public abstract class WriteBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         final int lengthFromBytes;
 
         if (takeAll) {

@@ -38,7 +38,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
             "strategy.matches(from)", "strategy.getSize(from) == cachedSize",
             "cachedSize <= ARRAY_MAX_EXPLODE_SIZE"
     }, limit = "getCacheLimit()")
-    public DynamicObject dupProfiledSize(DynamicObject from,
+    protected DynamicObject dupProfiledSize(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
             @Cached("strategy.getSize(from)") int cachedSize,
@@ -59,7 +59,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
-    public DynamicObject dup(DynamicObject from,
+    protected DynamicObject dup(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
         final int size = strategy.getSize(from);

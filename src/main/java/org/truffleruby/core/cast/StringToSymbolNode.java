@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class StringToSymbolNode extends RubyNode {
 
     @Specialization(guards = "isRubyString(string)")
-    public DynamicObject doString(DynamicObject string) {
+    protected DynamicObject doString(DynamicObject string) {
         return getSymbol(Layouts.STRING.getRope(string));
     }
 
