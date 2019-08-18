@@ -11,6 +11,9 @@ package org.truffleruby.builtins;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -27,10 +30,23 @@ public class LowerFixnumChecker {
     public static boolean SUCCESS = true;
 
     @SuppressFBWarnings("Dm")
+    @SuppressWarnings("unchecked")
     public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip, int[] lowerFixnum) {
         final Class<? extends RubyNode> nodeClass = nodeFactory.getNodeClass();
         byte[] lowerArgs = null;
-        for (Method specialization : nodeClass.getDeclaredMethods()) {
+
+        List<Method> methods = new ArrayList<>();
+        Class<? extends RubyNode> nodeClassIt = nodeClass;
+        while (true) {
+            methods.addAll(Arrays.asList(nodeClassIt.getDeclaredMethods()));
+
+            nodeClassIt = (Class<? extends RubyNode>) nodeClassIt.getSuperclass();
+            if (nodeClassIt == RubyNode.class) {
+                break;
+            }
+        }
+
+        for (Method specialization : methods) {
             if (specialization.isAnnotationPresent(Specialization.class)) {
                 Class<?>[] argumentTypes = specialization.getParameterTypes();
                 int skip = initialSkip;
