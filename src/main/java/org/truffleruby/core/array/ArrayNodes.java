@@ -1232,7 +1232,7 @@ public abstract class ArrayNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
-            return respondToToAryNode.doesRespondToString(frame, object, coreStrings().TO_ARY.createInstance(), true);
+            return respondToToAryNode.executeDoesRespondTo(frame, object, coreStrings().TO_ARY.createInstance(), true);
         }
 
         protected Object callToAry(VirtualFrame frame, Object object) {

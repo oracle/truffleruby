@@ -1487,6 +1487,8 @@ public abstract class KernelNodes {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
+        public abstract DynamicObject executeSingletonClass(Object self);
+
         @Specialization
         public DynamicObject singletonClass(Object self) {
             return singletonClassNode.executeSingletonClass(self);

@@ -398,7 +398,7 @@ public abstract class StringNodes {
                 respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
 
-            if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
+            if (respondToNode.executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(CallDispatchHeadNode.createPrivate());

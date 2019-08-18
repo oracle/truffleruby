@@ -142,7 +142,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.toS(object)));
+            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.executeToS(object)));
         } else {
             throw new NoImplicitConversionException(object, "String");
         }

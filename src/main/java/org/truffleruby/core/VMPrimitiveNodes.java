@@ -209,7 +209,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         public Object vmObjectClass(Object object) {
-            return singletonClassNode.singletonClass(object);
+            return singletonClassNode.executeSingletonClass(object);
         }
 
     }
