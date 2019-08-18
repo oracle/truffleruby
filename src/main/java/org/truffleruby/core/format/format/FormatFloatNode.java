@@ -56,7 +56,7 @@ public abstract class FormatFloatNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization
-    public byte[] formatInfinite(int width, int precision, double dval) {
+    protected byte[] formatInfinite(int width, int precision, double dval) {
         //        if (arg == null || name != null) {
         //            arg = args.next(name);
         //            name = null;

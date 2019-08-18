@@ -44,7 +44,7 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
     @NodeChild(value = "value", type = RubyNode.class)
     public static abstract class RubyNodeWrapperNode extends RubyNode {
         @Specialization
-        public Object call(Object value,
+        protected Object call(Object value,
                 @Cached NameToJavaStringNode toJavaString) {
             return toJavaString.executeToJavaString(value);
         }
@@ -57,24 +57,24 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
     public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = "isRubyString(value)")
-    public String stringNameToJavaString(DynamicObject value,
+    protected String stringNameToJavaString(DynamicObject value,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public String symbolNameToJavaString(DynamicObject value,
+    protected String symbolNameToJavaString(DynamicObject value,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization
-    public String nameToJavaString(String value) {
+    protected String nameToJavaString(String value) {
         return value;
     }
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
-    public String nameToJavaString(Object object,
+    protected String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toStr) {

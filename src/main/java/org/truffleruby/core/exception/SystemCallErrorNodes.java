@@ -30,7 +30,7 @@ public abstract class SystemCallErrorNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocateNameError(DynamicObject rubyClass) {
+        protected DynamicObject allocateNameError(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, Layouts.SYSTEM_CALL_ERROR.build(nil(), null, null, nil(), nil()));
         }
 
@@ -40,7 +40,7 @@ public abstract class SystemCallErrorNodes {
     public abstract static class ErrnoNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object errno(DynamicObject self) {
+        protected Object errno(DynamicObject self) {
             return Layouts.SYSTEM_CALL_ERROR.getErrno(self);
         }
 
@@ -50,7 +50,7 @@ public abstract class SystemCallErrorNodes {
     public abstract static class ErrnoSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object setErrno(DynamicObject error, Object errno) {
+        protected Object setErrno(DynamicObject error, Object errno) {
             Layouts.SYSTEM_CALL_ERROR.setErrno(error, errno);
             return errno;
         }

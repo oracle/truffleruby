@@ -26,22 +26,22 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
     @Specialization(guards = { "isRubyString(string)", "isFrozen(string)" })
-    Object alreadyFrozen(DynamicObject string, boolean compareByIdentity) {
+    protected Object alreadyFrozen(DynamicObject string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "!compareByIdentity" })
-    Object dupAndFreeze(DynamicObject string, boolean compareByIdentity) {
+    protected Object dupAndFreeze(DynamicObject string, boolean compareByIdentity) {
         return freeze(dup(string));
     }
 
     @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "compareByIdentity" })
-    Object compareByIdentity(DynamicObject string, boolean compareByIdentity) {
+    protected Object compareByIdentity(DynamicObject string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = "!isRubyString(value)")
-    Object passThrough(Object value, boolean compareByIdentity) {
+    protected Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
 

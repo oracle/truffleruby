@@ -32,28 +32,28 @@ public abstract class ToFNode extends RubyBaseNode {
     public abstract double executeToDouble(Object value);
 
     @Specialization
-    public double coerceInt(int value) {
+    protected double coerceInt(int value) {
         return value;
     }
 
     @Specialization
-    public double coerceLong(long value) {
+    protected double coerceLong(long value) {
         return value;
     }
 
     @Specialization
-    public double coerceDouble(double value) {
+    protected double coerceDouble(double value) {
         return value;
     }
 
     @Specialization
-    public double coerceBoolean(boolean value,
+    protected double coerceBoolean(boolean value,
             @Cached BranchProfile errorProfile) {
         return coerceObject(value, errorProfile);
     }
 
     @Specialization
-    public double coerceDynamicObject(DynamicObject object,
+    protected double coerceDynamicObject(DynamicObject object,
             @Cached BranchProfile errorProfile) {
         return coerceObject(object, errorProfile);
     }

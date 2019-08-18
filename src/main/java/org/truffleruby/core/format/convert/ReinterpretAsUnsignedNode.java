@@ -26,27 +26,27 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
     @Child private FixnumOrBignumNode fixnumOrBignumNode;
 
     @Specialization
-    public MissingValue asUnsigned(MissingValue missingValue) {
+    protected MissingValue asUnsigned(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject asUnsigned(DynamicObject nil) {
+    protected DynamicObject asUnsigned(DynamicObject nil) {
         return nil;
     }
 
     @Specialization
-    public int asUnsigned(short value) {
+    protected int asUnsigned(short value) {
         return value & 0xffff;
     }
 
     @Specialization
-    public long asUnsigned(int value) {
+    protected long asUnsigned(int value) {
         return value & 0xffffffffL;
     }
 
     @Specialization
-    public Object asUnsigned(long value) {
+    protected Object asUnsigned(long value) {
         if (fixnumOrBignumNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             fixnumOrBignumNode = insert(new FixnumOrBignumNode());

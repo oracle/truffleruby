@@ -44,7 +44,7 @@ public abstract class TracePointNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, Layouts.TRACE_POINT.build(null, null, null, 0, null, null, false));
         }
 
@@ -54,7 +54,7 @@ public abstract class TracePointNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
+        protected DynamicObject initialize(DynamicObject tracePoint, DynamicObject eventsArray, DynamicObject block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
@@ -85,7 +85,7 @@ public abstract class TracePointNodes {
     public abstract static class EnableNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public boolean enable(DynamicObject tracePoint, NotProvided block) {
+        protected boolean enable(DynamicObject tracePoint, NotProvided block) {
             final boolean alreadyEnabled = isEnabled(tracePoint);
 
             if (!alreadyEnabled) {
@@ -96,7 +96,7 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        public Object enable(DynamicObject tracePoint, DynamicObject block) {
+        protected Object enable(DynamicObject tracePoint, DynamicObject block) {
             final boolean alreadyEnabled = isEnabled(tracePoint);
 
             if (!alreadyEnabled) {
@@ -138,7 +138,7 @@ public abstract class TracePointNodes {
     public abstract static class DisableNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object disable(DynamicObject tracePoint, NotProvided block) {
+        protected Object disable(DynamicObject tracePoint, NotProvided block) {
             final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
 
             if (wasEnabled) {
@@ -149,7 +149,7 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        public Object disable(DynamicObject tracePoint, DynamicObject block) {
+        protected Object disable(DynamicObject tracePoint, DynamicObject block) {
             final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
 
             if (wasEnabled) {
@@ -175,7 +175,7 @@ public abstract class TracePointNodes {
     public abstract static class EnabledNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean enabled(DynamicObject tracePoint) {
+        protected boolean enabled(DynamicObject tracePoint) {
             return EnableNode.isEnabled(tracePoint);
         }
 
@@ -185,7 +185,7 @@ public abstract class TracePointNodes {
     public abstract static class EventNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject event(DynamicObject tracePoint) {
+        protected DynamicObject event(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getEvent(tracePoint);
         }
 
@@ -195,7 +195,7 @@ public abstract class TracePointNodes {
     public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject path(DynamicObject tracePoint) {
+        protected DynamicObject path(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getPath(tracePoint);
         }
 
@@ -205,7 +205,7 @@ public abstract class TracePointNodes {
     public abstract static class LineNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int line(DynamicObject tracePoint) {
+        protected int line(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getLine(tracePoint);
         }
 
@@ -215,7 +215,7 @@ public abstract class TracePointNodes {
     public abstract static class MethodIDNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject methodId(DynamicObject tracePoint,
+        protected DynamicObject methodId(DynamicObject tracePoint,
                 @Cached MakeStringNode makeStringNode) {
             final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
             final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
@@ -228,7 +228,7 @@ public abstract class TracePointNodes {
     public abstract static class SelfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object self(DynamicObject tracePoint) {
+        protected Object self(DynamicObject tracePoint) {
             final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
             return RubyArguments.getSelf(BindingNodes.getFrame(binding));
         }
@@ -239,7 +239,7 @@ public abstract class TracePointNodes {
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject binding(DynamicObject tracePoint) {
+        protected DynamicObject binding(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getBinding(tracePoint);
         }
 

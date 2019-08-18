@@ -31,12 +31,12 @@ public abstract class ToJavaStringWithDefaultNode extends RubyNode {
     public abstract String executeString(Object value);
 
     @Specialization
-    public String doDefault(NotProvided value) {
+    protected String doDefault(NotProvided value) {
         return toJavaStringNode.executeToJavaString(defaultValue);
     }
 
     @Specialization(guards = "wasProvided(value)")
-    public String doProvided(Object value) {
+    protected String doProvided(Object value) {
         return toJavaStringNode.executeToJavaString(value);
     }
 

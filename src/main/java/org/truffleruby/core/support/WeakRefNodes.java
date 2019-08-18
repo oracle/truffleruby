@@ -33,7 +33,7 @@ public abstract class WeakRefNodes {
         @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNode.create();
 
         @Specialization
-        public Object weakRefSetObject(DynamicObject weakRef, Object object) {
+        protected Object weakRefSetObject(DynamicObject weakRef, Object object) {
             fieldNode.write(weakRef, fieldName, new WeakReference<>(object));
             return object;
         }
@@ -45,7 +45,7 @@ public abstract class WeakRefNodes {
         @Child ReadObjectFieldNode fieldNode = ReadObjectFieldNode.create();
 
         @Specialization
-        public Object weakRefObject(DynamicObject weakRef) {
+        protected Object weakRefObject(DynamicObject weakRef) {
             @SuppressWarnings("unchecked")
             final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF)).get();
             if (object == null) {

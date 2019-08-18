@@ -32,7 +32,7 @@ public abstract class AtomicReferenceNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, new AtomicReference<Object>(nil()));
         }
 
@@ -42,17 +42,17 @@ public abstract class AtomicReferenceNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initializeNoValue(DynamicObject self, NotProvided notProvided) {
+        protected DynamicObject initializeNoValue(DynamicObject self, NotProvided notProvided) {
             return self;
         }
 
         @Specialization(guards = "isNil(nil)")
-        public DynamicObject initializeNil(DynamicObject self, DynamicObject nil) {
+        protected DynamicObject initializeNil(DynamicObject self, DynamicObject nil) {
             return self;
         }
 
         @Specialization(guards = { "!isNil(value)", "wasProvided(value)" })
-        public DynamicObject initializeWithValue(DynamicObject self, Object value) {
+        protected DynamicObject initializeWithValue(DynamicObject self, Object value) {
             Layouts.ATOMIC_REFERENCE.setValue(self, value);
             return self;
         }
@@ -63,7 +63,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object get(DynamicObject self) {
+        protected Object get(DynamicObject self) {
             return Layouts.ATOMIC_REFERENCE.getValue(self);
         }
     }
@@ -72,7 +72,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class SetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object set(DynamicObject self, Object value) {
+        protected Object set(DynamicObject self, Object value) {
             Layouts.ATOMIC_REFERENCE.setValue(self, value);
             return value;
         }
@@ -82,7 +82,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object getAndSet(DynamicObject self, Object value) {
+        protected Object getAndSet(DynamicObject self, Object value) {
             return Layouts.ATOMIC_REFERENCE.getAndSetValue(self, value);
         }
     }
@@ -91,7 +91,7 @@ public abstract class AtomicReferenceNodes {
     public abstract static class CompareAndSetReferenceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isPrimitive(expectedValue)")
-        public boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue) {
+        protected boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue) {
             while (true) {
                 final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
 
@@ -106,7 +106,7 @@ public abstract class AtomicReferenceNodes {
         }
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
-        public boolean compareAndSetReference(DynamicObject self, Object expectedValue, Object newValue) {
+        protected boolean compareAndSetReference(DynamicObject self, Object expectedValue, Object newValue) {
             return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, newValue);
         }
 

@@ -29,22 +29,22 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    Object intAdd(int a, int b) {
+    protected Object intAdd(int a, int b) {
         return getAddNode().executeAdd(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    Object longAdd(long a, long b) {
+    protected Object longAdd(long a, long b) {
         return getAddNode().executeAdd(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    double floatAdd(double a, double b) {
+    protected double floatAdd(double a, double b) {
         return a + b;
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object a, Object b) {
+    protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

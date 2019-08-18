@@ -24,7 +24,7 @@ public abstract class NilClassNodes {
     public abstract static class AndNode extends CoreMethodNode {
 
         @Specialization
-        public boolean isNil() {
+        protected boolean isNil() {
             return true;
         }
     }

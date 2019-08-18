@@ -40,44 +40,44 @@ public abstract class BooleanCastNode extends RubyBaseWithoutContextNode {
     public abstract boolean executeToBoolean(Object value);
 
     @Specialization(guards = "isNil(context, nil)")
-    public boolean doNil(Object nil,
+    protected boolean doNil(Object nil,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return false;
     }
 
     @Specialization
-    public boolean doBoolean(boolean value) {
+    protected boolean doBoolean(boolean value) {
         return value;
     }
 
     @Specialization
-    public boolean doInt(int value) {
+    protected boolean doInt(int value) {
         return true;
     }
 
     @Specialization
-    public boolean doLong(long value) {
+    protected boolean doLong(long value) {
         return true;
     }
 
     @Specialization
-    public boolean doFloat(double value) {
+    protected boolean doFloat(double value) {
         return true;
     }
 
     @Specialization(guards = "!isNil(context, object)")
-    public boolean doBasicObject(DynamicObject object,
+    protected boolean doBasicObject(DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return true;
     }
 
     @Specialization(guards = "isForeignObject(object)")
-    public boolean doForeignObject(TruffleObject object) {
+    protected boolean doForeignObject(TruffleObject object) {
         return true;
     }
 
     @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
-    public boolean doOther(Object object) {
+    protected boolean doOther(Object object) {
         return true;
     }
 }

@@ -62,14 +62,14 @@ public abstract class EncodingNodes {
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "encoding == cachedEncoding", limit = "getCacheLimit()")
-        public boolean isAsciiCompatibleCached(DynamicObject encoding,
+        protected boolean isAsciiCompatibleCached(DynamicObject encoding,
                 @Cached("encoding") DynamicObject cachedEncoding,
                 @Cached("isAsciiCompatible(cachedEncoding)") boolean isAsciiCompatible) {
             return isAsciiCompatible;
         }
 
         @Specialization(replaces = "isAsciiCompatibleCached")
-        public boolean isAsciiCompatibleUncached(DynamicObject encoding) {
+        protected boolean isAsciiCompatibleUncached(DynamicObject encoding) {
             return isAsciiCompatible(encoding);
         }
 
@@ -383,7 +383,7 @@ public abstract class EncodingNodes {
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject list() {
+        protected DynamicObject list() {
             final Object[] encodingsList = getContext().getEncodingManager().getEncodingList();
             return createArray(encodingsList, encodingsList.length);
         }
@@ -394,7 +394,7 @@ public abstract class EncodingNodes {
     public abstract static class LocaleCharacterMapNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject localeCharacterMap(
+        protected DynamicObject localeCharacterMap(
                 @Cached GetRubyEncodingNode getRubyEncodingNode) {
             final DynamicObject rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(getContext().getEncodingManager().getLocaleEncoding());
 
@@ -406,14 +406,14 @@ public abstract class EncodingNodes {
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "encoding == cachedEncoding", limit = "getCacheLimit()")
-        public boolean isDummyCached(DynamicObject encoding,
+        protected boolean isDummyCached(DynamicObject encoding,
                 @Cached("encoding") DynamicObject cachedEncoding,
                 @Cached("isDummy(cachedEncoding)") boolean isDummy) {
             return isDummy;
         }
 
         @Specialization(replaces = "isDummyCached")
-        public boolean isDummyUncached(DynamicObject encoding) {
+        protected boolean isDummyUncached(DynamicObject encoding) {
             return isDummy(encoding);
         }
 
@@ -432,7 +432,7 @@ public abstract class EncodingNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject toS(DynamicObject encoding) {
+        protected DynamicObject toS(DynamicObject encoding) {
             return Layouts.ENCODING.getName(encoding);
         }
 
@@ -443,7 +443,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -457,7 +457,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject eachAlias(DynamicObject block) {
+        protected DynamicObject eachAlias(DynamicObject block) {
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -471,7 +471,7 @@ public abstract class EncodingNodes {
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public boolean isUnicode(DynamicObject encoding) {
+        protected boolean isUnicode(DynamicObject encoding) {
             return Layouts.ENCODING.getEncoding(encoding).isUnicode();
         }
 
@@ -481,7 +481,7 @@ public abstract class EncodingNodes {
     public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject getActualEncoding(DynamicObject string,
+        protected DynamicObject getActualEncoding(DynamicObject string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached GetRubyEncodingNode getRubyEncodingNode) {
             final Rope rope = StringOperations.rope(string);
@@ -505,13 +505,13 @@ public abstract class EncodingNodes {
         public abstract Encoding execute(Rope rope);
 
         @Specialization(guards = "!rope.getEncoding().isDummy()")
-        public Encoding getActualEncoding(Rope rope) {
+        protected Encoding getActualEncoding(Rope rope) {
             return rope.getEncoding();
         }
 
         @TruffleBoundary
         @Specialization(guards = "rope.getEncoding().isDummy()")
-        public Encoding getActualEncodingDummy(Rope rope) {
+        protected Encoding getActualEncodingDummy(Rope rope) {
             final Encoding encoding = rope.getEncoding();
 
             if (encoding instanceof UnicodeEncoding) {
@@ -552,7 +552,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
-        public DynamicObject getDefaultEncoding(DynamicObject name) {
+        protected DynamicObject getDefaultEncoding(DynamicObject name) {
             final Encoding encoding = getEncoding(StringOperations.getString(name));
             if (encoding == null) {
                 return nil();
@@ -581,13 +581,13 @@ public abstract class EncodingNodes {
     public abstract static class SetDefaultExternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject setDefaultExternal(DynamicObject encoding) {
+        protected DynamicObject setDefaultExternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultExternalEncoding(EncodingOperations.getEncoding(encoding));
             return encoding;
         }
 
         @Specialization(guards = "isNil(nil)")
-        public DynamicObject noDefaultExternal(DynamicObject nil) {
+        protected DynamicObject noDefaultExternal(DynamicObject nil) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("default external can not be nil", this));
         }
 
@@ -597,13 +597,13 @@ public abstract class EncodingNodes {
     public abstract static class SetDefaultInternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject setDefaultInternal(DynamicObject encoding) {
+        protected DynamicObject setDefaultInternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(EncodingOperations.getEncoding(encoding));
             return encoding;
         }
 
         @Specialization(guards = "isNil(encoding)")
-        public DynamicObject noDefaultInternal(DynamicObject encoding) {
+        protected DynamicObject noDefaultInternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
             return nil();
         }
@@ -614,7 +614,7 @@ public abstract class EncodingNodes {
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public int encodingFindIndex(DynamicObject nameObject) {
+        protected int encodingFindIndex(DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
             final DynamicObject encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
             return encodingObject != null ? Layouts.ENCODING.getEncoding(encodingObject).getIndex() : -1;
@@ -628,27 +628,27 @@ public abstract class EncodingNodes {
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject encodingGetObjectEncodingString(DynamicObject string) {
+        protected DynamicObject encodingGetObjectEncodingString(DynamicObject string) {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(string).getEncoding());
         }
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public DynamicObject encodingGetObjectEncodingSymbol(DynamicObject symbol) {
+        protected DynamicObject encodingGetObjectEncodingSymbol(DynamicObject symbol) {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.SYMBOL.getRope(symbol).getEncoding());
         }
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject encodingGetObjectEncoding(DynamicObject encoding) {
+        protected DynamicObject encodingGetObjectEncoding(DynamicObject encoding) {
             return encoding;
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
-        public DynamicObject encodingGetObjectEncodingRegexp(DynamicObject regexp) {
+        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject regexp) {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.REGEXP.getSource(regexp).getEncoding());
         }
 
         @Specialization(guards = { "!isRubyString(object)", "!isRubySymbol(object)", "!isRubyEncoding(object)", "!isRubyRegexp(object)" })
-        public DynamicObject encodingGetObjectEncodingNil(DynamicObject object) {
+        protected DynamicObject encodingGetObjectEncodingNil(DynamicObject object) {
             // TODO(CS, 26 Jan 15) something to do with __encoding__ here?
             return nil();
         }
@@ -672,7 +672,7 @@ public abstract class EncodingNodes {
     public static abstract class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
+        protected DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
             final Encoding encoding = EncodingOperations.getEncoding(self);
 
@@ -691,7 +691,7 @@ public abstract class EncodingNodes {
     public static abstract class DummyEncodingeNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject createDummyEncoding(DynamicObject nameObject) {
+        protected DynamicObject createDummyEncoding(DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
 
             final DynamicObject newEncoding = createDummy(name);
@@ -709,7 +709,7 @@ public abstract class EncodingNodes {
     public static abstract class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject getEncoding(int index) {
+        protected DynamicObject getEncoding(int index) {
             return getContext().getEncodingManager().getRubyEncoding(index);
         }
 
@@ -719,7 +719,7 @@ public abstract class EncodingNodes {
     public static abstract class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public int getIndex(DynamicObject encoding) {
+        protected int getIndex(DynamicObject encoding) {
             return Layouts.ENCODING.getEncoding(encoding).getIndex();
         }
 
@@ -736,7 +736,7 @@ public abstract class EncodingNodes {
         public abstract Encoding executeCheckEncoding(Rope first, Rope second);
 
         @Specialization
-        public Encoding checkEncoding(Rope first, Rope second,
+        protected Encoding checkEncoding(Rope first, Rope second,
                 @Cached BranchProfile errorProfile) {
             final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
@@ -763,7 +763,7 @@ public abstract class EncodingNodes {
         public abstract Encoding executeCheckEncoding(Object first, Object second);
 
         @Specialization
-        public Encoding checkEncoding(Object first, Object second,
+        protected Encoding checkEncoding(Object first, Object second,
                 @Cached BranchProfile errorProfile) {
             final Encoding negotiatedEncoding = executeNegotiate(first, second);
 

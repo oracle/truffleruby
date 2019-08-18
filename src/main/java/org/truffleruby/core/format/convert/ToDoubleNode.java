@@ -21,17 +21,17 @@ public abstract class ToDoubleNode extends FormatNode {
     public abstract double executeToDouble(VirtualFrame frame, Object object);
 
     @Specialization
-    public double toDouble(int value) {
+    protected double toDouble(int value) {
         return value;
     }
 
     @Specialization
-    public double toDouble(long value) {
+    protected double toDouble(long value) {
         return value;
     }
 
     @Specialization
-    public double toDouble(double value) {
+    protected double toDouble(double value) {
         return value;
     }
 

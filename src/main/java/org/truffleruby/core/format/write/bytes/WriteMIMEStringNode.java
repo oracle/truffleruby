@@ -61,12 +61,12 @@ public abstract class WriteMIMEStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    public Object write(Object nil) {
+    protected Object write(Object nil) {
         return null;
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, encode(bytes));
         return null;
     }

@@ -20,17 +20,17 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class BytesToInteger64LittleNode extends FormatNode {
 
     @Specialization
-    public MissingValue decode(MissingValue missingValue) {
+    protected MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject decode(DynamicObject nil) {
+    protected DynamicObject decode(DynamicObject nil) {
         return nil;
     }
 
     @Specialization
-    public long decode(byte[] bytes) {
+    protected long decode(byte[] bytes) {
         long value = 0;
         value |= (long) (bytes[7] & 0xff) << 56;
         value |= (long) (bytes[6] & 0xff) << 48;

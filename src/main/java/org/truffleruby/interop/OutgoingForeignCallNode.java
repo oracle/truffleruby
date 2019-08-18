@@ -43,7 +43,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     // uncached name implementation is not needed since the name is cached in CachedForeignDispatchNode
     // TODO (pitr-ch 30-Jul-2019): make this clearer when cleaning up this file
     @Specialization(guards = "name == cachedName", limit = "1")
-    public Object callCached(
+    protected Object callCached(
             TruffleObject receiver, String name, Object[] args,
             @Cached("name") String cachedName,
             @Cached BranchProfile errorProfile,
@@ -213,7 +213,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class SendOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object sendOutgoing(TruffleObject receiver, String nameSend, Object[] args,
+        protected Object sendOutgoing(TruffleObject receiver, String nameSend, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatchNode) {
@@ -237,7 +237,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class NewOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object newOutgoing(
+        protected Object newOutgoing(
                 TruffleObject receiver, String name, Object[] args,
                 // TODO (pitr-ch 29-Mar-2019): use this node directly?
                 @Cached InteropNodes.NewUncacheableNode newNode) {
@@ -250,7 +250,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class ToAOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object toAOutgoing(TruffleObject receiver, String name, Object[] args,
+        protected Object toAOutgoing(TruffleObject receiver, String name, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode callToArray) {
@@ -270,7 +270,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class RespondToOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object respondToOutgoing(TruffleObject receiver, String name, Object[] args,
+        protected Object respondToOutgoing(TruffleObject receiver, String name, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode callRespondTo) {
@@ -290,7 +290,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class SpecialFormOutgoingNode extends OutgoingNode {
 
         @Specialization(guards = "context == cachedContext", limit = "getCacheLimit()")
-        public Object specialFormOutgoingCached(TruffleObject receiver, String cachedName, Object[] args,
+        protected Object specialFormOutgoingCached(TruffleObject receiver, String cachedName, Object[] args,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 // FIXME (pitr 25-Jun-2019): Use following line instead of "getCurrentContext()" after GR-16868 is fixed
                 // @Cached("context") RubyContext cachedContext,
@@ -303,7 +303,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         }
 
         @Specialization(replaces = "specialFormOutgoingCached")
-        public Object specialFormOutgoingUncached(TruffleObject receiver, String cachedName, Object[] args,
+        protected Object specialFormOutgoingUncached(TruffleObject receiver, String cachedName, Object[] args,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached(value = "getExpectedArgsLength(cachedName)", allowUncached = true) int expectedArgsLength,
                 @Cached BranchProfile argumentErrorProfile,
@@ -385,7 +385,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class IsReferenceEqualOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object isReferenceEqualOutgoing(TruffleObject receiver, String name, Object[] args,
+        protected Object isReferenceEqualOutgoing(TruffleObject receiver, String name, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             if (args.length != 1) {
@@ -417,7 +417,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class UnboxForOperatorAndReDispatchOutgoingNode extends OutgoingNode {
 
         @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getCacheLimit()")
-        public Object callBoolean(
+        protected Object callBoolean(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
@@ -429,7 +429,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         }
 
         @Specialization(guards = "receivers.isString(receiver)", limit = "getCacheLimit()")
-        public Object callString(
+        protected Object callString(
                 TruffleObject receiver, String name, Object[] args,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -445,7 +445,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         // TODO (pitr-ch 30-Mar-2019): does it make sense to have paths for smaller numbers?
 
         @Specialization(guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" }, limit = "getCacheLimit()")
-        public Object callInt(
+        protected Object callInt(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
@@ -457,7 +457,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         }
 
         @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInInt(receiver)", "receivers.fitsInLong(receiver)" }, limit = "getCacheLimit()")
-        public Object callLong(
+        protected Object callLong(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
@@ -469,7 +469,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         }
 
         @Specialization(guards = { "receivers.isNumber(receiver)", "!receivers.fitsInLong(receiver)", "receivers.fitsInDouble(receiver)" }, limit = "getCacheLimit()")
-        public Object callDouble(
+        protected Object callDouble(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
@@ -485,7 +485,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
                 "!receivers.isString(receiver)",
                 "!receivers.isNumber(receiver)"
         }, limit = "getCacheLimit()")
-        public Object call(
+        protected Object call(
                 TruffleObject receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
@@ -498,7 +498,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class InvokeOutgoingNode extends OutgoingNode {
 
         @Specialization
-        public Object call(
+        protected Object call(
                 TruffleObject receiver, String name, Object[] args,
                 @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
             // TODO (pitr-ch 20-May-2019): better translation of interop errors

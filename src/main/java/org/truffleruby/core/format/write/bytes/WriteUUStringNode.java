@@ -34,17 +34,17 @@ public abstract class WriteUUStringNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(long bytes) {
+    protected Object write(long bytes) {
         throw new NoImplicitConversionException(bytes, "String");
     }
 
     @Specialization(guards = "isEmpty(bytes)")
-    public Object writeEmpty(VirtualFrame frame, byte[] bytes) {
+    protected Object writeEmpty(VirtualFrame frame, byte[] bytes) {
         return null;
     }
 
     @Specialization(guards = "!isEmpty(bytes)")
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, encode(bytes));
         return null;
     }

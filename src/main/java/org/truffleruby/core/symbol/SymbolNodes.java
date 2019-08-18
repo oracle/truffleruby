@@ -48,7 +48,7 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject allSymbols() {
+        protected DynamicObject allSymbols() {
             Object[] store = getContext().getSymbolTable().allSymbols().toArray();
             return createArray(store, store.length);
         }
@@ -59,12 +59,12 @@ public abstract class SymbolNodes {
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(b)")
-        public boolean equal(DynamicObject a, DynamicObject b) {
+        protected boolean equal(DynamicObject a, DynamicObject b) {
             return a == b;
         }
 
         @Specialization(guards = "!isRubySymbol(b)")
-        public boolean equal(VirtualFrame frame, DynamicObject a, Object b) {
+        protected boolean equal(VirtualFrame frame, DynamicObject a, Object b) {
             return false;
         }
 
@@ -101,7 +101,7 @@ public abstract class SymbolNodes {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
-        public DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
+        protected DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
                 @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
                 @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
@@ -109,7 +109,7 @@ public abstract class SymbolNodes {
         }
 
         @Specialization
-        public DynamicObject toProcUncached(VirtualFrame frame, DynamicObject symbol) {
+        protected DynamicObject toProcUncached(VirtualFrame frame, DynamicObject symbol) {
             final InternalMethod method = getMethod(frame);
             DeclarationContext declarationContext = getDeclarationContext(frame);
             return createProc(declarationContext, method, symbol);
@@ -174,7 +174,7 @@ public abstract class SymbolNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject toS(DynamicObject symbol,
+        protected DynamicObject toS(DynamicObject symbol,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
         }
@@ -186,7 +186,7 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

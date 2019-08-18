@@ -72,7 +72,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             "missingBehavior == cachedMissingBehaviour",
             "ignoreVisibility == cachedIgnoreVisibility",
             "onlyCallPublic == cachedOnlyCallPublic" })
-    Object dispatch(
+    protected Object dispatch(
             Frame frame,
             Object receiver,
             Object name,

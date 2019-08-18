@@ -31,7 +31,7 @@ public abstract class WritePaddedBytesNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, int padding, byte[] bytes) {
+    protected Object write(VirtualFrame frame, int padding, byte[] bytes) {
         if (leftJustifiedProfile.profile(leftJustified)) {
             return writeLeftJustified(frame, padding, bytes);
         } else {

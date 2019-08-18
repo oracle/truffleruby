@@ -30,12 +30,12 @@ public abstract class WriteBase64StringNode extends FormatNode {
     }
 
     @Specialization
-    public Object write(long bytes) {
+    protected Object write(long bytes) {
         throw new NoImplicitConversionException(bytes, "String");
     }
 
     @Specialization
-    public Object write(VirtualFrame frame, byte[] bytes) {
+    protected Object write(VirtualFrame frame, byte[] bytes) {
         writeBytes(frame, encode(bytes));
         return null;
     }

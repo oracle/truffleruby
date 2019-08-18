@@ -38,7 +38,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertConstantNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject assertConstant(Object value) {
+        protected DynamicObject assertConstant(Object value) {
             throw new RaiseException(getContext(), coreExceptions().runtimeErrorNotConstant(this));
         }
 
@@ -48,7 +48,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertNotCompiledNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject assertNotCompiled() {
+        protected DynamicObject assertNotCompiled() {
             throw new RaiseException(getContext(), coreExceptions().runtimeErrorCompiled(this));
         }
 
@@ -59,7 +59,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(rubyMethod)")
-        public DynamicObject splitMethod(DynamicObject rubyMethod) {
+        protected DynamicObject splitMethod(DynamicObject rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
@@ -69,7 +69,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(rubyMethod)")
-        public DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
+        protected DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
@@ -79,7 +79,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(rubyProc)")
-        public DynamicObject splitProc(DynamicObject rubyProc) {
+        protected DynamicObject splitProc(DynamicObject rubyProc) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
             }
@@ -102,7 +102,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject copyCapturedLocals(DynamicObject proc) {
+        protected DynamicObject copyCapturedLocals(DynamicObject proc) {
             final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
 
             final RootCallTarget callTarget = Layouts.PROC.getCallTargetForType(proc);

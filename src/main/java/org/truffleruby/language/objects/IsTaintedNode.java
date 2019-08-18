@@ -26,22 +26,22 @@ public abstract class IsTaintedNode extends RubyBaseNode {
     public abstract boolean executeIsTainted(Object object);
 
     @Specialization
-    public boolean isTainted(boolean object) {
+    protected boolean isTainted(boolean object) {
         return false;
     }
 
     @Specialization
-    public boolean isTainted(int object) {
+    protected boolean isTainted(int object) {
         return false;
     }
 
     @Specialization
-    public boolean isTainted(long object) {
+    protected boolean isTainted(long object) {
         return false;
     }
 
     @Specialization
-    public boolean isTainted(double object) {
+    protected boolean isTainted(double object) {
         return false;
     }
 

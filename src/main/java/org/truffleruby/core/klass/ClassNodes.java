@@ -244,7 +244,7 @@ public abstract class ClassNodes {
         @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public Object newInstance(VirtualFrame frame, DynamicObject rubyClass) {
+        protected Object newInstance(VirtualFrame frame, DynamicObject rubyClass) {
             return allocateNode.call(rubyClass, "__allocate__");
         }
     }
@@ -256,12 +256,12 @@ public abstract class ClassNodes {
         @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, NotProvided block) {
+        protected Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, NotProvided block) {
             return doNewInstance(frame, rubyClass, args, null);
         }
 
         @Specialization
-        public Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
+        protected Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
             return doNewInstance(frame, rubyClass, args, block);
         }
 
@@ -278,7 +278,7 @@ public abstract class ClassNodes {
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        public DynamicObject initialize(DynamicObject rubyClass, Object maybeSuperclass, Object maybeBlock) {
+        protected DynamicObject initialize(DynamicObject rubyClass, Object maybeSuperclass, Object maybeBlock) {
             if (initializeClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 initializeClassNode = insert(InitializeClassNodeGen.create(true));
@@ -293,7 +293,7 @@ public abstract class ClassNodes {
     public abstract static class InheritedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject inherited(Object subclass) {
+        protected DynamicObject inherited(Object subclass) {
             return nil();
         }
 
@@ -303,7 +303,7 @@ public abstract class ClassNodes {
     public abstract static class SuperClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "rubyClass == cachedRubyCLass", "cachedSuperclass != null" }, limit = "getCacheLimit()")
-        public Object getSuperClass(DynamicObject rubyClass,
+        protected Object getSuperClass(DynamicObject rubyClass,
                 @Cached("rubyClass") DynamicObject cachedRubyCLass,
                 @Cached("fastLookUp(cachedRubyCLass)") DynamicObject cachedSuperclass) {
             // caches only initialized classes, just allocated will go through slow look up
@@ -311,7 +311,7 @@ public abstract class ClassNodes {
         }
 
         @Specialization(replaces = "getSuperClass")
-        DynamicObject getSuperClassUncached(DynamicObject rubyClass,
+        protected DynamicObject getSuperClassUncached(DynamicObject rubyClass,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject superclass = fastLookUp(rubyClass);
             if (superclass != null) {
@@ -335,7 +335,7 @@ public abstract class ClassNodes {
     public abstract static class AllocateClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject allocate(DynamicObject classClass) {
+        protected DynamicObject allocate(DynamicObject classClass) {
             assert classClass == coreLibrary().getClassClass() : "Subclasses of class Class are forbidden in Ruby";
             return createRubyClass(getContext(), getEncapsulatingSourceSection(), coreLibrary().getClassClass(), null, coreLibrary().getObjectClass(), null, false, null, false);
         }

@@ -58,30 +58,30 @@ public abstract class ToStringNode extends FormatNode {
     public abstract Object executeToString(VirtualFrame frame, Object object);
 
     @Specialization(guards = "isNil(nil)")
-    public Object toStringNil(Object nil) {
+    protected Object toStringNil(Object nil) {
         return valueOnNil;
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    public byte[] toString(int value) {
+    protected byte[] toString(int value) {
         return Integer.toString(value).getBytes(StandardCharsets.US_ASCII);
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    public byte[] toString(long value) {
+    protected byte[] toString(long value) {
         return Long.toString(value).getBytes(StandardCharsets.US_ASCII);
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    public byte[] toString(double value) {
+    protected byte[] toString(double value) {
         return Double.toString(value).getBytes(StandardCharsets.US_ASCII);
     }
 
     @Specialization(guards = "isRubyString(string)")
-    public byte[] toStringString(VirtualFrame frame, DynamicObject string,
+    protected byte[] toStringString(VirtualFrame frame, DynamicObject string,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
@@ -103,7 +103,7 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isRubyArray(array)")
-    public byte[] toString(VirtualFrame frame, DynamicObject array,
+    protected byte[] toString(VirtualFrame frame, DynamicObject array,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -124,7 +124,7 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = { "!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
-    public byte[] toString(VirtualFrame frame, Object object,
+    protected byte[] toString(VirtualFrame frame, Object object,
             @Cached RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
@@ -142,7 +142,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.toS(object)));
+            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.executeToS(object)));
         } else {
             throw new NoImplicitConversionException(object, "String");
         }
@@ -150,7 +150,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "!isRubyBasicObject(object)")
-    public byte[] toString(TruffleObject object) {
+    protected byte[] toString(TruffleObject object) {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 

@@ -32,27 +32,27 @@ public abstract class ObjSpaceNodes {
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(object)")
-        public int memsizeOfNil(DynamicObject object) {
+        protected int memsizeOfNil(DynamicObject object) {
             return 0;
         }
 
         @Specialization(guards = "isRubyArray(object)")
-        public int memsizeOfArray(DynamicObject object) {
+        protected int memsizeOfArray(DynamicObject object) {
             return memsizeOfObject(object) + Layouts.ARRAY.getSize(object);
         }
 
         @Specialization(guards = "isRubyHash(object)")
-        public int memsizeOfHash(DynamicObject object) {
+        protected int memsizeOfHash(DynamicObject object) {
             return memsizeOfObject(object) + Layouts.HASH.getSize(object);
         }
 
         @Specialization(guards = "isRubyString(object)")
-        public int memsizeOfString(DynamicObject object) {
+        protected int memsizeOfString(DynamicObject object) {
             return memsizeOfObject(object) + StringOperations.rope(object).byteLength();
         }
 
         @Specialization(guards = "isRubyMatchData(object)")
-        public int memsizeOfMatchData(DynamicObject object,
+        protected int memsizeOfMatchData(DynamicObject object,
                 @Cached ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
@@ -64,12 +64,12 @@ public abstract class ObjSpaceNodes {
                 "!isRubyString(object)",
                 "!isRubyMatchData(object)"
         })
-        public int memsizeOfObject(DynamicObject object) {
+        protected int memsizeOfObject(DynamicObject object) {
             return 1 + object.getShape().getPropertyListInternal(false).size();
         }
 
         @Specialization(guards = "!isDynamicObject(object)")
-        public int memsize(Object object) {
+        protected int memsize(Object object) {
             return 0;
         }
     }
@@ -79,7 +79,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject adjacentObjects(DynamicObject object) {
+        protected DynamicObject adjacentObjects(DynamicObject object) {
             final Set<DynamicObject> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }
@@ -96,7 +96,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject rootObjects() {
+        protected DynamicObject rootObjects() {
             final Set<DynamicObject> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
             return createArray(objects.toArray());
         }
@@ -108,7 +108,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject traceAllocationsStart() {
+        protected DynamicObject traceAllocationsStart() {
             getContext().getObjectSpaceManager().traceAllocationsStart();
             return nil();
         }
@@ -120,7 +120,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject traceAllocationsStop() {
+        protected DynamicObject traceAllocationsStop() {
             getContext().getObjectSpaceManager().traceAllocationsStop();
             return nil();
         }

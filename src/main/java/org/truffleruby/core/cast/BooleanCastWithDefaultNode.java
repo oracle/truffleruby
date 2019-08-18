@@ -29,37 +29,37 @@ public abstract class BooleanCastWithDefaultNode extends RubyNode {
     }
 
     @Specialization
-    public boolean doDefault(NotProvided value) {
+    protected boolean doDefault(NotProvided value) {
         return defaultValue;
     }
 
     @Specialization
-    public boolean doBoolean(boolean value) {
+    protected boolean doBoolean(boolean value) {
         return value;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public boolean doNil(Object nil) {
+    protected boolean doNil(Object nil) {
         return false;
     }
 
     @Specialization
-    public boolean doInt(int value) {
+    protected boolean doInt(int value) {
         return true;
     }
 
     @Specialization
-    public boolean doLong(long value) {
+    protected boolean doLong(long value) {
         return true;
     }
 
     @Specialization
-    public boolean doFloat(double value) {
+    protected boolean doFloat(double value) {
         return true;
     }
 
     @Specialization(guards = "!isNil(object)")
-    public boolean doBasicObject(DynamicObject object) {
+    protected boolean doBasicObject(DynamicObject object) {
         return true;
     }
 

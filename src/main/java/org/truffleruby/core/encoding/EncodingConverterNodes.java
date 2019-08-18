@@ -69,7 +69,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
-        public DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination, int options) {
+        protected DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination, int options) {
             // Adapted from RubyConverter - see attribution there
             //
             // This method should only be called after the Encoding::Converter instance has already been initialized
@@ -144,7 +144,7 @@ public abstract class EncodingConverterNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             Object econv = null;
             return allocateNode.allocate(rubyClass, econv);
         }
@@ -156,7 +156,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
-        public DynamicObject search(DynamicObject source) {
+        protected DynamicObject search(DynamicObject source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
                 return nil();
@@ -180,19 +180,19 @@ public abstract class EncodingConverterNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = { "isRubyString(source)", "isRubyString(target)", "isRubyHash(options)" })
-        public Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
+        protected Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
                 DynamicObject target, int offset, int size, DynamicObject options) {
             throw new UnsupportedOperationException("not implemented");
         }
 
         @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
-        public Object primitiveConvertNilSource(DynamicObject encodingConverter, DynamicObject source,
+        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, DynamicObject source,
                 DynamicObject target, int offset, int size, int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
         @Specialization(guards = { "isRubyString(source)", "isRubyString(target)" })
-        public Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
+        protected Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
                 DynamicObject target, int offset, int size, int options) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
@@ -293,7 +293,7 @@ public abstract class EncodingConverterNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject encodingConverterPutback(DynamicObject encodingConverter, int maxBytes) {
+        protected DynamicObject encodingConverterPutback(DynamicObject encodingConverter, int maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
@@ -303,7 +303,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        public DynamicObject encodingConverterPutback(DynamicObject encodingConverter, NotProvided maxBytes) {
+        protected DynamicObject encodingConverterPutback(DynamicObject encodingConverter, NotProvided maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
@@ -332,7 +332,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object encodingConverterLastError(DynamicObject encodingConverter,
+        protected Object encodingConverterLastError(DynamicObject encodingConverter,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final EConv.LastError lastError = ec.lastError;
@@ -390,7 +390,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object encodingConverterLastError(DynamicObject encodingConverter,
+        protected Object encodingConverterLastError(DynamicObject encodingConverter,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
@@ -422,7 +422,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject getReplacement(DynamicObject encodingConverter) {
+        protected DynamicObject getReplacement(DynamicObject encodingConverter) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
             final int ret = ec.makeReplacement();
@@ -450,7 +450,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement,
+        protected DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);

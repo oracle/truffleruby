@@ -39,7 +39,7 @@ public abstract class SetNode extends RubyBaseNode {
     public abstract Object executeSet(DynamicObject hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    public Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity) {
+    protected Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -61,7 +61,7 @@ public abstract class SetNode extends RubyBaseNode {
 
     @ExplodeLoop
     @Specialization(guards = "isPackedHash(hash)")
-    public Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    protected Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
             @Cached("createBinaryProfile()") ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
@@ -103,7 +103,7 @@ public abstract class SetNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    public Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    protected Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
             @Cached("createBinaryProfile()") ConditionProfile foundProfile,
             @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
             @Cached("createBinaryProfile()") ConditionProfile appendingProfile,

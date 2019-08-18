@@ -29,14 +29,14 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
     @Specialization(guards = {
             "lookupNode.lookup(frame, self, METHOD) == coreMethods().NOT",
     }, assumptions = "assumptions", limit = "1")
-    boolean not(VirtualFrame frame, Object self,
+    protected boolean not(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode,
             @Cached BooleanCastNode booleanCastNode) {
         return !booleanCastNode.executeToBoolean(self);
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object self) {
+    protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
     }
 

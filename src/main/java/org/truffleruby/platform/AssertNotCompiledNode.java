@@ -20,7 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class AssertNotCompiledNode extends RubyNode {
 
     @Specialization
-    public DynamicObject assertNotCompiled() {
+    protected DynamicObject assertNotCompiled() {
         if (CompilerDirectives.inCompiledCode()) {
             compiledBoundary();
         }

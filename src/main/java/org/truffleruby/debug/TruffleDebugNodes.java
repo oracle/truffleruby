@@ -70,7 +70,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject debugPrint(Object string) {
+        protected DynamicObject debugPrint(Object string) {
             System.err.println(string.toString());
             return nil();
         }
@@ -82,7 +82,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(file)")
-        public DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
+        protected DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(
@@ -113,7 +113,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHandle(handle)")
-        public DynamicObject remove(DynamicObject handle) {
+        protected DynamicObject remove(DynamicObject handle) {
             EventBinding.class.cast(Layouts.HANDLE.getObject(handle)).dispose();
             return nil();
         }
@@ -127,7 +127,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject javaClassOf(Object value) {
+        protected DynamicObject javaClassOf(Object value) {
             return makeStringNode.executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -138,7 +138,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject printBacktrace() {
+        protected DynamicObject printBacktrace() {
             getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             return nil();
         }
@@ -150,28 +150,28 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
+        protected DynamicObject astMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+        protected DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.UNBOUND_METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
+        protected DynamicObject astProc(DynamicObject proc, NotProvided block) {
             ast(Layouts.PROC.getCallTargetForType(proc));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+        protected DynamicObject astBlock(NotProvided proc, DynamicObject block) {
             ast(Layouts.PROC.getCallTargetForType(block));
             return nil();
         }
@@ -207,28 +207,28 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
+        protected DynamicObject astMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+        protected DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.UNBOUND_METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
+        protected DynamicObject astProc(DynamicObject proc, NotProvided block) {
             printAst(Layouts.PROC.getCallTargetForType(proc));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+        protected DynamicObject astBlock(NotProvided proc, DynamicObject block) {
             printAst(Layouts.PROC.getCallTargetForType(block));
             return nil();
         }
@@ -248,7 +248,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject objectTypeOf(DynamicObject value) {
+        protected DynamicObject objectTypeOf(DynamicObject value) {
             return getSymbol(value.getShape().getObjectType().getClass().getSimpleName());
         }
     }
@@ -260,7 +260,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject shape(DynamicObject object) {
+        protected DynamicObject shape(DynamicObject object) {
             return makeStringNode.executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -273,7 +273,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(array)")
-        public DynamicObject arrayStorage(DynamicObject array) {
+        protected DynamicObject arrayStorage(DynamicObject array) {
             String storage = ArrayStrategy.of(array).toString();
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -285,7 +285,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(array)")
-        public int arrayStorage(DynamicObject array) {
+        protected int arrayStorage(DynamicObject array) {
             return ArrayStrategy.of(array).capacityNode().execute(Layouts.ARRAY.getStore(array));
         }
 
@@ -298,7 +298,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyHash(hash)")
-        public DynamicObject hashStorage(DynamicObject hash) {
+        protected DynamicObject hashStorage(DynamicObject hash) {
             Object store = Layouts.HASH.getStore(hash);
             String storage = store == null ? "null" : store.getClass().toString();
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -311,14 +311,14 @@ public abstract class TruffleDebugNodes {
     public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
-        public boolean isSharedCached(DynamicObject object,
+        protected boolean isSharedCached(DynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
                 @Cached("isShared(getContext(), cachedShape)") boolean shared) {
             return shared;
         }
 
         @Specialization(replaces = "isSharedCached")
-        public boolean isShared(DynamicObject object) {
+        protected boolean isShared(DynamicObject object) {
             return SharedObjects.isShared(getContext(), object);
         }
 
@@ -332,7 +332,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject logWarning(
+        protected DynamicObject logWarning(
                 VirtualFrame frame, Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
@@ -351,7 +351,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject throwJavaException(Object message) {
+        protected DynamicObject throwJavaException(Object message) {
             callingMethod(message.toString());
             return nil();
         }
@@ -373,7 +373,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject throwJavaExceptionWithCause(Object message) {
+        protected DynamicObject throwJavaExceptionWithCause(Object message) {
             throw new RuntimeException(message.toString(), new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -384,7 +384,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject throwJavaException(boolean condition) {
+        protected DynamicObject throwJavaException(boolean condition) {
             assert condition;
             return nil();
         }
@@ -396,7 +396,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object javaObject() {
+        protected Object javaObject() {
             return getContext().getEnv().asGuestValue(BigInteger.class);
         }
 
@@ -407,7 +407,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object javaObject() {
+        protected Object javaObject() {
             return getContext().getEnv().asGuestValue(new BigInteger("14"));
         }
 
@@ -418,7 +418,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object javaNull() {
+        protected Object javaNull() {
             return getContext().getEnv().asGuestValue(null);
         }
 
@@ -438,7 +438,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignNull() {
+        protected Object foreignNull() {
             return new ForeignNull();
         }
 
@@ -469,7 +469,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignPointer(long address) {
+        protected Object foreignPointer(long address) {
             return new ForeignPointer(address);
         }
 
@@ -484,7 +484,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignObject() {
+        protected Object foreignObject() {
             return new ForeignObject();
         }
 
@@ -533,7 +533,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignObjectFromMap(TruffleObject map) {
+        protected Object foreignObjectFromMap(TruffleObject map) {
             return new ForeignObjectFromMap((Map) getContext().getEnv().asHostObject(map));
         }
 
@@ -593,7 +593,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strategyMatches(strategy, array)")
-        public Object foreignArrayFromJava(TruffleObject array,
+        protected Object foreignArrayFromJava(TruffleObject array,
                 @Cached("strategy(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
                 @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode) {
@@ -635,7 +635,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignExecutable(Object value) {
+        protected Object foreignExecutable(Object value) {
             return new ForeignExecutable(value);
         }
 
@@ -666,7 +666,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
-        public Object foreignString(DynamicObject string) {
+        protected Object foreignString(DynamicObject string) {
             return new ForeignString(string.toString());
         }
 
@@ -677,7 +677,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object foreignBoxedNumber(Number number) {
+        protected Object foreignBoxedNumber(Number number) {
             return new BoxedValue(number);
         }
 
@@ -687,18 +687,18 @@ public abstract class TruffleDebugNodes {
     public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public float foreignBoxedNumber(long value) {
+        protected float foreignBoxedNumber(long value) {
             return value;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyBignum(value)")
-        public float foreignBoxedNumber(DynamicObject value) {
+        protected float foreignBoxedNumber(DynamicObject value) {
             return (float) Layouts.BIGNUM.getValue(value).doubleValue();
         }
 
         @Specialization
-        public float foreignBoxedNumber(double value) {
+        protected float foreignBoxedNumber(double value) {
             return (float) value;
         }
 
@@ -710,7 +710,7 @@ public abstract class TruffleDebugNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject threadInfo() {
+        protected DynamicObject threadInfo() {
             return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -727,7 +727,7 @@ public abstract class TruffleDebugNodes {
         @SuppressFBWarnings("UW")
         @TruffleBoundary
         @Specialization
-        public DynamicObject deadBlock() {
+        protected DynamicObject deadBlock() {
             RubyLanguage.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
 
             final Object monitor = new Object();
@@ -749,7 +749,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject associated(DynamicObject value,
+        protected DynamicObject associated(DynamicObject value,
                 @Cached ReadObjectFieldNode readAssociatedNode) {
             Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 
@@ -772,7 +772,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject drainFinalizationQueue() {
+        protected DynamicObject drainFinalizationQueue() {
             getContext().getFinalizationService().drainFinalizationQueue();
             return nil();
         }

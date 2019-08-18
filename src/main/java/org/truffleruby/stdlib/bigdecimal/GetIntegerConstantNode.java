@@ -29,7 +29,7 @@ public abstract class GetIntegerConstantNode extends RubyBaseNode {
     public abstract int executeGetIntegerConstant(DynamicObject module, String name);
 
     @Specialization(guards = "isRubyModule(module)")
-    public int doInteger(DynamicObject module, String name,
+    protected int doInteger(DynamicObject module, String name,
             @Cached("createLookupConstantNode()") LookupConstantNode lookupConstantNode,
             @Cached GetConstantNode getConstantNode,
             @Cached ToIntNode toIntNode,

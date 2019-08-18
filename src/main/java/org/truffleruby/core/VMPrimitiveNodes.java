@@ -88,7 +88,7 @@ public abstract class VMPrimitiveNodes {
         @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
-        public Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
+        protected Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
                 @Cached BranchProfile catchProfile,
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode) {
@@ -110,7 +110,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject vmGCStart() {
+        protected DynamicObject vmGCStart() {
             getContext().getMarkingService().queueMarking();
             System.gc();
             return nil();
@@ -123,7 +123,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object vmExit(int status) {
+        protected Object vmExit(int status) {
             throw new ExitException(status);
         }
 
@@ -138,7 +138,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object vmExtendedModules(Object object, DynamicObject block,
+        protected Object vmExtendedModules(Object object, DynamicObject block,
                 @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
@@ -159,7 +159,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public boolean vmMethodIsBasic(VirtualFrame frame, DynamicObject method) {
+        protected boolean vmMethodIsBasic(VirtualFrame frame, DynamicObject method) {
             return Layouts.METHOD.getMethod(method).isBuiltIn();
         }
 
@@ -177,7 +177,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization
-        public DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
+        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, self, normalizedName);
@@ -195,7 +195,7 @@ public abstract class VMPrimitiveNodes {
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory.create(null, null, null);
 
         @Specialization
-        public boolean vmObjectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
+        protected boolean vmObjectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
             return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
         }
 
@@ -208,8 +208,8 @@ public abstract class VMPrimitiveNodes {
         @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory.create(null);
 
         @Specialization
-        public Object vmObjectClass(Object object) {
-            return singletonClassNode.singletonClass(object);
+        protected Object vmObjectClass(Object object) {
+            return singletonClassNode.executeSingletonClass(object);
         }
 
     }
@@ -218,7 +218,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
-        public DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
+        protected DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
                 @Cached("createBinaryProfile()") ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
@@ -248,7 +248,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMSetModuleNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object vmSetModuleName(Object object) {
+        protected Object vmSetModuleName(Object object) {
             throw new UnsupportedOperationException("vm_set_module_name");
         }
 
@@ -258,7 +258,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class ThrowNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object doThrow(Object tag, Object value) {
+        protected Object doThrow(Object tag, Object value) {
             throw new ThrowException(tag, value);
         }
 
@@ -268,7 +268,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class TimeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long time() {
+        protected long time() {
             return System.currentTimeMillis() / 1000;
         }
 
@@ -279,7 +279,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
-        public boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
+        protected boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
             final String actionString = StringOperations.getString(action);
             final String signal = StringOperations.getString(signalName);
 
@@ -297,7 +297,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalNameString)", "isRubyProc(proc)" })
-        public boolean watchSignalProc(DynamicObject signalNameString, DynamicObject proc) {
+        protected boolean watchSignalProc(DynamicObject signalNameString, DynamicObject proc) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), proc);
@@ -403,7 +403,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
-        public Object get(DynamicObject key) {
+        protected Object get(DynamicObject key) {
             final Object value = getContext().getNativeConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
@@ -423,7 +423,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        public DynamicObject getSection(DynamicObject section, DynamicObject block) {
+        protected DynamicObject getSection(DynamicObject section, DynamicObject block) {
             for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
                 final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());
@@ -438,7 +438,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMSetClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyClass(newClass)")
-        public DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
+        protected DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
             SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
                 Layouts.BASIC_OBJECT.setLogicalClass(object, newClass);
@@ -453,7 +453,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMDevUrandomBytes extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count >= 0")
-        public DynamicObject readRandomBytes(int count,
+        protected DynamicObject readRandomBytes(int count,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
@@ -461,7 +461,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "count < 0")
-        public DynamicObject negativeCount(int count) {
+        protected DynamicObject negativeCount(int count) {
             throw new RaiseException(getContext(),
                     getContext().getCoreExceptions().argumentError(
                             getContext().getCoreStrings().NEGATIVE_STRING_SIZE.getRope(), this));
@@ -473,17 +473,17 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long startHash(long salt) {
+        protected long startHash(long salt) {
             return getContext().getHashing(this).start(salt);
         }
 
         @Specialization(guards = "isRubyBignum(salt)")
-        public long startHashBigNum(DynamicObject salt) {
+        protected long startHashBigNum(DynamicObject salt) {
             return getContext().getHashing(this).start(Layouts.BIGNUM.getValue(salt).hashCode());
         }
 
         @Specialization(guards = "!isRubyNumber(salt)")
-        public Object startHashNotNumber(Object salt,
+        protected Object startHashNotNumber(Object salt,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
@@ -506,18 +506,18 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long updateHash(long hash, long value) {
+        protected long updateHash(long hash, long value) {
             return Hashing.update(hash, value);
         }
 
         @Specialization(guards = "isRubyBignum(value)")
-        public long updateHash(long hash, DynamicObject value) {
+        protected long updateHash(long hash, DynamicObject value) {
             return Hashing.update(hash, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
 
         @Specialization(guards = "!isRubyNumber(value)")
-        public Object updateHash(long hash, Object value,
+        protected Object updateHash(long hash, Object value,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
@@ -540,7 +540,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long endHash(long hash) {
+        protected long endHash(long hash) {
             return Hashing.end(hash);
         }
     }

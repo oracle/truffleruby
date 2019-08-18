@@ -31,28 +31,28 @@ public abstract class ReadDoubleNode extends FormatNode {
     @Child private ToDoubleNode toDoubleNode;
 
     @Specialization(guards = "isNull(source)")
-    public double read(VirtualFrame frame, Object source) {
+    protected double read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame);
         throw new IllegalStateException();
     }
 
     @Specialization
-    public double read(VirtualFrame frame, int[] source) {
+    protected double read(VirtualFrame frame, int[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public double read(VirtualFrame frame, long[] source) {
+    protected double read(VirtualFrame frame, long[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization
-    public double read(VirtualFrame frame, double[] source) {
+    protected double read(VirtualFrame frame, double[] source) {
         return source[advanceSourcePosition(frame)];
     }
 
     @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
-    public Object read(VirtualFrame frame, Object source,
+    protected Object read(VirtualFrame frame, Object source,
             @Cached("ofStore(source)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         if (toDoubleNode == null) {

@@ -34,7 +34,7 @@ public abstract class TrufflePosixNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(envVar)")
-        public DynamicObject invalidate(DynamicObject envVar) {
+        protected DynamicObject invalidate(DynamicObject envVar) {
             invalidateENV(StringOperations.getString(envVar));
             return envVar;
         }

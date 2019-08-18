@@ -180,7 +180,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public abstract Object executeAppend(Object array, int index, Object value);
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "arrayStrategy.accepts(value)" })
-        public Object appendCompatibleType(Object array, int index, Object value,
+        protected Object appendCompatibleType(Object array, int index, Object value,
                 @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
                 @Cached("arrayStrategy.copyStoreNode()") ArrayCopyStoreNode copyStoreNode,
                 @Cached("arrayStrategy.setNode()") ArraySetNode setNode) {
@@ -239,7 +239,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
                 "arrayStrategy == generalized" }, limit = "STORAGE_STRATEGIES")
-        public Object appendSameStrategy(Object array, int index, DynamicObject other,
+        protected Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
                 @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
@@ -263,7 +263,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
                 "arrayStrategy != generalized" }, limit = "STORAGE_STRATEGIES")
-        public Object appendNewStrategy(Object array, int index, DynamicObject other,
+        protected Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
                 @Cached("arrayStrategy.capacityNode()") ArrayCapacityNode capacityNode,
@@ -275,7 +275,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "!arrayStrategy.matchesStore(array)")
-        public Object appendNewStrategy(Object array, int index, DynamicObject other) {
+        protected Object appendNewStrategy(Object array, int index, DynamicObject other) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
             final ArrayStrategy otherStrategy = ArrayStrategy.of(other);

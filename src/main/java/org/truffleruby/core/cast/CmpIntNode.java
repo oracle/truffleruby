@@ -43,12 +43,12 @@ public abstract class CmpIntNode extends RubyBaseNode {
     public abstract int executeCmpInt(Object cmpResult, Object a, Object b);
 
     @Specialization
-    public int cmpInt(int value, Object receiver, Object other) {
+    protected int cmpInt(int value, Object receiver, Object other) {
         return value;
     }
 
     @Specialization
-    public int cmpLong(long value, Object receiver, Object other) {
+    protected int cmpLong(long value, Object receiver, Object other) {
         if (value > 0) {
             return 1;
         }
@@ -61,12 +61,12 @@ public abstract class CmpIntNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public int cmpBignum(DynamicObject value, Object receiver, Object other) {
+    protected int cmpBignum(DynamicObject value, Object receiver, Object other) {
         return Layouts.BIGNUM.getValue(value).signum();
     }
 
     @Specialization(guards = "isNil(nil)")
-    public int cmpNil(Object nil, Object receiver, Object other) {
+    protected int cmpNil(Object nil, Object receiver, Object other) {
         throw new RaiseException(getContext(), coreExceptions().argumentError(formatMessage(receiver, other), this));
     }
 
@@ -82,7 +82,7 @@ public abstract class CmpIntNode extends RubyBaseNode {
             "!isLong(value)",
             "!isRubyBignum(value)",
             "!isNil(value)" })
-    public int cmpObject(Object value, Object receiver, Object other,
+    protected int cmpObject(Object value, Object receiver, Object other,
             @Cached("createPrivate()") CallDispatchHeadNode gtNode,
             @Cached("createPrivate()") CallDispatchHeadNode ltNode,
             @Cached BooleanCastNode gtCastNode,

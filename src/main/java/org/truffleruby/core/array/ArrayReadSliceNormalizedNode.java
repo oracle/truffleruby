@@ -30,12 +30,12 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
     // Index out of bounds or negative length always gives you nil
 
     @Specialization(guards = "!indexInBounds(array, index)")
-    public DynamicObject readIndexOutOfBounds(DynamicObject array, int index, int length) {
+    protected DynamicObject readIndexOutOfBounds(DynamicObject array, int index, int length) {
         return nil();
     }
 
     @Specialization(guards = "!lengthPositive(length)")
-    public DynamicObject readNegativeLength(DynamicObject array, int index, int length) {
+    protected DynamicObject readNegativeLength(DynamicObject array, int index, int length) {
         return nil();
     }
 
@@ -45,7 +45,7 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
             "indexInBounds(array, index)", "lengthPositive(length)", "endInBounds(array, index, length)",
             "strategy.matches(array)"
     }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject readInBounds(DynamicObject array, int index, int length,
+    protected DynamicObject readInBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
         final Object store = extractRangeCopyOnWriteNode.execute(array, index, index + length);
@@ -58,7 +58,7 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
             "indexInBounds(array, index)", "lengthPositive(length)", "!endInBounds(array, index, length)",
             "strategy.matches(array)"
     }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
+    protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
         final int end = strategy.getSize(array);

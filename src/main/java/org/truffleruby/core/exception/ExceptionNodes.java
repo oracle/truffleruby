@@ -43,7 +43,7 @@ public abstract class ExceptionNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocateNameError(DynamicObject rubyClass) {
+        protected DynamicObject allocateNameError(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil()));
         }
 
@@ -53,13 +53,13 @@ public abstract class ExceptionNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize(DynamicObject exception, NotProvided message) {
+        protected DynamicObject initialize(DynamicObject exception, NotProvided message) {
             Layouts.EXCEPTION.setMessage(exception, nil());
             return exception;
         }
 
         @Specialization(guards = "wasProvided(message)")
-        public DynamicObject initialize(DynamicObject exception, Object message) {
+        protected DynamicObject initialize(DynamicObject exception, Object message) {
             Layouts.EXCEPTION.setMessage(exception, message);
             return exception;
         }
@@ -70,13 +70,13 @@ public abstract class ExceptionNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "self == from")
-        public Object initializeCopySelfIsSameAsFrom(DynamicObject self, DynamicObject from) {
+        protected Object initializeCopySelfIsSameAsFrom(DynamicObject self, DynamicObject from) {
             return self;
         }
 
 
         @Specialization(guards = { "self != from", "isRubyException(from)" })
-        public Object initializeCopy(DynamicObject self, DynamicObject from) {
+        protected Object initializeCopy(DynamicObject self, DynamicObject from) {
             Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(from);
             if (backtrace != null) {
                 Layouts.EXCEPTION.setBacktrace(self, backtrace.copy(getContext(), self));
@@ -98,7 +98,7 @@ public abstract class ExceptionNodes {
         @Child private ReadObjectFieldNode readCustomBacktraceNode;
 
         @Specialization
-        public Object backtrace(
+        protected Object backtrace(
                 DynamicObject exception,
                 @Cached("createBinaryProfile()") ConditionProfile hasCustomBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
@@ -145,7 +145,7 @@ public abstract class ExceptionNodes {
         @Specialization(guards = {
                 "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE",
         }, limit = "1")
-        public boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
+        protected boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
                 @Cached LookupMethodNode lookupNode) {
             final Object customBacktrace = readCustomBacktrace(self);
 
@@ -153,7 +153,7 @@ public abstract class ExceptionNodes {
         }
 
         @Specialization
-        public Object fallback(DynamicObject self) {
+        protected Object fallback(DynamicObject self) {
             return FAILURE;
         }
 
@@ -173,12 +173,12 @@ public abstract class ExceptionNodes {
     public abstract static class CaptureBacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject captureBacktrace(DynamicObject exception, NotProvided offset) {
+        protected DynamicObject captureBacktrace(DynamicObject exception, NotProvided offset) {
             return captureBacktrace(exception, 1);
         }
 
         @Specialization
-        public DynamicObject captureBacktrace(DynamicObject exception, int offset) {
+        protected DynamicObject captureBacktrace(DynamicObject exception, int offset) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, offset);
             Layouts.EXCEPTION.setBacktrace(exception, backtrace);
             return nil();
@@ -190,7 +190,7 @@ public abstract class ExceptionNodes {
     public abstract static class MessagePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object message(DynamicObject exception) {
+        protected Object message(DynamicObject exception) {
             return Layouts.EXCEPTION.getMessage(exception);
         }
 
@@ -200,7 +200,7 @@ public abstract class ExceptionNodes {
     public abstract static class MessageSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object setMessage(DynamicObject error, Object message) {
+        protected Object setMessage(DynamicObject error, Object message) {
             Layouts.EXCEPTION.setMessage(error, message);
             return error;
         }
@@ -211,7 +211,7 @@ public abstract class ExceptionNodes {
     public abstract static class FormatterPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject formatter(DynamicObject exception) {
+        protected DynamicObject formatter(DynamicObject exception) {
             return Layouts.EXCEPTION.getFormatter(exception);
         }
 
@@ -221,7 +221,7 @@ public abstract class ExceptionNodes {
     public abstract static class CauseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject cause(DynamicObject exception) {
+        protected DynamicObject cause(DynamicObject exception) {
             return Layouts.EXCEPTION.getCause(exception);
         }
 
@@ -231,7 +231,7 @@ public abstract class ExceptionNodes {
     public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject setCause(DynamicObject exception, DynamicObject cause) {
+        protected DynamicObject setCause(DynamicObject exception, DynamicObject cause) {
             Layouts.EXCEPTION.setCause(exception, cause);
             return exception;
         }
@@ -243,7 +243,7 @@ public abstract class ExceptionNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
+        protected DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
             return coreExceptions().errnoError(errno, StringOperations.getString(message), this);
         }
 

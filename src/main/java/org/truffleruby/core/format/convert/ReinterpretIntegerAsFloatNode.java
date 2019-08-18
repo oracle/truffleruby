@@ -20,17 +20,17 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class ReinterpretIntegerAsFloatNode extends FormatNode {
 
     @Specialization
-    public MissingValue decode(MissingValue missingValue) {
+    protected MissingValue decode(MissingValue missingValue) {
         return missingValue;
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject decode(DynamicObject nil) {
+    protected DynamicObject decode(DynamicObject nil) {
         return nil;
     }
 
     @Specialization
-    public float decode(int value) {
+    protected float decode(int value) {
         return Float.intBitsToFloat(value);
     }
 

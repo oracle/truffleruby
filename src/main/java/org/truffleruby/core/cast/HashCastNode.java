@@ -32,42 +32,42 @@ public abstract class HashCastNode extends RubyNode {
     protected abstract RubyNode getChild();
 
     @Specialization
-    public DynamicObject cast(boolean value) {
+    protected DynamicObject cast(boolean value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(int value) {
+    protected DynamicObject cast(int value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(long value) {
+    protected DynamicObject cast(long value) {
         return nil();
     }
 
     @Specialization
-    public DynamicObject cast(double value) {
+    protected DynamicObject cast(double value) {
         return nil();
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject castNil(DynamicObject nil) {
+    protected DynamicObject castNil(DynamicObject nil) {
         return nil();
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    public DynamicObject castBignum(DynamicObject value) {
+    protected DynamicObject castBignum(DynamicObject value) {
         return nil();
     }
 
     @Specialization(guards = "isRubyHash(hash)")
-    public DynamicObject castHash(DynamicObject hash) {
+    protected DynamicObject castHash(DynamicObject hash) {
         return hash;
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyHash(object)" })
-    public Object cast(VirtualFrame frame, DynamicObject object,
+    protected Object cast(VirtualFrame frame, DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toHashNode.call(object, "to_hash");
 

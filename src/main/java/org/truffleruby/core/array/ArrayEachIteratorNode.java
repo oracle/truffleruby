@@ -39,7 +39,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
     public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode);
 
     @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
+    protected DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
         final Object store = Layouts.ARRAY.getStore(array);
@@ -55,7 +55,7 @@ public abstract class ArrayEachIteratorNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
+    protected DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt, ArrayElementConsumerNode consumerNode,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
             @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {

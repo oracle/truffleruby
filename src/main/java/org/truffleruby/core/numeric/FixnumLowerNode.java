@@ -31,22 +31,22 @@ public abstract class FixnumLowerNode extends RubyNode {
     public abstract Object executeLower(Object value);
 
     @Specialization
-    public int lower(int value) {
+    protected int lower(int value) {
         return value;
     }
 
     @Specialization(guards = "canLower(value)")
-    public int lower(long value) {
+    protected int lower(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!canLower(value)")
-    public long lowerFails(long value) {
+    protected long lowerFails(long value) {
         return value;
     }
 
     @Specialization(guards = { "!isInteger(value)", "!isLong(value)" })
-    public Object passThrough(Object value) {
+    protected Object passThrough(Object value) {
         return value;
     }
 

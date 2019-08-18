@@ -56,7 +56,7 @@ public abstract class HashNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
         }
 
@@ -72,7 +72,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isSmallArrayOfPairs(args)")
-        public Object construct(DynamicObject hashClass, Object[] args) {
+        protected Object construct(DynamicObject hashClass, Object[] args) {
             final DynamicObject array = (DynamicObject) args[0];
 
             final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
@@ -115,7 +115,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args)")
-        public Object constructFallback(DynamicObject hashClass, Object[] args) {
+        protected Object constructFallback(DynamicObject hashClass, Object[] args) {
             return fallbackNode.call(hashClass, "_constructor_fallback", args);
         }
 
@@ -158,12 +158,12 @@ public abstract class HashNodes {
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode);
 
         @Specialization(guards = "isNullHash(hash)")
-        public Object getNull(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode) {
+        protected Object getNull(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode) {
             return defaultValueNode.accept(frame, hash, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
+        protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
@@ -173,7 +173,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
+        protected Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached("new()") LookupEntryNode lookupEntryNode,
                 @Cached BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
@@ -198,7 +198,7 @@ public abstract class HashNodes {
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
 
         @Specialization
-        public Object get(VirtualFrame frame, DynamicObject hash, Object key) {
+        protected Object get(VirtualFrame frame, DynamicObject hash, Object key) {
             return lookupNode.executeGet(frame, hash, key, this);
         }
 
@@ -219,7 +219,7 @@ public abstract class HashNodes {
         @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
 
         @Specialization
-        public Object getOrUndefined(VirtualFrame frame, DynamicObject hash, Object key) {
+        protected Object getOrUndefined(VirtualFrame frame, DynamicObject hash, Object key) {
             return lookupNode.executeGet(frame, hash, key, this);
         }
 
@@ -236,7 +236,7 @@ public abstract class HashNodes {
         @Child private SetNode setNode = SetNode.create();
 
         @Specialization
-        public Object set(DynamicObject hash, Object key, Object value) {
+        protected Object set(DynamicObject hash, Object key, Object value) {
             return setNode.executeSet(hash, key, value, Layouts.HASH.getCompareByIdentity(hash));
         }
 
@@ -247,12 +247,12 @@ public abstract class HashNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNullHash(hash)")
-        public DynamicObject emptyNull(DynamicObject hash) {
+        protected DynamicObject emptyNull(DynamicObject hash) {
             return hash;
         }
 
         @Specialization(guards = "!isNullHash(hash)")
-        public DynamicObject empty(DynamicObject hash) {
+        protected DynamicObject empty(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setStore(hash, null);
             Layouts.HASH.setSize(hash, 0);
@@ -269,14 +269,14 @@ public abstract class HashNodes {
     public abstract static class CompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
-        DynamicObject compareByIdentity(DynamicObject hash,
+        protected DynamicObject compareByIdentity(DynamicObject hash,
                 @Cached InternalRehashNode internalRehashNode) {
             Layouts.HASH.setCompareByIdentity(hash, true);
             return internalRehashNode.executeRehash(hash);
         }
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        DynamicObject alreadyCompareByIdentity(DynamicObject hash) {
+        protected DynamicObject alreadyCompareByIdentity(DynamicObject hash) {
             return hash;
         }
 
@@ -288,7 +288,7 @@ public abstract class HashNodes {
         private final ConditionProfile profile = ConditionProfile.createBinaryProfile();
 
         @Specialization
-        public boolean compareByIdentity(DynamicObject hash) {
+        protected boolean compareByIdentity(DynamicObject hash) {
             return profile.profile(Layouts.HASH.getCompareByIdentity(hash));
         }
 
@@ -298,7 +298,7 @@ public abstract class HashNodes {
     public abstract static class DefaultProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object defaultProc(DynamicObject hash) {
+        protected Object defaultProc(DynamicObject hash) {
             return Layouts.HASH.getDefaultBlock(hash);
         }
 
@@ -308,7 +308,7 @@ public abstract class HashNodes {
     public abstract static class DefaultValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object defaultValue(DynamicObject hash) {
+        protected Object defaultValue(DynamicObject hash) {
             return Layouts.HASH.getDefaultValue(hash);
         }
     }
@@ -323,21 +323,21 @@ public abstract class HashNodes {
         @Child private YieldNode yieldNode = YieldNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        public Object deleteNull(DynamicObject hash, Object key, NotProvided block) {
+        protected Object deleteNull(DynamicObject hash, Object key, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return nil();
         }
 
         @Specialization(guards = "isNullHash(hash)")
-        public Object deleteNull(DynamicObject hash, Object key, DynamicObject block) {
+        protected Object deleteNull(DynamicObject hash, Object key, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return yieldNode.executeDispatch(block, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        public Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
+        protected Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -371,7 +371,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public Object delete(DynamicObject hash, Object key, Object maybeBlock) {
+        protected Object delete(DynamicObject hash, Object key, Object maybeBlock) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
@@ -430,13 +430,13 @@ public abstract class HashNodes {
         private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isNullHash(hash)")
-        public DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
             return hash;
         }
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        public DynamicObject eachPackedArray(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachPackedArray(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] originalStore = (Object[]) Layouts.HASH.getStore(hash);
 
@@ -466,7 +466,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public DynamicObject eachBuckets(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachBuckets(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
@@ -492,12 +492,12 @@ public abstract class HashNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNullHash(hash)")
-        public boolean emptyNull(DynamicObject hash) {
+        protected boolean emptyNull(DynamicObject hash) {
             return true;
         }
 
         @Specialization(guards = "!isNullHash(hash)")
-        public boolean emptyPackedArray(DynamicObject hash) {
+        protected boolean emptyPackedArray(DynamicObject hash) {
             return Layouts.HASH.getSize(hash) == 0;
         }
 
@@ -508,7 +508,7 @@ public abstract class HashNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
+        protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
@@ -516,7 +516,7 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
+        protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
@@ -526,7 +526,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
+        protected DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.propagate(hash, defaultValue);
@@ -536,7 +536,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        public Object initialize(DynamicObject hash, Object defaultValue, DynamicObject block) {
+        protected Object initialize(DynamicObject hash, Object defaultValue, DynamicObject block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
         }
 
@@ -555,7 +555,7 @@ public abstract class HashNodes {
         public abstract DynamicObject executeReplace(DynamicObject self, DynamicObject from);
 
         @Specialization(guards = { "isRubyHash(from)", "isNullHash(from)" })
-        public DynamicObject replaceNull(DynamicObject self, DynamicObject from) {
+        protected DynamicObject replaceNull(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
             }
@@ -574,7 +574,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = { "isRubyHash(from)", "isPackedHash(from)" })
-        public DynamicObject replacePackedArray(DynamicObject self, DynamicObject from) {
+        protected DynamicObject replacePackedArray(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
             }
@@ -597,7 +597,7 @@ public abstract class HashNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyHash(from)", "isBucketHash(from)" })
-        public DynamicObject replaceBuckets(DynamicObject self, DynamicObject from) {
+        protected DynamicObject replaceBuckets(DynamicObject self, DynamicObject from) {
             if (self == from) {
                 return self;
             }
@@ -612,7 +612,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isRubyHash(other)")
-        public DynamicObject replaceCoerce(DynamicObject self, Object other,
+        protected DynamicObject replaceCoerce(DynamicObject self, Object other,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to", other,
@@ -633,7 +633,7 @@ public abstract class HashNodes {
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "isNullHash(hash)")
-        public DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return createArray(null, 0);
@@ -641,7 +641,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        public DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
+        protected DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -668,7 +668,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
+        protected DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -701,7 +701,7 @@ public abstract class HashNodes {
     public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyProc(defaultProc)")
-        public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
+        protected DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultProc);
 
@@ -711,7 +711,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isNil(nil)")
-        public DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
+        protected DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
             return nil();
@@ -723,7 +723,7 @@ public abstract class HashNodes {
     public abstract static class SetDefaultValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object setDefault(DynamicObject hash, Object defaultValue,
+        protected Object setDefault(DynamicObject hash, Object defaultValue,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.propagate(hash, defaultValue);
 
@@ -740,12 +740,12 @@ public abstract class HashNodes {
         @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization(guards = "isEmptyHash(hash)")
-        public Object shiftEmpty(DynamicObject hash) {
+        protected Object shiftEmpty(DynamicObject hash) {
             return callDefaultNode.call(hash, "default", nil());
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })
-        public DynamicObject shiftPackedArray(DynamicObject hash) {
+        protected DynamicObject shiftPackedArray(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -764,7 +764,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isBucketHash(hash)" })
-        public DynamicObject shiftBuckets(DynamicObject hash) {
+        protected DynamicObject shiftBuckets(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Entry first = Layouts.HASH.getFirstInSequence(hash);
@@ -818,12 +818,12 @@ public abstract class HashNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNullHash(hash)")
-        public int sizeNull(DynamicObject hash) {
+        protected int sizeNull(DynamicObject hash) {
             return 0;
         }
 
         @Specialization(guards = "!isNullHash(hash)")
-        public int sizePackedArray(DynamicObject hash) {
+        protected int sizePackedArray(DynamicObject hash) {
             return Layouts.HASH.getSize(hash);
         }
 
@@ -841,12 +841,12 @@ public abstract class HashNodes {
         public abstract DynamicObject executeRehash(DynamicObject hash);
 
         @Specialization(guards = "isNullHash(hash)")
-        DynamicObject rehashNull(DynamicObject hash) {
+        protected DynamicObject rehashNull(DynamicObject hash) {
             return hash;
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        DynamicObject rehashPackedArray(DynamicObject hash,
+        protected DynamicObject rehashPackedArray(DynamicObject hash,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -866,7 +866,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        DynamicObject rehashBuckets(DynamicObject hash,
+        protected DynamicObject rehashBuckets(DynamicObject hash,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -957,13 +957,13 @@ public abstract class HashNodes {
     public abstract static class RehashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        public DynamicObject rehashIdentity(DynamicObject hash) {
+        protected DynamicObject rehashIdentity(DynamicObject hash) {
             // the identity hash of objects never change.
             return hash;
         }
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
-        public DynamicObject rehashNotIdentity(DynamicObject hash,
+        protected DynamicObject rehashNotIdentity(DynamicObject hash,
                 @Cached InternalRehashNode internalRehashNode) {
             return internalRehashNode.executeRehash(hash);
         }

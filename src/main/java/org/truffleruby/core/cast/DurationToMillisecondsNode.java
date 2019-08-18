@@ -35,27 +35,27 @@ public abstract class DurationToMillisecondsNode extends RubyNode {
     public abstract long executeDurationToMillis(VirtualFrame frame, Object duration);
 
     @Specialization
-    public long noDuration(NotProvided duration) {
+    protected long noDuration(NotProvided duration) {
         return Long.MAX_VALUE;
     }
 
     @Specialization
-    public long duration(int duration) {
+    protected long duration(int duration) {
         return validate(duration * 1000L);
     }
 
     @Specialization
-    public long duration(long duration) {
+    protected long duration(long duration) {
         return validate(duration * 1000);
     }
 
     @Specialization
-    public long duration(double duration) {
+    protected long duration(double duration) {
         return validate((long) (duration * 1000));
     }
 
     @Specialization(guards = "isNil(duration)")
-    public long durationNil(DynamicObject duration) {
+    protected long durationNil(DynamicObject duration) {
         if (acceptsNil) {
             return noDuration(NotProvided.INSTANCE);
         } else {
@@ -64,7 +64,7 @@ public abstract class DurationToMillisecondsNode extends RubyNode {
     }
 
     @Specialization(guards = "!isNil(duration)")
-    public long duration(VirtualFrame frame, DynamicObject duration) {
+    protected long duration(VirtualFrame frame, DynamicObject duration) {
         if (floatCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatCastNode = insert(NumericToFloatNodeGen.create());

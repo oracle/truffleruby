@@ -31,22 +31,22 @@ public abstract class ToEncodingNode extends RubyBaseNode {
     public abstract Encoding executeToEncoding(Object value);
 
     @Specialization(guards = "isRubyString(value)")
-    public Encoding stringToEncoding(DynamicObject value) {
+    protected Encoding stringToEncoding(DynamicObject value) {
         return StringOperations.encoding(value);
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public Encoding symbolToEncoding(DynamicObject value) {
+    protected Encoding symbolToEncoding(DynamicObject value) {
         return Layouts.SYMBOL.getRope(value).getEncoding();
     }
 
     @Specialization(guards = "isRubyRegexp(value)")
-    public Encoding regexpToEncoding(DynamicObject value) {
+    protected Encoding regexpToEncoding(DynamicObject value) {
         return Layouts.REGEXP.getRegex(value).getEncoding();
     }
 
     @Specialization(guards = "isRubyEncoding(value)")
-    public Encoding rubyEncodingToEncoding(DynamicObject value) {
+    protected Encoding rubyEncodingToEncoding(DynamicObject value) {
         return EncodingOperations.getEncoding(value);
     }
 

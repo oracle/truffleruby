@@ -26,7 +26,7 @@ public abstract class ReadArgumentIndexValueNode extends FormatNode {
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, Object[] source) {
+    protected Object read(VirtualFrame frame, Object[] source) {
         return source[this.index];
     }
 

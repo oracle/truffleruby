@@ -38,7 +38,7 @@ public abstract class ObjectIVarGetNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = { "name == cachedName", "checkName == cachedCheckName" }, limit = "getCacheLimit()")
-    public Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
+    protected Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
             @Cached("checkName") boolean cachedCheckName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("checkName(context, object, name, cachedCheckName)") Object cachedName,
@@ -48,7 +48,7 @@ public abstract class ObjectIVarGetNode extends RubyBaseWithoutContextNode {
 
     @TruffleBoundary
     @Specialization(replaces = "ivarGetCached")
-    public Object ivarGetUncached(DynamicObject object, Object name, boolean checkName,
+    protected Object ivarGetUncached(DynamicObject object, Object name, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return ReadObjectFieldNodeGen.getUncached().execute(
                 object,

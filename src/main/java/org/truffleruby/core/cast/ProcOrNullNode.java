@@ -35,18 +35,18 @@ public abstract class ProcOrNullNode extends RubyBaseWithoutContextNode {
     public abstract DynamicObject executeProcOrNull(Object proc);
 
     @Specialization
-    public DynamicObject doNotProvided(NotProvided proc) {
+    protected DynamicObject doNotProvided(NotProvided proc) {
         return null;
     }
 
     @Specialization(guards = "isNil(context, nil)")
-    public DynamicObject doNil(Object nil,
+    protected DynamicObject doNil(Object nil,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return null;
     }
 
     @Specialization(guards = "isRubyProc(proc)")
-    public DynamicObject doProc(DynamicObject proc) {
+    protected DynamicObject doProc(DynamicObject proc) {
         return proc;
     }
 

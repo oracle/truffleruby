@@ -45,32 +45,32 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract Object execute(long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        public boolean unwrapFalse(long handle) {
+        protected boolean unwrapFalse(long handle) {
             return false;
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        public boolean unwrapTrue(long handle) {
+        protected boolean unwrapTrue(long handle) {
             return true;
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        public NotProvided unwrapUndef(long handle) {
+        protected NotProvided unwrapUndef(long handle) {
             return NotProvided.INSTANCE;
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        public DynamicObject unwrapNil(long handle) {
+        protected DynamicObject unwrapNil(long handle) {
             return nil();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        public long unwrapTaggedLong(long handle) {
+        protected long unwrapTaggedLong(long handle) {
             return handle >> 1;
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        public Object unwrapTaggedObject(long handle) {
+        protected Object unwrapTaggedObject(long handle) {
             return getContext().getValueWrapperManager().getFromHandleMap(handle);
         }
 
@@ -92,32 +92,32 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract ValueWrapper execute(long handle);
 
         @Specialization(guards = "handle == FALSE_HANDLE")
-        public ValueWrapper unwrapFalse(long handle) {
+        protected ValueWrapper unwrapFalse(long handle) {
             return new ValueWrapper(false, FALSE_HANDLE);
         }
 
         @Specialization(guards = "handle == TRUE_HANDLE")
-        public ValueWrapper unwrapTrue(long handle) {
+        protected ValueWrapper unwrapTrue(long handle) {
             return new ValueWrapper(true, TRUE_HANDLE);
         }
 
         @Specialization(guards = "handle == UNDEF_HANDLE")
-        public ValueWrapper unwrapUndef(long handle) {
+        protected ValueWrapper unwrapUndef(long handle) {
             return new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE);
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        public ValueWrapper unwrapNil(long handle) {
+        protected ValueWrapper unwrapNil(long handle) {
             return new ValueWrapper(nil(), NIL_HANDLE);
         }
 
         @Specialization(guards = "isTaggedLong(handle)")
-        public ValueWrapper unwrapTaggedLong(long handle) {
+        protected ValueWrapper unwrapTaggedLong(long handle) {
             return new ValueWrapper(handle >> 1, handle);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
-        public ValueWrapper unwrapTaggedObject(long handle) {
+        protected ValueWrapper unwrapTaggedObject(long handle) {
             return getContext().getValueWrapperManager().getWrapperFromHandleMap(handle);
         }
 
@@ -139,12 +139,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
         public abstract ValueWrapper execute(TruffleObject value);
 
         @Specialization
-        public ValueWrapper wrappedValueWrapper(ValueWrapper value) {
+        protected ValueWrapper wrappedValueWrapper(ValueWrapper value) {
             return value;
         }
 
         @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-        public ValueWrapper unwrapTypeCastObject(TruffleObject value,
+        protected ValueWrapper unwrapTypeCastObject(TruffleObject value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode,
                 @Cached BranchProfile unsupportedProfile,
@@ -176,12 +176,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
     public abstract Object execute(TruffleObject value);
 
     @Specialization
-    public Object unwrapValue(ValueWrapper value) {
+    protected Object unwrapValue(ValueWrapper value) {
         return value.getObject();
     }
 
     @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-    public Object unwrapTypeCastObject(TruffleObject value,
+    protected Object unwrapTypeCastObject(TruffleObject value,
             @CachedLibrary("value") InteropLibrary values,
             @Cached UnwrapNativeNode unwrapNativeNode,
             @Cached BranchProfile unsupportedProfile,

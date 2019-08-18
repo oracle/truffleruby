@@ -49,7 +49,7 @@ public abstract class PolyglotNodes {
                 "idEqualNode.execute(rope(id), cachedMimeType)",
                 "sourceEqualNode.execute(rope(source), cachedSource)"
         }, limit = "getCacheLimit()")
-        public Object evalCached(
+        protected Object evalCached(
                 DynamicObject id,
                 DynamicObject source,
                 @Cached("privatizeRope(id)") Rope cachedMimeType,
@@ -61,7 +61,7 @@ public abstract class PolyglotNodes {
         }
 
         @Specialization(guards = { "isRubyString(id)", "isRubyString(source)" }, replaces = "evalCached")
-        public Object evalUncached(DynamicObject id, DynamicObject source,
+        protected Object evalUncached(DynamicObject id, DynamicObject source,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(id, source), RubyNode.EMPTY_ARGUMENTS);
         }
@@ -89,7 +89,7 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(fileName)")
-        public Object evalFile(DynamicObject fileName, NotProvided id) {
+        protected Object evalFile(DynamicObject fileName, NotProvided id) {
             final Source source;
             final String path = StringOperations.getString(fileName).intern();
             try {
@@ -108,7 +108,7 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(id)", "isRubyString(fileName)" })
-        public Object evalFile(DynamicObject id, DynamicObject fileName) {
+        protected Object evalFile(DynamicObject id, DynamicObject fileName) {
             final String idString = StringOperations.getString(id);
             final Source source = getSource(idString, fileName);
             return eval(source);

@@ -57,7 +57,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
 
     @Specialization(guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" }, assumptions = { "cachedShape.getValidAssumption()",
             "validLocation" }, limit = "getCacheLimit()")
-    public void writeExistingField(DynamicObject object, Object name, Object value, boolean generalize,
+    protected void writeExistingField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,
             @Cached("object.getShape()") Shape cachedShape,
@@ -101,7 +101,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
 
     @Specialization(guards = { "location == null", "object.getShape() == cachedOldShape", "name == cachedName" }, assumptions = { "cachedOldShape.getValidAssumption()",
             "cachedNewShape.getValidAssumption()", "validLocation" }, limit = "getCacheLimit()")
-    public void writeNewField(DynamicObject object, Object name, Object value, boolean generalize,
+    protected void writeNewField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,
             @Cached("object.getShape()") Shape cachedOldShape,
@@ -139,13 +139,13 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    public void updateShapeAndWrite(DynamicObject object, Object name, Object value, boolean generalize) {
+    protected void updateShapeAndWrite(DynamicObject object, Object name, Object value, boolean generalize) {
         executeWithGeneralize(object, name, value, generalize);
     }
 
     @TruffleBoundary
     @Specialization(replaces = { "writeExistingField", "writeNewField", "updateShapeAndWrite" })
-    public void writeUncached(DynamicObject object, Object name, Object value, boolean generalize,
+    protected void writeUncached(DynamicObject object, Object name, Object value, boolean generalize,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         final boolean shared = SharedObjects.isShared(context, object);
         if (shared) {

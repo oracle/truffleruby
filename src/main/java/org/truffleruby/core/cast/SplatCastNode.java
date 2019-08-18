@@ -60,7 +60,7 @@ public abstract class SplatCastNode extends RubyNode {
     public abstract RubyNode getChild();
 
     @Specialization(guards = "isNil(nil)")
-    public Object splatNil(VirtualFrame frame, Object nil) {
+    protected Object splatNil(VirtualFrame frame, Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
                 return createArray(null, 0);
@@ -81,7 +81,7 @@ public abstract class SplatCastNode extends RubyNode {
     }
 
     @Specialization(guards = "isRubyArray(array)")
-    public DynamicObject splat(VirtualFrame frame, DynamicObject array) {
+    protected DynamicObject splat(VirtualFrame frame, DynamicObject array) {
         // TODO(cs): is it necessary to dup here in all cases?
         // It is needed at least for [*ary] (parsed as just a SplatParseNode) and b = *ary.
         if (copy) {
@@ -92,7 +92,7 @@ public abstract class SplatCastNode extends RubyNode {
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
-    public DynamicObject splat(VirtualFrame frame, Object object,
+    protected DynamicObject splat(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
         final Object array = toArrayNode.call(coreLibrary().getTruffleTypeModule(), "rb_check_convert_type", object, coreLibrary().getArrayClass(), conversionMethod);

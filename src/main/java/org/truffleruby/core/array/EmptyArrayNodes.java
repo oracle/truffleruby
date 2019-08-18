@@ -28,7 +28,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
-        public int length(Object store) {
+        protected int length(Object store) {
             return 0;
         }
 
@@ -40,7 +40,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization
-        public Object get(Object store, int index) {
+        protected Object get(Object store, int index) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("Array index out of bounds", this));
         }
 
@@ -52,7 +52,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArraySetNode extends ArrayOperationNodes.ArraySetNode {
 
         @Specialization
-        public void set(Object store, int index, Object value) {
+        protected void set(Object store, int index, Object value) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("Array index out of bounds", this));
         }
 
@@ -64,7 +64,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
 
         @Specialization
-        public Object newStore(int size) {
+        protected Object newStore(int size) {
             return null;
         }
 
@@ -76,7 +76,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
 
         @Specialization
-        public Object newStoreCopying(Object store, int size) {
+        protected Object newStoreCopying(Object store, int size) {
             return null;
         }
 
@@ -88,7 +88,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         @Specialization
-        public void copyTo(Object from, Object to, int sourceStart, int destinationStart, int length) {
+        protected void copyTo(Object from, Object to, int sourceStart, int destinationStart, int length) {
             assert sourceStart == 0 && length == 0;
         }
 
@@ -100,7 +100,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
-        public Object[] extractRange(Object store, int start, int end) {
+        protected Object[] extractRange(Object store, int start, int end) {
             assert start == 0 && end == 0;
             return null;
         }
@@ -113,7 +113,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
         @Specialization
-        public void sort(Object store, int size) {
+        protected void sort(Object store, int size) {
             // Do nothing.
         }
 
@@ -125,7 +125,7 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayExtractRangeCopyOnWriteNode extends ArrayExtractRangeCopyOnWriteNode {
 
         @Specialization
-        public Object extractCopyOnWrite(DynamicObject array, int start, int end) {
+        protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             assert start == 0 && end == 0;
             return null;
         }

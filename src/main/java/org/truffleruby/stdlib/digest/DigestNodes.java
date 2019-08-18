@@ -54,7 +54,7 @@ public abstract class DigestNodes {
     public abstract static class MD5Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject md5() {
+        protected DynamicObject md5() {
             return createDigest(getContext(), DigestAlgorithm.MD5);
         }
 
@@ -64,7 +64,7 @@ public abstract class DigestNodes {
     public abstract static class SHA1Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject sha1() {
+        protected DynamicObject sha1() {
             return createDigest(getContext(), DigestAlgorithm.SHA1);
         }
 
@@ -74,7 +74,7 @@ public abstract class DigestNodes {
     public abstract static class SHA256Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject sha256() {
+        protected DynamicObject sha256() {
             return createDigest(getContext(), DigestAlgorithm.SHA256);
         }
 
@@ -84,7 +84,7 @@ public abstract class DigestNodes {
     public abstract static class SHA384Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject sha384() {
+        protected DynamicObject sha384() {
             return createDigest(getContext(), DigestAlgorithm.SHA384);
         }
 
@@ -94,7 +94,7 @@ public abstract class DigestNodes {
     public abstract static class SHA512Node extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject sha512() {
+        protected DynamicObject sha512() {
             return createDigest(getContext(), DigestAlgorithm.SHA512);
         }
 
@@ -104,7 +104,7 @@ public abstract class DigestNodes {
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(message)")
-        public DynamicObject update(DynamicObject digestObject, DynamicObject message) {
+        protected DynamicObject update(DynamicObject digestObject, DynamicObject message) {
             final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
 
             RopeOperations.visitBytes(StringOperations.rope(message), digest::update);
@@ -119,7 +119,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject reset(DynamicObject digestObject) {
+        protected DynamicObject reset(DynamicObject digestObject) {
             Layouts.DIGEST.getDigest(digestObject).reset();
             return digestObject;
         }
@@ -132,7 +132,7 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject digest(DynamicObject digestObject) {
+        protected DynamicObject digest(DynamicObject digestObject) {
             final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
 
             return makeStringNode.executeMake(cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
@@ -159,7 +159,7 @@ public abstract class DigestNodes {
     public abstract static class DigestLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int digestLength(DynamicObject digestObject) {
+        protected int digestLength(DynamicObject digestObject) {
             return Layouts.DIGEST.getAlgorithm(digestObject).getLength();
         }
 
@@ -172,7 +172,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(message)")
-        public DynamicObject bubblebabble(DynamicObject message) {
+        protected DynamicObject bubblebabble(DynamicObject message) {
             final Rope rope = StringOperations.rope(message);
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 

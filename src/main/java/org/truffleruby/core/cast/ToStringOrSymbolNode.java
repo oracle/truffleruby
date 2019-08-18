@@ -32,17 +32,17 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
     @Child private CallDispatchHeadNode toStr;
 
     @Specialization(guards = "isRubySymbol(symbol)")
-    public DynamicObject coerceRubySymbol(DynamicObject symbol) {
+    protected DynamicObject coerceRubySymbol(DynamicObject symbol) {
         return symbol;
     }
 
     @Specialization(guards = "isRubyString(string)")
-    public DynamicObject coerceRubyString(DynamicObject string) {
+    protected DynamicObject coerceRubyString(DynamicObject string) {
         return string;
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isRubyString(object)" })
-    public DynamicObject coerceObject(VirtualFrame frame, Object object,
+    protected DynamicObject coerceObject(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {

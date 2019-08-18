@@ -27,7 +27,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        public int count() {
+        protected int count() {
             return getCollectionCount();
         }
 
@@ -46,7 +46,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        public long time() {
+        protected long time() {
             return getCollectionTime();
         }
 

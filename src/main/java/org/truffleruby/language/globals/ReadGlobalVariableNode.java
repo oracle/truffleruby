@@ -29,14 +29,14 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
-    public Object read(
+    protected Object read(
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("create(name)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 0" }, assumptions = "storage.getValidAssumption()")
-    public Object readHooks(VirtualFrame frame,
+    protected Object readHooks(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
             @Cached YieldNode yieldNode) {
@@ -44,7 +44,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
-    public Object readHooksWithBinding(VirtualFrame frame,
+    protected Object readHooksWithBinding(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
             @Cached YieldNode yieldNode) {

@@ -141,7 +141,7 @@ public abstract class ModuleNodes {
         @Child private IsANode isANode = IsANode.create();
 
         @Specialization
-        public boolean containsInstance(DynamicObject module, Object instance) {
+        protected boolean containsInstance(DynamicObject module, Object instance) {
             return isANode.executeIsA(instance, module);
         }
 
@@ -154,7 +154,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyModule(other)")
-        public Object isSubclassOf(DynamicObject self, DynamicObject other) {
+        protected Object isSubclassOf(DynamicObject self, DynamicObject other) {
             if (self == other) {
                 return false;
             }
@@ -171,7 +171,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        public Object isSubclassOfOther(DynamicObject self, DynamicObject other) {
+        protected Object isSubclassOfOther(DynamicObject self, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -184,7 +184,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyModule(other)")
-        public Object isSubclassOfOrEqualTo(DynamicObject self, DynamicObject other) {
+        protected Object isSubclassOfOrEqualTo(DynamicObject self, DynamicObject other) {
             if (self == other || ModuleOperations.includesModule(self, other)) {
                 return true;
             }
@@ -197,7 +197,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        public Object isSubclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
+        protected Object isSubclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -210,7 +210,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyModule(other)")
-        public Object isSuperclassOf(DynamicObject self, DynamicObject other) {
+        protected Object isSuperclassOf(DynamicObject self, DynamicObject other) {
             if (self == other) {
                 return false;
             }
@@ -227,7 +227,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        public Object isSuperclassOfOther(DynamicObject self, DynamicObject other) {
+        protected Object isSuperclassOfOther(DynamicObject self, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -240,7 +240,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyModule(other)")
-        public Object isSuperclassOfOrEqualTo(DynamicObject self, DynamicObject other) {
+        protected Object isSuperclassOfOrEqualTo(DynamicObject self, DynamicObject other) {
             if (self == other || ModuleOperations.includesModule(other, self)) {
                 return true;
             }
@@ -253,7 +253,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        public Object isSuperclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
+        protected Object isSuperclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
             throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
@@ -273,7 +273,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyModule(other)")
-        public Object compare(DynamicObject self, DynamicObject other) {
+        protected Object compare(DynamicObject self, DynamicObject other) {
             if (self == other) {
                 return 0;
             }
@@ -288,7 +288,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(other)")
-        public Object compareOther(DynamicObject self, DynamicObject other) {
+        protected Object compareOther(DynamicObject self, DynamicObject other) {
             return nil();
         }
 
@@ -313,7 +313,7 @@ public abstract class ModuleNodes {
         @Child AddMethodNode addMethodNode = AddMethodNode.create(false);
 
         @Specialization
-        public DynamicObject aliasMethod(DynamicObject module, String newName, String oldName,
+        protected DynamicObject aliasMethod(DynamicObject module, String newName, String oldName,
                 @Cached BranchProfile errorProfile) {
             DynamicObject moduleForLookup;
             if (Layouts.MODULE.getFields(module).isRefinement()) {
@@ -344,7 +344,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject ancestors(DynamicObject self) {
+        protected DynamicObject ancestors(DynamicObject self) {
             final List<DynamicObject> ancestors = new ArrayList<>();
             for (DynamicObject module : Layouts.MODULE.getFields(self).ancestors()) {
                 ancestors.add(module);
@@ -361,7 +361,7 @@ public abstract class ModuleNodes {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @Specialization(guards = "isRubyModule(target)")
-        public DynamicObject appendFeatures(DynamicObject features, DynamicObject target,
+        protected DynamicObject appendFeatures(DynamicObject features, DynamicObject target,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
@@ -384,7 +384,7 @@ public abstract class ModuleNodes {
         public abstract DynamicObject executeGenerateAccessor(DynamicObject module, Object name);
 
         @Specialization
-        public DynamicObject generateAccessor(DynamicObject module, Object nameObject,
+        protected DynamicObject generateAccessor(DynamicObject module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String name = nameToJavaStringNode.executeToJavaString(nameObject);
             createAccessor(module, name);
@@ -440,7 +440,7 @@ public abstract class ModuleNodes {
         @Child private WarningNode warnNode;
 
         @Specialization
-        public DynamicObject attr(DynamicObject module, Object[] names) {
+        protected DynamicObject attr(DynamicObject module, Object[] names) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -477,7 +477,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
-        public DynamicObject attrAccessor(DynamicObject module, Object[] names) {
+        protected DynamicObject attrAccessor(DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateGetterNode.executeGenerateAccessor(module, name);
                 generateSetterNode.executeGenerateAccessor(module, name);
@@ -493,7 +493,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
 
         @Specialization
-        public DynamicObject attrReader(DynamicObject module, Object[] names) {
+        protected DynamicObject attrReader(DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateGetterNode.executeGenerateAccessor(module, name);
             }
@@ -508,7 +508,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
-        public DynamicObject attrWriter(DynamicObject module, Object[] names) {
+        protected DynamicObject attrWriter(DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateSetterNode.executeGenerateAccessor(module, name);
             }
@@ -535,7 +535,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(filename)")
-        public DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
+        protected DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("autoload must be constant name: %s", name), module, name, this));
             }
@@ -557,12 +557,12 @@ public abstract class ModuleNodes {
     public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public DynamicObject isAutoloadSymbol(DynamicObject module, DynamicObject name) {
+        protected DynamicObject isAutoloadSymbol(DynamicObject module, DynamicObject name) {
             return isAutoload(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = "isRubyString(name)")
-        public DynamicObject isAutoloadString(DynamicObject module, DynamicObject name) {
+        protected DynamicObject isAutoloadString(DynamicObject module, DynamicObject name) {
             return isAutoload(module, StringOperations.getString(name));
         }
 
@@ -592,32 +592,32 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyString(code)")
-        public Object classEval(DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block,
+        protected Object classEval(DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, "(eval)", callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
+        protected Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(file), callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
+        protected Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, StringOperations.getString(file), line);
             return deferredCall.call(callNode);
         }
 
         @Specialization(guards = "wasProvided(code)")
-        public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
+        protected Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "wasProvided(file)" })
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
+        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(module, code, StringOperations.getString(toStr(frame, file)), callNode);
         }
@@ -652,18 +652,18 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block,
+        protected Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block,
                 @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
 
         @Specialization
-        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, NotProvided block) {
+        protected Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
         }
 
         @Specialization(guards = "wasProvided(code)")
-        public Object classEval(DynamicObject self, Object code, NotProvided file, NotProvided line, DynamicObject block) {
+        protected Object classEval(DynamicObject self, Object code, NotProvided file, NotProvided line, DynamicObject block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
         }
 
@@ -681,13 +681,13 @@ public abstract class ModuleNodes {
         public abstract Object executeClassExec(DynamicObject self, Object[] args, Object block);
 
         @Specialization
-        public Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
+        protected Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(self));
             return callBlockNode.executeCallBlock(declarationContext, block, self, Layouts.PROC.getBlock(block), args);
         }
 
         @Specialization
-        public Object classExec(DynamicObject self, Object[] args, NotProvided block) {
+        protected Object classExec(DynamicObject self, Object[] args, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
 
@@ -705,7 +705,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        public boolean isClassVariableDefinedString(DynamicObject module, String name) {
+        protected boolean isClassVariableDefinedString(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             final Object value = ModuleOperations.lookupClassVariable(module, name);
@@ -727,7 +727,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary(transferToInterpreterOnException = false)
-        public Object getClassVariable(DynamicObject module, String name) {
+        protected Object getClassVariable(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             final Object value = ModuleOperations.lookupClassVariable(module, name);
@@ -754,7 +754,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary(transferToInterpreterOnException = false)
-        public Object setClassVariable(DynamicObject module, String name, Object value) {
+        protected Object setClassVariable(DynamicObject module, String name, Object value) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             ModuleOperations.setClassVariable(getContext(), module, name, value, this);
@@ -769,7 +769,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject getClassVariables(DynamicObject module) {
+        protected DynamicObject getClassVariables(DynamicObject module) {
             final Map<String, Object> allClassVariables = ModuleOperations.getAllClassVariables(module);
             final int size = allClassVariables.size();
             final Object[] store = new Object[size];
@@ -794,7 +794,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject constants(DynamicObject module, boolean inherit) {
+        protected DynamicObject constants(DynamicObject module, boolean inherit) {
             final List<DynamicObject> constantsArray = new ArrayList<>();
 
             final Iterable<Entry<String, RubyConstant>> constants;
@@ -834,7 +834,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public boolean isConstDefined(DynamicObject module, String fullName, boolean inherit) {
+        protected boolean isConstDefined(DynamicObject module, String fullName, boolean inherit) {
             final ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
             return constant.isFound();
         }
@@ -865,19 +865,19 @@ public abstract class ModuleNodes {
         // Symbol
 
         @Specialization(guards = { "inherit", "isRubySymbol(name)" })
-        public Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
+        protected Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
             return getConstant(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
-        public Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
+        protected Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
             return getConstantNoInherit(module, Layouts.SYMBOL.getString(name));
         }
 
         // String
 
         @Specialization(guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" }, limit = "getLimit()")
-        public Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
+        protected Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
                 @Cached RopeNodes.EqualNode equalNode,
@@ -886,18 +886,18 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "inherit", "isRubyString(name)", "!isScoped(name)" }, replaces = "getConstantStringCached")
-        public Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
+        protected Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
             return getConstant(module, StringOperations.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
-        public Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
+        protected Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
             return getConstantNoInherit(module, StringOperations.getString(name));
         }
 
         // Scoped String
         @Specialization(guards = { "isRubyString(fullName)", "isScoped(fullName)" })
-        public Object getConstantScoped(DynamicObject module, DynamicObject fullName, boolean inherit) {
+        protected Object getConstantScoped(DynamicObject module, DynamicObject fullName, boolean inherit) {
             return FAILURE;
         }
 
@@ -941,7 +941,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public Object constMissing(DynamicObject module, String name) {
+        protected Object constMissing(DynamicObject module, String name) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, name, this));
         }
 
@@ -966,7 +966,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object setConstant(DynamicObject module, String name, Object value) {
+        protected Object setConstant(DynamicObject module, String name, Object value) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
@@ -1010,25 +1010,25 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject defineMethod(DynamicObject module, String name, NotProvided proc, NotProvided block) {
+        protected DynamicObject defineMethod(DynamicObject module, String name, NotProvided proc, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("needs either proc or block", this));
         }
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject defineMethodBlock(DynamicObject module, String name, NotProvided proc, DynamicObject block) {
+        protected DynamicObject defineMethodBlock(DynamicObject module, String name, NotProvided proc, DynamicObject block) {
             return defineMethodProc(module, name, block, NotProvided.INSTANCE);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject defineMethodProc(DynamicObject module, String name, DynamicObject proc, NotProvided block) {
+        protected DynamicObject defineMethodProc(DynamicObject module, String name, DynamicObject proc, NotProvided block) {
             return defineMethod(module, name, proc);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(methodObject)")
-        public DynamicObject defineMethodMethod(DynamicObject module, String name, DynamicObject methodObject, NotProvided block,
+        protected DynamicObject defineMethodMethod(DynamicObject module, String name, DynamicObject methodObject, NotProvided block,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
             final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
 
@@ -1049,7 +1049,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject defineMethod(DynamicObject module, String name, DynamicObject method, NotProvided block) {
+        protected DynamicObject defineMethod(DynamicObject module, String name, DynamicObject method, NotProvided block) {
             final InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(method);
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final DynamicObject declaringModule = internalMethod.getDeclaringModule();
@@ -1117,7 +1117,7 @@ public abstract class ModuleNodes {
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
         @Specialization
-        public DynamicObject extendObject(DynamicObject module, DynamicObject object,
+        protected DynamicObject extendObject(DynamicObject module, DynamicObject object,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
@@ -1146,12 +1146,12 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject module, NotProvided block) {
+        protected DynamicObject initialize(DynamicObject module, NotProvided block) {
             return module;
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject module, DynamicObject block) {
+        protected DynamicObject initialize(DynamicObject module, DynamicObject block) {
             classEval(module, block);
             return module;
         }
@@ -1164,7 +1164,7 @@ public abstract class ModuleNodes {
         @Child private SingletonClassNode singletonClassNode;
 
         @Specialization(guards = { "!isRubyClass(self)", "isRubyModule(from)", "!isRubyClass(from)" })
-        public Object initializeCopyModule(DynamicObject self, DynamicObject from) {
+        protected Object initializeCopyModule(DynamicObject self, DynamicObject from) {
             Layouts.MODULE.getFields(self).initCopy(from);
 
             final DynamicObject selfMetaClass = getSingletonClass(self);
@@ -1175,7 +1175,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "isRubyClass(self)", "isRubyClass(from)" })
-        public Object initializeCopyClass(DynamicObject self, DynamicObject from,
+        protected Object initializeCopyClass(DynamicObject self, DynamicObject from,
                 @Cached BranchProfile errorProfile) {
             if (from == coreLibrary().getBasicObjectClass()) {
                 errorProfile.enter();
@@ -1213,7 +1213,7 @@ public abstract class ModuleNodes {
     public abstract static class IncludedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject included(Object subclass) {
+        protected DynamicObject included(Object subclass) {
             return nil();
         }
 
@@ -1224,7 +1224,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject includedModules(DynamicObject module) {
+        protected DynamicObject includedModules(DynamicObject module) {
             final List<DynamicObject> modules = new ArrayList<>();
 
             for (DynamicObject included : Layouts.MODULE.getFields(module).ancestors()) {
@@ -1256,7 +1256,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
+        protected boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
             final InternalMethod method;
             if (inherit) {
                 method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1275,7 +1275,7 @@ public abstract class ModuleNodes {
         @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization
-        public DynamicObject moduleFunction(VirtualFrame frame, DynamicObject module, Object[] names,
+        protected DynamicObject moduleFunction(VirtualFrame frame, DynamicObject module, Object[] names,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
@@ -1293,7 +1293,7 @@ public abstract class ModuleNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public Object name(DynamicObject module,
+        protected Object name(DynamicObject module,
                 @Cached("createIdentityProfile()") ValueProfile fieldsProfile) {
             final ModuleFields fields = fieldsProfile.profile(Layouts.MODULE.getFields(module));
 
@@ -1310,7 +1310,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject nesting() {
+        protected DynamicObject nesting() {
             final List<DynamicObject> modules = new ArrayList<>();
 
             InternalMethod method = getContext().getCallStack().getCallingMethodIgnoringSend();
@@ -1339,7 +1339,7 @@ public abstract class ModuleNodes {
         public abstract DynamicObject executePublic(VirtualFrame frame, DynamicObject module, Object[] args);
 
         @Specialization
-        public DynamicObject doPublic(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject doPublic(VirtualFrame frame, DynamicObject module, Object[] names) {
             return setVisibilityNode.executeSetVisibility(frame, module, names);
         }
 
@@ -1352,7 +1352,7 @@ public abstract class ModuleNodes {
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PUBLIC);
 
         @Specialization
-        public DynamicObject publicClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject publicClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
             final DynamicObject singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
@@ -1371,7 +1371,7 @@ public abstract class ModuleNodes {
         public abstract DynamicObject executePrivate(VirtualFrame frame, DynamicObject module, Object[] args);
 
         @Specialization
-        public DynamicObject doPrivate(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject doPrivate(VirtualFrame frame, DynamicObject module, Object[] names) {
             return setVisibilityNode.executeSetVisibility(frame, module, names);
         }
 
@@ -1383,7 +1383,7 @@ public abstract class ModuleNodes {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @Specialization(guards = "isRubyModule(target)")
-        public DynamicObject prependFeatures(DynamicObject features, DynamicObject target,
+        protected DynamicObject prependFeatures(DynamicObject features, DynamicObject target,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
@@ -1402,7 +1402,7 @@ public abstract class ModuleNodes {
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PRIVATE);
 
         @Specialization
-        public DynamicObject privateClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject privateClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
             final DynamicObject singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
@@ -1424,7 +1424,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public DynamicObject publicInstanceMethod(DynamicObject module, String name,
+        protected DynamicObject publicInstanceMethod(DynamicObject module, String name,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1459,7 +1459,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        public DynamicObject getInstanceMethods(DynamicObject module, boolean includeAncestors) {
+        protected DynamicObject getInstanceMethods(DynamicObject module, boolean includeAncestors) {
             Object[] objects = Layouts.MODULE.getFields(module).filterMethods(getContext(), includeAncestors, MethodFilter.by(visibility)).toArray();
             return createArray(objects, objects.length);
         }
@@ -1510,7 +1510,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public boolean isMethodDefined(DynamicObject module, String name) {
+        protected boolean isMethodDefined(DynamicObject module, String name) {
             // TODO (pitr-ch 30-Mar-2016): cache lookup
             return ModuleOperations.lookupMethod(module, name, visibility) != null;
         }
@@ -1556,7 +1556,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject instanceMethods(DynamicObject module, boolean includeAncestors) {
+        protected DynamicObject instanceMethods(DynamicObject module, boolean includeAncestors) {
             Object[] objects = Layouts.MODULE.getFields(module).filterMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED).toArray();
             return createArray(objects, objects.length);
         }
@@ -1573,7 +1573,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public DynamicObject instanceMethod(DynamicObject module, String name,
+        protected DynamicObject instanceMethod(DynamicObject module, String name,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1594,7 +1594,7 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject privateConstant(DynamicObject module, Object[] args) {
+        protected DynamicObject privateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, true);
@@ -1609,7 +1609,7 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject deprecateConstant(DynamicObject module, Object[] args) {
+        protected DynamicObject deprecateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).deprecateConstant(getContext(), this, name);
@@ -1624,7 +1624,7 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject publicConstant(DynamicObject module, Object[] args) {
+        protected DynamicObject publicConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
                 String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, false);
@@ -1639,7 +1639,7 @@ public abstract class ModuleNodes {
         @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PROTECTED);
 
         @Specialization
-        public DynamicObject doProtected(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject doProtected(VirtualFrame frame, DynamicObject module, Object[] names) {
             return setVisibilityNode.executeSetVisibility(frame, module, names);
         }
 
@@ -1657,7 +1657,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        public Object removeClassVariableString(DynamicObject module, String name) {
+        protected Object removeClassVariableString(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
             return ModuleOperations.removeClassVariable(Layouts.MODULE.getFields(module), getContext(), this, name);
         }
@@ -1675,7 +1675,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        Object removeConstant(DynamicObject module, String name) {
+        protected Object removeConstant(DynamicObject module, String name) {
             final RubyConstant oldConstant = Layouts.MODULE.getFields(module).removeConstant(getContext(), this, name);
             if (oldConstant == null) {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorConstantNotDefined(module, name, this));
@@ -1700,7 +1700,7 @@ public abstract class ModuleNodes {
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
                 removeMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
             }
@@ -1733,7 +1733,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject toS(DynamicObject module) {
+        protected DynamicObject toS(DynamicObject module) {
             final String moduleName;
             final ModuleFields fields = Layouts.MODULE.getFields(module);
             if (RubyGuards.isSingletonClass(module)) {
@@ -1771,7 +1771,7 @@ public abstract class ModuleNodes {
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        public DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
                 undefMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
             }
@@ -1779,7 +1779,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubySymbol(name)")
-        public DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, DynamicObject name) {
+        protected DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, DynamicObject name) {
             undefMethod(frame, module, Layouts.SYMBOL.getString(name));
             return module;
         }
@@ -1803,7 +1803,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject usedModules() {
+        protected DynamicObject usedModules() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinementNamespaces = new HashSet<>();
@@ -1824,7 +1824,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject usedRefinements() {
+        protected DynamicObject usedRefinements() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinements = new HashSet<>();
@@ -1853,7 +1853,7 @@ public abstract class ModuleNodes {
         public abstract DynamicObject executeSetVisibility(VirtualFrame frame, DynamicObject module, Object[] arguments);
 
         @Specialization
-        public DynamicObject setVisibility(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject setVisibility(VirtualFrame frame, DynamicObject module, Object[] names) {
             if (names.length == 0) {
                 DeclarationContext.setCurrentVisibility(getContext(), visibility);
             } else {
@@ -1881,7 +1881,7 @@ public abstract class ModuleNodes {
         public abstract void executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
 
         @Specialization
-        public void setMethodVisibility(DynamicObject module, Object name,
+        protected void setMethodVisibility(DynamicObject module, Object name,
                 @Cached BranchProfile errorProfile) {
             final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
@@ -1960,7 +1960,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject moduleUsing(DynamicObject self, DynamicObject refinementModule) {
+        protected DynamicObject moduleUsing(DynamicObject self, DynamicObject refinementModule) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             if (self != RubyArguments.getSelf(callerFrame)) {
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("Module#using is not called on self", this));
@@ -1975,7 +1975,7 @@ public abstract class ModuleNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return createModule(getContext(), getEncapsulatingSourceSection(), rubyClass, null, null, this);
         }
 
@@ -1985,12 +1985,12 @@ public abstract class ModuleNodes {
     public abstract static class IsSingletonClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!isRubyClass(rubyModule)")
-        public Object doModule(DynamicObject rubyModule) {
+        protected Object doModule(DynamicObject rubyModule) {
             return false;
         }
 
         @Specialization(guards = "isRubyClass(rubyClass)")
-        public Object doClass(DynamicObject rubyClass) {
+        protected Object doClass(DynamicObject rubyClass) {
             return Layouts.CLASS.getIsSingleton(rubyClass);
         }
     }

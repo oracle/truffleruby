@@ -35,14 +35,14 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "strategy.matches(frame)" }, limit = "getLimit()")
-    public ThreadAndFrameLocalStorage getStorageCached(DynamicObject symbol, MaterializedFrame frame,
+    protected ThreadAndFrameLocalStorage getStorageCached(DynamicObject symbol, MaterializedFrame frame,
             @Cached("symbol") DynamicObject cachedSymbol,
             @Cached("of(getContext(), frame, getSymbolString(symbol))") StorageInFrameFinder strategy) {
         return strategy.getStorage(getContext(), frame);
     }
 
     @Specialization(guards = "isRubySymbol(symbol)", replaces = "getStorageCached")
-    public ThreadAndFrameLocalStorage getStorage(DynamicObject symbol, MaterializedFrame frame) {
+    protected ThreadAndFrameLocalStorage getStorage(DynamicObject symbol, MaterializedFrame frame) {
         return getStorageSearchingDeclarations(getContext(), frame, Layouts.SYMBOL.getString(symbol));
     }
 

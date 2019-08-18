@@ -33,7 +33,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    public boolean updateShapeAndIsShared(DynamicObject object) {
+    protected boolean updateShapeAndIsShared(DynamicObject object) {
         return executeIsShared(object);
     }
 

@@ -40,7 +40,7 @@ public abstract class IsANode extends RubyBaseWithoutContextNode {
             "metaClassNode.executeMetaClass(self) == cachedMetaClass",
             "module == cachedModule"
     }, assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)", limit = "getCacheLimit()")
-    public boolean isACached(Object self, DynamicObject module,
+    protected boolean isACached(Object self, DynamicObject module,
             @Cached MetaClassNode metaClassNode,
             @Cached("metaClassNode.executeMetaClass(self)") DynamicObject cachedMetaClass,
             @Cached("module") DynamicObject cachedModule,
@@ -53,13 +53,13 @@ public abstract class IsANode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization(guards = "isRubyModule(module)", replaces = "isACached")
-    public boolean isAUncached(Object self, DynamicObject module,
+    protected boolean isAUncached(Object self, DynamicObject module,
             @Cached MetaClassNode metaClassNode) {
         return isA(metaClassNode.executeMetaClass(self), module);
     }
 
     @Specialization(guards = "!isRubyModule(module)")
-    public boolean isATypeError(Object self, DynamicObject module,
+    protected boolean isATypeError(Object self, DynamicObject module,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().typeError("class or module required", this));
     }

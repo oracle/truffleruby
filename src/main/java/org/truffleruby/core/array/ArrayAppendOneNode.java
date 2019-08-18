@@ -38,7 +38,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     // Append of the correct type
 
     @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
-    public DynamicObject appendOneSameType(DynamicObject array, Object value,
+    protected DynamicObject appendOneSameType(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
@@ -69,7 +69,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     @Specialization(guards = {
             "strategy.matches(array)", "valueStrategy.specializesFor(value)",
     }, limit = "ARRAY_STRATEGIES")
-    public DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
+    protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
             @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,

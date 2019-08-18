@@ -27,12 +27,12 @@ public abstract class ToSNode extends RubyNode {
     @Child private KernelNodes.ToSNode kernelToSNode;
 
     @Specialization(guards = "isRubyString(string)")
-    public DynamicObject toS(DynamicObject string) {
+    protected DynamicObject toS(DynamicObject string) {
         return string;
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    public DynamicObject toSFallback(VirtualFrame frame, Object object,
+    protected DynamicObject toSFallback(VirtualFrame frame, Object object,
             @Cached("createPrivate()") CallDispatchHeadNode callToSNode) {
         final Object value = callToSNode.call(object, "to_s");
 

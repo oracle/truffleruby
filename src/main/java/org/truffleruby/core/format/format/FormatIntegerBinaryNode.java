@@ -44,7 +44,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
     }
 
     @Specialization
-    public byte[] format(int width, int precision, int value) {
+    protected byte[] format(int width, int precision, int value) {
         final boolean isNegative = value < 0;
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
         final String formatted = negativeAndPadded ? Integer.toBinaryString(-value) : Integer.toBinaryString(value);
@@ -53,7 +53,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
     }
 
     @Specialization
-    public byte[] format(int width, int precision, long value) {
+    protected byte[] format(int width, int precision, long value) {
         final boolean isNegative = value < 0;
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
         final String formatted = negativeAndPadded ? Long.toBinaryString(-value) : Long.toBinaryString(value);
@@ -63,7 +63,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "isRubyBignum(value)")
-    public byte[] format(int width, int precision, DynamicObject value) {
+    protected byte[] format(int width, int precision, DynamicObject value) {
         final BigInteger bigInteger = Layouts.BIGNUM.getValue(value);
         final boolean isNegative = bigInteger.signum() == -1;
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);

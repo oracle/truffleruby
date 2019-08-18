@@ -39,7 +39,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
             "cachedIndex < getSize(hash)",
             "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)"
     }, limit = "1")
-    public Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    protected Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
             @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -85,7 +85,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     @ExplodeLoop
     @Specialization(replaces = "getConstantIndexPackedArray")
-    public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
             @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));

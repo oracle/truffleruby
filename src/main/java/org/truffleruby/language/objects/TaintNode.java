@@ -30,32 +30,32 @@ public abstract class TaintNode extends RubyBaseNode {
     public abstract Object executeTaint(Object object);
 
     @Specialization
-    public Object taint(boolean object) {
+    protected Object taint(boolean object) {
         return object;
     }
 
     @Specialization
-    public Object taint(int object) {
+    protected Object taint(int object) {
         return object;
     }
 
     @Specialization
-    public Object taint(long object) {
+    protected Object taint(long object) {
         return object;
     }
 
     @Specialization
-    public Object taint(double object) {
+    protected Object taint(double object) {
         return object;
     }
 
     @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-    public Object taintNilOrSymbol(DynamicObject object) {
+    protected Object taintNilOrSymbol(DynamicObject object) {
         return object;
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
-    public Object taint(
+    protected Object taint(
             DynamicObject object,
             @Cached WriteObjectFieldNode writeTaintNode) {
 

@@ -39,7 +39,7 @@ public abstract class QueueNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, new UnsizedQueue());
         }
 
@@ -51,7 +51,7 @@ public abstract class QueueNodes {
         @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
         @Specialization
-        public DynamicObject push(DynamicObject self, final Object value) {
+        protected DynamicObject push(DynamicObject self, final Object value) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
@@ -76,7 +76,7 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        public Object popBlocking(DynamicObject self, boolean nonBlocking,
+        protected Object popBlocking(DynamicObject self, boolean nonBlocking,
                 @Cached BranchProfile closedProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
@@ -96,7 +96,7 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        public Object popNonBlock(DynamicObject self, boolean nonBlocking,
+        protected Object popNonBlock(DynamicObject self, boolean nonBlocking,
                 @Cached BranchProfile errorProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
@@ -117,13 +117,13 @@ public abstract class QueueNodes {
     public abstract static class ReceiveTimeoutNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object receiveTimeout(DynamicObject self, int duration) {
+        protected Object receiveTimeout(DynamicObject self, int duration) {
             return receiveTimeout(self, (double) duration);
         }
 
         @TruffleBoundary
         @Specialization
-        public Object receiveTimeout(DynamicObject self, double duration) {
+        protected Object receiveTimeout(DynamicObject self, double duration) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final long durationInMillis = (long) (duration * 1000.0);
@@ -157,7 +157,7 @@ public abstract class QueueNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean empty(DynamicObject self) {
+        protected boolean empty(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.isEmpty();
         }
@@ -168,7 +168,7 @@ public abstract class QueueNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int size(DynamicObject self) {
+        protected int size(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.size();
         }
@@ -179,7 +179,7 @@ public abstract class QueueNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject clear(DynamicObject self) {
+        protected DynamicObject clear(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             queue.clear();
             return self;
@@ -191,7 +191,7 @@ public abstract class QueueNodes {
     public abstract static class MarshalDumpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object marshal_dump(DynamicObject self) {
+        protected Object marshal_dump(DynamicObject self) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantDump(self, this));
         }
 
@@ -201,7 +201,7 @@ public abstract class QueueNodes {
     public abstract static class NumWaitingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int num_waiting(DynamicObject self) {
+        protected int num_waiting(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.getNumberWaitingToTake();
         }
@@ -212,7 +212,7 @@ public abstract class QueueNodes {
     public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject close(DynamicObject self) {
+        protected DynamicObject close(DynamicObject self) {
             Layouts.QUEUE.getQueue(self).close();
             return self;
         }
@@ -223,7 +223,7 @@ public abstract class QueueNodes {
     public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean closed(DynamicObject self) {
+        protected boolean closed(DynamicObject self) {
             return Layouts.QUEUE.getQueue(self).isClosed();
         }
 

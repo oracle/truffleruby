@@ -28,7 +28,7 @@ public abstract class ArrayGeneralizeNode extends RubyBaseNode {
     public abstract Object[] executeGeneralize(DynamicObject array, int requiredCapacity);
 
     @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-    public Object[] generalize(DynamicObject array, int requiredCapacity,
+    protected Object[] generalize(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
             @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,

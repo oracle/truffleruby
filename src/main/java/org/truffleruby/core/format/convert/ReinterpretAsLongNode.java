@@ -18,12 +18,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class ReinterpretAsLongNode extends FormatNode {
 
     @Specialization
-    public long asLong(float object) {
+    protected long asLong(float object) {
         return Float.floatToRawIntBits(object);
     }
 
     @Specialization
-    public long asLong(double object) {
+    protected long asLong(double object) {
         return Double.doubleToRawLongBits(object);
     }
 

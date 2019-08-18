@@ -29,17 +29,17 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class ToProcNode extends RubyNode {
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject doNil(Object nil) {
+    protected DynamicObject doNil(Object nil) {
         return nil();
     }
 
     @Specialization(guards = "isRubyProc(proc)")
-    public DynamicObject doRubyProc(DynamicObject proc) {
+    protected DynamicObject doRubyProc(DynamicObject proc) {
         return proc;
     }
 
     @Specialization(guards = "!isRubyProc(object)")
-    public DynamicObject doObject(VirtualFrame frame, Object object,
+    protected DynamicObject doObject(VirtualFrame frame, Object object,
             @Cached("createPrivate()") CallDispatchHeadNode toProc,
             @Cached BranchProfile errorProfile) {
         final Object coerced;

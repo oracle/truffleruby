@@ -46,7 +46,7 @@ public abstract class ByteArrayNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
         }
 
@@ -56,7 +56,7 @@ public abstract class ByteArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject initialize(DynamicObject byteArray, int size) {
+        protected DynamicObject initialize(DynamicObject byteArray, int size) {
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
             bytes.unsafeReplace(new byte[size], 0);
             return byteArray;
@@ -68,7 +68,7 @@ public abstract class ByteArrayNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int getByte(DynamicObject bytes, int index,
+        protected int getByte(DynamicObject bytes, int index,
                 @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
 
@@ -91,7 +91,7 @@ public abstract class ByteArrayNodes {
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject prepend(DynamicObject bytes, DynamicObject string,
+        protected DynamicObject prepend(DynamicObject bytes, DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final int prependLength = rope.byteLength();
@@ -109,7 +109,7 @@ public abstract class ByteArrayNodes {
     public abstract static class SetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object setByte(DynamicObject bytes, int index, int value,
+        protected Object setByte(DynamicObject bytes, int index, int value,
                 @Cached BranchProfile errorProfile) {
             if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getLength()) {
                 errorProfile.enter();
@@ -126,7 +126,7 @@ public abstract class ByteArrayNodes {
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
+        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
@@ -136,7 +136,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = "isRubyPointer(pointer)")
-        public Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
+        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 
@@ -155,7 +155,7 @@ public abstract class ByteArrayNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int size(DynamicObject bytes) {
+        protected int size(DynamicObject bytes) {
             return Layouts.BYTE_ARRAY.getBytes(bytes).getLength();
         }
 
@@ -165,7 +165,7 @@ public abstract class ByteArrayNodes {
     public abstract static class SetLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int setLength(DynamicObject bytes, int length) {
+        protected int setLength(DynamicObject bytes, int length) {
             Layouts.BYTE_ARRAY.getBytes(bytes).setLength(length);
             return length;
         }
@@ -176,7 +176,7 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
-        public Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+        protected Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
@@ -203,7 +203,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
-        public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+        protected Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {

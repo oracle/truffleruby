@@ -27,32 +27,32 @@ public abstract class ReadFrameSlotNode extends RubyBaseWithoutContextNode {
     public abstract Object executeRead(Frame frame);
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
-    public boolean readBoolean(Frame frame) throws FrameSlotTypeException {
+    protected boolean readBoolean(Frame frame) throws FrameSlotTypeException {
         return frame.getBoolean(frameSlot);
     }
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
-    public int readInt(Frame frame) throws FrameSlotTypeException {
+    protected int readInt(Frame frame) throws FrameSlotTypeException {
         return frame.getInt(frameSlot);
     }
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
-    public long readLong(Frame frame) throws FrameSlotTypeException {
+    protected long readLong(Frame frame) throws FrameSlotTypeException {
         return frame.getLong(frameSlot);
     }
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
-    public double readDouble(Frame frame) throws FrameSlotTypeException {
+    protected double readDouble(Frame frame) throws FrameSlotTypeException {
         return frame.getDouble(frameSlot);
     }
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
-    public Object readObject(Frame frame) throws FrameSlotTypeException {
+    protected Object readObject(Frame frame) throws FrameSlotTypeException {
         return frame.getObject(frameSlot);
     }
 
     @Specialization(replaces = { "readBoolean", "readInt", "readLong", "readDouble", "readObject" })
-    public Object readAny(Frame frame) {
+    protected Object readAny(Frame frame) {
         return frame.getValue(frameSlot);
     }
 

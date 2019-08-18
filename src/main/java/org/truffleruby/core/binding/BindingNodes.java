@@ -145,7 +145,7 @@ public abstract class BindingNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject dup(DynamicObject binding) {
+        protected DynamicObject dup(DynamicObject binding) {
             DynamicObject copy = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(binding),
                     Layouts.BINDING.getFrame(binding),
@@ -170,7 +170,7 @@ public abstract class BindingNodes {
                 "!isHiddenVariable(cachedName)",
                 "getFrameDescriptor(binding) == descriptor"
         }, limit = "getCacheLimit()")
-        public boolean localVariableDefinedCached(DynamicObject binding, String name,
+        protected boolean localVariableDefinedCached(DynamicObject binding, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
                 @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot) {
@@ -179,13 +179,13 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!isHiddenVariable(name)")
-        public boolean localVariableDefinedUncached(DynamicObject binding, String name) {
+        protected boolean localVariableDefinedUncached(DynamicObject binding, String name) {
             return FindDeclarationVariableNodes.findFrameSlotOrNull(name, getFrame(binding)) != null;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        public Object localVariableDefinedLastLine(DynamicObject binding, String name) {
+        protected Object localVariableDefinedLastLine(DynamicObject binding, String name) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
@@ -207,7 +207,7 @@ public abstract class BindingNodes {
         }
 
         @Specialization(guards = "!isHiddenVariable(name)")
-        public Object localVariableGetUncached(DynamicObject binding, String name,
+        protected Object localVariableGetUncached(DynamicObject binding, String name,
                 @Cached FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode readNode) {
             MaterializedFrame frame = getFrame(binding);
             Object result = readNode.execute(frame, name);
@@ -219,7 +219,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        public Object localVariableGetLastLine(DynamicObject binding, String name) {
+        protected Object localVariableGetLastLine(DynamicObject binding, String name) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
@@ -248,7 +248,7 @@ public abstract class BindingNodes {
                 "getFrameDescriptor(binding) == cachedFrameDescriptor",
                 "cachedFrameSlot != null"
         }, limit = "getCacheLimit()")
-        public Object localVariableSetCached(DynamicObject binding, String name, Object value,
+        protected Object localVariableSetCached(DynamicObject binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
@@ -263,7 +263,7 @@ public abstract class BindingNodes {
                 "getFrameDescriptor(binding) == cachedFrameDescriptor",
                 "cachedFrameSlot == null"
         }, limit = "getCacheLimit()")
-        public Object localVariableSetNewCached(DynamicObject binding, String name, Object value,
+        protected Object localVariableSetNewCached(DynamicObject binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
@@ -276,7 +276,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!isHiddenVariable(name)")
-        public Object localVariableSetUncached(DynamicObject binding, String name, Object value) {
+        protected Object localVariableSetUncached(DynamicObject binding, String name, Object value) {
             MaterializedFrame frame = getFrame(binding);
             final FrameSlotAndDepth frameSlot = FindDeclarationVariableNodes.findFrameSlotOrNull(name, frame);
             final FrameSlot slot;
@@ -293,7 +293,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHiddenVariable(name)")
-        public Object localVariableSetLastLine(DynamicObject binding, String name, Object value) {
+        protected Object localVariableSetLastLine(DynamicObject binding, String name, Object value) {
             throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
@@ -311,14 +311,14 @@ public abstract class BindingNodes {
     public abstract static class LocalVariablesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "getFrameDescriptor(binding) == cachedFrameDescriptor", limit = "getCacheLimit()")
-        public DynamicObject localVariablesCached(DynamicObject binding,
+        protected DynamicObject localVariablesCached(DynamicObject binding,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("listLocalVariables(getContext(), getFrame(binding))") DynamicObject names) {
             return names;
         }
 
         @Specialization(replaces = "localVariablesCached")
-        public DynamicObject localVariables(DynamicObject binding) {
+        protected DynamicObject localVariables(DynamicObject binding) {
             return listLocalVariables(getContext(), getFrame(binding));
         }
 
@@ -350,7 +350,7 @@ public abstract class BindingNodes {
     public abstract static class ReceiverNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public Object receiver(DynamicObject binding) {
+        protected Object receiver(DynamicObject binding) {
             return RubyArguments.getSelf(Layouts.BINDING.getFrame(binding));
         }
     }
@@ -361,7 +361,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object sourceLocation(DynamicObject binding,
+        protected Object sourceLocation(DynamicObject binding,
                 @Cached MakeStringNode makeStringNode) {
             final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
 
@@ -380,7 +380,7 @@ public abstract class BindingNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -392,7 +392,7 @@ public abstract class BindingNodes {
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
-        public DynamicObject binding(VirtualFrame frame) {
+        protected DynamicObject binding(VirtualFrame frame) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return BindingNodes.createBinding(getContext(), callerFrame);

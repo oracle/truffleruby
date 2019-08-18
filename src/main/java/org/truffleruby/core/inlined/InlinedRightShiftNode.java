@@ -28,17 +28,17 @@ public abstract class InlinedRightShiftNode extends BinaryInlinedOperationNode {
     }
 
     @Specialization(assumptions = "assumptions")
-    Object intRightShift(int a, int b) {
+    protected Object intRightShift(int a, int b) {
         return getRightShiftNode().executeRightShift(a, b);
     }
 
     @Specialization(assumptions = "assumptions")
-    Object longRightShift(long a, int b) {
+    protected Object longRightShift(long a, int b) {
         return getRightShiftNode().executeRightShift(a, b);
     }
 
     @Specialization
-    Object fallback(VirtualFrame frame, Object a, Object b) {
+    protected Object fallback(VirtualFrame frame, Object a, Object b) {
         return rewriteAndCall(frame, a, b);
     }
 

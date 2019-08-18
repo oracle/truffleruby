@@ -29,7 +29,7 @@ public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseWithou
             Object value) throws UnknownIdentifierException;
 
     @Specialization(guards = "isStringLike.executeIsStringLike(name)")
-    public Object cacheStringLikeAndForward(
+    protected Object cacheStringLikeAndForward(
             DynamicObject receiver, Object name, Object value,
             @Cached ToJavaStringNode toJavaStringNode,
             @Cached ForeignWriteStringCachedHelperNode nextHelper,
@@ -40,7 +40,7 @@ public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseWithou
     }
 
     @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
-    public Object passThroughNonString(
+    protected Object passThroughNonString(
             DynamicObject receiver, Object name, Object value,
             @Cached ForeignWriteStringCachedHelperNode nextHelper,
             @Cached IsStringLikeNode isStringLike) throws UnknownIdentifierException {

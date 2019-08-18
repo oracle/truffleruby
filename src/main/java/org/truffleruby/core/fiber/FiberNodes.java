@@ -81,7 +81,7 @@ public abstract class FiberNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(DynamicObject rubyClass) {
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
             final DynamicObjectFactory factory = Layouts.CLASS.getInstanceFactory(rubyClass);
             return Layouts.THREAD.getFiberManager(thread).createFiber(getContext(), thread, factory, null);
@@ -94,7 +94,7 @@ public abstract class FiberNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject initialize(DynamicObject fiber, DynamicObject block) {
+        protected DynamicObject initialize(DynamicObject fiber, DynamicObject block) {
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
             Layouts.THREAD.getFiberManager(thread).initialize(fiber, block, this);
             return nil();
@@ -108,7 +108,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+        protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameFiberProfile) {
 
@@ -134,7 +134,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+        protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile doubleResumeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile transferredProfile) {
@@ -165,7 +165,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        public Object yield(VirtualFrame frame, Object[] args,
+        protected Object yield(VirtualFrame frame, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
 
@@ -184,7 +184,7 @@ public abstract class FiberNodes {
     public abstract static class AliveNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public boolean alive(DynamicObject fiber) {
+        protected boolean alive(DynamicObject fiber) {
             return Layouts.FIBER.getAlive(fiber);
         }
 
@@ -194,7 +194,7 @@ public abstract class FiberNodes {
     public abstract static class CurrentNode extends CoreMethodNode {
 
         @Specialization
-        public DynamicObject current(VirtualFrame frame,
+        protected DynamicObject current(VirtualFrame frame,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
@@ -206,7 +206,7 @@ public abstract class FiberNodes {
     public static abstract class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject getCatchTags(VirtualFrame frame,
+        protected DynamicObject getCatchTags(VirtualFrame frame,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();

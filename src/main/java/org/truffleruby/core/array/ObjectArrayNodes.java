@@ -27,7 +27,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {
 
         @Specialization
-        public int length(Object[] store) {
+        protected int length(Object[] store) {
             return store.length;
         }
 
@@ -39,7 +39,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayGetNode extends ArrayOperationNodes.ArrayGetNode {
 
         @Specialization
-        public Object get(Object[] store, int index) {
+        protected Object get(Object[] store, int index) {
             return store[index];
         }
 
@@ -51,7 +51,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArraySetNode extends ArrayOperationNodes.ArraySetNode {
 
         @Specialization
-        public void set(Object[] store, int index, Object value) {
+        protected void set(Object[] store, int index, Object value) {
             store[index] = value;
         }
 
@@ -63,7 +63,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayNewStoreNode extends ArrayOperationNodes.ArrayNewStoreNode {
 
         @Specialization
-        public Object[] newStore(int size) {
+        protected Object[] newStore(int size) {
             return new Object[size];
         }
 
@@ -75,7 +75,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayCopyStoreNode extends ArrayOperationNodes.ArrayCopyStoreNode {
 
         @Specialization
-        public Object[] newStoreCopying(Object[] store, int size) {
+        protected Object[] newStoreCopying(Object[] store, int size) {
             return ArrayUtils.grow(store, size);
         }
 
@@ -87,12 +87,12 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         @Specialization
-        public void copyIntToInt(Object[] from, Object[] to, int sourceStart, int destinationStart, int length) {
+        protected void copyIntToInt(Object[] from, Object[] to, int sourceStart, int destinationStart, int length) {
             System.arraycopy(from, sourceStart, to, destinationStart, length);
         }
 
         @Specialization(guards = "toStrategy.matchesStore(to)")
-        public void copyToOther(Object[] from, Object to, int sourceStart, int destinationStart, int length,
+        protected void copyToOther(Object[] from, Object to, int sourceStart, int destinationStart, int length,
                 @Cached("ofStore(to)") ArrayStrategy toStrategy,
                 @Cached("toStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
             for (int i = 0; i < length; i++) {
@@ -108,7 +108,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
-        public Object[] extractRange(Object[] store, int start, int end) {
+        protected Object[] extractRange(Object[] store, int start, int end) {
             Object[] newStore = new Object[end - start];
             System.arraycopy(store, start, newStore, 0, end - start);
             return newStore;
@@ -122,7 +122,7 @@ public class ObjectArrayNodes {
     public static abstract class ObjectArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
         @Specialization
-        public void sort(Object[] store, int size) {
+        protected void sort(Object[] store, int size) {
             Arrays.sort(store, 0, size);
         }
 

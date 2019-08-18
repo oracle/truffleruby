@@ -47,7 +47,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(value)")
-    public void updateShapeAndWriteBarrier(DynamicObject value) {
+    protected void updateShapeAndWriteBarrier(DynamicObject value) {
         executeWriteBarrier(value);
     }
 

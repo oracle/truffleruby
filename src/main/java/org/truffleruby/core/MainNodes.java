@@ -38,7 +38,7 @@ public abstract class MainNodes {
         @Child private ModuleNodes.PublicNode publicNode = ModuleNodesFactory.PublicNodeFactory.create(null);
 
         @Specialization
-        public DynamicObject doPublic(VirtualFrame frame, Object[] args) {
+        protected DynamicObject doPublic(VirtualFrame frame, Object[] args) {
             final DynamicObject object = coreLibrary().getObjectClass();
             return publicNode.executePublic(frame, object, args);
         }
@@ -50,7 +50,7 @@ public abstract class MainNodes {
         @Child private ModuleNodes.PrivateNode privateNode = ModuleNodesFactory.PrivateNodeFactory.create(null);
 
         @Specialization
-        public DynamicObject doPrivate(VirtualFrame frame, Object[] args) {
+        protected DynamicObject doPrivate(VirtualFrame frame, Object[] args) {
             final DynamicObject object = coreLibrary().getObjectClass();
             return privateNode.executePrivate(frame, object, args);
         }
@@ -62,7 +62,7 @@ public abstract class MainNodes {
         @Child private UsingNode usingNode = UsingNodeGen.create();
 
         @Specialization(guards = "isRubyModule(refinementModule)")
-        public DynamicObject mainUsing(DynamicObject refinementModule,
+        protected DynamicObject mainUsing(DynamicObject refinementModule,
                 @Cached BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();

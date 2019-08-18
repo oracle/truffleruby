@@ -32,7 +32,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
 
     @Specialization(guards = { "strategy.matches(array)", "otherStrategy.matches(other)",
             "generalized.equals(strategy)" }, limit = "ARRAY_STRATEGIES")
-    public DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
+    protected DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("of(other)") ArrayStrategy otherStrategy,
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
@@ -64,7 +64,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
 
     @Specialization(guards = { "strategy.matches(array)", "otherStrategy.matches(other)",
             "!generalized.equals(strategy)" }, limit = "ARRAY_STRATEGIES")
-    public DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
+    protected DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("of(other)") ArrayStrategy otherStrategy,
             @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,

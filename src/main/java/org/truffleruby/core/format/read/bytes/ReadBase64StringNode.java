@@ -67,7 +67,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Specialization
-    public Object read(VirtualFrame frame, byte[] source) {
+    protected Object read(VirtualFrame frame, byte[] source) {
         final int position = getSourcePosition(frame);
         final int length = getSourceLength(frame);
 

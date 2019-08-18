@@ -37,27 +37,27 @@ public abstract class InitializeClassNode extends RubyBaseNode {
     public abstract DynamicObject executeInitialize(DynamicObject rubyClass, Object superclass, Object block);
 
     @Specialization
-    public DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
         return initializeGeneralWithoutBlock(rubyClass, coreLibrary().getObjectClass(), false);
     }
 
     @Specialization
-    public DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
         return initializeGeneralWithBlock(rubyClass, coreLibrary().getObjectClass(), block, false);
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
-    public DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
         return initializeGeneralWithoutBlock(rubyClass, superclass, true);
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
-    public DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
         return initializeGeneralWithBlock(rubyClass, superclass, block, true);
     }
 
     @Specialization(guards = { "!isRubyClass(superclass)", "wasProvided(superclass)" })
-    public DynamicObject initializeNotClass(DynamicObject rubyClass, Object superclass, Object maybeBlock) {
+    protected DynamicObject initializeNotClass(DynamicObject rubyClass, Object superclass, Object maybeBlock) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
     }
 

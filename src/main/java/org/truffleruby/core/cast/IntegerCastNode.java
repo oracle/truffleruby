@@ -36,23 +36,23 @@ public abstract class IntegerCastNode extends RubyBaseWithoutContextNode {
     public abstract int executeCastInt(Object value);
 
     @Specialization
-    public int doInt(int value) {
+    protected int doInt(int value) {
         return value;
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    public int doLong(long value) {
+    protected int doLong(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!fitsInInteger(value)")
-    public int doLongToBig(long value,
+    protected int doLongToBig(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));
     }
 
     @Specialization(guards = { "!isBasicInteger(value)" })
-    public int doBasicObject(Object value,
+    protected int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));
     }
