@@ -1439,10 +1439,6 @@ ID rb_to_id(VALUE name) {
   return SYM2ID(RUBY_INVOKE(name, "to_sym"));
 }
 
-ID rb_intern(const char *string) {
-  return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
-}
-
 ID rb_intern2(const char *string, long length) {
   return (ID) SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new(string, length)));
 }
@@ -2339,6 +2335,25 @@ VALUE rb_complex_set_imag(VALUE complex, VALUE imag) {
 
 VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_range_new", rb_tr_unwrap(beg), rb_tr_unwrap(end), exclude_end));
+}
+
+/* This function can not be inlined as the two rb_intern macros
+   generate static variables, and would produce unwanted
+   warnings. This does mean that the start and end VALUEs will be
+   converted to native handles and back if Sulong doesn't choose to
+   inline this function, but this is unlikely to cause a major
+   performance issue.
+ */
+int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
+  if (!rb_obj_is_kind_of(range, rb_cRange)) {
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
+  }
+
+  *begp = RUBY_INVOKE(range, "begin");
+  *endp = RUBY_INVOKE(range, "end");
+  *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
+  return Qtrue_int_const;
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
@@ -4832,3 +4847,9 @@ void ruby_qsort(void* base, const size_t nel, const size_t size, cmpfunc_t *cmp,
   rb_tr_error("ruby_qsort not implemented");
 }
 #endif
+
+#undef rb_intern
+
+ID rb_intern(const char *string) {
+  return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
+}

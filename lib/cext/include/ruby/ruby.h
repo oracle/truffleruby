@@ -1784,7 +1784,20 @@ VALUE rb_check_symbol(volatile VALUE *namep);
     do RUBY_CONST_ID_CACHE((var) =, (str)) while (0)
 #define CONST_ID_CACHE(result, str) RUBY_CONST_ID_CACHE(result, str)
 #define CONST_ID(var, str) RUBY_CONST_ID(var, str)
+#if defined(HAVE_BUILTIN___BUILTIN_CONSTANT_P) && defined(HAVE_STMT_AND_DECL_IN_EXPR)
+/* __builtin_constant_p and statement expression is available
+ * since gcc-2.7.2.3 at least. */
+#define rb_intern(str) \
+    (__builtin_constant_p(str) ? \
+        __extension__ (RUBY_CONST_ID_CACHE((ID), (str))) : \
+        rb_intern(str))
+#define rb_intern_const(str) \
+    (__builtin_constant_p(str) ? \
+     __extension__ (rb_intern2((str), (long)strlen(str))) : \
+     (rb_intern)(str))
+#else
 #define rb_intern_const(str) rb_intern2((str), strlen(str))
+#endif
 
 const char *rb_class2name(VALUE);
 const char *rb_obj_classname(VALUE);
