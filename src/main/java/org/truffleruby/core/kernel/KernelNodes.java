@@ -1640,7 +1640,7 @@ public abstract class KernelNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1662,7 +1662,7 @@ public abstract class KernelNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
