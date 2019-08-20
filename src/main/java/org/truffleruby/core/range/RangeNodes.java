@@ -79,7 +79,7 @@ public abstract class RangeNodes {
         }
 
         @Fallback
-        public Object mapFallback(Object range, Object block) {
+        protected Object mapFallback(Object range, Object block) {
             return FAILURE;
         }
 
@@ -329,7 +329,7 @@ public abstract class RangeNodes {
         }
 
         @Fallback
-        public Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
+        protected Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 stepInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -454,7 +454,7 @@ public abstract class RangeNodes {
         @Child private AllocateObjectNode allocateNode;
 
         @CreateCast("excludeEnd")
-        public RubyNode coerceToBoolean(RubyNode excludeEnd) {
+        protected RubyNode coerceToBoolean(RubyNode excludeEnd) {
             return BooleanCastWithDefaultNodeGen.create(false, excludeEnd);
         }
 

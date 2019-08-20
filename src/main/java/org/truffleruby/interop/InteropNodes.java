@@ -267,7 +267,7 @@ public abstract class InteropNodes {
         }
 
         @Fallback
-        public boolean isInstantiable(Object receiver) {
+        protected boolean isInstantiable(Object receiver) {
             return false;
         }
     }
@@ -556,7 +556,7 @@ public abstract class InteropNodes {
         }
 
         @Fallback
-        public boolean isPointer(Object receiver) {
+        protected boolean isPointer(Object receiver) {
             return false;
         }
 
@@ -1188,7 +1188,7 @@ public abstract class InteropNodes {
     public abstract static class ExportWithoutConversionNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceNameToString(RubyNode newName) {
+        protected RubyNode coerceNameToString(RubyNode newName) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 
@@ -1206,7 +1206,7 @@ public abstract class InteropNodes {
     public abstract static class ImportWithoutConversionNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceNameToString(RubyNode newName) {
+        protected RubyNode coerceNameToString(RubyNode newName) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 

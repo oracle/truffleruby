@@ -58,7 +58,7 @@ public abstract class IsTaintedNode extends RubyBaseNode {
     }
 
     @Fallback
-    public boolean isTainted(Object object) {
+    protected boolean isTainted(Object object) {
         return false;
     }
 }

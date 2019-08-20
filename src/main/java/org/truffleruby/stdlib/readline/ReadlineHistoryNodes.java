@@ -216,12 +216,12 @@ public abstract class ReadlineHistoryNodes {
     public abstract static class SetIndexNode extends CoreMethodNode {
 
         @CreateCast("index")
-        public RubyNode coerceIndexToInt(RubyNode index) {
+        protected RubyNode coerceIndexToInt(RubyNode index) {
             return ToIntNodeGen.create(index);
         }
 
         @CreateCast("line")
-        public RubyNode coerceLineToJavaString(RubyNode line) {
+        protected RubyNode coerceLineToJavaString(RubyNode line) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(line);
         }
 

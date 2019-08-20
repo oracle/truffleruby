@@ -103,7 +103,7 @@ public abstract class ArrayNodes {
     public abstract static class AddNode extends CoreMethodNode {
 
         @CreateCast("b")
-        public RubyNode coerceOtherToAry(RubyNode other) {
+        protected RubyNode coerceOtherToAry(RubyNode other) {
             return ToAryNodeGen.create(other);
         }
 
@@ -539,7 +539,7 @@ public abstract class ArrayNodes {
         @Child private ArrayReadDenormalizedNode readNode;
 
         @CreateCast("index")
-        public RubyNode coerceOtherToInt(RubyNode index) {
+        protected RubyNode coerceOtherToInt(RubyNode index) {
             return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
         }
 
@@ -662,7 +662,7 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create();
 
         @CreateCast("other")
-        public RubyNode coerceOtherToAry(RubyNode other) {
+        protected RubyNode coerceOtherToAry(RubyNode other) {
             return ToAryNodeGen.create(other);
         }
 
@@ -782,7 +782,7 @@ public abstract class ArrayNodes {
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
         @CreateCast("index")
-        public RubyNode coerceOtherToInt(RubyNode index) {
+        protected RubyNode coerceOtherToInt(RubyNode index) {
             return ToIntNodeGen.create(index);
         }
 
@@ -1260,7 +1260,7 @@ public abstract class ArrayNodes {
     public abstract static class InitializeCopyNode extends CoreMethodNode {
 
         @CreateCast("from")
-        public RubyNode coerceOtherToAry(RubyNode other) {
+        protected RubyNode coerceOtherToAry(RubyNode other) {
             return ToAryNodeGen.create(other);
         }
 
@@ -1441,7 +1441,7 @@ public abstract class ArrayNodes {
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("format")
-        public RubyNode coerceFormat(RubyNode format) {
+        protected RubyNode coerceFormat(RubyNode format) {
             return ToStrNodeGen.create(format);
         }
 
@@ -1787,7 +1787,7 @@ public abstract class ArrayNodes {
         public abstract DynamicObject executeReplace(DynamicObject array, DynamicObject other);
 
         @CreateCast("other")
-        public RubyNode coerceOtherToAry(RubyNode index) {
+        protected RubyNode coerceOtherToAry(RubyNode index) {
             return ToAryNodeGen.create(index);
         }
 

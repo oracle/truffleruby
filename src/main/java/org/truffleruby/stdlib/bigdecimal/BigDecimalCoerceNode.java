@@ -58,7 +58,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     }
 
     @Fallback
-    public Object coerce(Object value) {
+    protected Object coerce(Object value) {
         return value;
     }
 

@@ -106,7 +106,7 @@ public abstract class SizedQueueNodes {
         @Child PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
         @CreateCast("nonBlocking")
-        public RubyNode coerceToBoolean(RubyNode nonBlocking) {
+        protected RubyNode coerceToBoolean(RubyNode nonBlocking) {
             return BooleanCastWithDefaultNodeGen.create(false, nonBlocking);
         }
 
@@ -160,7 +160,7 @@ public abstract class SizedQueueNodes {
     public abstract static class PopNode extends CoreMethodNode {
 
         @CreateCast("nonBlocking")
-        public RubyNode coerceToBoolean(RubyNode nonBlocking) {
+        protected RubyNode coerceToBoolean(RubyNode nonBlocking) {
             return BooleanCastWithDefaultNodeGen.create(false, nonBlocking);
         }
 

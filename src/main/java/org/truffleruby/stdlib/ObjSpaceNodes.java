@@ -85,7 +85,7 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        public DynamicObject adjacentObjectsPrimitive(Object object) {
+        protected DynamicObject adjacentObjectsPrimitive(Object object) {
             return nil();
         }
 

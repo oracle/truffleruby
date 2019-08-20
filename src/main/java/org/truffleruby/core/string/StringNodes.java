@@ -309,7 +309,7 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @CreateCast("other")
-        public RubyNode coerceOtherToString(RubyNode other) {
+        protected RubyNode coerceOtherToString(RubyNode other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -749,7 +749,7 @@ public abstract class StringNodes {
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("other")
-        public RubyNode coerceOtherToString(RubyNode other) {
+        protected RubyNode coerceOtherToString(RubyNode other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -1456,7 +1456,7 @@ public abstract class StringNodes {
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @CreateCast("other")
-        public RubyNode coerceOtherToString(RubyNode other) {
+        protected RubyNode coerceOtherToString(RubyNode other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -1985,12 +1985,12 @@ public abstract class StringNodes {
         @Child private RopeNodes.SetByteNode setByteNode = RopeNodes.SetByteNode.create();
 
         @CreateCast("index")
-        public RubyNode coerceIndexToInt(RubyNode index) {
+        protected RubyNode coerceIndexToInt(RubyNode index) {
             return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
         }
 
         @CreateCast("value")
-        public RubyNode coerceValueToInt(RubyNode value) {
+        protected RubyNode coerceValueToInt(RubyNode value) {
             return FixnumLowerNodeGen.create(ToIntNodeGen.create(value));
         }
 
@@ -2422,12 +2422,12 @@ public abstract class StringNodes {
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr")
-        public RubyNode coerceFromStrToString(RubyNode fromStr) {
+        protected RubyNode coerceFromStrToString(RubyNode fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
 
         @CreateCast("toStrNode")
-        public RubyNode coerceToStrToString(RubyNode toStr) {
+        protected RubyNode coerceToStrToString(RubyNode toStr) {
             return ToStrNodeGen.create(toStr);
         }
 
@@ -2468,12 +2468,12 @@ public abstract class StringNodes {
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr")
-        public RubyNode coerceFromStrToString(RubyNode fromStr) {
+        protected RubyNode coerceFromStrToString(RubyNode fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
 
         @CreateCast("toStrNode")
-        public RubyNode coerceToStrToString(RubyNode toStr) {
+        protected RubyNode coerceToStrToString(RubyNode toStr) {
             return ToStrNodeGen.create(toStr);
         }
 
@@ -2514,7 +2514,7 @@ public abstract class StringNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @CreateCast("format")
-        public RubyNode coerceFormat(RubyNode format) {
+        protected RubyNode coerceFormat(RubyNode format) {
             return ToStrNodeGen.create(format);
         }
 
@@ -3193,7 +3193,7 @@ public abstract class StringNodes {
         }
 
         @Fallback
-        public Object stringByteSubstring(Object string, Object range, Object length) {
+        protected Object stringByteSubstring(Object string, Object range, Object length) {
             return FAILURE;
         }
 

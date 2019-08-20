@@ -101,7 +101,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
         @CreateCast("characters")
-        public RubyNode coerceCharactersToString(RubyNode characters) {
+        protected RubyNode coerceCharactersToString(RubyNode characters) {
             return ToStrNodeGen.create(characters);
         }
 
@@ -153,12 +153,12 @@ public abstract class ReadlineNodes {
         @Child private TaintNode taintNode = TaintNode.create();
 
         @CreateCast("prompt")
-        public RubyNode coercePromptToJavaString(RubyNode prompt) {
+        protected RubyNode coercePromptToJavaString(RubyNode prompt) {
             return ToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
         }
 
         @CreateCast("addToHistory")
-        public RubyNode coerceToBoolean(RubyNode addToHistory) {
+        protected RubyNode coerceToBoolean(RubyNode addToHistory) {
             return BooleanCastWithDefaultNodeGen.create(false, addToHistory);
         }
 
@@ -220,7 +220,7 @@ public abstract class ReadlineNodes {
     public abstract static class InsertTextNode extends CoreMethodNode {
 
         @CreateCast("text")
-        public RubyNode coerceTextToString(RubyNode text) {
+        protected RubyNode coerceTextToString(RubyNode text) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(text);
         }
 

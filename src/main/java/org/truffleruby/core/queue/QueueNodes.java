@@ -71,7 +71,7 @@ public abstract class QueueNodes {
     public abstract static class PopNode extends CoreMethodNode {
 
         @CreateCast("nonBlocking")
-        public RubyNode coerceToBoolean(RubyNode nonBlocking) {
+        protected RubyNode coerceToBoolean(RubyNode nonBlocking) {
             return BooleanCastWithDefaultNodeGen.create(false, nonBlocking);
         }
 

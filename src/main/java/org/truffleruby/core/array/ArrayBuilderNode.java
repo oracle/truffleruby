@@ -196,7 +196,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         @Fallback
-        public Object appendNewStrategy(Object store, int index, Object value) {
+        protected Object appendNewStrategy(Object store, int index, Object value) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(store);
             final ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);

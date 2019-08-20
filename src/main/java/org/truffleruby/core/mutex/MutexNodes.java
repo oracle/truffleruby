@@ -170,7 +170,7 @@ public abstract class MutexNodes {
     public abstract static class SleepNode extends CoreMethodNode {
 
         @CreateCast("duration")
-        public RubyNode coerceDuration(RubyNode duration) {
+        protected RubyNode coerceDuration(RubyNode duration) {
             return DurationToMillisecondsNodeGen.create(true, duration);
         }
 

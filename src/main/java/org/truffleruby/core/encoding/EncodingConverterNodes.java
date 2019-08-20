@@ -445,7 +445,7 @@ public abstract class EncodingConverterNodes {
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
         @CreateCast("replacement")
-        public RubyNode coerceReplacementToString(RubyNode replacement) {
+        protected RubyNode coerceReplacementToString(RubyNode replacement) {
             return ToStrNodeGen.create(replacement);
         }
 
