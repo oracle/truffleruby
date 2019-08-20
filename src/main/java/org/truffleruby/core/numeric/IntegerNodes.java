@@ -1254,8 +1254,8 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "b >= 0")
-        protected int rightShift(long a, long b) { // b is not in int range due to
-                                               // lowerFixnumParameters
+        protected int rightShift(long a, long b) {
+            // b is not in int range due to lowerFixnumParameters
             assert !CoreLibrary.fitsIntoInteger(b);
             return 0;
         }
