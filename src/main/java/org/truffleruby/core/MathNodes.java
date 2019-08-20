@@ -315,7 +315,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public Object frexp(Object a) {
+        protected Object frexp(Object a) {
             return FAILURE;
         }
 
@@ -387,7 +387,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public Object ldexp(Object a, Object b) {
+        protected Object ldexp(Object a, Object b) {
             return FAILURE;
         }
 
@@ -429,7 +429,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public DynamicObject lgamma(Object a) {
+        protected DynamicObject lgamma(Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
@@ -610,7 +610,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public double function(Object a) {
+        protected double function(Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
@@ -716,7 +716,7 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public double function(Object a, Object b) {
+        protected double function(Object a, Object b) {
             if (!(isANode.executeIsA(a, coreLibrary().getNumericClass()) &&
                     isANode.executeIsA(b, coreLibrary().getNumericClass()))) {
                 exceptionProfile.enter();

@@ -219,7 +219,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Fallback
-        public long objectID(Object object) {
+        protected long objectID(Object object) {
             return Integer.toUnsignedLong(hashCode(object));
         }
 

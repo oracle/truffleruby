@@ -207,7 +207,7 @@ public abstract class RegexpNodes {
         }
 
         @Fallback
-        public DynamicObject quote(VirtualFrame frame, Object raw) {
+        protected DynamicObject quote(VirtualFrame frame, Object raw) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNode.create());

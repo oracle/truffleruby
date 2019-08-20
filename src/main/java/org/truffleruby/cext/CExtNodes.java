@@ -650,7 +650,7 @@ public class CExtNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -670,7 +670,7 @@ public class CExtNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -688,7 +688,7 @@ public class CExtNodes {
     public abstract static class RbConstSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1464,7 +1464,7 @@ public class CExtNodes {
         }
 
         @Fallback
-        public DynamicObject addToMarkList(Object guardedObject) {
+        protected DynamicObject addToMarkList(Object guardedObject) {
             // Do nothing for unexpected objects, no matter how unexpected. This can occur inside
             // macros that guard a variable which may not have been initialized.
             return nil();

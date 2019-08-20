@@ -161,7 +161,7 @@ public abstract class BindingNodes {
     public abstract static class LocalVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -202,7 +202,7 @@ public abstract class BindingNodes {
     public abstract static class LocalVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -238,7 +238,7 @@ public abstract class BindingNodes {
     public abstract static class LocalVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 

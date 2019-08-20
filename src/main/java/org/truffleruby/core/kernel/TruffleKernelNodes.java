@@ -62,7 +62,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class LoadNode extends CoreMethodNode {
 
         @CreateCast("wrap")
-        public RubyNode coerceToBoolean(RubyNode inherit) {
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
             return BooleanCastWithDefaultNodeGen.create(false, inherit);
         }
 

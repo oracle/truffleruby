@@ -128,7 +128,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Fallback
-        public Object vmExit(Object status) {
+        protected Object vmExit(Object status) {
             return FAILURE;
         }
 

@@ -301,12 +301,12 @@ public abstract class ModuleNodes {
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
         @CreateCast("newName")
-        public RubyNode coerceNewNameToString(RubyNode newName) {
+        protected RubyNode coerceNewNameToString(RubyNode newName) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
         }
 
         @CreateCast("oldName")
-        public RubyNode coerceOldNameToString(RubyNode oldName) {
+        protected RubyNode coerceOldNameToString(RubyNode oldName) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(oldName);
         }
 
@@ -524,12 +524,12 @@ public abstract class ModuleNodes {
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceNameToString(RubyNode name) {
+        protected RubyNode coerceNameToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("filename")
-        public RubyNode coerceFilenameToPath(RubyNode filename) {
+        protected RubyNode coerceFilenameToPath(RubyNode filename) {
             return ToPathNodeGen.create(filename);
         }
 
@@ -699,7 +699,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -721,7 +721,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -748,7 +748,7 @@ public abstract class ModuleNodes {
     public abstract static class ClassVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -788,7 +788,7 @@ public abstract class ModuleNodes {
     public abstract static class ConstantsNode extends CoreMethodNode {
 
         @CreateCast("inherit")
-        public RubyNode coerceToBoolean(RubyNode inherit) {
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
@@ -823,12 +823,12 @@ public abstract class ModuleNodes {
     public abstract static class ConstDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("inherit")
-        public RubyNode coerceToBoolean(RubyNode inherit) {
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
@@ -852,13 +852,13 @@ public abstract class ModuleNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
-        public RubyNode coerceToSymbolOrString(RubyNode name) {
+        protected RubyNode coerceToSymbolOrString(RubyNode name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return ToStringOrSymbolNodeGen.create(name);
         }
 
         @CreateCast("inherit")
-        public RubyNode coerceToBoolean(RubyNode inherit) {
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
@@ -936,7 +936,7 @@ public abstract class ModuleNodes {
     public abstract static class ConstMissingNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -960,7 +960,7 @@ public abstract class ModuleNodes {
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1004,7 +1004,7 @@ public abstract class ModuleNodes {
         @Child private AddMethodNode addMethodNode = AddMethodNode.create(false);
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1245,12 +1245,12 @@ public abstract class ModuleNodes {
     public abstract static class MethodDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
         @CreateCast("inherit")
-        public RubyNode coerceToBoolean(RubyNode inherit) {
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
@@ -1419,7 +1419,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicInstanceMethodNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1453,7 +1453,7 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1505,7 +1505,7 @@ public abstract class ModuleNodes {
         }
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1550,7 +1550,7 @@ public abstract class ModuleNodes {
     public abstract static class InstanceMethodsNode extends CoreMethodNode {
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1568,7 +1568,7 @@ public abstract class ModuleNodes {
     public abstract static class InstanceMethodNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1651,7 +1651,7 @@ public abstract class ModuleNodes {
     public abstract static class RemoveClassVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1670,7 +1670,7 @@ public abstract class ModuleNodes {
     public abstract static class RemoveConstNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 

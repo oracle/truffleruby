@@ -448,7 +448,7 @@ public abstract class KernelNodes {
         @Child private SingletonClassNode singletonClassNode;
 
         @CreateCast("freeze")
-        public RubyNode coerceToBoolean(RubyNode freeze) {
+        protected RubyNode coerceToBoolean(RubyNode freeze) {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
@@ -820,7 +820,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableDefinedNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -865,7 +865,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableGetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceName(RubyNode name) {
+        protected RubyNode coerceName(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -883,7 +883,7 @@ public abstract class KernelNodes {
     public abstract static class InstanceVariableSetNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceName(RubyNode name) {
+        protected RubyNode coerceName(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -900,7 +900,7 @@ public abstract class KernelNodes {
     public abstract static class RemoveInstanceVariableNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1044,7 +1044,7 @@ public abstract class KernelNodes {
         @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(true);
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
@@ -1133,7 +1133,7 @@ public abstract class KernelNodes {
     public abstract static class MethodsNode extends CoreMethodNode {
 
         @CreateCast("regular")
-        public RubyNode coerceToBoolean(RubyNode regular) {
+        protected RubyNode coerceToBoolean(RubyNode regular) {
             return BooleanCastWithDefaultNodeGen.create(true, regular);
         }
 
@@ -1193,7 +1193,7 @@ public abstract class KernelNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1228,7 +1228,7 @@ public abstract class KernelNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1251,7 +1251,7 @@ public abstract class KernelNodes {
         @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(false);
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
@@ -1270,7 +1270,7 @@ public abstract class KernelNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1311,7 +1311,7 @@ public abstract class KernelNodes {
     public abstract static class KernelRequireNode extends CoreMethodNode {
 
         @CreateCast("feature")
-        public RubyNode coerceFeatureToPath(RubyNode feature) {
+        protected RubyNode coerceFeatureToPath(RubyNode feature) {
             return ToPathNodeGen.create(feature);
         }
 
@@ -1329,7 +1329,7 @@ public abstract class KernelNodes {
     public abstract static class RequireRelativeNode extends CoreMethodNode {
 
         @CreateCast("feature")
-        public RubyNode coerceToPath(RubyNode feature) {
+        protected RubyNode coerceToPath(RubyNode feature) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(ToPathNodeGen.create(feature));
         }
 
@@ -1394,7 +1394,7 @@ public abstract class KernelNodes {
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name, boolean includeProtectedAndPrivate);
 
         @CreateCast("includeProtectedAndPrivate")
-        public RubyNode coerceToBoolean(RubyNode includeProtectedAndPrivate) {
+        protected RubyNode coerceToBoolean(RubyNode includeProtectedAndPrivate) {
             return BooleanCastWithDefaultNodeGen.create(false, includeProtectedAndPrivate);
         }
 
@@ -1504,7 +1504,7 @@ public abstract class KernelNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
-        public RubyNode coerceToString(RubyNode name) {
+        protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
         }
 
@@ -1542,7 +1542,7 @@ public abstract class KernelNodes {
         public abstract DynamicObject executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
 
         @CreateCast("includeAncestors")
-        public RubyNode coerceToBoolean(RubyNode includeAncestors) {
+        protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
             return BooleanCastWithDefaultNodeGen.create(true, includeAncestors);
         }
 
@@ -1566,7 +1566,7 @@ public abstract class KernelNodes {
     public abstract static class SleepNode extends CoreMethodNode {
 
         @CreateCast("duration")
-        public RubyNode coerceDuration(RubyNode duration) {
+        protected RubyNode coerceDuration(RubyNode duration) {
             return DurationToMillisecondsNodeGen.create(false, duration);
         }
 

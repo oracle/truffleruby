@@ -51,7 +51,7 @@ public abstract class ToEncodingNode extends RubyBaseNode {
     }
 
     @Fallback
-    public Encoding failure(Object value) {
+    protected Encoding failure(Object value) {
         return null;
     }
 }

@@ -139,7 +139,7 @@ public abstract class TypeNodes {
         }
 
         @Fallback
-        public DynamicObject instanceVariables(Object object) {
+        protected DynamicObject instanceVariables(Object object) {
             return createArray(null, 0);
         }
 
