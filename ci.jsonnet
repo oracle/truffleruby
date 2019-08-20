@@ -292,7 +292,9 @@ local part_definitions = {
       is_after:: ["$.use.build"],
       downloads+: {
         JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
+        ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
       },
+      environment+: { ECLIPSE_EXE: "$ECLIPSE/eclipse" },
       mx_build_options:: ["--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",

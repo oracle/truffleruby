@@ -1678,7 +1678,7 @@ EOS
   end
 
   def command_format(*args)
-    mx "eclipseformat", "--primary", *args, continue_on_failure: true
+    mx "eclipseformat", "--no-backup", "--primary", *args, continue_on_failure: true
   end
 
   private def metrics_time_format_results(samples, use_json, flamegraph)
@@ -2446,7 +2446,7 @@ class JT
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
     command, *rest = args
-    command = "command_#{command}" if %w[p puts].include? command
+    command = "command_#{command}" if %w[p puts format].include? command
 
     abort "no command matched #{command.inspect}" unless commands.include?(command)
 
