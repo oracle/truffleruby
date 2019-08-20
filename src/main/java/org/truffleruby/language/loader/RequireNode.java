@@ -212,6 +212,7 @@ public abstract class RequireNode extends RubyBaseNode {
                     source,
                     ParserContext.TOP_LEVEL,
                     null,
+                    null,
                     true,
                     this);
 

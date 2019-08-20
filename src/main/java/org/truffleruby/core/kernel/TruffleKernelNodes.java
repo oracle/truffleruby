@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -70,10 +71,6 @@ public abstract class TruffleKernelNodes {
         @Specialization(guards = "isRubyString(file)")
         protected boolean load(DynamicObject file, boolean wrap,
                 @Cached IndirectCallNode callNode) {
-            if (wrap) {
-                throw new UnsupportedOperationException();
-            }
-
             final String feature = StringOperations.getString(file);
             final RubySource source;
             try {
@@ -83,10 +80,30 @@ public abstract class TruffleKernelNodes {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
+            final DynamicObject wrapClass;
+
+            if (wrap) {
+                wrapClass = ClassNodes.createInitializedRubyClass(getContext(), null, null, getContext().getCoreLibrary().getObjectClass(), null);
+            } else {
+                wrapClass = null;
+            }
+
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, wrapClass, true, this);
+
+            final DeclarationContext declarationContext;
+            final DynamicObject mainObject;
+
+            if (wrapClass == null) {
+                declarationContext = DeclarationContext.topLevel(getContext());
+                mainObject = getContext().getCoreLibrary().getMainObject();
+            } else {
+                declarationContext = DeclarationContext.topLevel(wrapClass);
+                mainObject = Layouts.CLASS.getInstanceFactory(wrapClass).newInstance();
+            }
+
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
-                    getContext().getCoreLibrary().getMainObject());
+                    ParserContext.TOP_LEVEL, declarationContext, rootNode, null, mainObject);
+
             deferredCall.call(callNode);
 
             return true;

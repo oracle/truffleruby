@@ -67,7 +67,12 @@ public class DeclarationContext {
     }
 
     public static DeclarationContext topLevel(RubyContext context) {
-        return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(context.getCoreLibrary().getObjectClass()));
+        return topLevel(context.getCoreLibrary().getObjectClass());
+    }
+
+    public static DeclarationContext topLevel(DynamicObject defaultDefinee) {
+        assert RubyGuards.isRubyModule(defaultDefinee);
+        return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(defaultDefinee));
     }
 
     public final Visibility visibility;

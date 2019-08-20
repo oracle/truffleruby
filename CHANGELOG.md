@@ -7,6 +7,7 @@ Bug fixes:
 Compatibility:
 
 * `GC.stat` can now take an option (#1716).
+* `Kernel#load` with `wrap` has been implemented (#1739).
 
 # 19.2.0
 

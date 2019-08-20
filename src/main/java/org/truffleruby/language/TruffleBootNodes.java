@@ -131,6 +131,7 @@ public abstract class TruffleBootNodes {
                             source,
                             ParserContext.TOP_LEVEL_FIRST,
                             null,
+                            null,
                             true,
                             null);
                 } catch (RaiseException e) {
@@ -283,7 +284,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject innerCheckSyntax(RubySource source) {
-            getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, null);
+            getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
 
             return nil();
         }

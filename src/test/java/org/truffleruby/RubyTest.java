@@ -40,7 +40,7 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, text, "test.rb").build();
 
         testInContext(() -> {
-            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, true, null);
+            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });

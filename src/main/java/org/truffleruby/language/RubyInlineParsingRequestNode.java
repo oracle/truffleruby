@@ -69,6 +69,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                     ParserContext.INLINE,
                     null,
                     currentFrame,
+                    null,
                     false,
                     null);
 

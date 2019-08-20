@@ -288,6 +288,7 @@ public abstract class BasicObjectNodes {
                     source,
                     ParserContext.EVAL,
                     callerFrame,
+                    null,
                     true,
                     this);
 

@@ -810,7 +810,7 @@ public class CoreLibrary {
                 }
 
                 final RubySource source = loadCoreFile(getCoreLoadPath() + file);
-                final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
+                final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL,
