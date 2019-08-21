@@ -27,7 +27,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class ValueWrapperManager {
 
@@ -284,12 +283,10 @@ public class ValueWrapperManager {
         @Specialization
         protected long allocateHandleOnKnownThread(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached GetHandleBlockHolderNode getBlockHolderNode,
-                @Cached BranchProfile newBlockProfile) {
+                @Cached GetHandleBlockHolderNode getBlockHolderNode) {
             HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
             HandleBlock block = threadData.holder.handleBlock;
             if (block == null || block.isFull()) {
-                newBlockProfile.enter();
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block.wrappers);
                 }
