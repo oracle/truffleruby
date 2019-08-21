@@ -154,25 +154,26 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
             return value;
         }
 
-        @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-        protected ValueWrapper unwrapTypeCastObject(Object value,
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+        protected ValueWrapper pointerToWrapper(Object value,
+                @CachedLibrary("value") InteropLibrary values,
+                @Cached NativeToWrapperNode nativeToWrapperNode) throws UnsupportedMessageException {
+            return nativeToWrapperNode.execute(values.asPointer(value));
+        }
+
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "pointerToWrapper")
+        protected ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode,
-                @Cached BranchProfile unsupportedProfile,
-                @Cached BranchProfile nonPointerProfile) {
-            if (values.isPointer(value)) {
-                long handle = 0;
-                try {
-                    handle = values.asPointer(value);
-                } catch (UnsupportedMessageException e) {
-                    unsupportedProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-                }
-                return nativeToWrapperNode.execute(handle);
-            } else {
-                nonPointerProfile.enter();
-                return null;
+                @Cached BranchProfile unsupportedProfile) {
+            long handle = 0;
+            try {
+                handle = values.asPointer(value);
+            } catch (UnsupportedMessageException e) {
+                unsupportedProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
+            return nativeToWrapperNode.execute(handle);
         }
 
         public static ToWrapperNode create() {
@@ -196,26 +197,28 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         return value.getHandle() >> 1;
     }
 
-    @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
-    protected Object unwrapTypeCastObject(Object value,
+    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+    protected Object unwrapPointer(Object value,
+            @CachedLibrary("value") InteropLibrary values,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached UnwrapNativeNode unwrapNativeNode) throws UnsupportedMessageException {
+        return unwrapNativeNode.execute(values.asPointer(value));
+    }
+
+    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "unwrapPointer")
+    protected Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached UnwrapNativeNode unwrapNativeNode,
-            @Cached BranchProfile unsupportedProfile,
-            @Cached BranchProfile nonPointerProfile) {
-        if (values.isPointer(value)) {
-            long handle = 0;
-            try {
-                handle = values.asPointer(value);
-            } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter();
-                throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this, e));
-            }
-            return unwrapNativeNode.execute(handle);
-        } else {
-            nonPointerProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().argumentError("Not a handle or a pointer", this));
+            @Cached BranchProfile unsupportedProfile) {
+        long handle = 0;
+        try {
+            handle = values.asPointer(value);
+        } catch (UnsupportedMessageException e) {
+            unsupportedProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this, e));
         }
+        return unwrapNativeNode.execute(handle);
     }
 
     protected int getCacheLimit() {

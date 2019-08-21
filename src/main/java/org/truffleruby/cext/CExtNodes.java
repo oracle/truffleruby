@@ -1539,26 +1539,25 @@ public class CExtNodes {
             return value.getObject() == nil();
         }
 
-        @Specialization(guards = "!isWrapper(value)", limit = "getCacheLimit()")
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
         protected boolean nilPPointer(Object value,
-                @CachedLibrary("value") InteropLibrary values,
-                @Cached BranchProfile unsupportedProfile,
-                @Cached BranchProfile nonPointerProfile) {
-            if (values.isPointer(value)) {
-                long handle = 0;
-                try {
-                    handle = values.asPointer(value);
-                } catch (UnsupportedMessageException e) {
-                    unsupportedProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-                }
-                return handle == ValueWrapperManager.NIL_HANDLE;
-            } else {
-                nonPointerProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError("Not a handle or a pointer", this));
-            }
+                @CachedLibrary("value") InteropLibrary values) throws UnsupportedMessageException {
+            return values.asPointer(value) == ValueWrapperManager.NIL_HANDLE;
         }
 
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "nilPPointer")
+        protected boolean nilPGeneric(Object value,
+                @CachedLibrary("value") InteropLibrary values,
+                @Cached BranchProfile unsupportedProfile) {
+            long handle = 0;
+            try {
+                handle = values.asPointer(value);
+            } catch (UnsupportedMessageException e) {
+                unsupportedProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            }
+            return handle == ValueWrapperManager.NIL_HANDLE;
+        }
 
         protected int getCacheLimit() {
             return getContext().getOptions().DISPATCH_CACHE;
