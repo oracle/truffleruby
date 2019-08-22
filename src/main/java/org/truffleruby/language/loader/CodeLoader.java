@@ -41,10 +41,11 @@ public class CodeLoader {
     public RubyRootNode parse(RubySource source,
             ParserContext parserContext,
             MaterializedFrame parentFrame,
+            DynamicObject wrap,
             boolean ownScopeForAssignments,
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
-        return translator.parse(source, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
+        return translator.parse(source, parserContext, null, parentFrame, wrap, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary

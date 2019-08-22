@@ -70,7 +70,7 @@ public abstract class DebugHelpers {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "debug-eval").build();
 
-        final RubyRootNode rootNode = context.getCodeLoader().parse(new RubySource(source), ParserContext.INLINE, evalFrame, true, null);
+        final RubyRootNode rootNode = context.getCodeLoader().parse(new RubySource(source), ParserContext.INLINE, evalFrame, null, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 ParserContext.INLINE,

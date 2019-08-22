@@ -663,7 +663,7 @@ public abstract class KernelNodes {
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
             final RubySource source = createEvalSourceNode.createEvalSource(sourceText, "eval", sourceFile, line);
-            return getContext().getCodeLoader().parse(source, ParserContext.EVAL, parentFrame, ownScopeForAssignments, this);
+            return getContext().getCodeLoader().parse(source, ParserContext.EVAL, parentFrame, null, ownScopeForAssignments, this);
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {

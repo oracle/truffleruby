@@ -640,6 +640,7 @@ public abstract class ModuleNodes {
                     source,
                     ParserContext.MODULE,
                     callerFrame,
+                    null,
                     true,
                     this);
 

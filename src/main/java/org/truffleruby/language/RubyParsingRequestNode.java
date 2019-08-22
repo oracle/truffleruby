@@ -91,6 +91,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     ParserContext.TOP_LEVEL,
                     argumentNames,
                     null,
+                    null,
                     true,
                     null);
 
