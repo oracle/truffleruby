@@ -42,8 +42,13 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     private String name;
     private ParseNode argsNode;
     private final boolean isLazy;
+    private final boolean isSelf;
 
     public AttrAssignParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode, boolean isLazy) {
+        this(position, receiverNode, name, argsNode, isLazy, receiverNode instanceof SelfParseNode);
+    }
+
+    public AttrAssignParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode, boolean isLazy, boolean isSelf) {
         super(position);
 
         assert receiverNode != null : "receiverNode is not null";
@@ -56,6 +61,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
         this.name = name;
         this.argsNode = argsNode;
         this.isLazy = isLazy;
+        this.isSelf = isSelf;
     }
 
     @Override
@@ -117,5 +123,9 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, argsNode);
+    }
+
+    public boolean isSelf() {
+        return isSelf;
     }
 }
