@@ -9,11 +9,7 @@
  */
 package org.truffleruby.cext;
 
-import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
-import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -52,7 +48,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
         if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
             smallFixnumProfile.enter();
             long val = (value << 1) | LONG_TAG;
-            return new ValueWrapper(value, val);
+            return new ValueWrapper(null, val, null);
         } else {
             return context.getValueWrapperManager().longWrapper(value);
         }
@@ -65,13 +61,15 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     }
 
     @Specialization
-    protected ValueWrapper wrapBoolean(boolean value) {
-        return new ValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
+    protected ValueWrapper wrapBoolean(boolean value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return value ? context.getValueWrapperManager().trueWrapper : context.getValueWrapperManager().falseWrapper;
     }
 
     @Specialization
-    protected ValueWrapper wrapUndef(NotProvided value) {
-        return new ValueWrapper(value, UNDEF_HANDLE);
+    protected ValueWrapper wrapUndef(NotProvided value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getValueWrapperManager().undefWrapper;
     }
 
     @Specialization
@@ -83,7 +81,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "isNil(context, value)")
     protected ValueWrapper wrapNil(DynamicObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE);
+        return context.getValueWrapperManager().nilWrapper;
     }
 
     @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(context, value)" })
@@ -102,7 +100,7 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
                      * This is double-checked locking, but it's safe because the object that we create,
                      * the ValueWrapper, is not published until after a memory store fence.
                      */
-                    wrapper = new ValueWrapper(value, UNSET_HANDLE);
+                    wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
                     Pointer.UNSAFE.storeFence();
                     writeWrapperNode.write(value, Layouts.VALUE_WRAPPER_IDENTIFIER, wrapper);
                 }

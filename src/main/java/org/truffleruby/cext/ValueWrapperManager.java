@@ -12,15 +12,26 @@ package org.truffleruby.cext;
 import java.lang.ref.WeakReference;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.LongHashMap;
-import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
+import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 
 public class ValueWrapperManager {
 
-    static final int UNSET_HANDLE = -1;
+    static final long UNSET_HANDLE = -2L;
+    static final HandleBlockAllocator allocator = new HandleBlockAllocator();
 
     /*
      * These constants are taken from ruby.h, and are based on us not tagging doubles.
@@ -38,13 +49,35 @@ public class ValueWrapperManager {
     public static final long MAX_FIXNUM_VALUE = (1L << 62) - 1;
 
     public static final long TAG_MASK = 0b111;
+    public static final long TAG_BITS = 3;
 
-    private final LongHashMap<WeakReference<ValueWrapper>> handleMap = new LongHashMap<>(1024);
+    public final ValueWrapper trueWrapper = new ValueWrapper(true, TRUE_HANDLE, null);
+    public final ValueWrapper falseWrapper = new ValueWrapper(false, FALSE_HANDLE, null);
+    public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
+    public final ValueWrapper nilWrapper;
+
+    private Object[] blockMap = new Object[0];
+
+    private final ThreadLocal<HandleThreadData> threadBlocks;
 
     private final RubyContext context;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
+        this.threadBlocks = ThreadLocal.withInitial((this::makeThreadData));
+        nilWrapper = new ValueWrapper(context.getCoreLibrary().getNil(), NIL_HANDLE, null);
+    }
+
+    public HandleThreadData makeThreadData() {
+        HandleThreadData threadData = new HandleThreadData();
+        HandleBlockHolder holder = threadData.holder;
+        context.getFinalizationService().addFinalizer(threadData, null, ValueWrapperManager.class, () -> context.getMarkingService().queueForMarking(holder.handleBlock.wrappers), null);
+        return threadData;
+    }
+
+    @TruffleBoundary
+    public HandleThreadData getBlockHolder() {
+        return threadBlocks.get();
     }
 
     /*
@@ -52,74 +85,220 @@ public class ValueWrapperManager {
      * that any given fixnum will translate to a given VALUE.
      */
     public ValueWrapper longWrapper(long value) {
-        return new ValueWrapper(value, UNSET_HANDLE);
+        return new ValueWrapper(value, UNSET_HANDLE, null);
     }
 
     public ValueWrapper doubleWrapper(double value) {
-        return new ValueWrapper(value, UNSET_HANDLE);
+        return new ValueWrapper(value, UNSET_HANDLE, null);
     }
 
     @TruffleBoundary
-    public synchronized void addToHandleMap(long handle, ValueWrapper wrapper) {
-        handleMap.put(handle, new WeakReference<>(wrapper));
+    public synchronized void addToBlockMap(HandleBlock block) {
+        int blockIndex = block.getIndex();
+        long blockBase = block.getBase();
+        Object[] map = blockMap;
+        HandleBlockAllocator allocator = ValueWrapperManager.allocator;
+        map = ensureCapacity(map, blockIndex + 1);
+        map[blockIndex] = new WeakReference<>(block);
+        blockMap = map;
+        context.getFinalizationService().addFinalizer(block, null, ValueWrapperManager.class, () -> {
+            this.blockMap[blockIndex] = null;
+            allocator.addFreeBlock(blockBase);
+        }, null);
     }
 
-    @TruffleBoundary
-    public synchronized Object getFromHandleMap(long handle) {
-        WeakReference<ValueWrapper> ref = handleMap.get(handle);
-        ValueWrapper wrapper;
-        if (ref == null) {
-            return null;
+    private Object[] ensureCapacity(Object[] map, int size) {
+        if (size > map.length) {
+            Object[] newMap = new Object[size];
+            if (map.length > 0) {
+                System.arraycopy(map, 0, newMap, 0, size - 1);
+            }
+            map = newMap;
         }
-        if ((wrapper = ref.get()) == null) {
+        return map;
+    }
+
+    public synchronized Object getFromHandleMap(long handle) {
+        ValueWrapper wrapper = getWrapperFromHandleMap(handle);
+        if (wrapper == null) {
             return null;
         }
         return wrapper.getObject();
     }
 
-    @TruffleBoundary
+    @SuppressWarnings("unchecked")
     public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
-        WeakReference<ValueWrapper> ref = handleMap.get(handle);
-        ValueWrapper wrapper;
+        final int index = HandleBlock.getHandleIndex(handle);
+        WeakReference<HandleBlock> ref;
+        try {
+            ref = (WeakReference<HandleBlock>) blockMap[index];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
         if (ref == null) {
             return null;
         }
-        if ((wrapper = ref.get()) == null) {
+        HandleBlock block;
+        if ((block = ref.get()) == null) {
             return null;
         }
-        return wrapper;
+        return block.getWrapper(handle);
     }
 
-    @TruffleBoundary
-    public synchronized void removeFromHandleMap(long handle) {
-        handleMap.remove(handle);
-    }
+    protected static class FreeHandleBlock {
+        public final long start;
+        public final FreeHandleBlock next;
 
-    @TruffleBoundary
-    public synchronized long createNativeHandle(ValueWrapper wrapper) {
-        Pointer handlePointer = Pointer.malloc(1);
-        long handleAddress = handlePointer.getAddress();
-        if ((handleAddress & TAG_MASK) != 0) {
-            throw new RuntimeException("unaligned malloc for native handle");
+        public FreeHandleBlock(long start, FreeHandleBlock next) {
+            this.start = start;
+            this.next = next;
         }
-        wrapper.setHandle(handleAddress);
-        addToHandleMap(handleAddress, wrapper);
-        addFinalizer(wrapper, handlePointer);
-        return handleAddress;
     }
 
-    public void addFinalizer(ValueWrapper wrapper, Pointer handle) {
-        context.getFinalizationService().addFinalizer(
-                wrapper, null, ValueWrapper.class,
-                createFinalizer(handle), null);
+    private static final int BLOCK_BITS = 15;
+    private static final int BLOCK_SIZE = 1 << (BLOCK_BITS - TAG_BITS);
+    private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << TAG_BITS;
+    private static final long BLOCK_MASK = -1L << BLOCK_BITS;
+    private static final long OFFSET_MASK = ~BLOCK_MASK;
+    private static final long ALLOCATION_BASE = 0xffffffffL << BLOCK_BITS;
+
+    protected static class HandleBlockAllocator {
+
+        private long nextBlock = ALLOCATION_BASE;
+        private FreeHandleBlock firstFreeBlock = null;
+
+        public synchronized long getFreeBlock() {
+            if (firstFreeBlock != null) {
+                FreeHandleBlock block = firstFreeBlock;
+                firstFreeBlock = block.next;
+                return block.start;
+            } else {
+                long block = nextBlock;
+                nextBlock = nextBlock + BLOCK_BYTE_SIZE;
+                return block;
+            }
+        }
+
+        public synchronized void addFreeBlock(long blockBase) {
+            firstFreeBlock = new FreeHandleBlock(blockBase, firstFreeBlock);
+        }
     }
 
-    private Runnable createFinalizer(Pointer handle) {
-        return () -> {
-            this.removeFromHandleMap(handle.getAddress());
-            handle.freeNoAutorelease();
-        };
+    protected static class HandleBlock {
 
+        private final long base;
+        @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
+        private int count;
+
+        public HandleBlock() {
+            base = allocator.getFreeBlock();
+            wrappers = new ValueWrapper[BLOCK_SIZE];
+            count = 0;
+        }
+
+        public long getBase() {
+            return base;
+        }
+
+        public int getIndex() {
+            return (int) ((base - ALLOCATION_BASE) >> BLOCK_BITS);
+        }
+
+        public ValueWrapper getWrapper(long handle) {
+            int offset = (int) (handle & OFFSET_MASK) >> TAG_BITS;
+            return wrappers[offset];
+        }
+
+        public boolean isFull() {
+            return count == BLOCK_SIZE;
+        }
+
+        public long setHandleOnWrapper(ValueWrapper wrapper) {
+            long handle = getBase() + count * 8;
+            wrapper.setHandle(handle, this);
+            wrappers[count] = wrapper;
+            count++;
+            return handle;
+        }
+
+        public static int getHandleIndex(long handle) {
+            return (int) ((handle - ALLOCATION_BASE) >> BLOCK_BITS);
+        }
+    }
+
+    protected static class HandleBlockHolder {
+        protected HandleBlock handleBlock = null;
+    }
+
+    protected static class HandleThreadData {
+
+        private final HandleBlockHolder holder = new HandleBlockHolder();
+
+        public HandleBlock currentBlock() {
+            return holder.handleBlock;
+        }
+
+        public HandleBlock makeNewBlock() {
+            return (holder.handleBlock = new HandleBlock());
+        }
+    }
+
+    @GenerateUncached
+    public static abstract class GetHandleBlockHolderNode extends RubyBaseWithoutContextNode {
+
+        public abstract HandleThreadData execute(ValueWrapper wrapper);
+
+        @Specialization(guards = "cachedThread == currentJavaThread(wrapper)", limit = "getCacheLimit()")
+        protected HandleThreadData getHolderOnKnownThread(ValueWrapper wrapper,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached("currentJavaThread(wrapper)") Thread cachedThread,
+                @Cached("getBlockHolder(wrapper, context)") HandleThreadData threadData) {
+            return threadData;
+        }
+
+        @Specialization(replaces = "getHolderOnKnownThread")
+        protected HandleThreadData getBlockHolder(ValueWrapper wrapper,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getValueWrapperManager().getBlockHolder();
+        }
+
+        static protected Thread currentJavaThread(ValueWrapper wrapper) {
+            return Thread.currentThread();
+        }
+
+        public int getCacheLimit() {
+            return 3;
+        }
+
+        public static GetHandleBlockHolderNode create() {
+            return GetHandleBlockHolderNodeGen.create();
+        }
+    }
+
+    @GenerateUncached
+    public static abstract class AllocateHandleNode extends RubyBaseWithoutContextNode {
+
+        public abstract long execute(ValueWrapper wrapper);
+
+        @Specialization
+        protected long allocateHandleOnKnownThread(ValueWrapper wrapper,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached GetHandleBlockHolderNode getBlockHolderNode) {
+            HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
+            HandleBlock block = threadData.holder.handleBlock;
+            if (block == null || block.isFull()) {
+                if (block != null) {
+                    context.getMarkingService().queueForMarking(block.wrappers);
+                }
+                block = threadData.makeNewBlock();
+                context.getValueWrapperManager().addToBlockMap(block);
+            }
+            return block.setHandleOnWrapper(wrapper);
+        }
+
+        public static AllocateHandleNode create() {
+            return AllocateHandleNodeGen.create();
+        }
     }
 
     public static boolean isTaggedLong(long handle) {
@@ -130,7 +309,39 @@ public class ValueWrapperManager {
         return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
     }
 
-    public static boolean isWrapper(TruffleObject value) {
+    public static boolean isWrapper(Object value) {
         return value instanceof ValueWrapper;
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class UnwrapperFunction implements TruffleObject {
+
+        @ExportMessage
+        public boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached UnwrapNode unwrapNode) {
+            return unwrapNode.execute(arguments[0]);
+        }
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class WrapperFunction implements TruffleObject {
+
+        @ExportMessage
+        public boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached WrapNode wrapNode) {
+            return wrapNode.execute(arguments[0]);
+        }
     }
 }

@@ -33,6 +33,9 @@
  */
 
 void* rb_tr_cext;
+void* (*rb_tr_unwrap)(VALUE obj);
+void* (*rb_tr_wrap)(VALUE obj);
+void* (*rb_tr_longwrap)(long obj);
 
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
@@ -94,6 +97,9 @@ static int rb_tr_fprintf_value(FILE *stream,
 
 void rb_tr_init(void *ruby_cext) {
   rb_tr_cext = ruby_cext;
+  rb_tr_unwrap = polyglot_invoke(rb_tr_cext, "rb_tr_unwrap_function");
+  rb_tr_wrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
+  rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
 
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
@@ -408,10 +414,6 @@ void rb_num_zerodiv(void) {
 }
 
 // Type checks
-
-int RB_NIL_P(VALUE value) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_NIL_P", value));
-}
 
 int RB_FIXNUM_P(VALUE value) {
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));

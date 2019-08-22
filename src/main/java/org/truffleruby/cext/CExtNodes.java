@@ -81,6 +81,7 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
@@ -91,6 +92,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -1401,20 +1403,14 @@ public class CExtNodes {
         }
     }
 
-    private static final ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
-
-    @CoreMethod(names = "create_mark_list", onSingleton = true, required = 0)
+    @CoreMethod(names = "create_mark_list", onSingleton = true, required = 1)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject createNewMarkList(VirtualFrame frmae) {
-            setThreadLocal();
+        protected DynamicObject createNewMarkList(DynamicObject obj,
+                @Cached ReadObjectFieldNode readMarkedNode) {
+            getContext().getMarkingService().startMarking((Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
             return nil();
-        }
-
-        @TruffleBoundary
-        protected void setThreadLocal() {
-            markList.set(new ArrayList<>());
         }
     }
 
@@ -1429,17 +1425,12 @@ public class CExtNodes {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
             if (wrappedValue != null) {
                 noExceptionProfile.enter();
-                getList().add(wrappedValue);
+                getContext().getMarkingService().addMark(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
             // marking may have already been removed from the handle map. }
             return nil();
-        }
-
-        @TruffleBoundary
-        protected ArrayList<Object> getList() {
-            return markList.get();
         }
 
         protected UnwrapNode createUnwrapNode() {
@@ -1481,13 +1472,8 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getArray());
+            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getContext().getMarkingService().finishMarking());
             return nil();
-        }
-
-        @TruffleBoundary
-        protected Object[] getArray() {
-            return markList.get().toArray();
         }
     }
 
@@ -1544,4 +1530,55 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "RB_NIL_P", onSingleton = true, required = 1)
+    @ImportStatic({ ValueWrapperManager.class })
+    public abstract static class NilPNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean nilPWrapper(ValueWrapper value) {
+            return value.getObject() == nil();
+        }
+
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+        protected boolean nilPPointer(Object value,
+                @CachedLibrary("value") InteropLibrary values) throws UnsupportedMessageException {
+            return values.asPointer(value) == ValueWrapperManager.NIL_HANDLE;
+        }
+
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "nilPPointer")
+        protected boolean nilPGeneric(Object value,
+                @CachedLibrary("value") InteropLibrary values,
+                @Cached BranchProfile unsupportedProfile) {
+            long handle = 0;
+            try {
+                handle = values.asPointer(value);
+            } catch (UnsupportedMessageException e) {
+                unsupportedProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            }
+            return handle == ValueWrapperManager.NIL_HANDLE;
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_unwrap_function", onSingleton = true, required = 0)
+    public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.UnwrapperFunction();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_wrap_function", onSingleton = true, required = 0)
+    public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.WrapperFunction();
+        }
+    }
 }

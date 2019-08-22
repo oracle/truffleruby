@@ -32,6 +32,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public void setNext(R next);
 
+        public void remove();
+
         public ReferenceProcessingService<R> service();
     }
 
@@ -46,11 +48,22 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.service = service;
         }
 
+        private void check(R previous, R next) {
+
+            if (next != null && next == previous) {
+                Error e = new Error();
+                e.printStackTrace();
+                throw e;
+            }
+
+        }
+
         public R getPrevious() {
             return previous;
         }
 
         public void setPrevious(R previous) {
+            check(previous, next);
             this.previous = previous;
         }
 
@@ -59,7 +72,14 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         public void setNext(R next) {
+            check(previous, next);
             this.next = next;
+        }
+
+        @SuppressWarnings("unchecked")
+        public void remove() {
+            this.next = (R) this;
+            this.previous = (R) this;
         }
 
         public ReferenceProcessingService<R> service() {
@@ -96,6 +116,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public void setNext(R next) {
             this.next = next;
+        }
+
+        @SuppressWarnings("unchecked")
+        public void remove() {
+            this.next = (R) this;
+            this.previous = (R) this;
         }
 
         public ReferenceProcessingService<R> service() {
@@ -221,16 +247,18 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             }
         }
 
-        if (ref.getNext() != null) {
-            ref.getNext().setPrevious(ref.getPrevious());
+        R next = ref.getNext();
+        R prev = ref.getPrevious();
+
+        if (next != null) {
+            next.setPrevious(prev);
         }
-        if (ref.getPrevious() != null) {
-            ref.getPrevious().setNext(ref.getNext());
+        if (prev != null) {
+            prev.setNext(next);
         }
 
         // Mark that this ref has been removed.
-        ref.setNext(ref);
-        ref.setPrevious(ref);
+        ref.remove();
     }
 
     protected synchronized void add(R newRef) {

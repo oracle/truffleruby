@@ -12,6 +12,7 @@ package org.truffleruby.core;
 import java.util.Collection;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.MarkingService.ExtensionCallStack;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -75,16 +76,22 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
     }
 
     protected void processReferenceInternal(FinalizerReference finalizerReference) {
-        while (!context.isFinalizing()) {
-            final Finalizer finalizer;
-            synchronized (this) {
-                finalizer = finalizerReference.getFirstFinalizer();
+        ExtensionCallStack stack = context.getMarkingService().getThreadLocalData().getExtensionCallStack();
+        stack.push(stack.getBlock());
+        try {
+            while (!context.isFinalizing()) {
+                final Finalizer finalizer;
+                synchronized (this) {
+                    finalizer = finalizerReference.getFirstFinalizer();
+                }
+                if (finalizer == null) {
+                    break;
+                }
+                final Runnable action = finalizer.getAction();
+                action.run();
             }
-            if (finalizer == null) {
-                break;
-            }
-            final Runnable action = finalizer.getAction();
-            action.run();
+        } finally {
+            stack.pop();
         }
     }
 

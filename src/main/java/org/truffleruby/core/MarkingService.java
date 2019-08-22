@@ -13,6 +13,7 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -73,10 +74,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
              * alive during the marking process itself, so we add the
              * arrays to a list to achieve this.
              */
+            super.processReference(reference);
             ArrayList<Object[]> keptObjectLists = new ArrayList<>();
-            Object[] list;
+            ValueWrapper[] list;
             while (true) {
-                list = (Object[]) markingService.keptObjectQueue.poll();
+                list = (ValueWrapper[]) markingService.keptObjectQueue.poll();
                 if (list == null) {
                     break;
                 } else {
@@ -86,26 +88,29 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             if (!keptObjectLists.isEmpty()) {
                 runAllMarkers();
             }
-            super.processReference(reference);
             keptObjectLists.clear();
         }
 
         @TruffleBoundary
         public void runAllMarkers() {
-            MarkerReference currentMarker = markingService.getFirst();
-            MarkerReference nextMarker;
-            while (currentMarker != null) {
-                nextMarker = currentMarker.getNext();
-                markingService.runMarker(currentMarker);
-                if (nextMarker == currentMarker) {
-                    throw new Error("The MarkerReference linked list structure has become broken.");
+            ExtensionCallStack stack = markingService.getThreadLocalData().getExtensionCallStack();
+            stack.push(stack.getBlock());
+            try {
+                MarkerReference currentMarker = markingService.getFirst();
+                MarkerReference nextMarker;
+                while (currentMarker != null) {
+                    nextMarker = currentMarker.getNext();
+                    markingService.runMarker(currentMarker);
+                    if (nextMarker == currentMarker) {
+                        throw new Error("The MarkerReference linked list structure has become broken.");
+                    }
+                    currentMarker = nextMarker;
                 }
-                currentMarker = nextMarker;
+            } finally {
+                stack.pop();
             }
         }
     }
-
-    private final int cacheSize;
 
     private final ThreadLocal<MarkerThreadLocalData> threadLocalData;
 
@@ -114,109 +119,15 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     private final UnsizedQueue keptObjectQueue = new UnsizedQueue();
 
     public static class MarkerThreadLocalData {
-        private final MarkerKeptObjects keptObjects;
         private final ExtensionCallStack extensionCallStack;
 
         public MarkerThreadLocalData(MarkingService service) {
             this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().getNil());
-            this.keptObjects = new MarkerKeptObjects(service);
-        }
-
-        public MarkerKeptObjects getKeptObjects() {
-            return keptObjects;
         }
 
         public ExtensionCallStack getExtensionCallStack() {
             return extensionCallStack;
         }
-    }
-
-    public static class MarkerKeptObjects {
-        private final MarkingService service;
-        protected Object[] objects;
-        protected int counter;
-
-        protected MarkerKeptObjects(MarkingService service) {
-            objects = new Object[service.cacheSize];
-            counter = 0;
-            this.service = service;
-        }
-
-        MarkingService getService() {
-            return service;
-        }
-
-        public void keepObject(Object object) {
-            /*
-             * It is important to get the ordering of events correct to avoid references being
-             * garbage collected too soon. If we are attempting to add a handle to a native
-             * structure then that consists of two events. First we create the handle, and then the
-             * handle is stored in the struct. If we run mark functions immediate after adding the
-             * handle to the list of kept objects then the mark function will be run before that
-             * handle is stored in the structure, and since it will be removed from the list of kept
-             * objects it could be collected before the mark functions are run again.
-             *
-             * Instead we check for the kept list being full before adding an object to it, as those
-             * handles are already stored in structs by this point.
-             */
-            if (isFull()) {
-                queueAndReset();
-            }
-            objects[counter++] = object;
-        }
-
-        private void queueAndReset() {
-            service.queueForMarking(objects);
-            objects = new Object[service.cacheSize];
-            counter = 0;
-        }
-
-        private boolean isFull() {
-            return counter == service.cacheSize;
-        }
-
-        /**
-         * This method is called when finalizing the {@link MarkerThreadLocalData} of another
-         * thread. we want to either queue the running of mark functions for any objects still kept
-         * alive by that other thread, or copy them into our kept objects. If our keptObjects buffer
-         * is already full we should queue and reset it first, and then consider one of four cases.
-         *
-         * 1. The other threads kept object buffer is full. We'll just queue that.
-         * 2. The other thread has an empty kept object buffer. We don't need to do anything.
-         * 3. The whole of the other thread's kept object buffer will fit into our buffer.
-         *    We can just copy its contents into our buffer.
-         * 4. The other buffer will not fit into our buffer. We need to copy across as much as will
-         *    fit, queue the now full buffer, and then copy the rest.
-         *
-         * We do this rather than simply add the threads objects to
-         * the queue because we want to avoid increasing the marking
-         * overhead unnecessarily.
-         */
-        public void keepObjects(MarkerKeptObjects otherObjects) {
-            if (isFull()) {
-                queueAndReset();
-            }
-            if (otherObjects.isFull()) {
-                service.queueForMarking(otherObjects.objects);
-                return;
-            } else if (otherObjects.counter == 0) {
-                return;
-            } else if (otherObjects.counter + counter <= service.cacheSize) {
-                System.arraycopy(otherObjects.objects, 0, objects, counter, otherObjects.counter);
-                counter += otherObjects.counter;
-                return;
-            } else {
-                int overflowLength = counter + otherObjects.counter - service.cacheSize;
-                int initialLength = otherObjects.counter - overflowLength;
-                System.arraycopy(otherObjects.objects, 0, objects, counter, initialLength);
-                counter = service.cacheSize;
-                queueAndReset();
-                System.arraycopy(otherObjects.objects, initialLength, objects, 0, overflowLength);
-                counter = overflowLength;
-                return;
-            }
-        }
-
     }
 
     protected static class ExtensionCallStackEntry {
@@ -261,7 +172,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
-        cacheSize = context.getOptions().CEXTS_MARKING_CACHE;
         threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
         runnerService = new MarkRunnerService(context, referenceProcessor, this);
     }
@@ -269,7 +179,6 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     @TruffleBoundary
     public MarkerThreadLocalData makeThreadLocalData() {
         MarkerThreadLocalData data = new MarkerThreadLocalData(this);
-        MarkerKeptObjects keptObjects = data.getKeptObjects();
         /*
          * This finalizer will ensure all the objects remaining in our kept objects buffer will be
          * queue at some point. We don't need to do a queue and reset as the MarkerKeptObjects is
@@ -277,21 +186,23 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
          * may only have zero, or very few, objects in it and we don't want to run mark functions
          * more often than we have to.
          */
-        context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
+        //        context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
         return data;
     }
 
     @TruffleBoundary
-    public void queueForMarking(Object[] objects) {
-        keptObjectQueue.add(objects);
-        runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
+    public void queueForMarking(ValueWrapper[] objects) {
+        if (objects != null) {
+            keptObjectQueue.add(objects);
+            runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
+        }
     }
 
     /*
      * Convenience method to schedule marking now. Puts an empty array on the queue.
      */
     public void queueMarking() {
-        queueForMarking(new Object[0]);
+        queueForMarking(new ValueWrapper[0]);
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
@@ -308,7 +219,43 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             if (owner != null) {
                 final MarkerAction action = markerReference.action;
                 action.mark(owner);
+            } else {
+                remove(markerReference);
             }
         }
     }
+
+    private Object[] marks;
+    private int index;
+
+    public void startMarking(Object[] oldMarks) {
+        if (oldMarks == null) {
+            marks = new Object[0];
+        } else {
+            marks = oldMarks;
+        }
+        index = 0;
+    }
+
+    public void addMark(Object obj) {
+        if (marks.length == index) {
+            Object[] oldMarks = marks;
+            marks = new Object[oldMarks.length * 2];
+            System.arraycopy(oldMarks, 0, marks, 0, oldMarks.length);
+        }
+        marks[index] = obj;
+        index++;
+    }
+
+    public Object[] finishMarking() {
+        if (index != marks.length) {
+            for (int i = index; i < marks.length; i++) {
+                marks[i] = null;
+            }
+        }
+        Object[] result = marks;
+        marks = null;
+        return result;
+    }
+
 }

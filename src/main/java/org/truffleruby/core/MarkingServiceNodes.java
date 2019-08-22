@@ -34,7 +34,6 @@ public class MarkingServiceNodes {
                 @Cached GetMarkerThreadLocalDataNode getThreadLocalDataNode) {
             MarkerThreadLocalData data = getThreadLocalDataNode.execute();
             addToList(data.getExtensionCallStack().getKeptObjects(), object);
-            data.getKeptObjects().keepObject(object);
         }
 
         @TruffleBoundary
@@ -62,7 +61,6 @@ public class MarkingServiceNodes {
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("currentJavaThread(dynamicParameter)") Thread thread,
                 @Cached("getData(dynamicParameter, context)") MarkerThreadLocalData data) {
-            assert context == data.getKeptObjects().getService().context;
             return data;
         }
 

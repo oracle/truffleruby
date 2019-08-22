@@ -48,8 +48,9 @@ extern void* rb_tr_cext;
 
 // Wrapping and unwrapping of values.
 
-#define rb_tr_wrap(object) polyglot_invoke(RUBY_CEXT, "rb_tr_wrap", object)
-#define rb_tr_unwrap(object) polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap", object)
+extern void* (*rb_tr_unwrap)(VALUE obj);
+extern VALUE (*rb_tr_wrap)(void *obj);
+extern VALUE (*rb_tr_longwrap)(long obj);
 
 // Needed for GC guarding
 
@@ -57,6 +58,8 @@ MUST_INLINE VALUE *rb_tr_gc_guard(VALUE *ptr) {
   polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", *ptr);
   return ptr;
 }
+
+#define RB_NIL_P(value) ((int)polyglot_as_boolean(polyglot_invoke(rb_tr_cext, "RB_NIL_P", value)))
 
 #include <ruby/thread_native.h>
 
