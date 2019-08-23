@@ -1366,15 +1366,12 @@ EOS
                   [args, []]
                 end
 
-    vm_args, ruby_args, parsed_options = ruby_options(
-        {},
-        ["--reveal",
-         "--vm.Xmx2G",
-         *("--polyglot" unless truffleruby_native?)] + ruby_args)
+    vm_args, ruby_args, parsed_options = ruby_options({}, ["--reveal", *ruby_args])
+    vm_args += ["--vm.Xmx2G", *("--polyglot" unless truffleruby_native?)]
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 
-    prefixed_ruby_args = (vm_args + ruby_args).map { |v| "-T#{v}" }
+    prefixed_ruby_args = [*(vm_args if truffleruby?), *ruby_args].map { |v| "-T#{v}" }
     run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
   end
 

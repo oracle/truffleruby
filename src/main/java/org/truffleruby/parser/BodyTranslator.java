@@ -402,8 +402,7 @@ public class BodyTranslator extends Translator {
                 node.getPosition(), node.getReceiverNode(), node.getName(), node.getArgsNode(), null, node.isLazy());
 
         copyNewline(node, callNode);
-        boolean isAccessorOnSelf = (node.getReceiverNode() instanceof SelfParseNode);
-        final RubyNode actualCall = translateCallNode(callNode, isAccessorOnSelf, false, true);
+        final RubyNode actualCall = translateCallNode(callNode, node.isSelf(), false, true);
 
         return addNewlineIfNeeded(node, actualCall);
     }
@@ -2382,8 +2381,8 @@ public class BodyTranslator extends Translator {
             final ParseNode readReceiverFromTemp = new LocalVarParseNode(pos, 0, temp);
 
             final ParseNode readMethod = new CallParseNode(pos, readReceiverFromTemp, node.getVariableName(), null, null);
-            final ParseNode writeMethod = new CallParseNode(pos, readReceiverFromTemp, node.getVariableName() + "=", buildArrayNode(pos,
-                    node.getValueNode()), null);
+            final ParseNode writeMethod = new AttrAssignParseNode(pos, readReceiverFromTemp, node.getVariableName() + "=", buildArrayNode(pos,
+                    node.getValueNode()), false, node.getReceiverNode() instanceof SelfParseNode);
 
             final SourceIndexLength sourceSection = pos;
 
