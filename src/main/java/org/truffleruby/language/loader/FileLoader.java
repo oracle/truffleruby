@@ -11,7 +11,6 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Locale;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -60,7 +59,7 @@ public class FileLoader {
         final String name;
 
         if (context.isPreInitializing()) {
-            name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(path));
+            name = RubyLanguage.RUBY_HOME_SCHEME + context.getRubyHomeTruffleFile().relativize(file);
         } else {
             name = path;
         }
@@ -87,7 +86,7 @@ public class FileLoader {
             throw new RaiseException(context, context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
         }
 
-        final TruffleFile home = env.getInternalTruffleFile(context.getRubyHome());
+        final TruffleFile home = context.getRubyHomeTruffleFile();
         if (file.startsWith(home) && isStdLibRubyOrCExtFile(home.relativize(file))) {
             return file;
         } else {

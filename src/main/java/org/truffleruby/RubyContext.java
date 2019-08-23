@@ -17,6 +17,7 @@ import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.TruffleFile;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -92,6 +93,7 @@ public class RubyContext {
 
     @CompilationFinal private Options options;
     @CompilationFinal private String rubyHome;
+    @CompilationFinal private TruffleFile rubyHomeTruffleFile;
 
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
@@ -176,6 +178,7 @@ public class RubyContext {
         ropeCache = new RopeCache(this);
 
         rubyHome = findRubyHome(options);
+        rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
 
         // Stuff that needs to be loaded before we load any code
 
@@ -278,6 +281,7 @@ public class RubyContext {
         }
         this.options = newOptions;
         this.rubyHome = newHome;
+        this.rubyHomeTruffleFile = newHome == null ? null : newEnv.getInternalTruffleFile(newHome);
 
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
@@ -644,6 +648,10 @@ public class RubyContext {
 
     public String getRubyHome() {
         return rubyHome;
+    }
+
+    public TruffleFile getRubyHomeTruffleFile() {
+        return rubyHomeTruffleFile;
     }
 
     public ConsoleHolder getConsoleHolder() {
