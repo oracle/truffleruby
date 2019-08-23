@@ -9,7 +9,7 @@ AllCops:
     - 'lib/truffle/socket/mri.rb' # taken from MRI
     - 'lib/truffle/ffi/**/*.rb' # taken from FFI gem
     - 'src/test/ruby/types.rb' # deliberately strange code for debugging purposes
-    - 'src/test/ruby/lexical-context.rb' # deliberately strange code for debugging purposes
+    - 'src/tck/ruby/lexical-context.rb' # deliberately strange code for debugging purposes
 
 # Type 'Layout' (166):
 # Supports --auto-correct

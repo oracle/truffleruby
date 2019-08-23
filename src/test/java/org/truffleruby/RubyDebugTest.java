@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +44,6 @@ import com.oracle.truffle.api.debug.DebugValue;
 import com.oracle.truffle.api.debug.Debugger;
 import com.oracle.truffle.api.debug.DebuggerSession;
 import com.oracle.truffle.api.debug.SuspendedEvent;
-import com.oracle.truffle.tck.DebuggerTester;
 
 public class RubyDebugTest {
 
@@ -65,6 +65,21 @@ public class RubyDebugTest {
         try {
             return Source.newBuilder(TruffleRuby.LANGUAGE_ID, reader, new File(path).getName()).build();
         } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+    // Copied from com.oracle.truffle.tck.DebuggerTester, to avoid a dependency on TCK just for this
+    private static com.oracle.truffle.api.source.Source getSourceImpl(Source source) {
+        return (com.oracle.truffle.api.source.Source) getField(source, "impl");
+    }
+
+    private static Object getField(Object value, String name) {
+        try {
+            Field field = value.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(value);
+        } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
     }
@@ -107,7 +122,7 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            breakpoint = Breakpoint.newBuilder(DebuggerTester.getSourceImpl(factorial)).lineIs(BREAKPOINT_LINE).build();
+            breakpoint = Breakpoint.newBuilder(getSourceImpl(factorial)).lineIs(BREAKPOINT_LINE).build();
             debuggerSession.install(breakpoint);
         });
 
@@ -244,7 +259,7 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            breakpoint = Breakpoint.newBuilder(DebuggerTester.getSourceImpl(source)).lineIs(27).build();
+            breakpoint = Breakpoint.newBuilder(getSourceImpl(source)).lineIs(27).build();
             debuggerSession.install(breakpoint);
         });
         assertLocation(27, "nme + nm1",

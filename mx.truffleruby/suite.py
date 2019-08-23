@@ -236,11 +236,19 @@ suite = {
             "dependencies": [
                 "org.truffleruby",
                 "org.truffleruby.services",
-                "truffle:TRUFFLE_TCK",
                 "mx:JUNIT",
             ],
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
+            "license": ["EPL-1.0"],
+        },
+
+        "org.truffleruby.tck": {
+            "testProject": True,
+            "dir": "src/tck",
+            "sourceDirs": ["java", "ruby"],
+            "dependencies": ["truffle:TRUFFLE_TCK"],
+            "javaCompliance": "1.8",
             "license": ["EPL-1.0"],
         },
 
@@ -494,8 +502,14 @@ suite = {
             "distDependencies": [
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
-                "truffle:TRUFFLE_TCK"
             ],
+            "license": ["EPL-1.0"],
+        },
+
+        "TRUFFLERUBY-TCK": {
+            "testDistribution": True,
+            "dependencies": ["org.truffleruby.tck"],
+            "distDependencies": ["truffle:TRUFFLE_TCK"],
             "license": ["EPL-1.0"],
         },
     },
