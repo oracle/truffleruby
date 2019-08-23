@@ -81,7 +81,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         protected Object importFile(DynamicObject fileName) {
             try {
-                final TruffleFile file = getContext().getEnv().getTruffleFile(StringOperations.getString(fileName).intern());
+                final TruffleFile file = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parse(source).call();
             } catch (IOException e) {

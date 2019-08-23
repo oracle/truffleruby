@@ -82,7 +82,7 @@ public class MainLoader {
     public RubySource loadFromFile(Env env, RubyNode currentNode, String path) throws IOException {
         final FileLoader fileLoader = new FileLoader(context);
 
-        final TruffleFile file = env.getTruffleFile(path);
+        final TruffleFile file = env.getPublicTruffleFile(path);
         fileLoader.ensureReadable(file);
 
         /*
