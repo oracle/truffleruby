@@ -12,6 +12,7 @@ package org.truffleruby.language.loader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -53,7 +54,7 @@ public class FileLoader {
             RubyLanguage.LOGGER.info("loading " + path);
         }
 
-        final TruffleFile file = env.getTruffleFile(path);
+        final TruffleFile file = getSafeTruffleFile(env, path);
         ensureReadable(file);
 
         final String name;
@@ -76,6 +77,41 @@ public class FileLoader {
         final Source source = buildSource(file, name, sourceRope, isInternal(path));
 
         return new RubySource(source, sourceRope);
+    }
+
+    private TruffleFile getSafeTruffleFile(Env env, String path) {
+        final TruffleFile file;
+        try {
+            file = env.getInternalTruffleFile(path).getCanonicalFile();
+        } catch (IOException e) {
+            throw new RaiseException(context, context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
+        }
+
+        final TruffleFile home = env.getInternalTruffleFile(context.getRubyHome());
+        if (file.startsWith(home) && isStdLibRubyOrCExtFile(home.relativize(file))) {
+            return file;
+        } else {
+            try {
+                return env.getPublicTruffleFile(path);
+            } catch (SecurityException e) {
+                throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied (" + e.getMessage() + ") -- " + path, path, null));
+            }
+        }
+    }
+
+    private boolean isStdLibRubyOrCExtFile(TruffleFile relativePathFromHome) {
+        final String fileName = relativePathFromHome.getName();
+        if (fileName == null) {
+            return false;
+        }
+
+        final String lowerCaseFileName = fileName.toLowerCase(Locale.ROOT);
+        if (!lowerCaseFileName.endsWith(TruffleRuby.EXTENSION) &&
+                !lowerCaseFileName.endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            return false;
+        }
+
+        return relativePathFromHome.startsWith("lib");
     }
 
     Source buildSource(TruffleFile file, String name, Rope sourceRope, boolean internal) {
