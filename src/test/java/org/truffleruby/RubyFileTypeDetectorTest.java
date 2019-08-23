@@ -41,7 +41,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                 TruffleLanguage.Env env = rootNode.getContext().getEnv();
                 try {
                     for (TestCase testCase : getTestCases()) {
-                        TruffleFile file = env.getTruffleFile(testCase.path.toString());
+                        TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
                         if (testCase.hasRubyMimeType) {
                             assertEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
                         } else {
@@ -76,7 +76,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                 try {
                     for (TestCase testCase : getTestCases()) {
                         if (testCase.hasRubyMimeType) {
-                            TruffleFile file = env.getTruffleFile(testCase.path.toString());
+                            TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
                             assertEquals(testCase.encoding, fileTypeDetector.findEncoding(file));
                         }
                     }

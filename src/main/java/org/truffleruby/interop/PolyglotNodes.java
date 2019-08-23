@@ -93,7 +93,7 @@ public abstract class PolyglotNodes {
             final Source source;
             final String path = StringOperations.getString(fileName).intern();
             try {
-                final TruffleFile file = getContext().getEnv().getTruffleFile(path);
+                final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
                 if (language == null) {
                     throw new RaiseException(getContext(), coreExceptions().argumentError("Could not find language of file " + fileName, this));
@@ -127,7 +127,7 @@ public abstract class PolyglotNodes {
         private Source getSource(String language, DynamicObject fileName) {
             final String path = StringOperations.getString(fileName).intern();
             try {
-                final TruffleFile file = getContext().getEnv().getTruffleFile(path);
+                final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 return Source.newBuilder(language, file).build();
             } catch (IOException e) {
                 throw new JavaException(e);
