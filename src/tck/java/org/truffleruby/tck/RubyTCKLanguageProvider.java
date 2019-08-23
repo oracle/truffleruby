@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby;
+package org.truffleruby.tck;
 
 import static org.graalvm.polyglot.tck.TypeDescriptor.ANY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ARRAY;
@@ -22,6 +22,7 @@ import static org.graalvm.polyglot.tck.TypeDescriptor.intersection;
 import static org.graalvm.polyglot.tck.TypeDescriptor.union;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,13 +42,12 @@ import org.graalvm.polyglot.tck.ResultVerifier;
 import org.graalvm.polyglot.tck.Snippet;
 import org.graalvm.polyglot.tck.TypeDescriptor;
 import org.junit.Assert;
-import org.truffleruby.shared.TruffleRuby;
 
 public class RubyTCKLanguageProvider implements LanguageProvider {
 
     @Override
     public String getId() {
-        return TruffleRuby.LANGUAGE_ID;
+        return "ruby";
     }
 
     @Override
@@ -205,10 +205,13 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     }
 
     private Source getSource(String path) {
-        final InputStream stream = ClassLoader.getSystemResourceAsStream(path);
-        final Reader reader = new InputStreamReader(stream);
-
         try {
+            final InputStream stream = ClassLoader.getSystemResourceAsStream(path);
+            if (stream == null) {
+                throw new FileNotFoundException(path);
+            }
+
+            final Reader reader = new InputStreamReader(stream);
             return Source.newBuilder(getId(), reader, new File(path).getName()).build();
         } catch (IOException e) {
             throw new Error(e);
