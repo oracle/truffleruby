@@ -977,4 +977,18 @@ end
     end
 
   end
+
+  describe "rb_str_drop_bytes" do
+    it "drops N characters for an ASCII string" do
+      @s.rb_str_drop_bytes("12345678".encode("US-ASCII"), 4).should == "5678".encode("US-ASCII")
+    end
+
+    it "drop N/2 characters for a UTF-16 string" do
+      @s.rb_str_drop_bytes("12345678".encode("UTF-16LE"), 4).should == "345678".encode("UTF-16LE")
+    end
+
+    it "drop N/4 characters for a UTF-32 string" do
+      @s.rb_str_drop_bytes("12345678".encode("UTF-32LE"), 4).should == "2345678".encode("UTF-32LE")
+    end
+  end
 end

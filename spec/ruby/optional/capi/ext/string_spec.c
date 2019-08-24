@@ -119,6 +119,10 @@ VALUE string_spec_rb_str_conv_enc_opts(VALUE self, VALUE str, VALUE from, VALUE 
   return rb_str_conv_enc_opts(str, from_enc, to_enc, FIX2INT(ecflags), ecopts);
 }
 
+VALUE string_spec_rb_str_drop_bytes(VALUE self, VALUE str, VALUE len) {
+  return rb_str_drop_bytes(str, NUM2LONG(len));
+}
+
 VALUE string_spec_rb_str_export(VALUE self, VALUE str) {
   return rb_str_export(str);
 }
@@ -422,6 +426,7 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_str_cmp", string_spec_rb_str_cmp, 2);
   rb_define_method(cls, "rb_str_conv_enc", string_spec_rb_str_conv_enc, 3);
   rb_define_method(cls, "rb_str_conv_enc_opts", string_spec_rb_str_conv_enc_opts, 5);
+  rb_define_method(cls, "rb_str_drop_bytes", string_spec_rb_str_drop_bytes, 2);
   rb_define_method(cls, "rb_str_export", string_spec_rb_str_export, 1);
   rb_define_method(cls, "rb_str_export_locale", string_spec_rb_str_export_locale, 1);
   rb_define_method(cls, "rb_str_dup", string_spec_rb_str_dup, 1);
