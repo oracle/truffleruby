@@ -452,6 +452,7 @@ module Truffle
         redirects = []
         pgroup = -1
         fds_to_close = []
+        chdir = nil
 
         options.each_pair do |key, value|
           case key
@@ -479,9 +480,18 @@ module Truffle
                 end
               end
             end
+          when :chdir
+            chdir = value
           else
             raise "Unknown spawn option: #{key}"
           end
+        end
+
+        if chdir
+          # Go through spawn-helper to change the working dir and then execve()
+          spawn_helper = "#{Truffle::Boot.ruby_home}/lib/truffle/spawn-helper"
+          args = [spawn_helper, chdir, command, *args]
+          command = spawn_helper
         end
 
         Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|

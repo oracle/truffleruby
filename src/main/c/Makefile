@@ -17,6 +17,7 @@ CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
 LDFLAGS := -m64
 
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(DLEXT)
+SPAWN_HELPER := spawn-helper/spawn-helper
 SULONG_HEADERS := $(SULONG_POLYGLOT_H)
 GENERATE_SULONG_MOCK := $(ROOT)/tool/generate-sulongmock.rb
 
@@ -25,7 +26,7 @@ RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
-BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
+BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These libraries are needed for try_link() in extconf.rb
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) sulongmock/sulongmock.o cext/ruby.o cext/ruby.su
 
@@ -50,6 +51,10 @@ clean_cexts:
 	rm -f nkf/Makefile nkf/*.bc nkf/nkf.su
 	rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
 	rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.bc rbconfig-sizeof/sizeof.su
+
+# spawn-helper
+$(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
+	cd spawn-helper && $(MAKE)
 
 # truffleposix
 $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c

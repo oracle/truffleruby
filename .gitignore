@@ -31,6 +31,7 @@ bench/psd.rb/psd_native/ext/psd_native/*.su
 bench/psd.rb/psd_native/lib/psd_native/psd_native.su
 
 src/main/c/*/Makefile
+!src/main/c/spawn-helper/Makefile
 !src/main/c/truffleposix/Makefile
 src/main/c/*/*.bc
 src/main/c/*/*.su
@@ -38,6 +39,7 @@ src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
 src/main/c/cext/ruby.o
 src/main/c/etc/constdefs.h
+src/main/c/spawn-helper/spawn-helper
 src/main/c/sulongmock/sulongmock.c
 src/main/c/sulongmock/sulongmock.o
 src/main/c/truffleposix/truffleposix.o
