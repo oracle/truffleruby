@@ -155,14 +155,14 @@ module Truffle
         else
           if cmd = Truffle::Type.try_convert(command, Array, :to_ary)
             raise ArgumentError, 'wrong first argument' unless cmd.size == 2
-            command = StringValue(cmd[0])
-            name = StringValue(cmd[1])
+            command = Truffle::Type.check_null_safe(StringValue(cmd[0]))
+            name = Truffle::Type.check_null_safe(StringValue(cmd[1]))
           else
-            name = command = StringValue(command)
+            name = command = Truffle::Type.check_null_safe(StringValue(command))
           end
 
           argv = [name]
-          args.each { |arg| argv << StringValue(arg) }
+          args.each { |arg| argv << Truffle::Type.check_null_safe(StringValue(arg)) }
 
           @command = command
           @argv = argv
