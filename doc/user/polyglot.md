@@ -141,6 +141,9 @@ list of members.
 `Polyglot.as_enumerable(object)` will create a Ruby `Enumerable` from the
 foreign object, using its size or length and reading from it.
 
+Where boolean value is expected (e.g. in if conditions) the foreign value is
+converted to boolean if possible or considered to be true.
+
 ## Accessing Java objects
 
 TruffleRuby's Java interop interface is similar to the interface from the

@@ -14,13 +14,19 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyNode;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
  * Casts a value into a boolean.
@@ -71,13 +77,31 @@ public abstract class BooleanCastNode extends RubyBaseWithoutContextNode {
         return true;
     }
 
-    @Specialization(guards = "isForeignObject(object)")
-    protected boolean doForeignObject(TruffleObject object) {
-        return true;
+    @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
+    protected boolean doForeignObject(
+            TruffleObject object,
+            @CachedLibrary("object") InteropLibrary objects,
+            @Cached("createBinaryProfile()") ConditionProfile profile,
+            @Cached BranchProfile failed) {
+        if (profile.profile(objects.isBoolean(object))) {
+            try {
+                return objects.asBoolean(object);
+            } catch (UnsupportedMessageException e) {
+                failed.enter();
+                // it concurrently stopped being boolean
+                return true;
+            }
+        } else {
+            return true;
+        }
     }
 
     @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
     protected boolean doOther(Object object) {
         return true;
+    }
+
+    protected int getCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
     }
 }

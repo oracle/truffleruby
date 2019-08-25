@@ -672,12 +672,12 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "foreign_boxed_number", onSingleton = true, required = 1)
+    @CoreMethod(names = "foreign_boxed_value", onSingleton = true, required = 1)
     public abstract static class ForeignBoxedNumberNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected Object foreignBoxedNumber(Number number) {
+        protected Object foreignBoxedNumber(Object number) {
             return new BoxedValue(number);
         }
 
