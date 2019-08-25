@@ -268,6 +268,7 @@ suite = {
             },
             "output": ".",
             "results": [
+                "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/sulongmock/sulongmock.o",
                 "src/main/c/cext/ruby.o",
@@ -460,6 +461,9 @@ suite = {
                     "file:lib/gems/specifications/rake-12.3.2.gemspec",
                     "file:lib/gems/specifications/test-unit-3.2.9.gemspec",
                     "file:lib/gems/specifications/xmlrpc-0.3.0.gemspec",
+                ],
+                "lib/truffle/": [
+                    "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
                 ],
                 "src/main/c/openssl/": [
                     "file:src/main/c/openssl/deprecation.rb",
