@@ -14,7 +14,6 @@ import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.instrumentation.StandardTags;
@@ -24,7 +23,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-@GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     private static final int NO_SOURCE = -1;
@@ -55,13 +53,14 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     }
 
     public Object isDefined(VirtualFrame frame) {
+        assert !(this instanceof WrapperNode);
         return coreStrings().EXPRESSION.createInstance();
     }
 
     // Instrumentation
 
     public WrapperNode createWrapper(ProbeNode probe) {
-        return new RubyNodeWrapper(this, probe);
+        return new RubyNodeWrapperWithIsDefined(this, probe);
     }
 
     public boolean isInstrumentable() {

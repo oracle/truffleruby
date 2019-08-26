@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -7,28 +7,26 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.exceptions;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
 import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.object.DynamicObject;
 
-// Defined manually rather than generated because we need to delegate canHandle() and isDefined()
-public class RescueNodeWrapper extends RescueNode implements WrapperNode {
+// Defined manually rather than generated because we need to delegate isDefined()
+final class RubyNodeWrapperWithIsDefined extends RubyNode implements WrapperNode {
 
-    @Child private RescueNode delegateNode;
+    @Child private RubyNode delegateNode;
     @Child private ProbeNode probeNode;
 
-    RescueNodeWrapper(RescueNode delegateNode, ProbeNode probeNode) {
-        super(null);
+    RubyNodeWrapperWithIsDefined(RubyNode delegateNode, ProbeNode probeNode) {
         this.delegateNode = delegateNode;
         this.probeNode = probeNode;
     }
 
     @Override
-    public RescueNode getDelegateNode() {
+    public RubyNode getDelegateNode() {
         return delegateNode;
     }
 
@@ -65,11 +63,6 @@ public class RescueNodeWrapper extends RescueNode implements WrapperNode {
             }
         }
         return returnValue;
-    }
-
-    @Override
-    public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        return delegateNode.canHandle(frame, exception);
     }
 
     @Override
