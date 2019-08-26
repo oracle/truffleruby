@@ -9,6 +9,7 @@ Compatibility:
 * `GC.stat` can now take an option (#1716).
 * `Kernel#load` with `wrap` has been implemented (#1739).
 * Implemented `Kernel#spawn` with `:chdir` (#1492).
+* Implemented `rb_str_drop_bytes`, notably used by OpenSSL (#1740).
 
 # 19.2.0
 

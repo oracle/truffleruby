@@ -4357,7 +4357,11 @@ int rb_str_comparable(VALUE str1, VALUE str2) {
 }
 
 VALUE rb_str_drop_bytes(VALUE str, long len) {
-  rb_tr_error("rb_str_drop_bytes not implemented");
+  long olen = RSTRING_LEN(str);
+  if (len > olen) {
+    len = olen;
+  }
+  return rb_str_replace(str, rb_str_subseq(str, len, olen - len));
 }
 
 VALUE rb_str_dump(VALUE str) {
