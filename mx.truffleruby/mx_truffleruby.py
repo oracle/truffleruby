@@ -119,6 +119,10 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     license_files=[],
     third_party_license_files=[],
     dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'Sulong', 'GraalVM Chrome Inspector', 'GraalVM Profiler', 'VisualVM'],
+    standalone_dependencies={
+        'Sulong': ('lib/sulong', ['bin/<exe:lli>']),
+        'LLVM.org toolchain': ('lib/llvm-toolchain', []),
+    },
     truffle_jars=[
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',
