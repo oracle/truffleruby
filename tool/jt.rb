@@ -802,6 +802,17 @@ module Commands
 
     options[:no_print_cmd] = true if @silent
 
+    if truffleruby? && !truffleruby_native?
+      %w[TRUFFLERUBYOPT RUBYOPT].each do |env_name|
+        if ENV[env_name] && !ENV[env_name].empty?
+          vm_options = ENV[env_name].split(" ").select { |v| v =~ /^--(jvm|vm)/ }
+          $stderr.print "Not a native build, applying --jvm and --vm options #{vm_options.inspect} from #{env_name} \"#{ENV[env_name]}\" directly as options. "
+          $stderr.puts "Otherwise they would be ignored since jvm process cannot apply them to itself."
+          vm_args += vm_options
+        end
+      end
+    end
+
     raw_sh env_vars, ruby_launcher, *(vm_args if truffleruby?), *ruby_args, options
   end
 
