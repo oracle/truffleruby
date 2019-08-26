@@ -19,8 +19,8 @@ describe "Truffle::Interop.unbox_if_needed" do
   end
 
   it "unboxes a foreign boxed number" do
-    Truffle::Interop.unbox_if_needed(Truffle::Debug.foreign_boxed_number(2)).should == 2
-    Truffle::Interop.unbox_if_needed(Truffle::Debug.foreign_boxed_number(14.2)).should == 14.2
+    Truffle::Interop.unbox_if_needed(Truffle::Debug.foreign_boxed_value(2)).should == 2
+    Truffle::Interop.unbox_if_needed(Truffle::Debug.foreign_boxed_value(14.2)).should == 14.2
   end
 
 end

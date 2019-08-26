@@ -1361,10 +1361,10 @@ EOS
 
     delimiter_index = args.index("--")
     args, ruby_args = if delimiter_index
-                  [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
-                else
-                  [args, []]
-                end
+                        [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
+                      else
+                        [args, []]
+                      end
 
     vm_args, ruby_args, parsed_options = ruby_options({}, ["--reveal", *ruby_args])
     vm_args += ["--vm.Xmx2G", *("--polyglot" unless truffleruby_native?)]

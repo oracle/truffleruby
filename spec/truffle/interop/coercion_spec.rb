@@ -22,13 +22,21 @@ describe "Interop coercion" do
     end
 
     it "unboxes a LHS operand" do
-      (Truffle::Debug.foreign_boxed_number(2) + 14).should == 16
+      (Truffle::Debug.foreign_boxed_value(2) + 14).should == 16
     end
 
     it "unboxes a RHS operand" do
-      (2 + Truffle::Debug.foreign_boxed_number(14)).should == 16
+      (2 + Truffle::Debug.foreign_boxed_value(14)).should == 16
     end
 
+  end
+
+  describe "in condition" do
+    it "coerce foreign boolean" do
+      (Truffle::Debug.foreign_boxed_value(true) ? 1 : 2).should == 1
+      (Truffle::Debug.foreign_boxed_value(false) ? 1 : 2).should == 2
+      (Truffle::Debug.foreign_boxed_value(:other) ? 1 : 2).should == 1
+    end
   end
 
 end
