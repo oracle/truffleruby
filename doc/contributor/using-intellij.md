@@ -28,7 +28,7 @@ source code always formatted to match the project's guidelines.
     Plugins section.
 
 4.  The plugin will be fully configured in next step where the project files are
-    generated.
+    generated with `mx intellijinit`.
     
 To format the source code use the usual idea shortcut for formatting the file.
 If imports are not being optimised as well, use idea action "Show Reformat File
