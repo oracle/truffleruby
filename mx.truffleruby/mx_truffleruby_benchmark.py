@@ -68,8 +68,8 @@ class RubyBenchmarkSuite(mx_benchmark.BenchmarkSuite):
     def runArgs(self, bmSuiteArgs):
         return mx_benchmark.splitArgs(bmSuiteArgs, bmSuiteArgs)[1]
 
-    def default_benchmarks(self):
-        return self.benchmarks()
+    def default_benchmarks(self, bmSuiteArgs):
+        return self.benchmarkList(bmSuiteArgs)
 
     def run(self, benchmarks, bmSuiteArgs):
         def fixUpResult(result):
@@ -81,7 +81,7 @@ class RubyBenchmarkSuite(mx_benchmark.BenchmarkSuite):
             })
             return result
 
-        return [fixUpResult(r) for b in benchmarks or self.default_benchmarks() for r in self.runBenchmark(b, bmSuiteArgs)]
+        return [fixUpResult(r) for b in benchmarks or self.default_benchmarks(bmSuiteArgs) for r in self.runBenchmark(b, bmSuiteArgs)]
 
     def runBenchmark(self, benchmark, bmSuiteArgs):
         raise NotImplementedError()
@@ -93,7 +93,7 @@ build_stats_benchmarks = {
 }
 
 class BuildStatsBenchmarkSuite(RubyBenchmarkSuite):
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return list(build_stats_benchmarks.keys())
 
     def name(self):
@@ -128,10 +128,10 @@ metrics_benchmarks = {
 default_metrics_benchmarks = ['hello', 'compile-mandelbrot']
 
 class MetricsBenchmarkSuite(RubyBenchmarkSuite):
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return list(metrics_benchmarks.keys())
 
-    def default_benchmarks(self):
+    def default_benchmarks(self, bmSuiteArgs):
         return default_metrics_benchmarks
 
 class AllocationBenchmarkSuite(MetricsBenchmarkSuite):
@@ -241,7 +241,7 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
         } for region, region_data in data.items() for n, sample in enumerate(region_data['samples'])]
 
 class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         raise NotImplementedError()
 
     def name(self):
@@ -358,7 +358,7 @@ class ClassicBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'classic'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return classic_benchmarks
 
     def time(self):
@@ -389,7 +389,7 @@ class ChunkyBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'chunky_png'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return chunky_benchmarks
 
     def time(self):
@@ -437,7 +437,7 @@ class PSDBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'psd.rb'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return psd_benchmarks
 
     def time(self):
@@ -457,7 +457,7 @@ class ImageDemoBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'image-demo'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return image_demo_benchmarks
 
     def time(self):
@@ -482,7 +482,7 @@ class AsciidoctorBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'asciidoctor'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return asciidoctor_benchmarks
 
     def time(self):
@@ -495,7 +495,7 @@ class OptcarrotBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'optcarrot'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return ['optcarrot']
 
     def time(self):
@@ -511,7 +511,7 @@ class SyntheticBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'synthetic'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return synthetic_benchmarks
 
     def time(self):
@@ -523,7 +523,7 @@ class MicroBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
         return 'micro'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         ruby_benchmarks = join(rubyDir, 'bench')
         benchmarks = []
         for root, _, files in os.walk(join(ruby_benchmarks, 'micro')):
@@ -551,7 +551,7 @@ class SavinaBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def directory(self):
         return 'parallel/savina'
 
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return savina_benchmarks
 
     def time(self):
@@ -565,7 +565,7 @@ server_benchmarks = [
 server_benchmark_time = 60 * 4 # Seems unstable otherwise
 
 class ServerBenchmarkSuite(RubyBenchmarkSuite):
-    def benchmarks(self):
+    def benchmarkList(self, bmSuiteArgs):
         return server_benchmarks
 
     def name(self):
