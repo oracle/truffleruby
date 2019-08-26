@@ -22,6 +22,7 @@ import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -289,17 +290,15 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     @GenerateUncached
     protected abstract static class SpecialFormOutgoingNode extends OutgoingNode {
 
-        @Specialization(guards = "context == cachedContext", limit = "getCacheLimit()")
+        @Specialization(guards = "contextReference.get() == cachedContext", limit = "getCacheLimit()")
         protected Object specialFormOutgoingCached(TruffleObject receiver, String cachedName, Object[] args,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                // FIXME (pitr 25-Jun-2019): Use following line instead of "getCurrentContext()" after GR-16868 is fixed
-                // @Cached("context") RubyContext cachedContext,
-                @Cached("getCurrentContext()") RubyContext cachedContext,
+                @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
+                @Cached("contextReference.get()") RubyContext cachedContext,
                 @Cached(value = "cachedContext.getSymbolTable().getSymbol(cachedName)", allowUncached = true) DynamicObject symbol,
                 @Cached(value = "getExpectedArgsLength(cachedName)", allowUncached = true) int expectedArgsLength,
                 @Cached BranchProfile argumentErrorProfile,
                 @Cached("createPrivate()") CallDispatchHeadNode callSpecialForm) {
-            return specialFormOutgoing(context, argumentErrorProfile, callSpecialForm, receiver, symbol, expectedArgsLength, args);
+            return specialFormOutgoing(cachedContext, argumentErrorProfile, callSpecialForm, receiver, symbol, expectedArgsLength, args);
         }
 
         @Specialization(replaces = "specialFormOutgoingCached")
