@@ -36,7 +36,7 @@ class BackgroundServerTask:
     def __enter__(self):
         preexec_fn, creationflags = mx._get_new_progress_group_args()
         if mx._opts.verbose:
-            mx.log(' '.join(['(background)'] + map(pipes.quote, self.args)))
+            mx.log(' '.join(['(background)'] + list(map(pipes.quote, self.args))))
         self.process = subprocess.Popen(self.args, preexec_fn=preexec_fn, creationflags=creationflags)
         mx._addSubprocess(self.process, self.args)
 
@@ -94,7 +94,7 @@ build_stats_benchmarks = {
 
 class BuildStatsBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):
-        return build_stats_benchmarks.keys()
+        return list(build_stats_benchmarks.keys())
 
     def name(self):
         return 'build-stats'
@@ -129,7 +129,7 @@ default_metrics_benchmarks = ['hello', 'compile-mandelbrot']
 
 class MetricsBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):
-        return metrics_benchmarks.keys()
+        return list(metrics_benchmarks.keys())
 
     def default_benchmarks(self):
         return default_metrics_benchmarks
