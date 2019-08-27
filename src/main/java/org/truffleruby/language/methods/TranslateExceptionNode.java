@@ -225,11 +225,15 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
             }
         }
 
+        builder.append('\n');
+        appendJavaStackTrace(exception, builder);
+        String message = builder.toString().trim();
+
         switch (unsupportedOperationBehavior) {
             case TYPE_ERROR:
-                return context.getCoreExceptions().typeError(builder.toString(), this, exception);
+                return context.getCoreExceptions().typeError(message, this, exception);
             case ARGUMENT_ERROR:
-                return context.getCoreExceptions().argumentError(builder.toString(), this, exception);
+                return context.getCoreExceptions().argumentError(message, this, exception);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -297,7 +301,6 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
                 if (t instanceof TruffleException) {
                     lastBacktrace = new Backtrace((TruffleException) t);
                 } else {
-                    // Print the first 10 lines of the Java stacktrace
                     appendJavaStackTrace(t, builder);
 
                     if (TruffleStackTrace.getStackTrace(t) != null) {
