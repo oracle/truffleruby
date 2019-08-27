@@ -81,6 +81,7 @@ Info.plist
 /mxbuild
 /TRUFFLERUBY*.dist
 /eclipseformat.backup.zip
+/mx.truffleruby/__pycache__
 
 # ruby/spec
 /rubyspec_temp
