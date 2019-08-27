@@ -17,7 +17,6 @@ import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -38,6 +37,8 @@ public abstract class ExceptionOperations {
         if (message == null || message == context.getCoreLibrary().getNil()) {
             final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
             return exceptionClass.getName(); // What Exception#message would return if no message is set
+        } else if (RubyGuards.isRubyString(message)) {
+            return StringOperations.getString((DynamicObject) message);
         } else {
             return message.toString();
         }
@@ -50,7 +51,7 @@ public abstract class ExceptionOperations {
             if (RubyGuards.isRubyString(messageObject)) {
                 return StringOperations.getString((DynamicObject) messageObject);
             }
-        } catch (RaiseException e) {
+        } catch (Throwable e) {
             // Fall back to the internal message field
         }
         return messageFieldToString(context, exception);

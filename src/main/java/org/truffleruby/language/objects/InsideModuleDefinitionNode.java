@@ -13,18 +13,11 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.GenerateWrapper;
-import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.instrumentation.Tag;
 
-@GenerateWrapper
 public class InsideModuleDefinitionNode extends RubyNode {
 
     @Child private RubyNode body;
-
-    public InsideModuleDefinitionNode() {
-        // The instrumentation wrapper requires a no-arg constructor
-    }
 
     public InsideModuleDefinitionNode(RubyNode body) {
         this.body = body;
@@ -33,11 +26,6 @@ public class InsideModuleDefinitionNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return body.execute(frame);
-    }
-
-    @Override
-    public WrapperNode createWrapper(ProbeNode probeNode) {
-        return new InsideModuleDefinitionNodeWrapper(this, probeNode);
     }
 
     @Override

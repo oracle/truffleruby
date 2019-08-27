@@ -231,6 +231,7 @@ public class RubyContext {
     }
 
     public void initialize() {
+        assert !initialized : "Already initialized";
         // Load the nodes
 
         Metrics.printTime("before-load-nodes");
