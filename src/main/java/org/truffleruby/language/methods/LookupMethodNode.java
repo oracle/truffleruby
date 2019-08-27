@@ -22,6 +22,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -63,17 +64,15 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
     protected abstract InternalMethod executeLookupMethod(Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic);
 
     @Specialization(guards = { "metaClass(metaClassNode, self) == cachedSelfMetaClass", "name == cachedName",
-            "context == cachedContext" }, assumptions = "methodLookupResult.getAssumptions()", limit = "getCacheLimit()")
+            "contextReference.get() == cachedContext" }, assumptions = "methodLookupResult.getAssumptions()", limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
             Frame frame,
             Object self,
             String name,
             boolean ignoreVisibility,
             boolean onlyLookupPublic,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            // FIXME (pitr 25-Jun-2019): Use following line instead of "getCurrentContext()" after GR-16868 is fixed
-            // @Cached("context") RubyContext cachedContext,
-            @Cached("getCurrentContext()") RubyContext cachedContext,
+            @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
+            @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("name") String cachedName,
             @Cached MetaClassNode metaClassNode,
             @Cached("metaClass(metaClassNode, self)") DynamicObject cachedSelfMetaClass,
