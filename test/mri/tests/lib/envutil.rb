@@ -68,7 +68,7 @@ module EnvUtil
   end
 
   # TruffleRuby: startup can take longer, especially on highly loaded CI machines
-  self.subprocess_timeout_scale = 2
+  self.subprocess_timeout_scale = 3
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.subprocess_timeout_scale
