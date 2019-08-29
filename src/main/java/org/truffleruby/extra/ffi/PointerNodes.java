@@ -14,9 +14,9 @@ import java.math.BigInteger;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -139,7 +139,7 @@ public abstract class PointerNodes {
 
     }
 
-    @CoreMethod(names = { "address", "polyglot_address", "to_i" })
+    @CoreMethod(names = { "address", "to_i" })
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

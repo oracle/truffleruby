@@ -33,7 +33,7 @@ describe "Truffle::Interop.to_native" do
     end
 
     def obj.polyglot_address
-      @pointer.polyglot_address
+      @pointer.address
     end
 
     Truffle::Interop.pointer?(obj).should be_false
