@@ -1,1 +1,0 @@
-graalvm:StringScanner#rest_size is equivalent to rest.size

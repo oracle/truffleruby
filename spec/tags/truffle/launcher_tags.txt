@@ -38,7 +38,6 @@ slow:The launcher prints help:languages containing ruby language options
 slow:The launcher prints help:languages containing llvm language options
 slow:The launcher understands ruby polyglot options
 slow:The launcher understands ruby polyglot options without ruby. prefix
-graalvm(the executable is in jre/bin):The launcher is in the bindir
 slow:The launcher does not create context on --version and -v
 aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
 aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked

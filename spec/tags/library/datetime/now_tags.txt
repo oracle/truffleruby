@@ -1,2 +1,1 @@
 aot:DateTime.now sets the current time
-graalvm:DateTime.now sets the current time

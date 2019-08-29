@@ -1,2 +1,0 @@
-graalvm:StringScanner#scan_until returns the substring up to and including the end of the match
-graalvm:StringScanner#scan_until returns nil if there's no match
