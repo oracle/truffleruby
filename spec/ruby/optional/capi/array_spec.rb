@@ -249,6 +249,13 @@ describe "C-API Array function" do
       @s.RARRAY_PTR_assign(a, :set)
       a.should == [:set, :set, :set]
     end
+
+    it "allows memcpying between arrays" do
+      a = [1, 2, 3]
+      b = [0, 0, 0]
+      @s.RARRAY_PTR_memcpy(a, b)
+      a.should == b
+    end
   end
 
   describe "RARRAY_LEN" do
