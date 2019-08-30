@@ -13,12 +13,12 @@ import java.lang.ref.ReferenceQueue;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-class MarkerReference extends ReferenceProcessingService.WeakProcessingReference<MarkerReference, DynamicObject> {
+class MarkerReference extends ReferenceProcessingService.WeakProcessingReference<MarkerReference, Object> {
 
     final MarkingService.MarkerAction action;
 
     MarkerReference(
-            DynamicObject object,
+            Object object,
             ReferenceQueue<? super Object> queue,
             MarkingService.MarkerAction action,
             MarkingService service) {
