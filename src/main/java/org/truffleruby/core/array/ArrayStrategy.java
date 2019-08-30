@@ -162,7 +162,8 @@ public abstract class ArrayStrategy {
             IntArrayStrategy.INSTANCE,
             LongArrayStrategy.INSTANCE,
             DoubleArrayStrategy.INSTANCE,
-            ObjectArrayStrategy.INSTANCE
+            ObjectArrayStrategy.INSTANCE,
+            NativeArrayStrategy.INSTANCE
     };
 
     @TruffleBoundary
@@ -177,6 +178,8 @@ public abstract class ArrayStrategy {
             return DoubleArrayStrategy.INSTANCE;
         } else if (store.getClass() == Object[].class) {
             return ObjectArrayStrategy.INSTANCE;
+        } else if (store.getClass() == NativeArrayStorage.class) {
+            return NativeArrayStrategy.INSTANCE;
         } else if (store instanceof DelegatedArrayStorage) {
             return ofDelegatedStore((DelegatedArrayStorage) store);
         } else {
@@ -208,6 +211,10 @@ public abstract class ArrayStrategy {
         }
 
         return ofStore(Layouts.ARRAY.getStore(array));
+    }
+
+    public static ArrayStrategy nativeOf(Object store) {
+        return NativeArrayStrategy.INSTANCE;
     }
 
     /**
@@ -702,6 +709,134 @@ public abstract class ArrayStrategy {
         @Override
         public ArrayStrategy sharedStorageStrategy() {
             return DELEGATED_INSTANCE;
+        }
+
+        @Override
+        protected Iterable<Object> getIterableFrom(Object array, int from, int length) {
+            Object[] store = (Object[]) array;
+            return () -> new Iterator<Object>() {
+
+                private int n = from;
+
+                @Override
+                public boolean hasNext() {
+                    return n < from + length;
+                }
+
+                @Override
+                public Object next() throws NoSuchElementException {
+                    if (n >= from + length) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Object object = store[n];
+                    n++;
+                    return object;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
+
+            };
+        }
+    }
+
+    // Native storage
+
+    private static class NativeArrayStrategy extends ArrayStrategy {
+
+        static final ArrayStrategy INSTANCE = new NativeArrayStrategy();
+
+        @Override
+        public Class<?> type() {
+            return Object.class;
+        }
+
+        @Override
+        public boolean canStore(Class<?> type) {
+            return true;
+        }
+
+        @Override
+        public boolean accepts(Object value) {
+            return true;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isStorageMutable() {
+            return true;
+        }
+
+        @Override
+        public boolean specializesFor(Object value) {
+            return !(value instanceof Integer) && !(value instanceof Long) && !(value instanceof Double);
+        }
+
+        @Override
+        public boolean isDefaultValue(Object value) {
+            return value == null;
+        }
+
+        @Override
+        public boolean matchesStore(Object store) {
+            return store != null && store.getClass() == NativeArrayStorage.class;
+        }
+
+        @Override
+        public String toString() {
+            return "NativeArrayStorage";
+        }
+
+        @Override
+        public ArrayCapacityNode capacityNode() {
+            return NativeArrayNodes.NativeArrayCapacityNode.create();
+        }
+
+        @Override
+        public ArrayGetNode getNode() {
+            return NativeArrayNodes.NativeArrayGetNode.create();
+        }
+
+        @Override
+        public ArraySetNode setNode() {
+            return NativeArrayNodes.NativeArraySetNode.create();
+        }
+
+        @Override
+        public ArrayNewStoreNode newStoreNode() {
+            return NativeArrayNodes.NativeArrayNewStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyStoreNode copyStoreNode() {
+            return NativeArrayNodes.NativeArrayCopyStoreNode.create();
+        }
+
+        @Override
+        public ArrayCopyToNode copyToNode() {
+            return NativeArrayNodes.NativeArrayCopyToNode.create();
+        }
+
+        @Override
+        public ArrayExtractRangeNode extractRangeNode() {
+            return NativeArrayNodes.NativeArrayExtractRangeNode.create();
+        }
+
+        @Override
+        public ArraySortNode sortNode() {
+            return NativeArrayNodes.NativeArraySortNode.create();
+        }
+
+        @Override
+        public ArrayStrategy sharedStorageStrategy() {
+            return INSTANCE;
         }
 
         @Override

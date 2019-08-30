@@ -195,7 +195,8 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet'
+      @array = Truffle.invoke_primitive(:array_store_to_native, @array)
+      Truffle.invoke_primitive(:array_store_address, @array)
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
