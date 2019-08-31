@@ -29,11 +29,11 @@ abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERS
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "b6150c498a0764ffdc079cddf7f4e68cb141b65c"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'b6150c498a0764ffdc079cddf7f4e68cb141b65c'
 
 JDEBUG_PORT = 8000
 JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
-METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
+METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
 RUBOCOP_INCLUDE_LIST = %w[
@@ -55,7 +55,7 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
-MRI_TEST_RELATIVE_PREFIX = "test/mri/tests"
+MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
 MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
@@ -66,22 +66,22 @@ MRI_TEST_CAPI_TESTS = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/capi_tests.lis
 MRI_TEST_MODULES = {
     '--openssl' => {
         help: 'include only openssl tests',
-        include: openssl = ["openssl/test_*.rb"],
+        include: openssl = ['openssl/test_*.rb'],
     },
     '--syslog' => {
         help: 'include only syslog tests',
         include: syslog = [
-            "test_syslog.rb",
-            "syslog/test_syslog_logger.rb"
+            'test_syslog.rb',
+            'syslog/test_syslog_logger.rb'
         ]
     },
     '--cexts' => {
         help: 'run all MRI tests testing C extensions',
         include: cexts = openssl + syslog + [
-            "etc/test_etc.rb",
-            "nkf/test_kconv.rb",
-            "nkf/test_nkf.rb",
-            "zlib/test_zlib.rb",
+            'etc/test_etc.rb',
+            'nkf/test_kconv.rb',
+            'nkf/test_nkf.rb',
+            'zlib/test_zlib.rb',
         ]
     },
     '--capi' => {
@@ -119,7 +119,7 @@ module Utilities
   end
 
   def ci?
-    ENV.key?("BUILD_URL")
+    ENV.key?('BUILD_URL')
   end
 
   def get_truffle_version
@@ -129,9 +129,9 @@ module Utilities
   end
 
   def jvmci_update_and_version
-    if env = ENV["JVMCI_VERSION"]
+    if env = ENV['JVMCI_VERSION']
       unless /8u(\d+)-(jvmci-0.\d+)/ =~ env
-        raise "Could not parse JDK update and JVMCI version from $JVMCI_VERSION"
+        raise 'Could not parse JDK update and JVMCI version from $JVMCI_VERSION'
       end
     else
       ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
@@ -155,7 +155,7 @@ module Utilities
   module_function :send_signal
 
   def which(binary)
-    ENV["PATH"].split(File::PATH_SEPARATOR).each do |dir|
+    ENV['PATH'].split(File::PATH_SEPARATOR).each do |dir|
       path = "#{dir}/#{binary}"
       return path if File.executable? path
     end
@@ -166,7 +166,7 @@ module Utilities
     if which('mx')
       'mx'
     else
-      mx_repo = find_or_clone_repo("https://github.com/graalvm/mx.git")
+      mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git')
       "#{mx_repo}/mx"
     end
   end
@@ -174,9 +174,9 @@ module Utilities
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
-    @ruby_name ||= ENV['RUBY_BIN'] || "jvm"
-    @ruby_launcher = if @ruby_name == "ruby"
-                       ENV["RBENV_ROOT"] ? `rbenv which ruby`.chomp : which("ruby")
+    @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
+    @ruby_launcher = if @ruby_name == 'ruby'
+                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
                      elsif File.executable?(@ruby_name)
                        @ruby_name
                      else
@@ -189,9 +189,9 @@ module Utilities
     unless @silent
       shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/jre/languages/ruby$], '')
       tags = [*('Native' if truffleruby_native?),
-              *("Interpreted" if truffleruby? && !truffleruby_compiler?),
+              *('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
-              *("with Graal" if truffleruby_compiler?)]
+              *('with Graal' if truffleruby_compiler?)]
       $stderr.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
 
@@ -231,7 +231,7 @@ module Utilities
     # it has to have graal.jar in gvm-dir/jre/lib/jvmci
     # use realpath to always use the executable in jre/languages/ruby/bin/
     graal_jar_path = File.expand_path(File.join(File.dirname(File.realpath(ruby_launcher)), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
-    return @truffleruby_compiler = File.exist?(graal_jar_path)
+    @truffleruby_compiler = File.exist?(graal_jar_path)
   end
 
   def truffleruby?
@@ -244,7 +244,7 @@ module Utilities
   end
 
   def truffleruby!
-    raise "This command requires TruffleRuby." unless truffleruby?
+    raise 'This command requires TruffleRuby.' unless truffleruby?
   end
 
   def find_repo(name)
@@ -260,8 +260,8 @@ module Utilities
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
     unless Dir.exist? path
       target = "../#{name}"
-      sh "git", "clone", url, target
-      sh "git", "checkout", commit, chdir: target if commit
+      sh 'git', 'clone', url, target
+      sh 'git', 'checkout', commit, chdir: target if commit
     end
     path
   end
@@ -370,7 +370,7 @@ module Utilities
     exec(*args) if use_exec
 
     if capture
-      raise ":capture can only be combined with :err => :out" if options.include?(:out)
+      raise ':capture can only be combined with :err => :out' if options.include?(:out)
       pipe_r, pipe_w = IO.pipe
       options[:out] = pipe_w
       options[:err] = pipe_w if options[:err] == :out
@@ -419,7 +419,7 @@ module Utilities
       env, *args = args
     end
     if Hash === args.last && args.last.empty?
-      *args, options = args
+      *args, _options = args
     end
 
     env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
@@ -428,7 +428,7 @@ module Utilities
 
     all = [*env, *args]
     size = all.reduce(0) { |s, v| s + v.size }
-    all.join(size <= 180 ? " " : " \\\n  ")
+    all.join(size <= 180 ? ' ' : " \\\n  ")
   end
 
   def shellescape(str)
@@ -446,11 +446,11 @@ module Utilities
   end
 
   def replace_env_vars(string, env = ENV)
-    string.gsub(/\$([A-Z_]+)/) {
+    string.gsub(/\$([A-Z_]+)/) do
       var = $1
       abort "You need to set $#{var}" unless env[var]
       env[var]
-    }
+    end
   end
 
   def sh(*args)
@@ -466,7 +466,7 @@ module Utilities
   end
 
   def chdir(dir, &block)
-    raise LocalJumpError, "no block given" unless block_given?
+    raise LocalJumpError, 'no block given' unless block_given?
     if dir == Dir.pwd
       yield
     else
@@ -478,7 +478,7 @@ module Utilities
   end
 
   def find_java_home
-    ci? ? nil : ENV["JVMCI_HOME"] || install_jvmci
+    ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
   end
 
   def mx(*args, **kwargs)
@@ -497,7 +497,7 @@ module Utilities
     elsif ON_LINUX
       'linux'
     else
-      abort "Unknown OS"
+      abort 'Unknown OS'
     end
   end
 
@@ -686,7 +686,7 @@ module Commands
   end
 
   def env
-    puts "Environment"
+    puts 'Environment'
     env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN
                   TRUFFLERUBY_RESILIENT_GEM_HOME
                   OPENSSL_PREFIX
@@ -707,7 +707,7 @@ module Commands
       llvm = `brew --prefix llvm@4`.chomp
       shell["#{llvm}/bin/clang -v"]
       shell["#{llvm}/bin/opt -version"]
-    rescue Errno::ENOENT
+    rescue Errno::ENOENT # rubocop:disable Lint/HandleExceptions
       # No Homebrew
     end
     shell['mx version']
@@ -716,7 +716,7 @@ module Commands
     if ENV['OPENSSL_PREFIX']
       shell["#{ENV['OPENSSL_PREFIX']}/bin/openssl version"]
     else
-      shell["openssl version"]
+      shell['openssl version']
     end
     shell['java -version']
   end
@@ -762,18 +762,18 @@ module Commands
         add_experimental_options.call
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
-        vm_args << "--vm.XX:+UnlockDiagnosticVMOptions" << "--vm.XX:+DebugNonSafepoints"
-        vm_args << "--vm.Dgraal.TruffleEnableInfopoints=true"
+        vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
+        vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
       when '--fg'
-        vm_args << "--vm.Dgraal.TruffleBackgroundCompilation=false"
+        vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
       when '--trace'
         truffleruby_compiler!
-        vm_args << "--vm.Dgraal.TraceTruffleCompilation=true"
+        vm_args << '--vm.Dgraal.TraceTruffleCompilation=true'
       when '--igv', '--igv-full'
         truffleruby_compiler!
-        vm_args << (arg == '--igv-full' ? "--vm.Dgraal.Dump=:2" : "--vm.Dgraal.Dump=TruffleTree,PartialEscape:2")
-        vm_args << "--vm.Dgraal.PrintGraphFile=true" unless igv_running?
-        vm_args << "--vm.Dgraal.PrintBackendCFG=false"
+        vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=:2' : '--vm.Dgraal.Dump=TruffleTree,PartialEscape:2')
+        vm_args << '--vm.Dgraal.PrintGraphFile=true' unless igv_running?
+        vm_args << '--vm.Dgraal.PrintBackendCFG=false'
       when '--exec'
         options[:use_exec] = true
       when '--'
@@ -805,9 +805,9 @@ module Commands
     if truffleruby? && !truffleruby_native?
       %w[TRUFFLERUBYOPT RUBYOPT].each do |env_name|
         if ENV[env_name] && !ENV[env_name].empty?
-          vm_options = ENV[env_name].split(" ").select { |v| v =~ /^--(jvm|vm)/ }
+          vm_options = ENV[env_name].split(' ').select { |v| v =~ /^--(jvm|vm)/ }
           $stderr.print "Not a native build, applying --jvm and --vm options #{vm_options.inspect} from #{env_name} \"#{ENV[env_name]}\" directly as options. "
-          $stderr.puts "Otherwise they would be ignored since jvm process cannot apply them to itself."
+          $stderr.puts 'Otherwise they would be ignored since jvm process cannot apply them to itself.'
           vm_args += vm_options
         end
       end
@@ -857,8 +857,8 @@ module Commands
 
     chdir(ext_dir) do
       run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
-      if File.exists?('Makefile')
-        raw_sh("make")
+      if File.exist?('Makefile')
+        raw_sh('make')
         FileUtils::Verbose.cp("#{name}.su", target) if target
       else
         STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
@@ -871,12 +871,12 @@ module Commands
     extend self
 
     def bitbucket(dir = TRUFFLERUBY_DIR)
-      candidate = remote_urls(dir).find { |r, u| u.include? 'ol-bitbucket' }
+      candidate = remote_urls(dir).find { |_r, u| u.include? 'ol-bitbucket' }
       candidate.first if candidate
     end
 
     def github(dir = TRUFFLERUBY_DIR)
-      candidate = remote_urls(dir).find { |r, u| u.match %r(github.com[:/]oracle) }
+      candidate = remote_urls(dir).find { |_r, u| u.match %r(github.com[:/]oracle) }
       candidate.first if candidate
     end
 
@@ -892,12 +892,12 @@ module Commands
     end
 
     def url(remote_name, dir = TRUFFLERUBY_DIR)
-      remote_urls(dir).find { |r, u| r == remote_name }.last
+      remote_urls(dir).find { |r, _u| r == remote_name }.last
     end
 
     def try_fetch(repo)
       remote = github(repo) || bitbucket(repo) || 'origin'
-      raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
+      raw_sh 'git', '-C', repo, 'fetch', remote, continue_on_failure: true
     end
   end
 
@@ -957,7 +957,7 @@ module Commands
     else
       runner_args = []
     end
-    run_ruby *args, "#{TRUFFLERUBY_DIR}/test/#{runner}", *runner_args
+    run_ruby(*args, "#{TRUFFLERUBY_DIR}/test/#{runner}", *runner_args)
   end
 
   private def test_mri(*args)
@@ -1017,7 +1017,7 @@ module Commands
   end
 
   private def run_mri_tests(extra_args, test_files, runner_args, run_options)
-    abort "No test files! (probably filtered out by failing.exclude)" if test_files.empty?
+    abort 'No test files! (probably filtered out by failing.exclude)' if test_files.empty?
     test_files = test_files.map { |file| mri_test_name(file) }
 
     truffle_args = []
@@ -1026,19 +1026,19 @@ module Commands
     end
 
     env_vars = {
-      "EXCLUDES" => "test/mri/excludes",
-      "RUBYGEMS_TEST_PATH" => MRI_TEST_PREFIX,
-      "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
-      "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
+      'EXCLUDES' => 'test/mri/excludes',
+      'RUBYGEMS_TEST_PATH' => MRI_TEST_PREFIX,
+      'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
+      'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
     }
     compile_env = {
       # MRI C-ext tests expect to be built with $extmk = true.
-      "MKMF_SET_EXTMK_TO_TRUE" => "true",
+      'MKMF_SET_EXTMK_TO_TRUE' => 'true',
     }
 
     cext_tests = test_files.select do |f|
-      f.include?("cext-ruby") ||
-      f == "ruby/test_file_exhaustive.rb"
+      f.include?('cext-ruby') ||
+      f == 'ruby/test_file_exhaustive.rb'
     end
     cext_tests.each do |test|
       puts
@@ -1048,13 +1048,13 @@ module Commands
       if match
         cext_name = match[1]
         compile_dir = if cext_name.include?('/')
-                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                        if Dir.exist?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
                           "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
                         else
                           "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
                         end
                       else
-                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                        if Dir.exist?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
                           "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
                         else
                           "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
@@ -1091,14 +1091,14 @@ module Commands
       FileUtils::Verbose.rm_rf prefix
     end
 
-    puts "1. Tagging tests"
-    output_file = "mri_tests.txt"
+    puts '1. Tagging tests'
+    output_file = 'mri_tests.txt'
     run_mri_tests(options, test_files, [], out: output_file, continue_on_failure: true)
 
-    puts "2. Parsing errors"
-    sh "ruby", "tool/parse_mri_errors.rb", output_file
+    puts '2. Parsing errors'
+    sh 'ruby', 'tool/parse_mri_errors.rb', output_file
 
-    puts "3. Verifying tests pass"
+    puts '3. Verifying tests pass'
     run_mri_tests(options, test_files, [], use_exec: true)
   end
 
@@ -1109,7 +1109,7 @@ module Commands
     env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
-      if args.empty? or args.include?(File.basename(test_script, ".*"))
+      if args.empty? or args.include?(File.basename(test_script, '.*'))
         sh env, test_script
       end
     end
@@ -1124,7 +1124,7 @@ module Commands
     tests.delete 'gems' if no_gems
 
     if ENV['TRUFFLERUBY_CI'] && ON_MAC
-      raise "no system clang" unless which('clang')
+      raise 'no system clang' unless which('clang')
       %w[opt llvm-link].each do |tool|
         raise "should not have #{tool} in PATH in TruffleRuby CI" if which(tool)
       end
@@ -1189,39 +1189,39 @@ EOS
       when 'gems'
         # Test that we can compile and run some real C extensions
 
-          gem_home = "#{gem_test_pack}/gems"
+        gem_home = "#{gem_test_pack}/gems"
 
-          tests = [
-              ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
-              ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-              ['nokogiri', [], ['nokogiri']]
-          ]
+        tests = [
+            ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
+            ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
+            ['nokogiri', [], ['nokogiri']]
+        ]
 
-          tests.each do |gem_name, dependencies, libs|
-            puts "", gem_name
-            next if gem_name == 'nokogiri' # nokogiri totally excluded
-            gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-            ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
+        tests.each do |gem_name, dependencies, libs|
+          puts '', gem_name
+          next if gem_name == 'nokogiri' # nokogiri totally excluded
+          gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
+          ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
+          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
 
-            next if gem_name == 'psd_native' # psd_native is excluded just for running
-            run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
-                     *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-                     "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
-          end
+          next if gem_name == 'psd_native' # psd_native is excluded just for running
+          run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+                   *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+                   "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
+        end
 
           # Tests using gem install to compile the cexts
-          sh "test/truffle/cexts/puma/puma.sh"
-          sh "test/truffle/cexts/sqlite3/sqlite3.sh"
-          sh "test/truffle/cexts/unf_ext/unf_ext.sh"
-          sh "test/truffle/cexts/json/json.sh"
+        sh 'test/truffle/cexts/puma/puma.sh'
+        sh 'test/truffle/cexts/sqlite3/sqlite3.sh'
+        sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
+        sh 'test/truffle/cexts/json/json.sh'
 
           # Test a gem dynamically compiling a C extension
-          sh "test/truffle/cexts/RubyInline/RubyInline.sh"
+        sh 'test/truffle/cexts/RubyInline/RubyInline.sh'
 
           # Test cexts used by many projects
-          sh "test/truffle/cexts/msgpack/msgpack.sh"
+        sh 'test/truffle/cexts/msgpack/msgpack.sh'
       else
         raise "unknown test: #{test_name}"
       end
@@ -1259,7 +1259,7 @@ EOS
 
     candidates = Dir["#{tests_path}/#{test_names}.sh"].sort
     if candidates.empty?
-      targets = Dir["#{tests_path}/*.sh"].sort.map { |f| File.basename(f, ".*") }
+      targets = Dir["#{tests_path}/*.sh"].sort.map { |f| File.basename(f, '.*') }
       puts "No targets found by pattern #{test_names}. Available targets: "
       targets.each { |t| puts " * #{t}" }
       exit 1
@@ -1291,7 +1291,7 @@ EOS
     gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
     begin
       ports = find_ports_for_pid(gem_server)
-      raise "More than one port opened" if ports.lines.size > 1
+      raise 'More than one port opened' if ports.lines.size > 1
       port = Integer(ports)
 
       bundle_install_flags.each do |install_flags|
@@ -1370,15 +1370,15 @@ EOS
 
     options += %w[--format specdoc] if ci?
 
-    delimiter_index = args.index("--")
+    delimiter_index = args.index('--')
     args, ruby_args = if delimiter_index
                         [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
                       else
                         [args, []]
                       end
 
-    vm_args, ruby_args, parsed_options = ruby_options({}, ["--reveal", *ruby_args])
-    vm_args += ["--vm.Xmx2G", *("--polyglot" unless truffleruby_native?)]
+    vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
+    vm_args += ['--vm.Xmx2G', *('--polyglot' unless truffleruby_native?)]
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 
@@ -1387,26 +1387,26 @@ EOS
   end
 
   def gem_test_pack
-    name = "truffleruby-gem-test-pack"
+    name = 'truffleruby-gem-test-pack'
     gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
 
     unless Dir.exist?(gem_test_pack)
-      $stderr.puts "Cloning the truffleruby-gem-test-pack repository"
+      $stderr.puts 'Cloning the truffleruby-gem-test-pack repository'
       unless Remotes.bitbucket
-        abort "Need a git remote in truffleruby with the internal repository URL"
+        abort 'Need a git remote in truffleruby with the internal repository URL'
       end
-      url = Remotes.url(Remotes.bitbucket).sub("truffleruby", name)
-      sh "git", "clone", url
+      url = Remotes.url(Remotes.bitbucket).sub('truffleruby', name)
+      sh 'git', 'clone', url
     end
 
     # Unset variable set by the pre-commit hook which confuses git
-    ENV.delete "GIT_INDEX_FILE"
+    ENV.delete 'GIT_INDEX_FILE'
 
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
-      has_commit = raw_sh "git", "-C", gem_test_pack, "cat-file", "-e", TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+      has_commit = raw_sh 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
       Remotes.try_fetch(gem_test_pack) unless has_commit
-      raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
+      raw_sh 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
     puts gem_test_pack
@@ -1444,15 +1444,15 @@ EOS
     use_json = args.delete '--json'
 
     value = case attribute
-      when 'binary-size'
-        build_stats_native_binary_size(*args)
-      when 'build-time'
-        build_stats_native_build_time(*args)
-      when 'runtime-compilable-methods'
-        build_stats_native_runtime_compilable_methods(*args)
-      else
-        raise ArgumentError, attribute
-      end
+            when 'binary-size'
+              build_stats_native_binary_size(*args)
+            when 'build-time'
+              build_stats_native_build_time(*args)
+            when 'runtime-compilable-methods'
+              build_stats_native_runtime_compilable_methods(*args)
+            else
+              raise ArgumentError, attribute
+            end
 
     if use_json
       puts JSON.generate({ attribute => value })
@@ -1483,15 +1483,15 @@ EOS
     args = args.dup
     case command
     when 'alloc'
-      metrics_alloc *args
+      metrics_alloc(*args)
     when 'minheap'
-      metrics_minheap *args
+      metrics_minheap(*args)
     when 'maxrss'
-      metrics_maxrss *args
+      metrics_maxrss(*args)
     when 'instructions'
-      metrics_native_instructions *args
+      metrics_native_instructions(*args)
     when 'time'
-      metrics_time *args
+      metrics_time(*args)
     else
       raise ArgumentError, command
     end
@@ -1686,11 +1686,11 @@ EOS
   end
 
   def command_format(*args)
-    mx "eclipseformat", "--no-backup", "--primary", *args, continue_on_failure: true
+    mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
   end
 
   private def metrics_time_format_results(samples, use_json, flamegraph)
-    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
+    min_time = Float(ENV.fetch('TRUFFLERUBY_METRICS_MIN_TIME', '-1'))
 
     results = {}
     mean_by_stack = {}
@@ -1718,19 +1718,19 @@ EOS
     if use_json
       puts JSON.generate(results)
     elsif flamegraph
-      repo = find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
+      repo = find_or_clone_repo('https://github.com/eregon/FlameGraph.git', 'graalvm')
       path = "#{TRUFFLERUBY_DIR}/time_metrics.stacks"
       File.open(path, 'w') do |file|
         mean_by_stack.each_pair do |stack, mean|
           on_top_of_stack = mean
-          mean_by_stack.each_pair { |sub_stack, time|
+          mean_by_stack.each_pair do |sub_stack, time|
             on_top_of_stack -= time if sub_stack[0...-1] == stack
-          }
+          end
 
           file.puts "#{stack.join(';')} #{on_top_of_stack.round}"
         end
       end
-      sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
+      sh "#{repo}/flamegraph.pl", '--flamechart', '--countname', 'ms', path, out: 'time_metrics_flamegraph.svg'
     end
   end
 
@@ -1795,9 +1795,9 @@ EOS
 
     run_args.push "-I#{find_gem('benchmark-ips')}/lib" rescue nil
     run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
-    run_args.push *args
+    run_args.push(*args)
 
-    run_ruby *run_args, use_exec: true
+    run_ruby(*run_args, use_exec: true)
   end
 
   def profile(*args)
@@ -1806,7 +1806,7 @@ EOS
 
     require 'tempfile'
 
-    repo = find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
+    repo = find_or_clone_repo('https://github.com/eregon/FlameGraph.git', 'graalvm')
 
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
@@ -1846,7 +1846,7 @@ EOS
 
   def install(name, *options)
     case name
-    when "jvmci"
+    when 'jvmci'
       install_jvmci
     else
       raise "Unknown how to install #{what}"
@@ -1854,18 +1854,18 @@ EOS
   end
 
   private def install_jvmci
-    raise "Installing JVMCI is only available on Linux and macOS currently" unless ON_LINUX || ON_MAC
+    raise 'Installing JVMCI is only available on Linux and macOS currently' unless ON_LINUX || ON_MAC
 
     update, jvmci_version = jvmci_update_and_version
-    dir = File.expand_path("..", TRUFFLERUBY_DIR)
+    dir = File.expand_path('..', TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
-        puts "Downloading JDK8 with JVMCI"
-        jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
+        puts 'Downloading JDK8 with JVMCI'
+        jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
-        raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
-        raw_sh "tar", "xf", filename
+        raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
+        raw_sh 'tar', 'xf', filename
       end
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
@@ -1873,11 +1873,11 @@ EOS
       ON_MAC ? "#{extracted}/Contents/Home" : extracted
     end
 
-    abort "Could not find the extracted JDK" unless java_home
+    abort 'Could not find the extracted JDK' unless java_home
     java_home = File.expand_path(java_home)
 
-    $stderr.puts "Testing JDK"
-    raw_sh "#{java_home}/bin/java", "-version"
+    $stderr.puts 'Testing JDK'
+    raw_sh "#{java_home}/bin/java", '-version'
 
     puts java_home
     java_home
@@ -1887,54 +1887,54 @@ EOS
     ee_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal-enterprise')
     graal_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal')
     unless File.directory?(ee_path)
-      github_ee_url = "https://github.com/graalvm/graal-enterprise.git"
-      bitbucket_ee_url = raw_sh("mx", "urlrewrite", github_ee_url, capture: true).chomp
+      github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
+      bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: true).chomp
       if bitbucket_ee_url == github_ee_url
         raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
       end
-      raw_sh "git", "clone", bitbucket_ee_url, ee_path
+      raw_sh 'git', 'clone', bitbucket_ee_url, ee_path
     end
 
-    raw_sh "git", "-C", ee_path, "fetch", "--all"
+    raw_sh 'git', '-C', ee_path, 'fetch', '--all'
 
-    suite_file = File.join ee_path, "vm-enterprise/mx.vm-enterprise/suite.py"
+    suite_file = File.join ee_path, 'vm-enterprise/mx.vm-enterprise/suite.py'
     # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
     merge_commit_in_graal = raw_sh(
-        "git", "-C", graal_path, "log", "--pretty=%H", "--grep=PullRequest:", "--merges", "--max-count=1", get_truffle_version,
+        'git', '-C', graal_path, 'log', '--pretty=%H', '--grep=PullRequest:', '--merges', '--max-count=1', get_truffle_version,
         capture: true).chomp
     # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
     # The suite file is automatically updated on every graal PR merged.
     graal_enterprise_commit = raw_sh(
-        "git", "-C", ee_path, "log", "--pretty=%H", "--grep=PullRequest:", "--reverse", "-m", "-S", merge_commit_in_graal, '--' ,suite_file,
+        'git', '-C', ee_path, 'log', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m', '-S', merge_commit_in_graal, '--' ,suite_file,
         capture: true).lines.first.chomp
-    raw_sh("git", "-C", ee_path, "checkout", graal_enterprise_commit)
+    raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
   end
 
   private def build_graalvm(*options)
-    raise "use --env jvm-ce instead" if options.delete('--graal')
-    raise "use --env native instead" if options.delete('--native')
+    raise 'use --env jvm-ce instead' if options.delete('--graal')
+    raise 'use --env native instead' if options.delete('--native')
 
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
             options.delete_at i
           else
-            "jvm"
+            'jvm'
           end
     native = env.include? 'native'
-    name = "truffleruby-" + if (i = options.index('--name') || options.index('-n'))
+    name = 'truffleruby-' + if (i = options.index('--name') || options.index('-n'))
                               options.delete_at i
                               options.delete_at i
                             else
                               env
                             end
 
-    sforceimports = options.delete("--sforceimports") || (options.delete("--no-sforceimports") ? false : !ci?)
+    sforceimports = options.delete('--sforceimports') || (options.delete('--no-sforceimports') ? false : !ci?)
     mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
 
-    ee_checkout = options.delete("--ee-checkout") || (options.delete("--no-ee-checkout") ? false : !ci?)
-    checkout_enterprise_revision if env.include?("ee") && ee_checkout
+    ee_checkout = options.delete('--ee-checkout') || (options.delete('--no-ee-checkout') ? false : !ci?)
+    checkout_enterprise_revision if env.include?('ee') && ee_checkout
 
-    delimiter_index = options.index "--"
+    delimiter_index = options.index '--'
     mx_options, mx_build_options = if delimiter_index
                                      [options[0...delimiter_index], options[(delimiter_index + 1)..-1]]
                                    else
@@ -1967,7 +1967,7 @@ EOS
     rubies_dir = chruby_versions if File.directory?(chruby_versions)
 
     if rubies_dir
-      Dir.glob(rubies_dir + "/truffleruby-*").each do |link|
+      Dir.glob(rubies_dir + '/truffleruby-*').each do |link|
         next unless File.symlink?(link)
         next if File.exist?(link)
         target = File.readlink(link)
@@ -1988,7 +1988,7 @@ EOS
   end
 
   def native_launcher
-    sh "cc", "-o", "tool/native_launcher_darwin", "tool/native_launcher_darwin.c"
+    sh 'cc', '-o', 'tool/native_launcher_darwin', 'tool/native_launcher_darwin.c'
   end
   alias :'native-launcher' :native_launcher
 
@@ -2001,7 +2001,7 @@ EOS
       mx 'build', '--dependencies', 'org.truffleruby', '--force-javac', '-A-parameters'
       # Re-build GraalVM to run the check
       build_graalvm
-      run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '--lazy-default=false', '-e', 'exit')
+      run_ruby({ 'TRUFFLE_CHECK_DSL_USAGE' => 'true' }, '--lazy-default=false', '-e', 'exit')
     ensure
       # Revert the changes we made to the Truffle source.
       raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
@@ -2011,14 +2011,14 @@ EOS
   def rubocop(*args)
     gem_home = "#{gem_test_pack}/rubocop-gems"
     env = {
-      "GEM_HOME" => gem_home,
-      "GEM_PATH" => gem_home,
-      "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
+      'GEM_HOME' => gem_home,
+      'GEM_PATH' => gem_home,
+      'PATH' => "#{gem_home}/bin:#{ENV['PATH']}"
     }
     if args.empty? or args.all? { |arg| arg.start_with?('-') }
       args += RUBOCOP_INCLUDE_LIST
     end
-    sh env, "ruby", "#{gem_home}/bin/rubocop", *args
+    sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
   end
 
   private def check_filename_length
@@ -2027,7 +2027,7 @@ EOS
 
     too_long = []
     Dir.chdir(TRUFFLERUBY_DIR) do
-      Dir.glob("**/*") do |f|
+      Dir.glob('**/*') do |f|
         if File.basename(f).size > max_length
           too_long << f
         end
@@ -2043,7 +2043,7 @@ EOS
     build('parser')
     diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: true
     unless diff.empty?
-      STDERR.puts "DIFF:"
+      STDERR.puts 'DIFF:'
       STDERR.puts diff
       abort "RubyParser.y must be modified and RubyParser.java regenerated by 'jt build parser'"
     end
@@ -2059,22 +2059,22 @@ EOS
       https://github.com/oracle/truffleruby/blob/master/doc/user/installing-zlib.md
     ]
 
-    known_hardcoded_urls.each { |url|
+    known_hardcoded_urls.each do |url|
       file = url[url_base.size..-1]
       path = "#{TRUFFLERUBY_DIR}/doc/#{file}"
       unless File.file?(path)
         abort "#{path} could not be found but is referenced in code"
       end
-    }
+    end
 
     hardcoded_urls = `git -C #{TRUFFLERUBY_DIR} grep -Fn #{url_base.inspect}`
-    hardcoded_urls.each_line { |line|
+    hardcoded_urls.each_line do |line|
       abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)[ "'\n]/ =~ line
       file, line, url = $1, $2, $3
       if file != 'tool/jt.rb' and !known_hardcoded_urls.include?(url)
         abort "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"
       end
-    }
+    end
   end
 
   def checkstyle
@@ -2084,7 +2084,7 @@ EOS
   def lint(*args)
     check_filename_length
     rubocop
-    sh "tool/lint.sh"
+    sh 'tool/lint.sh'
     mx 'gate', '--tags', 'style'
 
     # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
@@ -2106,9 +2106,9 @@ EOS
     command = args.shift
     case command
     when 'build'
-      docker_build *args
+      docker_build(*args)
     when nil, 'test'
-      docker_test *args
+      docker_test(*args)
     when 'print'
       puts dockerfile(*args)
     else
@@ -2139,7 +2139,7 @@ EOS
         distros.each do |d|
           managers.each do |m|
             print "#{d} #{m}"
-            print "     <---" if [d, m] == [distro, manager]
+            print '     <---' if [d, m] == [distro, manager]
             puts
           end
         end
@@ -2211,36 +2211,29 @@ EOS
 
     lines.push "FROM #{distro.fetch('base')}"
 
-    lines.push *distro.fetch('setup')
+    lines.push(*distro.fetch('setup'))
 
-    lines.push *distro.fetch('locale')
+    lines.push(*distro.fetch('locale'))
 
-    lines.push *distro.fetch('curl') if install_method == :public
-    lines.push *distro.fetch('git') if install_method == :source || manager != :none || full_test
-    lines.push *distro.fetch('which') if manager == :rvm || full_test
-    lines.push *distro.fetch('find') if full_test
-    lines.push *distro.fetch('rvm') if manager == :rvm
-    lines.push *distro.fetch('source') if install_method == :source
-    lines.push *distro.fetch('images') if rebuild_images
+    lines.push(*distro.fetch('curl')) if install_method == :public
+    lines.push(*distro.fetch('git')) if install_method == :source || manager != :none || full_test
+    lines.push(*distro.fetch('which')) if manager == :rvm || full_test
+    lines.push(*distro.fetch('find')) if full_test
+    lines.push(*distro.fetch('rvm')) if manager == :rvm
+    lines.push(*distro.fetch('source')) if install_method == :source
+    lines.push(*distro.fetch('images')) if rebuild_images
 
-    lines.push *distro.fetch('zlib')
-    lines.push *distro.fetch('openssl')
-    lines.push *distro.fetch('cext')
-    lines.push *distro.fetch('cppext')
+    lines.push(*distro.fetch('zlib'))
+    lines.push(*distro.fetch('openssl'))
+    lines.push(*distro.fetch('cext'))
+    lines.push(*distro.fetch('cppext'))
 
-    lines.push "WORKDIR /test"
-    lines.push "RUN useradd -ms /bin/bash test"
-    lines.push "RUN chown test /test"
-    lines.push "USER test"
+    lines.push 'WORKDIR /test'
+    lines.push 'RUN useradd -ms /bin/bash test'
+    lines.push 'RUN chown test /test'
+    lines.push 'USER test'
 
     docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
-
-    case install_method
-    when :graalvm
-      tarball = graalvm_tarball
-    when :standalone
-      tarball = standalone_tarball
-    end
 
     check_post_install_message = [
       "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
@@ -2255,7 +2248,7 @@ EOS
       lines.push "RUN mkdir #{graalvm_base}"
       lines.push "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
       lines.push "RUN #{graalvm_base}/bin/gu install org.graalvm.ruby | tee install.log"
-      lines.push *check_post_install_message
+      lines.push(*check_post_install_message)
       ruby_base = "#{graalvm_base}/jre/languages/ruby"
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
@@ -2274,7 +2267,7 @@ EOS
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
       lines.push "RUN #{graalvm_bin}/gu install --file /test/#{graalvm_component} | tee install.log"
-      lines.push *check_post_install_message
+      lines.push(*check_post_install_message)
       lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :standalone
       FileUtils.copy standalone_tarball, docker_dir
@@ -2286,24 +2279,24 @@ EOS
       ruby_bin = "#{ruby_base}/bin"
       lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :source
-      lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
-      lines.push "ENV PATH=$PATH:/test/mx"
-      lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
+      lines.push 'RUN git clone --depth 1 https://github.com/graalvm/mx.git'
+      lines.push 'ENV PATH=$PATH:/test/mx'
+      lines.push 'RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git'
 
       # Disable compiler warnings as errors, as we may be using a more recent compiler
       lines.push "RUN sed -i 's/WARNINGS_ARE_ERRORS = -Werror/WARNINGS_ARE_ERRORS = /g' graal-jvmci-8/make/linux/makefiles/gcc.make"
 
-      lines.push "RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build"
+      lines.push 'RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build'
       lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
-      lines.push "ENV PATH=$JAVA_HOME/bin:$PATH"
-      lines.push "ENV JVMCI_VERSION_CHECK=ignore"
-      lines.push "RUN java -version"
-      lines.push "RUN git clone https://github.com/oracle/graal.git"
+      lines.push 'ENV PATH=$JAVA_HOME/bin:$PATH'
+      lines.push 'ENV JVMCI_VERSION_CHECK=ignore'
+      lines.push 'RUN java -version'
+      lines.push 'RUN git clone https://github.com/oracle/graal.git'
       lines.push "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
-      lines.push "RUN cd truffleruby && mx build"
-      lines.push "RUN cd graal/compiler && mx build"
+      lines.push 'RUN cd truffleruby && mx build'
+      lines.push 'RUN cd graal/compiler && mx build'
       lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/jdk1.8/graal.jar'"
-      ruby_base = "/test/truffleruby"
+      ruby_base = '/test/truffleruby'
       ruby_bin = "#{ruby_base}/bin"
     end
 
@@ -2323,44 +2316,42 @@ EOS
     when :none
       lines.push "ENV PATH=#{ruby_bin}:$PATH"
 
-      setup_env = lambda do |command|
+      setup_env = ->(command) do
         command
       end
     when :rbenv
-      lines.push "RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv"
-      lines.push "RUN mkdir /home/test/.rbenv/versions"
-      lines.push "ENV PATH=/home/test/.rbenv/bin:$PATH"
-      lines.push "RUN rbenv --version"
+      lines.push 'RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv'
+      lines.push 'RUN mkdir /home/test/.rbenv/versions'
+      lines.push 'ENV PATH=/home/test/.rbenv/bin:$PATH'
+      lines.push 'RUN rbenv --version'
 
       lines.push "RUN ln -s #{ruby_base} /home/test/.rbenv/versions/truffleruby"
-      lines.push "RUN rbenv versions"
+      lines.push 'RUN rbenv versions'
 
-      prefix = 'eval "$(rbenv init -)" && rbenv shell truffleruby'
-
-      setup_env = lambda do |command|
+      setup_env = ->(command) do
         "eval \"$(rbenv init -)\" && rbenv shell truffleruby && #{command}"
       end
     when :chruby
-      lines.push "RUN git clone --depth 1 https://github.com/postmodern/chruby.git"
-      lines.push "ENV CRUBY_SH=/test/chruby/share/chruby/chruby.sh"
+      lines.push 'RUN git clone --depth 1 https://github.com/postmodern/chruby.git'
+      lines.push 'ENV CRUBY_SH=/test/chruby/share/chruby/chruby.sh'
       lines.push "RUN bash -c 'source $CRUBY_SH && chruby --version'"
 
-      lines.push "RUN mkdir /home/test/.rubies"
+      lines.push 'RUN mkdir /home/test/.rubies'
       lines.push "RUN ln -s #{ruby_base} /home/test/.rubies/truffleruby"
       lines.push "RUN bash -c 'source $CRUBY_SH && chruby'"
 
-      setup_env = lambda do |command|
+      setup_env = ->(command) do
         "bash -c 'source $CRUBY_SH && chruby truffleruby && #{command.gsub("'", "'\\\\''")}'"
       end
     when :rvm
-      lines.push "RUN git clone --depth 1 https://github.com/rvm/rvm.git"
-      lines.push "ENV RVM_SCRIPT=/test/rvm/scripts/rvm"
+      lines.push 'RUN git clone --depth 1 https://github.com/rvm/rvm.git'
+      lines.push 'ENV RVM_SCRIPT=/test/rvm/scripts/rvm'
       lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm --version'"
 
       lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm mount #{ruby_base} -n truffleruby'"
       lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm list'"
 
-      setup_env = lambda do |command|
+      setup_env = ->(command) do
         "bash -c 'source $RVM_SCRIPT && rvm use ext-truffleruby && #{command.gsub("'", "'\\\\''")}'"
       end
     end
@@ -2369,28 +2360,28 @@ EOS
     configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
     configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
 
-    configs.each do |config|
-      lines.push "RUN " + setup_env["ruby #{config} --version"]
+    configs.each do |c|
+      lines.push 'RUN ' + setup_env["ruby #{c} --version"]
     end
 
     if basic_test || full_test
-      configs.each do |config|
+      configs.each do |c|
         lines.push "RUN cp -r #{ruby_base}/lib/gems /test/clean-gems"
 
-        if config == '' && install_method != :source
-          gem = "gem"
+        if c == '' && install_method != :source
+          gem = 'gem'
         else
-          gem = "ruby #{config} -Sgem"
+          gem = "ruby #{c} -Sgem"
         end
 
-        lines.push "RUN " + setup_env["#{gem} install color"]
-        lines.push "RUN " + setup_env["ruby #{config} -rcolor -e 'raise unless defined?(Color)'"]
+        lines.push 'RUN ' + setup_env["#{gem} install color"]
+        lines.push 'RUN ' + setup_env["ruby #{c} -rcolor -e 'raise unless defined?(Color)'"]
 
-        lines.push "RUN " + setup_env["#{gem} install oily_png"]
-        lines.push "RUN " + setup_env["ruby #{config} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"]
+        lines.push 'RUN ' + setup_env["#{gem} install oily_png"]
+        lines.push 'RUN ' + setup_env["ruby #{c} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"]
 
-        lines.push "RUN " + setup_env["#{gem} install unf"]
-        lines.push "RUN " + setup_env["ruby #{config} -runf -e 'raise unless defined?(UNF)'"]
+        lines.push 'RUN ' + setup_env["#{gem} install unf"]
+        lines.push 'RUN ' + setup_env["ruby #{c} -runf -e 'raise unless defined?(UNF)'"]
 
         lines.push "RUN rm -rf #{ruby_base}/lib/gems"
         lines.push "RUN mv /test/clean-gems #{ruby_base}/lib/gems"
@@ -2400,28 +2391,28 @@ EOS
     if full_test
       lines.push "RUN git clone #{truffleruby_repo} truffleruby-tests"
       lines.push "RUN cd truffleruby-tests && git checkout #{test_branch}"
-      lines.push "RUN cp -r truffleruby-tests/spec ."
-      lines.push "RUN cp -r truffleruby-tests/test/truffle/compiler/pe ."
-      lines.push "RUN rm -rf truffleruby-tests"
+      lines.push 'RUN cp -r truffleruby-tests/spec .'
+      lines.push 'RUN cp -r truffleruby-tests/test/truffle/compiler/pe .'
+      lines.push 'RUN rm -rf truffleruby-tests'
 
-      configs.each do |config|
+      configs.each do |c|
         excludes = ['fails', 'slow', 'ci']
         excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
-        excludes += ['aot'] if ['', '--native'].include?(config)
+        excludes += ['aot'] if ['', '--native'].include?(c)
 
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
-          t_config = config.empty? ? '' : '-T' + config
+          t_config = c.empty? ? '' : '-T' + c
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
-          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"]
+          lines.push 'RUN ' + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"]
         end
       end
 
-      configs.each do |config|
-        lines.push "RUN " + setup_env["ruby #{config} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"]
+      configs.each do |c|
+        lines.push 'RUN ' + setup_env["ruby #{c} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"]
       end
     end
 
-    lines.push "CMD " + setup_env["bash"]
+    lines.push 'CMD ' + setup_env['bash']
 
     lines.join("\n") + "\n"
   end
@@ -2444,12 +2435,12 @@ class JT
       args.shift
     end
 
-    if args.first == "--use" || args.first == "-u"
+    if args.first == '--use' || args.first == '-u'
       args.shift
       @ruby_name = args.shift
     end
 
-    @silent = !!args.delete("--silent")
+    @silent = !!args.delete('--silent')
 
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
