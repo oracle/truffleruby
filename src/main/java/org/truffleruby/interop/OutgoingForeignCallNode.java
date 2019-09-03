@@ -26,7 +26,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -36,7 +35,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
-@ImportStatic(Boolean.class)
 public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode {
 
     public abstract Object executeCall(TruffleObject receiver, String name, Object[] args);
@@ -49,8 +47,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
             @Cached("name") String cachedName,
             @Cached BranchProfile errorProfile,
             @Cached TranslateExceptionNode translateExceptionNode,
-            // FIXME (pitr 29-Jul-2019): workaround true false
-            @Cached(value = "createOutgoingNode(cachedName, FALSE.booleanValue())", uncached = "createOutgoingNode(cachedName, TRUE.booleanValue())") OutgoingNode outgoingNode) {
+            @Cached(value = "createOutgoingNode(cachedName, false)", uncached = "createOutgoingNode(cachedName, true)") OutgoingNode outgoingNode) {
         try {
             return outgoingNode.executeCall(receiver, cachedName, args);
         } catch (Throwable t) {
