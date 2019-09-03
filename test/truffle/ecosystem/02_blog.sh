@@ -31,6 +31,8 @@ cd test/truffle/ecosystem/blog
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
+else
+  truffleruby bundle config --delete cache_path
 fi
 
 truffleruby bundle config --local without postgresql mysql
