@@ -23,14 +23,25 @@ alias truffleruby="jt ruby -S"
 
 set -xe
 
-gem_test_pack="$(jt gem-test-pack)"
+if [ "$1" != "--no-gem-test-pack" ]; then
+  gem_test_pack_path="$(jt gem-test-pack)"
+fi
 
 cd test/truffle/ecosystem/blog
 
-truffleruby bundle config --local cache_path "$gem_test_pack/gem-cache"
+if [ "$gem_test_pack_path" ]; then
+  truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
+else
+  truffleruby bundle config --delete cache_path
+fi
+
 truffleruby bundle config --local without postgresql mysql
 
-truffleruby bundle install --local --no-cache
+if [ "$gem_test_pack_path" ]; then
+  truffleruby bundle install --local --no-cache
+else
+  truffleruby bundle install
+fi
 
 truffleruby bin/rails db:setup
 truffleruby bin/rails log:clear tmp:clear
