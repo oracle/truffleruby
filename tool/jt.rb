@@ -592,7 +592,8 @@ module Commands
       jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
       jt test gems [TESTS]                           tests using gems
-      jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
+      jt test ecosystem [TESTS] [options]            tests using the wider ecosystem such as bundler, Rails, etc  
+          --no-gem-test-pack                         run without gem test pack
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
       jt test unit                                   run Java unittests
@@ -1395,7 +1396,7 @@ EOS
     unless Dir.exist?(gem_test_pack)
       $stderr.puts 'Cloning the truffleruby-gem-test-pack repository'
       unless Remotes.bitbucket
-        abort 'Need a git remote in truffleruby with the internal repository URL'
+        abort 'Need a git remote in truffleruby with the internal repository URL or use --no-gem-test-pack option'
       end
       url = Remotes.url(Remotes.bitbucket).sub('truffleruby', name)
       sh 'git', 'clone', url
