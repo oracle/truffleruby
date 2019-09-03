@@ -29,14 +29,14 @@ fi
 
 cd test/truffle/ecosystem/blog
 
-if [ "$gem_test_pack_path" ] ; then
+if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
 fi
 
 truffleruby bundle config --local without postgresql mysql
 
-if [ "$gem_test_pack_path" ] ; then
-  truffleruby bundle install --local
+if [ "$gem_test_pack_path" ]; then
+  truffleruby bundle install --local --no-cache
 else
   truffleruby bundle install
 fi
