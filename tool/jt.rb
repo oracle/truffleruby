@@ -42,6 +42,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   src/main/ruby/truffleruby
   src/test/ruby
   tool/generate-sulongmock.rb
+  tool/jt.rb
   spec/truffle
 ]
 
