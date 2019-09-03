@@ -1252,7 +1252,7 @@ EOS
   end
 
   private def test_ecosystem(*args)
-    use_gem_test_pack = args.delete("--no-gem-test-pack") == nil
+    use_gem_test_pack = !args.delete("--no-gem-test-pack")
     gem_test_pack if use_gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
@@ -1267,11 +1267,7 @@ EOS
       exit 1
     end
     success = candidates.all? do |test_script|
-      if use_gem_test_pack
-        sh test_script, continue_on_failure: true
-      else
-        sh test_script, "--no-gem-test-pack", continue_on_failure: true
-      end
+      sh test_script, *("--no-gem-test-pack" unless use_gem_test_pack), continue_on_failure: true
     end
     exit success
   end
