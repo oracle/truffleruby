@@ -592,7 +592,7 @@ module Commands
       jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
       jt test gems [TESTS]                           tests using gems
-      jt test ecosystem [TESTS] [options]            tests using the wider ecosystem such as bundler, Rails, etc  
+      jt test ecosystem [TESTS] [options]            tests using the wider ecosystem such as bundler, Rails, etc
           --no-gem-test-pack                         run without gem test pack
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
@@ -1253,7 +1253,7 @@ EOS
   end
 
   private def test_ecosystem(*args)
-    use_gem_test_pack = !args.delete("--no-gem-test-pack")
+    use_gem_test_pack = !args.delete('--no-gem-test-pack')
     gem_test_pack if use_gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
@@ -1268,7 +1268,7 @@ EOS
       exit 1
     end
     success = candidates.all? do |test_script|
-      sh test_script, *("--no-gem-test-pack" unless use_gem_test_pack), continue_on_failure: true
+      sh test_script, *('--no-gem-test-pack' unless use_gem_test_pack), continue_on_failure: true
     end
     exit success
   end
