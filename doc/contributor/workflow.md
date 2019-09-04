@@ -4,7 +4,7 @@
 
 You will need:
 
-* Java JDK 8 or 10
+* Java JDK 8
 * Ruby 2
 * [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)
@@ -54,15 +54,16 @@ $ jt mx version
 $ jt build
 ```
 
-By default the `jt build` command only builds the JVM-based launcher for
-TruffleRuby. If you'd like to build the native image using the Substrate VM, you
-can do so by providing an extra argument to the build command.
+By default the `jt build` command builds GraalVM containing only Ruby language.
+The built GraalVM can be found in `mxbuild/truffleruby-jvm` directory. If you'd
+like to build GraalVM with the native image using the Substrate VM, you can do
+so by providing an extra argument option `--env` build command.
 
 ```bash
-$ jt build native
+$ jt build --env native
 ```
 
-This will create a new executable named `native-ruby` in the `bin/` directory.
+This GraalVM build will be created in `mxbuild/truffleruby-native`.
 
 Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
@@ -77,10 +78,10 @@ Finally, we have tests of our own. The integration tests test more macro use of
 Ruby. The ecosystem tests test commands related to Ruby. The gems tests test a
 small number of key Ruby 3rd party modules.
 
-The basic test to run every time you make changes is the "fast specs", a subset of specs which
-runs in reasonable time. If you are running a Ruby environment manager like
-`rvm`, `rbenv`, or `chruby` please run `rvm use system`, `rbenv system`,
-or `chruby system` to clear their environment variables.
+The basic test to run every time you make changes is the "fast specs", a subset
+of specs which runs in reasonable time. If you are running a Ruby environment
+manager like `rvm`, `rbenv`, or `chruby` please run `rvm use system`, `rbenv
+system`, or `chruby system` to clear their environment variables.
 
 ```bash
 $ jt test fast
@@ -89,16 +90,17 @@ $ jt test fast
 Other tests take longer and require more setup, so we don't normally run them
 locally unless we're working on that functionality (instead, the CI runs them).
 
-If you'd like to run tests with the native TruffleRuby binary, you can do so
-by providing the `--native` argument to the test command. Please note that
-you must follow the steps to build the native image before it can be used
-for tests.
+If you'd like to run tests with the native TruffleRuby binary, you can do so by
+providing the `--use` option. Please note that you must follow the steps to
+build the native image before it can be used for tests.
 
 ```bash
-$ jt test fast --native
+$ jt --use native test fast
 ```
 
-Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt -u mri/bin/ruby path/to/spec.rb` to run the test on MRI, assuming you have MRI in your PATH.
+Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt
+--use mri/bin/ruby path/to/spec.rb` to run the test on MRI, assuming you have
+MRI in your PATH.
 
 ## Running
 
@@ -107,18 +109,12 @@ command. Although it does set a couple of extra options to help you when
 developing, such as loading the core library from disk rather than the JAR.
 `jt ruby` prints the real command it's running as it starts.
 
-```bash
-$ bin/ruby ...
-$ jt ruby ...
-```
-
-If you'd like to run the native TruffleRuby binary, you can do so
-by providing the `--native` argument to the `ruby` command. Please note that
-you must follow the steps to build the native image before it can be used.
+If you'd like to run the native TruffleRuby binary, you can do so by providing
+the `--use` option. Please note that you must follow the steps to build the
+native image before it can be used.
 
 ```bash
-$ bin/native-ruby ...
-$ jt ruby --native ...
+$ jt --use native ruby ...
 ```
 
 ## Options
