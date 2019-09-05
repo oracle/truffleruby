@@ -341,7 +341,8 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject writeBytes(long address, DynamicObject string, int index, int length) {
+        protected DynamicObject writeBytes(long address, DynamicObject string, int index, int length,
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Pointer ptr = new Pointer(address);
             final Rope rope = StringOperations.rope(string);
             assert index + length <= rope.byteLength();
@@ -350,7 +351,7 @@ public abstract class PointerNodes {
                 checkNull(ptr);
             }
 
-            ptr.writeBytes(0, rope.getBytes(), index, length);
+            ptr.writeBytes(0, bytesNode.execute(rope), index, length);
             return string;
         }
 
