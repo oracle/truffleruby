@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 
 import org.jcodings.Config;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -62,12 +63,12 @@ public class StringGuards {
         return Layouts.STRING.getRope(string).byteLength() == 1;
     }
 
-    public static boolean canMemcmp(DynamicObject first, DynamicObject second) {
+    public static boolean canMemcmp(DynamicObject first, DynamicObject second, RopeNodes.SingleByteOptimizableNode singleByteNode) {
         final Rope sourceRope = Layouts.STRING.getRope(first);
         final Rope patternRope = Layouts.STRING.getRope(second);
 
-        return (sourceRope.isSingleByteOptimizable() || sourceRope.getEncoding().isUTF8()) &&
-                (patternRope.isSingleByteOptimizable() || patternRope.getEncoding().isUTF8());
+        return (singleByteNode.execute(sourceRope) || sourceRope.getEncoding().isUTF8()) &&
+                (singleByteNode.execute(patternRope) || patternRope.getEncoding().isUTF8());
     }
 
     public static boolean isAsciiCompatMapping(int caseMappingOptions) {

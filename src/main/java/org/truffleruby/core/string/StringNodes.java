@@ -3636,10 +3636,11 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string", needsSelf = false, lowerFixnum = 3)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteNode = RopeNodes.SingleByteOptimizableNode.create();
 
         @Specialization(guards = "isEmpty(pattern)")
         protected Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -3651,7 +3652,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -3679,7 +3680,7 @@ public abstract class StringNodes {
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringIndexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -3716,7 +3717,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern, singleByteNode)" })
         protected Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached ByteIndexFromCharIndexNode byteIndexFromCharIndexNode,
                 @Cached StringByteCharacterIndexNode byteIndexToCharIndexNode,
@@ -4128,6 +4129,7 @@ public abstract class StringNodes {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteNode = RopeNodes.SingleByteOptimizableNode.create();
 
         @Specialization(guards = "isEmpty(pattern)")
         protected Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -4139,7 +4141,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringRindexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -4176,7 +4178,7 @@ public abstract class StringNodes {
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringRindexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -4226,7 +4228,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern, singleByteNode)" })
         protected Object stringRindex(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode stringBytes,
                 @Cached RopeNodes.BytesNode patternBytes,
