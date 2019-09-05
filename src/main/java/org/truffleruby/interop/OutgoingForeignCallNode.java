@@ -37,13 +37,13 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @GenerateUncached
 public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode {
 
-    public abstract Object executeCall(TruffleObject receiver, String name, Object[] args);
+    public abstract Object executeCall(Object receiver, String name, Object[] args);
 
     // uncached name implementation is not needed since the name is cached in CachedForeignDispatchNode
     // TODO (pitr-ch 30-Jul-2019): make this clearer when cleaning up this file
     @Specialization(guards = "name == cachedName", limit = "1")
     protected Object callCached(
-            TruffleObject receiver, String name, Object[] args,
+            Object receiver, String name, Object[] args,
             @Cached("name") String cachedName,
             @Cached BranchProfile errorProfile,
             @Cached TranslateExceptionNode translateExceptionNode,
@@ -152,21 +152,21 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
 
-        protected abstract Object executeCall(TruffleObject receiver, String name, Object[] args);
+        protected abstract Object executeCall(Object receiver, String name, Object[] args);
     }
 
     @GenerateUncached
     public abstract static class IndexReadOutgoingNode extends OutgoingNode {
         @Specialization(guards = "args.length == 1")
         protected Object call(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @Cached InteropNodes.ReadUncacheableNode readNode) {
             return readNode.execute(receiver, args[0]);
         }
 
         @Specialization(guards = "args.length != 1")
         protected Object callWithBadArguments(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
                     context,
@@ -179,14 +179,14 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
         @Specialization(guards = "args.length == 2")
         protected Object call(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @Cached InteropNodes.WriteUncacheableNode writeUncacheableNode) {
             return writeUncacheableNode.execute(receiver, args[0], args[1]);
         }
 
         @Specialization(guards = "args.length != 2")
         protected Object callWithBadArguments(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
                     context,
@@ -199,7 +199,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
         @Specialization
         protected Object call(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 // TODO (pitr-ch 29-Mar-2019): use this node directly instead?
                 @Cached InteropNodes.ExecuteUncacheableNode executeUncacheableNode) {
             return executeUncacheableNode.execute(receiver, args);
@@ -211,7 +211,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class SendOutgoingNode extends OutgoingNode {
 
         @Specialization
-        protected Object sendOutgoing(TruffleObject receiver, String nameSend, Object[] args,
+        protected Object sendOutgoing(Object receiver, String nameSend, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode dispatchNode) {
@@ -236,7 +236,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
         @Specialization
         protected Object newOutgoing(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 // TODO (pitr-ch 29-Mar-2019): use this node directly?
                 @Cached InteropNodes.NewUncacheableNode newNode) {
             return newNode.execute(receiver, args);
@@ -248,7 +248,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class ToAOutgoingNode extends OutgoingNode {
 
         @Specialization
-        protected Object toAOutgoing(TruffleObject receiver, String name, Object[] args,
+        protected Object toAOutgoing(Object receiver, String name, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode callToArray) {
@@ -268,7 +268,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected abstract static class RespondToOutgoingNode extends OutgoingNode {
 
         @Specialization
-        protected Object respondToOutgoing(TruffleObject receiver, String name, Object[] args,
+        protected Object respondToOutgoing(Object receiver, String name, Object[] args,
                 @Cached BranchProfile argumentErrorProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("createPrivate()") CallDispatchHeadNode callRespondTo) {
@@ -362,14 +362,14 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
         @Specialization(guards = "args.length == 0")
         protected Object call(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @Cached InteropNodes.NullUncacheableNode nullUncacheableNode) {
             return nullUncacheableNode.execute(receiver);
         }
 
         @Specialization(guards = "args.length != 0")
         protected Object callWithBadArguments(
-                TruffleObject receiver, String name, Object[] args,
+                Object receiver, String name, Object[] args,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(
                     context,

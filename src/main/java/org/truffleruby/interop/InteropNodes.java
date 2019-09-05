@@ -119,7 +119,7 @@ public abstract class InteropNodes {
     @GenerateUncached
     public abstract static class ExecuteUncacheableNode extends RubyBaseWithoutContextNode {
 
-        abstract Object execute(TruffleObject receiver, Object[] args);
+        abstract Object execute(Object receiver, Object[] args);
 
         public static ExecuteUncacheableNode create() {
             return InteropNodesFactory.ExecuteUncacheableNodeGen.create();
@@ -127,7 +127,7 @@ public abstract class InteropNodes {
 
         @Specialization(limit = "getCacheLimit()")
         protected Object executeForeignCached(
-                TruffleObject receiver,
+                Object receiver,
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -279,11 +279,11 @@ public abstract class InteropNodes {
             return InteropNodesFactory.NewUncacheableNodeGen.create();
         }
 
-        abstract Object execute(TruffleObject receiver, Object[] args);
+        abstract Object execute(Object receiver, Object[] args);
 
         @Specialization(limit = "getCacheLimit()")
         protected Object newCached(
-                TruffleObject receiver,
+                Object receiver,
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -601,11 +601,11 @@ public abstract class InteropNodes {
             return InteropNodesFactory.ReadUncacheableNodeGen.create();
         }
 
-        abstract Object execute(TruffleObject receiver, Object identifier);
+        abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
         protected Object readMember(
-                TruffleObject receiver,
+                Object receiver,
                 DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
@@ -733,11 +733,11 @@ public abstract class InteropNodes {
             return InteropNodesFactory.WriteUncacheableNodeGen.create();
         }
 
-        abstract Object execute(TruffleObject receiver, Object identifier, Object value);
+        abstract Object execute(Object receiver, Object identifier, Object value);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
         protected Object write(
-                TruffleObject receiver,
+                Object receiver,
                 DynamicObject identifier,
                 Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
