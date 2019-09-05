@@ -12,6 +12,7 @@ package org.truffleruby.core.regexp;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -26,8 +27,8 @@ public class RegexpGuards {
         return Layouts.REGEXP.getOptions(regexp).isLiteral();
     }
 
-    public static boolean isValidEncoding(DynamicObject string) {
-        return StringOperations.rope(string).getCodeRange() != CodeRange.CR_BROKEN;
+    public static boolean isValidEncoding(DynamicObject string, RopeNodes.CodeRangeNode rangeNode) {
+        return rangeNode.execute(StringOperations.rope(string)) != CodeRange.CR_BROKEN;
     }
 
     public static boolean isSameRegexp(DynamicObject a, DynamicObject b) {
