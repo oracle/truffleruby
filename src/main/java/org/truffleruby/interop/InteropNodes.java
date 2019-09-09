@@ -566,7 +566,7 @@ public abstract class InteropNodes {
     public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object asPointer(
+        protected long asPointer(
                 TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {

@@ -6,6 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+from __future__ import division
+
 import os
 import json
 import pipes
@@ -588,7 +590,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
                     nonZeroIsFatal=False) == 0 and server.is_running():
                 samples = [float(s) for s in out.data.split('\n')[0:-1]]
                 mx.log(samples)
-                half_samples = len(samples) / 2
+                half_samples = len(samples) // 2
                 used_samples = samples[len(samples)-half_samples-1:]
                 ips = sum(used_samples) / float(len(used_samples))
 
