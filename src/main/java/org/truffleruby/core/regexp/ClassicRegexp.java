@@ -156,19 +156,6 @@ public class ClassicRegexp implements ReOptions {
         return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
     }
 
-    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
-        if (enc.isAsciiCompatible()) {
-            fixedEnc[0] = null;
-        } else {
-            fixedEnc[0] = enc;
-        }
-
-        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
-        if (hasProperty && fixedEnc[0] == null) {
-            fixedEnc[0] = enc;
-        }
-    }
-
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
     private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc, Encoding[] encp, RegexpSupport.ErrorMode mode) {
@@ -585,6 +572,19 @@ public class ClassicRegexp implements ReOptions {
             to.setEncoding(fixedEnc[0]);
         }
         return to;
+    }
+
+    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
+        if (enc.isAsciiCompatible()) {
+            fixedEnc[0] = null;
+        } else {
+            fixedEnc[0] = enc;
+        }
+
+        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
+        if (hasProperty && fixedEnc[0] == null) {
+            fixedEnc[0] = enc;
+        }
     }
 
     public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
