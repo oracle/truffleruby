@@ -588,18 +588,15 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
-        RopeBuilder string = null;
-        Encoding regexpEnc = null;
+        assert strings.length > 0;
 
-        for (int i = 0; i < strings.length; i++) {
+        RopeBuilder string = RopeOperations.getRopeBuilderReadOnly(strings[0]);
+        Encoding regexpEnc = processDRegexpElement(context, options, null, new Encoding[]{ null }, strings[0]);
+
+        for (int i = 1; i < strings.length; i++) {
             Rope str = strings[i];
-            final Encoding[] encodingHolder = new Encoding[]{ null };
-            regexpEnc = processDRegexpElement(context, options, regexpEnc, encodingHolder, str);
-            if (string == null) {
-                string = RopeOperations.getRopeBuilderReadOnly(str);
-            } else {
-                string.append(str.getBytes());
-            }
+            regexpEnc = processDRegexpElement(context, options, regexpEnc, new Encoding[]{ null }, str);
+            string.append(str.getBytes());
         }
 
         if (regexpEnc != null) {
