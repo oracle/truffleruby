@@ -86,6 +86,11 @@ public class LowerFixnumChecker {
             }
         }
 
+        if (lowerArgs == null) {
+            reportError(nodeFactory, "could not find specializations (lowerArgs == null)");
+            return;
+        }
+
         // Verify against the lowerFixnum annotation
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long

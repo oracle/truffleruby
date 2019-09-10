@@ -156,19 +156,6 @@ public class ClassicRegexp implements ReOptions {
         return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
     }
 
-    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
-        if (enc.isAsciiCompatible()) {
-            fixedEnc[0] = null;
-        } else {
-            fixedEnc[0] = enc;
-        }
-
-        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
-        if (hasProperty && fixedEnc[0] == null) {
-            fixedEnc[0] = enc;
-        }
-    }
-
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
     private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc, Encoding[] encp, RegexpSupport.ErrorMode mode) {
@@ -587,19 +574,29 @@ public class ClassicRegexp implements ReOptions {
         return to;
     }
 
-    public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
-        RopeBuilder string = null;
-        Encoding regexpEnc = null;
+    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
+        if (enc.isAsciiCompatible()) {
+            fixedEnc[0] = null;
+        } else {
+            fixedEnc[0] = enc;
+        }
 
-        for (int i = 0; i < strings.length; i++) {
+        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
+        if (hasProperty && fixedEnc[0] == null) {
+            fixedEnc[0] = enc;
+        }
+    }
+
+    public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
+        assert strings.length > 0;
+
+        RopeBuilder string = RopeOperations.getRopeBuilderReadOnly(strings[0]);
+        Encoding regexpEnc = processDRegexpElement(context, options, null, strings[0]);
+
+        for (int i = 1; i < strings.length; i++) {
             Rope str = strings[i];
-            final Encoding[] encodingHolder = new Encoding[]{ null };
-            regexpEnc = processDRegexpElement(context, options, regexpEnc, encodingHolder, str);
-            if (string == null) {
-                string = RopeOperations.getRopeBuilderReadOnly(str);
-            } else {
-                string.append(str.getBytes());
-            }
+            regexpEnc = processDRegexpElement(context, options, regexpEnc, str);
+            string.append(str.getBytes());
         }
 
         if (regexpEnc != null) {
@@ -610,7 +607,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc, Encoding[] fixedEnc, Rope str) {
+    private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc, Rope str) {
         Encoding strEnc = str.getEncoding();
 
         if (options.isEncodingNone() && strEnc != ASCIIEncoding.INSTANCE) {
@@ -623,6 +620,7 @@ public class ClassicRegexp implements ReOptions {
         // This used to call preprocess, but the resulting rope builder was not
         // used. Since the preprocessing error-checking can be done without
         // creating a new rope builder, I added a "light" path.
+        final Encoding[] fixedEnc = new Encoding[]{ null };
         ClassicRegexp.preprocessLight(context, str, strEnc, fixedEnc, RegexpSupport.ErrorMode.PREPROCESS);
 
         if (fixedEnc[0] != null) {
