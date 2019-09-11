@@ -57,7 +57,7 @@ $ jt build
 By default the `jt build` command builds GraalVM containing only the Ruby
 language. The built GraalVM can be found in `mxbuild/truffleruby-jvm` directory.
 If you'd like to build GraalVM with the native image using the Substrate VM, you
-can do so by providing an extra argument option `--env` the build command.
+can do so by providing an extra option `--env` to the build command.
 
 ```bash
 $ jt build --env native
