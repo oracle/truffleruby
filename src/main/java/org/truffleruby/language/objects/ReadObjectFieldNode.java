@@ -47,6 +47,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseWithoutContextNode {
         return execute(object, name, defaultValue);
     }
 
+    @TruffleBoundary
     @Specialization(replaces = { "readObjectFieldCached", "updateShapeAndRead" })
     protected Object readObjectFieldUncached(DynamicObject receiver, Object name, Object defaultValue) {
         final Shape shape = receiver.getShape();
