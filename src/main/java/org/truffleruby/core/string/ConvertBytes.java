@@ -22,6 +22,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -39,7 +40,7 @@ public class ConvertBytes {
     private int base;
     private final boolean badcheck;
 
-    public ConvertBytes(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, DynamicObject _str, int base, boolean badcheck) {
+    public ConvertBytes(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, RopeNodes.BytesNode bytesNode, DynamicObject _str, int base, boolean badcheck) {
         final Rope rope = StringOperations.rope(_str);
 
         this.context = context;
@@ -47,7 +48,7 @@ public class ConvertBytes {
         this.fixnumOrBignumNode = fixnumOrBignumNode;
         this._str = _str;
         this.str = 0;
-        this.data = rope.getBytes();
+        this.data = bytesNode.execute(rope);
         this.end = str + rope.byteLength();
         this.badcheck = badcheck;
         this.base = base;
@@ -65,8 +66,8 @@ public class ConvertBytes {
      *
      */
 
-    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, DynamicObject str, int base, boolean badcheck) {
-        return new ConvertBytes(context, node, fixnumOrBignumNode, str, base, badcheck).byteListToInum();
+    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, RopeNodes.BytesNode bytesNode, DynamicObject str, int base, boolean badcheck) {
+        return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, base, badcheck).byteListToInum();
     }
 
     /** conv_digit

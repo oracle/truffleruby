@@ -3601,7 +3601,8 @@ public abstract class StringNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         protected Object stringToF(DynamicObject string, boolean strict,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
+                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
@@ -3611,7 +3612,7 @@ public abstract class StringNodes {
                     return Double.parseDouble(string.toString());
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
-                    final Object result = ConvertBytes.byteListToInum19(getContext(), this, fixnumOrBignumNode, string, 16, true);
+                    final Object result = ConvertBytes.byteListToInum19(getContext(), this, fixnumOrBignumNode, bytesNode, string, 16, true);
                     if (result instanceof Integer) {
                         return ((Integer) result).doubleValue();
                     } else if (result instanceof Long) {
@@ -4439,11 +4440,13 @@ public abstract class StringNodes {
         @Specialization
         protected Object stringToInum(DynamicObject string, int fixBase, boolean strict,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.byteListToInum19(getContext(),
                         this,
                         fixnumOrBignumNode,
+                        bytesNode,
                         string,
                         fixBase,
                         strict);
