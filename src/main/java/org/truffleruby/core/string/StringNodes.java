@@ -4487,13 +4487,14 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateNode;
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
         @Child private RopeNodes.SubstringNode substringNode;
 
         public abstract Object execute(VirtualFrame frame, DynamicObject string, int index, int characterLength);
 
         @Specialization(guards = {
                 "!indexTriviallyOutOfBounds(string, characterLengthNode, beg, characterLen)",
-                "noCharacterSearch(string)" })
+                "noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringSingleByte(DynamicObject string, int beg, int characterLen,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile) {
@@ -4515,7 +4516,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = {
                 "!indexTriviallyOutOfBounds(string, characterLengthNode, beg, characterLen)",
-                "!noCharacterSearch(string)" })
+                "!noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringGeneric(DynamicObject string, int beg, int characterLen,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile,
@@ -4666,9 +4667,9 @@ public abstract class StringNodes {
             return (length < 0) || (index > characterLengthNode.execute(rope(string)));
         }
 
-        protected static boolean noCharacterSearch(DynamicObject string) {
+        protected static boolean noCharacterSearch(DynamicObject string, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             final Rope rope = rope(string);
-            return rope.isEmpty() || rope.isSingleByteOptimizable();
+            return rope.isEmpty() || singleByteOptimizableNode.execute(rope);
         }
 
         private static final class SearchResult {
