@@ -212,6 +212,7 @@ public class RopeOperations {
         }
     }
 
+    @TruffleBoundary
     public static String decodeRope(Rope value) {
         return decodeRopeSegment(value, 0, value.byteLength());
     }
