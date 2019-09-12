@@ -181,14 +181,14 @@ module Utilities
                      elsif File.executable?(@ruby_name)
                        @ruby_name
                      else
-                       "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/jre/languages/ruby/bin/ruby"
+                       "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
                      end
 
     raise "The Ruby executable #{@ruby_launcher} does not exist" unless File.exist?(@ruby_launcher)
     raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
 
     unless @silent
-      shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/jre/languages/ruby$], '')
+      shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/#{language_dir}/ruby$], '')
       tags = [*('Native' if truffleruby_native?),
               *('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
@@ -229,10 +229,12 @@ module Utilities
     return @truffleruby_compiler = false unless truffleruby?
     return @truffleruby_compiler = true if truffleruby_native?
 
-    # it has to have graal.jar in gvm-dir/jre/lib/jvmci
-    # use realpath to always use the executable in jre/languages/ruby/bin/
-    graal_jar_path = File.expand_path(File.join(File.dirname(File.realpath(ruby_launcher)), '..', '..', '..', 'lib', 'jvmci', 'graal.jar'))
-    @truffleruby_compiler = File.exist?(graal_jar_path)
+    # Detect if the compiler is present by reading the $graalvm_home/release file
+    # Use realpath to always use the executable in languages/ruby/bin/
+    graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", File.realpath(ruby_launcher))
+    @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
+      line.include?('"compiler":')
+    end
   end
 
   def truffleruby?
@@ -480,6 +482,15 @@ module Utilities
 
   def find_java_home
     ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
+  end
+
+  def language_dir
+    java_home = find_java_home || ENV.fetch('JAVA_HOME')
+    if java_home =~ /jdk-11/
+      'languages'
+    else
+      'jre/languages'
+    end
   end
 
   def mx(*args, **kwargs)
@@ -928,7 +939,7 @@ module Commands
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
-      home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/jre/languages/ruby"
+      home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/#{language_dir}/ruby"
       mx 'unittest', home, *tests
     when 'tck' then mx 'tck', *rest
     else
@@ -1186,7 +1197,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'mxbuild/truffleruby-jvm/jre/languages/ruby/lib/truffle/post_install_hook.sh')
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "mxbuild/truffleruby-jvm/#{language_dir}/ruby/lib/truffle/post_install_hook.sh")
 
       when 'gems'
         # Test that we can compile and run some real C extensions
@@ -1950,7 +1961,7 @@ EOS
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
-    dest_ruby = "#{dest}/jre/languages/ruby"
+    dest_ruby = "#{dest}/#{language_dir}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
@@ -2285,7 +2296,7 @@ EOS
 
     check_post_install_message = [
       "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
-      "RUN grep '/jre/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
+      "RUN grep '/#{language_dir}/ruby/lib/truffle/post_install_hook.sh' install.log"
     ]
 
     case install_method
@@ -2297,7 +2308,7 @@ EOS
       lines.push "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
       lines.push "RUN #{graalvm_base}/bin/gu install org.graalvm.ruby | tee install.log"
       lines.push(*check_post_install_message)
-      ruby_base = "#{graalvm_base}/jre/languages/ruby"
+      ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
       lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
@@ -2311,7 +2322,7 @@ EOS
       graalvm_base = '/test/graalvm'
       lines.push "RUN mkdir #{graalvm_base}"
       lines.push "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-      ruby_base = "#{graalvm_base}/jre/languages/ruby"
+      ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
       lines.push "RUN #{graalvm_bin}/gu install --file /test/#{graalvm_component} | tee install.log"

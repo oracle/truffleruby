@@ -31,16 +31,16 @@ warm-up time for shorter running commands and benchmarks.
 
 ```bash
 $ cd graalvm
-$ otool -L jre/bin/ruby
-jre/bin/ruby:
+$ otool -L bin/ruby
+bin/ruby:
   /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1348.28.0)
   /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1238.0.0)
   /usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
 ```
 
 ```bash
-$ du -h jre/bin/ruby
-200M jre/bin/ruby
+$ du -h bin/ruby
+200M bin/ruby
 ```
 
 The Native Image version of TruffleRuby has better startup performance and lower memory

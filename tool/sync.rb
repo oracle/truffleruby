@@ -17,7 +17,11 @@ require 'listen'
 require 'fileutils'
 
 FROM = File.expand_path('../..', File.realpath(__FILE__))
-TO = "#{FROM}/mxbuild/truffleruby-jvm/jre/languages/ruby"
+graalvm_home = "#{FROM}/mxbuild/truffleruby-jvm"
+jre_dir = File.directory?("#{graalvm_home}/jre") ? "#{graalvm_home}/jre" : graalvm_home
+TO = "#{jre_dir}/languages/ruby"
+
+abort "#{TO} does not exist" unless File.directory?(TO)
 
 # Must be consistent with TRUFFLERUBY_GRAALVM_SUPPORT in suite.py
 DIRS_TO_SYNC = %w[
