@@ -15,7 +15,6 @@ import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {

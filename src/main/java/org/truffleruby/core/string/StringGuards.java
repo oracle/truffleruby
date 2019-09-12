@@ -12,7 +12,6 @@ package org.truffleruby.core.string;
 
 import org.jcodings.Config;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
