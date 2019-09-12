@@ -212,11 +212,11 @@ public class RopeOperations {
         }
     }
 
-    @TruffleBoundary
     public static String decodeRope(Rope value) {
         return decodeRopeSegment(value, 0, value.byteLength());
     }
 
+    @TruffleBoundary
     public static String decodeRopeSegment(Rope value, int byteOffset, int byteLength) {
         return decodeRopeSegment(value, value.getBytes(), byteOffset, byteLength);
     }
