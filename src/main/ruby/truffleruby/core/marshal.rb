@@ -1192,6 +1192,8 @@ module Marshal
           TrufflePrimitive.exception_set_message obj, value
         when :cause
           TrufflePrimitive.exception_set_cause obj, value
+        else # Regular instance variable
+          TrufflePrimitive.object_ivar_set obj, ivar, value
         end
       end
     end
