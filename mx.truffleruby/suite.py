@@ -327,6 +327,10 @@ suite = {
         },
 
         "TRUFFLERUBY-SERVICES": {
+            "moduleInfo": {
+                "name": "org.truffleruby.services",
+                "exports": ["org.truffleruby.services.scriptengine"],
+            },
             "dependencies": [
                 "org.truffleruby.services"
             ],
