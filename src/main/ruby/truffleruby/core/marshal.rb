@@ -109,8 +109,10 @@ class Exception
     name = Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
 
+    ivars = ms.serializable_instance_variables(self, [:@custom_backtrace])
+    number_of_ivars = ivars.size + 2
     cause = self.cause
-    out << ms.serialize_fixnum(cause ? 3 : 2) # number of ivars
+    out << ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
     out << ms.serialize(:mesg)
     out << ms.serialize(TrufflePrimitive.exception_message(self))
     out << ms.serialize(:bt)
@@ -119,6 +121,7 @@ class Exception
       out << ms.serialize(:cause)
       out << ms.serialize(cause)
     end
+    out << Truffle::Type.binary_string(ms.serialize_instance_variables(self, ivars))
 
     out
   end
@@ -1044,13 +1047,21 @@ module Marshal
         str = serialize_integer(count)
       end
 
+      str << serialize_instance_variables(obj, ivars)
+
+      Truffle::Type.binary_string(str)
+    end
+
+    def serialize_instance_variables(obj, ivars)
+      str = ''.b
+
       ivars.each do |ivar|
         val = TrufflePrimitive.object_ivar_get obj, ivar
         str << serialize(ivar)
         str << serialize(val)
       end
 
-      Truffle::Type.binary_string(str)
+      str
     end
 
     def serialize_integer(n, prefix = nil)
