@@ -597,12 +597,12 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifier(TruffleObject receiver, Object name, UnknownIdentifierException exception, Node currentNode) {
+    public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, UnknownIdentifierException exception, Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifier(TruffleObject receiver, Object name, InvalidArrayIndexException exception, Node currentNode) {
+    public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, InvalidArrayIndexException exception, Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 

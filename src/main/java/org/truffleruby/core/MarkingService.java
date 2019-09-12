@@ -237,6 +237,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         index = 0;
     }
 
+    @TruffleBoundary
     public void addMark(Object obj) {
         if (marks.length == index) {
             Object[] oldMarks = marks;
@@ -247,6 +248,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         index++;
     }
 
+    @TruffleBoundary
     public Object[] finishMarking() {
         if (index != marks.length) {
             for (int i = index; i < marks.length; i++) {

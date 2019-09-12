@@ -91,7 +91,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -117,11 +116,11 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract Object execute(TruffleObject receiverm, DynamicObject argsArray);
+        public abstract Object execute(Object receiverm, DynamicObject argsArray);
 
         @Specialization(limit = "getCacheLimit()")
         protected Object callCWithMutex(
-                TruffleObject receiver,
+                Object receiver,
                 DynamicObject argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -149,7 +148,7 @@ public class CExtNodes {
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
+        private Object execute(Object receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
                 return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -170,7 +169,7 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(VirtualFrame frame, TruffleObject receiver, DynamicObject argsArray, DynamicObject block,
+        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray, DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -188,7 +187,7 @@ public class CExtNodes {
 
         @Specialization(limit = "getCacheLimit()")
         protected Object callCWithoutMutex(
-                TruffleObject receiver,
+                Object receiver,
                 DynamicObject argsArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -216,7 +215,7 @@ public class CExtNodes {
 
         }
 
-        private Object execute(TruffleObject receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
+        private Object execute(Object receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
             try {
                 return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -1385,7 +1384,7 @@ public class CExtNodes {
     public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrap(TruffleObject value,
+        protected Object unwrap(Object value,
                 @Cached BranchProfile exceptionProfile,
                 @Cached UnwrapNode unwrapNode) {
             Object object = unwrapNode.execute(value);
@@ -1418,7 +1417,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(VirtualFrame frmae, TruffleObject markedObject,
+        protected DynamicObject addToMarkList(Object markedObject,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1442,7 +1441,7 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(VirtualFrame frame, TruffleObject guardedObject,
+        protected DynamicObject addToMarkList(VirtualFrame frame, Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1451,13 +1450,6 @@ public class CExtNodes {
                 noExceptionProfile.enter();
                 keepAliveNode.execute(guardedObject);
             }
-            return nil();
-        }
-
-        @Fallback
-        protected DynamicObject addToMarkList(Object guardedObject) {
-            // Do nothing for unexpected objects, no matter how unexpected. This can occur inside
-            // macros that guard a variable which may not have been initialized.
             return nil();
         }
 
@@ -1480,7 +1472,7 @@ public class CExtNodes {
     @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
     public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
+        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
 
         @Specialization
         protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,

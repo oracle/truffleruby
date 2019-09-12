@@ -419,12 +419,14 @@ public abstract class RegexpNodes {
     @ImportStatic(RegexpGuards.class)
     public static abstract class RegexpSearchRegionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
+
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
         protected Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
-        @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string)" })
+        @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string, rangeNode)" })
         protected Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }
@@ -434,7 +436,7 @@ public abstract class RegexpNodes {
             return StringUtils.format("invalid byte sequence in %s", Layouts.STRING.getRope(string).getEncoding());
         }
 
-        @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
+        @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string, rangeNode)" })
         protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,

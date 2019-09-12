@@ -3601,7 +3601,8 @@ public abstract class StringNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         protected Object stringToF(DynamicObject string, boolean strict,
-                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
+                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
@@ -3611,7 +3612,7 @@ public abstract class StringNodes {
                     return Double.parseDouble(string.toString());
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
-                    final Object result = ConvertBytes.byteListToInum19(getContext(), this, fixnumOrBignumNode, string, 16, true);
+                    final Object result = ConvertBytes.byteListToInum19(getContext(), this, fixnumOrBignumNode, bytesNode, string, 16, true);
                     if (result instanceof Integer) {
                         return ((Integer) result).doubleValue();
                     } else if (result instanceof Long) {
@@ -3636,10 +3637,11 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string", needsSelf = false, lowerFixnum = 3)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteNode = RopeNodes.SingleByteOptimizableNode.create();
 
         @Specialization(guards = "isEmpty(pattern)")
         protected Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -3651,7 +3653,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -3679,7 +3681,7 @@ public abstract class StringNodes {
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringIndexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -3716,7 +3718,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern, singleByteNode)" })
         protected Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached ByteIndexFromCharIndexNode byteIndexFromCharIndexNode,
                 @Cached StringByteCharacterIndexNode byteIndexToCharIndexNode,
@@ -4128,6 +4130,7 @@ public abstract class StringNodes {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteNode = RopeNodes.SingleByteOptimizableNode.create();
 
         @Specialization(guards = "isEmpty(pattern)")
         protected Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -4139,7 +4142,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringRindexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -4176,7 +4179,7 @@ public abstract class StringNodes {
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern, codeRangeNode)",
-                "canMemcmp(string, pattern)"
+                "canMemcmp(string, pattern, singleByteNode)"
         })
         protected Object stringRindexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -4226,7 +4229,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern, codeRangeNode)", "!canMemcmp(string, pattern, singleByteNode)" })
         protected Object stringRindex(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode stringBytes,
                 @Cached RopeNodes.BytesNode patternBytes,
@@ -4437,11 +4440,13 @@ public abstract class StringNodes {
         @Specialization
         protected Object stringToInum(DynamicObject string, int fixBase, boolean strict,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.byteListToInum19(getContext(),
                         this,
                         fixnumOrBignumNode,
+                        bytesNode,
                         string,
                         fixBase,
                         strict);
@@ -4482,13 +4487,14 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateNode;
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
+        @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode.create();
         @Child private RopeNodes.SubstringNode substringNode;
 
         public abstract Object execute(VirtualFrame frame, DynamicObject string, int index, int characterLength);
 
         @Specialization(guards = {
                 "!indexTriviallyOutOfBounds(string, characterLengthNode, beg, characterLen)",
-                "noCharacterSearch(string)" })
+                "noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringSingleByte(DynamicObject string, int beg, int characterLen,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile) {
@@ -4510,7 +4516,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = {
                 "!indexTriviallyOutOfBounds(string, characterLengthNode, beg, characterLen)",
-                "!noCharacterSearch(string)" })
+                "!noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringGeneric(DynamicObject string, int beg, int characterLen,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile,
@@ -4661,9 +4667,9 @@ public abstract class StringNodes {
             return (length < 0) || (index > characterLengthNode.execute(rope(string)));
         }
 
-        protected static boolean noCharacterSearch(DynamicObject string) {
+        protected static boolean noCharacterSearch(DynamicObject string, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
             final Rope rope = rope(string);
-            return rope.isEmpty() || rope.isSingleByteOptimizable();
+            return rope.isEmpty() || singleByteOptimizableNode.execute(rope);
         }
 
         private static final class SearchResult {
