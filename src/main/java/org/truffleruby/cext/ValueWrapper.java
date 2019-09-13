@@ -33,11 +33,11 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public class ValueWrapper implements TruffleObject {
 
     private final Object object;
-    private long handle;
+    volatile private long handle;
     @SuppressWarnings("unused")
     // The handleBlock is held here to stop it being GCed and the memory freed while wrappers still
     // exist with handles in it.
-    private HandleBlock handleBlock;
+    volatile private HandleBlock handleBlock;
 
     public ValueWrapper(Object object, long handle, HandleBlock handleBlock) {
         this.object = object;
