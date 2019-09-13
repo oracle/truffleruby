@@ -37,7 +37,8 @@ public abstract class GetCurrentRubyThreadNode extends RubyBaseNode {
     @Specialization(guards = {
             "getCurrentJavaThread(frame) == cachedJavaThread",
             "hasThread(frame, cachedFiber)",
-            "!preInitializing" // Cannot cache a Thread instance when pre-initializing
+            /* Cannot cache a Thread instance when pre-initializing */
+            "!preInitializing"
     }, limit = "getCacheLimit()")
     protected DynamicObject getRubyThreadCached(VirtualFrame frame,
             @Cached("isPreInitializing()") boolean preInitializing,

@@ -1650,7 +1650,8 @@ public abstract class RopeNodes {
 
         @Specialization(guards = {
                 "codeRange == CR_VALID",
-                "!encoding.isAsciiCompatible()", // UTF-8 is ASCII-compatible, so we don't need to check the encoding is not UTF-8 here.
+                /* UTF-8 is ASCII-compatible, so we don't need to check the encoding is not UTF-8 here. */
+                "!encoding.isAsciiCompatible()",
                 "!encoding.isFixedWidth()"
         })
         protected int validGeneral(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
