@@ -67,15 +67,18 @@ public abstract class RubyGuards {
     }
 
     public static boolean isBasicNumber(Object object) {
-        return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
+        return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) ||
+                isDouble(object);
     }
 
     public static boolean isPrimitive(Object object) {
-        return isBoolean(object) || isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
+        return isBoolean(object) || isByte(object) || isShort(object) || isInteger(object) || isLong(object) ||
+                isFloat(object) || isDouble(object);
     }
 
     public static boolean isPrimitiveClass(Class<?> clazz) {
-        return clazz == Boolean.class || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class || clazz == Float.class || clazz == Double.class;
+        return clazz == Boolean.class || clazz == Byte.class || clazz == Short.class || clazz == Integer.class ||
+                clazz == Long.class || clazz == Float.class || clazz == Double.class;
     }
 
     // Ruby types
@@ -292,7 +295,8 @@ public abstract class RubyGuards {
     }
 
     public static boolean isBoxedPrimitive(Object object) {
-        return object instanceof Boolean || object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long || object instanceof Float ||
+        return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
+                object instanceof Integer || object instanceof Long || object instanceof Float ||
                 object instanceof Double;
     }
 

@@ -61,18 +61,23 @@ public abstract class InitializeClassNode extends RubyBaseNode {
         throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
     }
 
-    private DynamicObject initializeGeneralWithoutBlock(DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
+    private DynamicObject initializeGeneralWithoutBlock(DynamicObject rubyClass, DynamicObject superclass,
+            boolean superClassProvided) {
         assert RubyGuards.isRubyClass(rubyClass);
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
 
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
             }
         }
 
@@ -85,16 +90,21 @@ public abstract class InitializeClassNode extends RubyBaseNode {
         return rubyClass;
     }
 
-    private DynamicObject initializeGeneralWithBlock(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block, boolean superClassProvided) {
+    private DynamicObject initializeGeneralWithBlock(DynamicObject rubyClass, DynamicObject superclass,
+            DynamicObject block, boolean superClassProvided) {
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
             }
         }
 

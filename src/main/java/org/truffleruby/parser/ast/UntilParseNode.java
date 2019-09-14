@@ -53,7 +53,11 @@ public class UntilParseNode extends ParseNode {
         return NodeType.UNTILNODE;
     }
 
-    public UntilParseNode(SourceIndexLength position, ParseNode conditionNode, ParseNode bodyNode, boolean evaluateAtStart) {
+    public UntilParseNode(
+            SourceIndexLength position,
+            ParseNode conditionNode,
+            ParseNode bodyNode,
+            boolean evaluateAtStart) {
         super(position);
 
         assert conditionNode != null : "conditionNode is not null";

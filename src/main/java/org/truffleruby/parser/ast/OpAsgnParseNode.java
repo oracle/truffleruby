@@ -43,7 +43,13 @@ public class OpAsgnParseNode extends ParseNode {
     private final String operatorName;
     private final boolean isLazy;
 
-    public OpAsgnParseNode(SourceIndexLength position, ParseNode receiverNode, ParseNode valueNode, String variableName, String operatorName, boolean isLazy) {
+    public OpAsgnParseNode(
+            SourceIndexLength position,
+            ParseNode receiverNode,
+            ParseNode valueNode,
+            String variableName,
+            String operatorName,
+            boolean isLazy) {
         super(position);
 
         assert receiverNode != null : "receiverNode is not null";

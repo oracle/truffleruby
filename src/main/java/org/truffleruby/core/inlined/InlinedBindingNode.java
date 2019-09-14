@@ -28,9 +28,10 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
         super(callNodeParameters);
     }
 
-    @Specialization(guards = {
-            "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BINDING",
-    }, assumptions = "assumptions", limit = "1")
+    @Specialization(
+            guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BINDING", },
+            assumptions = "assumptions",
+            limit = "1")
     protected DynamicObject binding(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode,
             @Cached("getEncapsulatingSourceSection()") SourceSection sourceSection) {

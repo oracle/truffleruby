@@ -54,7 +54,9 @@ public class PrimitiveManager {
     }
 
     public PrimitiveNodeConstructor addPrimitive(NodeFactory<? extends RubyNode> nodeFactory, Primitive annotation) {
-        return ConcurrentOperations.getOrCompute(primitives, annotation.name(),
+        return ConcurrentOperations.getOrCompute(
+                primitives,
+                annotation.name(),
                 k -> new PrimitiveNodeConstructor(annotation, nodeFactory));
     }
 }

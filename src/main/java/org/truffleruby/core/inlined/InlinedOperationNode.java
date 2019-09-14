@@ -53,7 +53,9 @@ public abstract class InlinedOperationNode extends RubyNode {
             if (found) {
                 // We need to pass the updated children of this node to the call node
                 RubyCallNode callNode = new RubyCallNode(callNodeParameters.withReceiverAndArguments(
-                        getReceiverNode(), getArgumentNodes(), getBlockNode()));
+                        getReceiverNode(),
+                        getArgumentNodes(),
+                        getBlockNode()));
                 callNode.unsafeSetSourceSection(getSourceIndexLength());
                 replacedBy = callNode;
                 return replace(callNode, this + " could not be executed inline");
@@ -67,7 +69,8 @@ public abstract class InlinedOperationNode extends RubyNode {
         return rewriteAndCallWithBlock(frame, receiver, null, arguments);
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, DynamicObject block, Object... arguments) {
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, DynamicObject block,
+            Object... arguments) {
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
     }
 

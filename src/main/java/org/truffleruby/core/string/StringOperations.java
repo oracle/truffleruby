@@ -74,7 +74,9 @@ public abstract class StringOperations {
 
         if (encoding == ASCIIEncoding.INSTANCE && !isAsciiOnly(value)) {
             throw new UnsupportedOperationException(
-                    StringUtils.format("Can't convert Java String (%s) to Ruby BINARY String because it contains non-ASCII characters", value));
+                    StringUtils.format(
+                            "Can't convert Java String (%s) to Ruby BINARY String because it contains non-ASCII characters",
+                            value));
         }
 
         Charset charset = encoding.getCharset();

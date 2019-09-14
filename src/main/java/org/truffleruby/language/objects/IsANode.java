@@ -35,11 +35,13 @@ public abstract class IsANode extends RubyBaseWithoutContextNode {
 
     public abstract boolean executeIsA(Object self, DynamicObject module);
 
-    @Specialization(guards = {
-            "isRubyModule(cachedModule)",
-            "metaClassNode.executeMetaClass(self) == cachedMetaClass",
-            "module == cachedModule"
-    }, assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)", limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "isRubyModule(cachedModule)",
+                    "metaClassNode.executeMetaClass(self) == cachedMetaClass",
+                    "module == cachedModule" },
+            assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
+            limit = "getCacheLimit()")
     protected boolean isACached(Object self, DynamicObject module,
             @Cached MetaClassNode metaClassNode,
             @Cached("metaClassNode.executeMetaClass(self)") DynamicObject cachedMetaClass,

@@ -38,7 +38,10 @@ public abstract class ShapeCachingGuards {
         return Layouts.QUEUE.isQueue(shape.getObjectType());
     }
 
-    private static final ObjectType BASIC_OBJECT_OBJECT_TYPE = Layouts.BASIC_OBJECT.createBasicObjectShape(null, null).getShape().getObjectType();
+    private static final ObjectType BASIC_OBJECT_OBJECT_TYPE = Layouts.BASIC_OBJECT
+            .createBasicObjectShape(null, null)
+            .getShape()
+            .getObjectType();
 
     public static boolean isBasicObjectShape(Shape shape) {
         return shape.getObjectType().getClass() == BASIC_OBJECT_OBJECT_TYPE.getClass();

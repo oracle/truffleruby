@@ -64,12 +64,18 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class EncodingConverterNodes {
 
     @NonStandard
-    @CoreMethod(names = "initialize_jcodings", required = 2, optional = 1, lowerFixnum = 3, visibility = Visibility.PRIVATE)
+    @CoreMethod(
+            names = "initialize_jcodings",
+            required = 2,
+            optional = 1,
+            lowerFixnum = 3,
+            visibility = Visibility.PRIVATE)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
-        protected DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination, int options) {
+        protected DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
+                int options) {
             // Adapted from RubyConverter - see attribution there
             //
             // This method should only be called after the Encoding::Converter instance has already been initialized
@@ -79,7 +85,8 @@ public abstract class EncodingConverterNodes {
             Encoding sourceEncoding = Layouts.ENCODING.getEncoding(source);
             Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
 
-            final EConv econv = TranscoderDB.open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
+            final EConv econv = TranscoderDB
+                    .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
             if (econv == null) {
                 return nil();
@@ -103,7 +110,8 @@ public abstract class EncodingConverterNodes {
                 }
 
                 final byte[] segmentSource = transcoder.getSource();
-                ret[retIndex++] = getSymbol(RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+                ret[retIndex++] = getSymbol(
+                        RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
             }
 
             final int retSize = retIndex + 1;
@@ -114,7 +122,8 @@ public abstract class EncodingConverterNodes {
             }
 
             final byte[] destinationName = destinationEncoding.getName();
-            ret[retIndex] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
+            ret[retIndex] = getSymbol(
+                    RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
 
             return createArray(ret, ret.length);
         }
@@ -157,7 +166,8 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
         protected DynamicObject search(DynamicObject source) {
-            final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(Layouts.SYMBOL.getString(source));
+            final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
+                    .get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
                 return nil();
             }
@@ -236,7 +246,8 @@ public abstract class EncodingConverterNodes {
 
                 if (outBytes.getLength() < offset) {
                     throw new RaiseException(
-                            getContext(), coreExceptions().argumentError("output offset too big", this));
+                            getContext(),
+                            coreExceptions().argumentError("output offset too big", this));
                 }
 
                 long outputByteEnd = offset + size;
@@ -244,7 +255,8 @@ public abstract class EncodingConverterNodes {
                 if (outputByteEnd > Integer.MAX_VALUE) {
                     // overflow check
                     throw new RaiseException(
-                            getContext(), coreExceptions().argumentError("output offset + bytesize too big", this));
+                            getContext(),
+                            coreExceptions().argumentError("output offset + bytesize too big", this));
                 }
 
                 outBytes.unsafeEnsureSpace((int) outputByteEnd);
@@ -252,7 +264,15 @@ public abstract class EncodingConverterNodes {
                 inPtr.p = 0;
                 outPtr.p = offset;
                 int os = outPtr.p + size;
-                EConvResult res = convert(ec, sourceRope.getBytes(), inPtr, sourceRope.byteLength() + inPtr.p, outBytes.getUnsafeBytes(), outPtr, os, options);
+                EConvResult res = convert(
+                        ec,
+                        sourceRope.getBytes(),
+                        inPtr,
+                        sourceRope.byteLength() + inPtr.p,
+                        outBytes.getUnsafeBytes(),
+                        outPtr,
+                        os,
+                        options);
 
                 outBytes.setLength(outPtr.p);
 
@@ -264,7 +284,8 @@ public abstract class EncodingConverterNodes {
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
                     if (Integer.MAX_VALUE / 2 < size) {
                         throw new RaiseException(
-                                getContext(), coreExceptions().argumentError("too long conversion result", this));
+                                getContext(),
+                                coreExceptions().argumentError("too long conversion result", this));
                     }
                     size *= 2;
                     continue;
@@ -281,7 +302,8 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private EConvResult convert(EConv ec, byte[] in, Ptr inPtr, int inStop, byte[] out, Ptr outPtr, int outStop, int flags) {
+        private EConvResult convert(EConv ec, byte[] in, Ptr inPtr, int inStop, byte[] out, Ptr outPtr, int outStop,
+                int flags) {
             return ec.convert(in, inPtr, inStop, out, outPtr, outStop, flags);
         }
 
@@ -350,11 +372,14 @@ public abstract class EncodingConverterNodes {
             store[0] = eConvResultToSymbol(lastError.getResult());
             store[1] = makeStringNode.executeMake(lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
             store[2] = makeStringNode.executeMake(lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
-            store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
-                    lastError.getErrorBytesP(), lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN);
+            store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+                    lastError.getErrorBytes(),
+                    lastError.getErrorBytesP(),
+                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN);
 
             if (readAgain) {
-                store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
+                store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
+                        lastError.getErrorBytes(),
                         lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
                         lastError.getReadAgainLength()), CR_UNKNOWN);
             }
@@ -405,9 +430,19 @@ public abstract class EncodingConverterNodes {
             }
 
             if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()), CR_UNKNOWN);
+                ret[3] = makeStringNode
+                        .fromBuilderUnsafe(
+                                RopeBuilder.createRopeBuilder(
+                                        ec.lastError.getErrorBytes(),
+                                        ec.lastError.getErrorBytesP(),
+                                        ec.lastError.getErrorBytesLength()),
+                                CR_UNKNOWN);
                 ret[4] = makeStringNode.fromBuilderUnsafe(
-                        RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()), CR_UNKNOWN);
+                        RopeBuilder.createRopeBuilder(
+                                ec.lastError.getErrorBytes(),
+                                ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
+                                ec.lastError.getReadAgainLength()),
+                        CR_UNKNOWN);
             }
 
             return createArray(ret, ret.length);
@@ -427,7 +462,9 @@ public abstract class EncodingConverterNodes {
 
             final int ret = ec.makeReplacement();
             if (ret == -1) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().encodingUndefinedConversionError(this));
             }
 
             final byte[] bytes = ArrayUtils.extractRange(ec.replacementString, 0, ec.replacementLength);
@@ -461,7 +498,9 @@ public abstract class EncodingConverterNodes {
 
             if (ret == -1) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().encodingUndefinedConversionError(this));
             }
 
             return replacement;

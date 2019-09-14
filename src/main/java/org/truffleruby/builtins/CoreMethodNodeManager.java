@@ -60,7 +60,10 @@ public class CoreMethodNodeManager {
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
 
-    public CoreMethodNodeManager(RubyContext context, SingletonClassNode singletonClassNode, PrimitiveManager primitiveManager) {
+    public CoreMethodNodeManager(
+            RubyContext context,
+            SingletonClassNode singletonClassNode,
+            PrimitiveManager primitiveManager) {
         this.context = context;
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
@@ -115,7 +118,8 @@ public class CoreMethodNodeManager {
                 final ConstantLookupResult constant = ModuleOperations.lookupConstant(context, module, moduleName);
 
                 if (!constant.isFound()) {
-                    throw new RuntimeException(StringUtils.format("Module %s not found when adding core library", moduleName));
+                    throw new RuntimeException(
+                            StringUtils.format("Module %s not found when adding core library", moduleName));
                 }
 
                 module = (DynamicObject) constant.getConstant().getValue();
@@ -145,16 +149,26 @@ public class CoreMethodNodeManager {
         final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
         if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
-            methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
+            methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(
+                    () -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
         } else {
             methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
         }
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
-        addMethods(module, method.isModuleFunction(), onSingleton, names, arity, visibility, methodNodeFactory, method.neverSplit());
+        addMethods(
+                module,
+                method.isModuleFunction(),
+                onSingleton,
+                names,
+                arity,
+                visibility,
+                methodNodeFactory,
+                method.neverSplit());
     }
 
-    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility, boolean isModuleFunction, boolean onSingleton,
+    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+            boolean isModuleFunction, boolean onSingleton,
             boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
@@ -168,11 +182,19 @@ public class CoreMethodNodeManager {
         addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory, neverSplit);
     }
 
-    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names, Arity arity, Visibility visibility,
+    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names,
+            Arity arity, Visibility visibility,
             Function<SharedMethodInfo, RubyNode> methodNodeFactory, boolean neverSplit) {
         if (isModuleFunction) {
             addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity, neverSplit);
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, Visibility.PUBLIC, arity, neverSplit);
+            addMethod(
+                    context,
+                    getSingletonClass(module),
+                    methodNodeFactory,
+                    names,
+                    Visibility.PUBLIC,
+                    arity,
+                    neverSplit);
         } else if (onSingleton) {
             addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity, neverSplit);
         } else {
@@ -180,7 +202,9 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static void addMethod(RubyContext context, DynamicObject module, Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility, Arity arity,
+    private static void addMethod(RubyContext context, DynamicObject module,
+            Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility,
+            Arity arity,
             boolean neverSplit) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
@@ -192,13 +216,22 @@ public class CoreMethodNodeManager {
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, lexicalScope, module, name, arity);
             final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
             final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode, neverSplit);
-            final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
+            final InternalMethod method = new InternalMethod(
+                    context,
+                    sharedMethodInfo,
+                    sharedMethodInfo.getLexicalScope(),
+                    DeclarationContext.NONE,
+                    name,
+                    module,
+                    visibility,
+                    callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(context, null, method);
         }
     }
 
-    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope, DynamicObject module, String name, Arity arity) {
+    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope,
+            DynamicObject module, String name, Arity arity) {
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
                 lexicalScope,
@@ -219,12 +252,20 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode, boolean neverSplit) {
-        final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode, !neverSplit);
+    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo,
+            RubyNode methodNode, boolean neverSplit) {
+        final RubyRootNode rootNode = new RubyRootNode(
+                context,
+                sharedMethodInfo.getSourceSection(),
+                null,
+                sharedMethodInfo,
+                methodNode,
+                !neverSplit);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
+    public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
+            SharedMethodInfo sharedMethodInfo) {
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
         int i = 0;
 
@@ -245,7 +286,8 @@ public class CoreMethodNodeManager {
         }
 
         for (int n = 0; n < nArgs; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen
+                    .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 
@@ -259,10 +301,14 @@ public class CoreMethodNodeManager {
 
         if (!method.keywordAsOptional().isEmpty()) {
             if (optional > 0) {
-                throw new UnsupportedOperationException("core method has been declared with both optional arguments and a keyword-as-optional argument");
+                throw new UnsupportedOperationException(
+                        "core method has been declared with both optional arguments and a keyword-as-optional argument");
             }
 
-            argumentsNodes[i++] = new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode());
+            argumentsNodes[i++] = new ReadKeywordArgumentNode(
+                    required,
+                    method.keywordAsOptional(),
+                    new NotProvidedNode());
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
@@ -275,7 +321,8 @@ public class CoreMethodNodeManager {
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, RubyNode[] argumentsNodes) {
+    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory,
+            RubyNode[] argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;
@@ -314,7 +361,8 @@ public class CoreMethodNodeManager {
 
     private static RubyNode transformResult(CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
-            assert !method.returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
+            assert !method
+                    .returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
             node = new EnumeratorSizeNode(method.enumeratorSize(), method.names()[0], node);
         } else if (method.returnsEnumeratorIfNoBlock()) {
@@ -331,19 +379,24 @@ public class CoreMethodNodeManager {
         return node;
     }
 
-    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method, final Visibility visibility) {
+    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method,
+            final Visibility visibility) {
         if (method.isModuleFunction()) {
             if (visibility != Visibility.PUBLIC) {
-                RubyLanguage.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER
+                        .warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
             }
             if (method.onSingleton()) {
-                RubyLanguage.LOGGER.warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER
+                        .warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
             }
             if (method.constructor()) {
-                RubyLanguage.LOGGER.warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER
+                        .warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
             }
             if (RubyGuards.isRubyClass(module)) {
-                RubyLanguage.LOGGER.warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER
+                        .warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
             }
         }
         if (method.onSingleton() && method.constructor()) {
@@ -351,7 +404,8 @@ public class CoreMethodNodeManager {
         }
 
         if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
-            RubyLanguage.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
+            RubyLanguage.LOGGER
+                    .warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
         }
         if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
             RubyLanguage.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
@@ -384,7 +438,10 @@ public class CoreMethodNodeManager {
         private final CoreMethod methodAnnotation;
         private final NodeFactory<? extends RubyNode> nodeFactory;
 
-        public MethodDetails(String moduleName, CoreMethod methodAnnotation, NodeFactory<? extends RubyNode> nodeFactory) {
+        public MethodDetails(
+                String moduleName,
+                CoreMethod methodAnnotation,
+                NodeFactory<? extends RubyNode> nodeFactory) {
             this.moduleName = moduleName;
             this.methodAnnotation = methodAnnotation;
             this.nodeFactory = nodeFactory;

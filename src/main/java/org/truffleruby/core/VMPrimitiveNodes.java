@@ -192,7 +192,8 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_object_respond_to", needsSelf = false)
     public static abstract class VMObjectRespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory.create(null, null, null);
+        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
+                .create(null, null, null);
 
         @Specialization
         protected boolean vmObjectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
@@ -205,7 +206,8 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_object_singleton_class", needsSelf = false)
     public static abstract class VMObjectSingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory.create(null);
+        @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
+                .create(null);
 
         @Specialization
         protected Object vmObjectClass(Object object) {
@@ -308,7 +310,8 @@ public abstract class VMPrimitiveNodes {
             final String signalName = StringOperations.getString(signalNameString);
             return registerHandler(signalName, () -> {
                 if (context.getOptions().SINGLE_THREADED) {
-                    RubyLanguage.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
+                    RubyLanguage.LOGGER.severe(
+                            "signal " + signalName + " caught but can't create a thread to handle it so ignoring");
                     return;
                 }
 
@@ -324,17 +327,22 @@ public abstract class VMPrimitiveNodes {
                 } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
                     // Not in a context, so we cannot use TruffleLogger
                     final PrintStream printStream = new PrintStream(context.getEnv().err(), true);
-                    printStream.println("[ruby] SEVERE: signal " + signalName + " caught but can't create a thread to handle it so ignoring and restoring the default handler");
+                    printStream.println(
+                            "[ruby] SEVERE: signal " + signalName +
+                                    " caught but can't create a thread to handle it so ignoring and restoring the default handler");
                     Signals.restoreDefaultHandler(signalName);
                     return;
                 }
                 try {
-                    context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
-                        if (rubyThread == rootThread &&
-                                fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
-                            ProcOperations.rootCall(proc);
-                        }
-                    });
+                    context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
+                            true,
+                            (rubyThread, currentNode) -> {
+                                if (rubyThread == rootThread &&
+                                        fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager
+                                                .getCurrentFiber()) {
+                                    ProcOperations.rootCall(proc);
+                                }
+                            });
                 } finally {
                     truffleContext.leave(prev);
                 }
@@ -344,7 +352,9 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private boolean restoreDefaultHandler(String signalName) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning("restoring default handler for signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+                RubyLanguage.LOGGER.warning(
+                        "restoring default handler for signal " + signalName +
+                                " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
@@ -357,7 +367,9 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private boolean restoreSystemHandler(String signalName) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning("restoring system handler for signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+                RubyLanguage.LOGGER.warning(
+                        "restoring system handler for signal " + signalName +
+                                " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
@@ -371,7 +383,9 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private boolean registerIgnoreHandler(String signalName) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning("ignoring signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+                RubyLanguage.LOGGER.warning(
+                        "ignoring signal " + signalName +
+                                " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
@@ -385,7 +399,9 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private boolean registerHandler(String signalName, Runnable newHandler) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning("trapping signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+                RubyLanguage.LOGGER.warning(
+                        "trapping signal " + signalName +
+                                " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
@@ -424,8 +440,11 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
         protected DynamicObject getSection(DynamicObject section, DynamicObject block) {
-            for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
-                final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+            for (Entry<String, Object> entry : getContext()
+                    .getNativeConfiguration()
+                    .getSection(StringOperations.getString(section))) {
+                final DynamicObject key = makeStringNode
+                        .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());
             }
 
@@ -462,9 +481,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count < 0")
         protected DynamicObject negativeCount(int count) {
-            throw new RaiseException(getContext(),
+            throw new RaiseException(
+                    getContext(),
                     getContext().getCoreExceptions().argumentError(
-                            getContext().getCoreStrings().NEGATIVE_STRING_SIZE.getRope(), this));
+                            getContext().getCoreStrings().NEGATIVE_STRING_SIZE.getRope(),
+                            this));
         }
 
     }

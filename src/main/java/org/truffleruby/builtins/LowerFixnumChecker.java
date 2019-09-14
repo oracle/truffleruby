@@ -31,7 +31,8 @@ public class LowerFixnumChecker {
 
     @SuppressFBWarnings("Dm")
     @SuppressWarnings("unchecked")
-    public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip, int[] lowerFixnum) {
+    public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip,
+            int[] lowerFixnum) {
         final Class<? extends RubyNode> nodeClass = nodeFactory.getNodeClass();
         byte[] lowerArgs = null;
 

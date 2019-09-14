@@ -56,10 +56,18 @@ public class TranslatorEnvironment {
     // TODO(CS): overflow? and it should be per-context, or even more local
     private static AtomicInteger tempIndex = new AtomicInteger();
 
-    public TranslatorEnvironment(TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
-            BreakID breakID, FrameDescriptor frameDescriptor) {
+    public TranslatorEnvironment(
+            TranslatorEnvironment parent,
+            ParseEnvironment parseEnvironment,
+            ReturnID returnID,
+            boolean ownScopeForAssignments,
+            boolean neverAssignInParentScope,
+            boolean isModuleBody,
+            SharedMethodInfo sharedMethodInfo,
+            String namedMethodName,
+            int blockDepth,
+            BreakID breakID,
+            FrameDescriptor frameDescriptor) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;

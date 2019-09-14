@@ -45,8 +45,12 @@ public class EnumeratorSizeNode extends RubyNode {
             }
 
             final Object self = RubyArguments.getSelf(frame);
-            return toEnumWithSize.call(coreLibrary().getTruffleKernelOperationsModule(), "to_enum_with_size",
-                    self, methodName, sizeMethodName);
+            return toEnumWithSize.call(
+                    coreLibrary().getTruffleKernelOperationsModule(),
+                    "to_enum_with_size",
+                    self,
+                    methodName,
+                    sizeMethodName);
         } else {
             return method.execute(frame);
         }

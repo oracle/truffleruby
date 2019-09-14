@@ -63,7 +63,8 @@ public abstract class ReadIntegerNode extends FormatNode {
             toIntegerNode = insert(ToIntegerNodeGen.create(null));
         }
 
-        final Object value = toIntegerNode.executeToInteger(frame, getNode.execute(source, advanceSourcePosition(frame)));
+        final Object value = toIntegerNode
+                .executeToInteger(frame, getNode.execute(source, advanceSourcePosition(frame)));
 
         if (convertedTypeProfile.profile(value instanceof Long)) {
             return (int) (long) value;

@@ -48,7 +48,8 @@ public class EmbeddedScript {
             // If we reached the end of the script before finding a Ruby shebang that's an error
 
             if (n == sourceBytes.length) {
-                throw new RaiseException(context,
+                throw new RaiseException(
+                        context,
                         context.getCoreExceptions().loadError("no Ruby script found in input", path, currentNode));
             }
 

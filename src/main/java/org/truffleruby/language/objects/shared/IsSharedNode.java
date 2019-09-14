@@ -25,7 +25,10 @@ public abstract class IsSharedNode extends RubyBaseNode {
 
     public abstract boolean executeIsShared(DynamicObject object);
 
-    @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = "object.getShape() == cachedShape",
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected boolean isShareCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("isShared(cachedShape)") boolean shared) {

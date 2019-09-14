@@ -19,12 +19,26 @@ public class ConcatRope extends ManagedRope {
     private final ManagedRope right;
     private final boolean balanced;
 
-    public ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, int depth, boolean balanced) {
+    public ConcatRope(
+            ManagedRope left,
+            ManagedRope right,
+            Encoding encoding,
+            CodeRange codeRange,
+            int depth,
+            boolean balanced) {
         this(left, right, encoding, codeRange, depth, null, balanced);
     }
 
-    private ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, int depth, byte[] bytes, boolean balanced) {
-        super(encoding,
+    private ConcatRope(
+            ManagedRope left,
+            ManagedRope right,
+            Encoding encoding,
+            CodeRange codeRange,
+            int depth,
+            byte[] bytes,
+            boolean balanced) {
+        super(
+                encoding,
                 codeRange,
                 left.byteLength() + right.byteLength(),
                 left.characterLength() + right.characterLength(),

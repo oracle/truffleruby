@@ -72,7 +72,8 @@ public abstract class TruffleRubyNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject revision() {
-            return StringOperations.createFrozenString(getContext(),
+            return StringOperations.createFrozenString(
+                    getContext(),
                     RopeOperations.encodeAscii(BuildInformationImpl.INSTANCE.getRevision(), USASCIIEncoding.INSTANCE));
         }
 

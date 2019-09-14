@@ -112,12 +112,20 @@ public abstract class TruffleGraalNodes {
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
 
-            for (ReadDeclarationVariableNode readNode : NodeUtil.findAllNodeInstances(newBody, ReadDeclarationVariableNode.class)) {
-                MaterializedFrame frame = RubyArguments.getDeclarationFrame(declarationFrame, readNode.getFrameDepth() - 1);
+            for (ReadDeclarationVariableNode readNode : NodeUtil
+                    .findAllNodeInstances(newBody, ReadDeclarationVariableNode.class)) {
+                MaterializedFrame frame = RubyArguments
+                        .getDeclarationFrame(declarationFrame, readNode.getFrameDepth() - 1);
                 Object value = frame.getValue(readNode.getFrameSlot());
                 readNode.replace(new ObjectLiteralNode(value));
             }
-            final RubyRootNode newRootNode = new RubyRootNode(getContext(), rootNode.getSourceSection(), rootNode.getFrameDescriptor(), rootNode.getSharedMethodInfo(), newBody, true);
+            final RubyRootNode newRootNode = new RubyRootNode(
+                    getContext(),
+                    rootNode.getSourceSection(),
+                    rootNode.getFrameDescriptor(),
+                    rootNode.getSharedMethodInfo(),
+                    newBody,
+                    true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final RootCallTarget callTargetForLambdas;
@@ -127,10 +135,13 @@ public abstract class TruffleGraalNodes {
                 callTargetForLambdas = Layouts.PROC.getCallTargetForLambdas(proc);
             }
 
-            final Object[] args = RubyArguments.pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil(), null, EMPTY_ARGUMENTS);
+            final Object[] args = RubyArguments
+                    .pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil(), null, EMPTY_ARGUMENTS);
             // The Proc no longer needs the original declaration frame. However, all procs must have a
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
-            final MaterializedFrame newDeclarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+            final MaterializedFrame newDeclarationFrame = Truffle
+                    .getRuntime()
+                    .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
 
             return coreLibrary().getProcFactory().newInstance(Layouts.PROC.build(
                     Layouts.PROC.getType(proc),

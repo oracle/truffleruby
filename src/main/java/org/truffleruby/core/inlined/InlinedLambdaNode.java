@@ -30,9 +30,10 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
         super(callNodeParameters);
     }
 
-    @Specialization(guards = {
-            "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().LAMBDA",
-    }, assumptions = "assumptions", limit = "1")
+    @Specialization(
+            guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().LAMBDA", },
+            assumptions = "assumptions",
+            limit = "1")
     protected DynamicObject lambda(VirtualFrame frame, Object self, DynamicObject block,
             @Cached LookupMethodNode lookupNode) {
         return ProcOperations.createLambdaFromBlock(getContext(), block);

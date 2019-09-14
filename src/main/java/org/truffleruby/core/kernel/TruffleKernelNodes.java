@@ -83,12 +83,19 @@ public abstract class TruffleKernelNodes {
             final DynamicObject wrapClass;
 
             if (wrap) {
-                wrapClass = ClassNodes.createInitializedRubyClass(getContext(), null, null, getContext().getCoreLibrary().getObjectClass(), null);
+                wrapClass = ClassNodes.createInitializedRubyClass(
+                        getContext(),
+                        null,
+                        null,
+                        getContext().getCoreLibrary().getObjectClass(),
+                        null);
             } else {
                 wrapClass = null;
             }
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, wrapClass, true, this);
+            final RubyRootNode rootNode = getContext()
+                    .getCodeLoader()
+                    .parse(source, ParserContext.TOP_LEVEL, null, wrapClass, true, this);
 
             final DeclarationContext declarationContext;
             final DynamicObject mainObject;
@@ -102,7 +109,11 @@ public abstract class TruffleKernelNodes {
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL, declarationContext, rootNode, null, mainObject);
+                    ParserContext.TOP_LEVEL,
+                    declarationContext,
+                    rootNode,
+                    null,
+                    mainObject);
 
             deferredCall.call(callNode);
 
@@ -142,8 +153,13 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
-        protected DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-            getContext().getCoreLibrary().getGlobalVariables().define(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
+        protected DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter,
+                DynamicObject setter, DynamicObject isDefined) {
+            getContext().getCoreLibrary().getGlobalVariables().define(
+                    Layouts.SYMBOL.getString(name),
+                    getter,
+                    setter,
+                    isDefined);
             return nil();
         }
 

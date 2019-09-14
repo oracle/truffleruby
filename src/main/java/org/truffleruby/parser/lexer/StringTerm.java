@@ -52,7 +52,8 @@ import org.truffleruby.parser.parser.Tokens;
 public class StringTerm extends StrTerm {
 
     // Chanacters that can be escaped in a %r style regexp literal when they are also the terminator.
-    private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS = new HashSet<>(Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
+    private static final Set<Character> REGEXP_ESCAPABLE_TERMINATORS = new HashSet<>(
+            Arrays.asList(new Character[]{ '!', '"', '#', '%', '&', '\'', ',', '-', ':', ';', '@', '_', '`' }));
 
     // Expand variables, Indentation of final marker
     private int flags;
@@ -370,7 +371,9 @@ public class StringTerm extends StrTerm {
                             }
 
                             if (!lexer.tokadd_mbchar(c, buffer)) {
-                                lexer.compile_error(SyntaxException.PID.INVALID_MULTIBYTE_CHAR, "invalid multibyte char (" + enc[0] + ")");
+                                lexer.compile_error(
+                                        SyntaxException.PID.INVALID_MULTIBYTE_CHAR,
+                                        "invalid multibyte char (" + enc[0] + ")");
                             }
 
                             continue;
@@ -414,7 +417,9 @@ public class StringTerm extends StrTerm {
                 }
 
                 if (!lexer.tokadd_mbchar(c, buffer)) {
-                    lexer.compile_error(SyntaxException.PID.INVALID_MULTIBYTE_CHAR, "invalid multibyte char (" + enc[0] + ")");
+                    lexer.compile_error(
+                            SyntaxException.PID.INVALID_MULTIBYTE_CHAR,
+                            "invalid multibyte char (" + enc[0] + ")");
                 }
 
                 continue;

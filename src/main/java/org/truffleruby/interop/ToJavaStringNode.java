@@ -47,7 +47,9 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
 
     public abstract String executeToJavaString(Object name);
 
-    @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
+    @Specialization(
+            guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" },
+            limit = "getLimit()")
     protected String stringCached(DynamicObject value,
             @Cached("privatizeRope(value)") Rope cachedRope,
             @Cached("getString(value)") String convertedString,

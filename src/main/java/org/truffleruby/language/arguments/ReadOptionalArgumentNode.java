@@ -33,8 +33,13 @@ public class ReadOptionalArgumentNode extends RubyNode {
     private final ConditionProfile hasKeywordsProfile;
     private final ConditionProfile hasRejectedKwargs;
 
-    public ReadOptionalArgumentNode(int index, int minimum, boolean considerRejectedKWArgs,
-            boolean reduceMinimumWhenNoKWargs, int requiredForKWArgs, RubyNode defaultValue) {
+    public ReadOptionalArgumentNode(
+            int index,
+            int minimum,
+            boolean considerRejectedKWArgs,
+            boolean reduceMinimumWhenNoKWargs,
+            int requiredForKWArgs,
+            RubyNode defaultValue) {
         this.index = index;
         this.minimum = minimum;
         this.considerRejectedKWArgs = considerRejectedKWArgs;
@@ -74,7 +79,8 @@ public class ReadOptionalArgumentNode extends RubyNode {
                     readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
                 }
 
-                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(frame, kwargsHash);
+                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode
+                        .extractRejectedKwargs(frame, kwargsHash);
                 if (hasRejectedKwargs.profile(Layouts.HASH.getSize(rejectedKwargs) > 0)) {
                     return rejectedKwargs;
                 }

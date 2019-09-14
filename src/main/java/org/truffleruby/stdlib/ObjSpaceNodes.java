@@ -57,13 +57,13 @@ public abstract class ObjSpaceNodes {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
         }
 
-        @Specialization(guards = {
-                "!isNil(object)",
-                "!isRubyArray(object)",
-                "!isRubyHash(object)",
-                "!isRubyString(object)",
-                "!isRubyMatchData(object)"
-        })
+        @Specialization(
+                guards = {
+                        "!isNil(object)",
+                        "!isRubyArray(object)",
+                        "!isRubyHash(object)",
+                        "!isRubyString(object)",
+                        "!isRubyMatchData(object)" })
         protected int memsizeOfObject(DynamicObject object) {
             return 1 + object.getShape().getPropertyListInternal(false).size();
         }

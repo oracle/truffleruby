@@ -71,9 +71,13 @@ public abstract class ProcNodes {
         @Specialization
         protected DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
                 @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
-            final MaterializedFrame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
+            final MaterializedFrame parentFrame = getContext()
+                    .getCallStack()
+                    .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
+                    .materialize();
 
-            DynamicObject parentBlock = (DynamicObject) readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
+            DynamicObject parentBlock = (DynamicObject) readNode
+                    .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
             if (parentBlock == nil()) {
                 parentBlock = tryParentBlockForCExts();
@@ -121,7 +125,8 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args, DynamicObject block) {
+        protected DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args,
+                DynamicObject block) {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final DynamicObject proc = getAllocateObjectNode().allocate(procClass, Layouts.PROC.build(
@@ -171,16 +176,17 @@ public abstract class ProcNodes {
 
         @Specialization
         protected DynamicObject dup(DynamicObject proc) {
-            final DynamicObject copy = getAllocateObjectNode().allocate(Layouts.BASIC_OBJECT.getLogicalClass(proc), Layouts.PROC.build(
-                    Layouts.PROC.getType(proc),
-                    Layouts.PROC.getSharedMethodInfo(proc),
-                    Layouts.PROC.getCallTargetForType(proc),
-                    Layouts.PROC.getCallTargetForLambdas(proc),
-                    Layouts.PROC.getDeclarationFrame(proc),
-                    Layouts.PROC.getMethod(proc),
-                    Layouts.PROC.getBlock(proc),
-                    Layouts.PROC.getFrameOnStackMarker(proc),
-                    Layouts.PROC.getDeclarationContext(proc)));
+            final DynamicObject copy = getAllocateObjectNode()
+                    .allocate(Layouts.BASIC_OBJECT.getLogicalClass(proc), Layouts.PROC.build(
+                            Layouts.PROC.getType(proc),
+                            Layouts.PROC.getSharedMethodInfo(proc),
+                            Layouts.PROC.getCallTargetForType(proc),
+                            Layouts.PROC.getCallTargetForLambdas(proc),
+                            Layouts.PROC.getDeclarationFrame(proc),
+                            Layouts.PROC.getMethod(proc),
+                            Layouts.PROC.getBlock(proc),
+                            Layouts.PROC.getFrameOnStackMarker(proc),
+                            Layouts.PROC.getDeclarationContext(proc)));
 
             return copy;
         }
@@ -277,10 +283,14 @@ public abstract class ProcNodes {
         protected Object sourceLocation(DynamicObject proc) {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
-            if (sourceSection.getSource() == null || sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
+            if (sourceSection.getSource() == null ||
+                    sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil();
             } else {
-                final DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final DynamicObject file = makeStringNode.executeMake(
+                        getContext().getPath(sourceSection.getSource()),
+                        UTF8Encoding.INSTANCE,
+                        CodeRange.CR_UNKNOWN);
 
                 final Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects, objects.length);

@@ -46,7 +46,12 @@ import org.truffleruby.parser.scope.StaticScope;
 public class ForParseNode extends IterParseNode {
     private ParseNode iterNode;
 
-    public ForParseNode(SourceIndexLength position, ParseNode varNode, ParseNode bodyNode, ParseNode iterNode, StaticScope scope) {
+    public ForParseNode(
+            SourceIndexLength position,
+            ParseNode varNode,
+            ParseNode bodyNode,
+            ParseNode iterNode,
+            StaticScope scope) {
         // For nodes do not have their own scope so we pass null to indicate this.
         // 'For's are implemented as blocks in evaluation, but they have no scope so we
         // just deal with this lack of scope throughout its lifespan.  We should probably

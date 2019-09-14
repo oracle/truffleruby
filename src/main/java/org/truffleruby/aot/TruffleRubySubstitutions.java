@@ -24,7 +24,9 @@ final class Target_org_jcodings_Encoding {
     static org.jcodings.Encoding load(String name) {
         TruffleRubySupport.EncodingInstance instance = TruffleRubySupport.allEncodings.get(name);
         if (instance == null) {
-            throw new InternalException(org.jcodings.exception.ErrorMessages.ERR_ENCODING_CLASS_DEF_NOT_FOUND, "org.jcodings.specific." + name + "Encoding");
+            throw new InternalException(
+                    org.jcodings.exception.ErrorMessages.ERR_ENCODING_CLASS_DEF_NOT_FOUND,
+                    "org.jcodings.specific." + name + "Encoding");
         }
         return instance.get(false);
     }

@@ -84,9 +84,12 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context.getCoreLibrary().getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context
+                    .getCoreLibrary()
+                    .getNoMethodErrorClass()) {
                 throw new RaiseException(context, context.getCoreExceptions().typeError(
-                        StringUtils.toString(object) + " is not a symbol nor a string", this));
+                        StringUtils.toString(object) + " is not a symbol nor a string",
+                        this));
             } else {
                 throw e;
             }
@@ -97,7 +100,11 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
         } else {
             errorProfile.enter();
             throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(
-                    object, "String", "to_str", coerced, this));
+                    object,
+                    "String",
+                    "to_str",
+                    coerced,
+                    this));
         }
     }
 

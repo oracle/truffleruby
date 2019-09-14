@@ -35,8 +35,12 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
     private final boolean dynamicLexicalScope;
     private final Map<DynamicObject, LexicalScope> lexicalScopes;
 
-    public ModuleBodyDefinitionNode(String name, SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTarget, boolean captureBlock, boolean dynamicLexicalScope) {
+    public ModuleBodyDefinitionNode(
+            String name,
+            SharedMethodInfo sharedMethodInfo,
+            RootCallTarget callTarget,
+            boolean captureBlock,
+            boolean dynamicLexicalScope) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
@@ -64,18 +68,32 @@ public class ModuleBodyDefinitionNode extends RubyBaseNode {
                 Visibility.PUBLIC,
                 new DeclarationContext.FixedDefaultDefinee(module),
                 RubyArguments.getDeclarationContext(frame).getRefinements());
-        return new InternalMethod(getContext(), sharedMethodInfo, lexicalScope, declarationContext, name, module, Visibility.PUBLIC, false, null, callTarget, capturedBlock);
+        return new InternalMethod(
+                getContext(),
+                sharedMethodInfo,
+                lexicalScope,
+                declarationContext,
+                name,
+                module,
+                Visibility.PUBLIC,
+                false,
+                null,
+                callTarget,
+                capturedBlock);
     }
 
     @TruffleBoundary
-    private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope, DynamicObject module) {
+    private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope,
+            DynamicObject module) {
         staticLexicalScope.unsafeSetLiveModule(module);
         if (!dynamicLexicalScope) {
             return staticLexicalScope;
         } else {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
-            return ConcurrentOperations.getOrCompute(lexicalScopes, module,
+            return ConcurrentOperations.getOrCompute(
+                    lexicalScopes,
+                    module,
                     k -> new LexicalScope(parentLexicalScope, module));
         }
     }

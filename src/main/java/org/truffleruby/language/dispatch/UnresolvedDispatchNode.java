@@ -80,7 +80,11 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final DispatchNode newDispatchNode;
 
             if (depth == getContext().getOptions().DISPATCH_CACHE) {
-                newDispatchNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
+                newDispatchNode = new UncachedDispatchNode(
+                        ignoreVisibility,
+                        onlyCallPublic,
+                        getDispatchAction(),
+                        missingBehavior);
             } else {
                 depth++;
                 if (depth >= 2) {
@@ -98,9 +102,21 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             throw new UnsupportedOperationException();
                     }
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
-                    newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, methodNameString, argumentsObjects);
+                    newDispatchNode = doDynamicObject(
+                            frame,
+                            first,
+                            receiverObject,
+                            methodName,
+                            methodNameString,
+                            argumentsObjects);
                 } else {
-                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName, methodNameString, argumentsObjects);
+                    newDispatchNode = doUnboxedObject(
+                            frame,
+                            first,
+                            receiverObject,
+                            methodName,
+                            methodNameString,
+                            argumentsObjects);
                 }
             }
 
@@ -126,25 +142,53 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             String methodNameString,
             Object[] argumentsObjects) {
 
-        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
+        final MethodLookupResult method = lookup(
+                frame,
+                receiverObject,
+                methodNameString,
+                ignoreVisibility,
+                onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, methodNameString, receiverObject, method, argumentsObjects);
+            return createMethodMissingNode(
+                    first,
+                    methodName,
+                    methodNameString,
+                    receiverObject,
+                    method,
+                    argumentsObjects);
         }
 
         if (receiverObject instanceof Boolean) {
-            final MethodLookupResult falseMethodLookup = lookup(frame, false, methodNameString, ignoreVisibility, onlyCallPublic);
-            final MethodLookupResult trueMethodLookup = lookup(frame, true, methodNameString, ignoreVisibility, onlyCallPublic);
+            final MethodLookupResult falseMethodLookup = lookup(
+                    frame,
+                    false,
+                    methodNameString,
+                    ignoreVisibility,
+                    onlyCallPublic);
+            final MethodLookupResult trueMethodLookup = lookup(
+                    frame,
+                    true,
+                    methodNameString,
+                    ignoreVisibility,
+                    onlyCallPublic);
             assert falseMethodLookup.isDefined() || trueMethodLookup.isDefined();
 
             return new CachedBooleanDispatchNode(
-                    getContext(), methodName, first,
-                    falseMethodLookup, trueMethodLookup,
+                    getContext(),
+                    methodName,
+                    first,
+                    falseMethodLookup,
+                    trueMethodLookup,
                     getDispatchAction());
         } else {
             return new CachedUnboxedDispatchNode(
-                    getContext(), methodName, first, receiverObject.getClass(),
-                    method, getDispatchAction());
+                    getContext(),
+                    methodName,
+                    first,
+                    receiverObject.getClass(),
+                    method,
+                    getDispatchAction());
         }
     }
 
@@ -156,20 +200,41 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             String methodNameString,
             Object[] argumentsObjects) {
 
-        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
+        final MethodLookupResult method = lookup(
+                frame,
+                receiverObject,
+                methodNameString,
+                ignoreVisibility,
+                onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, methodNameString, receiverObject, method, argumentsObjects);
+            return createMethodMissingNode(
+                    first,
+                    methodName,
+                    methodNameString,
+                    receiverObject,
+                    method,
+                    argumentsObjects);
         }
 
         if (RubyGuards.isRubySymbol(receiverObject)) {
             return new CachedBoxedSymbolDispatchNode(getContext(), methodName, first, method, getDispatchAction());
         } else if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
-            return new CachedSingletonDispatchNode(getContext(), methodName, first, ((DynamicObject) receiverObject),
-                    method, getDispatchAction());
+            return new CachedSingletonDispatchNode(
+                    getContext(),
+                    methodName,
+                    first,
+                    ((DynamicObject) receiverObject),
+                    method,
+                    getDispatchAction());
         } else {
-            return new CachedBoxedDispatchNode(getContext(), methodName, first, ((DynamicObject) receiverObject).getShape(),
-                    method, getDispatchAction());
+            return new CachedBoxedDispatchNode(
+                    getContext(),
+                    methodName,
+                    first,
+                    ((DynamicObject) receiverObject).getShape(),
+                    method,
+                    getDispatchAction());
         }
     }
 
@@ -182,7 +247,12 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             Object[] argumentsObjects) {
         switch (missingBehavior) {
             case RETURN_MISSING: {
-                return new CachedReturnMissingDispatchNode(getContext(), methodName, first, methodLookup, coreLibrary().getMetaClass(receiverObject),
+                return new CachedReturnMissingDispatchNode(
+                        getContext(),
+                        methodName,
+                        first,
+                        methodLookup,
+                        coreLibrary().getMetaClass(receiverObject),
                         getDispatchAction());
             }
 
@@ -190,13 +260,24 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
-                    final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
+                    final DynamicObject formatter = ExceptionOperations
+                            .getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
                     throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
-                            formatter, receiverObject, methodNameString, argumentsObjects, this));
+                            formatter,
+                            receiverObject,
+                            methodNameString,
+                            argumentsObjects,
+                            this));
                 }
 
-                return new CachedMethodMissingDispatchNode(getContext(), methodName, first, coreLibrary().getMetaClass(receiverObject),
-                        methodLookup, methodMissing, getDispatchAction());
+                return new CachedMethodMissingDispatchNode(
+                        getContext(),
+                        methodName,
+                        first,
+                        coreLibrary().getMetaClass(receiverObject),
+                        methodLookup,
+                        methodMissing,
+                        getDispatchAction());
             }
 
             default: {

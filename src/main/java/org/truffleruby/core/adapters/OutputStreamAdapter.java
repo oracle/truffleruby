@@ -34,7 +34,11 @@ public class OutputStreamAdapter extends OutputStream {
 
     @Override
     public void write(int bite) throws IOException {
-        context.send(object, "write", StringOperations.createString(context, RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
+        context.send(
+                object,
+                "write",
+                StringOperations
+                        .createString(context, RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
     }
 
 }

@@ -29,9 +29,10 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
         this.readMethodBlockNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
     }
 
-    @Specialization(guards = {
-            "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BLOCK_GIVEN",
-    }, assumptions = "assumptions", limit = "1")
+    @Specialization(
+            guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BLOCK_GIVEN", },
+            assumptions = "assumptions",
+            limit = "1")
     protected boolean blockGiven(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode) {
         return readMethodBlockNode.execute(frame) != nil();

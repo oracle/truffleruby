@@ -22,7 +22,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantBaseNode implements LookupConstantInterface {
+public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantBaseNode
+        implements LookupConstantInterface {
 
     private final String name;
 
@@ -38,13 +39,18 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
         return executeLookupConstant(lexicalScope);
     }
 
-    @Specialization(guards = "lexicalScope == cachedLexicalScope", assumptions = "constant.getAssumptions()", limit = "getCacheLimit()")
+    @Specialization(
+            guards = "lexicalScope == cachedLexicalScope",
+            assumptions = "constant.getAssumptions()",
+            limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
             @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant,
             @Cached("isVisible(cachedLexicalScope, constant)") boolean isVisible) {
         if (!isVisible) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);
@@ -58,7 +64,9 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup(lexicalScope);
         if (isVisibleProfile.profile(!isVisible(lexicalScope, constant))) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);

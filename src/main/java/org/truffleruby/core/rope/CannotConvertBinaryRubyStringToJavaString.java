@@ -16,7 +16,9 @@ public class CannotConvertBinaryRubyStringToJavaString extends RuntimeException 
     private final int nonAsciiCharacter;
 
     public CannotConvertBinaryRubyStringToJavaString(int nonAsciiCharacter) {
-        super("Cannot convert a Ruby String with BINARY encoding containing non-US-ASCII character " + nonAsciiCharacter + " to a Java String");
+        super(
+                "Cannot convert a Ruby String with BINARY encoding containing non-US-ASCII character " +
+                        nonAsciiCharacter + " to a Java String");
         this.nonAsciiCharacter = nonAsciiCharacter;
     }
 

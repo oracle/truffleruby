@@ -23,7 +23,8 @@ import java.util.zip.ZipOutputStream;
 
 public class Linker {
 
-    public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames) throws IOException {
+    public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames)
+            throws IOException {
         final byte[] buffer = new byte[4096];
 
         try (ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(outputFileName))) {

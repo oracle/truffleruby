@@ -58,7 +58,8 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          * method, and possibly to modify the arguments. In both cases, but especially the latter,
          * it makes a lot of sense to manually clone the call target and to inline it.
          */
-        if (callNode.isCallTargetCloningAllowed() && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
+        if (callNode.isCallTargetCloningAllowed() && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE ||
+                method.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
             callNode.cloneCallTarget();
         }

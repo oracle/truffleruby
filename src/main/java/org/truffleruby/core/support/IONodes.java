@@ -123,7 +123,8 @@ public abstract class IONodes {
             final Rope patternRope = rope(pattern);
             final Rope pathRope = rope(path);
 
-            return fnmatch(patternRope.getBytes(),
+            return fnmatch(
+                    patternRope.getBytes(),
                     0,
                     patternRope.byteLength(),
                     pathRope.getBytes(),
@@ -158,7 +159,8 @@ public abstract class IONodes {
         }
 
         @SuppressWarnings("fallthrough")
-        private static int fnmatch_helper(byte[] bytes, int pstart, int pend, byte[] string, int sstart, int send, int flags) {
+        private static int fnmatch_helper(byte[] bytes, int pstart, int pend, byte[] string, int sstart, int send,
+                int flags) {
             char test;
             int s = sstart;
             int pat = pstart;
@@ -180,7 +182,8 @@ public abstract class IONodes {
                     case '*':
                         while (pat < pend && (c = (char) (bytes[pat++] & 0xFF)) == '*') {
                         }
-                        if (s < send && (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
+                        if (s < send &&
+                                (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
                         if (pat > pend || (pat == pend && c == '*')) {
@@ -282,8 +285,14 @@ public abstract class IONodes {
                     int patSlashIdx = nextSlashIndex(bytes, pat_pos, pend);
                     int strSlashIdx = nextSlashIndex(string, str_pos, send);
 
-                    if (fnmatch_helper(bytes, pat_pos, patSlashIdx,
-                            string, str_pos, strSlashIdx, flags) == 0) {
+                    if (fnmatch_helper(
+                            bytes,
+                            pat_pos,
+                            patSlashIdx,
+                            string,
+                            str_pos,
+                            strSlashIdx,
+                            flags) == 0) {
                         if (patSlashIdx < pend && strSlashIdx < send) {
                             pat_pos = ++patSlashIdx;
                             str_pos = ++strSlashIdx;
@@ -454,14 +463,16 @@ public abstract class IONodes {
 
             final Rope rope = rope(string);
 
-            RopeOperations.visitBytes(rope, (bytes, offset, length) -> getContext().getThreadManager().runUntilResult(this, () -> {
-                try {
-                    stream.write(bytes, offset, length);
-                } catch (IOException e) {
-                    throw new JavaException(e);
-                }
-                return BlockingAction.SUCCESS;
-            }));
+            RopeOperations.visitBytes(
+                    rope,
+                    (bytes, offset, length) -> getContext().getThreadManager().runUntilResult(this, () -> {
+                        try {
+                            stream.write(bytes, offset, length);
+                        } catch (IOException e) {
+                            throw new JavaException(e);
+                        }
+                        return BlockingAction.SUCCESS;
+                    }));
 
             return rope.byteLength();
         }
@@ -474,7 +485,8 @@ public abstract class IONodes {
         @Specialization
         protected DynamicObject getThreadBuffer(long size,
                 @Cached AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
+            return allocateObjectNode
+                    .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
         }
 
         @TruffleBoundary

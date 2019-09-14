@@ -37,8 +37,10 @@ public abstract class ReadStringNode extends FormatNode {
 
     @Child private ToStringNode toStringNode;
 
-    public ReadStringNode(boolean convertNumbersToStrings,
-            String conversionMethod, boolean inspectOnConversionFailure,
+    public ReadStringNode(
+            boolean convertNumbersToStrings,
+            String conversionMethod,
+            boolean inspectOnConversionFailure,
             Object valueOnNil) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;

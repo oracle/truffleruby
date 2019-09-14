@@ -175,7 +175,8 @@ public class SimplePackParser {
                                         break;
 
                                     default:
-                                        listener.error(String.format("'%c' allowed only after types sSiIlLqQjJ", (char) m));
+                                        listener.error(
+                                                String.format("'%c' allowed only after types sSiIlLqQjJ", (char) m));
                                 }
 
                                 if (size == SIZE_NATIVE) {

@@ -95,15 +95,24 @@ public abstract class SplatCastNode extends RubyNode {
     protected DynamicObject splat(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
-        final Object array = toArrayNode.call(coreLibrary().getTruffleTypeModule(), "rb_check_convert_type", object, coreLibrary().getArrayClass(), conversionMethod);
+        final Object array = toArrayNode.call(
+                coreLibrary().getTruffleTypeModule(),
+                "rb_check_convert_type",
+                object,
+                coreLibrary().getArrayClass(),
+                conversionMethod);
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;
         } else if (array == nil()) {
             return createArray(new Object[]{ object }, 1);
         } else {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(object, "Array",
-                    Layouts.SYMBOL.getString(conversionMethod), array, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(
+                    object,
+                    "Array",
+                    Layouts.SYMBOL.getString(conversionMethod),
+                    array,
+                    this));
         }
     }
 

@@ -28,8 +28,12 @@ public abstract class LookupConstantBaseNode extends RubyBaseNode {
             warnNode = insert(new WarnNode());
         }
 
-        final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
-        warnNode.warningMessage(sourceSection, "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
+        final SourceSection sourceSection = getContext()
+                .getCallStack()
+                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
+        warnNode.warningMessage(
+                sourceSection,
+                "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
     }
 
     protected int getCacheLimit() {

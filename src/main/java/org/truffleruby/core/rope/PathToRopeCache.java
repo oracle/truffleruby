@@ -54,7 +54,9 @@ public class PathToRopeCache {
             readLock.unlock();
         }
 
-        final Rope cachedRope = context.getRopeCache().getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
+        final Rope cachedRope = context
+                .getRopeCache()
+                .getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
 
         final Lock writeLock = lock.writeLock();
 

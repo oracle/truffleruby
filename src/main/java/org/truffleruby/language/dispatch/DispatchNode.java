@@ -56,9 +56,15 @@ public abstract class DispatchNode extends RubyBaseNode {
             String name,
             boolean ignoreVisibility,
             boolean onlyCallPublic) {
-        final MethodLookupResult method = LookupMethodNode.lookupMethodCachedWithVisibility(getContext(),
-                frame, receiver, name, ignoreVisibility, onlyCallPublic);
-        if (dispatchAction == DispatchAction.RESPOND_TO_METHOD && method.isDefined() && method.getMethod().isUnimplemented()) {
+        final MethodLookupResult method = LookupMethodNode.lookupMethodCachedWithVisibility(
+                getContext(),
+                frame,
+                receiver,
+                name,
+                ignoreVisibility,
+                onlyCallPublic);
+        if (dispatchAction == DispatchAction.RESPOND_TO_METHOD && method.isDefined() &&
+                method.getMethod().isUnimplemented()) {
             return method.withNoMethod();
         }
         return method;
@@ -104,7 +110,10 @@ public abstract class DispatchNode extends RubyBaseNode {
         } else if (RubyGuards.isRubySymbol(methodName)) {
             return Layouts.SYMBOL.getString((DynamicObject) methodName);
         } else {
-            throw new RaiseException(getContext(), coreExceptions().typeError(StringUtils.toString(methodName) + " is not a symbol nor a string", this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions()
+                            .typeError(StringUtils.toString(methodName) + " is not a symbol nor a string", this));
         }
     }
 

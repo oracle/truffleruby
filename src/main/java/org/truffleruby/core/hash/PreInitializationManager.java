@@ -58,7 +58,9 @@ public final class PreInitializationManager {
     }
 
     private void restoreOriginalHashFactory() {
-        Layouts.CLASS.setInstanceFactoryUnsafe(context.getCoreLibrary().getHashClass(), trackingHashFactory.originalHashFactory);
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                context.getCoreLibrary().getHashClass(),
+                trackingHashFactory.originalHashFactory);
     }
 
     public void rehash() {
@@ -87,7 +89,10 @@ public final class PreInitializationManager {
         private final PreInitializationManager preInitializationManager;
         private final DynamicObjectFactory originalHashFactory;
 
-        public TrackingHashFactory(RubyContext context, PreInitializationManager preInitializationManager, DynamicObjectFactory originalHashFactory) {
+        public TrackingHashFactory(
+                RubyContext context,
+                PreInitializationManager preInitializationManager,
+                DynamicObjectFactory originalHashFactory) {
             this.context = context;
             this.preInitializationManager = preInitializationManager;
             this.originalHashFactory = originalHashFactory;

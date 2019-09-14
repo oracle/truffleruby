@@ -28,7 +28,8 @@ public class ValidLeafRope extends LeafRope {
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 
-        final int newCharacterLength = StringSupport.strLength(newEncoding, getRawBytes(), 0, byteLength(), newCodeRange);
+        final int newCharacterLength = StringSupport
+                .strLength(newEncoding, getRawBytes(), 0, byteLength(), newCodeRange);
 
         return new ValidLeafRope(getRawBytes(), newEncoding, newCharacterLength);
     }

@@ -56,16 +56,34 @@ public class SourceSectionTest extends RubyTest {
 
     @Test
     public void testDeeplyNestedCallSections() {
-        testSourceSection(" [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ", RubyCallNode.class,
-                "5 + 6", 5, 5, 85, 5, 16, 20);
+        testSourceSection(
+                " [1, 2, {\n           a: 3,\n           b: [\n               4,\n               5 + 6,\n               7],\n           c: 8\n        }, 9, 10] ",
+                RubyCallNode.class,
+                "5 + 6",
+                5,
+                5,
+                85,
+                5,
+                16,
+                20);
     }
 
     @Test
     public void testMethod() {
-        testSourceSection("10\n\ndef foo(a, b)\n  a + b\nend\n\n11", AddMethodNode.class, "def foo(a, b)\n  a + b\nend", 3, 5, 4, 24, 1, 3);
+        testSourceSection(
+                "10\n\ndef foo(a, b)\n  a + b\nend\n\n11",
+                AddMethodNode.class,
+                "def foo(a, b)\n  a + b\nend",
+                3,
+                5,
+                4,
+                24,
+                1,
+                3);
     }
 
-    public <T extends Node> void testSourceSection(String text, Class<T> nodeClass, String code, int startLine, int endLine, int charIndex, int charLength, int startColumn, int endColumn) {
+    public <T extends Node> void testSourceSection(String text, Class<T> nodeClass, String code, int startLine,
+            int endLine, int charIndex, int charLength, int startColumn, int endColumn) {
         testWithNode(text, nodeClass, (node) -> {
             // Commented lines fail due to Ruby imprecise source sections
 

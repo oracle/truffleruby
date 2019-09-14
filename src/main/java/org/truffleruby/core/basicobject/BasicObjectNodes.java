@@ -120,12 +120,22 @@ public abstract class BasicObjectNodes {
             return a == b;
         }
 
-        @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "!sameClass(a, b)", "isNotIntLong(a) || isNotIntLong(b)" })
+        @Specialization(
+                guards = {
+                        "isNotDynamicObject(a)",
+                        "isNotDynamicObject(b)",
+                        "!sameClass(a, b)",
+                        "isNotIntLong(a) || isNotIntLong(b)" })
         protected boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
             return false;
         }
 
-        @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "sameClass(a, b)", "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
+        @Specialization(
+                guards = {
+                        "isNotDynamicObject(a)",
+                        "isNotDynamicObject(b)",
+                        "sameClass(a, b)",
+                        "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
         protected boolean equalOtherSameClass(Object a, Object b) {
             return a == b;
         }
@@ -239,13 +249,19 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(
+            names = "instance_eval",
+            needsBlock = true,
+            optional = 3,
+            lowerFixnum = 3,
+            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName,
+                int line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -254,7 +270,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName,
+                NotProvided line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -263,16 +280,24 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
+        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName,
+                NotProvided line, NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
-            return instanceEvalHelper(callerFrame, receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, callNode);
+            return instanceEvalHelper(
+                    callerFrame,
+                    receiver,
+                    string,
+                    coreStrings().EVAL_FILENAME_STRING.createInstance(),
+                    1,
+                    callNode);
         }
 
         @Specialization
-        protected Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
+        protected Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line,
+                DynamicObject block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
@@ -282,7 +307,8 @@ public abstract class BasicObjectNodes {
                 DynamicObject fileName, int line, IndirectCallNode callNode) {
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final RubySource source = createEvalSourceNode.createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);
+            final RubySource source = createEvalSourceNode
+                    .createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
@@ -292,7 +318,9 @@ public abstract class BasicObjectNodes {
                     true,
                     this);
 
-            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
+            final DeclarationContext declarationContext = new DeclarationContext(
+                    Visibility.PUBLIC,
+                    new SingletonClassOfSelfDefaultDefinee(receiver));
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL,
@@ -319,8 +347,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
-            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
-            return callBlockNode.executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
+            final DeclarationContext declarationContext = new DeclarationContext(
+                    Visibility.PUBLIC,
+                    new SingletonClassOfSelfDefaultDefinee(receiver));
+            return callBlockNode
+                    .executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
         }
 
         @Specialization
@@ -363,7 +394,8 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildMethodMissingException(Object self, DynamicObject nameObject, Object[] args, DynamicObject block) {
+        private DynamicObject buildMethodMissingException(Object self, DynamicObject nameObject, Object[] args,
+                DynamicObject block) {
             final String name = nameObject.toString();
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
@@ -372,16 +404,22 @@ public abstract class BasicObjectNodes {
             if (lastCallWasSuper(relevantCallerFrame)) {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.SUPER_METHOD_ERROR, getContext());
                 return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
-            } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(self, name, relevantCallerFrame)) != null) {
+            } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(
+                    self,
+                    name,
+                    relevantCallerFrame)) != null) {
                 if (visibility.isPrivate()) {
-                    formatter = ExceptionOperations.getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
+                    formatter = ExceptionOperations
+                            .getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
                     return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
                 } else {
-                    formatter = ExceptionOperations.getFormatter(ExceptionOperations.PROTECTED_METHOD_ERROR, getContext());
+                    formatter = ExceptionOperations
+                            .getFormatter(ExceptionOperations.PROTECTED_METHOD_ERROR, getContext());
                     return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
                 }
             } else if (lastCallWasVCall(relevantCallerFrame)) {
-                formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_LOCAL_VARIABLE_OR_METHOD_ERROR, getContext());
+                formatter = ExceptionOperations
+                        .getFormatter(ExceptionOperations.NO_LOCAL_VARIABLE_OR_METHOD_ERROR, getContext());
                 return coreExceptions().nameErrorFromMethodMissing(formatter, self, name, this);
             } else {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
@@ -428,9 +466,11 @@ public abstract class BasicObjectNodes {
          * See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}.
          * The only way to fail if method is not null and not undefined is visibility.
          */
-        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name, FrameAndCallNode callerFrame) {
+        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name,
+                FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
+            final InternalMethod method = ModuleOperations
+                    .lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
                 return method.getVisibility();

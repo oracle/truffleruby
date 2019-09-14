@@ -24,13 +24,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 @ImportStatic(StringCachingGuards.class)
 public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithoutContextNode {
 
-    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name) throws UnknownIdentifierException, InvalidArrayIndexException;
+    public abstract Object executeStringCachingHelper(DynamicObject receiver, Object name)
+            throws UnknownIdentifierException, InvalidArrayIndexException;
 
     @Specialization(guards = "isStringLike.executeIsStringLike(name)")
     protected Object cacheStringLikeAndForward(DynamicObject receiver, Object name,
             @Cached ToJavaStringNode toJavaStringNode,
             @Cached IsStringLikeNode isStringLike,
-            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
+            @Cached ForeignReadStringCachedHelperNode nextHelper)
+            throws UnknownIdentifierException, InvalidArrayIndexException {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(name);
         boolean isIVar = isIVar(nameAsJavaString);
         return nextHelper.executeStringCachedHelper(receiver, name, nameAsJavaString, isIVar);
@@ -39,7 +41,8 @@ public abstract class ForeignReadStringCachingHelperNode extends RubyBaseWithout
     @Specialization(guards = "!isStringLike.executeIsStringLike(name)")
     protected Object indexObject(DynamicObject receiver, Object name,
             @Cached IsStringLikeNode isStringLike,
-            @Cached ForeignReadStringCachedHelperNode nextHelper) throws UnknownIdentifierException, InvalidArrayIndexException {
+            @Cached ForeignReadStringCachedHelperNode nextHelper)
+            throws UnknownIdentifierException, InvalidArrayIndexException {
         return nextHelper.executeStringCachedHelper(receiver, name, null, false);
     }
 

@@ -37,13 +37,17 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         public ReferenceProcessingService<R> service();
     }
 
-    public abstract static class WeakProcessingReference<R extends ProcessingReference<R>, T> extends WeakReference<T> implements ProcessingReference<R> {
+    public abstract static class WeakProcessingReference<R extends ProcessingReference<R>, T> extends WeakReference<T>
+            implements ProcessingReference<R> {
 
         private R next;
         private R previous;
         private ReferenceProcessingService<R> service;
 
-        public WeakProcessingReference(T object, ReferenceQueue<? super Object> queue, ReferenceProcessingService<R> service) {
+        public WeakProcessingReference(
+                T object,
+                ReferenceQueue<? super Object> queue,
+                ReferenceProcessingService<R> service) {
             super(object, queue);
             this.service = service;
         }
@@ -87,7 +91,9 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
     }
 
-    public abstract static class PhantomProcessingReference<R extends ProcessingReference<R>, T> extends PhantomReference<T> implements ProcessingReference<R> {
+    public abstract static class PhantomProcessingReference<R extends ProcessingReference<R>, T>
+            extends
+            PhantomReference<T> implements ProcessingReference<R> {
 
         /**
          * Doubly linked list of references to keep to allow the reference service to traverse them
@@ -97,7 +103,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         private R previous;
         private ReferenceProcessingService<R> service;
 
-        public PhantomProcessingReference(T object, ReferenceQueue<? super Object> queue, ReferenceProcessingService<R> service) {
+        public PhantomProcessingReference(
+                T object,
+                ReferenceQueue<? super Object> queue,
+                ReferenceProcessingService<R> service) {
             super(object, queue);
             this.service = service;
         }
@@ -157,7 +166,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                  * doesn't hold.
                  */
 
-                if (processingThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
+                if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
+                        !context.isFinalizing()) {
                     createProcessingThread(owner);
                 }
 
@@ -172,7 +182,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
             threadManager.initialize(processingThread, null, threadName(), sharingReason, () -> {
                 while (true) {
-                    final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager.runUntilResult(null, processingQueue::remove);
+                    final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager
+                            .runUntilResult(null, processingQueue::remove);
 
                     reference.service().processReference(reference);
                 }

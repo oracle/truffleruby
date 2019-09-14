@@ -29,7 +29,10 @@ public class LoadRequiredLibrariesNode extends RubyNode {
         Object self = RubyArguments.getSelf(frame);
 
         for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
-            requireNode.call(self, "require", makeStringNode.executeMake(requiredLibrary, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+            requireNode.call(
+                    self,
+                    "require",
+                    makeStringNode.executeMake(requiredLibrary, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         return nil();

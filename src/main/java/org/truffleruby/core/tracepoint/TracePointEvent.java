@@ -39,7 +39,12 @@ public final class TracePointEvent {
     public void setupEventBinding(RubyContext context, DynamicObject tracePoint) {
         assert eventBinding == null;
 
-        final SourceSectionFilter sourceSectionFilter = SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(tagClass).includeInternal(false).build();
+        final SourceSectionFilter sourceSectionFilter = SourceSectionFilter
+                .newBuilder()
+                .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                .tagIs(tagClass)
+                .includeInternal(false)
+                .build();
         this.eventBinding = context.getInstrumenter().attachExecutionEventFactory(
                 sourceSectionFilter,
                 eventContext -> new TracePointEventNode(context, eventContext, tracePoint, eventSymbol));

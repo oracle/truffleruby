@@ -293,7 +293,8 @@ public class StaticScope {
         // We can assign if we already have variable of that name here or we are the only
         // scope in the chain (which Local scopes always are).
         if (slot >= 0) {
-            return isBlockOrEval ? new DAsgnParseNode(position, name, ((depth << 16) | slot), value)
+            return isBlockOrEval
+                    ? new DAsgnParseNode(position, name, ((depth << 16) | slot), value)
                     : new LocalAsgnParseNode(position, name, ((depth << 16) | slot), value);
         } else if (!isBlockOrEval && (topScope == this)) {
             slot = addVariable(name);
@@ -304,7 +305,8 @@ public class StaticScope {
         // If we are not a block-scope and we go there, we know that 'topScope' is a block scope
         // because a local scope cannot be within a local scope
         // If topScope was itself it would have created a LocalAsgnParseNode above.
-        return isBlockOrEval ? enclosingScope.assign(position, name, value, topScope, depth + 1)
+        return isBlockOrEval
+                ? enclosingScope.assign(position, name, value, topScope, depth + 1)
                 : topScope.addAssign(position, name, value);
     }
 
@@ -312,7 +314,9 @@ public class StaticScope {
         int slot = exists(name);
 
         if (slot >= 0) {
-            return isBlockOrEval ? new DVarParseNode(position, ((depth << 16) | slot), name) : new LocalVarParseNode(position, ((depth << 16) | slot), name);
+            return isBlockOrEval
+                    ? new DVarParseNode(position, ((depth << 16) | slot), name)
+                    : new LocalVarParseNode(position, ((depth << 16) | slot), name);
         }
 
         return isBlockOrEval ? enclosingScope.declare(position, name, depth + 1) : new VCallParseNode(position, name);

@@ -60,7 +60,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
             DispatchAction dispatchAction) {
         super(dispatchAction);
 
-        assert (cachedName instanceof String) || (RubyGuards.isRubySymbol(cachedName)) || (RubyGuards.isRubyString(cachedName));
+        assert (cachedName instanceof String) || (RubyGuards.isRubySymbol(cachedName)) ||
+                (RubyGuards.isRubyString(cachedName));
         this.cachedName = cachedName;
 
         if (RubyGuards.isRubySymbol(cachedName)) {
@@ -139,7 +140,9 @@ public abstract class CachedDispatchNode extends DispatchNode {
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
         } else if (ropeEqualsNode != null) { // cachedName is a Ruby String
-            return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(StringOperations.rope((DynamicObject) cachedName), StringOperations.rope((DynamicObject) methodName));
+            return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(
+                    StringOperations.rope((DynamicObject) cachedName),
+                    StringOperations.rope((DynamicObject) methodName));
         } else { // cachedName is a Symbol
             // cachedName == methodName was checked above and was not true,
             // and since Symbols are compared by identity we know they don't match.
@@ -172,7 +175,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
     }
 
-    protected Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
+    protected Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver,
+            DynamicObject block, Object[] arguments) {
         if (needsCallerAssumption == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             resetNeedsCallerAssumption();

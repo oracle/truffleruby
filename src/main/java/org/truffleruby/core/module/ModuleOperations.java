@@ -133,7 +133,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    private static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
+    private static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name,
+            ArrayList<Assumption> assumptions) {
         // Look in the current module
         ModuleFields fields = Layouts.MODULE.getFields(module);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
@@ -160,7 +161,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static ConstantLookupResult lookupConstantInObject(RubyContext context, String name, ArrayList<Assumption> assumptions) {
+    public static ConstantLookupResult lookupConstantInObject(RubyContext context, String name,
+            ArrayList<Assumption> assumptions) {
         final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
 
         ModuleFields fields = Layouts.MODULE.getFields(objectClass);
@@ -183,7 +185,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static ConstantLookupResult lookupConstantAndObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
+    public static ConstantLookupResult lookupConstantAndObject(RubyContext context, DynamicObject module, String name,
+            ArrayList<Assumption> assumptions) {
         final ConstantLookupResult constant = lookupConstant(context, module, name, assumptions);
         if (constant.isFound()) {
             return constant;
@@ -198,7 +201,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static ConstantLookupResult lookupConstantWithLexicalScope(RubyContext context, LexicalScope lexicalScope, String name) {
+    public static ConstantLookupResult lookupConstantWithLexicalScope(RubyContext context, LexicalScope lexicalScope,
+            String name) {
         final DynamicObject module = lexicalScope.getLiveModule();
         final ArrayList<Assumption> assumptions = new ArrayList<>();
 
@@ -218,7 +222,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static ConstantLookupResult lookupScopedConstant(RubyContext context, DynamicObject module, String fullName, boolean inherit, Node currentNode) {
+    public static ConstantLookupResult lookupScopedConstant(RubyContext context, DynamicObject module, String fullName,
+            boolean inherit, Node currentNode) {
         int start = 0, next;
         if (fullName.startsWith("::")) {
             module = context.getCoreLibrary().getObjectClass();
@@ -227,31 +232,53 @@ public abstract class ModuleOperations {
 
         while ((next = fullName.indexOf("::", start)) != -1) {
             final String segment = fullName.substring(start, next);
-            final ConstantLookupResult constant = lookupConstantWithInherit(context, module, segment, inherit, currentNode);
+            final ConstantLookupResult constant = lookupConstantWithInherit(
+                    context,
+                    module,
+                    segment,
+                    inherit,
+                    currentNode);
             if (!constant.isFound()) {
                 return constant;
             } else if (RubyGuards.isRubyModule(constant.getConstant().getValue())) {
                 module = (DynamicObject) constant.getConstant().getValue();
             } else {
-                throw new RaiseException(context, context.getCoreExceptions().typeError(fullName.substring(0, next) + " does not refer to class/module", currentNode));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().typeError(
+                                fullName.substring(0, next) + " does not refer to class/module",
+                                currentNode));
             }
             start = next + 2;
         }
 
         final String lastSegment = fullName.substring(start);
         if (!Identifiers.isValidConstantName(lastSegment)) {
-            throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", fullName), module, fullName, currentNode));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().nameError(
+                            StringUtils.format("wrong constant name %s", fullName),
+                            module,
+                            fullName,
+                            currentNode));
         }
 
         return lookupConstantWithInherit(context, module, lastSegment, inherit, currentNode);
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
-    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, DynamicObject module, String name, boolean inherit, Node currentNode) {
+    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, DynamicObject module, String name,
+            boolean inherit, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
 
         if (!Identifiers.isValidConstantName(name)) {
-            throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, currentNode));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().nameError(
+                            StringUtils.format("wrong constant name %s", name),
+                            module,
+                            name,
+                            currentNode));
         }
 
         final ArrayList<Assumption> assumptions = new ArrayList<>();
@@ -354,7 +381,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static MethodLookupResult lookupMethodCached(DynamicObject module, String name, DeclarationContext declarationContext) {
+    public static MethodLookupResult lookupMethodCached(DynamicObject module, String name,
+            DeclarationContext declarationContext) {
         final ArrayList<Assumption> assumptions = new ArrayList<>();
 
         // Look in ancestors
@@ -392,7 +420,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static InternalMethod lookupMethodUncached(DynamicObject module, String name, DeclarationContext declarationContext) {
+    public static InternalMethod lookupMethodUncached(DynamicObject module, String name,
+            DeclarationContext declarationContext) {
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             final ModuleFields fields = Layouts.MODULE.getFields(ancestor);
@@ -434,11 +463,16 @@ public abstract class ModuleOperations {
     public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(objectMetaClass);
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
-        return lookupSuperMethod(currentMethod.getDeclaringModule(), name, objectMetaClass, currentMethod.getDeclarationContext());
+        return lookupSuperMethod(
+                currentMethod.getDeclaringModule(),
+                name,
+                objectMetaClass,
+                currentMethod.getDeclarationContext());
     }
 
     @TruffleBoundary
-    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, String name, DynamicObject objectMetaClass, DeclarationContext declarationContext) {
+    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, String name,
+            DynamicObject objectMetaClass, DeclarationContext declarationContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
@@ -460,12 +494,17 @@ public abstract class ModuleOperations {
                     if (method != null && method.isRefined()) {
                         final DynamicObject[] refinements = declarationContext.getRefinementsFor(module);
                         if (refinements != null && ArrayUtils.contains(refinements, declaringModule)) {
-                            final MethodLookupResult superMethodInRefinement = lookupSuperMethodNoRefinements(declaringModule, name, declaringModule);
+                            final MethodLookupResult superMethodInRefinement = lookupSuperMethodNoRefinements(
+                                    declaringModule,
+                                    name,
+                                    declaringModule);
                             if (superMethodInRefinement.isDefined()) {
                                 for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
                                     assumptions.add(assumption);
                                 }
-                                return new MethodLookupResult(superMethodInRefinement.getMethod(), toArray(assumptions));
+                                return new MethodLookupResult(
+                                        superMethodInRefinement.getMethod(),
+                                        toArray(assumptions));
                             } else if (method.getOriginalMethod() != null) {
                                 return new MethodLookupResult(method.getOriginalMethod(), toArray(assumptions));
                             } else {
@@ -488,7 +527,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    private static MethodLookupResult lookupSuperMethodNoRefinements(DynamicObject declaringModule, String name, DynamicObject objectMetaClass) {
+    private static MethodLookupResult lookupSuperMethodNoRefinements(DynamicObject declaringModule, String name,
+            DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
@@ -532,7 +572,8 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
-    public static void setClassVariable(final RubyContext context, DynamicObject module, final String name, final Object value, final Node currentNode) {
+    public static void setClassVariable(final RubyContext context, DynamicObject module, final String name,
+            final Object value, final Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         ModuleFields moduleFields = Layouts.MODULE.getFields(module);
         moduleFields.checkFrozen(context, currentNode);
@@ -569,12 +610,18 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
-    public static Object removeClassVariable(ModuleFields moduleFields, RubyContext context, Node currentNode, String name) {
+    public static Object removeClassVariable(ModuleFields moduleFields, RubyContext context, Node currentNode,
+            String name) {
         moduleFields.checkFrozen(context, currentNode);
 
         final Object found = moduleFields.getClassVariables().remove(name);
         if (found == null) {
-            throw new RaiseException(context, context.getCoreExceptions().nameErrorClassVariableNotDefined(name, moduleFields.rubyModuleObject, currentNode));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().nameErrorClassVariableNotDefined(
+                            name,
+                            moduleFields.rubyModuleObject,
+                            currentNode));
         }
         return found;
     }

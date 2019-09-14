@@ -81,14 +81,20 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     public void integer(int size, boolean signed, ByteOrder byteOrder, int count) {
         if (size == 8) {
             if (signed) {
-                appendNode(sharedTreeBuilder.applyCount(count,
-                        WriteValueNodeGen.create(new OutputNode(),
-                                ReinterpretByteAsIntegerNodeGen.create(true,
+                appendNode(sharedTreeBuilder.applyCount(
+                        count,
+                        WriteValueNodeGen.create(
+                                new OutputNode(),
+                                ReinterpretByteAsIntegerNodeGen.create(
+                                        true,
                                         ReadByteNodeGen.create(new SourceNode())))));
             } else {
-                appendNode(sharedTreeBuilder.applyCount(count,
-                        WriteValueNodeGen.create(new OutputNode(),
-                                ReinterpretByteAsIntegerNodeGen.create(false,
+                appendNode(sharedTreeBuilder.applyCount(
+                        count,
+                        WriteValueNodeGen.create(
+                                new OutputNode(),
+                                ReinterpretByteAsIntegerNodeGen.create(
+                                        false,
                                         ReadByteNodeGen.create(new SourceNode())))));
             }
         } else {
@@ -103,15 +109,19 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
 
     @Override
     public void utf8Character(int count) {
-        appendNode(sharedTreeBuilder.applyCount(count,
-                WriteValueNodeGen.create(new OutputNode(),
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
+                WriteValueNodeGen.create(
+                        new OutputNode(),
                         ReadUTF8CharacterNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void berInteger(int count) {
-        appendNode(sharedTreeBuilder.applyCount(count,
-                WriteValueNodeGen.create(new OutputNode(),
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
+                WriteValueNodeGen.create(
+                        new OutputNode(),
                         ReadBERNodeGen.create(new SourceNode()))));
     }
 
@@ -128,7 +138,8 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, true, true, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
                         readNode)));
     }
@@ -146,7 +157,8 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, false, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
                         readNode)));
     }
@@ -164,7 +176,8 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, true, true, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
                         readNode)));
     }
@@ -192,30 +205,36 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     @Override
     public void uuString(int count) {
         appendNode(
-                WriteValueNodeGen.create(new OutputNode(),
+                WriteValueNodeGen.create(
+                        new OutputNode(),
                         TaintFromSourceNodeGen.create(
                                 ReadUUStringNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void mimeString(int count) {
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
                         ReadMIMEStringNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void base64String(int count) {
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
                         ReadBase64StringNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void pointer(int count, int limit) {
-        appendNode(sharedTreeBuilder.applyCount(count,
-                WriteValueNodeGen.create(new OutputNode(),
-                        ReadStringPointerNodeGen.create(limit,
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
+                WriteValueNodeGen.create(
+                        new OutputNode(),
+                        ReadStringPointerNodeGen.create(
+                                limit,
                                 readBytesAsInteger(64, ByteOrder.nativeOrder(), false, false)))));
     }
 
@@ -353,18 +372,26 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     private void bitString(ByteOrder byteOrder, int count) {
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
-                        ReadBitStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
+                        ReadBitStringNodeGen.create(
+                                byteOrder,
+                                starLength.isStar(),
+                                starLength.getLength(),
                                 new SourceNode()))));
     }
 
     private void hexString(ByteOrder byteOrder, int count) {
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+        appendNode(WriteValueNodeGen.create(
+                new OutputNode(),
                 TaintFromSourceNodeGen.create(
-                        ReadHexStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
+                        ReadHexStringNodeGen.create(
+                                byteOrder,
+                                starLength.isStar(),
+                                starLength.getLength(),
                                 new SourceNode()))));
 
     }

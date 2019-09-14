@@ -31,15 +31,18 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
         return LookupPackedEntryNodeGen.create();
     }
 
-    public abstract Object executePackedLookup(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode);
+    public abstract Object executePackedLookup(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
+            BiFunctionNode defaultValueNode);
 
-    @Specialization(guards = {
-            "isCompareByIdentity(hash) == cachedByIdentity",
-            "cachedIndex >= 0",
-            "cachedIndex < getSize(hash)",
-            "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)"
-    }, limit = "1")
-    protected Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    @Specialization(
+            guards = {
+                    "isCompareByIdentity(hash) == cachedByIdentity",
+                    "cachedIndex >= 0",
+                    "cachedIndex < getSize(hash)",
+                    "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)" },
+            limit = "1")
+    protected Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed,
+            BiFunctionNode defaultValueNode,
             @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -67,7 +70,8 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
         return -1;
     }
 
-    protected boolean sameKeysAtIndex(DynamicObject hash, Object key, int hashed, int cachedIndex, boolean cachedByIdentity) {
+    protected boolean sameKeysAtIndex(DynamicObject hash, Object key, int hashed, int cachedIndex,
+            boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         final Object otherKey = PackedArrayStrategy.getKey(store, cachedIndex);
         final int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
@@ -85,7 +89,8 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     @ExplodeLoop
     @Specialization(replaces = "getConstantIndexPackedArray")
-    protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
+            BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
             @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));

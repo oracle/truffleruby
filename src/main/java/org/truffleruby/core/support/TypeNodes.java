@@ -182,15 +182,17 @@ public abstract class TypeNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)",
-                "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(
+                guards = { "isRubyArray(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
+                limit = "STORAGE_STRATEGIES")
         protected boolean primitiveArray(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
             return false;
         }
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)",
-                "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(
+                guards = { "isRubyArray(array)", "strategy.matches(array)", "!strategy.isPrimitive()" },
+                limit = "STORAGE_STRATEGIES")
         protected boolean objectArray(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
             return true;

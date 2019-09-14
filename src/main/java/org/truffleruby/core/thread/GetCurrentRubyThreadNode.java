@@ -34,12 +34,13 @@ public abstract class GetCurrentRubyThreadNode extends RubyBaseNode {
      * Java thread. If the Fiber finished its execution, the Java thread can be reused for another
      * Fiber belonging to another Ruby Thread, due to using a thread pool for Fibers.
      */
-    @Specialization(guards = {
-            "getCurrentJavaThread(frame) == cachedJavaThread",
-            "hasThread(frame, cachedFiber)",
-            /* Cannot cache a Thread instance when pre-initializing */
-            "!preInitializing"
-    }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "getCurrentJavaThread(frame) == cachedJavaThread",
+                    "hasThread(frame, cachedFiber)",
+                    /* Cannot cache a Thread instance when pre-initializing */
+                    "!preInitializing" },
+            limit = "getCacheLimit()")
     protected DynamicObject getRubyThreadCached(VirtualFrame frame,
             @Cached("isPreInitializing()") boolean preInitializing,
             @Cached("getCurrentJavaThread(frame)") Thread cachedJavaThread,

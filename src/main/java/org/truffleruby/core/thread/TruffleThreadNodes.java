@@ -29,8 +29,11 @@ public class TruffleThreadNodes {
         protected DynamicObject findRubyCaller(DynamicObject modules,
                 @Cached("of(modules)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
-            Object[] moduleArray = boxedCopyNode.execute(Layouts.ARRAY.getStore(modules), Layouts.ARRAY.getSize(modules));
-            Frame rubyCaller = getContext().getCallStack().getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);
+            Object[] moduleArray = boxedCopyNode
+                    .execute(Layouts.ARRAY.getStore(modules), Layouts.ARRAY.getSize(modules));
+            Frame rubyCaller = getContext()
+                    .getCallStack()
+                    .getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);
             if (rubyCaller == null) {
                 return nil();
             } else {

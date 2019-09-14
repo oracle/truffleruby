@@ -55,7 +55,8 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
             @Cached YieldNode yieldNode) {
-        return yieldNode.executeDispatch(storage.getIsDefined(), BindingNodes.createBinding(getContext(), frame.materialize()));
+        return yieldNode
+                .executeDispatch(storage.getIsDefined(), BindingNodes.createBinding(getContext(), frame.materialize()));
     }
 
     protected int isDefinedArity(GlobalVariableStorage storage) {

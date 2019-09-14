@@ -36,8 +36,11 @@ public class PrintfCompiler {
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(context, configs);
 
         return Truffle.getRuntime().createCallTarget(
-                new FormatRootNode(context, currentNode.getEncapsulatingSourceSection(),
-                        FormatEncoding.find(format.getEncoding()), builder.getNode()));
+                new FormatRootNode(
+                        context,
+                        currentNode.getEncapsulatingSourceSection(),
+                        FormatEncoding.find(format.getEncoding()),
+                        builder.getNode()));
     }
 
     private static char[] bytesToChars(byte[] bytes) {

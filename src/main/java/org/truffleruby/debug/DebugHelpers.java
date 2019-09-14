@@ -52,7 +52,8 @@ public abstract class DebugHelpers {
                 null,
                 RubyNode.EMPTY_ARGUMENTS);
 
-        final FrameDescriptor frameDescriptor = new FrameDescriptor(currentFrame.getFrameDescriptor().getDefaultValue());
+        final FrameDescriptor frameDescriptor = new FrameDescriptor(
+                currentFrame.getFrameDescriptor().getDefaultValue());
 
         final MaterializedFrame evalFrame = Truffle.getRuntime().createMaterializedFrame(
                 packedArguments,
@@ -70,7 +71,9 @@ public abstract class DebugHelpers {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "debug-eval").build();
 
-        final RubyRootNode rootNode = context.getCodeLoader().parse(new RubySource(source), ParserContext.INLINE, evalFrame, null, true, null);
+        final RubyRootNode rootNode = context
+                .getCodeLoader()
+                .parse(new RubySource(source), ParserContext.INLINE, evalFrame, null, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 ParserContext.INLINE,

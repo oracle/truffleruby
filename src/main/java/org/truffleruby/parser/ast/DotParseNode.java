@@ -46,7 +46,11 @@ public class DotParseNode extends ParseNode {
     private final boolean exclusive;
     private final boolean isLiteral;
 
-    public DotParseNode(SourceIndexLength position, ParseNode beginNode, ParseNode endNode, boolean exclusive,
+    public DotParseNode(
+            SourceIndexLength position,
+            ParseNode beginNode,
+            ParseNode endNode,
+            boolean exclusive,
             boolean isLiteral) {
         super(position);
 

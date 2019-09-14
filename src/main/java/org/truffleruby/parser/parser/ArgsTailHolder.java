@@ -40,8 +40,11 @@ public class ArgsTailHolder {
     private ListParseNode keywordArgs;
     private KeywordRestArgParseNode keywordRestArg;
 
-    public ArgsTailHolder(SourceIndexLength position, ListParseNode keywordArgs,
-            KeywordRestArgParseNode keywordRestArg, BlockArgParseNode blockArg) {
+    public ArgsTailHolder(
+            SourceIndexLength position,
+            ListParseNode keywordArgs,
+            KeywordRestArgParseNode keywordRestArg,
+            BlockArgParseNode blockArg) {
         this.position = position;
         this.blockArg = blockArg;
         this.keywordArgs = keywordArgs;

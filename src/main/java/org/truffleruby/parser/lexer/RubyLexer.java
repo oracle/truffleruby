@@ -167,8 +167,14 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     protected void ambiguousOperator(String op, String syn) {
-        warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + op + "' after local variable or literal is interpreted as binary operator");
-        warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "even though it seems like " + syn);
+        warnings.warn(
+                getFile(),
+                getPosition().toSourceSection(src.getSource()).getStartLine(),
+                "`" + op + "' after local variable or literal is interpreted as binary operator");
+        warnings.warn(
+                getFile(),
+                getPosition().toSourceSection(src.getSource()).getStartLine(),
+                "even though it seems like " + syn);
     }
 
     public Source getSource() {
@@ -391,7 +397,9 @@ public class RubyLexer implements MagicCommentHandler {
             line = 1;
         }
 
-        final SourceSection sectionFromOffsets = src.getSource().createSection(ruby_sourceline_char_offset, ruby_sourceline_char_length);
+        final SourceSection sectionFromOffsets = src
+                .getSource()
+                .createSection(ruby_sourceline_char_offset, ruby_sourceline_char_length);
 
         final SourceSection sectionFromLine = src.getSource().createSection(line);
         assert sectionFromLine.getStartLine() == line;
@@ -412,7 +420,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected void setCompileOptionFlag(String name, Rope value) {
         if (tokenSeen) {
-            warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + name + "' is ignored after any tokens");
+            warnings.warn(
+                    getFile(),
+                    getPosition().toSourceSection(src.getSource()).getStartLine(),
+                    "`" + name + "' is ignored after any tokens");
             return;
         }
 
@@ -426,8 +437,10 @@ public class RubyLexer implements MagicCommentHandler {
         parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
     }
 
-    private static final Rope TRUE = RopeOperations.create(new byte[]{ 't', 'r', 'u', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
-    private static final Rope FALSE = RopeOperations.create(new byte[]{ 'f', 'a', 'l', 's', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope TRUE = RopeOperations
+            .create(new byte[]{ 't', 'r', 'u', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope FALSE = RopeOperations
+            .create(new byte[]{ 'f', 'a', 'l', 's', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     protected int asTruth(String name, Rope value) {
         int result = RopeOperations.caseInsensitiveCmp(value, TRUE);
@@ -475,7 +488,12 @@ public class RubyLexer implements MagicCommentHandler {
                 description = "Polyglot API Source";
             }
 
-            throw argumentError(context, String.format("%s cannot be used as an encoding for a %s as it is not UTF-8 or a subset of UTF-8", RopeOperations.decodeRope(name), description));
+            throw argumentError(
+                    context,
+                    String.format(
+                            "%s cannot be used as an encoding for a %s as it is not UTF-8 or a subset of UTF-8",
+                            RopeOperations.decodeRope(name),
+                            description));
         }
 
         setEncoding(newEncoding);
@@ -521,10 +539,15 @@ public class RubyLexer implements MagicCommentHandler {
             BigDecimal numerator = bd.multiply(denominator);
 
             try {
-                yaccValue = new RationalParseNode(getPosition(), numerator.longValueExact(), denominator.longValueExact());
+                yaccValue = new RationalParseNode(
+                        getPosition(),
+                        numerator.longValueExact(),
+                        denominator.longValueExact());
             } catch (ArithmeticException ae) {
                 // FIXME: Rational supports Bignum numerator and denominator
-                compile_error(SyntaxException.PID.RATIONAL_OUT_OF_RANGE, "Rational (" + numerator + "/" + denominator + ") out of range.");
+                compile_error(
+                        SyntaxException.PID.RATIONAL_OUT_OF_RANGE,
+                        "Rational (" + numerator + "/" + denominator + ") out of range.");
             }
             return considerComplex(Tokens.tRATIONAL, suffix);
         }
@@ -533,7 +556,10 @@ public class RubyLexer implements MagicCommentHandler {
         try {
             d = SafeDoubleParser.parseDouble(number);
         } catch (NumberFormatException e) {
-            warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Float " + number + " out of range.");
+            warnings.warn(
+                    getFile(),
+                    getPosition().toSourceSection(src.getSource()).getStartLine(),
+                    "Float " + number + " out of range.");
 
             d = number.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
         }
@@ -796,7 +822,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     private boolean arg_ambiguous() {
         if (warnings.isVerbose()) {
-            warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Ambiguous first argument; make sure.");
+            warnings.warning(
+                    getFile(),
+                    getPosition().toSourceSection(src.getSource()).getStartLine(),
+                    "Ambiguous first argument; make sure.");
         }
         return true;
     }
@@ -863,7 +892,8 @@ public class RubyLexer implements MagicCommentHandler {
                     // There are no magic comments that can affect any runtime options after a token has been seen, so there's
                     // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                     // so we can report that it will be ignored.
-                    if (!tokenSeen || (parserSupport.getContext() != null && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
+                    if (!tokenSeen || (parserSupport.getContext() != null &&
+                            parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
                         if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
@@ -931,7 +961,10 @@ public class RubyLexer implements MagicCommentHandler {
                 case '=':
                     // documentation nodes
                     if (was_bol()) {
-                        if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.byteLength()) &&
+                        if (strncmp(
+                                parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p),
+                                BEGIN_DOC_MARKER,
+                                BEGIN_DOC_MARKER.byteLength()) &&
                                 Character.isWhitespace(p(lex_p + 5))) {
                             for (;;) {
                                 lex_goto_eol();
@@ -947,7 +980,10 @@ public class RubyLexer implements MagicCommentHandler {
                                     continue;
                                 }
 
-                                if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.byteLength()) &&
+                                if (strncmp(
+                                        parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p),
+                                        END_DOC_MARKER,
+                                        END_DOC_MARKER.byteLength()) &&
                                         (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
                                     break;
                                 }
@@ -1113,7 +1149,10 @@ public class RubyLexer implements MagicCommentHandler {
         SourceIndexLength tmpPosition = getPosition();
         if (isSpaceArg(c, spaceSeen)) {
             if (warnings.isVerbose()) {
-                warnings.warning(getFile(), tmpPosition.toSourceSection(src.getSource()).getStartLine(), "`&' interpreted as argument prefix");
+                warnings.warning(
+                        getFile(),
+                        tmpPosition.toSourceSection(src.getSource()).getStartLine(),
+                        "`&' interpreted as argument prefix");
             }
             c = Tokens.tAMPER;
         } else if (isBEG()) {
@@ -1309,7 +1348,9 @@ public class RubyLexer implements MagicCommentHandler {
                 }
             }
 
-            final String name = RopeOperations.decodeRopeSegment(magicLine, nameBegin, nameEnd - nameBegin).replace('-', '_');
+            final String name = RopeOperations
+                    .decodeRopeSegment(magicLine, nameBegin, nameEnd - nameBegin)
+                    .replace('-', '_');
             final Rope value = parserRopeOperations.makeShared(magicLine, valueBegin, valueEnd - valueBegin);
 
             if (!magicCommentHandler.onMagicComment(name, value)) {
@@ -1418,9 +1459,13 @@ public class RubyLexer implements MagicCommentHandler {
         } else if (Character.isDigit(c) || !isIdentifierChar(c)) {
             pushback(c);
             if (result == Tokens.tIVAR) {
-                compile_error(SyntaxException.PID.IVAR_BAD_NAME, "`@" + ((char) c) + "' is not allowed as an instance variable name");
+                compile_error(
+                        SyntaxException.PID.IVAR_BAD_NAME,
+                        "`@" + ((char) c) + "' is not allowed as an instance variable name");
             }
-            compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`@@" + ((char) c) + "' is not allowed as a class variable name");
+            compile_error(
+                    SyntaxException.PID.CVAR_BAD_NAME,
+                    "`@@" + ((char) c) + "' is not allowed as a class variable name");
         }
 
         if (!tokadd_ident(c)) {
@@ -1668,10 +1713,14 @@ public class RubyLexer implements MagicCommentHandler {
             default:
                 if (!isIdentifierChar(c)) {
                     if (c == EOF || Character.isSpaceChar(c)) {
-                        compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$' without identifiers is not allowed as a global variable name");
+                        compile_error(
+                                SyntaxException.PID.CVAR_BAD_NAME,
+                                "`$' without identifiers is not allowed as a global variable name");
                     } else {
                         pushback(c);
-                        compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`$" + ((char) c) + "' is not allowed as a global variable name");
+                        compile_error(
+                                SyntaxException.PID.CVAR_BAD_NAME,
+                                "`$" + ((char) c) + "' is not allowed as a global variable name");
                     }
                 }
 
@@ -1700,7 +1749,9 @@ public class RubyLexer implements MagicCommentHandler {
 
         pushback(c);
         if (Character.isDigit(c)) {
-            compile_error(SyntaxException.PID.FLOAT_MISSING_ZERO, "no .<digit> floating literal anymore; put 0 before dot");
+            compile_error(
+                    SyntaxException.PID.FLOAT_MISSING_ZERO,
+                    "no .<digit> floating literal anymore; put 0 before dot");
         }
 
         setState(EXPR_DOT);
@@ -1746,7 +1797,9 @@ public class RubyLexer implements MagicCommentHandler {
     private int identifier(int c, boolean commandState) {
         if (!isIdentifierChar(c)) {
             String badChar = "\\" + Integer.toOctalString(c & 0xff);
-            compile_error(SyntaxException.PID.CHARACTER_BAD, "Invalid char `" + badChar + "' ('" + (char) c + "') in expression");
+            compile_error(
+                    SyntaxException.PID.CHARACTER_BAD,
+                    "Invalid char `" + badChar + "' ('" + (char) c + "') in expression");
         }
 
         newtok(true);
@@ -2161,7 +2214,10 @@ public class RubyLexer implements MagicCommentHandler {
                         break;
                 }
                 if (c2 != 0) {
-                    warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "invalid character syntax; use ?\\" + c2);
+                    warnings.warn(
+                            getFile(),
+                            getPosition().toSourceSection(src.getSource()).getStartLine(),
+                            "invalid character syntax; use ?\\" + c2);
                 }
             }
             pushback(c);
@@ -2291,7 +2347,10 @@ public class RubyLexer implements MagicCommentHandler {
 
                 if (isSpaceArg(c, spaceSeen)) {
                     if (warnings.isVerbose()) {
-                        warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
+                        warnings.warning(
+                                getFile(),
+                                getPosition().toSourceSection(src.getSource()).getStartLine(),
+                                "`**' interpreted as argument prefix");
                     }
                     c = Tokens.tDSTAR;
                 } else if (isBEG()) {
@@ -2309,7 +2368,10 @@ public class RubyLexer implements MagicCommentHandler {
                 pushback(c);
                 if (isSpaceArg(c, spaceSeen)) {
                     if (warnings.isVerbose()) {
-                        warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`*' interpreted as argument prefix");
+                        warnings.warning(
+                                getFile(),
+                                getPosition().toSourceSection(src.getSource()).getStartLine(),
+                                "`*' interpreted as argument prefix");
                     }
                     c = Tokens.tSTAR;
                 } else if (isBEG()) {
@@ -3517,10 +3579,14 @@ public class RubyLexer implements MagicCommentHandler {
 
     public static final int EOF = -1; // 0 in MRI
 
-    public static final Rope END_MARKER = RopeOperations.create(new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static final Rope BEGIN_DOC_MARKER = RopeOperations.create(new byte[]{ 'b', 'e', 'g', 'i', 'n' }, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static final Rope END_DOC_MARKER = RopeOperations.create(new byte[]{ 'e', 'n', 'd' }, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static final Rope CODING = RopeOperations.create(new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_MARKER = RopeOperations
+            .create(new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope BEGIN_DOC_MARKER = RopeOperations
+            .create(new byte[]{ 'b', 'e', 'g', 'i', 'n' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_DOC_MARKER = RopeOperations
+            .create(new byte[]{ 'e', 'n', 'd' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope CODING = RopeOperations
+            .create(new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     public static final Encoding UTF8_ENCODING = UTF8Encoding.INSTANCE;
     public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;

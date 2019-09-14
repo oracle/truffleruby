@@ -98,7 +98,8 @@ public class RubyObjectType extends ObjectType {
             DynamicObject receiver,
             @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Cached IntegerCastNode integerCastNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) throws UnsupportedMessageException {
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException {
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
         if (RubyGuards.isRubyArray(receiver)) {
             return Layouts.ARRAY.getSize(receiver);
@@ -184,7 +185,8 @@ public class RubyObjectType extends ObjectType {
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws UnknownIdentifierException {
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode)
+            throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, name);
@@ -197,7 +199,8 @@ public class RubyObjectType extends ObjectType {
     public static Object readArrayElement(
             DynamicObject receiver,
             long index,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode) throws InvalidArrayIndexException {
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode)
+            throws InvalidArrayIndexException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, index);
@@ -282,7 +285,8 @@ public class RubyObjectType extends ObjectType {
     public static void removeArrayElement(
             DynamicObject receiver,
             long index,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode) throws UnsupportedMessageException, InvalidArrayIndexException {
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode)
+            throws UnsupportedMessageException, InvalidArrayIndexException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
         if (RubyGuards.isRubyArray(receiver)) {
@@ -305,7 +309,8 @@ public class RubyObjectType extends ObjectType {
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashDeleteNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashKeyNode,
             @Exclusive @Cached BooleanCastNode booleanCast,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode) throws UnknownIdentifierException {
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode)
+            throws UnknownIdentifierException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
         // TODO (pitr-ch 19-Mar-2019): break down

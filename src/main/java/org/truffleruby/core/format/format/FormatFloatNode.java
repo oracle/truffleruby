@@ -45,7 +45,13 @@ public abstract class FormatFloatNode extends FormatNode {
     private final boolean hasMinusFlag;
     private final boolean hasFSharpFlag;
 
-    public FormatFloatNode(char format, boolean hasSpaceFlag, boolean hasZeroFlag, boolean hasPlusFlag, boolean hasMinusFlag, boolean hasFSharpFlag) {
+    public FormatFloatNode(
+            char format,
+            boolean hasSpaceFlag,
+            boolean hasZeroFlag,
+            boolean hasPlusFlag,
+            boolean hasMinusFlag,
+            boolean hasFSharpFlag) {
         this.format = format;
         this.hasSpaceFlag = hasSpaceFlag;
         this.hasZeroFlag = hasZeroFlag;

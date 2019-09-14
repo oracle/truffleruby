@@ -54,7 +54,12 @@ public class ReadZSuperArgumentsNode extends RubyNode {
             final Object[] restArgs = unsplat((DynamicObject) restArg);
             final int after = superArguments.length - (restArgIndex + 1);
             Object[] splattedArguments = ArrayUtils.copyOf(superArguments, superArguments.length + restArgs.length - 1);
-            ArrayUtils.arraycopy(superArguments, restArgIndex + 1, splattedArguments, restArgIndex + restArgs.length, after);
+            ArrayUtils.arraycopy(
+                    superArguments,
+                    restArgIndex + 1,
+                    splattedArguments,
+                    restArgIndex + restArgs.length,
+                    after);
             ArrayUtils.arraycopy(restArgs, 0, splattedArguments, restArgIndex, restArgs.length);
             superArguments = splattedArguments;
         }

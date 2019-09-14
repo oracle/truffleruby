@@ -85,7 +85,11 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "[Object.new, 65]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "{ name: 'test' }", OBJECT));
         vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", OBJECT));
-        vals.add(createValueConstructor(context, "Object.new.tap { |obj| obj.instance_variable_set(:@name, 'test') }", OBJECT));
+        vals.add(
+                createValueConstructor(
+                        context,
+                        "Object.new.tap { |obj| obj.instance_variable_set(:@name, 'test') }",
+                        OBJECT));
         vals.add(createValueConstructor(context, "proc { }", intersection(OBJECT, executable(ANY, true))));
         vals.add(createValueConstructor(context, "lambda { }", intersection(OBJECT, executable(ANY, false))));
         return Collections.unmodifiableList(vals);
@@ -120,17 +124,18 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     public Collection<? extends Snippet> createScripts(Context context) {
         final List<Snippet> res = new ArrayList<>();
 
-        Snippet.newBuilder("array of points", context.eval(getSource("points.rb")), array(OBJECT)).resultVerifier(run -> {
-            ResultVerifier.getDefaultResultVerifier().accept(run);
-            final Value result = run.getResult();
-            Assert.assertEquals("array size", 2, result.getArraySize());
-            Value p1 = result.getArrayElement(0);
-            Value p2 = result.getArrayElement(1);
-            Assert.assertEquals("res[0].x", 30, p1.getMember("x").asInt());
-            Assert.assertEquals("res[0].y", 15, p1.getMember("y").asInt());
-            Assert.assertEquals("res[1].x", 5, p2.getMember("x").asInt());
-            Assert.assertEquals("res[1].y", 7, p2.getMember("y").asInt());
-        });
+        Snippet.newBuilder("array of points", context.eval(getSource("points.rb")), array(OBJECT)).resultVerifier(
+                run -> {
+                    ResultVerifier.getDefaultResultVerifier().accept(run);
+                    final Value result = run.getResult();
+                    Assert.assertEquals("array size", 2, result.getArraySize());
+                    Value p1 = result.getArrayElement(0);
+                    Value p2 = result.getArrayElement(1);
+                    Assert.assertEquals("res[0].x", 30, p1.getMember("x").asInt());
+                    Assert.assertEquals("res[0].y", 15, p1.getMember("y").asInt());
+                    Assert.assertEquals("res[1].x", 5, p2.getMember("x").asInt());
+                    Assert.assertEquals("res[1].y", 7, p2.getMember("y").asInt());
+                });
 
         Snippet.newBuilder("recursion", context.eval(getSource("recursion.rb")), array(NUMBER)).resultVerifier(run -> {
             ResultVerifier.getDefaultResultVerifier().accept(run);
@@ -162,44 +167,60 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         return Collections.unmodifiableList(res);
     }
 
-    private InlineSnippet createInlineSnippet(Context context, Source mainSource, int line, String inlineSource, int expected) {
-        final Snippet mainSnippet = Snippet.newBuilder(mainSource.getName(), context.eval(mainSource), TypeDescriptor.ANY).build();
+    private InlineSnippet createInlineSnippet(Context context, Source mainSource, int line, String inlineSource,
+            int expected) {
+        final Snippet mainSnippet = Snippet
+                .newBuilder(mainSource.getName(), context.eval(mainSource), TypeDescriptor.ANY)
+                .build();
 
-        return InlineSnippet.newBuilder(mainSnippet, inlineSource).locationPredicate(
-                sourceSection -> sourceSection.getSource().getName().endsWith(mainSource.getName()) && sourceSection.getStartLine() == line).resultVerifier(snippetRun -> {
+        return InlineSnippet
+                .newBuilder(mainSnippet, inlineSource)
+                .locationPredicate(
+                        sourceSection -> sourceSection.getSource().getName().endsWith(mainSource.getName()) &&
+                                sourceSection.getStartLine() == line)
+                .resultVerifier(snippetRun -> {
                     final PolyglotException exception = snippetRun.getException();
                     if (exception != null) {
                         throw exception;
                     }
                     Assert.assertEquals(expected, snippetRun.getResult().asInt());
-                }).build();
+                })
+                .build();
     }
 
     private Snippet createValueConstructor(Context context, String value, TypeDescriptor type) {
         return Snippet.newBuilder(value, context.eval(getId(), String.format("-> { %s }", value)), type).build();
     }
 
-    private Snippet createBinaryOperator(Context context, String operator, TypeDescriptor lhsType, TypeDescriptor rhsType, TypeDescriptor returnType) {
+    private Snippet createBinaryOperator(Context context, String operator, TypeDescriptor lhsType,
+            TypeDescriptor rhsType, TypeDescriptor returnType) {
         final Value function = context.eval(getId(), String.format("-> a, b { %s }", operator));
 
-        return Snippet.newBuilder(operator, function, returnType).parameterTypes(lhsType, rhsType).resultVerifier(snippetRun -> {
-            /*
-             * If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's fine even
-             * though that value will be marked as an OBJECT. We don't want to make it a NUMBER at the moment as we
-             * aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I can see is to check it
-             * doesn't fit into a long.
-             */
+        return Snippet
+                .newBuilder(operator, function, returnType)
+                .parameterTypes(lhsType, rhsType)
+                .resultVerifier(snippetRun -> {
+                    /*
+                     * If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's fine even
+                     * though that value will be marked as an OBJECT. We don't want to make it a NUMBER at the moment as we
+                     * aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I can see is to check it
+                     * doesn't fit into a long.
+                     */
 
-            if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER && TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&
-                    !snippetRun.getResult().fitsInLong()) {
-                Assert.assertTrue(TypeDescriptor.OBJECT.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
-            } else {
-                ResultVerifier.getDefaultResultVerifier().accept(snippetRun);
-            }
-        }).build();
+                    if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER &&
+                            TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&
+                            !snippetRun.getResult().fitsInLong()) {
+                        Assert.assertTrue(
+                                TypeDescriptor.OBJECT.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
+                    } else {
+                        ResultVerifier.getDefaultResultVerifier().accept(snippetRun);
+                    }
+                })
+                .build();
     }
 
-    private Snippet createStatement(Context context, String name, String expression, TypeDescriptor argumentType, TypeDescriptor returnType) {
+    private Snippet createStatement(Context context, String name, String expression, TypeDescriptor argumentType,
+            TypeDescriptor returnType) {
         final Value function = context.eval(getId(), expression);
         return Snippet.newBuilder(name, function, returnType).parameterTypes(argumentType).build();
     }

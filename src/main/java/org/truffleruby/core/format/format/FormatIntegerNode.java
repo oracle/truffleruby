@@ -54,7 +54,13 @@ public abstract class FormatIntegerNode extends FormatNode {
     private final boolean hasMinusFlag;
     private final boolean hasFSharp;
 
-    public FormatIntegerNode(char format, boolean hasSpaceFlag, boolean hasZeroFlag, boolean hasPlusFlag, boolean hasMinusFlag, boolean hasFSharp) {
+    public FormatIntegerNode(
+            char format,
+            boolean hasSpaceFlag,
+            boolean hasZeroFlag,
+            boolean hasPlusFlag,
+            boolean hasMinusFlag,
+            boolean hasFSharp) {
         this.format = format;
         this.hasSpaceFlag = hasSpaceFlag;
         this.hasZeroFlag = hasZeroFlag;
@@ -108,7 +114,8 @@ public abstract class FormatIntegerNode extends FormatNode {
         return formatBytes(width, precision, fchar, sign, base, zero, negative, bytes);
     }
 
-    private byte[] formatBytes(int width, int precision, char fchar, boolean sign, int base, boolean zero, boolean negative, byte[] bytes) {
+    private byte[] formatBytes(int width, int precision, char fchar, boolean sign, int base, boolean zero,
+            boolean negative, byte[] bytes) {
         boolean hasMinusFlag = this.hasMinusFlag;
         if (width == PrintfSimpleTreeBuilder.DEFAULT) {
             width = 0;

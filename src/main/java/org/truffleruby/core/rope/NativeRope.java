@@ -26,7 +26,12 @@ public class NativeRope extends Rope {
     private int characterLength;
     private final Pointer pointer;
 
-    public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
+    public NativeRope(
+            FinalizationService finalizationService,
+            byte[] bytes,
+            Encoding encoding,
+            int characterLength,
+            CodeRange codeRange) {
         this(allocateNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
     }
 
@@ -60,7 +65,12 @@ public class NativeRope extends Rope {
         final Pointer pointer = Pointer.calloc(byteCapacity + 1);
         pointer.enableAutorelease(finalizationService);
 
-        return new NativeRope(pointer, byteLength, ASCIIEncoding.INSTANCE, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
+        return new NativeRope(
+                pointer,
+                byteLength,
+                ASCIIEncoding.INSTANCE,
+                UNKNOWN_CHARACTER_LENGTH,
+                CodeRange.CR_UNKNOWN);
     }
 
     public NativeRope withByteLength(int newByteLength, int characterLength, CodeRange codeRange) {
@@ -98,7 +108,8 @@ public class NativeRope extends Rope {
     @Override
     public CodeRange getCodeRange() {
         if (codeRange == CodeRange.CR_UNKNOWN) {
-            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            final StringAttributes attributes = RopeOperations
+                    .calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
             updateAttributes(attributes);
             return attributes.getCodeRange();
         } else {
@@ -113,7 +124,8 @@ public class NativeRope extends Rope {
     @Override
     public int characterLength() {
         if (characterLength == UNKNOWN_CHARACTER_LENGTH) {
-            final StringAttributes attributes = RopeOperations.calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
+            final StringAttributes attributes = RopeOperations
+                    .calculateCodeRangeAndLength(getEncoding(), getBytes(), 0, byteLength());
             updateAttributes(attributes);
             return attributes.getCharacterLength();
         } else {

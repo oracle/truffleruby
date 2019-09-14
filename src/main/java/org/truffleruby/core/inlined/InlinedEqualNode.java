@@ -18,7 +18,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     public InlinedEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerEqualAssumption);
     }
 

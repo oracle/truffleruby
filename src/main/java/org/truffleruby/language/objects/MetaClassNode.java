@@ -67,7 +67,10 @@ public abstract class MetaClassNode extends RubyBaseWithoutContextNode {
 
     // Cover all DynamicObject cases with cached and uncached
 
-    @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
+    @Specialization(
+            guards = "object.getShape() == cachedShape",
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "getCacheLimit()")
     protected DynamicObject metaClassCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             // used only during instantiation when it's always correct for a given object

@@ -29,7 +29,8 @@ public abstract class ArrayOperations {
 
     public static boolean verifyStore(DynamicObject array) {
         final Object backingStore = getBackingStore(array);
-        assert backingStore == null || backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
+        assert backingStore == null || backingStore instanceof int[] || backingStore instanceof long[] ||
+                backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
         final RubyContext context = Layouts.MODULE.getFields(Layouts.ARRAY.getLogicalClass(array)).getContext();
@@ -40,15 +41,22 @@ public abstract class ArrayOperations {
                 final Object[] objectArray = (Object[]) store;
 
                 for (Object element : objectArray) {
-                    assert SharedObjects.assertPropagateSharing(context, array, element) : "unshared element in shared Array: " + element;
+                    assert SharedObjects.assertPropagateSharing(
+                            context,
+                            array,
+                            element) : "unshared element in shared Array: " + element;
                 }
-            } else if (store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage()) {
+            } else if (store instanceof DelegatedArrayStorage &&
+                    ((DelegatedArrayStorage) store).hasObjectArrayStorage()) {
                 final DelegatedArrayStorage delegated = (DelegatedArrayStorage) store;
                 final Object[] objectArray = (Object[]) delegated.storage;
 
                 for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
                     final Object element = objectArray[i];
-                    assert SharedObjects.assertPropagateSharing(context, array, element) : "unshared element in shared copy-on-write Array: " + element;
+                    assert SharedObjects.assertPropagateSharing(
+                            context,
+                            array,
+                            element) : "unshared element in shared copy-on-write Array: " + element;
                 }
             } else {
                 assert isPrimitiveStorage(array);
@@ -77,7 +85,8 @@ public abstract class ArrayOperations {
     public static int clampExclusiveIndex(int length, int index) {
         if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, index < 0)) {
             return 0;
-        } else if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, index > length)) {
+        } else if (CompilerDirectives
+                .injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, index > length)) {
             return length;
         } else {
             return index;

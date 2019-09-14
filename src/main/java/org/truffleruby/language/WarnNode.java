@@ -36,7 +36,8 @@ public class WarnNode extends RubyBaseNode {
 
     void callWarn(SourceSection sourceSection, String message) {
         final String warningMessage = buildWarningMessage(getContext(), sourceSection, message);
-        final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject warningString = makeStringNode
+                .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         warnMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
     }
 

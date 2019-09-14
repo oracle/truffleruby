@@ -23,7 +23,8 @@ public abstract class InlinedRightShiftNode extends BinaryInlinedOperationNode {
     @Child RightShiftNode fixnumRightShift;
 
     public InlinedRightShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerRightShiftAssumption);
     }
 

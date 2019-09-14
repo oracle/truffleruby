@@ -175,7 +175,9 @@ public abstract class FormatNode extends RubyBaseNode {
         final int outputPosition = getOutputPosition(frame);
         System.arraycopy(values, 0, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
-        setStringCodeRange(frame, RopeOperations.isAsciiOnly(values, USASCIIEncoding.INSTANCE) ? CodeRange.CR_7BIT : CodeRange.CR_VALID);
+        setStringCodeRange(
+                frame,
+                RopeOperations.isAsciiOnly(values, USASCIIEncoding.INSTANCE) ? CodeRange.CR_7BIT : CodeRange.CR_VALID);
         increaseStringLength(frame, valuesLength);
     }
 

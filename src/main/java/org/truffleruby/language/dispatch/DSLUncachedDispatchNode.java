@@ -52,7 +52,16 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             MissingBehavior missingBehavior,
             boolean ignoreVisibility,
             boolean onlyCallPublic) {
-        return executeDispatch(frame, receiver, name, block, arguments, dispatchAction, missingBehavior, ignoreVisibility, onlyCallPublic);
+        return executeDispatch(
+                frame,
+                receiver,
+                name,
+                block,
+                arguments,
+                dispatchAction,
+                missingBehavior,
+                ignoreVisibility,
+                onlyCallPublic);
     }
 
     protected abstract Object executeDispatch(
@@ -66,11 +75,12 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             boolean ignoreVisibility,
             boolean onlyCallPublic);
 
-    @Specialization(guards = {
-            "dispatchAction == cachedDispatchAction",
-            "missingBehavior == cachedMissingBehaviour",
-            "ignoreVisibility == cachedIgnoreVisibility",
-            "onlyCallPublic == cachedOnlyCallPublic" })
+    @Specialization(
+            guards = {
+                    "dispatchAction == cachedDispatchAction",
+                    "missingBehavior == cachedMissingBehaviour",
+                    "ignoreVisibility == cachedIgnoreVisibility",
+                    "onlyCallPublic == cachedOnlyCallPublic" })
     protected Object dispatch(
             Frame frame,
             Object receiver,
@@ -113,7 +123,11 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
         }
 
         final InternalMethod method = lookupMethodNode.lookup(
-                (VirtualFrame) frame, receiver, methodName, cachedIgnoreVisibility, cachedOnlyCallPublic);
+                (VirtualFrame) frame,
+                receiver,
+                methodName,
+                cachedIgnoreVisibility,
+                cachedOnlyCallPublic);
 
         if (method != null) {
             if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
@@ -127,14 +141,17 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
 
         methodNotFoundProfile.enter();
 
-        if (cachedDispatchAction == DispatchAction.CALL_METHOD && cachedMissingBehaviour == MissingBehavior.RETURN_MISSING) {
+        if (cachedDispatchAction == DispatchAction.CALL_METHOD &&
+                cachedMissingBehaviour == MissingBehavior.RETURN_MISSING) {
             return DispatchNode.MISSING;
         }
 
         methodMissingProfile.enter();
 
         final InternalMethod methodMissing = lookupMethodMissingNode.lookupIgnoringVisibility(
-                (VirtualFrame) frame, receiver, "method_missing");
+                (VirtualFrame) frame,
+                receiver,
+                "method_missing");
 
         if (methodMissing == null) {
             if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
@@ -142,8 +159,16 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             } else {
                 methodMissingNotFoundProfile.enter();
                 final DynamicObject formatter = ExceptionOperations.getFormatter(
-                        ExceptionOperations.NO_METHOD_ERROR, context);
-                throw new RaiseException(context, context.getCoreExceptions().noMethodErrorFromMethodMissing(formatter, receiver, methodName, arguments, this));
+                        ExceptionOperations.NO_METHOD_ERROR,
+                        context);
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().noMethodErrorFromMethodMissing(
+                                formatter,
+                                receiver,
+                                methodName,
+                                arguments,
+                                this));
             }
         }
 

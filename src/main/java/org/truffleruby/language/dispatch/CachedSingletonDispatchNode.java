@@ -103,9 +103,11 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
     @Override
     public String toString() {
-        return StringUtils.format("CachedBoxedDispatchNode(:%s, %s@%x, %s)",
+        return StringUtils.format(
+                "CachedBoxedDispatchNode(:%s, %s@%x, %s)",
                 getCachedNameAsSymbol().toString(),
-                expectedReceiver, expectedReceiver.hashCode(),
+                expectedReceiver,
+                expectedReceiver.hashCode(),
                 method == null ? "null" : method.toString());
     }
 

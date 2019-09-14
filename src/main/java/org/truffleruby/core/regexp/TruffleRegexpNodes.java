@@ -128,14 +128,16 @@ public class TruffleRegexpNodes {
             final Regex regex = compile(this, getContext(), pattern, regexpOptions);
 
             final DynamicObjectFactory factory = getContext().getCoreLibrary().getRegexpFactory();
-            return Layouts.REGEXP.createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
+            return Layouts.REGEXP
+                    .createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
         }
     }
 
     public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        protected <T> DynamicObject fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode, RubyContext context) {
+        protected <T> DynamicObject fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
+                RubyContext context) {
             Object store = arrayBuilderNode.start(compiledRegexps.size() * 2);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
@@ -211,8 +213,11 @@ public class TruffleRegexpNodes {
 
             final Region region = matcher.getEagerRegion();
             final DynamicObject dupedString = (DynamicObject) dupNode.call(string, "dup");
-            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(dupedString,
-                    regexp, region, null));
+            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(
+                    dupedString,
+                    regexp,
+                    region,
+                    null));
             return (DynamicObject) taintResultNode.maybeTaint(string, result);
         }
 
@@ -220,10 +225,12 @@ public class TruffleRegexpNodes {
         private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
             // Keep status as RUN because MRI has an uninterruptible Regexp engine
             if (onlyMatchAtStart) {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                return getContext().getThreadManager().runUntilResultKeepStatus(
+                        this,
                         () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
             } else {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                return getContext().getThreadManager().runUntilResultKeepStatus(
+                        this,
                         () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
             }
         }
@@ -233,7 +240,13 @@ public class TruffleRegexpNodes {
             Rope source = Layouts.REGEXP.getSource(regexp);
             Encoding enc = Layouts.STRING.getRope(string).getEncoding();
             RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
-            MatchInfo matchInfo = new MatchInfo(new RegexpCacheKey(source, enc, options.toJoniOptions(), getContext().getHashing(REHASH_MATCHED_REGEXPS)), fromStart);
+            MatchInfo matchInfo = new MatchInfo(
+                    new RegexpCacheKey(
+                            source,
+                            enc,
+                            options.toJoniOptions(),
+                            getContext().getHashing(REHASH_MATCHED_REGEXPS)),
+                    fromStart);
             ConcurrentOperations.getOrCompute(matchedRegexps, matchInfo, x -> new AtomicInteger()).incrementAndGet();
         }
 
@@ -301,11 +314,14 @@ public class TruffleRegexpNodes {
         try {
             Encoding enc = bytes.getEncoding();
             Encoding[] fixedEnc = new Encoding[]{ null };
-            RopeBuilder unescaped = ClassicRegexp.preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+            RopeBuilder unescaped = ClassicRegexp
+                    .preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
             if (fixedEnc[0] != null) {
                 if ((fixedEnc[0] != enc && options.isFixed()) ||
                         (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                    throw new RaiseException(context, context.getCoreExceptions().regexpError("incompatible character encoding", null));
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().regexpError("incompatible character encoding", null));
                 }
                 if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                     options.setFixed(true);
@@ -320,18 +336,32 @@ public class TruffleRegexpNodes {
             }
             //if (regexpOptions.isEncodingNone()) setEncodingNone();
 
-            Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(),
-                    enc, Syntax.RUBY, new RegexWarnCallback(context));
+            Regex regexp = new Regex(
+                    unescaped.getUnsafeBytes(),
+                    0,
+                    unescaped.getLength(),
+                    options.toJoniOptions(),
+                    enc,
+                    Syntax.RUBY,
+                    new RegexWarnCallback(context));
             regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
 
             if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
-                final RegexpCacheKey key = new RegexpCacheKey(bytes, enc, options.toJoniOptions(), context.getHashing(REHASH_COMPILED_REGEXPS));
+                final RegexpCacheKey key = new RegexpCacheKey(
+                        bytes,
+                        enc,
+                        options.toJoniOptions(),
+                        context.getHashing(REHASH_COMPILED_REGEXPS));
                 ConcurrentOperations.getOrCompute(compiledRegexps, key, x -> new AtomicInteger()).incrementAndGet();
             }
 
             return regexp;
         } catch (ValueException e) {
-            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage() + ": " + '/' + RopeOperations.decodeRope(bytes) + '/', currentNode));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().regexpError(
+                            e.getMessage() + ": " + '/' + RopeOperations.decodeRope(bytes) + '/',
+                            currentNode));
         } catch (SyntaxException e) {
             throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
         }

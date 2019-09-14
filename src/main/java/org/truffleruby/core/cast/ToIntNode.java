@@ -61,7 +61,9 @@ public abstract class ToIntNode extends RubyNode {
 
         errorProfile.enter();
         if (RubyGuards.isRubyBignum(object)) {
-            throw new RaiseException(getContext(), coreExceptions().rangeError("bignum too big to convert into `long'", this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError("bignum too big to convert into `long'", this));
         } else {
             throw new UnsupportedOperationException(object.getClass().toString());
         }
@@ -81,7 +83,9 @@ public abstract class ToIntNode extends RubyNode {
 
     @Specialization(guards = "isRubyBignum(value)")
     protected DynamicObject coerceRubyBignum(DynamicObject value) {
-        throw new RaiseException(getContext(), coreExceptions().rangeError("bignum too big to convert into `long'", this));
+        throw new RaiseException(
+                getContext(),
+                coreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
@@ -117,7 +121,9 @@ public abstract class ToIntNode extends RubyNode {
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(getContext(), coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
             } else {
                 throw e;
             }
@@ -127,7 +133,9 @@ public abstract class ToIntNode extends RubyNode {
             return coerced;
         } else {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
         }
     }
 

@@ -87,7 +87,8 @@ public class FeatureLoader {
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constants = ConcurrentOperations.getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
+            final Map<String, RubyConstant> constants = ConcurrentOperations
+                    .getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
             constants.put(autoloadPath, autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
@@ -201,7 +202,10 @@ public class FeatureLoader {
 
             RubyLanguage.LOGGER.info(() -> {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
-                return String.format("starting search from %s for feature %s...", context.fileLine(sourceSection), originalFeature);
+                return String.format(
+                        "starting search from %s for feature %s...",
+                        context.fileLine(sourceSection),
+                        originalFeature);
             });
         }
 
@@ -319,11 +323,21 @@ public class FeatureLoader {
             }
 
             if (!context.getOptions().CEXTS) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError("cannot load as C extensions are disabled with -Xcexts=false", feature, null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                "cannot load as C extensions are disabled with -Xcexts=false",
+                                feature,
+                                null));
             }
 
             if (!TruffleRubyNodes.SulongNode.isSulongAvailable(context)) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                "Sulong is required to support C extensions, and it doesn't appear to be available",
+                                feature,
+                                null));
             }
 
             Metrics.printTime("before-load-cext-support");
@@ -335,9 +349,11 @@ public class FeatureLoader {
                 final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
                 final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
 
-                sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
+                sulongLoadLibraryFunction = requireNode
+                        .findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
-                final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
+                final TruffleObject initFunction = requireNode
+                        .findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
                 try {
                     InteropLibrary.getFactory().getUncached(initFunction).execute(initFunction, truffleCExt);
                 } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -357,7 +373,12 @@ public class FeatureLoader {
         }
 
         if (!new File(rubySUpath).exists()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError(
+                            "this TruffleRuby distribution does not have the C extension implementation file ruby.su",
+                            feature,
+                            null));
         }
 
         return loadCExtLibrary("ruby.su", rubySUpath);
@@ -366,7 +387,9 @@ public class FeatureLoader {
     @TruffleBoundary
     public List<TruffleObject> loadCExtLibrary(String feature, String path) {
         if (!new File(path).exists()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError(path + " does not exists", path, null));
         }
 
         final List<TruffleObject> libraries = new ArrayList<>();
@@ -383,8 +406,15 @@ public class FeatureLoader {
                 }
 
                 if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(context,
-                            context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", path, result.getClass().getSimpleName()), path, null));
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().loadError(
+                                    String.format(
+                                            "%s returned a %s rather than a TruffleObject",
+                                            path,
+                                            result.getClass().getSimpleName()),
+                                    path,
+                                    null));
                 }
 
                 libraries.add((TruffleObject) result);
@@ -408,13 +438,18 @@ public class FeatureLoader {
             if (remapped.equals(library)) {
                 RubyLanguage.LOGGER.info(() -> String.format("loading native library %s", library));
             } else {
-                RubyLanguage.LOGGER.info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
+                RubyLanguage.LOGGER
+                        .info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
             }
         }
 
-        TruffleObject libraryRubyString = WrapNodeGen.getUncached().execute(StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
+        TruffleObject libraryRubyString = WrapNodeGen.getUncached().execute(StringOperations.createString(
+                context,
+                StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
         try {
-            InteropLibrary.getFactory().getUncached(sulongLoadLibraryFunction).execute(sulongLoadLibraryFunction, libraryRubyString);
+            InteropLibrary.getFactory().getUncached(sulongLoadLibraryFunction).execute(
+                    sulongLoadLibraryFunction,
+                    libraryRubyString);
         } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
@@ -432,7 +467,8 @@ public class FeatureLoader {
                 final int divider = mapPair.indexOf(':');
 
                 if (divider == -1) {
-                    throw new RuntimeException(OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
+                    throw new RuntimeException(
+                            OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
                 }
 
                 final String library = mapPair.substring(0, divider);

@@ -167,14 +167,18 @@ public class SafepointManager {
                 if (System.nanoTime() >= max) {
                     RubyLanguage.LOGGER.severe(String.format(
                             "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
-                            waits * WAIT_TIME_IN_SECONDS, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                            waits * WAIT_TIME_IN_SECONDS,
+                            phaser.getUnarrivedParties(),
+                            phaser.getRegisteredParties()));
                     printStacktracesOfBlockedThreads();
 
                     if (waits == 1) {
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
-                        RubyLanguage.LOGGER.severe("waited " + MAX_WAIT_TIME_IN_SECONDS + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
+                        RubyLanguage.LOGGER.severe(
+                                "waited " + MAX_WAIT_TIME_IN_SECONDS +
+                                        " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
                         System.exit(1);
                     }
                     max += TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
@@ -197,7 +201,8 @@ public class SafepointManager {
                 boolean blocked = true;
 
                 for (int i = 0; i < stackTrace.length && i <= STEP_BACKTRACE_MAX_OFFSET; i++) {
-                    if (stackTrace[i].getClassName().equals(SafepointManager.class.getName()) && stackTrace[i].getMethodName().equals("step")) {
+                    if (stackTrace[i].getClassName().equals(SafepointManager.class.getName()) &&
+                            stackTrace[i].getMethodName().equals("step")) {
                         // In SafepointManager#step, ignore
                         blocked = false;
                         break;
@@ -281,7 +286,8 @@ public class SafepointManager {
 
         if (currentThread == rubyThread) {
             if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {
-                throw new IllegalStateException("The currently executing Java thread does not correspond to the currently active fiber for the current Ruby thread");
+                throw new IllegalStateException(
+                        "The currently executing Java thread does not correspond to the currently active fiber for the current Ruby thread");
             }
             // fast path if we are already the right thread
             action.accept(rubyThread, currentNode);
@@ -320,7 +326,9 @@ public class SafepointManager {
 
     public void checkNoRunningThreads() {
         if (!runningThreads.isEmpty()) {
-            RubyLanguage.LOGGER.warning("threads are still registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
+            RubyLanguage.LOGGER.warning(
+                    "threads are still registered with safepoint manager at shutdown:\n" +
+                            context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
         }
     }
 
@@ -329,8 +337,12 @@ public class SafepointManager {
         final int threadsCount = Thread.enumerate(threads);
         final long appearRunning = Arrays.stream(threads).limit(threadsCount).filter(
                 t -> t.getName().startsWith(FiberManager.NAME_PREFIX)).count();
-        return String.format("safepoints: %d known threads, %d registered with phaser, %d arrived, %d appear to be running",
-                runningThreads.size(), phaser.getRegisteredParties(), phaser.getArrivedParties(), appearRunning);
+        return String.format(
+                "safepoints: %d known threads, %d registered with phaser, %d arrived, %d appear to be running",
+                runningThreads.size(),
+                phaser.getRegisteredParties(),
+                phaser.getArrivedParties(),
+                appearRunning);
     }
 
 }

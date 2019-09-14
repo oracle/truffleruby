@@ -41,10 +41,13 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
 
     // Reading within bounds on an array with actual storage
 
-    @Specialization(guards = {
-            "indexInBounds(array, index)", "lengthPositive(length)", "endInBounds(array, index, length)",
-            "strategy.matches(array)"
-    }, limit = "STORAGE_STRATEGIES")
+    @Specialization(
+            guards = {
+                    "indexInBounds(array, index)",
+                    "lengthPositive(length)",
+                    "endInBounds(array, index, length)",
+                    "strategy.matches(array)" },
+            limit = "STORAGE_STRATEGIES")
     protected DynamicObject readInBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
@@ -54,10 +57,13 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
 
     // Reading beyond upper bounds on an array with actual storage needs clamping
 
-    @Specialization(guards = {
-            "indexInBounds(array, index)", "lengthPositive(length)", "!endInBounds(array, index, length)",
-            "strategy.matches(array)"
-    }, limit = "STORAGE_STRATEGIES")
+    @Specialization(
+            guards = {
+                    "indexInBounds(array, index)",
+                    "lengthPositive(length)",
+                    "!endInBounds(array, index, length)",
+                    "strategy.matches(array)" },
+            limit = "STORAGE_STRATEGIES")
     protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {

@@ -56,7 +56,10 @@ public class WhileParseNode extends ParseNode {
         this(position, conditionNode, bodyNode, true);
     }
 
-    public WhileParseNode(SourceIndexLength position, ParseNode conditionNode, ParseNode bodyNode,
+    public WhileParseNode(
+            SourceIndexLength position,
+            ParseNode conditionNode,
+            ParseNode bodyNode,
             boolean evalAtStart) {
         super(position);
 

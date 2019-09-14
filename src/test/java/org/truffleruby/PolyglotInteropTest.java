@@ -53,7 +53,8 @@ public class PolyglotInteropTest {
         try (Context polyglot = Context.newBuilder().allowHostAccess(HostAccess.ALL).build()) {
             final int[] counter = new int[]{ 0 };
 
-            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }").execute(polyglot.asValue((IntConsumer) n -> counter[0] += n));
+            polyglot.eval("ruby", "lambda { |block| (1..3).each { |n| block.call n } }").execute(
+                    polyglot.asValue((IntConsumer) n -> counter[0] += n));
 
             assertEquals(6, counter[0]);
         }
@@ -63,7 +64,9 @@ public class PolyglotInteropTest {
     public void testCreatingObjects() {
         // Native access needed for ENV['TZ']
         try (Context polyglot = Context.newBuilder().allowNativeAccess(true).build()) {
-            assertEquals(2021, polyglot.eval("ruby", "Time").newInstance(2021, 3, 18).getMember("year").execute().asInt());
+            assertEquals(
+                    2021,
+                    polyglot.eval("ruby", "Time").newInstance(2021, 3, 18).getMember("year").execute().asInt());
         }
     }
 
@@ -121,9 +124,13 @@ public class PolyglotInteropTest {
     public void testLocalVariablesSharedBetweenInteractiveEval() {
         try (Context polyglot = Context.create()) {
             polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(true).buildLiteral());
-            assertFalse(polyglot.eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral()).asBoolean());
+            assertFalse(polyglot
+                    .eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral())
+                    .asBoolean());
             polyglot.eval(Source.newBuilder("ruby", "b = 2", "test").interactive(true).buildLiteral());
-            assertEquals(16, polyglot.eval(Source.newBuilder("ruby", "a + b", "test").interactive(true).buildLiteral()).asInt());
+            assertEquals(
+                    16,
+                    polyglot.eval(Source.newBuilder("ruby", "a + b", "test").interactive(true).buildLiteral()).asInt());
         }
     }
 
@@ -131,9 +138,13 @@ public class PolyglotInteropTest {
     public void testLocalVariablesSharedBetweenInteractiveEvalChangesParsing() {
         try (Context polyglot = Context.create()) {
             polyglot.eval(Source.newBuilder("ruby", "def foo; 12; end", "test").interactive(true).buildLiteral());
-            assertEquals(12, polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
+            assertEquals(
+                    12,
+                    polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
             polyglot.eval(Source.newBuilder("ruby", "foo = 42", "test").interactive(true).buildLiteral());
-            assertEquals(42, polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
+            assertEquals(
+                    42,
+                    polyglot.eval(Source.newBuilder("ruby", "foo", "test").interactive(true).buildLiteral()).asInt());
         }
     }
 
@@ -142,13 +153,43 @@ public class PolyglotInteropTest {
         try (Context polyglot = Context.create()) {
             polyglot.eval(Source.newBuilder("ruby", "a = 14", "test").interactive(false).buildLiteral());
             polyglot.eval(Source.newBuilder("ruby", "b = 2", "test").interactive(true).buildLiteral());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral()).asBoolean());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(false).buildLiteral()).asBoolean());
-            assertFalse(polyglot.eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(true).buildLiteral()).asBoolean());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test").interactive(false).buildLiteral()).asBoolean());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test").interactive(false).buildLiteral()).asBoolean());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test").interactive(true).buildLiteral()).asBoolean());
-            assertTrue(polyglot.eval(Source.newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test").interactive(true).buildLiteral()).asBoolean());
+            assertTrue(polyglot
+                    .eval(Source.newBuilder("ruby", "defined?(a).nil?", "test").interactive(true).buildLiteral())
+                    .asBoolean());
+            assertTrue(polyglot
+                    .eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(false).buildLiteral())
+                    .asBoolean());
+            assertFalse(polyglot
+                    .eval(Source.newBuilder("ruby", "defined?(b).nil?", "test").interactive(true).buildLiteral())
+                    .asBoolean());
+            assertTrue(polyglot
+                    .eval(
+                            Source
+                                    .newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test")
+                                    .interactive(false)
+                                    .buildLiteral())
+                    .asBoolean());
+            assertTrue(polyglot
+                    .eval(
+                            Source
+                                    .newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test")
+                                    .interactive(false)
+                                    .buildLiteral())
+                    .asBoolean());
+            assertTrue(polyglot
+                    .eval(
+                            Source
+                                    .newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(a).nil?')", "test")
+                                    .interactive(true)
+                                    .buildLiteral())
+                    .asBoolean());
+            assertTrue(polyglot
+                    .eval(
+                            Source
+                                    .newBuilder("ruby", "TOPLEVEL_BINDING.eval('defined?(b).nil?')", "test")
+                                    .interactive(true)
+                                    .buildLiteral())
+                    .asBoolean());
         }
     }
 

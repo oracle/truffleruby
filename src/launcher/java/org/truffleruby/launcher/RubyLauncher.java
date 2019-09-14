@@ -171,7 +171,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected AbortException abortUnrecognizedArgument(String argument) {
-        throw abortInvalidArgument(argument,
+        throw abortInvalidArgument(
+                argument,
                 "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
     }
 
@@ -186,7 +187,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 case IRB:
                     config.executionAction = ExecutionAction.PATH;
                     if (System.console() != null) {
-                        System.err.println("[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
+                        System.err.println(
+                                "[ruby] WARNING: truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                         config.executionAction = ExecutionAction.PATH;
                         config.toExecute = "irb";
                     } else {
@@ -204,7 +206,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("before-run");
 
             if (config.executionAction == ExecutionAction.PATH) {
-                final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
+                final Source source = Source.newBuilder(
+                        TruffleRuby.LANGUAGE_ID,
                         // language=ruby
                         "-> name { Truffle::Boot.find_s_file(name) }",
                         TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
@@ -214,12 +217,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (file.isString()) {
                     config.toExecute = file.asString();
                 } else {
-                    System.err.println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
+                    System.err
+                            .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
                     return 1;
                 }
             }
 
-            final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
+            final Source source = Source.newBuilder(
+                    TruffleRuby.LANGUAGE_ID,
                     // language=ruby
                     "-> kind, to_execute { Truffle::Boot.main(kind, to_execute) }",
                     TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();

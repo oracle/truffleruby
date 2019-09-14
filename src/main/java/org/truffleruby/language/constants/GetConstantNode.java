@@ -39,25 +39,29 @@ public abstract class GetConstantNode extends RubyBaseNode {
         return GetConstantNodeGen.create(callConstMissing);
     }
 
-    public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name, LookupConstantInterface lookupConstantNode) {
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            LookupConstantInterface lookupConstantNode) {
         final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
-    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode);
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            Object constant, LookupConstantInterface lookupConstantNode);
 
     public GetConstantNode(boolean callConstMissing) {
         this.callConstMissing = callConstMissing;
     }
 
     @Specialization(guards = { "constant != null", "constant.hasValue()" })
-    protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
+    protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant,
+            LookupConstantInterface lookupConstantNode) {
         return constant.getValue();
     }
 
     @TruffleBoundary
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
-    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
+    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
         final DynamicObject feature = autoloadConstant.getAutoloadConstant().getFeature();
@@ -68,9 +72,11 @@ public abstract class GetConstantNode extends RubyBaseNode {
         }
 
         if (getContext().getOptions().LOG_AUTOLOAD) {
-            RubyLanguage.LOGGER.info(() -> String.format("%s: autoloading %s with %s",
+            RubyLanguage.LOGGER.info(() -> String.format(
+                    "%s: autoloading %s with %s",
                     getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                    autoloadConstant, autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                    autoloadConstant,
+                    autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
 
         final Runnable require = () -> callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
@@ -78,7 +84,8 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
+    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
         final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
@@ -114,8 +121,11 @@ public abstract class GetConstantNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" }, limit = "getCacheLimit()")
-    protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
+    @Specialization(
+            guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" },
+            limit = "getCacheLimit()")
+    protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name,
+            Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
@@ -123,7 +133,8 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isNullOrUndefined(constant)")
-    protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
+    protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name,
+            Object constant, LookupConstantInterface lookupConstantNode) {
         return doMissingConstant(module, name, getSymbol(name));
     }
 

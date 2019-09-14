@@ -41,8 +41,10 @@ import org.truffleruby.collections.ByteArrayBuilder;
 
 public class EncodeUM {
 
-    private static final byte[] uu_table = "`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_".getBytes(StandardCharsets.US_ASCII);
-    private static final byte[] b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] uu_table = "`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
+            .getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+            .getBytes(StandardCharsets.US_ASCII);
     public static final byte[] sHexDigits = "0123456789abcdef0123456789ABCDEFx".getBytes(StandardCharsets.US_ASCII);
     public static final int[] b64_xtable = new int[256];
 
@@ -56,11 +58,18 @@ public class EncodeUM {
         }
     }
 
-    public static void encodeUM(Object runtime, byte[] lCurElemString, int occurrences, boolean ignoreStar, char type, ByteArrayBuilder result) {
+    public static void encodeUM(Object runtime, byte[] lCurElemString, int occurrences, boolean ignoreStar, char type,
+            ByteArrayBuilder result) {
         if (occurrences == 0 && type == 'm' && !ignoreStar) {
-            encodes(runtime, result, lCurElemString,
-                    0, lCurElemString.length,
-                    lCurElemString.length, (byte) type, false);
+            encodes(
+                    runtime,
+                    result,
+                    lCurElemString,
+                    0,
+                    lCurElemString.length,
+                    lCurElemString.length,
+                    (byte) type,
+                    false);
             return;
         }
 
@@ -71,9 +80,15 @@ public class EncodeUM {
 
         byte[] charsToEncode = lCurElemString;
         for (int i = 0; i < lCurElemString.length; i += occurrences) {
-            encodes(runtime, result, charsToEncode,
-                    i, lCurElemString.length - i,
-                    occurrences, (byte) type, true);
+            encodes(
+                    runtime,
+                    result,
+                    charsToEncode,
+                    i,
+                    lCurElemString.length - i,
+                    occurrences,
+                    (byte) type,
+                    true);
         }
     }
 

@@ -102,7 +102,8 @@ public abstract class ExceptionNodes {
                 DynamicObject exception,
                 @Cached("createBinaryProfile()") ConditionProfile hasCustomBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
-            final Object customBacktrace = getReadCustomBacktraceNode().execute(exception, CUSTOM_BACKTRACE_FIELD, null);
+            final Object customBacktrace = getReadCustomBacktraceNode()
+                    .execute(exception, CUSTOM_BACKTRACE_FIELD, null);
 
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
@@ -111,7 +112,8 @@ public abstract class ExceptionNodes {
                 if (backtrace.getBacktraceStringArray() == null) {
                     backtrace.setBacktraceStringArray(
                             getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
-                                    exception, Layouts.EXCEPTION.getBacktrace(exception)));
+                                    exception,
+                                    Layouts.EXCEPTION.getBacktrace(exception)));
                 }
                 return backtrace.getBacktraceStringArray();
             } else {
@@ -142,9 +144,10 @@ public abstract class ExceptionNodes {
          * So, we check if the method has been redefined here and if so, fall back to the Ruby code for the method
          * by returning `FAILURE` in the fallback specialization.
          */
-        @Specialization(guards = {
-                "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE",
-        }, limit = "1")
+        @Specialization(
+                guards = {
+                        "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
+                limit = "1")
         protected boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
                 @Cached LookupMethodNode lookupNode) {
             final Object customBacktrace = readCustomBacktrace(self);

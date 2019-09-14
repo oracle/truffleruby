@@ -90,7 +90,10 @@ public class CExtLoader {
 
     private void loadBitcode(String path, String entryName, byte[] sourceBytes) {
         final String name = String.format("%s@%s", path, entryName);
-        final Source source = Source.newBuilder(TruffleRuby.LLVM_ID, ByteSequence.create(sourceBytes), name).mimeType(RubyLanguage.LLVM_BITCODE_MIME_TYPE).build();
+        final Source source = Source
+                .newBuilder(TruffleRuby.LLVM_ID, ByteSequence.create(sourceBytes), name)
+                .mimeType(RubyLanguage.LLVM_BITCODE_MIME_TYPE)
+                .build();
         handleSource.accept(source);
     }
 

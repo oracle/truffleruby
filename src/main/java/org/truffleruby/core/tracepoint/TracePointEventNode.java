@@ -26,7 +26,11 @@ class TracePointEventNode extends TraceBaseEventNode {
     private final DynamicObject proc;
     private final DynamicObject event;
 
-    public TracePointEventNode(RubyContext context, EventContext eventContext, DynamicObject tracePoint, DynamicObject event) {
+    public TracePointEventNode(
+            RubyContext context,
+            EventContext eventContext,
+            DynamicObject tracePoint,
+            DynamicObject event) {
         super(context, eventContext);
         this.tracePoint = tracePoint;
         this.proc = Layouts.TRACE_POINT.getProc(tracePoint);
@@ -42,7 +46,9 @@ class TracePointEventNode extends TraceBaseEventNode {
         Layouts.TRACE_POINT.setEvent(tracePoint, event);
         Layouts.TRACE_POINT.setPath(tracePoint, getFile());
         Layouts.TRACE_POINT.setLine(tracePoint, getLine());
-        Layouts.TRACE_POINT.setBinding(tracePoint, BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()));
+        Layouts.TRACE_POINT.setBinding(
+                tracePoint,
+                BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()));
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         try {

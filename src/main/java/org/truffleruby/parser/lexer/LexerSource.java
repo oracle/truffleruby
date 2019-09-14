@@ -66,7 +66,8 @@ public class LexerSource {
             this.sourceBytes = rubySource.getRope();
         } else {
             // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters ->  toString -> getBytes?
-            this.sourceBytes = RopeOperations.create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+            this.sourceBytes = RopeOperations
+                    .create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
         }
     }
 

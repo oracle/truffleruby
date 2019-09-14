@@ -71,7 +71,12 @@ public class ValueWrapperManager {
     public HandleThreadData makeThreadData() {
         HandleThreadData threadData = new HandleThreadData();
         HandleBlockHolder holder = threadData.holder;
-        context.getFinalizationService().addFinalizer(threadData, null, ValueWrapperManager.class, () -> context.getMarkingService().queueForMarking(holder.handleBlock.wrappers), null);
+        context.getFinalizationService().addFinalizer(
+                threadData,
+                null,
+                ValueWrapperManager.class,
+                () -> context.getMarkingService().queueForMarking(holder.handleBlock.wrappers),
+                null);
         return threadData;
     }
 

@@ -41,7 +41,15 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-@TruffleLanguage.Registration(name = "Ruby", id = TruffleRuby.LANGUAGE_ID, implementationName = TruffleRuby.FORMAL_NAME, version = BuildInformationImpl.RUBY_VERSION, characterMimeTypes = TruffleRuby.MIME_TYPE, defaultMimeType = TruffleRuby.MIME_TYPE, dependentLanguages = TruffleRuby.LLVM_ID, fileTypeDetectors = RubyFileTypeDetector.class)
+@TruffleLanguage.Registration(
+        name = "Ruby",
+        id = TruffleRuby.LANGUAGE_ID,
+        implementationName = TruffleRuby.FORMAL_NAME,
+        version = BuildInformationImpl.RUBY_VERSION,
+        characterMimeTypes = TruffleRuby.MIME_TYPE,
+        defaultMimeType = TruffleRuby.MIME_TYPE,
+        dependentLanguages = TruffleRuby.LLVM_ID,
+        fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -129,7 +137,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
-        return Truffle.getRuntime().createCallTarget(new RubyParsingRequestNode(this, request.getSource(), request.getArgumentNames().toArray(new String[]{})));
+        return Truffle.getRuntime().createCallTarget(
+                new RubyParsingRequestNode(
+                        this,
+                        request.getSource(),
+                        request.getArgumentNames().toArray(new String[]{})));
     }
 
     @Override
@@ -150,7 +162,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return null;
         }
 
-        Object implicit = context.send(context.getCoreLibrary().getTruffleInteropModule(), "lookup_symbol", context.getSymbolTable().getSymbol(symbolName));
+        Object implicit = context.send(
+                context.getCoreLibrary().getTruffleInteropModule(),
+                "lookup_symbol",
+                context.getSymbolTable().getSymbol(symbolName));
         if (implicit == NotProvided.INSTANCE) {
             return null;
         } else {

@@ -61,13 +61,14 @@ public abstract class ToLongNode extends FormatNode {
         throw new NoImplicitConversionException(nil, "Integer");
     }
 
-    @Specialization(guards = {
-            "!isBoolean(object)",
-            "!isInteger(object)",
-            "!isLong(object)",
-            "!isBigInteger(object)",
-            "!isRubyBignum(object)",
-            "!isNil(object)" })
+    @Specialization(
+            guards = {
+                    "!isBoolean(object)",
+                    "!isInteger(object)",
+                    "!isLong(object)",
+                    "!isBigInteger(object)",
+                    "!isRubyBignum(object)",
+                    "!isNil(object)" })
     protected long toLong(VirtualFrame frame, Object object) {
         if (errorIfNeedsConversion) {
             throw new CantConvertException("can't convert Object to Integer");

@@ -85,18 +85,27 @@ public abstract class TruffleDebugNodes {
         protected DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
             final String fileString = StringOperations.getString(file);
 
-            final SourceSectionFilter filter = SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(
-                    source -> source != null && getContext().getPath(source).equals(fileString)).lineIs(line).tagIs(StandardTags.StatementTag.class).build();
+            final SourceSectionFilter filter = SourceSectionFilter
+                    .newBuilder()
+                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                    .sourceIs(
+                            source -> source != null && getContext().getPath(source).equals(fileString))
+                    .lineIs(line)
+                    .tagIs(StandardTags.StatementTag.class)
+                    .build();
 
-            final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(filter,
+            final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(
+                    filter,
                     eventContext -> new ExecutionEventNode() {
 
                         @Child private YieldNode yieldNode = YieldNode.create();
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.executeDispatch(block,
-                                    BindingNodes.createBinding(getContext(),
+                            yieldNode.executeDispatch(
+                                    block,
+                                    BindingNodes.createBinding(
+                                            getContext(),
                                             frame.materialize(),
                                             eventContext.getInstrumentedSourceSection()));
                         }
@@ -128,7 +137,8 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject javaClassOf(Object value) {
-            return makeStringNode.executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode
+                    .executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -261,7 +271,8 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject shape(DynamicObject object) {
-            return makeStringNode.executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode
+                    .executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -310,7 +321,10 @@ public abstract class TruffleDebugNodes {
     @ImportStatic(SharedObjects.class)
     public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "object.getShape() == cachedShape", assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
+        @Specialization(
+                guards = "object.getShape() == cachedShape",
+                assumptions = "cachedShape.getValidAssumption()",
+                limit = "getCacheLimit()")
         protected boolean isSharedCached(DynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
                 @Cached("isShared(getContext(), cachedShape)") boolean shared) {
@@ -374,7 +388,9 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject throwJavaExceptionWithCause(Object message) {
-            throw new RuntimeException(message.toString(), new RuntimeException("cause 1", new RuntimeException("cause 2")));
+            throw new RuntimeException(
+                    message.toString(),
+                    new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
     }
@@ -716,7 +732,8 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         private String getThreadDebugInfo() {
-            return getContext().getThreadManager().getThreadDebugInfo() + getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
+            return getContext().getThreadManager().getThreadDebugInfo() +
+                    getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
         }
 
     }
@@ -763,7 +780,8 @@ public abstract class TruffleDebugNodes {
                 associatedValues[n] = associated[n].getAddress();
             }
 
-            return Layouts.ARRAY.createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
+            return Layouts.ARRAY
+                    .createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
         }
     }
 

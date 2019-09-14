@@ -21,7 +21,13 @@ public class RepeatingRope extends ManagedRope {
     private final int times;
 
     public RepeatingRope(ManagedRope child, int times) {
-        super(child.getEncoding(), child.getCodeRange(), child.byteLength() * times, child.characterLength() * times, child.depth() + 1, null);
+        super(
+                child.getEncoding(),
+                child.getCodeRange(),
+                child.byteLength() * times,
+                child.characterLength() * times,
+                child.depth() + 1,
+                null);
         this.child = child;
         this.times = times;
     }

@@ -34,7 +34,11 @@ public class TryNode extends RubyNode {
     private final BranchProfile controlFlowProfile = BranchProfile.create();
     private final BranchProfile raiseExceptionProfile = BranchProfile.create();
 
-    public TryNode(ExceptionTranslatingNode tryPart, RescueNode[] rescueParts, RubyNode elsePart, boolean canOmitBacktrace) {
+    public TryNode(
+            ExceptionTranslatingNode tryPart,
+            RescueNode[] rescueParts,
+            RubyNode elsePart,
+            boolean canOmitBacktrace) {
         this.tryPart = tryPart;
         this.rescueParts = rescueParts;
         this.elsePart = elsePart;

@@ -79,7 +79,8 @@ public final class StringSupport {
         }
     }
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
+            int byteEnd) {
         return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
 
@@ -287,7 +288,8 @@ public final class StringSupport {
         return new StringAttributes(c, cr == CR_UNKNOWN ? CR_7BIT : cr);
     }
 
-    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p, int end) {
+    public static StringAttributes strLengthWithCodeRangeNonAsciiCompatible(Encoding enc, byte[] bytes, int p,
+            int end) {
         CodeRange cr = CR_UNKNOWN;
         int c;
         for (c = 0; p < end; c++) {
@@ -624,7 +626,8 @@ public final class StringSupport {
                 tr.p += n[0];
                 if (tr.now > c) {
                     if (tr.now < 0x80 && c < 0x80) {
-                        throw new IllegalArgumentException("invalid range \"" + (char) tr.now + '-' + (char) c + "\" in string transliteration");
+                        throw new IllegalArgumentException(
+                                "invalid range \"" + (char) tr.now + '-' + (char) c + "\" in string transliteration");
                     }
 
                     throw new IllegalArgumentException("invalid range in string transliteration");
@@ -663,7 +666,9 @@ public final class StringSupport {
         while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
             if (neighbor == NeighborChar.NOT_CHAR && lastAlnum != -1) {
                 ASCIIEncoding ascii = ASCIIEncoding.INSTANCE;
-                if (ascii.isAlpha(bytes[lastAlnum] & 0xff) ? ascii.isDigit(bytes[s] & 0xff) : ascii.isDigit(bytes[lastAlnum] & 0xff) ? ascii.isAlpha(bytes[s] & 0xff) : false) {
+                if (ascii.isAlpha(bytes[lastAlnum] & 0xff)
+                        ? ascii.isDigit(bytes[s] & 0xff)
+                        : ascii.isDigit(bytes[lastAlnum] & 0xff) ? ascii.isAlpha(bytes[s] & 0xff) : false) {
                     s = lastAlnum;
                     break;
                 }
@@ -709,7 +714,12 @@ public final class StringSupport {
         }
         valueCopy.unsafeEnsureSpace(valueCopy.getLength() + carryLen);
         s = carryP;
-        System.arraycopy(valueCopy.getUnsafeBytes(), s, valueCopy.getUnsafeBytes(), s + carryLen, valueCopy.getLength() - carryP);
+        System.arraycopy(
+                valueCopy.getUnsafeBytes(),
+                s,
+                valueCopy.getUnsafeBytes(),
+                s + carryLen,
+                valueCopy.getLength() - carryP);
         System.arraycopy(carry, 0, valueCopy.getUnsafeBytes(), s, carryLen);
         valueCopy.setLength(valueCopy.getLength() + carryLen);
         return valueCopy;
@@ -1224,8 +1234,20 @@ public final class StringSupport {
                 }
                 cl = ocl = 1;
             } else {
-                cl = characterLength(enc, enc == value.getEncoding() ? value.getCodeRange() : CR_UNKNOWN, bytes, p, end, true);
-                ocl = characterLength(enc, enc == otherValue.getEncoding() ? otherValue.getCodeRange() : CR_UNKNOWN, obytes, op, oend, true);
+                cl = characterLength(
+                        enc,
+                        enc == value.getEncoding() ? value.getCodeRange() : CR_UNKNOWN,
+                        bytes,
+                        p,
+                        end,
+                        true);
+                ocl = characterLength(
+                        enc,
+                        enc == otherValue.getEncoding() ? otherValue.getCodeRange() : CR_UNKNOWN,
+                        obytes,
+                        op,
+                        oend,
+                        true);
                 // TODO: opt for 2 and 3 ?
                 int ret = caseCmp(bytes, p, obytes, op, cl < ocl ? cl : ocl);
                 if (ret != 0) {
@@ -1268,7 +1290,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSqueeze(RopeBuilder value, CodeRange originalCodeRange, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
+    public static boolean multiByteSqueeze(RopeBuilder value, CodeRange originalCodeRange, boolean squeeze[],
+            TrTables tables, Encoding enc, boolean isArg) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1328,7 +1351,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSwapcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteSwapcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+            int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1363,7 +1387,8 @@ public final class StringSupport {
 
         final int clen = enc.codeToMbcLength(codePoint);
 
-        final int newByteLength = enc.caseMap(flags, stringBytes, fromP, fromP.value + clen, workBuffer, 0, workBuffer.length);
+        final int newByteLength = enc
+                .caseMap(flags, stringBytes, fromP, fromP.value + clen, workBuffer, 0, workBuffer.length);
 
         if (clen == newByteLength) {
             System.arraycopy(workBuffer, 0, stringBytes, stringByteOffset, newByteLength);
@@ -1373,7 +1398,12 @@ public final class StringSupport {
             final byte[] newBuffer = Arrays.copyOf(stringBytes, newBufferLength);
 
             System.arraycopy(workBuffer, 0, newBuffer, stringByteOffset, newByteLength);
-            System.arraycopy(stringBytes, stringByteOffset + clen, newBuffer, stringByteOffset + newByteLength, tailLength);
+            System.arraycopy(
+                    stringBytes,
+                    stringByteOffset + clen,
+                    newBuffer,
+                    stringByteOffset + newByteLength,
+                    tailLength);
 
             builder.unsafeReplace(newBuffer, newBufferLength);
         }
@@ -1401,7 +1431,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteDowncase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+            int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1458,7 +1489,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteUpcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+            int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1494,7 +1526,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteCapitalize(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteCapitalize(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+            int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1507,7 +1540,8 @@ public final class StringSupport {
         boolean upcasing = true;
 
         while (s < bytes.length) {
-            if (!isTurkic && enc.isAsciiCompatible() && ((upcasing && isAsciiLowercase(bytes[s])) || (!upcasing && isAsciiUppercase(bytes[s])))) {
+            if (!isTurkic && enc.isAsciiCompatible() &&
+                    ((upcasing && isAsciiLowercase(bytes[s])) || (!upcasing && isAsciiUppercase(bytes[s])))) {
                 bytes[s] ^= 0x20;
                 modify = true;
                 s++;

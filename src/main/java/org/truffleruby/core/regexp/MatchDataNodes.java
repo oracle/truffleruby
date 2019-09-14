@@ -193,7 +193,8 @@ public abstract class MatchDataNodes {
             final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             final Rope sourceRope = StringOperations.rope(source);
             final Region region = Layouts.MATCH_DATA.getRegion(matchData);
-            final int normalizedIndex = ArrayOperations.normalizeIndex(region.beg.length, index, normalizedIndexProfile);
+            final int normalizedIndex = ArrayOperations
+                    .normalizeIndex(region.beg.length, index, normalizedIndexProfile);
 
             if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= region.beg.length))) {
                 return nil();
@@ -202,7 +203,9 @@ public abstract class MatchDataNodes {
                 final int end = region.end[normalizedIndex];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    return allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+                    return allocateNode.allocate(
+                            Layouts.BASIC_OBJECT.getLogicalClass(source),
+                            Layouts.STRING.build(false, false, rope));
                 } else {
                     return nil();
                 }
@@ -218,8 +221,12 @@ public abstract class MatchDataNodes {
             return createArray(store, length);
         }
 
-        @Specialization(guards = { "isRubySymbol(cachedIndex)", "name != null",
-                "getRegexp(matchData) == regexp", "cachedIndex == index" })
+        @Specialization(
+                guards = {
+                        "isRubySymbol(cachedIndex)",
+                        "name != null",
+                        "getRegexp(matchData) == regexp",
+                        "cachedIndex == index" })
         protected Object getIndexSymbolSingleMatch(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached("index") DynamicObject cachedIndex,
                 @Cached("getRegexp(matchData)") DynamicObject regexp,
@@ -260,9 +267,11 @@ public abstract class MatchDataNodes {
         @Specialization(guards = "isIntRange(range)")
         protected Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
-            final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
+            final int normalizedIndex = ArrayOperations
+                    .normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
             final int end = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getEnd(range));
-            final int exclusiveEnd = ArrayOperations.clampExclusiveIndex(values.length, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
+            final int exclusiveEnd = ArrayOperations
+                    .clampExclusiveIndex(values.length, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
             final int length = exclusiveEnd - normalizedIndex;
 
             final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
@@ -302,17 +311,27 @@ public abstract class MatchDataNodes {
 
         private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, Rope value) {
             try {
-                return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
+                return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(
+                        value.getBytes(),
+                        0,
+                        value.byteLength(),
+                        Layouts.MATCH_DATA.getRegion(matchData));
             } catch (final ValueException e) {
                 throw new RaiseException(
-                        getContext(), coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", index.toString()), this));
+                        getContext(),
+                        coreExceptions().indexError(
+                                StringUtils.format("undefined group name reference: %s", index.toString()),
+                                this));
             }
         }
 
         @TruffleBoundary
         private int getBackRef(DynamicObject matchData, DynamicObject regexp, NameEntry name) {
-            return Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(name.name, name.nameP,
-                    name.nameEnd, Layouts.MATCH_DATA.getRegion(matchData));
+            return Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(
+                    name.name,
+                    name.nameP,
+                    name.nameEnd,
+                    Layouts.MATCH_DATA.getRegion(matchData));
         }
 
         @TruffleBoundary
@@ -348,7 +367,9 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         protected Object beginError(DynamicObject matchData, int index) {
-            throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
         protected boolean inBounds(DynamicObject matchData, int index) {
@@ -384,7 +405,9 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTainted, rope));
+                    DynamicObject string = allocateNode.allocate(
+                            Layouts.BASIC_OBJECT.getLogicalClass(source),
+                            Layouts.STRING.build(false, isTainted, rope));
                     values[n] = string;
                 } else {
                     values[n] = nil();
@@ -423,7 +446,9 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         protected Object endError(DynamicObject matchData, int index) {
-            throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
         protected boolean inBounds(DynamicObject matchData, int index) {
@@ -497,7 +522,8 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+            DynamicObject string = allocateNode
+                    .allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
     }
@@ -518,7 +544,8 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+            DynamicObject string = allocateNode
+                    .allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
     }

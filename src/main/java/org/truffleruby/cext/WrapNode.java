@@ -75,7 +75,11 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     @Specialization
     protected ValueWrapper wrapWrappedValue(ValueWrapper value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, context.getCoreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentError(
+                        RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE),
+                        this));
     }
 
     @Specialization(guards = "isNil(context, value)")
@@ -112,6 +116,8 @@ public abstract class WrapNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "!isRubyBasicObject(value)")
     protected ValueWrapper wrapNonRubyObject(TruffleObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
     }
 }

@@ -37,7 +37,8 @@ public class DefineClassNode extends RubyNode {
 
     public DefineClassNode(
             String name,
-            RubyNode lexicalParent, RubyNode superClass) {
+            RubyNode lexicalParent,
+            RubyNode superClass) {
         this.name = name;
         this.lexicalParentModule = lexicalParent;
         this.superClassNode = superClass;
@@ -49,7 +50,9 @@ public class DefineClassNode extends RubyNode {
 
         if (!RubyGuards.isRubyModule(lexicalParentObject)) {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
         }
 
         final DynamicObject lexicalParentModule = (DynamicObject) lexicalParentObject;
@@ -65,7 +68,12 @@ public class DefineClassNode extends RubyNode {
             } else {
                 superClass = suppliedSuperClass;
             }
-            definedClass = ClassNodes.createInitializedRubyClass(getContext(), getEncapsulatingSourceSection(), lexicalParentModule, superClass, name);
+            definedClass = ClassNodes.createInitializedRubyClass(
+                    getContext(),
+                    getEncapsulatingSourceSection(),
+                    lexicalParentModule,
+                    superClass,
+                    name);
             callInherited(frame, superClass, definedClass);
         } else {
             if (!RubyGuards.isRubyClass(existing)) {
@@ -80,7 +88,8 @@ public class DefineClassNode extends RubyNode {
             if (suppliedSuperClass != null && currentSuperClass != suppliedSuperClass) { // bug-compat with MRI https://bugs.ruby-lang.org/issues/12367
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().superclassMismatch(
-                        Layouts.MODULE.getFields(definedClass).getName(), this));
+                        Layouts.MODULE.getFields(definedClass).getName(),
+                        this));
             }
         }
 
@@ -102,7 +111,9 @@ public class DefineClassNode extends RubyNode {
 
         if (Layouts.CLASS.getIsSingleton(superClass)) {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeError("can't make subclass of virtual class", this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeError("can't make subclass of virtual class", this));
         }
 
         return superClass;

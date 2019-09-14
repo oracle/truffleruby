@@ -59,7 +59,9 @@ public abstract class DurationToMillisecondsNode extends RubyNode {
         if (acceptsNil) {
             return noDuration(NotProvided.INSTANCE);
         } else {
-            throw new RaiseException(getContext(), coreExceptions().typeError("TypeError: can't convert NilClass into time interval", this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeError("TypeError: can't convert NilClass into time interval", this));
         }
     }
 

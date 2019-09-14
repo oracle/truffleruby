@@ -55,7 +55,9 @@ public abstract class ProfileArgumentNode extends RubyNode {
         return cachedValue;
     }
 
-    @Specialization(guards = { "object != null", "object.getClass() == cachedClass", "!isPrimitiveClass(cachedClass)" }, limit = "1")
+    @Specialization(
+            guards = { "object != null", "object.getClass() == cachedClass", "!isPrimitiveClass(cachedClass)" },
+            limit = "1")
     protected Object cacheClass(Object object,
             @Cached("object.getClass()") Class<?> cachedClass) {
         // The cast is only useful for the compiler.

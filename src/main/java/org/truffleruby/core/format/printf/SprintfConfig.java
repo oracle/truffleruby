@@ -217,6 +217,7 @@ public class SprintfConfig {
     }
 
     public boolean hasFlags() {
-        return literal || precision != null || precisionVisited || width != null || hasSpace || fsharp || plus || minus || zero || precisionStar || widthStar || formatType != null;
+        return literal || precision != null || precisionVisited || width != null || hasSpace || fsharp || plus ||
+                minus || zero || precisionStar || widthStar || formatType != null;
     }
 }

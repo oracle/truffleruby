@@ -40,12 +40,18 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        notOptimizedWarningNode.warn("keyword rest argument in combination with masgn or destructuring is not yet optimized");
+        notOptimizedWarningNode
+                .warn("keyword rest argument in combination with masgn or destructuring is not yet optimized");
 
         final Object array = readArrayNode.executeRead(frame);
 
         final DynamicObject binding = BindingNodes.createBinding(getContext(), frame.materialize());
-        final Object remainingArray = callHelperNode.call(coreLibrary().getTruffleInternalModule(), "load_arguments_from_array_kw_helper", array, kwrestName, binding);
+        final Object remainingArray = callHelperNode.call(
+                coreLibrary().getTruffleInternalModule(),
+                "load_arguments_from_array_kw_helper",
+                array,
+                kwrestName,
+                binding);
 
         writeArrayNode.executeWrite(frame, remainingArray);
 

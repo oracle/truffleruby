@@ -52,7 +52,9 @@ public abstract class PointerNodes {
         if (ptr.isNull()) {
             nullPointerProfile.enter();
             final RubyContext context = node.getContext();
-            throw new RaiseException(context, context.getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
         }
     }
 
@@ -89,7 +91,9 @@ public abstract class PointerNodes {
             if (size > 0) {
                 return size;
             } else {
-                final Object typedef = getContext().getTruffleNFI().resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
+                final Object typedef = getContext()
+                        .getTruffleNFI()
+                        .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
                 final int typedefSize = typeSize(StringOperations.getString((DynamicObject) typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
@@ -281,7 +285,9 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "limit == 0")
         protected DynamicObject readNullPointer(long address, long limit) {
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            return allocate(
+                    coreLibrary().getStringClass(),
+                    Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
         @Specialization(guards = "limit != 0")
@@ -290,7 +296,8 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
-            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            final Rope rope = makeLeafRopeNode
+                    .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
             return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
         }
 
@@ -300,7 +307,8 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
-            final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            final Rope rope = makeLeafRopeNode
+                    .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
             return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
         }
 
@@ -325,13 +333,17 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+                return allocateObjectNode.allocate(
+                        coreLibrary().getStringClass(),
+                        Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
                 ptr.readBytes(0, bytes, 0, length);
-                final Rope rope = makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-                return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+                final Rope rope = makeLeafRopeNode
+                        .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                return allocateObjectNode
+                        .allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
             }
         }
 

@@ -23,7 +23,8 @@ public abstract class InlinedBitOrNode extends BinaryInlinedOperationNode {
     @Child BitOrNode fixnumBitOr;
 
     public InlinedBitOrNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerBitOrAssumption);
     }
 

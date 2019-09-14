@@ -69,7 +69,11 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public SetNamedVariablesMatchNode(RubyNode matchDataNode, RubyNode readMatchNode, RubyNode[] setters, RubyNode[] nilSetters) {
+        public SetNamedVariablesMatchNode(
+                RubyNode matchDataNode,
+                RubyNode readMatchNode,
+                RubyNode[] setters,
+                RubyNode[] nilSetters) {
             this.matchDataNode = matchDataNode;
             this.readMatchNode = readMatchNode;
             this.setters = setters;

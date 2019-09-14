@@ -138,10 +138,9 @@ public abstract class FloatNodes {
 
         private final ConditionProfile complexProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = {
-                "exponent == cachedExponent",
-                "cachedExponent >= 0",
-                "cachedExponent < 10" }, limit = "10")
+        @Specialization(
+                guards = { "exponent == cachedExponent", "cachedExponent >= 0", "cachedExponent < 10" },
+                limit = "10")
         @ExplodeLoop
         protected double powCached(double base, long exponent,
                 @Cached("exponent") long cachedExponent) {

@@ -48,7 +48,9 @@ public abstract class ReadStringPointerNode extends FormatNode {
     protected Object read(VirtualFrame frame, long address,
             @Cached TaintNode taintNode) {
         final Pointer pointer = new Pointer(address);
-        checkAssociated((Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);
+        checkAssociated(
+                (Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT),
+                pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
         final DynamicObject string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -66,7 +68,9 @@ public abstract class ReadStringPointerNode extends FormatNode {
         }
 
         errorProfile.enter();
-        throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("no associated pointer", this));
+        throw new RaiseException(
+                getContext(),
+                getContext().getCoreExceptions().argumentError("no associated pointer", this));
     }
 
 }

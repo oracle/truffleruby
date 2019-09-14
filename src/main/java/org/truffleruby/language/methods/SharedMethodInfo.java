@@ -169,7 +169,8 @@ public class SharedMethodInfo {
             if (sourceSection == null || !sourceSection.isAvailable()) {
                 descriptiveNameAndSource = descriptiveName;
             } else {
-                descriptiveNameAndSource = descriptiveName + " " + sourceSection.getSource().getName() + ":" + sourceSection.getStartLine();
+                descriptiveNameAndSource = descriptiveName + " " + sourceSection.getSource().getName() + ":" +
+                        sourceSection.getStartLine();
             }
         }
 

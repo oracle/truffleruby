@@ -66,7 +66,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization
     protected DynamicObject create(long value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode) {
-        BigDecimal bigDecimal = round((BigDecimal) bigDecimalCastNode.execute(value, digits, getRoundMode()),
+        BigDecimal bigDecimal = round(
+                (BigDecimal) bigDecimalCastNode.execute(value, digits, getRoundMode()),
                 new MathContext(digits, getRoundMode()));
         return createNormalBigDecimal(bigDecimal);
     }
@@ -89,10 +90,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return createSpecialBigDecimal(BigDecimalType.NEGATIVE_ZERO);
     }
 
-    @Specialization(guards = {
-            "isFinite(value)",
-            "!isNegativeZero(value)"
-    })
+    @Specialization(guards = { "isFinite(value)", "!isNegativeZero(value)" })
     protected DynamicObject createFinite(double value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode) {
         final RoundingMode roundMode = getRoundMode();
@@ -116,7 +114,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
-        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(getBigDecimalClass(), "EXCEPTION_INFINITY");
+        final int exceptionConstant = getIntegerConstantNode
+                .executeGetIntegerConstant(getBigDecimalClass(), "EXCEPTION_INFINITY");
 
         final boolean raise = booleanCastNode.executeToBoolean(
                 modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));
@@ -136,7 +135,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
-        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(getBigDecimalClass(),
+        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(
+                getBigDecimalClass(),
                 "EXCEPTION_NaN");
 
         final boolean raise = booleanCastNode.executeToBoolean(
@@ -197,11 +197,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return executeCreate(getValueFromString(StringOperations.getString(value), digits, strict), digits, strict);
     }
 
-    @Specialization(guards = {
-            "!isRubyBignum(value)",
-            "!isRubyBigDecimal(value)",
-            "!isRubyString(value)"
-    })
+    @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "!isRubyString(value)" })
     protected DynamicObject create(DynamicObject value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode,
             @Cached("createBinaryProfile()") ConditionProfile castProfile) {

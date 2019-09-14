@@ -41,7 +41,9 @@ public class CreateEvalSourceNode extends RubyBaseNode {
             final String message = file + ":" + line + ": cannot " + method +
                     "() a String with binary encoding, with no magic encoding comment and containing a non-US-ASCII character: \\x" +
                     String.format("%02X", e.getNonAsciiCharacter());
-            throw new RaiseException(getContext(), coreExceptions().syntaxError(message, this, getEncapsulatingSourceSection()));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().syntaxError(message, this, getEncapsulatingSourceSection()));
         }
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
@@ -70,14 +72,27 @@ public class CreateEvalSourceNode extends RubyBaseNode {
         // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
         if (line == 0) {
             // fine instead of warning because these seem common
-            RubyLanguage.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+            RubyLanguage.LOGGER.fine(() -> String.format(
+                    "zero line number %s:%d not supported in #%s - will be reported as starting at 1",
+                    file,
+                    line,
+                    method));
             return source;
         } else if (line < 1) {
-            RubyLanguage.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+            RubyLanguage.LOGGER.warning(
+                    String.format(
+                            "negative line number %s:%d not supported in #%s - will be reported as starting at 1",
+                            file,
+                            line,
+                            method));
             return source;
         } else if (line > 1) {
             // fine instead of warning because we can simulate these
-            RubyLanguage.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
+            RubyLanguage.LOGGER.fine(() -> String.format(
+                    "offset line number %s:%d are simulated in #%s by adding blank lines",
+                    file,
+                    line,
+                    method));
             if (!source.getEncoding().isAsciiCompatible()) {
                 throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
             }

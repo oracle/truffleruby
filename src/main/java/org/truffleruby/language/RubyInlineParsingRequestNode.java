@@ -79,8 +79,15 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
             callNode.forceInlining();
 
             final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
-            method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.topLevel(context),
-                    sharedMethodInfo.getName(), context.getCoreLibrary().getObjectClass(), Visibility.PUBLIC, callTarget);
+            method = new InternalMethod(
+                    context,
+                    sharedMethodInfo,
+                    sharedMethodInfo.getLexicalScope(),
+                    DeclarationContext.topLevel(context),
+                    sharedMethodInfo.getName(),
+                    context.getCoreLibrary().getObjectClass(),
+                    Visibility.PUBLIC,
+                    callTarget);
         }
 
         // We run the Ruby code as if it was written in a block

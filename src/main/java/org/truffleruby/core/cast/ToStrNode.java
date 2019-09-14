@@ -47,7 +47,9 @@ public abstract class ToStrNode extends RubyNode {
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(getContext(), coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
             } else {
                 throw e;
             }
@@ -57,7 +59,9 @@ public abstract class ToStrNode extends RubyNode {
             return (DynamicObject) coerced;
         } else {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
     }
 

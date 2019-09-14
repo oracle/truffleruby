@@ -76,11 +76,12 @@ public abstract class SingletonClassNode extends RubyNode {
         return noSingletonClass();
     }
 
-    @Specialization(guards = {
-            "isRubyClass(rubyClass)",
-            "rubyClass.getShape() == cachedShape",
-            "cachedSingletonClass != null"
-    }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "isRubyClass(rubyClass)",
+                    "rubyClass.getShape() == cachedShape",
+                    "cachedSingletonClass != null" },
+            limit = "getCacheLimit()")
     protected DynamicObject singletonClassClassCached(
             DynamicObject rubyClass,
             @Cached("rubyClass.getShape()") Shape cachedShape,
@@ -94,13 +95,14 @@ public abstract class SingletonClassNode extends RubyNode {
         return ClassNodes.getSingletonClass(getContext(), rubyClass);
     }
 
-    @Specialization(guards = {
-            "object == cachedObject",
-            "!isNil(cachedObject)",
-            "!isRubyBignum(cachedObject)",
-            "!isRubySymbol(cachedObject)",
-            "!isRubyClass(cachedObject)"
-    }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "object == cachedObject",
+                    "!isNil(cachedObject)",
+                    "!isRubyBignum(cachedObject)",
+                    "!isRubySymbol(cachedObject)",
+                    "!isRubyClass(cachedObject)" },
+            limit = "getCacheLimit()")
     protected DynamicObject singletonClassInstanceCached(
             DynamicObject object,
             @Cached("object") DynamicObject cachedObject,
@@ -108,12 +110,9 @@ public abstract class SingletonClassNode extends RubyNode {
         return cachedSingletonClass;
     }
 
-    @Specialization(guards = {
-            "!isNil(object)",
-            "!isRubyBignum(object)",
-            "!isRubySymbol(object)",
-            "!isRubyClass(object)"
-    }, replaces = "singletonClassInstanceCached")
+    @Specialization(
+            guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubySymbol(object)", "!isRubyClass(object)" },
+            replaces = "singletonClassInstanceCached")
     protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);
     }
@@ -136,11 +135,17 @@ public abstract class SingletonClassNode extends RubyNode {
 
             final DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(object);
 
-            final String name = StringUtils.format("#<Class:#<%s:0x%x>>", Layouts.MODULE.getFields(logicalClass).getName(),
+            final String name = StringUtils.format(
+                    "#<Class:#<%s:0x%x>>",
+                    Layouts.MODULE.getFields(logicalClass).getName(),
                     ObjectIDOperations.verySlowGetObjectID(getContext(), object));
 
             final DynamicObject singletonClass = ClassNodes.createSingletonClassOfObject(
-                    getContext(), getEncapsulatingSourceSection(), logicalClass, object, name);
+                    getContext(),
+                    getEncapsulatingSourceSection(),
+                    logicalClass,
+                    object,
+                    name);
 
             if (isFrozen(object)) {
                 freeze(singletonClass);

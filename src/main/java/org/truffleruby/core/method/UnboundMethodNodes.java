@@ -45,7 +45,9 @@ public abstract class UnboundMethodNodes {
         @Specialization(guards = "isRubyUnboundMethod(other)")
         protected boolean equal(DynamicObject self, DynamicObject other) {
             return Layouts.UNBOUND_METHOD.getOrigin(self) == Layouts.UNBOUND_METHOD.getOrigin(other) &&
-                    MethodNodes.areInternalMethodEqual(Layouts.UNBOUND_METHOD.getMethod(self), Layouts.UNBOUND_METHOD.getMethod(other));
+                    MethodNodes.areInternalMethodEqual(
+                            Layouts.UNBOUND_METHOD.getMethod(self),
+                            Layouts.UNBOUND_METHOD.getMethod(other));
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
@@ -75,19 +77,28 @@ public abstract class UnboundMethodNodes {
                 @Cached BranchProfile errorProfile) {
             final DynamicObject objectMetaClass = metaClassNode.executeMetaClass(object);
 
-            if (!canBindMethodToModuleNode.executeCanBindMethodToModule(Layouts.UNBOUND_METHOD.getMethod(unboundMethod), objectMetaClass)) {
+            if (!canBindMethodToModuleNode
+                    .executeCanBindMethodToModule(Layouts.UNBOUND_METHOD.getMethod(unboundMethod), objectMetaClass)) {
                 errorProfile.enter();
-                final DynamicObject declaringModule = Layouts.UNBOUND_METHOD.getMethod(unboundMethod).getDeclaringModule();
+                final DynamicObject declaringModule = Layouts.UNBOUND_METHOD
+                        .getMethod(unboundMethod)
+                        .getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
-                            "singleton method called for a different object", this));
+                            "singleton method called for a different object",
+                            this));
                 } else {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
-                            "bind argument must be an instance of " + Layouts.MODULE.getFields(declaringModule).getName(), this));
+                            "bind argument must be an instance of " +
+                                    Layouts.MODULE.getFields(declaringModule).getName(),
+                            this));
                 }
             }
 
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), object, Layouts.UNBOUND_METHOD.getMethod(unboundMethod));
+            return Layouts.METHOD.createMethod(
+                    coreLibrary().getMethodFactory(),
+                    object,
+                    Layouts.UNBOUND_METHOD.getMethod(unboundMethod));
         }
 
     }
@@ -144,7 +155,10 @@ public abstract class UnboundMethodNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject parameters(DynamicObject method) {
-            final ArgumentDescriptor[] argsDesc = Layouts.UNBOUND_METHOD.getMethod(method).getSharedMethodInfo().getArgumentDescriptors();
+            final ArgumentDescriptor[] argsDesc = Layouts.UNBOUND_METHOD
+                    .getMethod(method)
+                    .getSharedMethodInfo()
+                    .getArgumentDescriptors();
 
             return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, true);
         }
@@ -159,12 +173,18 @@ public abstract class UnboundMethodNodes {
         @TruffleBoundary
         @Specialization
         protected Object sourceLocation(DynamicObject unboundMethod) {
-            SourceSection sourceSection = Layouts.UNBOUND_METHOD.getMethod(unboundMethod).getSharedMethodInfo().getSourceSection();
+            SourceSection sourceSection = Layouts.UNBOUND_METHOD
+                    .getMethod(unboundMethod)
+                    .getSharedMethodInfo()
+                    .getSourceSection();
 
             if (sourceSection.getSource() == null) {
                 return nil();
             } else {
-                DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                DynamicObject file = makeStringNode.executeMake(
+                        getContext().getPath(sourceSection.getSource()),
+                        UTF8Encoding.INSTANCE,
+                        CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects, objects.length);
             }
@@ -183,8 +203,10 @@ public abstract class UnboundMethodNodes {
             if (!superMethod.isDefined()) {
                 return nil();
             } else {
-                return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(),
-                        superMethod.getMethod().getDeclaringModule(), superMethod.getMethod());
+                return Layouts.UNBOUND_METHOD.createUnboundMethod(
+                        coreLibrary().getUnboundMethodFactory(),
+                        superMethod.getMethod().getDeclaringModule(),
+                        superMethod.getMethod());
             }
         }
 

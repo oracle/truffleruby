@@ -70,7 +70,9 @@ public abstract class AddMethodNode extends RubyBaseNode {
         if (visibility == Visibility.MODULE_FUNCTION) {
             addMethodToModule(module, method.withVisibility(Visibility.PRIVATE));
             final DynamicObject singletonClass = getSingletonClass(module);
-            addMethodToModule(singletonClass, method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
+            addMethodToModule(
+                    singletonClass,
+                    method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
         } else {
             addMethodToModule(module, method.withVisibility(visibility));
         }

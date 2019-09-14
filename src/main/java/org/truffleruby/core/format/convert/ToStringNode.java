@@ -45,8 +45,10 @@ public abstract class ToStringNode extends FormatNode {
 
     private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
 
-    public ToStringNode(boolean convertNumbersToStrings,
-            String conversionMethod, boolean inspectOnConversionFailure,
+    public ToStringNode(
+            boolean convertNumbersToStrings,
+            String conversionMethod,
+            boolean inspectOnConversionFailure,
             Object valueOnNil) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;

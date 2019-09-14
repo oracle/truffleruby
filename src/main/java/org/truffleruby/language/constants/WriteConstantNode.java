@@ -47,14 +47,17 @@ public class WriteConstantNode extends RubyNode {
             throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
         }
 
-        final RubyConstant previous = Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);
+        final RubyConstant previous = Layouts.MODULE
+                .getFields((DynamicObject) moduleObject)
+                .setConstant(getContext(), this, name, value);
         if (previous != null && previous.hasValue()) {
             warnAlreadyInitializedConstant((DynamicObject) moduleObject, name, previous.getSourceSection());
         }
         return value;
     }
 
-    private void warnAlreadyInitializedConstant(DynamicObject module, String name, SourceSection previousSourceSection) {
+    private void warnAlreadyInitializedConstant(DynamicObject module, String name,
+            SourceSection previousSourceSection) {
         if (warnAlreadyInitializedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
