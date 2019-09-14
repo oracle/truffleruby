@@ -26,7 +26,8 @@ public abstract class HashOperations {
 
     public static DynamicObject newEmptyHash(RubyContext context) {
         final DynamicObject nil = context.getCoreLibrary().getNil();
-        return context.getCoreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil, nil, false));
+        return context.getCoreLibrary().getHashFactory().newInstance(
+                Layouts.HASH.build(null, 0, null, null, nil, nil, false));
     }
 
     public static boolean verifyStore(RubyContext context, DynamicObject hash) {
@@ -54,8 +55,14 @@ public abstract class HashOperations {
                 Entry entry = entryStore[n];
 
                 while (entry != null) {
-                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
-                    assert SharedObjects.assertPropagateSharing(context, hash, entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
+                    assert SharedObjects.assertPropagateSharing(
+                            context,
+                            hash,
+                            entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
+                    assert SharedObjects.assertPropagateSharing(
+                            context,
+                            hash,
+                            entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
 
                     foundSizeBuckets++;
 
@@ -96,7 +103,8 @@ public abstract class HashOperations {
 
             assert foundSizeSequence == size : StringUtils.format("%d %d", foundSizeSequence, size);
         } else if (store.getClass() == Object[].class) {
-            assert ((Object[]) store).length == context.getOptions().HASH_PACKED_ARRAY_MAX * PackedArrayStrategy.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
+            assert ((Object[]) store).length == context.getOptions().HASH_PACKED_ARRAY_MAX *
+                    PackedArrayStrategy.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
 
             final Object[] packedStore = (Object[]) store;
 
@@ -109,7 +117,8 @@ public abstract class HashOperations {
                 final Object value = PackedArrayStrategy.getValue(packedStore, n);
 
                 assert SharedObjects.assertPropagateSharing(context, hash, key) : "unshared key in shared Hash: " + key;
-                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " + value;
+                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " +
+                        value;
             }
 
             assert firstInSequence == null;
@@ -126,7 +135,8 @@ public abstract class HashOperations {
         if (HashGuards.isNullHash(hash)) {
             return Collections.emptyIterator();
         } else if (HashGuards.isPackedHash(hash)) {
-            return PackedArrayStrategy.iterateKeyValues((Object[]) Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash));
+            return PackedArrayStrategy
+                    .iterateKeyValues((Object[]) Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash));
         } else if (HashGuards.isBucketHash(hash)) {
             return BucketsStrategy.iterateKeyValues(Layouts.HASH.getFirstInSequence(hash));
         } else {

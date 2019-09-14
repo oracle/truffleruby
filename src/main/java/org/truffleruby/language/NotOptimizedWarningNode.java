@@ -75,8 +75,10 @@ public abstract class NotOptimizedWarningNode extends RubyBaseWithoutContextNode
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
         final SourceSection userSourceSection = context.getCallStack().getTopMostUserSourceSection();
 
-        final String displayedWarning = String.format("%s: %s",
-                context.fileLine(userSourceSection), message);
+        final String displayedWarning = String.format(
+                "%s: %s",
+                context.fileLine(userSourceSection),
+                message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {
             RubyLanguage.LOGGER.log(Level.WARNING, displayedWarning);

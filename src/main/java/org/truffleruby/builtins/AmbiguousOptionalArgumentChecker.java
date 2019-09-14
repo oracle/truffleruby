@@ -28,7 +28,8 @@ public class AmbiguousOptionalArgumentChecker {
     public static boolean SUCCESS = true;
     private static boolean AVAILABLE = true;
 
-    public static void verifyNoAmbiguousOptionalArguments(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
+    public static void verifyNoAmbiguousOptionalArguments(NodeFactory<? extends RubyNode> nodeFactory,
+            CoreMethod method) {
         if (!AVAILABLE) {
             return;
         }
@@ -41,7 +42,8 @@ public class AmbiguousOptionalArgumentChecker {
     }
 
     @SuppressFBWarnings("Dm")
-    private static void verifyNoAmbiguousOptionalArgumentsWithReflection(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod methodAnnotation) {
+    private static void verifyNoAmbiguousOptionalArgumentsWithReflection(NodeFactory<? extends RubyNode> nodeFactory,
+            CoreMethod methodAnnotation) {
         if (methodAnnotation.optional() > 0 || methodAnnotation.needsBlock()) {
             final int opt = methodAnnotation.optional();
 
@@ -64,7 +66,8 @@ public class AmbiguousOptionalArgumentChecker {
                         RubyLanguage.LOGGER.warning("invalid block method parameter position for " + method);
                         continue;
                     }
-                    unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
+                    unguardedParams = unguardedParams |
+                            isParameterUnguarded(method, parameters, parameterTypes, n, errors);
                     n--; // Ignore block argument.
                 }
                 if (methodAnnotation.rest()) {
@@ -81,18 +84,21 @@ public class AmbiguousOptionalArgumentChecker {
                         RubyLanguage.LOGGER.warning("invalid optional paramenter count for " + method);
                         continue;
                     }
-                    unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
+                    unguardedParams = unguardedParams |
+                            isParameterUnguarded(method, parameters, parameterTypes, n, errors);
                 }
                 // required arguments are not checked as they should not receive a NotProvided instance.
                 if (unguardedParams) {
                     SUCCESS = false;
-                    RubyLanguage.LOGGER.warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
+                    RubyLanguage.LOGGER
+                            .warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
                 }
             }
         }
     }
 
-    private static boolean isParameterUnguarded(Method method, Parameter[] parameters, Class<?>[] types, int n, StringBuilder errors) {
+    private static boolean isParameterUnguarded(Method method, Parameter[] parameters, Class<?>[] types, int n,
+            StringBuilder errors) {
         Class<?> parameterType = types[n];
 
         Parameter parameter = parameters[n];
@@ -115,7 +121,12 @@ public class AmbiguousOptionalArgumentChecker {
         if (parameterType == Object.class && !name.startsWith("unused") && !name.startsWith("maybe")) {
             String[] guards = method.getAnnotation(Specialization.class).guards();
             if (!isGuarded(name, guards)) {
-                errors.append("\"").append(name).append("\" in ").append(methodToString(method, types, parameters)).append("\n");
+                errors
+                        .append("\"")
+                        .append(name)
+                        .append("\" in ")
+                        .append(methodToString(method, types, parameters))
+                        .append("\n");
                 return true;
             }
         }

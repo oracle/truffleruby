@@ -44,11 +44,22 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     private final boolean isLazy;
     private final boolean isSelf;
 
-    public AttrAssignParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode, boolean isLazy) {
+    public AttrAssignParseNode(
+            SourceIndexLength position,
+            ParseNode receiverNode,
+            String name,
+            ParseNode argsNode,
+            boolean isLazy) {
         this(position, receiverNode, name, argsNode, isLazy, receiverNode instanceof SelfParseNode);
     }
 
-    public AttrAssignParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode, boolean isLazy, boolean isSelf) {
+    public AttrAssignParseNode(
+            SourceIndexLength position,
+            ParseNode receiverNode,
+            String name,
+            ParseNode argsNode,
+            boolean isLazy,
+            boolean isSelf) {
         super(position);
 
         assert receiverNode != null : "receiverNode is not null";

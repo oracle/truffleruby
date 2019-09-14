@@ -70,7 +70,8 @@ public class FindDeclarationVariableNodes {
             this.defaultValue = defaultValue;
         }
 
-        @Specialization(guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" })
+        @Specialization(
+                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" })
         protected Object getVariable(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
@@ -79,7 +80,8 @@ public class FindDeclarationVariableNodes {
             return readNode.executeRead(RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth));
         }
 
-        @Specialization(guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" })
+        @Specialization(
+                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" })
         protected Object getVariableDefaultValue(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,

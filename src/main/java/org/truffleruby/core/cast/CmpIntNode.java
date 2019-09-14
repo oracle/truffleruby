@@ -72,16 +72,13 @@ public abstract class CmpIntNode extends RubyBaseNode {
 
     @TruffleBoundary
     private String formatMessage(Object receiver, Object other) {
-        return StringUtils.format("comparison of %s with %s failed",
+        return StringUtils.format(
+                "comparison of %s with %s failed",
                 Layouts.MODULE.getFields(coreLibrary().getLogicalClass(receiver)).getName(),
                 Layouts.MODULE.getFields(coreLibrary().getLogicalClass(other)).getName());
     }
 
-    @Specialization(guards = {
-            "!isInteger(value)",
-            "!isLong(value)",
-            "!isRubyBignum(value)",
-            "!isNil(value)" })
+    @Specialization(guards = { "!isInteger(value)", "!isLong(value)", "!isRubyBignum(value)", "!isNil(value)" })
     protected int cmpObject(Object value, Object receiver, Object other,
             @Cached("createPrivate()") CallDispatchHeadNode gtNode,
             @Cached("createPrivate()") CallDispatchHeadNode ltNode,

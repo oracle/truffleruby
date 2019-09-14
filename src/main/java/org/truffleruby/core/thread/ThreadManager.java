@@ -62,9 +62,11 @@ public class ThreadManager {
     @CompilationFinal private Thread rootJavaThread;
 
     private final Map<Thread, DynamicObject> foreignThreadMap = new ConcurrentHashMap<>();
-    private final ThreadLocal<DynamicObject> currentThread = ThreadLocal.withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
+    private final ThreadLocal<DynamicObject> currentThread = ThreadLocal
+            .withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
 
-    private final Set<DynamicObject> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+    private final Set<DynamicObject> runningRubyThreads = Collections
+            .newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
@@ -72,7 +74,8 @@ public class ThreadManager {
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
-    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
+    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal
+            .withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
     private int SIGVTALRM;
     private NativeFunction pthread_self;
@@ -127,7 +130,9 @@ public class ThreadManager {
 
     private Thread createJavaThread(Runnable runnable, DynamicObject fiber) {
         if (context.getOptions().SINGLE_THREADED) {
-            throw new RaiseException(context, context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
         }
 
         if (context.isPreInitializing()) {
@@ -160,7 +165,10 @@ public class ThreadManager {
     }
 
     public DynamicObject createBootThread(String info) {
-        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(packThreadFields(nil(), info));
+        final DynamicObject thread = context
+                .getCoreLibrary()
+                .getThreadFactory()
+                .newInstance(packThreadFields(nil(), info));
         setFiberManager(thread);
         return thread;
     }
@@ -168,7 +176,8 @@ public class ThreadManager {
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
         final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
         assert currentGroup != null;
-        final DynamicObject thread = allocateObjectNode.allocate(rubyClass,
+        final DynamicObject thread = allocateObjectNode.allocate(
+                rubyClass,
                 packThreadFields(currentGroup, "<uninitialized>"));
         setFiberManager(thread);
         return thread;
@@ -248,7 +257,8 @@ public class ThreadManager {
         pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
-    public void initialize(DynamicObject rubyThread, Node currentNode, String info, String sharingReason, Supplier<Object> task) {
+    public void initialize(DynamicObject rubyThread, Node currentNode, String info, String sharingReason,
+            Supplier<Object> task) {
         startSharing(rubyThread, sharingReason);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
@@ -285,9 +295,12 @@ public class ThreadManager {
     }
 
     private void rethrowOnMainThread(Node currentNode, ExitException e) {
-        context.getSafepointManager().pauseRubyThreadAndExecute(getRootThread(), currentNode, (rubyThread, actionCurrentNode) -> {
-            throw e;
-        });
+        context.getSafepointManager().pauseRubyThreadAndExecute(
+                getRootThread(),
+                currentNode,
+                (rubyThread, actionCurrentNode) -> {
+                    throw e;
+                });
     }
 
     private static void setThreadValue(RubyContext context, DynamicObject thread, Object value) {
@@ -297,7 +310,8 @@ public class ThreadManager {
         Layouts.THREAD.setValue(thread, value);
     }
 
-    private static void setException(RubyContext context, DynamicObject thread, DynamicObject exception, Node currentNode) {
+    private static void setException(RubyContext context, DynamicObject thread, DynamicObject exception,
+            Node currentNode) {
         // A Thread is always shared (Thread.list)
         SharedObjects.propagate(context, thread, exception);
 
@@ -311,10 +325,14 @@ public class ThreadManager {
         final DynamicObject mainThread = context.getThreadManager().getRootThread();
 
         if (thread != mainThread) {
-            final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
+            final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
+                    .getCoreLibrary()
+                    .getSystemExitClass();
 
-            if (!isSystemExit && (boolean) ReadObjectFieldNodeGen.getUncached().execute(thread, "@report_on_exception", true)) {
-                context.send(context.getCoreLibrary().getTruffleThreadOperationsModule(),
+            if (!isSystemExit &&
+                    (boolean) ReadObjectFieldNodeGen.getUncached().execute(thread, "@report_on_exception", true)) {
+                context.send(
+                        context.getCoreLibrary().getTruffleThreadOperationsModule(),
                         "report_exception",
                         thread,
                         exception);
@@ -368,7 +386,8 @@ public class ThreadManager {
             }
         } else {
             if (!Layouts.THREAD.getOwnedLocks(thread).isEmpty()) {
-                RubyLanguage.LOGGER.warning("could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
+                RubyLanguage.LOGGER.warning(
+                        "could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
             }
         }
 
@@ -554,7 +573,8 @@ public class ThreadManager {
     public DynamicObject getCurrentThread() {
         final DynamicObject rubyThread = currentThread.get();
         if (rubyThread == null) {
-            throw new UnsupportedOperationException("No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
+            throw new UnsupportedOperationException(
+                    "No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
         }
         return rubyThread;
     }
@@ -579,13 +599,15 @@ public class ThreadManager {
         if (currentThread != rootThread) {
             throw new UnsupportedOperationException(StringUtils.format(
                     "ThreadManager.shutdown() must be called on the root Ruby Thread (%s) but was called on %s",
-                    rootThread, currentThread));
+                    rootThread,
+                    currentThread));
         }
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 
         if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
-            throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
+            throw new UnsupportedOperationException(
+                    "ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
         }
     }
 

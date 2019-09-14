@@ -48,13 +48,22 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
     private String name;
     private final boolean isLazy;
 
-    public CallParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode,
+    public CallParseNode(
+            SourceIndexLength position,
+            ParseNode receiverNode,
+            String name,
+            ParseNode argsNode,
             ParseNode iterNode) {
         this(position, receiverNode, name, argsNode, iterNode, false);
     }
 
-    public CallParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode,
-            ParseNode iterNode, boolean isLazy) {
+    public CallParseNode(
+            SourceIndexLength position,
+            ParseNode receiverNode,
+            String name,
+            ParseNode argsNode,
+            ParseNode iterNode,
+            boolean isLazy) {
         super(position);
 
         assert receiverNode != null : "receiverNode is not null";

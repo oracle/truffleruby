@@ -31,7 +31,8 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 
-public class TruffleRubyScriptEngine extends AbstractScriptEngine implements ScriptEngine, Invocable, Compilable, AutoCloseable {
+public class TruffleRubyScriptEngine extends AbstractScriptEngine
+        implements ScriptEngine, Invocable, Compilable, AutoCloseable {
 
     private final TruffleRubyScriptEngineFactory factory;
 
@@ -71,7 +72,9 @@ public class TruffleRubyScriptEngine extends AbstractScriptEngine implements Scr
         // We parameterise scripts by wrapping them in a lambda and executing it
 
         final List<Map.Entry<String, Object>> entries = new ArrayList<>(bindings.entrySet());
-        final String parameterisedScript = parameteriseScript(script, entries.stream().map(Map.Entry::getKey).collect(Collectors.toList()));
+        final String parameterisedScript = parameteriseScript(
+                script,
+                entries.stream().map(Map.Entry::getKey).collect(Collectors.toList()));
         final Object[] values = entries.stream().map(Map.Entry::getValue).toArray();
 
         try {

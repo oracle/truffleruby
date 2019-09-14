@@ -36,8 +36,11 @@ public class ReadRestArgumentNode extends RubyNode {
     @Child private ReadRejectedKeywordArgumentsNode readRejectedKeywordArgumentsNode;
     @Child private ArrayAppendOneNode arrayAppendOneNode;
 
-    public ReadRestArgumentNode(int startIndex, int indexFromCount,
-            boolean keywordArguments, int minimumForKWargs) {
+    public ReadRestArgumentNode(
+            int startIndex,
+            int indexFromCount,
+            boolean keywordArguments,
+            int minimumForKWargs) {
         this.startIndex = startIndex;
         this.indexFromCount = indexFromCount;
         this.keywordArguments = keywordArguments;
@@ -96,7 +99,8 @@ public class ReadRestArgumentNode extends RubyNode {
                     readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
                 }
 
-                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(frame, kwargsHash);
+                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode
+                        .extractRejectedKwargs(frame, kwargsHash);
 
                 if (hasRejectedKwargs.profile(Layouts.HASH.getSize(rejectedKwargs) > 0)) {
                     if (arrayAppendOneNode == null) {

@@ -90,10 +90,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
         return value;
     }
 
-    @Specialization(guards = {
-            "!isRubyNumber(value)",
-            "!isRubyBigDecimal(value)"
-    })
+    @Specialization(guards = { "!isRubyNumber(value)", "!isRubyBigDecimal(value)" })
     protected Object doOther(Object value, int digits, RoundingMode roundingMode,
             @Cached IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,

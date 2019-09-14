@@ -98,7 +98,12 @@ public class CallStackManager {
 
     @TruffleBoundary
     public boolean callerIsSend() {
-        final Boolean isSend = iterateFrames(1, f -> true, frameInstance -> context.getCoreLibrary().isSend(getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY))));
+        final Boolean isSend = iterateFrames(
+                1,
+                f -> true,
+                frameInstance -> context
+                        .getCoreLibrary()
+                        .isSend(getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY))));
         return isSend != null && isSend;
     }
 

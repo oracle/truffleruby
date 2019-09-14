@@ -45,7 +45,12 @@ public class LexicalScope {
             receiver = RubyArguments.getSelf(frame);
         }
 
-        final Scope topScope = Scope.newBuilder(root.getName(), getVariables(context, root, frame)).node(root).receiver("self", receiver).arguments(getArguments(frame)).build();
+        final Scope topScope = Scope
+                .newBuilder(root.getName(), getVariables(context, root, frame))
+                .node(root)
+                .receiver("self", receiver)
+                .arguments(getArguments(frame))
+                .build();
 
         // TODO CS 22-Apr-19 we only support the top-most scope at the moment - not scopes captured in blocks
 
@@ -142,7 +147,8 @@ public class LexicalScope {
 
         @ExportMessage
         @TruffleBoundary
-        protected void writeMember(String member, Object value) throws UnknownIdentifierException, UnsupportedMessageException {
+        protected void writeMember(String member, Object value)
+                throws UnknownIdentifierException, UnsupportedMessageException {
             if (frame == null) {
                 throw UnsupportedMessageException.create();
             } else {

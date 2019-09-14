@@ -24,15 +24,25 @@ public class RubyCallNodeParameters {
     private final boolean isAttrAssign;
 
     public RubyCallNodeParameters(
-            RubyNode receiver, String methodName, RubyNode block, RubyNode[] arguments,
-            boolean isSplatted, boolean ignoreVisibility) {
+            RubyNode receiver,
+            String methodName,
+            RubyNode block,
+            RubyNode[] arguments,
+            boolean isSplatted,
+            boolean ignoreVisibility) {
         this(receiver, methodName, block, arguments, isSplatted, ignoreVisibility, false, false, false);
     }
 
     public RubyCallNodeParameters(
-            RubyNode receiver, String methodName, RubyNode block, RubyNode[] arguments,
-            boolean isSplatted, boolean ignoreVisibility,
-            boolean isVCall, boolean isSafeNavigation, boolean isAttrAssign) {
+            RubyNode receiver,
+            String methodName,
+            RubyNode block,
+            RubyNode[] arguments,
+            boolean isSplatted,
+            boolean ignoreVisibility,
+            boolean isVCall,
+            boolean isSafeNavigation,
+            boolean isAttrAssign) {
         this.receiver = receiver;
         this.methodName = methodName;
         this.block = block;
@@ -45,7 +55,16 @@ public class RubyCallNodeParameters {
     }
 
     public RubyCallNodeParameters withReceiverAndArguments(RubyNode receiver, RubyNode[] arguments, RubyNode block) {
-        return new RubyCallNodeParameters(receiver, methodName, block, arguments, isSplatted, ignoreVisibility, isVCall, isSafeNavigation, isAttrAssign);
+        return new RubyCallNodeParameters(
+                receiver,
+                methodName,
+                block,
+                arguments,
+                isSplatted,
+                ignoreVisibility,
+                isVCall,
+                isSafeNavigation,
+                isAttrAssign);
     }
 
     public RubyNode getReceiver() {

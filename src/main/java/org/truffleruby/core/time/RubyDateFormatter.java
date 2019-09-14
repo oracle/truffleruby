@@ -242,7 +242,11 @@ public abstract class RubyDateFormatter {
 
         Encoding enc = pattern.getEncoding();
         if (!enc.isAsciiCompatible()) {
-            throw new RaiseException(context, context.getCoreExceptions().argumentError("format should have ASCII compatible encoding", currentNode));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(
+                            "format should have ASCII compatible encoding",
+                            currentNode));
         }
         if (enc != ASCIIEncoding.INSTANCE) { // default for ByteList
             compiledPattern.add(new Token(Format.FORMAT_ENCODING, enc));
@@ -343,7 +347,8 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone, RubyContext context, Node currentNode) {
+    public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone,
+            RubyContext context, Node currentNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
@@ -517,7 +522,12 @@ public abstract class RubyDateFormatter {
             try {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
-                throw new RaiseException(context, context.getCoreExceptions().errnoError(context.getCoreLibrary().getErrnoValue("ERANGE"), "strftime", currentNode));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().errnoError(
+                                context.getCoreLibrary().getErrnoValue("ERANGE"),
+                                "strftime",
+                                currentNode));
             }
 
             // reset formatter

@@ -74,7 +74,9 @@ public class BuildInformationProcessor extends AbstractProcessor {
         while (!source.getName().equals("mxbuild")) {
             source = source.getParentFile();
             if (source == null) {
-                throw new RuntimeException("Could not find `mxbuild` in the source path for " + getClass() + ": " + codeSource.getLocation());
+                throw new RuntimeException(
+                        "Could not find `mxbuild` in the source path for " + getClass() + ": " +
+                                codeSource.getLocation());
             }
         }
         return source.getParentFile();
@@ -130,7 +132,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
         try (PrintStream stream = new PrintStream(output.openOutputStream(), true, "UTF-8")) {
             stream.println("/*\n" +
-                    " * Copyright (c) " + Calendar.getInstance().get(Calendar.YEAR) + " Oracle and/or its affiliates. All rights reserved. This\n" +
+                    " * Copyright (c) " + Calendar.getInstance().get(Calendar.YEAR) +
+                    " Oracle and/or its affiliates. All rights reserved. This\n" +
                     " * code is released under a tri EPL/GPL/LGPL license. You can use it,\n" +
                     " * redistribute it and/or modify it under the terms of the:\n" +
                     " *\n" +
@@ -145,11 +148,16 @@ public class BuildInformationProcessor extends AbstractProcessor {
             stream.println("import javax.annotation.Generated;");
             stream.println();
             stream.println("@Generated(\"" + getClass().getName() + "\")");
-            stream.println("public class " + element.getSimpleName() + SUFFIX + " implements " + element.getSimpleName() + " {");
+            stream.println(
+                    "public class " + element.getSimpleName() + SUFFIX + " implements " + element.getSimpleName() +
+                            " {");
             stream.println();
-            stream.println("    public static final " + element.getSimpleName() + " INSTANCE = new " + element.getSimpleName() + SUFFIX + "();");
+            stream.println(
+                    "    public static final " + element.getSimpleName() + " INSTANCE = new " +
+                            element.getSimpleName() + SUFFIX + "();");
             stream.println();
-            stream.println("    // This backdoor constant is just for @TruffleLanguage.Registration, which needs a constant");
+            stream.println(
+                    "    // This backdoor constant is just for @TruffleLanguage.Registration, which needs a constant");
             stream.println("    public static final String RUBY_VERSION = \"" + rubyVersion + "\";");
             stream.println();
 

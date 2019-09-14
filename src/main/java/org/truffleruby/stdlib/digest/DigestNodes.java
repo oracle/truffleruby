@@ -210,8 +210,24 @@ public abstract class DigestNodes {
          */
         public static ByteArrayBuilder bubblebabble(byte[] message, int begin, int length) {
             char[] vowels = new char[]{ 'a', 'e', 'i', 'o', 'u', 'y' };
-            char[] consonants = new char[]{ 'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
-                    'n', 'p', 'r', 's', 't', 'v', 'z', 'x' };
+            char[] consonants = new char[]{
+                    'b',
+                    'c',
+                    'd',
+                    'f',
+                    'g',
+                    'h',
+                    'k',
+                    'l',
+                    'm',
+                    'n',
+                    'p',
+                    'r',
+                    's',
+                    't',
+                    'v',
+                    'z',
+                    'x' };
 
             long seed = 1;
 

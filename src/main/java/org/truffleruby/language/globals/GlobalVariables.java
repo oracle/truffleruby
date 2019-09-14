@@ -40,7 +40,9 @@ public class GlobalVariables {
      */
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
-        return ConcurrentOperations.getOrCompute(variables, name,
+        return ConcurrentOperations.getOrCompute(
+                variables,
+                name,
                 k -> new GlobalVariableStorage(defaultValue, null, null, null));
     }
 
@@ -52,7 +54,8 @@ public class GlobalVariables {
         return define(name, new GlobalVariableStorage(value, defaultValue, null, null, null));
     }
 
-    public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+    public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter,
+            DynamicObject isDefined) {
         return define(name, new GlobalVariableStorage(defaultValue, getter, setter, isDefined));
     }
 

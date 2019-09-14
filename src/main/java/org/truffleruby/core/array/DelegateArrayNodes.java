@@ -103,7 +103,8 @@ public class DelegateArrayNodes {
         }
 
         @Specialization
-        protected void copyToOther(DelegatedArrayStorage from, Object to, int sourceStart, int destinationStart, int length,
+        protected void copyToOther(DelegatedArrayStorage from, Object to, int sourceStart, int destinationStart,
+                int length,
                 @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
             copyToNode.execute(from.storage, to, sourceStart + from.offset, destinationStart, length);
         }

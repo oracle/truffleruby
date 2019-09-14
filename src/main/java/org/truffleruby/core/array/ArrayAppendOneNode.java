@@ -66,9 +66,9 @@ public abstract class ArrayAppendOneNode extends RubyNode {
 
     // Append forcing a generalization
 
-    @Specialization(guards = {
-            "strategy.matches(array)", "valueStrategy.specializesFor(value)",
-    }, limit = "ARRAY_STRATEGIES")
+    @Specialization(
+            guards = { "strategy.matches(array)", "valueStrategy.specializesFor(value)", },
+            limit = "ARRAY_STRATEGIES")
     protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
@@ -82,7 +82,9 @@ public abstract class ArrayAppendOneNode extends RubyNode {
         final int newSize = oldSize + 1;
         final Object currentStore = Layouts.ARRAY.getStore(array);
         final int oldCapacity = capacityNode.execute(currentStore);
-        final int newCapacity = newSize > oldCapacity ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity) : oldCapacity;
+        final int newCapacity = newSize > oldCapacity
+                ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity)
+                : oldCapacity;
         final Object newStore = newStoreNode.execute(newCapacity);
         copyToNode.execute(currentStore, newStore, 0, 0, oldSize);
         propagateSharingNode.propagate(array, value);

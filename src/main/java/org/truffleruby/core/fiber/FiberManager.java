@@ -53,7 +53,8 @@ public class FiberManager {
     private final Set<DynamicObject> runningFibers = newFiberSet();
 
     private final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
-    private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal.withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
+    private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
+            .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
         this.context = context;
@@ -71,7 +72,9 @@ public class FiberManager {
     }
 
     public DynamicObject getCurrentFiber() {
-        assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this : "Trying to read the current Fiber of another Thread which is inherently racy";
+        assert Layouts.THREAD.getFiberManager(context
+                .getThreadManager()
+                .getCurrentThread()) == this : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
 
@@ -96,10 +99,12 @@ public class FiberManager {
         return createFiber(context, thread, context.getCoreLibrary().getFiberFactory(), "root Fiber for Thread");
     }
 
-    public DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory, String name) {
+    public DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory,
+            String name) {
         assert RubyGuards.isRubyThread(thread);
         CompilerAsserts.partialEvaluationConstant(context);
-        final DynamicObject fiberLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
+        final DynamicObject fiberLocals = Layouts.BASIC_OBJECT
+                .createBasicObject(context.getCoreLibrary().getObjectFactory());
         final DynamicObject catchTags = ArrayHelpers.createEmptyArray(context);
 
         return Layouts.FIBER.createFiber(
@@ -177,9 +182,15 @@ public class FiberManager {
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
         } catch (BreakException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context, context.getCoreExceptions().breakFromProcClosure(currentNode)), currentNode);
+            sendExceptionToParentFiber(
+                    fiber,
+                    new RaiseException(context, context.getCoreExceptions().breakFromProcClosure(currentNode)),
+                    currentNode);
         } catch (ReturnException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
+            sendExceptionToParentFiber(
+                    fiber,
+                    new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)),
+                    currentNode);
         } finally {
             cleanup(fiber, thread);
             thread.setName(oldName);
@@ -220,7 +231,8 @@ public class FiberManager {
     private Object[] waitForResume(DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
 
-        final FiberMessage message = context.getThreadManager().runUntilResultKeepStatus(null,
+        final FiberMessage message = context.getThreadManager().runUntilResultKeepStatus(
+                null,
                 () -> Layouts.FIBER.getMessageQueue(fiber).take());
 
         setCurrentFiber(fiber);
@@ -231,7 +243,8 @@ public class FiberManager {
             throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
-            assert context.getThreadManager().getCurrentThread() == Layouts.FIBER.getRubyThread(resumeMessage.getSendingFiber());
+            assert context.getThreadManager().getCurrentThread() == Layouts.FIBER
+                    .getRubyThread(resumeMessage.getSendingFiber());
             if (resumeMessage.getOperation() == FiberOperation.RESUME) {
                 Layouts.FIBER.setLastResumedByFiber(fiber, resumeMessage.getSendingFiber());
             }
@@ -250,7 +263,8 @@ public class FiberManager {
         addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));
     }
 
-    public Object[] transferControlTo(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation, Object[] args) {
+    public Object[] transferControlTo(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation,
+            Object[] args) {
         resume(fromFiber, fiber, operation, args);
         return waitForResume(fromFiber);
     }

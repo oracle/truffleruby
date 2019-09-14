@@ -34,17 +34,26 @@ public class TruffleStringNodes {
         @TruffleBoundary
         protected DynamicObject truncateLengthNegative(DynamicObject string, int newByteLength) {
             throw new RaiseException(
-                    getContext(), getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
+                    getContext(),
+                    getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
         }
 
-        @Specialization(guards = { "newByteLength >= 0", "isRubyString(string)", "isNewLengthTooLarge(string, newByteLength)" })
+        @Specialization(
+                guards = { "newByteLength >= 0", "isRubyString(string)", "isNewLengthTooLarge(string, newByteLength)" })
         @TruffleBoundary
         protected DynamicObject truncateLengthTooLong(DynamicObject string, int newByteLength) {
             throw new RaiseException(
-                    getContext(), getContext().getCoreExceptions().argumentError(formatTooLongError(newByteLength, rope(string)), this));
+                    getContext(),
+                    getContext()
+                            .getCoreExceptions()
+                            .argumentError(formatTooLongError(newByteLength, rope(string)), this));
         }
 
-        @Specialization(guards = { "newByteLength >= 0", "isRubyString(string)", "!isNewLengthTooLarge(string, newByteLength)" })
+        @Specialization(
+                guards = {
+                        "newByteLength >= 0",
+                        "isRubyString(string)",
+                        "!isNewLengthTooLarge(string, newByteLength)" })
         protected DynamicObject stealStorage(DynamicObject string, int newByteLength,
                 @Cached RopeNodes.SubstringNode substringNode) {
 
@@ -66,7 +75,8 @@ public class TruffleStringNodes {
 
         @TruffleBoundary
         private String formatTooLongError(int count, final Rope rope) {
-            return StringUtils.format("Invalid byte count: %d exceeds string size of %d bytes", count, rope.byteLength());
+            return StringUtils
+                    .format("Invalid byte count: %d exceeds string size of %d bytes", count, rope.byteLength());
         }
 
     }

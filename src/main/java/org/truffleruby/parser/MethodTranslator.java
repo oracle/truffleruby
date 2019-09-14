@@ -67,7 +67,14 @@ public class MethodTranslator extends BodyTranslator {
     private boolean isBlock;
     private final boolean shouldLazyTranslate;
 
-    public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext,
+    public MethodTranslator(
+            Node currentNode,
+            RubyContext context,
+            BodyTranslator parent,
+            TranslatorEnvironment environment,
+            boolean isBlock,
+            Source source,
+            ParserContext parserContext,
             ArgsParseNode argsNode) {
         super(currentNode, context, parent, environment, source, parserContext, false);
         this.isBlock = isBlock;
@@ -82,7 +89,8 @@ public class MethodTranslator extends BodyTranslator {
         }
     }
 
-    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode, ProcType type, String[] variables) {
+    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode, ProcType type,
+            String[] variables) {
         declareArguments();
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
@@ -94,29 +102,52 @@ public class MethodTranslator extends BodyTranslator {
          * follow the specs for now until we see a reason to do something else.
          */
 
-        if (argsNode.getRestArgNode() instanceof UnnamedRestArgParseNode && !((UnnamedRestArgParseNode) argsNode.getRestArgNode()).isStar()) {
+        if (argsNode.getRestArgNode() instanceof UnnamedRestArgParseNode &&
+                !((UnnamedRestArgParseNode) argsNode.getRestArgNode()).isStar()) {
             arityForCheck = arity.withRest(false);
         } else {
             arityForCheck = arity;
         }
 
         final boolean isProc = type == ProcType.PROC;
-        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, false, this).translate();
+        final RubyNode loadArguments = new LoadArgumentsTranslator(
+                currentNode,
+                argsNode,
+                context,
+                source,
+                parserContext,
+                isProc,
+                false,
+                this).translate();
 
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
-            final RubyNode readArrayNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+            final RubyNode readArrayNode = ProfileArgumentNodeGen
+                    .create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
             final RubyNode castArrayNode = ArrayCastNodeGen.create(readArrayNode);
 
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
             final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);
 
-            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, false, this);
+            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(
+                    currentNode,
+                    argsNode,
+                    context,
+                    source,
+                    parserContext,
+                    isProc,
+                    false,
+                    this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
             final RubyNode newDestructureArguments = destructureArgumentsTranslator.translate();
 
-            final RubyNode arrayWasNotNil = sequence(sourceSection,
-                    Arrays.asList(writeArrayNode, new NotNode(new IsNilNode(new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
+            final RubyNode arrayWasNotNil = sequence(
+                    sourceSection,
+                    Arrays.asList(
+                            writeArrayNode,
+                            new NotNode(
+                                    new IsNilNode(
+                                            new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)))));
 
             final RubyNode shouldDestructureAndArrayWasNotNil = new AndNode(
                     new ShouldDestructureNode(),
@@ -132,7 +163,9 @@ public class MethodTranslator extends BodyTranslator {
 
         final RubyNode checkArity = createCheckArityNode(arityForCheck);
 
-        final RubyNode preludeLambda = sequence(sourceSection, Arrays.asList(checkArity, NodeUtil.cloneNode(loadArguments)));
+        final RubyNode preludeLambda = sequence(
+                sourceSection,
+                Arrays.asList(checkArity, NodeUtil.cloneNode(loadArguments)));
 
         if (!translatingForStatement) {
             // Make sure to declare block-local variables
@@ -146,11 +179,17 @@ public class MethodTranslator extends BodyTranslator {
         body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
 
         // Procs
-        final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, NodeUtil.cloneNode(body)));
+        final RubyNode bodyProc = new CatchForProcNode(
+                composeBody(sourceSection, preludeProc, NodeUtil.cloneNode(body)));
         bodyProc.unsafeSetSourceSection(enclosing(sourceSection, body));
 
-        final RubyRootNode newRootNodeForProcs = new RubyRootNode(context, translateSourceSection(source, sourceSection), environment.getFrameDescriptor(), environment.getSharedMethodInfo(),
-                bodyProc, true);
+        final RubyRootNode newRootNodeForProcs = new RubyRootNode(
+                context,
+                translateSourceSection(source, sourceSection),
+                environment.getFrameDescriptor(),
+                environment.getSharedMethodInfo(),
+                bodyProc,
+                true);
 
         // Lambdas
         RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
@@ -158,9 +197,12 @@ public class MethodTranslator extends BodyTranslator {
         composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
 
         final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
-                context, translateSourceSection(source, sourceSection),
-                environment.getFrameDescriptor(), environment.getSharedMethodInfo(),
-                composed, true);
+                context,
+                translateSourceSection(source, sourceSection),
+                environment.getFrameDescriptor(),
+                environment.getSharedMethodInfo(),
+                composed,
+                true);
 
         // TODO CS 23-Nov-15 only the second one will get instrumented properly!
         final RootCallTarget callTargetAsLambda = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
@@ -179,8 +221,13 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final BlockDefinitionNode ret = new BlockDefinitionNode(type, environment.getSharedMethodInfo(),
-                callTargetAsProc, callTargetAsLambda, environment.getBreakID(), (FrameSlot) frameOnStackMarkerSlot);
+        final BlockDefinitionNode ret = new BlockDefinitionNode(
+                type,
+                environment.getSharedMethodInfo(),
+                callTargetAsProc,
+                callTargetAsLambda,
+                environment.getBreakID(),
+                (FrameSlot) frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }
@@ -226,7 +273,15 @@ public class MethodTranslator extends BodyTranslator {
         declareArguments();
         final Arity arity = argsNode.getArity();
 
-        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, true, this).translate();
+        final RubyNode loadArguments = new LoadArgumentsTranslator(
+                currentNode,
+                argsNode,
+                context,
+                source,
+                parserContext,
+                false,
+                true,
+                this).translate();
 
         final boolean isPrimitive = callsPrimitive(bodyNode);
 
@@ -269,7 +324,8 @@ public class MethodTranslator extends BodyTranslator {
                 CallParseNode callNode = (CallParseNode) statements.get(0);
                 ParseNode receiver = callNode.getReceiverNode();
                 // Truffle.primitive :name
-                if (callNode.getName().equals("primitive") && receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
+                if (callNode.getName().equals("primitive") && receiver instanceof ConstParseNode &&
+                        ((ConstParseNode) receiver).getName().equals("Truffle")) {
                     return true;
                 }
             }
@@ -277,7 +333,8 @@ public class MethodTranslator extends BodyTranslator {
         return false;
     }
 
-    public RootCallTarget compileMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode, ParseNode bodyNode) {
+    public RootCallTarget compileMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
+            ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
 
@@ -299,7 +356,8 @@ public class MethodTranslator extends BodyTranslator {
                 fullMethodSourceSection,
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
-                body, true);
+                body,
+                true);
 
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
@@ -317,9 +375,15 @@ public class MethodTranslator extends BodyTranslator {
     public RubyNode visitSuperNode(SuperParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(sourceSection, node.getIterNode(), node.getArgsNode(), environment.getNamedMethodName());
+        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
+                sourceSection,
+                node.getIterNode(),
+                node.getArgsNode(),
+                environment.getNamedMethodName());
 
-        final RubyNode arguments = new ReadSuperArgumentsNode(argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted());
+        final RubyNode arguments = new ReadSuperArgumentsNode(
+                argumentsAndBlock.getArguments(),
+                argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);
 
         RubyNode callNode = new SuperCallNode(arguments, block);
@@ -334,20 +398,30 @@ public class MethodTranslator extends BodyTranslator {
 
         currentCallMethodName = environment.getNamedMethodName();
 
-        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(sourceSection, node.getIterNode(), null, environment.getNamedMethodName());
+        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
+                sourceSection,
+                node.getIterNode(),
+                null,
+                environment.getNamedMethodName());
 
         boolean insideDefineMethod = false;
         MethodTranslator methodArgumentsTranslator = this;
         while (methodArgumentsTranslator.isBlock) {
             if (!(methodArgumentsTranslator.parent instanceof MethodTranslator)) {
                 return withSourceSection(sourceSection, new ZSuperOutsideMethodNode(insideDefineMethod));
-            } else if (methodArgumentsTranslator.currentCallMethodName != null && methodArgumentsTranslator.currentCallMethodName.equals("define_method")) {
+            } else if (methodArgumentsTranslator.currentCallMethodName != null &&
+                    methodArgumentsTranslator.currentCallMethodName.equals("define_method")) {
                 insideDefineMethod = true;
             }
             methodArgumentsTranslator = (MethodTranslator) methodArgumentsTranslator.parent;
         }
 
-        final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(currentNode, context, source, parserContext, this);
+        final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
+                currentNode,
+                context,
+                source,
+                parserContext,
+                this);
 
         final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;
         final SequenceNode reloadSequence = (SequenceNode) reloadTranslator.visitArgsNode(argsNode);
@@ -388,7 +462,9 @@ public class MethodTranslator extends BodyTranslator {
      * eagerly.
      */
     public TranslatorState getCurrentState() {
-        return new TranslatorState(getEnvironment().unsafeGetLexicalScope(), getEnvironment().isDynamicConstantLookup());
+        return new TranslatorState(
+                getEnvironment().unsafeGetLexicalScope(),
+                getEnvironment().isDynamicConstantLookup());
     }
 
     public void restoreState(TranslatorState state) {

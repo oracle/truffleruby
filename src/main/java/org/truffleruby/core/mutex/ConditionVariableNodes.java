@@ -54,7 +54,8 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
+        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex,
+                DynamicObject timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
@@ -66,7 +67,8 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
+        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex,
+                long durationInNanos,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
@@ -78,7 +80,8 @@ public abstract class ConditionVariableNodes {
         }
 
         @TruffleBoundary
-        private void waitInternal(DynamicObject self, ReentrantLock mutexLock, DynamicObject thread, long durationInNanos) {
+        private void waitInternal(DynamicObject self, ReentrantLock mutexLock, DynamicObject thread,
+                long durationInNanos) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             final long endNanoTime;
@@ -116,7 +119,8 @@ public abstract class ConditionVariableNodes {
 
         /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for safepoints. */
         @SuppressFBWarnings(value = "UL")
-        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock, Condition condition, long endNanoTime) {
+        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock,
+                Condition condition, long endNanoTime) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
             while (true) {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
@@ -217,7 +221,9 @@ public abstract class ConditionVariableNodes {
 
             try {
                 if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
-                    Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) + Layouts.CONDITION_VARIABLE.getWaiters(self));
+                    Layouts.CONDITION_VARIABLE.setSignals(
+                            self,
+                            Layouts.CONDITION_VARIABLE.getSignals(self) + Layouts.CONDITION_VARIABLE.getWaiters(self));
                     condition.signalAll();
                 }
             } finally {

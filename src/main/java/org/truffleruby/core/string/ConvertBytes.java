@@ -40,7 +40,14 @@ public class ConvertBytes {
     private int base;
     private final boolean badcheck;
 
-    public ConvertBytes(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, RopeNodes.BytesNode bytesNode, DynamicObject _str, int base, boolean badcheck) {
+    public ConvertBytes(
+            RubyContext context,
+            Node node,
+            FixnumOrBignumNode fixnumOrBignumNode,
+            RopeNodes.BytesNode bytesNode,
+            DynamicObject _str,
+            int base,
+            boolean badcheck) {
         final Rope rope = StringOperations.rope(_str);
 
         this.context = context;
@@ -66,7 +73,8 @@ public class ConvertBytes {
      *
      */
 
-    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode, RopeNodes.BytesNode bytesNode, DynamicObject str, int base, boolean badcheck) {
+    public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
+            RopeNodes.BytesNode bytesNode, DynamicObject str, int base, boolean badcheck) {
         return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, base, badcheck).byteListToInum();
     }
 
@@ -191,7 +199,9 @@ public class ConvertBytes {
                 break;
             default:
                 if (base < 2 || 36 < base) {
-                    throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
                 }
                 if (base <= 32) {
                     len = 5;
@@ -276,7 +286,8 @@ public class ConvertBytes {
                 }
 
                 if (overflow) {
-                    throw new ConvertBytes.ERange(negative ? ConvertBytes.ERange.Kind.Underflow : ConvertBytes.ERange.Kind.Overflow);
+                    throw new ConvertBytes.ERange(
+                            negative ? ConvertBytes.ERange.Kind.Underflow : ConvertBytes.ERange.Kind.Overflow);
                 }
 
                 if (negative) {
@@ -654,21 +665,81 @@ public class ConvertBytes {
     private static final byte[] ZERO_BYTES = new byte[]{ (byte) '0' };
 
     private static final byte[] LOWER_DIGITS = {
-            '0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'a', 'b',
-            'c', 'd', 'e', 'f', 'g', 'h',
-            'i', 'j', 'k', 'l', 'm', 'n',
-            'o', 'p', 'q', 'r', 's', 't',
-            'u', 'v', 'w', 'x', 'y', 'z'
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'a',
+            'b',
+            'c',
+            'd',
+            'e',
+            'f',
+            'g',
+            'h',
+            'i',
+            'j',
+            'k',
+            'l',
+            'm',
+            'n',
+            'o',
+            'p',
+            'q',
+            'r',
+            's',
+            't',
+            'u',
+            'v',
+            'w',
+            'x',
+            'y',
+            'z'
     };
 
     private static final byte[] UPPER_DIGITS = {
-            '0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'A', 'B',
-            'C', 'D', 'E', 'F', 'G', 'H',
-            'I', 'J', 'K', 'L', 'M', 'N',
-            'O', 'P', 'Q', 'R', 'S', 'T',
-            'U', 'V', 'W', 'X', 'Y', 'Z'
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+            'G',
+            'H',
+            'I',
+            'J',
+            'K',
+            'L',
+            'M',
+            'N',
+            'O',
+            'P',
+            'Q',
+            'R',
+            'S',
+            'T',
+            'U',
+            'V',
+            'W',
+            'X',
+            'Y',
+            'Z'
     };
 
     public static final byte[] twosComplementToUnsignedBytes(byte[] in, int shift, boolean upper) {

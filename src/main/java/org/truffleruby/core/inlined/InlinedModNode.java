@@ -25,7 +25,8 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
     @Child ModNode fixnumMod;
 
     public InlinedModNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerModAssumption,
                 context.getCoreMethods().floatModAssumption);
     }

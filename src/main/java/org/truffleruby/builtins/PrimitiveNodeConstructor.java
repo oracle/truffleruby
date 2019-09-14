@@ -33,7 +33,8 @@ public class PrimitiveNodeConstructor {
         this.annotation = annotation;
         this.factory = factory;
         if (CoreMethodNodeManager.CHECK_DSL_USAGE) {
-            LowerFixnumChecker.checkLowerFixnumArguments(factory, annotation.needsSelf() ? 1 : 0, annotation.lowerFixnum());
+            LowerFixnumChecker
+                    .checkLowerFixnumArguments(factory, annotation.needsSelf() ? 1 : 0, annotation.lowerFixnum());
         }
     }
 
@@ -53,7 +54,8 @@ public class PrimitiveNodeConstructor {
         }
 
         for (int n = 0; n < argumentsCount; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen
+                    .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             arguments[start + n] = transformArgument(readArgumentNode, n + 1);
         }
 
@@ -62,9 +64,12 @@ public class PrimitiveNodeConstructor {
         return Translator.withSourceSection(sourceSection, new CallPrimitiveNode(primitiveNode, fallback));
     }
 
-    public RubyNode createInvokePrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
+    public RubyNode createInvokePrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection,
+            RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
-            throw new Error("Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " + context.fileLine(sourceSection.toSourceSection(source)));
+            throw new Error(
+                    "Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " +
+                            context.fileLine(sourceSection.toSourceSection(source)));
         }
 
         for (int n = 0; n < arguments.length; n++) {

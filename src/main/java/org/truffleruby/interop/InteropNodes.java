@@ -81,7 +81,9 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         protected Object importFile(DynamicObject fileName) {
             try {
-                final TruffleFile file = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(fileName).intern());
+                final TruffleFile file = getContext()
+                        .getEnv()
+                        .getPublicTruffleFile(StringOperations.getString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parse(source).call();
             } catch (IOException e) {
@@ -226,7 +228,9 @@ public abstract class InteropNodes {
                 foreign = receivers.invokeMember(receiver, name, arguments);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(context, context.getCoreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException | ArityException e) {
                 exceptionProfile.enter();
                 throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), this));
@@ -1246,12 +1250,13 @@ public abstract class InteropNodes {
     @ReportPolymorphism
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {
-                "isRubyString(mimeType)",
-                "isRubyString(source)",
-                "mimeTypeEqualNode.execute(rope(mimeType), cachedMimeType)",
-                "sourceEqualNode.execute(rope(source), cachedSource)"
-        }, limit = "getCacheLimit()")
+        @Specialization(
+                guards = {
+                        "isRubyString(mimeType)",
+                        "isRubyString(source)",
+                        "mimeTypeEqualNode.execute(rope(mimeType), cachedMimeType)",
+                        "sourceEqualNode.execute(rope(source), cachedSource)" },
+                limit = "getCacheLimit()")
         protected Object evalCached(
                 DynamicObject mimeType,
                 DynamicObject source,
@@ -1306,10 +1311,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "java_instanceof?", isModuleFunction = true, required = 2)
     public abstract static class InteropJavaInstanceOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {
-                "isJavaObject(boxedInstance)",
-                "isJavaClassOrInterface(boxedJavaClass)"
-        })
+        @Specialization(guards = { "isJavaObject(boxedInstance)", "isJavaClassOrInterface(boxedJavaClass)" })
         protected boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
             final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
             if (hostInstance == null) {
@@ -1320,10 +1322,7 @@ public abstract class InteropNodes {
             }
         }
 
-        @Specialization(guards = {
-                "!isJavaObject(instance)",
-                "isJavaClassOrInterface(boxedJavaClass)"
-        })
+        @Specialization(guards = { "!isJavaObject(instance)", "isJavaClassOrInterface(boxedJavaClass)" })
         protected boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
             final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
             return javaClass.isInstance(instance);
@@ -1334,7 +1333,8 @@ public abstract class InteropNodes {
         }
 
         protected boolean isJavaClassOrInterface(TruffleObject object) {
-            return getContext().getEnv().isHostObject(object) && getContext().getEnv().asHostObject(object) instanceof Class<?>;
+            return getContext().getEnv().isHostObject(object) &&
+                    getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
 
     }
@@ -1454,7 +1454,8 @@ public abstract class InteropNodes {
 
         @Specialization
         protected boolean isJavaClass(Object value) {
-            return getContext().getEnv().isHostObject(value) && getContext().getEnv().asHostObject(value) instanceof Class;
+            return getContext().getEnv().isHostObject(value) &&
+                    getContext().getEnv().asHostObject(value) instanceof Class;
         }
 
     }

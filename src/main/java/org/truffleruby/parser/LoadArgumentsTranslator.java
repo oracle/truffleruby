@@ -106,7 +106,14 @@ public class LoadArgumentsTranslator extends Translator {
     private State state;
     private boolean firstOpt = false;
 
-    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, boolean isMethod,
+    public LoadArgumentsTranslator(
+            Node currentNode,
+            ArgsParseNode argsNode,
+            RubyContext context,
+            Source source,
+            ParserContext parserContext,
+            boolean isProc,
+            boolean isMethod,
             BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
@@ -313,7 +320,10 @@ public class LoadArgumentsTranslator extends Translator {
             return PrimitiveArrayNodeFactory.read(loadArray(sourceSection), index);
         } else {
             if (state == State.PRE) {
-                return ProfileArgumentNodeGen.create(new ReadPreArgumentNode(index, isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
+                return ProfileArgumentNodeGen.create(
+                        new ReadPreArgumentNode(
+                                index,
+                                isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
                 return new ReadPostArgumentNode(-index, hasKeywordArguments, required);
             } else {
@@ -346,7 +356,10 @@ public class LoadArgumentsTranslator extends Translator {
 
     public RubyNode saveMethodBlockArg() {
         final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().getNil());
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
+        final FrameSlot slot = methodBodyTranslator
+                .getEnvironment()
+                .getFrameDescriptor()
+                .findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
         return new WriteLocalVariableNode(slot, readNode);
     }
 
@@ -428,7 +441,13 @@ public class LoadArgumentsTranslator extends Translator {
                     }
 
                     final boolean considerRejectedKWArgs = firstOpt && hasKeywordArguments;
-                    readNode = new ReadOptionalArgumentNode(index, minimum, considerRejectedKWArgs, argsNode.hasKwargs(), required, defaultValue);
+                    readNode = new ReadOptionalArgumentNode(
+                            index,
+                            minimum,
+                            considerRejectedKWArgs,
+                            argsNode.hasKwargs(),
+                            required,
+                            defaultValue);
                 }
             }
         } else {
@@ -538,10 +557,18 @@ public class LoadArgumentsTranslator extends Translator {
                 final String name = ((INameNode) node.getRest()).getName();
 
                 if (node.getPreCount() == 0 && node.getPostCount() == 0) {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(
-                            ArrayLiteralNode.create(new RubyNode[]{ new NilLiteralNode(true) })));
+                    nilSequence.add(
+                            methodBodyTranslator
+                                    .getEnvironment()
+                                    .findOrAddLocalVarNodeDangerous(name, sourceSection)
+                                    .makeWriteNode(
+                                            ArrayLiteralNode.create(new RubyNode[]{ new NilLiteralNode(true) })));
                 } else {
-                    nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, sourceSection).makeWriteNode(ArrayLiteralNode.create(null)));
+                    nilSequence.add(
+                            methodBodyTranslator
+                                    .getEnvironment()
+                                    .findOrAddLocalVarNodeDangerous(name, sourceSection)
+                                    .makeWriteNode(ArrayLiteralNode.create(null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
                 // Don't think we need to do anything
@@ -557,7 +584,11 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         for (String parameterToClear : parametersToClearCollector.getParameters()) {
-            nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, sourceSection).makeWriteNode(nilNode(sourceSection)));
+            nilSequence.add(
+                    methodBodyTranslator
+                            .getEnvironment()
+                            .findOrAddLocalVarNodeDangerous(parameterToClear, sourceSection)
+                            .makeWriteNode(nilNode(sourceSection)));
         }
 
         if (node.getPre() != null) {
@@ -568,13 +599,18 @@ public class LoadArgumentsTranslator extends Translator {
 
         final RubyNode nil = sequence(sourceSection, nilSequence);
 
-        return sequence(sourceSection, Arrays.asList(new WriteLocalVariableNode(arraySlot,
-                SplatCastNodeGen.create(SplatCastNode.NilBehavior.ARRAY_WITH_NIL, true, readArgument(sourceSection))),
+        return sequence(sourceSection, Arrays.asList(
+                new WriteLocalVariableNode(
+                        arraySlot,
+                        SplatCastNodeGen
+                                .create(SplatCastNode.NilBehavior.ARRAY_WITH_NIL, true, readArgument(sourceSection))),
                 new IfElseNode(
                         new IsNilNode(new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)),
                         nil,
                         new IfElseNode(
-                                new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)),
+                                new ArrayIsAtLeastAsLargeAsNode(
+                                        node.getPreCount() + node.getPostCount(),
+                                        new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot)),
                                 notNilAtLeastAsLarge,
                                 notNilSmaller))));
     }
@@ -598,7 +634,9 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     protected RubyNode loadArray(SourceIndexLength sourceSection) {
-        final RubyNode node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlotStack.peek().getArraySlot());
+        final RubyNode node = new ReadLocalVariableNode(
+                LocalVariableType.FRAME_LOCAL,
+                arraySlotStack.peek().getArraySlot());
         node.unsafeSetSourceSection(sourceSection);
         return node;
     }

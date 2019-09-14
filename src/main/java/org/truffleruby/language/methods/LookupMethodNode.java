@@ -51,7 +51,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
         return executeLookupMethod(frame, self, name, false, false);
     }
 
-    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility,
+            boolean onlyLookupPublic) {
         CompilerAsserts.partialEvaluationConstant(ignoreVisibility);
         CompilerAsserts.partialEvaluationConstant(onlyLookupPublic);
         return executeLookupMethod(frame, self, name, ignoreVisibility, onlyLookupPublic);
@@ -61,10 +62,16 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
         return executeLookupMethod(frame, self, name, true, false);
     }
 
-    protected abstract InternalMethod executeLookupMethod(Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic);
+    protected abstract InternalMethod executeLookupMethod(Frame frame, Object self, String name,
+            boolean ignoreVisibility, boolean onlyLookupPublic);
 
-    @Specialization(guards = { "metaClass(metaClassNode, self) == cachedSelfMetaClass", "name == cachedName",
-            "contextReference.get() == cachedContext" }, assumptions = "methodLookupResult.getAssumptions()", limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "metaClass(metaClassNode, self) == cachedSelfMetaClass",
+                    "name == cachedName",
+                    "contextReference.get() == cachedContext" },
+            assumptions = "methodLookupResult.getAssumptions()",
+            limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
             Frame frame,
             Object self,
@@ -173,7 +180,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
     }
 
     protected MethodLookupResult doCachedLookup(
-            RubyContext context, Frame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+            RubyContext context, Frame frame, Object self, String name, boolean ignoreVisibility,
+            boolean onlyLookupPublic) {
         return lookupMethodCachedWithVisibility(context, frame, self, name, ignoreVisibility, onlyLookupPublic);
     }
 
@@ -185,7 +193,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
         final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callingFrame);
-        final MethodLookupResult method = ModuleOperations.lookupMethodCached(context.getCoreLibrary().getMetaClass(receiver), name, declarationContext);
+        final MethodLookupResult method = ModuleOperations
+                .lookupMethodCached(context.getCoreLibrary().getMetaClass(receiver), name, declarationContext);
 
         if (!method.isDefined()) {
             return method.withNoMethod();

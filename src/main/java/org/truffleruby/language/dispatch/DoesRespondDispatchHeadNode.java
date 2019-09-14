@@ -57,11 +57,20 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
         @Override
         public boolean doesRespondTo(VirtualFrame frame, Object name, Object receiver) {
             return (boolean) DSLUncachedDispatchNodeGen.getUncached().dispatch(
-                    null, receiver, name, null, RubyNode.EMPTY_ARGUMENTS, DispatchAction.RESPOND_TO_METHOD, MissingBehavior.RETURN_MISSING, true, false);
+                    null,
+                    receiver,
+                    name,
+                    null,
+                    RubyNode.EMPTY_ARGUMENTS,
+                    DispatchAction.RESPOND_TO_METHOD,
+                    MissingBehavior.RETURN_MISSING,
+                    true,
+                    false);
         }
 
         @Override
-        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
+                Object[] argumentsObjects) {
             throw new AssertionError("never called");
         }
 

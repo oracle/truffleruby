@@ -87,7 +87,13 @@ public class CoverageManager {
             return;
         }
 
-        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).sourceIs(coveredSources::contains).tagIs(LineTag.class).build(),
+        binding = instrumenter.attachExecutionEventFactory(
+                SourceSectionFilter
+                        .newBuilder()
+                        .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                        .sourceIs(coveredSources::contains)
+                        .tagIs(LineTag.class)
+                        .build(),
                 eventContext -> new ExecutionEventNode() {
 
                     @CompilationFinal private boolean configured;

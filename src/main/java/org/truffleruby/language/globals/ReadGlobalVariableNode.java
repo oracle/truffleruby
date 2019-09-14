@@ -48,7 +48,8 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
             @Cached YieldNode yieldNode) {
-        return yieldNode.executeDispatch(storage.getGetter(), BindingNodes.createBinding(getContext(), frame.materialize()));
+        return yieldNode
+                .executeDispatch(storage.getGetter(), BindingNodes.createBinding(getContext(), frame.materialize()));
     }
 
     protected int getterArity(GlobalVariableStorage storage) {

@@ -49,7 +49,9 @@ public abstract class NumericToFloatNode extends RubyBaseNode {
             return (double) result;
         } else {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(value, "Float", "to_f", result, this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeErrorCantConvertTo(value, "Float", "to_f", result, this));
         }
     }
 

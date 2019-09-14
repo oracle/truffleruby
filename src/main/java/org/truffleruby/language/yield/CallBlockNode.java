@@ -35,7 +35,8 @@ public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
         return CallBlockNodeGen.create();
     }
 
-    public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments);
+    public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self,
+            Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
     @Specialization(guards = "getBlockCallTarget(block) == cachedCallTarget", limit = "getCacheLimit()")
@@ -64,7 +65,8 @@ public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
         return callNode.call(getBlockCallTarget(block), frameArguments);
     }
 
-    private Object[] packArguments(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments) {
+    private Object[] packArguments(DeclarationContext declarationContext, DynamicObject block, Object self,
+            Object blockArgument, Object[] arguments) {
         return RubyArguments.pack(
                 Layouts.PROC.getDeclarationFrame(block),
                 null,
@@ -83,7 +85,8 @@ public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
     protected DirectCallNode createBlockCallNode(RubyContext context, DynamicObject block, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || context.getOptions().YIELD_ALWAYS_CLONE;
+        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() ||
+                context.getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();
         }

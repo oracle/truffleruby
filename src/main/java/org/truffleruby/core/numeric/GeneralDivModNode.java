@@ -100,7 +100,8 @@ public class GeneralDivModNode extends RubyBaseNode {
             integerDiv = div;
         }
 
-        if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) && CoreLibrary.fitsIntoInteger(mod)) {
+        if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) &&
+                CoreLibrary.fitsIntoInteger(mod)) {
             useFixnumPairProfile.enter();
             return createArray(new int[]{ (int) (long) integerDiv, (int) mod }, 2);
         } else if (integerDiv instanceof Long) {

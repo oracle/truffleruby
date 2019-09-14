@@ -303,9 +303,16 @@ public class RubyContext {
         Metrics.printTime("after-rehash");
 
         Metrics.printTime("before-run-delayed-initialization");
-        final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
+        final Object toRunAtInit = Layouts.MODULE
+                .getFields(coreLibrary.getTruffleBootModule())
+                .getConstant("TO_RUN_AT_INIT")
+                .getValue();
         for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
-            final Source source = Layouts.PROC.getMethod((DynamicObject) proc).getSharedMethodInfo().getSourceSection().getSource();
+            final Source source = Layouts.PROC
+                    .getMethod((DynamicObject) proc)
+                    .getSharedMethodInfo()
+                    .getSourceSection()
+                    .getSource();
             TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
             ProcOperations.rootCall((DynamicObject) proc);
             TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
@@ -344,7 +351,8 @@ public class RubyContext {
         }
 
         if ((oldHome != null) != (newHome != null)) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
+            RubyLanguage.LOGGER
+                    .fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
             return false;
         }
 
@@ -376,7 +384,8 @@ public class RubyContext {
             for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
                 assert descriptor.getName().startsWith(TruffleRuby.LANGUAGE_ID);
                 final String xName = descriptor.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
-                RubyLanguage.LOGGER.config("option " + xName + "=" + RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
+                RubyLanguage.LOGGER.config(
+                        "option " + xName + "=" + RubyOptionTypes.valueToString(options.fromDescriptor(descriptor)));
             }
         }
 
@@ -386,7 +395,8 @@ public class RubyContext {
 
     private long generateHashingSeed() {
         if (options.HASHING_DETERMINISTIC) {
-            RubyLanguage.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+            RubyLanguage.LOGGER.severe(
+                    "deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
             return 7114160726623585955L;
         } else {
             final byte[] bytes = getRandomSeedBytes(Long.BYTES);
@@ -423,7 +433,8 @@ public class RubyContext {
 
     @TruffleBoundary
     public Object send(Object object, String methodName, Object... arguments) {
-        final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName, null);
+        final InternalMethod method = ModuleOperations
+                .lookupMethodUncached(coreLibrary.getMetaClass(object), methodName, null);
         if (method == null || method.isUndefined()) {
             return null;
         }
@@ -706,9 +717,11 @@ public class RubyContext {
 
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
-            RubyLanguage.LOGGER.config(() -> String.format("trying --home=%s, expanded to %s, as the Ruby home", options.HOME, home));
+            RubyLanguage.LOGGER.config(
+                    () -> String.format("trying --home=%s, expanded to %s, as the Ruby home", options.HOME, home));
             if (!isRubyHome(home)) {
-                RubyLanguage.LOGGER.warning(String.format("--home=%s does not look like TruffleRuby's home", options.HOME));
+                RubyLanguage.LOGGER
+                        .warning(String.format("--home=%s does not look like TruffleRuby's home", options.HOME));
             }
             return home.getCanonicalPath();
         } else {
@@ -721,11 +734,17 @@ public class RubyContext {
 
         if (truffleReported != null) {
             final File home = new File(truffleReported);
-            RubyLanguage.LOGGER.config(() -> String.format("trying Truffle-reported home %s, expanded to %s, as the Ruby home", truffleReported, home));
+            RubyLanguage.LOGGER.config(() -> String.format(
+                    "trying Truffle-reported home %s, expanded to %s, as the Ruby home",
+                    truffleReported,
+                    home));
             if (isRubyHome(home)) {
                 return truffleReported;
             } else {
-                RubyLanguage.LOGGER.warning(String.format("Truffle-reported home %s does not look like TruffleRuby's home", truffleReported));
+                RubyLanguage.LOGGER.warning(
+                        String.format(
+                                "Truffle-reported home %s does not look like TruffleRuby's home",
+                                truffleReported));
             }
         } else {
             RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
@@ -737,11 +756,18 @@ public class RubyContext {
             final File canonicalLauncherPath = new File(options.LAUNCHER).getCanonicalFile();
             final File launcherDir = canonicalLauncherPath.getParentFile();
             final File candidate = launcherDir == null ? null : launcherDir.getParentFile();
-            RubyLanguage.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
+            RubyLanguage.LOGGER.config(() -> String.format(
+                    "trying home %s guessed from executable %s, as the Ruby home",
+                    candidate,
+                    options.LAUNCHER));
             if (candidate != null && isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                RubyLanguage.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));
+                RubyLanguage.LOGGER.warning(
+                        String.format(
+                                "home %s guessed from executable %s does not look like TruffleRuby's home",
+                                candidate,
+                                options.LAUNCHER));
             }
         } else {
             RubyLanguage.LOGGER.config("no launcher set, cannot determine home from it");
@@ -749,7 +775,8 @@ public class RubyContext {
 
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set --home= or use --log.level=CONFIG to see details");
+            RubyLanguage.LOGGER.warning(
+                    "could not determine TruffleRuby's home - the standard library will not be available - set --home= or use --log.level=CONFIG to see details");
         }
 
         return null;

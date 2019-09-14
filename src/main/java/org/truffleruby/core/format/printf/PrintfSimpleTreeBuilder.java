@@ -61,10 +61,14 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final DynamicObject key = context.getSymbolTable().getSymbol(RopeOperations.create(config.getNamesBytes(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+                    final DynamicObject key = context.getSymbolTable().getSymbol(RopeOperations.create(
+                            config.getNamesBytes(),
+                            USASCIIEncoding.INSTANCE,
+                            CodeRange.CR_7BIT));
                     valueNode = ReadHashValueNodeGen.create(key, new SourceNode());
                 } else if (config.getAbsoluteArgumentIndex() != null) {
-                    valueNode = ReadArgumentIndexValueNodeGen.create(config.getAbsoluteArgumentIndex(), new SourceNode());
+                    valueNode = ReadArgumentIndexValueNodeGen
+                            .create(config.getAbsoluteArgumentIndex(), new SourceNode());
                 } else {
                     valueNode = ReadValueNodeGen.create(new SourceNode());
                 }
@@ -114,8 +118,10 @@ public class PrintfSimpleTreeBuilder {
 
                         if (config.getFormat() == 'b' || config.getFormat() == 'B') {
                             node = WriteBytesNodeGen.create(
-                                    FormatIntegerBinaryNodeGen.create(format,
-                                            config.isPlus(), config.isFsharp(),
+                                    FormatIntegerBinaryNodeGen.create(
+                                            format,
+                                            config.isPlus(),
+                                            config.isFsharp(),
                                             config.isMinus(),
                                             config.isHasSpace(),
                                             config.isZero(),
@@ -124,7 +130,13 @@ public class PrintfSimpleTreeBuilder {
                                             ToIntegerNodeGen.create(valueNode)));
                         } else {
                             node = WriteBytesNodeGen.create(
-                                    FormatIntegerNodeGen.create(format, config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
+                                    FormatIntegerNodeGen.create(
+                                            format,
+                                            config.isHasSpace(),
+                                            config.isZero(),
+                                            config.isPlus(),
+                                            config.isMinus(),
+                                            config.isFsharp(),
                                             widthNode,
                                             precisionNode,
                                             ToIntegerNodeGen.create(valueNode)));
@@ -141,7 +153,12 @@ public class PrintfSimpleTreeBuilder {
                             case 'G':
                                 node = WriteBytesNodeGen.create(
                                         FormatFloatNodeGen.create(
-                                                config.getFormat(), config.isHasSpace(), config.isZero(), config.isPlus(), config.isMinus(), config.isFsharp(),
+                                                config.getFormat(),
+                                                config.isHasSpace(),
+                                                config.isZero(),
+                                                config.isPlus(),
+                                                config.isMinus(),
+                                                config.isFsharp(),
                                                 widthNode,
                                                 precisionNode,
                                                 ToDoubleWithCoercionNodeGen.create(
@@ -155,7 +172,9 @@ public class PrintfSimpleTreeBuilder {
                         switch (config.getFormat()) {
                             case 'c':
                                 node = WriteBytesNodeGen.create(
-                                        FormatCharacterNodeGen.create(config.isMinus(), widthNode,
+                                        FormatCharacterNodeGen.create(
+                                                config.isMinus(),
+                                                widthNode,
                                                 valueNode));
                                 break;
                             case 's':
@@ -164,9 +183,11 @@ public class PrintfSimpleTreeBuilder {
                                 final FormatNode conversionNode;
 
                                 if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
-                                    conversionNode = ReadStringNodeGen.create(true, conversionMethodName, false, EMPTY_BYTES, new SourceNode());
+                                    conversionNode = ReadStringNodeGen
+                                            .create(true, conversionMethodName, false, EMPTY_BYTES, new SourceNode());
                                 } else {
-                                    conversionNode = ToStringNodeGen.create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);
+                                    conversionNode = ToStringNodeGen
+                                            .create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);
                                 }
 
                                 if (config.getWidth() != null || config.isWidthStar()) {
@@ -180,7 +201,8 @@ public class PrintfSimpleTreeBuilder {
                         }
                         break;
                     default:
-                        throw new UnsupportedOperationException("unsupported type: " + config.getFormatType().toString());
+                        throw new UnsupportedOperationException(
+                                "unsupported type: " + config.getFormatType().toString());
                 }
 
             }

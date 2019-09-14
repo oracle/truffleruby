@@ -85,7 +85,8 @@ public class CoreClassProcessor extends AbstractProcessor {
             stream.println();
             stream.println("public class " + element.getSimpleName() + SUFFIX + " {");
             stream.println();
-            stream.println("    public static void setup(CoreMethodNodeManager coreMethodManager, PrimitiveManager primitiveManager) {");
+            stream.println(
+                    "    public static void setup(CoreMethodNodeManager coreMethodManager, PrimitiveManager primitiveManager) {");
 
             for (Element e : enclosedElements) {
                 if (e instanceof TypeElement) {
@@ -110,7 +111,8 @@ public class CoreClassProcessor extends AbstractProcessor {
                                 method.required() + ", " +
                                 method.optional() + ", " +
                                 method.rest() + ", " +
-                                (method.keywordAsOptional().isEmpty() ? "null" : quote(method.keywordAsOptional())) + ", " +
+                                (method.keywordAsOptional().isEmpty() ? "null" : quote(method.keywordAsOptional())) +
+                                ", " +
                                 names + ");");
                     }
 

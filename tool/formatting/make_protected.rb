@@ -1,4 +1,6 @@
-root = File.expand_path File.join __dir__, ".."
+# Make all methods with /@(Specialization|Fallback|CreateCast)/ annotations protected
+
+root = File.expand_path File.join __dir__, "..", ".."
 
 def braces(line)
   line.scan('(').size - line.scan(')').size
@@ -16,7 +18,9 @@ Dir.glob(File.join(root, "src", "**", "*.java")) do |file|
     if looking
       if braces == 0
         if line =~ /\w+(\[\])? \w+\(/
-          new_line = line.gsub(/^( *)(public |protected |private |)/, '\1protected ')
+          new_line = line.
+              # change to protected
+              gsub(/^( *)(public |protected |private |)/, '\1protected ')
           # p check: line, new_line: new_line unless line =~ /^( *)(public|protected|private)/
           # p edit: line, new_line: new_line
           new_content << new_line

@@ -45,7 +45,11 @@ public class RescueParseNode extends ParseNode {
     private final RescueBodyParseNode rescueNode;
     private final ParseNode elseNode;
 
-    public RescueParseNode(SourceIndexLength position, ParseNode bodyNode, RescueBodyParseNode rescueNode, ParseNode elseNode) {
+    public RescueParseNode(
+            SourceIndexLength position,
+            ParseNode bodyNode,
+            RescueBodyParseNode rescueNode,
+            ParseNode elseNode) {
         super(position);
         this.bodyNode = bodyNode;
         this.rescueNode = rescueNode;

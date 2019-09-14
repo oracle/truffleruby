@@ -46,8 +46,10 @@ public class MainLoader {
         byte[] sourceBytes = readAllOfStandardIn();
         final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID,
-                RopeOperations.decodeOrEscapeBinaryRope(sourceRope), path).build();
+        final Source source = Source.newBuilder(
+                TruffleRuby.LANGUAGE_ID,
+                RopeOperations.decodeOrEscapeBinaryRope(sourceRope),
+                path).build();
         return new RubySource(source, sourceRope);
     }
 

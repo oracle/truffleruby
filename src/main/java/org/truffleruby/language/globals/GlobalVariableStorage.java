@@ -41,7 +41,12 @@ public class GlobalVariableStorage {
         this(UNSET_VALUE, defaultValue, getter, setter, isDefined);
     }
 
-    GlobalVariableStorage(Object value, Object defaultValue, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+    GlobalVariableStorage(
+            Object value,
+            Object defaultValue,
+            DynamicObject getter,
+            DynamicObject setter,
+            DynamicObject isDefined) {
         assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
 
         this.defaultValue = defaultValue;

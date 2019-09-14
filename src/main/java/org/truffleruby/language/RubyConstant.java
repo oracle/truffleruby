@@ -33,11 +33,33 @@ public class RubyConstant implements ObjectGraphNode {
 
     private final SourceSection sourceSection;
 
-    public RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated, SourceSection sourceSection) {
-        this(declaringModule, name, value, isPrivate, autoload ? new AutoloadConstant(value) : null, false, isDeprecated, sourceSection);
+    public RubyConstant(
+            DynamicObject declaringModule,
+            String name,
+            Object value,
+            boolean isPrivate,
+            boolean autoload,
+            boolean isDeprecated,
+            SourceSection sourceSection) {
+        this(
+                declaringModule,
+                name,
+                value,
+                isPrivate,
+                autoload ? new AutoloadConstant(value) : null,
+                false,
+                isDeprecated,
+                sourceSection);
     }
 
-    private RubyConstant(DynamicObject declaringModule, String name, Object value, boolean isPrivate, AutoloadConstant autoloadConstant, boolean undefined, boolean isDeprecated,
+    private RubyConstant(
+            DynamicObject declaringModule,
+            String name,
+            Object value,
+            boolean isPrivate,
+            AutoloadConstant autoloadConstant,
+            boolean undefined,
+            boolean isDeprecated,
             SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
         this.declaringModule = declaringModule;
@@ -83,7 +105,15 @@ public class RubyConstant implements ObjectGraphNode {
         if (isPrivate == this.isPrivate) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, name, value, isPrivate, autoloadConstant, undefined, isDeprecated, sourceSection);
+            return new RubyConstant(
+                    declaringModule,
+                    name,
+                    value,
+                    isPrivate,
+                    autoloadConstant,
+                    undefined,
+                    isDeprecated,
+                    sourceSection);
         }
     }
 
@@ -91,7 +121,15 @@ public class RubyConstant implements ObjectGraphNode {
         if (this.isDeprecated()) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, name, value, isPrivate, autoloadConstant, undefined, true, sourceSection);
+            return new RubyConstant(
+                    declaringModule,
+                    name,
+                    value,
+                    isPrivate,
+                    autoloadConstant,
+                    undefined,
+                    true,
+                    sourceSection);
         }
     }
 

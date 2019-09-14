@@ -102,8 +102,12 @@ public class InterpolatedRegexpNode extends RubyNode {
         protected DynamicObject createRegexp(Rope[] strings) {
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
-            final DynamicObject regexp = RegexpNodes.createRubyRegexp(getContext(), this, coreLibrary().getRegexpFactory(),
-                    RopeOperations.ropeFromRopeBuilder(preprocessed), options);
+            final DynamicObject regexp = RegexpNodes.createRubyRegexp(
+                    getContext(),
+                    this,
+                    coreLibrary().getRegexpFactory(),
+                    RopeOperations.ropeFromRopeBuilder(preprocessed),
+                    options);
 
             if (options.isEncodingNone()) {
                 final Rope source = Layouts.REGEXP.getSource(regexp);

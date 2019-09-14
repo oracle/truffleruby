@@ -23,7 +23,8 @@ public abstract class InlinedNegNode extends UnaryInlinedOperationNode {
     @Child NegNode fixnumNeg;
 
     public InlinedNegNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerNegAssumption,
                 context.getCoreMethods().floatNegAssumption);
     }

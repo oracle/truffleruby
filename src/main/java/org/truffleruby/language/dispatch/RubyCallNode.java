@@ -103,13 +103,16 @@ public class RubyCallNode extends RubyNode {
         return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, DynamicObject blockObject,
+            Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(new CallDispatchHeadNode(ignoreVisibility, false, MissingBehavior.CALL_METHOD_MISSING));
+            dispatchHead = insert(
+                    new CallDispatchHeadNode(ignoreVisibility, false, MissingBehavior.CALL_METHOD_MISSING));
         }
 
-        final Object returnValue = dispatchHead.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
+        final Object returnValue = dispatchHead
+                .dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         if (isAttrAssign) {
             return argumentsObjects[argumentsObjects.length - 1];
         } else {
@@ -235,7 +238,8 @@ public class RubyCallNode extends RubyNode {
             // TODO CS-10-Apr-17 I'd like to use this but it doesn't give the same result
             // lookupMethodNode.executeLookupMethod(frame, coreLibrary().getMetaClass(receiverObject), methodName);
 
-            return ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(receiverObject), methodName, declarationContext);
+            return ModuleOperations
+                    .lookupMethodUncached(coreLibrary().getMetaClass(receiverObject), methodName, declarationContext);
         }
 
         // TODO CS-10-Apr-17 remove this boundary

@@ -50,7 +50,9 @@ public abstract class DispatchHeadNode extends RubyBaseNode {
     }
 
     public void reset(String reason) {
-        first.replace(new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction), reason);
+        first.replace(
+                new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction),
+                reason);
     }
 
     public DispatchNode getFirstDispatchNode() {

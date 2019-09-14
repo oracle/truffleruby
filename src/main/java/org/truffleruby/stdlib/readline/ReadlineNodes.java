@@ -91,7 +91,8 @@ public abstract class ReadlineNodes {
 
         @Specialization
         protected DynamicObject basicWordBreakCharacters() {
-            return makeStringNode.executeMake(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode
+                    .executeMake(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -196,7 +197,10 @@ public abstract class ReadlineNodes {
                 // is that no al M17n encodings are valid encodings in java.lang.String.
                 // We clearly need a byte[]-version of JLine since we cannot totally
                 // behave properly using Java Strings.
-                final DynamicObject ret = makeStringNode.executeMake(value, getContext().getEncodingManager().getDefaultExternalEncoding(), CodeRange.CR_UNKNOWN);
+                final DynamicObject ret = makeStringNode.executeMake(
+                        value,
+                        getContext().getEncodingManager().getDefaultExternalEncoding(),
+                        CodeRange.CR_UNKNOWN);
                 return taintNode.executeTaint(ret);
             }
         }
@@ -258,7 +262,8 @@ public abstract class ReadlineNodes {
         protected Object lineBuffer() {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
-            final DynamicObject ret = makeStringNode.executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
+            final DynamicObject ret = makeStringNode
+                    .executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             return taintNode.executeTaint(ret);
         }
 
@@ -320,7 +325,24 @@ public abstract class ReadlineNodes {
     private static class ProcCompleter implements Completer {
 
         //\t\n\"\\'`@$><=;|&{(
-        static private String[] delimiters = { " ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "(" };
+        static private String[] delimiters = {
+                " ",
+                "\t",
+                "\n",
+                "\"",
+                "\\",
+                "'",
+                "`",
+                "@",
+                "$",
+                ">",
+                "<",
+                "=",
+                ";",
+                "|",
+                "&",
+                "{",
+                "(" };
 
         private final RubyContext context;
         private final DynamicObject proc;
@@ -368,7 +390,8 @@ public abstract class ReadlineNodes {
                 buffer = buffer.substring(index + 1);
             }
 
-            DynamicObject string = StringOperations.createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+            DynamicObject string = StringOperations
+                    .createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             DynamicObject completions = (DynamicObject) context.send(proc, "call", string);
             assert RubyGuards.isRubyArray(completions);
             for (Object element : ArrayOperations.toIterable(completions)) {

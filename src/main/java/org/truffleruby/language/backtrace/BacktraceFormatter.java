@@ -46,7 +46,8 @@ public class BacktraceFormatter {
      * Flags for a backtrace exposed to Ruby via #caller, #caller_locations, Exception#backtrace and
      * Thread#backtrace.
      */
-    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS = EnumSet.of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
+    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS = EnumSet
+            .of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
 
     private final RubyContext context;
     private final EnumSet<FormattingFlags> flags;
@@ -71,7 +72,9 @@ public class BacktraceFormatter {
     // When outside a Ruby node:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(RubyLanguage.getCurrentContext(), null)
     public static String printableRubyBacktrace(RubyContext context, Node node) {
-        final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
+        final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
+                context,
+                EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
         final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
         if (backtrace.isEmpty()) {
             return "<empty backtrace>";
@@ -94,7 +97,10 @@ public class BacktraceFormatter {
     @TruffleBoundary
     public void printRubyExceptionMessageOnEnvStderr(DynamicObject rubyException) {
         final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
-        final Object message = context.send(context.getCoreLibrary().getTruffleExceptionOperationsModule(), "message_and_class", rubyException);
+        final Object message = context.send(
+                context.getCoreLibrary().getTruffleExceptionOperationsModule(),
+                "message_and_class",
+                rubyException);
         final Object messageString;
         if (RubyGuards.isRubyString(message)) {
             messageString = StringOperations.getString((DynamicObject) message);
@@ -142,7 +148,8 @@ public class BacktraceFormatter {
         final Object[] array = new Object[lines.length];
 
         for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createString(context,
+            array[n] = StringOperations.createString(
+                    context,
                     StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
         }
 
@@ -168,7 +175,8 @@ public class BacktraceFormatter {
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
-            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace(), backtrace.getOmitted());
+            final List<String> interleaved = BacktraceInterleaver
+                    .interleave(lines, backtrace.getJavaThrowable().getStackTrace(), backtrace.getOmitted());
             return interleaved.toArray(new String[interleaved.size()]);
         }
 
@@ -212,7 +220,8 @@ public class BacktraceFormatter {
             // Unavailable SourceSections are always skipped, as there is no source position information.
             // Only show core library SourceSections if the flags contain the option.
             if (sourceSection != null && sourceSection.isAvailable() &&
-                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) || isUserSourceSection(context, sourceSection))) {
+                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) ||
+                            isUserSourceSection(context, sourceSection))) {
                 reportedSourceSection = sourceSection;
                 final RootNode rootNode = callNode.getRootNode();
                 reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
@@ -290,7 +299,9 @@ public class BacktraceFormatter {
 
         final String message = ExceptionOperations.messageToString(context, exception);
 
-        final String exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName();
+        final String exceptionClass = Layouts.MODULE
+                .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception))
+                .getName();
 
         // Show the exception class at the end of the first line of the message
         final int firstLn = message.indexOf('\n');

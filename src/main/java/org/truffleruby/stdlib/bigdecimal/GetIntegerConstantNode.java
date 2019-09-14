@@ -34,7 +34,8 @@ public abstract class GetIntegerConstantNode extends RubyBaseNode {
             @Cached GetConstantNode getConstantNode,
             @Cached ToIntNode toIntNode,
             @Cached IntegerCastNode integerCastNode) {
-        final Object value = getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
+        final Object value = getConstantNode
+                .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         return integerCastNode.executeCastInt(toIntNode.executeIntOrLong(value));
     }
 

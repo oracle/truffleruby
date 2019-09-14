@@ -22,7 +22,8 @@ public class BacktraceInterleaver {
         int toOmit = omitted;
 
         while (javaIndex < javaStacktrace.length || rubyIndex < rubyBacktrace.size()) {
-            if (javaIndex >= javaStacktrace.length || (isCallBoundary(javaStacktrace[javaIndex]) && rubyIndex < rubyBacktrace.size())) {
+            if (javaIndex >= javaStacktrace.length ||
+                    (isCallBoundary(javaStacktrace[javaIndex]) && rubyIndex < rubyBacktrace.size())) {
                 if (toOmit == 0) {
                     interleaved.add(rubyBacktrace.get(rubyIndex));
                     rubyIndex++;
@@ -50,7 +51,8 @@ public class BacktraceInterleaver {
     }
 
     public static boolean isCallBoundary(StackTraceElement element) {
-        return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy") || element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
+        return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy") ||
+                element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
     }
 
     private static boolean isIntoRuby(StackTraceElement[] elements, int index) {

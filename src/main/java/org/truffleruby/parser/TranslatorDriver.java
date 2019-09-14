@@ -95,7 +95,9 @@ public class TranslatorDriver {
 
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, DynamicObject wrap, boolean ownScopeForAssignments, Node currentNode) {
-        assert parserContext.isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame;
+        assert parserContext
+                .isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " +
+                        parserContext + " " + parentFrame;
 
         final Source source = rubySource.getSource();
 
@@ -135,8 +137,13 @@ public class TranslatorDriver {
         }
 
         boolean isInlineSource = source.getName().equals("-e");
-        boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE || parserContext == ParserContext.MODULE;
-        final ParserConfiguration parserConfiguration = new ParserConfiguration(context, isInlineSource, !isEvalParse, false);
+        boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE ||
+                parserContext == ParserContext.MODULE;
+        final ParserConfiguration parserConfiguration = new ParserConfiguration(
+                context,
+                isInlineSource,
+                !isEvalParse,
+                false);
 
         if (context.getOptions().FROZEN_STRING_LITERALS) {
             parserConfiguration.setFrozenStringLiteral(true);
@@ -155,7 +162,8 @@ public class TranslatorDriver {
         // Only use the cache while loading top-level core library files, as eval() later could use
         // the same Source name but should not use the cache. For instance,
         // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
-        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL && ParserCache.INSTANCE.containsKey(source.getName())) {
+        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL &&
+                ParserCache.INSTANCE.containsKey(source.getName())) {
             node = ParserCache.INSTANCE.get(source.getName());
         } else {
             printParseTranslateExecuteMetric("before-parsing", context, source);
@@ -197,9 +205,18 @@ public class TranslatorDriver {
 
         final boolean topLevel = parserContext.isTopLevel();
         final boolean isModuleBody = topLevel;
-        final TranslatorEnvironment environment = new TranslatorEnvironment(parentEnvironment, parseEnvironment,
-                parseEnvironment.allocateReturnID(), ownScopeForAssignments, false, isModuleBody,
-                sharedMethodInfo, sharedMethodInfo.getName(), 0, null, TranslatorEnvironment.newFrameDescriptor(context));
+        final TranslatorEnvironment environment = new TranslatorEnvironment(
+                parentEnvironment,
+                parseEnvironment,
+                parseEnvironment.allocateReturnID(),
+                ownScopeForAssignments,
+                false,
+                isModuleBody,
+                sharedMethodInfo,
+                sharedMethodInfo.getName(),
+                0,
+                null,
+                TranslatorEnvironment.newFrameDescriptor(context));
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
 
@@ -213,7 +230,14 @@ public class TranslatorDriver {
 
         context.getCoverageManager().loadingSource(source);
 
-        final BodyTranslator translator = new BodyTranslator(currentNode, context, null, environment, source, parserContext, topLevel);
+        final BodyTranslator translator = new BodyTranslator(
+                currentNode,
+                context,
+                null,
+                environment,
+                source,
+                parserContext,
+                topLevel);
 
         printParseTranslateExecuteMetric("before-translate", context, source);
         RubyNode truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
@@ -229,7 +253,8 @@ public class TranslatorDriver {
 
             for (int n = 0; n < argumentNames.length; n++) {
                 final String name = argumentNames[n];
-                final RubyNode readNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
+                final RubyNode readNode = ProfileArgumentNodeGen
+                        .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
                 final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }
@@ -241,7 +266,9 @@ public class TranslatorDriver {
         // Load flip-flop states
 
         if (environment.getFlipFlopStates().size() > 0) {
-            truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(translator.initFlipFlopStates(sourceIndexLength), truffleNode));
+            truffleNode = Translator.sequence(
+                    sourceIndexLength,
+                    Arrays.asList(translator.initFlipFlopStates(sourceIndexLength), truffleNode));
         }
 
         // Catch next
@@ -280,7 +307,13 @@ public class TranslatorDriver {
             truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
         }
 
-        return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode, true);
+        return new RubyRootNode(
+                context,
+                sourceIndexLength.toSourceSection(source),
+                environment.getFrameDescriptor(),
+                sharedMethodInfo,
+                truffleNode,
+                true);
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
@@ -293,12 +326,14 @@ public class TranslatorDriver {
                 if (parentFrame != null) {
                     return RubyArguments.getMethod(parentFrame).getName();
                 } else {
-                    throw new UnsupportedOperationException("Could not determine the method name for parser context " + parserContext);
+                    throw new UnsupportedOperationException(
+                            "Could not determine the method name for parser context " + parserContext);
                 }
         }
     }
 
-    public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope, ParserConfiguration configuration) {
+    public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope,
+            ParserConfiguration configuration) {
         LexerSource lexerSource = new LexerSource(rubySource, configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
@@ -316,7 +351,9 @@ public class TranslatorDriver {
                 case UNKNOWN_ENCODING:
                 case NOT_ASCII_COMPATIBLE:
                     if (context != null) {
-                        throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), null));
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().argumentError(e.getMessage(), null));
                     } else {
                         throw e;
                     }
@@ -327,7 +364,12 @@ public class TranslatorDriver {
                     buffer.append(e.getMessage());
 
                     if (context != null) {
-                        throw new RaiseException(context, context.getCoreExceptions().syntaxError(buffer.toString(), null, rubySource.getSource().createSection(e.getLine())));
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().syntaxError(
+                                        buffer.toString(),
+                                        null,
+                                        rubySource.getSource().createSection(e.getLine())));
                     } else {
                         throw new UnsupportedOperationException(buffer.toString(), e);
                     }
@@ -353,9 +395,18 @@ public class TranslatorDriver {
                     false);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             // TODO(CS): how do we know if the frame is a block or not?
-            return new TranslatorEnvironment(environmentForFrame(context, parent), parseEnvironment, parseEnvironment.allocateReturnID(),
-                    true, false, false,
-                    sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frame.getFrameDescriptor());
+            return new TranslatorEnvironment(
+                    environmentForFrame(context, parent),
+                    parseEnvironment,
+                    parseEnvironment.allocateReturnID(),
+                    true,
+                    false,
+                    false,
+                    sharedMethodInfo,
+                    sharedMethodInfo.getName(),
+                    0,
+                    null,
+                    frame.getFrameDescriptor());
         }
     }
 

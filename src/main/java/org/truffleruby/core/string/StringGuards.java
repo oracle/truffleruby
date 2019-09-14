@@ -22,7 +22,8 @@ public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
-    public static boolean isSingleByteOptimizable(DynamicObject string, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+    public static boolean isSingleByteOptimizable(DynamicObject string,
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         final Rope rope = StringOperations.rope(string);
 
         return singleByteOptimizableNode.execute(rope);
@@ -62,7 +63,8 @@ public class StringGuards {
         return Layouts.STRING.getRope(string).byteLength() == 1;
     }
 
-    public static boolean canMemcmp(DynamicObject first, DynamicObject second, RopeNodes.SingleByteOptimizableNode singleByteNode) {
+    public static boolean canMemcmp(DynamicObject first, DynamicObject second,
+            RopeNodes.SingleByteOptimizableNode singleByteNode) {
         final Rope sourceRope = Layouts.STRING.getRope(first);
         final Rope patternRope = Layouts.STRING.getRope(second);
 
@@ -74,9 +76,12 @@ public class StringGuards {
         return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;
     }
 
-    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions, RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) && !isAsciiCompatMapping(caseMappingOptions)) ||
-                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) && caseMappingOptions != Config.CASE_ASCII_ONLY);
+    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions,
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+                !isAsciiCompatMapping(caseMappingOptions)) ||
+                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+                        caseMappingOptions != Config.CASE_ASCII_ONLY);
     }
 
 }

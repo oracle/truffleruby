@@ -124,7 +124,8 @@ public class SharedObjects {
     }
 
     public static void writeBarrier(RubyContext context, Object value) {
-        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject && !isShared(context, (DynamicObject) value)) {
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject &&
+                !isShared(context, (DynamicObject) value)) {
             shareObject(context, value);
         }
     }

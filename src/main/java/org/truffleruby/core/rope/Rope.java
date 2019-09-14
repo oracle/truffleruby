@@ -122,7 +122,8 @@ public abstract class Rope {
                 return false;
             }
 
-            return encoding == other.getEncoding() && byteLength() == other.byteLength() && Arrays.equals(getBytes(), other.getBytes());
+            return encoding == other.getEncoding() && byteLength() == other.byteLength() &&
+                    Arrays.equals(getBytes(), other.getBytes());
         }
 
         return false;

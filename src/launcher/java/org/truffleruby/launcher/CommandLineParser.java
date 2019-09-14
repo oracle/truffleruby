@@ -130,7 +130,9 @@ public class CommandLineParser {
 
                 // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise it would not be
                 // possible to determine if the value is suppose to be `true` or `"true"`.
-                final OptionDescriptor optionDescription = value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
+                final OptionDescriptor optionDescription = value != null
+                        ? OptionsCatalog.ARGV_GLOBAL_VALUES
+                        : OptionsCatalog.ARGV_GLOBAL_FLAGS;
                 // replace dashes with underscores make it a valid global variable name
                 config.appendOptionValue(optionDescription, key.replace('-', '_'));
                 if (value != null) {
@@ -146,7 +148,8 @@ public class CommandLineParser {
     }
 
     private boolean isInterpreterArgument(String argument) {
-        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') && !endOfInterpreterArguments();
+        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') &&
+                !endOfInterpreterArguments();
     }
 
     private String getArgumentError(String additionalError) {
@@ -186,7 +189,9 @@ public class CommandLineParser {
                             Integer.parseInt(temp, 8);
                             //config.setRecordSeparator(String.valueOf((char) val));
                         } catch (Exception e) {
-                            throw new CommandLineException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"), true);
+                            throw new CommandLineException(
+                                    getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"),
+                                    true);
                         }
                     }
                     //break FOR;
@@ -202,7 +207,10 @@ public class CommandLineParser {
                 case 'C':
                 case 'X':
                     disallowedInRubyOpts(argument);
-                    final String dir = grabValue(getArgumentError(" -" + argument.charAt(characterIndex) + " must be followed by a directory expression"));
+                    final String dir = grabValue(
+                            getArgumentError(
+                                    " -" + argument.charAt(characterIndex) +
+                                            " must be followed by a directory expression"));
                     config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
                     break FOR;
                 case 'd':
@@ -211,10 +219,12 @@ public class CommandLineParser {
                     break;
                 case 'e':
                     disallowedInRubyOpts(argument);
-                    final String nextArgument = grabValue(getArgumentError(" -e must be followed by an expression to report"));
+                    final String nextArgument = grabValue(
+                            getArgumentError(" -e must be followed by an expression to report"));
 
                     final ExecutionAction currentExecutionAction = config.executionAction;
-                    if (currentExecutionAction == ExecutionAction.UNSET || currentExecutionAction == ExecutionAction.INLINE) {
+                    if (currentExecutionAction == ExecutionAction.UNSET ||
+                            currentExecutionAction == ExecutionAction.INLINE) {
                         config.executionAction = ExecutionAction.INLINE;
                         config.toExecute += nextArgument + "\n";
                     } else {
@@ -238,7 +248,8 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-i");
                 case 'I':
-                    String s = grabValue(getArgumentError("-I must be followed by a directory name to add to lib path"));
+                    String s = grabValue(
+                            getArgumentError("-I must be followed by a directory name to add to lib path"));
                     for (String path : s.split(File.pathSeparator)) {
                         if (path.startsWith("~" + File.separator)) {
                             path = System.getProperty("user.home") + File.separator + path.substring(2);
@@ -351,7 +362,9 @@ public class CommandLineParser {
                                 config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                                 break;
                             default:
-                                throw new CommandLineException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"), true);
+                                throw new CommandLineException(
+                                        getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"),
+                                        true);
                         }
                     }
                     break FOR;
@@ -384,7 +397,8 @@ public class CommandLineParser {
                         } else {
                             final int secondIndex = encodingNames.indexOf(':', index + 1);
                             if (secondIndex != -1) {
-                                throw new CommandLineException("extra argument for --encoding: " + encodingNames.substring(secondIndex + 1));
+                                throw new CommandLineException(
+                                        "extra argument for --encoding: " + encodingNames.substring(secondIndex + 1));
                             }
                             config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingNames.substring(0, index));
                             config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingNames.substring(index + 1));
@@ -584,25 +598,32 @@ public class CommandLineParser {
             }
         });
 
-        FEATURES.put("did_you_mean",
+        FEATURES.put(
+                "did_you_mean",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.DID_YOU_MEAN, enable));
 
-        FEATURES.put("did-you-mean",
+        FEATURES.put(
+                "did-you-mean",
                 FEATURES.get("did_you_mean"));
 
-        FEATURES.put("gem",
+        FEATURES.put(
+                "gem",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.RUBYGEMS, enable));
 
-        FEATURES.put("gems",
+        FEATURES.put(
+                "gems",
                 FEATURES.get("gem"));
 
-        FEATURES.put("frozen-string-literal",
+        FEATURES.put(
+                "frozen-string-literal",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.FROZEN_STRING_LITERALS, enable));
 
-        FEATURES.put("frozen_string_literal",
+        FEATURES.put(
+                "frozen_string_literal",
                 FEATURES.get("frozen-string-literal"));
 
-        FEATURES.put("rubyopt",
+        FEATURES.put(
+                "rubyopt",
                 (processor, enable) -> processor.config.readRubyOptEnv = enable);
     }
 

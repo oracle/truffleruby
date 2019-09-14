@@ -53,7 +53,9 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
 
     protected abstract DynamicObject executeAllocate(DynamicObject classToAllocate, Object[] values);
 
-    @Specialization(guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" },
+            limit = "getCacheLimit()")
     protected DynamicObject allocateCached(
             DynamicObject classToAllocate,
             Object[] values,
@@ -61,7 +63,9 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached(value = "lookupAllocationReporter(context)", allowUncached = true) AllocationReporter allocationReporter) {
+            @Cached(
+                    value = "lookupAllocationReporter(context)",
+                    allowUncached = true) AllocationReporter allocationReporter) {
 
         return trace(context, allocate(context, allocationReporter, factory, values));
     }
@@ -72,7 +76,9 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     protected DynamicObject allocateUncached(
             DynamicObject classToAllocate, Object[] values,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached(value = "lookupAllocationReporter(context)", allowUncached = true) AllocationReporter allocationReporter) {
+            @Cached(
+                    value = "lookupAllocationReporter(context)",
+                    allowUncached = true) AllocationReporter allocationReporter) {
 
         return trace(context, allocate(context, allocationReporter, getInstanceFactory(classToAllocate), values));
     }
@@ -112,17 +118,22 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
 
     @TruffleBoundary
     private void callTraceAllocation(RubyContext context, DynamicObject object) {
-        final SourceSection allocatingSourceSection = context.getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
+        final SourceSection allocatingSourceSection = context
+                .getCallStack()
+                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
         final Frame allocatingFrame = context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
 
-        context.send(context.getCoreLibrary().getObjectSpaceModule(),
+        context.send(
+                context.getCoreLibrary().getObjectSpaceModule(),
                 "trace_allocation",
                 object,
-                string(context, Layouts.CLASS.getFields(context.getCoreLibrary().getLogicalClass(allocatingSelf)).getName()),
+                string(
+                        context,
+                        Layouts.CLASS.getFields(context.getCoreLibrary().getLogicalClass(allocatingSelf)).getName()),
                 context.getSymbolTable().getSymbol(allocatingMethod),
                 string(context, context.getPath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
@@ -148,7 +159,8 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
         return RubyLanguage.getCurrentContext().getOptions().ALLOCATE_CLASS_CACHE;
     }
 
-    private DynamicObject allocate(RubyContext context, AllocationReporter allocationReporter, DynamicObjectFactory factory, Object[] values) {
+    private DynamicObject allocate(RubyContext context, AllocationReporter allocationReporter,
+            DynamicObjectFactory factory, Object[] values) {
         if (allocationReporter.isActive()) {
             allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         }

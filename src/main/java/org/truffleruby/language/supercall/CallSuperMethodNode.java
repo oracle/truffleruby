@@ -33,20 +33,24 @@ public abstract class CallSuperMethodNode extends RubyBaseNode {
         return CallSuperMethodNodeGen.create();
     }
 
-    public abstract Object executeCallSuperMethod(VirtualFrame frame, Object self, Object superMethod, Object[] arguments, Object block);
+    public abstract Object executeCallSuperMethod(VirtualFrame frame, Object self, Object superMethod,
+            Object[] arguments, Object block);
 
     // superMethod is typed as Object below because it must accept "null".
     @Specialization
-    protected Object callSuperMethod(VirtualFrame frame, Object self, Object superMethodObject, Object[] arguments, Object block) {
+    protected Object callSuperMethod(VirtualFrame frame, Object self, Object superMethodObject, Object[] arguments,
+            Object block) {
         final InternalMethod superMethod = (InternalMethod) superMethodObject;
 
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getName(); // use the original name
-            final Object[] methodMissingArguments = ArrayUtils.unshift(arguments, getContext().getSymbolTable().getSymbol(name));
+            final Object[] methodMissingArguments = ArrayUtils
+                    .unshift(arguments, getContext().getSymbolTable().getSymbol(name));
             return callMethodMissing(frame, self, block, methodMissingArguments);
         }
 
-        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
+        final Object[] frameArguments = RubyArguments
+                .pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
 
         return callMethod(superMethod, frameArguments);
     }

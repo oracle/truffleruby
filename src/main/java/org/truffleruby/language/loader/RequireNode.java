@@ -83,7 +83,8 @@ public abstract class RequireNode extends RubyBaseNode {
             throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
-        final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject pathString = makeStringNode
+                .executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
@@ -118,15 +119,25 @@ public abstract class RequireNode extends RubyBaseNode {
             }
 
             if (getContext().getOptions().LOG_AUTOLOAD) {
-                RubyLanguage.LOGGER.info(() -> String.format("%s: requiring %s which is registered as an autoload for %s with %s",
-                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                        feature, autoloadConstant, autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                RubyLanguage.LOGGER
+                        .info(() -> String.format(
+                                "%s: requiring %s which is registered as an autoload for %s with %s",
+                                getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                feature,
+                                autoloadConstant,
+                                autoloadConstant.getAutoloadConstant().getAutoloadPath()));
             }
 
             boolean[] result = new boolean[1];
             Runnable require = () -> result[0] = doRequire(feature, expandedPath, pathString);
             try {
-                getConstantNode.autoloadConstant(LexicalScope.IGNORE, autoloadConstant.getDeclaringModule(), autoloadConstant.getName(), autoloadConstant, lookupConstantNode, require);
+                getConstantNode.autoloadConstant(
+                        LexicalScope.IGNORE,
+                        autoloadConstant.getDeclaringModule(),
+                        autoloadConstant.getName(),
+                        autoloadConstant,
+                        lookupConstantNode,
+                        require);
             } finally {
                 featureLoader.removeAutoload(autoloadConstant);
             }
@@ -247,7 +258,8 @@ public abstract class RequireNode extends RubyBaseNode {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                RubyLanguage.LOGGER.info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
+                RubyLanguage.LOGGER
+                        .info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
             libraries = featureLoader.loadCExtLibrary(feature, expandedPath);
@@ -262,7 +274,9 @@ public abstract class RequireNode extends RubyBaseNode {
 
         InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
         if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
-            throw new RaiseException(getContext(), coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
         requireMetric("before-execute-" + feature);
@@ -294,12 +308,21 @@ public abstract class RequireNode extends RubyBaseNode {
         }
 
         if (initObject == null) {
-            throw new RaiseException(getContext(), coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
         }
 
         if (!(initObject instanceof TruffleObject)) {
-            throw new RaiseException(getContext(),
-                    coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().loadError(
+                            String.format(
+                                    "%s() was a %s rather than a TruffleObject",
+                                    functionName,
+                                    initObject.getClass().getSimpleName()),
+                            path,
+                            null));
         }
 
         return (TruffleObject) initObject;
@@ -318,11 +341,19 @@ public abstract class RequireNode extends RubyBaseNode {
             final String message;
 
             if (linkError.contains("libc++.")) {
-                message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md", linkError);
+                message = String.format(
+                        "%s (%s)",
+                        "you may need to install LLVM and libc++ - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md",
+                        linkError);
             } else if (linkError.contains("libc++abi.")) {
-                message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md", linkError);
+                message = String.format(
+                        "%s (%s)",
+                        "you may need to install LLVM and libc++abi - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md",
+                        linkError);
             } else if (feature.equals("openssl.so")) {
-                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md",
+                message = String.format(
+                        "%s (%s)",
+                        "you may need to install the system OpenSSL library libssl - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md",
                         linkError);
             } else {
                 message = linkError;
@@ -340,8 +371,10 @@ public abstract class RequireNode extends RubyBaseNode {
 
             // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
             if (feature.contains("openssl")) {
-                message = String.format("%s (%s)",
-                        "the OpenSSL C extension was compiled against a different libssl than the one used on this system - recompile by running " + postInstallHook,
+                message = String.format(
+                        "%s (%s)",
+                        "the OpenSSL C extension was compiled against a different libssl than the one used on this system - recompile by running " +
+                                postInstallHook,
                         linkError);
             } else {
                 message = linkError;

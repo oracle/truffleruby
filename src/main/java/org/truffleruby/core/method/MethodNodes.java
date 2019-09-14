@@ -73,8 +73,11 @@ public abstract class MethodNodes {
         @Specialization(guards = "isRubyMethod(b)")
         protected boolean equal(VirtualFrame frame, DynamicObject a, DynamicObject b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
-            return referenceEqualNode.executeReferenceEqual(Layouts.METHOD.getReceiver(a), Layouts.METHOD.getReceiver(b)) &&
-                    Layouts.METHOD.getMethod(a).getDeclaringModule() == Layouts.METHOD.getMethod(b).getDeclaringModule() &&
+            return referenceEqualNode
+                    .executeReferenceEqual(Layouts.METHOD.getReceiver(a), Layouts.METHOD.getReceiver(b)) &&
+                    Layouts.METHOD.getMethod(a).getDeclaringModule() == Layouts.METHOD
+                            .getMethod(b)
+                            .getDeclaringModule() &&
                     MethodNodes.areInternalMethodEqual(Layouts.METHOD.getMethod(a), Layouts.METHOD.getMethod(b));
         }
 
@@ -148,7 +151,10 @@ public abstract class MethodNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject parameters(DynamicObject method) {
-            final ArgumentDescriptor[] argsDesc = Layouts.METHOD.getMethod(method).getSharedMethodInfo().getArgumentDescriptors();
+            final ArgumentDescriptor[] argsDesc = Layouts.METHOD
+                    .getMethod(method)
+                    .getSharedMethodInfo()
+                    .getArgumentDescriptors();
 
             return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, true);
         }
@@ -178,7 +184,10 @@ public abstract class MethodNodes {
             if (sourceSection.getSource() == null) {
                 return nil();
             } else {
-                DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                DynamicObject file = makeStringNode.executeMake(
+                        getContext().getPath(sourceSection.getSource()),
+                        UTF8Encoding.INSTANCE,
+                        CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
                 return createArray(objects, objects.length);
             }
@@ -214,7 +223,10 @@ public abstract class MethodNodes {
         @Specialization
         protected DynamicObject unbind(VirtualFrame frame, DynamicObject method) {
             final DynamicObject receiverClass = classNode.executeLogicalClass(Layouts.METHOD.getReceiver(method));
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), receiverClass, Layouts.METHOD.getMethod(method));
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(
+                    coreLibrary().getUnboundMethodFactory(),
+                    receiverClass,
+                    Layouts.METHOD.getMethod(method));
         }
 
     }
@@ -229,7 +241,10 @@ public abstract class MethodNodes {
             return proc;
         }
 
-        @Specialization(guards = "cachedMethod == internalMethod(methodObject)", limit = "getCacheLimit()", replaces = "toProcCached")
+        @Specialization(
+                guards = "cachedMethod == internalMethod(methodObject)",
+                limit = "getCacheLimit()",
+                replaces = "toProcCached")
         protected DynamicObject toProcCachedTarget(DynamicObject methodObject,
                 @Cached("internalMethod(methodObject)") InternalMethod cachedMethod,
                 @Cached("methodCallTarget(cachedMethod)") RootCallTarget callTarget) {
@@ -246,7 +261,9 @@ public abstract class MethodNodes {
 
         private DynamicObject createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
-            final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
+            final MaterializedFrame declarationFrame = Truffle
+                    .getRuntime()
+                    .createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
             return ProcOperations.createRubyProc(
                     coreLibrary().getProcFactory(),
                     ProcType.LAMBDA,
@@ -270,7 +287,13 @@ public abstract class MethodNodes {
             final RootNode oldRootNode = method.getCallTarget().getRootNode();
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
-            final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode, true);
+            final RootNode newRootNode = new RubyRootNode(
+                    getContext(),
+                    sourceSection,
+                    oldRootNode.getFrameDescriptor(),
+                    method.getSharedMethodInfo(),
+                    setReceiverNode,
+                    true);
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
 
@@ -290,7 +313,9 @@ public abstract class MethodNodes {
         protected DynamicObject methodUnimplement(DynamicObject rubyMethod) {
             final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
             Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
-                    getContext(), this, method.unimplemented());
+                    getContext(),
+                    this,
+                    method.unimplemented());
             return nil();
         }
 

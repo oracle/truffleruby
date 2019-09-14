@@ -63,17 +63,31 @@ public class ConsoleHolder {
 
     public static ConsoleHolder create(RubyContext context) {
         final DynamicObject stdin = (DynamicObject) context.getCoreLibrary().getStdin();
-        return new ConsoleHolder(context, 0, stdin, 1, null,
-                false, true, true,
-                new ReadlineNodes.RubyFileNameCompleter(), new MemoryHistory());
+        return new ConsoleHolder(
+                context,
+                0,
+                stdin,
+                1,
+                null,
+                false,
+                true,
+                true,
+                new ReadlineNodes.RubyFileNameCompleter(),
+                new MemoryHistory());
     }
 
     @TruffleBoundary
-    private ConsoleHolder(RubyContext context,
-            int inFd, DynamicObject inIo,
-            int outFd, DynamicObject outIo,
-            boolean historyEnabled, boolean paginationEnabled, boolean bellEnabled,
-            Completer completer, History history) {
+    private ConsoleHolder(
+            RubyContext context,
+            int inFd,
+            DynamicObject inIo,
+            int outFd,
+            DynamicObject outIo,
+            boolean historyEnabled,
+            boolean paginationEnabled,
+            boolean bellEnabled,
+            Completer completer,
+            History history) {
         this.context = context;
         this.in = new IoStream(context, inFd, inIo);
         this.out = new IoStream(context, outFd, outIo);
@@ -130,7 +144,12 @@ public class ConsoleHolder {
             return this;
         }
 
-        return new ConsoleHolder(context, fd, io, out.getFd(), out.getIo(),
+        return new ConsoleHolder(
+                context,
+                fd,
+                io,
+                out.getFd(),
+                out.getIo(),
                 readline.isHistoryEnabled(),
                 readline.isPaginationEnabled(),
                 readline.getBellEnabled(),
@@ -143,7 +162,12 @@ public class ConsoleHolder {
             return this;
         }
 
-        return new ConsoleHolder(context, in.getFd(), in.getIo(), fd, io,
+        return new ConsoleHolder(
+                context,
+                in.getFd(),
+                in.getIo(),
+                fd,
+                io,
                 readline.isHistoryEnabled(),
                 readline.isPaginationEnabled(),
                 readline.getBellEnabled(),

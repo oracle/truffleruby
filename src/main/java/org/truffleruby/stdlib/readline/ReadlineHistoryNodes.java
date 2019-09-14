@@ -170,7 +170,8 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
-                final DynamicObject line = makeStringNode.executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
+                final DynamicObject line = makeStringNode
+                        .executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
                 yield(block, taintNode.executeTaint(line));
             }

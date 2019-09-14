@@ -48,7 +48,12 @@ public class FlipParseNode extends ParseNode {
     // is what index in the right scope to set the value.
     private final int location;
 
-    public FlipParseNode(SourceIndexLength position, ParseNode beginNode, ParseNode endNode, boolean exclusive, int location) {
+    public FlipParseNode(
+            SourceIndexLength position,
+            ParseNode beginNode,
+            ParseNode endNode,
+            boolean exclusive,
+            int location) {
         super(position);
 
         assert beginNode != null : "beginNode is not null";

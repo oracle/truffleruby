@@ -50,7 +50,12 @@ public class ReloadArgumentsTranslator extends Translator {
     private int index = 0;
     private int restParameterIndex = -1;
 
-    public ReloadArgumentsTranslator(Node currentNode, RubyContext context, Source source, ParserContext parserContext, BodyTranslator methodBodyTranslator) {
+    public ReloadArgumentsTranslator(
+            Node currentNode,
+            RubyContext context,
+            Source source,
+            ParserContext parserContext,
+            BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.methodBodyTranslator = methodBodyTranslator;
     }
@@ -89,7 +94,10 @@ public class ReloadArgumentsTranslator extends Translator {
         }
 
         if (node.getPostCount() > 0) {
-            RubyLanguage.LOGGER.warning(String.format("post args in zsuper not yet implemented at %s%n", context.fileLine(sourceSection.toSourceSection(source))));
+            RubyLanguage.LOGGER.warning(
+                    String.format(
+                            "post args in zsuper not yet implemented at %s%n",
+                            context.fileLine(sourceSection.toSourceSection(source))));
         }
 
         RubyNode kwArgsNode = null;

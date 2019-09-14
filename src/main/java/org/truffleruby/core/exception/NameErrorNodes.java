@@ -32,7 +32,8 @@ public abstract class NameErrorNodes {
 
         @Specialization
         protected DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.NAME_ERROR.build(nil(), null, null, nil(), null, nil()));
+            return allocateObjectNode
+                    .allocate(rubyClass, Layouts.NAME_ERROR.build(nil(), null, null, nil(), null, nil()));
         }
 
     }

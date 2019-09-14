@@ -40,7 +40,13 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, text, "test.rb").build();
 
         testInContext(() -> {
-            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, null, true, null);
+            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+                    new RubySource(source),
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    null,
+                    true,
+                    null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });
@@ -48,13 +54,18 @@ public abstract class RubyTest {
 
     protected void testInContext(Runnable test) {
         try (Context context = createContext()) {
-            context.eval(org.graalvm.polyglot.Source.create(TruffleRuby.LANGUAGE_ID, "-> test { test.call }")).execute(test);
+            context.eval(org.graalvm.polyglot.Source.create(TruffleRuby.LANGUAGE_ID, "-> test { test.call }")).execute(
+                    test);
         }
     }
 
     public static Context.Builder setupContext(Context.Builder builder) {
-        return builder.allowAllAccess(true).option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString()).option(OptionsCatalog.BASICOPS_INLINE.getName(),
-                Boolean.FALSE.toString());
+        return builder
+                .allowAllAccess(true)
+                .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
+                .option(
+                        OptionsCatalog.BASICOPS_INLINE.getName(),
+                        Boolean.FALSE.toString());
     }
 
     public static Context createContext() {

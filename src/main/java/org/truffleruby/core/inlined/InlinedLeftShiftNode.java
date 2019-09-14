@@ -23,7 +23,8 @@ public abstract class InlinedLeftShiftNode extends BinaryInlinedOperationNode {
     @Child LeftShiftNode fixnumLeftShift;
 
     public InlinedLeftShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerLeftShiftAssumption);
     }
 

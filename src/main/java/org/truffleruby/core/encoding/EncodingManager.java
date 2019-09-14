@@ -75,7 +75,9 @@ public class EncodingManager {
     }
 
     private void initializeEncodings(DynamicObject encodingClass) {
-        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB.getEncodings().entryIterator();
+        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
+                .getEncodings()
+                .entryIterator();
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
@@ -89,7 +91,9 @@ public class EncodingManager {
     }
 
     private void initializeEncodingAliases(DynamicObject encodingClass) {
-        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB.getAliases().entryIterator();
+        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
+                .getAliases()
+                .entryIterator();
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
@@ -173,10 +177,13 @@ public class EncodingManager {
     @TruffleBoundary
     private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
-        assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end + "; name.length = " + name.length + ")";
+        assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
+                "; name.length = " + name.length + ")";
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        final Rope cachedRope = context.getRopeCache().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
+        final Rope cachedRope = context
+                .getRopeCache()
+                .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
 
         return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string);
@@ -243,7 +250,8 @@ public class EncodingManager {
         final int encodingIndex = encoding.getIndex();
         final DynamicObject rubyEncoding = newRubyEncoding(context, encoding, name, p, end);
 
-        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() || ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
+        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() ||
+                ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
 
         while (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size()) {
             ENCODING_LIST_BY_ENCODING_INDEX.add(null);

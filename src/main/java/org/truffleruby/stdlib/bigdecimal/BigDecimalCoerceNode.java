@@ -30,31 +30,46 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     @Specialization
     protected Object coerce(int value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
-        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
+        return coerce.call(
+                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                "coerce_integer_to_bigdecimal",
+                value);
     }
 
     @Specialization
     protected Object coerce(long value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
-        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
+        return coerce.call(
+                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                "coerce_integer_to_bigdecimal",
+                value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
     protected Object coerceBignum(DynamicObject value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
-        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_integer_to_bigdecimal", value);
+        return coerce.call(
+                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                "coerce_integer_to_bigdecimal",
+                value);
     }
 
     @Specialization
     protected Object coerce(double value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
-        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_float_to_bigdecimal", value);
+        return coerce.call(
+                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                "coerce_float_to_bigdecimal",
+                value);
     }
 
     @Specialization(guards = "isRubyRational(value)")
     protected Object coerceRational(DynamicObject value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
-        return coerce.call(getContext().getCoreLibrary().getBigDecimalOperationsModule(), "coerce_rational_to_bigdecimal", value);
+        return coerce.call(
+                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                "coerce_rational_to_bigdecimal",
+                value);
     }
 
     @Fallback

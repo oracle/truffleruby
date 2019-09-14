@@ -31,7 +31,10 @@ public class TruffleNFIPlatform {
     private final NativeFunction strnlen;
 
     public TruffleNFIPlatform(RubyContext context) {
-        defaultLibrary = (TruffleObject) context.getEnv().parse(Source.newBuilder("nfi", "default", "native").build()).call();
+        defaultLibrary = (TruffleObject) context
+                .getEnv()
+                .parse(Source.newBuilder("nfi", "default", "native").build())
+                .call();
 
         size_t = resolveType(context.getNativeConfiguration(), "size_t");
         strlen = getFunction("strlen", String.format("(pointer):%s", size_t));
@@ -53,7 +56,8 @@ public class TruffleNFIPlatform {
     private static Object invoke(TruffleObject receiver, String identifier, Object... args) {
         try {
             return InteropLibrary.getFactory().getUncached(receiver).invokeMember(receiver, identifier, args);
-        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException | UnknownIdentifierException e) {
+        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException
+                | UnknownIdentifierException e) {
             throw new JavaException(e);
         }
     }

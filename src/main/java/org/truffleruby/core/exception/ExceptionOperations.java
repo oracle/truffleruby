@@ -35,7 +35,8 @@ public abstract class ExceptionOperations {
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
         Object message = Layouts.EXCEPTION.getMessage(exception);
         if (message == null || message == context.getCoreLibrary().getNil()) {
-            final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
+            final ModuleFields exceptionClass = Layouts.MODULE
+                    .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (RubyGuards.isRubyString(message)) {
             return StringOperations.getString((DynamicObject) message);
@@ -57,38 +58,49 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+            Node node, Throwable javaException) {
         return createRubyException(context, rubyClass, message, node, null, javaException);
     }
 
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+            Node node, SourceSection sourceLocation, Throwable javaException) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
         return createRubyException(context, rubyClass, message, backtrace);
     }
 
-    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
+    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message,
+            Node node, int errno) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(node);
         return createSystemCallError(context, rubyClass, message, errno, backtrace);
     }
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Backtrace backtrace) {
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+            Backtrace backtrace) {
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(Layouts.EXCEPTION.build(message, null, backtrace, cause));
+        return Layouts.CLASS
+                .getInstanceFactory(rubyClass)
+                .newInstance(Layouts.EXCEPTION.build(message, null, backtrace, cause));
     }
 
     // because the factory is not constant
     @TruffleBoundary
-    private static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, int errno, Backtrace backtrace) {
+    private static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message,
+            int errno, Backtrace backtrace) {
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, errno));
+        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(
+                Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, errno));
     }
 
     public static DynamicObject getFormatter(String name, RubyContext context) {
-        return (DynamicObject) Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleExceptionOperationsModule()).getConstant(name).getValue();
+        return (DynamicObject) Layouts.MODULE
+                .getFields(context.getCoreLibrary().getTruffleExceptionOperationsModule())
+                .getConstant(name)
+                .getValue();
     }
 
     public static void rethrow(Throwable throwable) {

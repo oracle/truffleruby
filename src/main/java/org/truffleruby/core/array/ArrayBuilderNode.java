@@ -237,8 +237,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
-        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
-                "arrayStrategy == generalized" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(
+                guards = {
+                        "arrayStrategy.matchesStore(array)",
+                        "otherStrategy.matches(other)",
+                        "arrayStrategy == generalized" },
+                limit = "STORAGE_STRATEGIES")
         protected Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
@@ -261,8 +265,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return array;
         }
 
-        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
-                "arrayStrategy != generalized" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(
+                guards = {
+                        "arrayStrategy.matchesStore(array)",
+                        "otherStrategy.matches(other)",
+                        "arrayStrategy != generalized" },
+                limit = "STORAGE_STRATEGIES")
         protected Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
@@ -289,7 +297,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
         }
 
-        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode, ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode,
+        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode,
+                ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode,
                 ArrayNewStoreNode newStoreNode,
                 ArrayStrategy generalized) {
             final int otherSize = Layouts.ARRAY.getSize(other);

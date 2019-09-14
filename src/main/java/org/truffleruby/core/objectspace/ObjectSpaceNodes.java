@@ -75,7 +75,9 @@ public abstract class ObjectSpaceNodes {
                 }
             }
 
-            throw new RaiseException(getContext(), coreExceptions().rangeError(StringUtils.format("0x%016x is not id value", id), this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError(StringUtils.format("0x%016x is not id value", id), this));
         }
 
         @Specialization(guards = { "isRubyBignum(id)", "isLargeFixnumID(id)" })
@@ -98,7 +100,12 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    @CoreMethod(names = "each_object", isModuleFunction = true, needsBlock = true, optional = 1, returnsEnumeratorIfNoBlock = true)
+    @CoreMethod(
+            names = "each_object",
+            isModuleFunction = true,
+            needsBlock = true,
+            optional = 1,
+            returnsEnumeratorIfNoBlock = true)
     public abstract static class EachObjectNode extends YieldingCoreMethodNode {
 
         @TruffleBoundary // for the iterator
@@ -184,7 +191,9 @@ public abstract class ObjectSpaceNodes {
                 return createArray(objects, objects.length);
             } else {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentErrorWrongArgumentType(finalizer, "callable", this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentErrorWrongArgumentType(finalizer, "callable", this));
             }
         }
 
@@ -194,8 +203,11 @@ public abstract class ObjectSpaceNodes {
                 final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
                 final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
-                FinalizerReference newRef = getContext().getFinalizationService().addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode
+                        .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
+                FinalizerReference newRef = getContext()
+                        .getFinalizationService()
+                        .addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
                 if (ref != newRef) {
                     setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                 }
@@ -214,9 +226,12 @@ public abstract class ObjectSpaceNodes {
         @Specialization
         protected Object undefineFinalizer(DynamicObject object) {
             synchronized (getContext().getFinalizationService()) {
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
+                FinalizerReference ref = (FinalizerReference) getFinaliserNode
+                        .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref != null) {
-                    FinalizerReference newRef = getContext().getFinalizationService().removeFinalizers(object, ref, ObjectSpaceManager.class);
+                    FinalizerReference newRef = getContext()
+                            .getFinalizationService()
+                            .removeFinalizers(object, ref, ObjectSpaceManager.class);
                     if (ref != newRef) {
                         setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                     }

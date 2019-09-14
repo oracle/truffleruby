@@ -22,7 +22,8 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "nil?";
 
     public InlinedIsNilNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().nilClassIsNilAssumption);
     }
 
@@ -31,10 +32,12 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
         return true;
     }
 
-    @Specialization(guards = {
-            "!isForeignObject(self)",
-            "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL",
-    }, assumptions = "assumptions", limit = "1")
+    @Specialization(
+            guards = {
+                    "!isForeignObject(self)",
+                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL", },
+            assumptions = "assumptions",
+            limit = "1")
     protected boolean notNil(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode) {
         return false;

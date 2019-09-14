@@ -43,7 +43,8 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
         return TranslateExceptionNodeGen.create();
     }
 
-    public abstract RuntimeException executeTranslation(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior);
+    public abstract RuntimeException executeTranslation(Throwable throwable,
+            UnsupportedOperationBehavior unsupportedOperationBehavior);
 
     @Specialization(guards = "unsupportedOperationBehavior == cachedUnsupportedOperationBehavior")
     protected RuntimeException translate(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior,
@@ -68,7 +69,9 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
             return new RaiseException(context, translateArithmeticException(context, exception));
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
-            return new RaiseException(context, translateUnsupportedSpecialization(context, exception, unsupportedOperationBehavior));
+            return new RaiseException(
+                    context,
+                    translateUnsupportedSpecialization(context, exception, unsupportedOperationBehavior));
         } catch (TruffleFatalException exception) {
             errorProfile.enter();
             return exception;
@@ -247,7 +250,8 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
 
         final boolean truffleException = throwable instanceof TruffleException;
 
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA || (!truffleException && context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA)) {
+        if (context.getOptions().EXCEPTIONS_PRINT_JAVA ||
+                (!truffleException && context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA)) {
             throwable.printStackTrace();
 
             if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
@@ -289,8 +293,11 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
 
                 // Add the backtrace in the message as otherwise we would only see the
                 // internalError() backtrace.
-                final BacktraceFormatter formatter = new BacktraceFormatter(context, EnumSet.noneOf(FormattingFlags.class));
-                final String formattedBacktrace = formatter.formatBacktrace(rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                final BacktraceFormatter formatter = new BacktraceFormatter(
+                        context,
+                        EnumSet.noneOf(FormattingFlags.class));
+                final String formattedBacktrace = formatter
+                        .formatBacktrace(rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
                 builder.append(formattedBacktrace).append('\n');
             } else {
                 // Java exception, print it formatted like a Ruby exception

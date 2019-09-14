@@ -44,7 +44,11 @@ public class WhenParseNode extends ParseNode {
     protected final ParseNode bodyNode;
     private final ParseNode nextCase;
 
-    public WhenParseNode(SourceIndexLength position, ParseNode expressionNodes, ParseNode bodyNode, ParseNode nextCase) {
+    public WhenParseNode(
+            SourceIndexLength position,
+            ParseNode expressionNodes,
+            ParseNode bodyNode,
+            ParseNode nextCase) {
         super(position);
 
         this.expressionNodes = expressionNodes;

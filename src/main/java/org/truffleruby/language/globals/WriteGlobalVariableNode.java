@@ -50,7 +50,10 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,
             @Cached YieldNode yieldNode) {
-        yieldNode.executeDispatch(storage.getSetter(), value, BindingNodes.createBinding(getContext(), frame.materialize()));
+        yieldNode.executeDispatch(
+                storage.getSetter(),
+                value,
+                BindingNodes.createBinding(getContext(), frame.materialize()));
         return value;
     }
 

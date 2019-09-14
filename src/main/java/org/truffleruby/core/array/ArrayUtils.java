@@ -199,7 +199,8 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
-    public static int memcmp(final byte[] first, final int firstStart, final byte[] second, final int secondStart, int size) {
+    public static int memcmp(final byte[] first, final int firstStart, final byte[] second, final int secondStart,
+            int size) {
         assert firstStart + size <= first.length;
         assert secondStart + size <= second.length;
 

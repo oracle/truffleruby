@@ -92,15 +92,18 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     public void utf8Character(int count) {
         unify(FormatEncoding.UTF_8);
 
-        appendNode(sharedTreeBuilder.applyCount(count,
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
                 WriteUTF8CharacterNodeGen.create(
-                        ToLongNodeGen.create(false,
+                        ToLongNodeGen.create(
+                                false,
                                 ReadValueNodeGen.create(new SourceNode())))));
     }
 
     @Override
     public void berInteger(int count) {
-        appendNode(sharedTreeBuilder.applyCount(count,
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
                 WriteBERNodeGen.create(
                         ReadLongOrBigIntegerNodeGen.create(new SourceNode()))));
     }
@@ -146,9 +149,14 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
-        appendNode(WriteUUStringNodeGen.create(starLength.getLength(), starLength.isStar(),
-                ReadStringNodeGen.create(false, "to_str",
-                        false, context.getCoreLibrary().getNil(),
+        appendNode(WriteUUStringNodeGen.create(
+                starLength.getLength(),
+                starLength.isStar(),
+                ReadStringNodeGen.create(
+                        false,
+                        "to_str",
+                        false,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -168,9 +176,13 @@ public class SimplePackTreeBuilder implements SimplePackListener {
             }
         }
 
-        appendNode(WriteMIMEStringNodeGen.create(length,
-                ReadStringNodeGen.create(true, "to_s",
-                        true, context.getCoreLibrary().getNil(),
+        appendNode(WriteMIMEStringNodeGen.create(
+                length,
+                ReadStringNodeGen.create(
+                        true,
+                        "to_s",
+                        true,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -180,16 +192,24 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
-        appendNode(WriteBase64StringNodeGen.create(starLength.getLength(), starLength.isStar(),
-                ReadStringNodeGen.create(false, "to_str",
-                        false, context.getCoreLibrary().getNil(),
+        appendNode(WriteBase64StringNodeGen.create(
+                starLength.getLength(),
+                starLength.isStar(),
+                ReadStringNodeGen.create(
+                        false,
+                        "to_str",
+                        false,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
     @Override
     public void pointer(int count, int limit) {
-        appendNode(sharedTreeBuilder.applyCount(count,
-                writeInteger(64, ByteOrder.nativeOrder(),
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
+                writeInteger(
+                        64,
+                        ByteOrder.nativeOrder(),
                         StringToPointerNodeGen.create(
                                 ToStringObjectNodeGen.create(
                                         ReadValueNodeGen.create(
@@ -216,7 +236,8 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
     @Override
     public void nullByte(int count) {
-        appendNode((sharedTreeBuilder.applyCount(count,
+        appendNode((sharedTreeBuilder.applyCount(
+                count,
                 WriteByteNodeGen.create(
                         new LiteralFormatNode((byte) 0)))));
     }
@@ -273,14 +294,18 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 throw new IllegalArgumentException();
         }
 
-        appendNode(sharedTreeBuilder.applyCount(count,
-                writeInteger(size, byteOrder,
+        appendNode(sharedTreeBuilder.applyCount(
+                count,
+                writeInteger(
+                        size,
+                        byteOrder,
                         ReinterpretAsLongNodeGen.create(
                                 typeNode))));
     }
 
     private FormatNode writeInteger(int size, ByteOrder byteOrder) {
-        final FormatNode readNode = ToLongNodeGen.create(false,
+        final FormatNode readNode = ToLongNodeGen.create(
+                false,
                 ReadValueNodeGen.create(new SourceNode()));
 
         return writeInteger(size, byteOrder, readNode);
@@ -347,10 +372,18 @@ public class SimplePackTreeBuilder implements SimplePackListener {
             takeAll = false;
         }
 
-        appendNode(WriteBinaryStringNodeGen.create(pad, padOnNull,
-                width, padding, takeAll, appendNull,
-                ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNil(),
+        appendNode(WriteBinaryStringNodeGen.create(
+                pad,
+                padOnNull,
+                width,
+                padding,
+                takeAll,
+                appendNull,
+                ReadStringNodeGen.create(
+                        true,
+                        "to_str",
+                        false,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
 
     }
@@ -358,9 +391,15 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     private void bitString(ByteOrder byteOrder, int count) {
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
-        appendNode(WriteBitStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
-                ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNil(),
+        appendNode(WriteBitStringNodeGen.create(
+                byteOrder,
+                starLength.isStar(),
+                starLength.getLength(),
+                ReadStringNodeGen.create(
+                        true,
+                        "to_str",
+                        false,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -375,9 +414,14 @@ public class SimplePackTreeBuilder implements SimplePackListener {
             length = count;
         }
 
-        appendNode(WriteHexStringNodeGen.create(byteOrder, length,
-                ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNil(),
+        appendNode(WriteHexStringNodeGen.create(
+                byteOrder,
+                length,
+                ReadStringNodeGen.create(
+                        true,
+                        "to_str",
+                        false,
+                        context.getCoreLibrary().getNil(),
                         new SourceNode())));
 
     }

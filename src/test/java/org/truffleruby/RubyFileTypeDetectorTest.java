@@ -43,9 +43,15 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                     for (TestCase testCase : getTestCases()) {
                         TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
                         if (testCase.hasRubyMimeType) {
-                            assertEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
+                            assertEquals(
+                                    testCase.path.toString(),
+                                    TruffleRuby.MIME_TYPE,
+                                    fileTypeDetector.findMimeType(file));
                         } else {
-                            assertNotEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, fileTypeDetector.findMimeType(file));
+                            assertNotEquals(
+                                    testCase.path.toString(),
+                                    TruffleRuby.MIME_TYPE,
+                                    fileTypeDetector.findMimeType(file));
                         }
                     }
                 } catch (IOException ioe) {
@@ -59,9 +65,15 @@ public class RubyFileTypeDetectorTest extends RubyTest {
     public void testIndirect() throws IOException {
         for (TestCase testCase : getTestCases()) {
             if (testCase.hasRubyMimeType) {
-                assertEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
+                assertEquals(
+                        testCase.path.toString(),
+                        TruffleRuby.MIME_TYPE,
+                        Source.findMimeType(testCase.path.toFile()));
             } else {
-                assertNotEquals(testCase.path.toString(), TruffleRuby.MIME_TYPE, Source.findMimeType(testCase.path.toFile()));
+                assertNotEquals(
+                        testCase.path.toString(),
+                        TruffleRuby.MIME_TYPE,
+                        Source.findMimeType(testCase.path.toFile()));
             }
         }
     }
@@ -101,13 +113,44 @@ public class RubyFileTypeDetectorTest extends RubyTest {
         testCases.add(new TestCase(createFile(tempDirectory, "test.rake", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "test.gemspec", "puts 'hello'"), true, null));
         testCases.add(new TestCase(createFile(tempDirectory, "shebang", "#!/usr/bin/ruby\nputs 'hello'"), true, null));
-        testCases.add(new TestCase(createFile(tempDirectory, "env-shebang", "#!/usr/bin/env ruby\nputs 'hello'"), true, null));
-        testCases.add(new TestCase(createFile(tempDirectory, "test.norb", "# encoding: UTF-8\nputs 'hello'"), false, null));
-        testCases.add(new TestCase(createFile(tempDirectory, "encoding1.rb", "# encoding: UTF-8\nputs 'hello'"), true, StandardCharsets.UTF_8));
-        testCases.add(new TestCase(createFile(tempDirectory, "encoding2.rb", "# coding: UTF-8\nputs 'hello'"), true, StandardCharsets.UTF_8));
-        testCases.add(new TestCase(createFile(tempDirectory, "encoding3.rb", "# -*- coding: UTF-8 -*-\nputs 'hello'"), true, StandardCharsets.UTF_8));
-        testCases.add(new TestCase(createFile(tempDirectory, "shebang-encoding", "#!/usr/bin/ruby\n# encoding: UTF-8\nputs 'hello'"), true, StandardCharsets.UTF_8));
-        testCases.add(new TestCase(createFile(tempDirectory, "env-shebang-encoding", "#!/usr/bin/env ruby\n# encoding: UTF-8\nputs 'hello'"), true, StandardCharsets.UTF_8));
+        testCases.add(
+                new TestCase(
+                        createFile(tempDirectory, "env-shebang", "#!/usr/bin/env ruby\nputs 'hello'"),
+                        true,
+                        null));
+        testCases.add(
+                new TestCase(createFile(tempDirectory, "test.norb", "# encoding: UTF-8\nputs 'hello'"), false, null));
+        testCases.add(
+                new TestCase(
+                        createFile(tempDirectory, "encoding1.rb", "# encoding: UTF-8\nputs 'hello'"),
+                        true,
+                        StandardCharsets.UTF_8));
+        testCases.add(
+                new TestCase(
+                        createFile(tempDirectory, "encoding2.rb", "# coding: UTF-8\nputs 'hello'"),
+                        true,
+                        StandardCharsets.UTF_8));
+        testCases.add(
+                new TestCase(
+                        createFile(tempDirectory, "encoding3.rb", "# -*- coding: UTF-8 -*-\nputs 'hello'"),
+                        true,
+                        StandardCharsets.UTF_8));
+        testCases.add(
+                new TestCase(
+                        createFile(
+                                tempDirectory,
+                                "shebang-encoding",
+                                "#!/usr/bin/ruby\n# encoding: UTF-8\nputs 'hello'"),
+                        true,
+                        StandardCharsets.UTF_8));
+        testCases.add(
+                new TestCase(
+                        createFile(
+                                tempDirectory,
+                                "env-shebang-encoding",
+                                "#!/usr/bin/env ruby\n# encoding: UTF-8\nputs 'hello'"),
+                        true,
+                        StandardCharsets.UTF_8));
         return testCases.toArray(new TestCase[testCases.size()]);
     }
 

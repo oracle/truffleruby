@@ -39,7 +39,8 @@ public abstract class CallBoundMethodNode extends RubyBaseWithoutContextNode {
         return callInternalMethodNode.executeCallMethod(internalMethod, frameArguments);
     }
 
-    private Object[] packArguments(DynamicObject method, InternalMethod internalMethod, Object[] arguments, DynamicObject block) {
+    private Object[] packArguments(DynamicObject method, InternalMethod internalMethod, Object[] arguments,
+            DynamicObject block) {
         return RubyArguments.pack(
                 null,
                 null,

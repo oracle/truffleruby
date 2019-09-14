@@ -899,7 +899,8 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean matchesStore(Object store) {
-            return store instanceof DelegatedArrayStorage && typeStrategy.matchesStore(((DelegatedArrayStorage) store).storage);
+            return store instanceof DelegatedArrayStorage &&
+                    typeStrategy.matchesStore(((DelegatedArrayStorage) store).storage);
         }
 
         @TruffleBoundary

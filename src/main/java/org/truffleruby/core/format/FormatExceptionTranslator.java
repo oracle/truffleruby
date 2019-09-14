@@ -35,7 +35,9 @@ public abstract class FormatExceptionTranslator {
             return new RaiseException(context, coreExceptions.argumentErrorTooFewArguments(currentNode));
         } else if (exception instanceof NoImplicitConversionException) {
             final NoImplicitConversionException e = (NoImplicitConversionException) exception;
-            return new RaiseException(context, coreExceptions.typeErrorNoImplicitConversion(e.getObject(), e.getTarget(), currentNode));
+            return new RaiseException(
+                    context,
+                    coreExceptions.typeErrorNoImplicitConversion(e.getObject(), e.getTarget(), currentNode));
         } else if (exception instanceof OutsideOfStringException) {
             return new RaiseException(context, coreExceptions.argumentErrorXOutsideOfString(currentNode));
         } else if (exception instanceof CantCompressNegativeException) {

@@ -99,8 +99,15 @@ public abstract class ByteArrayNodes {
             final int newLength = prependLength + originalLength;
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
-            System.arraycopy(Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(), 0, prependedBytes, prependLength, originalLength);
-            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
+            System.arraycopy(
+                    Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(),
+                    0,
+                    prependedBytes,
+                    prependLength,
+                    originalLength);
+            return ByteArrayNodes.createByteArray(
+                    coreLibrary().getByteArrayFactory(),
+                    ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
         }
 
     }
@@ -126,7 +133,8 @@ public abstract class ByteArrayNodes {
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
+        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart,
+                int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
@@ -136,7 +144,8 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = "isRubyPointer(pointer)")
-        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
+        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart,
+                int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 
@@ -208,7 +217,11 @@ public abstract class ByteArrayNodes {
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
-            final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));
+            final int index = indexOf(
+                    Layouts.BYTE_ARRAY.getBytes(bytes),
+                    start,
+                    length,
+                    bytesNode.execute(patternRope));
 
             if (notFoundProfile.profile(index == -1)) {
                 return nil();

@@ -67,7 +67,10 @@ public class Backtrace {
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
-        RaiseException newRaiseException = new RaiseException(context, exception, this.raiseException.isInternalError());
+        RaiseException newRaiseException = new RaiseException(
+                context,
+                exception,
+                this.raiseException.isInternalError());
         // Copy the TruffleStackTrace
         TruffleStackTrace.fillIn(this.raiseException);
         assert this.raiseException.getCause() != null;

@@ -126,7 +126,9 @@ public class ThreadBacktraceLocationNodes {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
             final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 
-            final String description = getContext().getUserBacktraceFormatter().formatLine(backtrace.getActivations(), activationIndex, null);
+            final String description = getContext()
+                    .getUserBacktraceFormatter()
+                    .formatLine(backtrace.getActivations(), activationIndex, null);
             return makeStringNode.executeMake(description, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 

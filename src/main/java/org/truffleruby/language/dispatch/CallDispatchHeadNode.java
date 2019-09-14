@@ -62,11 +62,20 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         @TruffleBoundary
         public Object callWithBlock(Object receiver, String methodName, DynamicObject block, Object... arguments) {
             return DSLUncachedDispatchNodeGen.getUncached().dispatch(
-                    null, receiver, methodName, block, arguments, DispatchAction.CALL_METHOD, MissingBehavior.CALL_METHOD_MISSING, true, false);
+                    null,
+                    receiver,
+                    methodName,
+                    block,
+                    arguments,
+                    DispatchAction.CALL_METHOD,
+                    MissingBehavior.CALL_METHOD_MISSING,
+                    true,
+                    false);
         }
 
         @Override
-        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject, Object[] argumentsObjects) {
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
+                Object[] argumentsObjects) {
             throw new AssertionError("never called");
         }
 
@@ -91,7 +100,10 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         }
     }
 
-    private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY = new Uncached(true, false, MissingBehavior.CALL_METHOD_MISSING);
+    private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY = new Uncached(
+            true,
+            false,
+            MissingBehavior.CALL_METHOD_MISSING);
 
     // FIXME (pitr 29-Jul-2019): this only matches common createPrivate
     public static CallDispatchHeadNode getUncached() {

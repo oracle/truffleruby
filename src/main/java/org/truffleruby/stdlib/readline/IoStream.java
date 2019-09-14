@@ -68,7 +68,10 @@ public class IoStream {
                     break;
 
                 default:
-                    out = new OutputStreamAdapter(context, io, context.getEncodingManager().getDefaultExternalEncoding());
+                    out = new OutputStreamAdapter(
+                            context,
+                            io,
+                            context.getEncodingManager().getDefaultExternalEncoding());
             }
         }
 

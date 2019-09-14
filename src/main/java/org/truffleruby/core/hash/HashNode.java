@@ -52,7 +52,8 @@ public class HashNode extends RubyBaseNode {
                 coerceToIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            final Object coercedHashedObject = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
+            final Object coercedHashedObject = coerceToIntNode
+                    .call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
                 return (int) coercedHashedObject;

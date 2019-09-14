@@ -99,7 +99,8 @@ public abstract class MutexOperations {
         lock.unlock();
     }
 
-    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode, BranchProfile errorProfile) {
+    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode,
+            BranchProfile errorProfile) {
         if (!lock.isHeldByCurrentThread()) {
             errorProfile.enter();
             if (!lock.isLocked()) {

@@ -34,10 +34,12 @@ public abstract class ArrayDupNode extends RubyBaseNode {
 
     public abstract DynamicObject executeDup(VirtualFrame frame, DynamicObject array);
 
-    @Specialization(guards = {
-            "strategy.matches(from)", "strategy.getSize(from) == cachedSize",
-            "cachedSize <= ARRAY_MAX_EXPLODE_SIZE"
-    }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = {
+                    "strategy.matches(from)",
+                    "strategy.getSize(from) == cachedSize",
+                    "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
+            limit = "getCacheLimit()")
     protected DynamicObject dupProfiledSize(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
@@ -49,7 +51,8 @@ public abstract class ArrayDupNode extends RubyBaseNode {
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(ArrayNewStoreNode newStoreNode, ArrayGetNode getNode, ArraySetNode setNode, DynamicObject from, int cachedSize) {
+    private DynamicObject copyArraySmall(ArrayNewStoreNode newStoreNode, ArrayGetNode getNode, ArraySetNode setNode,
+            DynamicObject from, int cachedSize) {
         final Object original = Layouts.ARRAY.getStore(from);
         final Object copy = newStoreNode.execute(cachedSize);
         for (int i = 0; i < cachedSize; i++) {

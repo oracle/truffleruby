@@ -106,7 +106,8 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             // TimeZone.getDefault() returns the image build time zone on SVM.
             final Path localtime = Paths.get("/etc/localtime");
             if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                RubyLanguage.LOGGER.config("could not find timezone (/etc/localtime does not exist), using UTC instead");
+                RubyLanguage.LOGGER
+                        .config("could not find timezone (/etc/localtime does not exist), using UTC instead");
                 return UTC;
             }
 
@@ -136,7 +137,8 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
         final int index = resolved.indexOf("zoneinfo/");
         if (index == -1) {
-            RubyLanguage.LOGGER.config("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
+            RubyLanguage.LOGGER.config(
+                    "could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
             return "UTC";
         }
 
@@ -149,7 +151,8 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
         final Path zoneinfo = Paths.get("/usr/share/zoneinfo");
         final Optional<Path> same = Files.walk(zoneinfo).filter(path -> {
             final String filename = path.getFileName().toString();
-            if (filename.startsWith(".") || filename.equals("ROC") || filename.equals("posixrules") || filename.equals("localtime")) {
+            if (filename.startsWith(".") || filename.equals("ROC") || filename.equals("posixrules") ||
+                    filename.equals("localtime")) {
                 return false;
             }
 
@@ -160,10 +163,14 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             return zoneinfo.relativize(same.get()).toString();
         } else {
             if (isWSLTimeZone(zoneinfo, bytes)) {
-                RubyLanguage.LOGGER.config("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
-                RubyLanguage.LOGGER.config("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
+                RubyLanguage.LOGGER
+                        .config("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
+                RubyLanguage.LOGGER
+                        .config("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
             } else {
-                RubyLanguage.LOGGER.config("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+                RubyLanguage.LOGGER.config(
+                        "could not find timezone (no file in " + zoneinfo +
+                                " is the same as /etc/localtime), using UTC instead");
             }
             return "UTC";
         }
@@ -187,9 +194,12 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
     }
 
     private static final Map<String, String> LONG_TZNAME = Helpers.map(
-            "MET", "CET", // JRUBY-2759
-            "ROC", "Asia/Taipei", // Republic of China
-            "WET", "Europe/Lisbon" // Western European Time
+            "MET",
+            "CET", // JRUBY-2759
+            "ROC",
+            "Asia/Taipei", // Republic of China
+            "WET",
+            "Europe/Lisbon" // Western European Time
     );
 
     private static final Pattern TZ_PATTERN = Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
@@ -234,7 +244,8 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
         return zone;
     }
 
-    private TimeZoneAndName getTimeZoneFromHHMM(String name, boolean positive, String hours, String minutes, String seconds) {
+    private TimeZoneAndName getTimeZoneFromHHMM(String name, boolean positive, String hours, String minutes,
+            String seconds) {
         final int h = Integer.parseInt(hours);
         final int m = minutes != null ? Integer.parseInt(minutes) : 0;
         final int s = seconds != null ? Integer.parseInt(seconds) : 0;

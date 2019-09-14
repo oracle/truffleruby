@@ -148,7 +148,8 @@ public class CExtNodes {
 
         }
 
-        private Object execute(Object receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
+        private Object execute(Object receiver, Object[] args, InteropLibrary receivers,
+                BranchProfile exceptionProfile) {
             try {
                 return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -169,7 +170,8 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray, DynamicObject block,
+        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
+                DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -215,7 +217,8 @@ public class CExtNodes {
 
         }
 
-        private Object execute(Object receiver, Object[] args, InteropLibrary receivers, BranchProfile exceptionProfile) {
+        private Object execute(Object receiver, Object[] args, InteropLibrary receivers,
+                BranchProfile exceptionProfile) {
             try {
                 return receivers.execute(receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -287,26 +290,30 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp,
+                boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp,
+                boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        protected DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first,
+                boolean twosComp, boolean bigEndian) {
             BigInteger bi = Layouts.BIGNUM.getValue(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
-        private DynamicObject bytes(BigInteger bi, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+        private DynamicObject bytes(BigInteger bi, int num_words, int word_length, boolean msw_first, boolean twosComp,
+                boolean bigEndian) {
             if (!twosComp) {
                 bi = bi.abs();
             }
@@ -533,7 +540,9 @@ public class CExtNodes {
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError("invalid byte sequence in " + enc, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError("invalid byte sequence in " + enc, this));
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
@@ -856,7 +865,8 @@ public class CExtNodes {
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
             final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
-            final MethodLookupResult superMethodLookup = ModuleOperations.lookupSuperMethod(callingMethod, callingMetaclass);
+            final MethodLookupResult superMethodLookup = ModuleOperations
+                    .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
             return callSuperMethodNode.executeCallSuperMethod(frame, callingSelf, superMethod, args, null);
         }
@@ -870,7 +880,8 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_call_super") || method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion") ||
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_call_super") ||
+                        method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion") ||
                         method.getName().equals(/* Truffle::CExt. */ "rb_call_super_splatted")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
@@ -901,7 +912,8 @@ public class CExtNodes {
 
                 if (method == null) {
                     return null;
-                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func") || method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func") ||
+                        method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
                 } else {
@@ -922,7 +934,9 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(message)")
         protected Object rbSysErrFail(int errno, DynamicObject message) {
-            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, StringOperations.getString(message), this));
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().errnoError(errno, StringOperations.getString(message), this));
         }
 
     }
@@ -982,7 +996,8 @@ public class CExtNodes {
             if (convertProfile.profile(currentRope instanceof NativeRope)) {
                 nativeRope = (NativeRope) currentRope;
             } else {
-                nativeRope = new NativeRope(getContext().getFinalizationService(),
+                nativeRope = new NativeRope(
+                        getContext().getFinalizationService(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
@@ -1017,7 +1032,8 @@ public class CExtNodes {
                 @Cached AllocateObjectNode allocateObjectNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
-            return allocateObjectNode.allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
+            return allocateObjectNode
+                    .allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
         }
 
     }
@@ -1042,7 +1058,8 @@ public class CExtNodes {
                 @Cached RopeNodes.GetByteNode getByteNode) {
             final Rope rope = rope(string);
 
-            if (nativeRopeProfile.profile(rope instanceof NativeRope) || inBoundsProfile.profile(index < rope.byteLength())) {
+            if (nativeRopeProfile.profile(rope instanceof NativeRope) ||
+                    inBoundsProfile.profile(index < rope.byteLength())) {
                 return getByteNode.executeGetByte(rope, index);
             } else {
                 return 0;
@@ -1084,7 +1101,8 @@ public class CExtNodes {
                 initializeClassNode = insert(InitializeClassNodeGen.create(false));
             }
 
-            DynamicObject klass = (DynamicObject) allocateNode.call(getContext().getCoreLibrary().getClassClass(), "__allocate__");
+            DynamicObject klass = (DynamicObject) allocateNode
+                    .call(getContext().getCoreLibrary().getClassClass(), "__allocate__");
             return initializeClassNode.executeInitialize(klass, superclass, NotProvided.INSTANCE);
         }
 
@@ -1207,7 +1225,13 @@ public class CExtNodes {
     public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)", "libraryStrategy.matches(libraries)", "fileStrategy.matches(bitcodeFiles)" })
+        @Specialization(
+                guards = {
+                        "isRubyString(outputFileName)",
+                        "isRubyArray(libraries)",
+                        "isRubyArray(bitcodeFiles)",
+                        "libraryStrategy.matches(libraries)",
+                        "fileStrategy.matches(bitcodeFiles)" })
         protected Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
                 @Cached("of(libraries)") ArrayStrategy libraryStrategy,
                 @Cached("of(bitcodeFiles)") ArrayStrategy fileStrategy,
@@ -1216,8 +1240,13 @@ public class CExtNodes {
             try {
                 Linker.link(
                         StringOperations.getString(outputFileName),
-                        array2StringList(libBoxCopyNode.execute(Layouts.ARRAY.getStore(libraries), Layouts.ARRAY.getSize(libraries))),
-                        array2StringList(fileBoxCopyNode.execute(Layouts.ARRAY.getStore(bitcodeFiles), Layouts.ARRAY.getSize(bitcodeFiles))));
+                        array2StringList(
+                                libBoxCopyNode
+                                        .execute(Layouts.ARRAY.getStore(libraries), Layouts.ARRAY.getSize(libraries))),
+                        array2StringList(
+                                fileBoxCopyNode.execute(
+                                        Layouts.ARRAY.getStore(bitcodeFiles),
+                                        Layouts.ARRAY.getSize(bitcodeFiles))));
             } catch (IOException e) {
                 throw new JavaException(e);
             }
@@ -1306,7 +1335,9 @@ public class CExtNodes {
 
             return StringSupport.characterLength(
                     encoding,
-                    sameEncodingProfile.profile(encoding == ropeEncoding) ? codeRangeNode.execute(rope) : CodeRange.CR_UNKNOWN,
+                    sameEncodingProfile.profile(encoding == ropeEncoding)
+                            ? codeRangeNode.execute(rope)
+                            : CodeRange.CR_UNKNOWN,
                     StringOperations.rope(str).getBytes(),
                     p,
                     e,
@@ -1322,7 +1353,10 @@ public class CExtNodes {
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         protected Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
             return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
-                    StringOperations.rope(str).getBytes(), start, p, end);
+                    StringOperations.rope(str).getBytes(),
+                    start,
+                    p,
+                    end);
         }
 
     }
@@ -1408,7 +1442,8 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject createNewMarkList(DynamicObject obj,
                 @Cached ReadObjectFieldNode readMarkedNode) {
-            getContext().getMarkingService().startMarking((Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
+            getContext().getMarkingService().startMarking(
+                    (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
             return nil();
         }
     }
@@ -1464,7 +1499,10 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(structOwner, Layouts.MARKED_OBJECTS_IDENTIFIER, getContext().getMarkingService().finishMarking());
+            writeMarkedNode.write(
+                    structOwner,
+                    Layouts.MARKED_OBJECTS_IDENTIFIER,
+                    getContext().getMarkingService().finishMarking());
             return nil();
         }
     }
@@ -1482,7 +1520,9 @@ public class CExtNodes {
                 return nil();
             } else {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentErrorWrongArgumentType(marker, "callable", this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentErrorWrongArgumentType(marker, "callable", this));
             }
         }
 
@@ -1531,13 +1571,19 @@ public class CExtNodes {
             return value.getObject() == nil();
         }
 
-        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+        @Specialization(
+                guards = { "!isWrapper(value)", "values.isPointer(value)" },
+                limit = "getCacheLimit()",
+                rewriteOn = UnsupportedMessageException.class)
         protected boolean nilPPointer(Object value,
                 @CachedLibrary("value") InteropLibrary values) throws UnsupportedMessageException {
             return values.asPointer(value) == ValueWrapperManager.NIL_HANDLE;
         }
 
-        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "nilPPointer")
+        @Specialization(
+                guards = { "!isWrapper(value)", "values.isPointer(value)" },
+                limit = "getCacheLimit()",
+                replaces = "nilPPointer")
         protected boolean nilPGeneric(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached BranchProfile unsupportedProfile) {

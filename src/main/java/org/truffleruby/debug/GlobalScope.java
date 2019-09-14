@@ -61,7 +61,8 @@ public class GlobalScope {
 
         @ExportMessage
         @TruffleBoundary
-        protected void writeMember(String member, Object value) throws UnsupportedMessageException, UnknownIdentifierException {
+        protected void writeMember(String member, Object value)
+                throws UnsupportedMessageException, UnknownIdentifierException {
             final GlobalVariableStorage storage = globalVariables.getStorage(member);
             if (storage == null) {
                 throw UnknownIdentifierException.create(member);

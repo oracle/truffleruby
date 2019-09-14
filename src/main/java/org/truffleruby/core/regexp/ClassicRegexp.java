@@ -92,7 +92,14 @@ public class ClassicRegexp implements ReOptions {
 
     private static Regex makeRegexp(RubyContext context, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
-            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new RegexWarnCallback(context));
+            return new Regex(
+                    bytes.getUnsafeBytes(),
+                    0,
+                    bytes.getLength(),
+                    options.toJoniOptions(),
+                    enc,
+                    Syntax.DEFAULT,
+                    new RegexWarnCallback(context));
         } catch (Exception e) {
             throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), null));
         }
@@ -107,7 +114,11 @@ public class ClassicRegexp implements ReOptions {
 
         final Rope rope = RopeOperations.ropeFromRopeBuilder(bytes);
         final int joniOptions = options.toJoniOptions();
-        final RegexpCacheKey cacheKey = new RegexpCacheKey(rope, encoding, joniOptions, context.getHashing(context.getRegexpCache()));
+        final RegexpCacheKey cacheKey = new RegexpCacheKey(
+                rope,
+                encoding,
+                joniOptions,
+                context.getHashing(context.getRegexpCache()));
 
         final Regex regex = context.getRegexpCache().get(cacheKey);
         if (regex != null) {
@@ -158,7 +169,8 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc, Encoding[] encp, RegexpSupport.ErrorMode mode) {
+    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc,
+            Encoding[] encp, RegexpSupport.ErrorMode mode) {
         boolean hasProperty = false;
         byte[] buf = null;
 
@@ -167,7 +179,8 @@ public class ClassicRegexp implements ReOptions {
         final byte[] bytes = str.getBytes();
 
         while (p < end) {
-            final int cl = StringSupport.characterLength(enc, enc == str.getEncoding() ? str.getCodeRange() : CR_UNKNOWN, bytes, p, end);
+            final int cl = StringSupport
+                    .characterLength(enc, enc == str.getEncoding() ? str.getCodeRange() : CR_UNKNOWN, bytes, p, end);
             if (cl <= 0) {
                 raisePreprocessError(context, str, "invalid multibyte character", mode);
             }
@@ -272,7 +285,8 @@ public class ClassicRegexp implements ReOptions {
         return hasProperty;
     }
 
-    private static int unescapeUnicodeBmp(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeBmp(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         if (p + 4 > end) {
             raisePreprocessError(context, str, "invalid Unicode escape", mode);
         }
@@ -285,7 +299,8 @@ public class ClassicRegexp implements ReOptions {
         return p + 4;
     }
 
-    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
             p++;
         }
@@ -316,7 +331,8 @@ public class ClassicRegexp implements ReOptions {
         return p;
     }
 
-    private static void appendUtf8(RubyContext context, RopeBuilder to, int code, Encoding[] enc, Rope str, RegexpSupport.ErrorMode mode) {
+    private static void appendUtf8(RubyContext context, RopeBuilder to, int code, Encoding[] enc, Rope str,
+            RegexpSupport.ErrorMode mode) {
         checkUnicodeRange(context, code, str, mode);
 
         if (code < 0x80) {
@@ -386,12 +402,14 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         byte[] chBuf = new byte[enc.maxLength()];
         int chLen = 0;
 
         p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
-        while (chLen < enc.maxLength() && StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen))) {
+        while (chLen < enc.maxLength() &&
+                StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen))) {
             p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
         }
 
@@ -423,7 +441,9 @@ public class ClassicRegexp implements ReOptions {
             case RAISE:
                 throw new RaiseException(context, context.getCoreExceptions().regexpError(err, null));
             case PREPROCESS:
-                throw new RaiseException(context, context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
             case DESC:
                 // silent ?
         }
@@ -431,7 +451,8 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("fallthrough")
-    public static int readEscapedByte(RubyContext context, byte[] to, int toP, byte[] bytes, int p, int end, Rope str, RegexpSupport.ErrorMode mode) {
+    public static int readEscapedByte(RubyContext context, byte[] to, int toP, byte[] bytes, int p, int end, Rope str,
+            RegexpSupport.ErrorMode mode) {
         if (p == end || bytes[p++] != (byte) '\\') {
             raisePreprocessError(context, str, "too short escaped multibyte character", mode);
         }
@@ -554,7 +575,8 @@ public class ClassicRegexp implements ReOptions {
         preprocess(runtime, bytes, bytes.getEncoding(), new Encoding[]{ null }, RegexpSupport.ErrorMode.RAISE);
     }
 
-    public static RopeBuilder preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
+    public static RopeBuilder preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc,
+            RegexpSupport.ErrorMode mode) {
         RopeBuilder to = RopeBuilder.createRopeBuilder(str.byteLength());
 
         if (enc.isAsciiCompatible()) {
@@ -574,7 +596,8 @@ public class ClassicRegexp implements ReOptions {
         return to;
     }
 
-    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
+    private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc,
+            RegexpSupport.ErrorMode mode) {
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
         } else {
@@ -607,12 +630,17 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @TruffleBoundary
-    private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc, Rope str) {
+    private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc,
+            Rope str) {
         Encoding strEnc = str.getEncoding();
 
         if (options.isEncodingNone() && strEnc != ASCIIEncoding.INSTANCE) {
             if (str.getCodeRange() != CR_7BIT) {
-                throw new RaiseException(context, context.getCoreExceptions().regexpError("/.../n has a non escaped non ASCII character in non ASCII-8BIT script", null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().regexpError(
+                                "/.../n has a non escaped non ASCII character in non ASCII-8BIT script",
+                                null));
             }
             strEnc = ASCIIEncoding.INSTANCE;
         }
@@ -625,8 +653,10 @@ public class ClassicRegexp implements ReOptions {
 
         if (fixedEnc[0] != null) {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
-                throw new RaiseException(context, context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
-                        new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
+                                new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
             }
             regexpEnc = fixedEnc[0];
         }
@@ -781,7 +811,9 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
         if (pattern != null) {
-            throw new RaiseException(context, context.getCoreExceptions().typeError("already initialized regexp", null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().typeError("already initialized regexp", null));
         }
         if (enc.isDummy()) {
             throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
@@ -882,7 +914,14 @@ public class ClassicRegexp implements ReOptions {
 
                 if (bytes[p] == ':' && bytes[p + len - 1] == ')') {
                     try {
-                        new Regex(bytes, ++p, p + (len -= 2), Option.DEFAULT, str.getEncoding(), Syntax.DEFAULT, new RegexWarnCallback(context));
+                        new Regex(
+                                bytes,
+                                ++p,
+                                p + (len -= 2),
+                                Option.DEFAULT,
+                                str.getEncoding(),
+                                Syntax.DEFAULT,
+                                new RegexWarnCallback(context));
                         err = false;
                     } catch (JOniException e) {
                         err = true;
@@ -979,7 +1018,9 @@ public class ClassicRegexp implements ReOptions {
                         to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));
                     } else if (resEnc != null) {
                         int code = enc.mbcToCode(bytes, p, end);
-                        to.append(String.format(StringSupport.escapedCharFormat(code, enc.isUnicode()), code).getBytes(StandardCharsets.US_ASCII));
+                        to.append(
+                                String.format(StringSupport.escapedCharFormat(code, enc.isUnicode()), code).getBytes(
+                                        StandardCharsets.US_ASCII));
                     } else {
                         to.append(bytes, p, l);
                     }

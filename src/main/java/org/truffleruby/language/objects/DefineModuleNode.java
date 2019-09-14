@@ -43,8 +43,13 @@ public abstract class DefineModuleNode extends RubyNode {
         final DynamicObject definingModule;
 
         if (needToDefineProfile.profile(existing == null)) {
-            definingModule = ModuleNodes.createModule(getContext(), getEncapsulatingSourceSection(),
-                    coreLibrary().getModuleClass(), lexicalParentModule, name, this);
+            definingModule = ModuleNodes.createModule(
+                    getContext(),
+                    getEncapsulatingSourceSection(),
+                    coreLibrary().getModuleClass(),
+                    lexicalParentModule,
+                    name,
+                    this);
         } else {
             if (!RubyGuards.isRubyModule(existing) || RubyGuards.isRubyClass(existing)) {
                 errorProfile.enter();

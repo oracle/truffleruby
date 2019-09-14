@@ -122,7 +122,8 @@ public class RaiseException extends RuntimeException implements TruffleException
             return (int) status;
         }
 
-        throw new UnsupportedOperationException(String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
+        throw new UnsupportedOperationException(
+                String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
     }
 
     private boolean isA(RubyContext context, DynamicObject rubyClass) {

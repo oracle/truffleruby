@@ -18,7 +18,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class InlinedDivNode extends BinaryInlinedOperationNode {
 
     public InlinedDivNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters,
+        super(
+                callNodeParameters,
                 context.getCoreMethods().integerDivAssumption,
                 context.getCoreMethods().floatDivAssumption);
     }

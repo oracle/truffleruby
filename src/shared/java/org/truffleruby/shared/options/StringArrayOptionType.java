@@ -16,7 +16,10 @@ import org.graalvm.options.OptionType;
 
 public class StringArrayOptionType {
 
-    public static final OptionType<String[]> INSTANCE = new OptionType<>("String[]", new String[]{}, StringArrayOptionType::parseStringArray);
+    public static final OptionType<String[]> INSTANCE = new OptionType<>(
+            "String[]",
+            new String[]{},
+            StringArrayOptionType::parseStringArray);
 
     @SuppressWarnings("fallthrough")
     private static String[] parseStringArray(String string) {

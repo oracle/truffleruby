@@ -44,7 +44,15 @@ public final class RubyArguments {
             Object self,
             DynamicObject block,
             Object[] arguments) {
-        return pack(declarationFrame, callerFrame, method, method.getDeclarationContext(), frameOnStackMarker, self, block, arguments);
+        return pack(
+                declarationFrame,
+                callerFrame,
+                method,
+                method.getDeclarationContext(),
+                frameOnStackMarker,
+                self,
+                block,
+                arguments);
     }
 
     public static Object[] pack(

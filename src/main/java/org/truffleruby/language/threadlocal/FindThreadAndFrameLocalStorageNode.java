@@ -137,7 +137,8 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private static ThreadAndFrameLocalStorage getStorageSearchingDeclarations(RubyContext context, MaterializedFrame topFrame, String variableName) {
+    private static ThreadAndFrameLocalStorage getStorageSearchingDeclarations(RubyContext context,
+            MaterializedFrame topFrame, String variableName) {
         final MaterializedFrame frame = getVariableDeclarationFrame(topFrame, variableName);
         if (frame == null) {
             return null;
@@ -146,7 +147,8 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
         return getStorageFromFrame(context, frame, slot, frame.getFrameDescriptor().getDefaultValue(), true);
     }
 
-    private static ThreadAndFrameLocalStorage getStorageFromFrame(RubyContext context, MaterializedFrame frame, FrameSlot slot, Object defaultValue, boolean add) {
+    private static ThreadAndFrameLocalStorage getStorageFromFrame(RubyContext context, MaterializedFrame frame,
+            FrameSlot slot, Object defaultValue, boolean add) {
         final Object previousMatchData = frame.getValue(slot);
 
         if (previousMatchData == defaultValue) { // Never written to

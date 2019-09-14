@@ -43,8 +43,13 @@ public class BlockDefinitionNode extends RubyNode {
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
     @Child private WithoutVisibilityNode withoutVisibilityNode;
 
-    public BlockDefinitionNode(ProcType type, SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTargetForProcs, RootCallTarget callTargetForLambdas, BreakID breakID, FrameSlot frameOnStackMarkerSlot) {
+    public BlockDefinitionNode(
+            ProcType type,
+            SharedMethodInfo sharedMethodInfo,
+            RootCallTarget callTargetForProcs,
+            RootCallTarget callTargetForLambdas,
+            BreakID breakID,
+            FrameSlot frameOnStackMarkerSlot) {
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
 
@@ -79,7 +84,8 @@ public class BlockDefinitionNode extends RubyNode {
             sharedMethodInfo.setDefinitionModuleIfUnset(RubyArguments.getMethod(frame).getDeclaringModule());
         }
 
-        return ProcOperations.createRubyProc(coreLibrary().getProcFactory(),
+        return ProcOperations.createRubyProc(
+                coreLibrary().getProcFactory(),
                 type,
                 sharedMethodInfo,
                 callTargetForProcs,

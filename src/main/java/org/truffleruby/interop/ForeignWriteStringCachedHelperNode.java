@@ -57,10 +57,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
         return value;
     }
 
-    @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
-    })
+    @Specialization(
+            guards = {
+                    "!isRubyArray(receiver)",
+                    "!isRubyHash(receiver)",
+                    "!isIVar",
+                    "methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)" })
     protected Object index(
             DynamicObject receiver,
             Object name,
@@ -73,10 +75,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseWithoutContext
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
-    @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)"
-    })
+    @Specialization(
+            guards = {
+                    "!isRubyArray(receiver)",
+                    "!isRubyHash(receiver)",
+                    "!isIVar",
+                    "!methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)" })
     protected Object unknownIdentifier(
             DynamicObject receiver,
             Object name,

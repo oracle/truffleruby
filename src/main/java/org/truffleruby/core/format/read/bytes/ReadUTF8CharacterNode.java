@@ -88,7 +88,8 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @TruffleBoundary
     private String formatError(final int index, final int sourceLength, final int length) {
-        return StringUtils.format("malformed UTF-8 character (expected %d bytes, given %d bytes)", length, sourceLength - index);
+        return StringUtils
+                .format("malformed UTF-8 character (expected %d bytes, given %d bytes)", length, sourceLength - index);
     }
 
 }

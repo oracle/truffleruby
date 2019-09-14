@@ -47,7 +47,12 @@ public class ContextPermissionsTest {
     @Test
     public void testThreadsNoNative() throws Throwable {
         // The ruby.single_threaded option needs to be set because --single-threaded defaults to --embedded.
-        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).allowExperimentalOptions(true).option("ruby.single-threaded", "false").build()) {
+        try (Context context = Context
+                .newBuilder("ruby")
+                .allowCreateThread(true)
+                .allowExperimentalOptions(true)
+                .option("ruby.single-threaded", "false")
+                .build()) {
             Assert.assertEquals(3, context.eval("ruby", "1 + 2").asInt());
 
             Assert.assertEquals(7, context.eval("ruby", "Thread.new { 3 + 4 }.value").asInt());
@@ -59,7 +64,11 @@ public class ContextPermissionsTest {
 
     @Test
     public void testNoThreadsEnforcesSingleThreadedOption() throws Throwable {
-        try (Context context = Context.newBuilder("ruby").allowExperimentalOptions(true).option("ruby.single-threaded", "false").build()) {
+        try (Context context = Context
+                .newBuilder("ruby")
+                .allowExperimentalOptions(true)
+                .option("ruby.single-threaded", "false")
+                .build()) {
             String option = "Truffle::Boot.get_option('single-threaded')";
             Assert.assertEquals(true, context.eval("ruby", option).asBoolean());
 

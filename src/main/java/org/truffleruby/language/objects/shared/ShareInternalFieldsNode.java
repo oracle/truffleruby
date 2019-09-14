@@ -41,7 +41,10 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     public abstract void executeShare(DynamicObject object);
 
-    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isObjectArray(array)" },
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected void shareCachedObjectArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
@@ -52,8 +55,13 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)",
-            "isDelegatedObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = {
+                    "array.getShape() == cachedShape",
+                    "isArrayShape(cachedShape)",
+                    "isDelegatedObjectArray(array)" },
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected void shareCachedDelegatedArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
@@ -64,15 +72,24 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "!isObjectArray(array)",
-            "!isDelegatedObjectArray(array)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = {
+                    "array.getShape() == cachedShape",
+                    "isArrayShape(cachedShape)",
+                    "!isObjectArray(array)",
+                    "!isDelegatedObjectArray(array)" },
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected void shareCachedOtherArray(DynamicObject array,
             @Cached("array.getShape()") Shape cachedShape) {
         /* null, int[], long[] or double[] storage */
         assert ArrayOperations.isPrimitiveStorage(array);
     }
 
-    @Specialization(guards = { "object.getShape() == cachedShape", "isQueueShape(cachedShape)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = { "object.getShape() == cachedShape", "isQueueShape(cachedShape)" },
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected void shareCachedQueue(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createBinaryProfile()") ConditionProfile profileEmpty,
@@ -85,13 +102,22 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)" }, assumptions = "cachedShape.getValidAssumption()", limit = "CACHE_LIMIT")
+    @Specialization(
+            guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)" },
+            assumptions = "cachedShape.getValidAssumption()",
+            limit = "CACHE_LIMIT")
     protected void shareCachedBasicObject(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape) {
         /* No internal fields */
     }
 
-    @Specialization(replaces = { "shareCachedObjectArray", "shareCachedDelegatedArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
+    @Specialization(
+            replaces = {
+                    "shareCachedObjectArray",
+                    "shareCachedDelegatedArray",
+                    "shareCachedOtherArray",
+                    "shareCachedQueue",
+                    "shareCachedBasicObject" })
     protected void shareUncached(DynamicObject object) {
         SharedObjects.shareInternalFields(getContext(), object);
     }

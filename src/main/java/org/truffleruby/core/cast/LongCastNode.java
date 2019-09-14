@@ -56,7 +56,8 @@ public abstract class LongCastNode extends RubyBaseWithoutContextNode {
     private DynamicObject notAFixnum(RubyContext context, Object object) {
         return context.getCoreExceptions().typeErrorIsNotA(
                 object.toString(),
-                "Fixnum (fitting in long)", this);
+                "Fixnum (fitting in long)",
+                this);
     }
 
 }

@@ -16,6 +16,7 @@ nbproject
 .project
 .settings
 .factorypath
+.metadata
 
 # C extensions
 /.ext

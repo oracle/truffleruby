@@ -51,7 +51,9 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
         if (constant != null) {
             if (!constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) &&
                     !constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent)) {
-                throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
             }
 
             if (constant.isDeprecated()) {
@@ -71,7 +73,8 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
 
         final DynamicObject objectClass = getContext().getCoreLibrary().getObjectClass();
         if (lexicalParent == objectClass) {
-            final ConstantLookupResult result = ModuleOperations.lookupConstantInObject(getContext(), name, new ArrayList<>());
+            final ConstantLookupResult result = ModuleOperations
+                    .lookupConstantInObject(getContext(), name, new ArrayList<>());
             if (result.isFound()) {
                 return result.getConstant();
             }

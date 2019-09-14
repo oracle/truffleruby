@@ -62,7 +62,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
         private final MarkingService markingService;
 
-        public MarkRunnerService(RubyContext context, ReferenceProcessor referenceProcessor, MarkingService markingService) {
+        public MarkRunnerService(
+                RubyContext context,
+                ReferenceProcessor referenceProcessor,
+                MarkingService markingService) {
             super(context, referenceProcessor);
             this.markingService = markingService;
         }

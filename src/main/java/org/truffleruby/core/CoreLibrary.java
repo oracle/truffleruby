@@ -80,7 +80,8 @@ public class CoreLibrary {
 
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
-    private static final Property ALWAYS_FROZEN_PROPERTY = Property.create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
+    private static final Property ALWAYS_FROZEN_PROPERTY = Property
+            .create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
 
     private final RubyContext context;
 
@@ -311,7 +312,9 @@ public class CoreLibrary {
         classClass = ClassNodes.createClassClass(context, null);
 
         basicObjectClass = ClassNodes.createBootClass(context, null, classClass, null, "BasicObject");
-        Layouts.CLASS.setInstanceFactoryUnsafe(basicObjectClass, Layouts.BASIC_OBJECT.createBasicObjectShape(basicObjectClass, basicObjectClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                basicObjectClass,
+                Layouts.BASIC_OBJECT.createBasicObjectShape(basicObjectClass, basicObjectClass));
 
         objectClass = ClassNodes.createBootClass(context, null, classClass, basicObjectClass, "Object");
         objectFactory = Layouts.BASIC_OBJECT.createBasicObjectShape(objectClass, objectClass);
@@ -334,7 +337,9 @@ public class CoreLibrary {
 
         // Exception
         exceptionClass = defineClass("Exception");
-        Layouts.CLASS.setInstanceFactoryUnsafe(exceptionClass, Layouts.EXCEPTION.createExceptionShape(exceptionClass, exceptionClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                exceptionClass,
+                Layouts.EXCEPTION.createExceptionShape(exceptionClass, exceptionClass));
 
         // fatal
         defineClass(exceptionClass, "fatal");
@@ -381,7 +386,9 @@ public class CoreLibrary {
 
         // StandardError > SystemCallError
         systemCallErrorClass = defineClass(standardErrorClass, "SystemCallError");
-        Layouts.CLASS.setInstanceFactoryUnsafe(systemCallErrorClass, Layouts.SYSTEM_CALL_ERROR.createSystemCallErrorShape(systemCallErrorClass, systemCallErrorClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                systemCallErrorClass,
+                Layouts.SYSTEM_CALL_ERROR.createSystemCallErrorShape(systemCallErrorClass, systemCallErrorClass));
 
         errnoModule = defineModule("Errno");
 
@@ -457,9 +464,13 @@ public class CoreLibrary {
         DynamicObject queueClass = defineClass("Queue");
         Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, Layouts.QUEUE.createQueueShape(queueClass, queueClass));
         DynamicObject sizedQueueClass = defineClass(queueClass, "SizedQueue");
-        Layouts.CLASS.setInstanceFactoryUnsafe(sizedQueueClass, Layouts.SIZED_QUEUE.createSizedQueueShape(sizedQueueClass, sizedQueueClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                sizedQueueClass,
+                Layouts.SIZED_QUEUE.createSizedQueueShape(sizedQueueClass, sizedQueueClass));
         rangeClass = defineClass("Range");
-        Layouts.CLASS.setInstanceFactoryUnsafe(rangeClass, Layouts.OBJECT_RANGE.createObjectRangeShape(rangeClass, rangeClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                rangeClass,
+                Layouts.OBJECT_RANGE.createObjectRangeShape(rangeClass, rangeClass));
         intRangeFactory = Layouts.INT_RANGE.createIntRangeShape(rangeClass, rangeClass);
         longRangeFactory = Layouts.LONG_RANGE.createLongRangeShape(rangeClass, rangeClass);
         regexpClass = defineClass("Regexp");
@@ -479,7 +490,8 @@ public class CoreLibrary {
 
         threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
         threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
-        threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE.createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
+        threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE
+                .createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadBacktraceLocationClass, threadBacktraceLocationFactory);
         timeClass = defineClass("Time");
         timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
@@ -494,7 +506,9 @@ public class CoreLibrary {
         structClass = defineClass("Struct");
 
         final DynamicObject tracePointClass = defineClass("TracePoint");
-        Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                tracePointClass,
+                Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
 
         // Modules
 
@@ -508,16 +522,26 @@ public class CoreLibrary {
         // The rest
 
         DynamicObject conditionVariableClass = defineClass("ConditionVariable");
-        Layouts.CLASS.setInstanceFactoryUnsafe(conditionVariableClass, Layouts.CONDITION_VARIABLE.createConditionVariableShape(conditionVariableClass, conditionVariableClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                conditionVariableClass,
+                Layouts.CONDITION_VARIABLE
+                        .createConditionVariableShape(conditionVariableClass, conditionVariableClass));
         encodingCompatibilityErrorClass = defineClass(encodingClass, encodingErrorClass, "CompatibilityError");
-        encodingUndefinedConversionErrorClass = defineClass(encodingClass, encodingErrorClass, "UndefinedConversionError");
+        encodingUndefinedConversionErrorClass = defineClass(
+                encodingClass,
+                encodingErrorClass,
+                "UndefinedConversionError");
 
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
-        Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                encodingConverterClass,
+                Layouts.ENCODING_CONVERTER
+                        .createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
         atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
-        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                atomicReferenceClass,
                 Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
@@ -550,13 +574,17 @@ public class CoreLibrary {
         warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");
-        Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                bigDecimalClass,
+                Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
         bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
         DynamicObject truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
         truffleFFIPointerClass = defineClass(truffleFFIModule, truffleFFIAbstractMemoryClass, "Pointer");
-        Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                truffleFFIPointerClass,
+                Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
         truffleTypeModule = defineModule(truffleModule, "Type");
@@ -650,7 +678,10 @@ public class CoreLibrary {
     }
 
     public void loadCoreNodes(PrimitiveManager primitiveManager) {
-        final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
+        final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(
+                context,
+                node.getSingletonClassNode(),
+                primitiveManager);
 
         coreMethodNodeManager.loadCoreMethodNodes();
 
@@ -718,8 +749,14 @@ public class CoreLibrary {
         setConstant(objectClass, "RUBY_ENGINE", frozenUSASCIIString(TruffleRuby.ENGINE_ID));
         setConstant(objectClass, "RUBY_ENGINE_VERSION", frozenUSASCIIString(TruffleRuby.getEngineVersion()));
         setConstant(objectClass, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
-        setConstant(objectClass, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
-        setConstant(objectClass, "RUBY_DESCRIPTION", frozenUSASCIIString(TruffleRuby.getVersionString(Truffle.getRuntime().getName(), TruffleOptions.AOT)));
+        setConstant(
+                objectClass,
+                "RUBY_RELEASE_DATE",
+                frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
+        setConstant(
+                objectClass,
+                "RUBY_DESCRIPTION",
+                frozenUSASCIIString(TruffleRuby.getVersionString(Truffle.getRuntime().getName(), TruffleOptions.AOT)));
         setConstant(objectClass, "RUBY_COPYRIGHT", frozenUSASCIIString(TruffleRuby.RUBY_COPYRIGHT));
 
         // BasicObject knows itself
@@ -765,7 +802,8 @@ public class CoreLibrary {
     }
 
     private DynamicObject frozenUSASCIIString(String string) {
-        final Rope rope = context.getRopeCache().getRope(StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        final Rope rope = context.getRopeCache().getRope(
+                StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         return StringOperations.createFrozenString(context, rope);
     }
 
@@ -810,7 +848,9 @@ public class CoreLibrary {
                 }
 
                 final RubySource source = loadCoreFile(getCoreLoadPath() + file);
-                final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
+                final RubyRootNode rootNode = context
+                        .getCodeLoader()
+                        .parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL,
@@ -849,16 +889,23 @@ public class CoreLibrary {
     private void afterLoadCoreLibrary() {
         // Get some references to things defined in the Ruby core
 
-        eagainWaitReadable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitReadable").getValue();
+        eagainWaitReadable = (DynamicObject) Layouts.MODULE
+                .getFields(ioClass)
+                .getConstant("EAGAINWaitReadable")
+                .getValue();
         assert Layouts.CLASS.isClass(eagainWaitReadable);
 
-        eagainWaitWritable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitWritable").getValue();
+        eagainWaitWritable = (DynamicObject) Layouts.MODULE
+                .getFields(ioClass)
+                .getConstant("EAGAINWaitWritable")
+                .getValue();
         assert Layouts.CLASS.isClass(eagainWaitWritable);
 
         findGlobalVariableStorage();
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
-        DynamicObject dollarZeroValue = StringOperations.createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        DynamicObject dollarZeroValue = StringOperations
+                .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
     }
 

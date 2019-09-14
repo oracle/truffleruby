@@ -84,15 +84,42 @@ public class TraceManager {
 
         instruments = new ArrayList<>();
 
-        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(LineTag.class).build(),
-                eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().LINE.createInstance())));
+        instruments.add(
+                instrumenter.attachExecutionEventFactory(
+                        SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(LineTag.class).build(),
+                        eventContext -> new BaseEventEventNode(
+                                context,
+                                eventContext,
+                                traceFunc,
+                                context.getCoreStrings().LINE.createInstance())));
 
-        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(ClassTag.class).build(),
-                eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CLASS.createInstance())));
+        instruments.add(
+                instrumenter.attachExecutionEventFactory(
+                        SourceSectionFilter
+                                .newBuilder()
+                                .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                                .tagIs(ClassTag.class)
+                                .build(),
+                        eventContext -> new BaseEventEventNode(
+                                context,
+                                eventContext,
+                                traceFunc,
+                                context.getCoreStrings().CLASS.createInstance())));
 
         if (context.getOptions().TRACE_CALLS) {
-            instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(CallTag.class).includeInternal(false).build(),
-                    eventContext -> new CallEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CALL.createInstance())));
+            instruments.add(
+                    instrumenter.attachExecutionEventFactory(
+                            SourceSectionFilter
+                                    .newBuilder()
+                                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                                    .tagIs(CallTag.class)
+                                    .includeInternal(false)
+                                    .build(),
+                            eventContext -> new CallEventEventNode(
+                                    context,
+                                    eventContext,
+                                    traceFunc,
+                                    context.getCoreStrings().CALL.createInstance())));
         }
     }
 
@@ -103,7 +130,11 @@ public class TraceManager {
         protected final DynamicObject traceFunc;
         protected final Object event;
 
-        public BaseEventEventNode(RubyContext context, EventContext eventContext, DynamicObject traceFunc, Object event) {
+        public BaseEventEventNode(
+                RubyContext context,
+                EventContext eventContext,
+                DynamicObject traceFunc,
+                Object event) {
             super(context, eventContext);
             this.traceFunc = traceFunc;
             this.event = event;
@@ -117,11 +148,16 @@ public class TraceManager {
 
             isInTraceFunc = true;
             try {
-                yield(traceFunc, event,
+                yield(
+                        traceFunc,
+                        event,
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNil(),
-                        BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()),
+                        BindingNodes.createBinding(
+                                context,
+                                frame.materialize(),
+                                eventContext.getInstrumentedSourceSection()),
                         context.getCoreLibrary().getNil());
             } finally {
                 isInTraceFunc = false;
@@ -134,7 +170,11 @@ public class TraceManager {
 
         @Child private LogicalClassNode logicalClassNode;
 
-        public CallEventEventNode(RubyContext context, EventContext eventContext, DynamicObject traceFunc, Object event) {
+        public CallEventEventNode(
+                RubyContext context,
+                EventContext eventContext,
+                DynamicObject traceFunc,
+                Object event) {
             super(context, eventContext, traceFunc, event);
         }
 
@@ -160,11 +200,16 @@ public class TraceManager {
             isInTraceFunc = true;
 
             try {
-                yield(traceFunc, event,
+                yield(
+                        traceFunc,
+                        event,
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
-                        BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()),
+                        BindingNodes.createBinding(
+                                context,
+                                frame.materialize(),
+                                eventContext.getInstrumentedSourceSection()),
                         getLogicalClass(RubyArguments.getSelf(frame)));
             } finally {
                 isInTraceFunc = false;

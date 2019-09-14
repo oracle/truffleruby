@@ -33,7 +33,12 @@ public class LiteralMethodDefinitionNode extends RubyNode {
 
     @Child private AddMethodNode addMethodNode;
 
-    public LiteralMethodDefinitionNode(RubyNode moduleNode, String name, SharedMethodInfo sharedMethodInfo, RootCallTarget callTarget, boolean isDefSingleton) {
+    public LiteralMethodDefinitionNode(
+            RubyNode moduleNode,
+            String name,
+            SharedMethodInfo sharedMethodInfo,
+            RootCallTarget callTarget,
+            boolean isDefSingleton) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
@@ -56,11 +61,23 @@ public class LiteralMethodDefinitionNode extends RubyNode {
             visibility = visibilityNode.getVisibility(frame);
         }
 
-        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame).withVisibility(Visibility.PUBLIC);
+        final DeclarationContext declarationContext = RubyArguments
+                .getDeclarationContext(frame)
+                .withVisibility(Visibility.PUBLIC);
         final InternalMethod currentMethod = RubyArguments.getMethod(frame);
 
-        final InternalMethod method = new InternalMethod(getContext(),
-                sharedMethodInfo, currentMethod.getLexicalScope(), declarationContext, name, module, visibility, false, null, callTarget, null);
+        final InternalMethod method = new InternalMethod(
+                getContext(),
+                sharedMethodInfo,
+                currentMethod.getLexicalScope(),
+                declarationContext,
+                name,
+                module,
+                visibility,
+                false,
+                null,
+                callTarget,
+                null);
 
         addMethodNode.executeAddMethod(module, method, visibility);
 

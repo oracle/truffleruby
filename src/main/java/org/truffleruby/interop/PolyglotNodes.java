@@ -43,12 +43,13 @@ public abstract class PolyglotNodes {
     @ReportPolymorphism
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {
-                "isRubyString(id)",
-                "isRubyString(source)",
-                "idEqualNode.execute(rope(id), cachedMimeType)",
-                "sourceEqualNode.execute(rope(source), cachedSource)"
-        }, limit = "getCacheLimit()")
+        @Specialization(
+                guards = {
+                        "isRubyString(id)",
+                        "isRubyString(source)",
+                        "idEqualNode.execute(rope(id), cachedMimeType)",
+                        "sourceEqualNode.execute(rope(source), cachedSource)" },
+                limit = "getCacheLimit()")
         protected Object evalCached(
                 DynamicObject id,
                 DynamicObject source,
@@ -96,7 +97,9 @@ public abstract class PolyglotNodes {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
                 if (language == null) {
-                    throw new RaiseException(getContext(), coreExceptions().argumentError("Could not find language of file " + fileName, this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().argumentError("Could not find language of file " + fileName, this));
                 }
                 source = Source.newBuilder(language, file).build();
             } catch (IOException e) {

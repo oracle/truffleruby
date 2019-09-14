@@ -47,7 +47,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreClass("Time")
 public abstract class TimeNodes {
 
-    public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
+    public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt,
+            TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
         return makeStringNode.executeMake(shortZoneName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
@@ -119,7 +120,9 @@ public abstract class TimeNodes {
             try {
                 return ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(offset));
             } catch (DateTimeException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(e.getMessage(), this));
             }
         }
 
@@ -199,7 +202,11 @@ public abstract class TimeNodes {
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                    dateTime, zone, nil(), false, false));
+                    dateTime,
+                    zone,
+                    nil(),
+                    false,
+                    false));
         }
 
         @TruffleBoundary
@@ -207,7 +214,8 @@ public abstract class TimeNodes {
             try {
                 return ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanoseconds), timeZone);
             } catch (DateTimeException e) {
-                String message = StringUtils.format("UNIX epoch + %d seconds out of range for Time (java.time limitation)", seconds);
+                String message = StringUtils
+                        .format("UNIX epoch + %d seconds out of range for Time (java.time limitation)", seconds);
                 throw new RaiseException(getContext(), coreExceptions().rangeError(message, this));
             }
         }
@@ -400,8 +408,9 @@ public abstract class TimeNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @Specialization(guards = { "isRubyString(format)",
-                "equalNode.execute(rope(format), cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
+        @Specialization(
+                guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)" },
+                limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         protected DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
@@ -422,12 +431,27 @@ public abstract class TimeNodes {
 
         private RopeBuilder formatTime(DynamicObject time, List<Token> pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
-                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this);
+                    pattern,
+                    Layouts.TIME.getDateTime(time),
+                    Layouts.TIME.getZone(time),
+                    getContext(),
+                    this);
         }
 
     }
 
-    @Primitive(name = "time_s_from_array", needsSelf = true, lowerFixnum = { 1 /*sec*/, 2 /* min */, 3 /* hour */, 4 /* mday */, 5 /* month */, 6 /* year */, 7 /*nsec*/, 8 /*isdst*/ })
+    @Primitive(
+            name = "time_s_from_array",
+            needsSelf = true,
+            lowerFixnum = {
+                    1 /*sec*/,
+                    2 /* min */,
+                    3 /* hour */,
+                    4 /* mday */,
+                    5 /* month */,
+                    6 /* year */,
+                    7 /*nsec*/,
+                    8 /*isdst*/ })
     public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
@@ -449,7 +473,8 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
+        private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
+                int year,
                 int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
@@ -483,7 +508,8 @@ public abstract class TimeNodes {
                 relativeOffset = true;
                 zoneToStore = nil();
             } else {
-                throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
+                throw new UnsupportedOperationException(
+                        StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
             }
 
             // java.time does not allow a sec value > 59. However, MRI allows a sec value of 60
@@ -524,7 +550,8 @@ public abstract class TimeNodes {
                 zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
             }
 
-            return allocateObjectNode.allocate(timeClass,
+            return allocateObjectNode.allocate(
+                    timeClass,
                     Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, isutc));
         }
 

@@ -55,8 +55,10 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
         executeWithGeneralize(object, name, value, generalize);
     }
 
-    @Specialization(guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" }, assumptions = { "cachedShape.getValidAssumption()",
-            "validLocation" }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = { "location != null", "object.getShape() == cachedShape", "name == cachedName" },
+            assumptions = { "cachedShape.getValidAssumption()", "validLocation" },
+            limit = "getCacheLimit()")
     protected void writeExistingField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,
@@ -93,14 +95,20 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
             }
         } catch (IncompatibleLocationException | FinalLocationException e) {
             // remove this entry
-            validLocation.invalidate("for " + location + " for existing ivar " + cachedName + " at " + getEncapsulatingSourceSection());
+            validLocation.invalidate(
+                    "for " + location + " for existing ivar " + cachedName + " at " + getEncapsulatingSourceSection());
             // Generalization is handled by Shape#defineProperty as the field already exists
             executeWithGeneralize(object, cachedName, value, generalize);
         }
     }
 
-    @Specialization(guards = { "location == null", "object.getShape() == cachedOldShape", "name == cachedName" }, assumptions = { "cachedOldShape.getValidAssumption()",
-            "cachedNewShape.getValidAssumption()", "validLocation" }, limit = "getCacheLimit()")
+    @Specialization(
+            guards = { "location == null", "object.getShape() == cachedOldShape", "name == cachedName" },
+            assumptions = {
+                    "cachedOldShape.getValidAssumption()",
+                    "cachedNewShape.getValidAssumption()",
+                    "validLocation" },
+            limit = "getCacheLimit()")
     protected void writeNewField(DynamicObject object, Object name, Object value, boolean generalize,
             @Cached("name") Object cachedName,
             @Cached("getLocation(object, cachedName, value)") Location location,
@@ -131,7 +139,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
             }
         } catch (IncompatibleLocationException e) {
             // remove this entry
-            validLocation.invalidate("for " + location + " for new ivar " + cachedName + " at " + getEncapsulatingSourceSection());
+            validLocation.invalidate(
+                    "for " + location + " for new ivar " + cachedName + " at " + getEncapsulatingSourceSection());
             // Make sure to generalize when adding a new field and the value is incompatible.
             // So writing an int and then later a double generalizes to adding an Object field.
             executeWithGeneralize(object, cachedName, value, true);

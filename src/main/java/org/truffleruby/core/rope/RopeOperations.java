@@ -481,7 +481,11 @@ public class RopeOperations {
                     // consumed, so there's no need to worry about adversely affecting anything by adjusting it here.
                     byteOffset %= child.byteLength();
 
-                    final int loopCount = computeLoopCount(byteOffset, repeatingRope.getTimes(), bytesToCopy, patternLength);
+                    final int loopCount = computeLoopCount(
+                            byteOffset,
+                            repeatingRope.getTimes(),
+                            bytesToCopy,
+                            patternLength);
 
                     // TODO (nirvdrum 25-Aug-2016): Flattening the rope with CR_VALID will cause a character length recalculation, even though we already know what it is. That operation should be made more optimal.
                     final Rope flattenedChild = flatten(child);
@@ -490,7 +494,8 @@ public class RopeOperations {
                     }
                 }
             } else {
-                throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + current.getClass().getName());
+                throw new UnsupportedOperationException(
+                        "Don't know how to flatten rope of type: " + current.getClass().getName());
             }
         }
 
@@ -513,7 +518,11 @@ public class RopeOperations {
         } else if (rope instanceof SubstringRope) {
             final SubstringRope substringRope = (SubstringRope) rope;
 
-            return hashForRange(substringRope.getChild(), startingHashCode, offset + substringRope.getByteOffset(), length);
+            return hashForRange(
+                    substringRope.getChild(),
+                    startingHashCode,
+                    offset + substringRope.getByteOffset(),
+                    length);
         } else if (rope instanceof ConcatRope) {
             final ConcatRope concatRope = (ConcatRope) rope;
             final Rope left = concatRope.getLeft();
@@ -552,7 +561,9 @@ public class RopeOperations {
 
             int hash = startingHashCode;
             for (int i = 0; i < loopCount; i++) {
-                final int bytesToHashThisPass = bytesToHash + offset > patternLength ? patternLength - offset : bytesToHash;
+                final int bytesToHashThisPass = bytesToHash + offset > patternLength
+                        ? patternLength - offset
+                        : bytesToHash;
                 hash = hashForRange(
                         child,
                         hash,

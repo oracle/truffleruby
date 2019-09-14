@@ -530,7 +530,8 @@ public abstract class IntegerNodes {
 
             long mod = BigInteger.valueOf(a).mod(Layouts.BIGNUM.getValue(b)).longValue();
 
-            if (mod < 0 && Layouts.BIGNUM.getValue(b).compareTo(BigInteger.ZERO) > 0 || mod > 0 && Layouts.BIGNUM.getValue(b).compareTo(BigInteger.ZERO) < 0) {
+            if (mod < 0 && Layouts.BIGNUM.getValue(b).compareTo(BigInteger.ZERO) > 0 ||
+                    mod > 0 && Layouts.BIGNUM.getValue(b).compareTo(BigInteger.ZERO) < 0) {
                 return createBignum(BigInteger.valueOf(mod).add(Layouts.BIGNUM.getValue(b)));
             }
 
@@ -1432,7 +1433,10 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject toS(DynamicObject value, NotProvided base) {
-            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(
+                    Layouts.BIGNUM.getValue(value).toString(),
+                    USASCIIEncoding.INSTANCE,
+                    CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
@@ -1456,7 +1460,10 @@ public abstract class IntegerNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(
+                    Layouts.BIGNUM.getValue(value).toString(base),
+                    USASCIIEncoding.INSTANCE,
+                    CodeRange.CR_7BIT);
         }
 
     }
@@ -1621,10 +1628,13 @@ public abstract class IntegerNodes {
         }
 
         @ExplodeLoop
-        @Specialization(guards = {
-                "isIntOrLong(base)", "exponent == cachedExponent",
-                "cachedExponent >= 0", "cachedExponent <= 10"
-        }, limit = "getLimit()")
+        @Specialization(
+                guards = {
+                        "isIntOrLong(base)",
+                        "exponent == cachedExponent",
+                        "cachedExponent >= 0",
+                        "cachedExponent <= 10" },
+                limit = "getLimit()")
         protected Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
                 @Cached BranchProfile overflowProfile,
@@ -1711,7 +1721,9 @@ public abstract class IntegerNodes {
                 return FAILURE;
             }
 
-            warnNode.warningMessage(getContext().getCallStack().getTopMostUserSourceSection(), "in a**b, b may be too big");
+            warnNode.warningMessage(
+                    getContext().getCallStack().getTopMostUserSourceSection(),
+                    "in a**b, b may be too big");
             // b >= 2**63 && (a > 1 || a < -1) => larger than largest double
             // MRI behavior/bug: always positive Infinity even if a negative and b odd (likely due
             // to libc pow(a, +inf)).
@@ -1732,7 +1744,9 @@ public abstract class IntegerNodes {
                 // Logic for promoting integer exponentiation into doubles taken from MRI.
                 // We replicate the logic exactly so we match MRI's ranges.
                 if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
-                    warnNode.warningMessage(getContext().getCallStack().getTopMostUserSourceSection(), "in a**b, b may be too big");
+                    warnNode.warningMessage(
+                            getContext().getCallStack().getTopMostUserSourceSection(),
+                            "in a**b, b may be too big");
                     return powBigIntegerDouble(base, b);
                 }
 
@@ -1792,7 +1806,12 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "downto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(
+            names = "downto",
+            needsBlock = true,
+            required = 1,
+            returnsEnumeratorIfNoBlock = true,
+            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
         @Child private CallDispatchHeadNode downtoInternalCall;
@@ -1882,7 +1901,12 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "upto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(
+            names = "upto",
+            needsBlock = true,
+            required = 1,
+            returnsEnumeratorIfNoBlock = true,
+            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class UpToNode extends YieldingCoreMethodNode {
 
         @Child private CallDispatchHeadNode uptoInternalCall;

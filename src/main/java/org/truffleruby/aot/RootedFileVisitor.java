@@ -35,7 +35,8 @@ public interface RootedFileVisitor<T> extends FileVisitor<T> {
     }
 
     static void visitEachFileOnClassPath(RootedFileVisitor<Path> visitor) {
-        try (FileSystem jarFileSystem = FileSystems.newFileSystem(URI.create("jar:file:" + rubyJarPath()), Collections.emptyMap())) {
+        try (FileSystem jarFileSystem = FileSystems
+                .newFileSystem(URI.create("jar:file:" + rubyJarPath()), Collections.emptyMap())) {
             Path root = jarFileSystem.getPath("/");
             visitor.setRoot(root);
             Files.walkFileTree(root, visitor);

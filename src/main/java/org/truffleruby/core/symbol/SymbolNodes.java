@@ -100,7 +100,9 @@ public abstract class SymbolNodes {
 
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
-        @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
+        @Specialization(
+                guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
+                limit = "getCacheLimit()")
         protected DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
                 @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
@@ -116,8 +118,12 @@ public abstract class SymbolNodes {
         }
 
         @TruffleBoundary
-        protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
-            final SourceSection sourceSection = getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
+        protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method,
+                DynamicObject symbol) {
+            final SourceSection sourceSection = getContext()
+                    .getCallStack()
+                    .getCallerNodeIgnoringSend()
+                    .getEncapsulatingSourceSection();
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -129,13 +135,21 @@ public abstract class SymbolNodes {
                     "proc",
                     ArgumentDescriptor.ANON_REST,
                     false);
-            final Object[] args = RubyArguments.pack(null, null, method, declarationContext, null, nil(), null, EMPTY_ARGUMENTS);
+            final Object[] args = RubyArguments
+                    .pack(null, null, method, declarationContext, null, nil(), null, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
-            final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
-            final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
-                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)), true);
+            final MaterializedFrame declarationFrame = Truffle
+                    .getRuntime()
+                    .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+            final RubyRootNode rootNode = new RubyRootNode(
+                    getContext(),
+                    sourceSection,
+                    new FrameDescriptor(nil()),
+                    sharedMethodInfo,
+                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)),
+                    true);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

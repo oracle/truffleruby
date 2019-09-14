@@ -40,11 +40,18 @@ public class FileLoader {
 
     public void ensureReadable(TruffleFile file) {
         if (!file.exists()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + file, file.toString(), null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError(
+                            "No such file or directory -- " + file,
+                            file.toString(),
+                            null));
         }
 
         if (!file.isReadable()) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + file, file.toString(), null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError("Permission denied -- " + file, file.toString(), null));
         }
     }
 
@@ -83,7 +90,9 @@ public class FileLoader {
         try {
             file = env.getInternalTruffleFile(path).getCanonicalFile();
         } catch (IOException e) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
         }
 
         final TruffleFile home = context.getRubyHomeTruffleFile();
@@ -93,7 +102,12 @@ public class FileLoader {
             try {
                 return env.getPublicTruffleFile(path);
             } catch (SecurityException e) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied (" + e.getMessage() + ") -- " + path, path, null));
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                "Permission denied (" + e.getMessage() + ") -- " + path,
+                                path,
+                                null));
             }
         }
     }
@@ -124,7 +138,13 @@ public class FileLoader {
          * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
          */
 
-        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).mimeType(TruffleRuby.MIME_TYPE).name(name).content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope)).internal(internal).build();
+        return Source
+                .newBuilder(TruffleRuby.LANGUAGE_ID, file)
+                .mimeType(TruffleRuby.MIME_TYPE)
+                .name(name)
+                .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
+                .internal(internal)
+                .build();
     }
 
     private boolean isInternal(String path) {

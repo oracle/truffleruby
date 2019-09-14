@@ -56,7 +56,8 @@ public abstract class TruffleBootNodes {
             if (getContext().getRubyHome() == null) {
                 return nil();
             } else {
-                return makeStringNode.executeMake(getContext().getRubyHome(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode
+                        .executeMake(getContext().getRubyHome(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -171,7 +172,8 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private RubySource loadMainSourceSettingDollarZero(StringNodes.MakeStringNode makeStringNode, String kind, String toExecute) {
+        private RubySource loadMainSourceSettingDollarZero(StringNodes.MakeStringNode makeStringNode, String kind,
+                String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
             try {
@@ -179,7 +181,8 @@ public abstract class TruffleBootNodes {
                     case "FILE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
-                        dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        dollarZeroValue = makeStringNode
+                                .executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     }
                         break;
 
@@ -201,7 +204,9 @@ public abstract class TruffleBootNodes {
                         throw new IllegalStateException();
                 }
             } catch (IOException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().ioError(e.getMessage(), toExecute, null));
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().ioError(e.getMessage(), toExecute, null));
             }
 
             getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
@@ -222,7 +227,10 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[argv.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = makeStringNode.executeMake(argv[n], getContext().getEncodingManager().getDefaultExternalEncoding(), CodeRange.CR_UNKNOWN);
+                array[n] = makeStringNode.executeMake(
+                        argv[n],
+                        getContext().getEncodingManager().getDefaultExternalEncoding(),
+                        CodeRange.CR_UNKNOWN);
             }
 
             return createArray(array, array.length);
@@ -273,7 +281,8 @@ public abstract class TruffleBootNodes {
                 return nil();
             }
 
-            return makeStringNode.executeMake(getContext().getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode
+                    .executeMake(getContext().getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -303,7 +312,9 @@ public abstract class TruffleBootNodes {
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
             if (descriptor == null) {
-                throw new RaiseException(getContext(), coreExceptions().nameError("option not defined", nil(), optionNameString, this));
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameError("option not defined", nil(), optionNameString, this));
             }
 
             final Object value = getContext().getOptions().fromDescriptor(descriptor);
@@ -334,7 +345,9 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "resilient_gem_home?", onSingleton = true)
     public abstract static class IsResilientGemHomeNode extends CoreMethodArrayArgumentsNode {
 
-        private static final boolean RESILIENT_GEM_HOME = TruffleOptions.AOT ? Boolean.getBoolean("truffleruby.native.resilient_gem_home") : false;
+        private static final boolean RESILIENT_GEM_HOME = TruffleOptions.AOT
+                ? Boolean.getBoolean("truffleruby.native.resilient_gem_home")
+                : false;
 
         @TruffleBoundary
         @Specialization

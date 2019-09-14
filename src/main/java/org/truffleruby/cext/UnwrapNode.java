@@ -154,14 +154,20 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
             return value;
         }
 
-        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+        @Specialization(
+                guards = { "!isWrapper(value)", "values.isPointer(value)" },
+                limit = "getCacheLimit()",
+                rewriteOn = UnsupportedMessageException.class)
         protected ValueWrapper pointerToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode) throws UnsupportedMessageException {
             return nativeToWrapperNode.execute(values.asPointer(value));
         }
 
-        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "pointerToWrapper")
+        @Specialization(
+                guards = { "!isWrapper(value)", "values.isPointer(value)" },
+                limit = "getCacheLimit()",
+                replaces = "pointerToWrapper")
         protected ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode,
@@ -197,7 +203,10 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         return value.getHandle() >> 1;
     }
 
-    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", rewriteOn = UnsupportedMessageException.class)
+    @Specialization(
+            guards = { "!isWrapper(value)", "values.isPointer(value)" },
+            limit = "getCacheLimit()",
+            rewriteOn = UnsupportedMessageException.class)
     protected Object unwrapPointer(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @CachedContext(RubyLanguage.class) RubyContext context,
@@ -205,7 +214,10 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         return unwrapNativeNode.execute(values.asPointer(value));
     }
 
-    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()", replaces = "unwrapPointer")
+    @Specialization(
+            guards = { "!isWrapper(value)", "values.isPointer(value)" },
+            limit = "getCacheLimit()",
+            replaces = "unwrapPointer")
     protected Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @CachedContext(RubyLanguage.class) RubyContext context,

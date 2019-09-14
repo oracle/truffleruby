@@ -9,7 +9,9 @@ import java.util.Set;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-public class FinalizerReference extends ReferenceProcessingService.PhantomProcessingReference<FinalizerReference, Object> implements ObjectGraphNode {
+public class FinalizerReference
+        extends
+        ReferenceProcessingService.PhantomProcessingReference<FinalizerReference, Object> implements ObjectGraphNode {
 
     /**
      * All accesses to this Deque must be synchronized by taking the

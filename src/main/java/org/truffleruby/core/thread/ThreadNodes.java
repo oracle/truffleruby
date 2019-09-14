@@ -189,7 +189,8 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization(guards = { "isRubyClass(exceptionClass)", "isRubySymbol(timing)" })
-        protected Object handle_interrupt(DynamicObject self, DynamicObject exceptionClass, DynamicObject timing, DynamicObject block) {
+        protected Object handle_interrupt(DynamicObject self, DynamicObject exceptionClass, DynamicObject timing,
+                DynamicObject block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
 
@@ -279,7 +280,8 @@ public abstract class ThreadNodes {
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = getContext().fileLine(sourceSection);
-            final Object[] args = boxedCopyNode.execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
+            final Object[] args = boxedCopyNode
+                    .execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
@@ -287,7 +289,11 @@ public abstract class ThreadNodes {
                 SharedObjects.shareDeclarationFrame(getContext(), block);
             }
 
-            getContext().getThreadManager().initialize(thread, this, info, sharingReason,
+            getContext().getThreadManager().initialize(
+                    thread,
+                    this,
+                    info,
+                    sharingReason,
                     () -> ProcOperations.rootCall(block, args));
             return nil();
         }
@@ -406,7 +412,8 @@ public abstract class ThreadNodes {
                     return false;
                 }
             }
-            return makeStringNode.executeMake(StringUtils.toLowerCase(status.name()), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode
+                    .executeMake(StringUtils.toLowerCase(status.name()), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }
@@ -473,7 +480,8 @@ public abstract class ThreadNodes {
                 unblockingAction = () -> yield(unblocker);
             }
 
-            return getContext().getThreadManager().runUntilResult(this,
+            return getContext().getThreadManager().runUntilResult(
+                    this,
                     () -> yield(runner),
                     unblockingAction);
         }
@@ -521,18 +529,22 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        public static void raiseInThread(RubyContext context, DynamicObject rubyThread, DynamicObject exception, Node currentNode) {
+        public static void raiseInThread(RubyContext context, DynamicObject rubyThread, DynamicObject exception,
+                Node currentNode) {
             // The exception will be shared with another thread
             SharedObjects.writeBarrier(context, exception);
 
-            context.getSafepointManager().pauseRubyThreadAndExecute(rubyThread, currentNode, (currentThread, currentNode1) -> {
-                if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
-                    Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
-                    Layouts.EXCEPTION.setBacktrace(exception, backtrace);
-                }
+            context.getSafepointManager().pauseRubyThreadAndExecute(
+                    rubyThread,
+                    currentNode,
+                    (currentThread, currentNode1) -> {
+                        if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
+                            Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
+                            Layouts.EXCEPTION.setBacktrace(exception, backtrace);
+                        }
 
-                VMRaiseExceptionNode.reRaiseException(context, exception);
-            });
+                        VMRaiseExceptionNode.reRaiseException(context, exception);
+                    });
         }
 
     }
@@ -544,7 +556,8 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyThread(thread)")
         protected DynamicObject sourceLocation(DynamicObject thread) {
-            return makeStringNode.executeMake(Layouts.THREAD.getSourceLocation(thread), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode
+                    .executeMake(Layouts.THREAD.getSourceLocation(thread), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -642,7 +655,8 @@ public abstract class ThreadNodes {
         @Specialization
         protected DynamicObject setException(VirtualFrame frame, DynamicObject exception,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
+            return Layouts.THREAD
+                    .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
         }
     }
 
@@ -652,7 +666,8 @@ public abstract class ThreadNodes {
         @Specialization
         protected DynamicObject getException(VirtualFrame frame, DynamicObject returnCode,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;
+            return Layouts.THREAD
+                    .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;
         }
     }
 
@@ -672,7 +687,8 @@ public abstract class ThreadNodes {
         @Specialization(guards = "isRubyProc(block)")
         protected Object runBlockingSystemCall(DynamicObject block,
                 @Cached YieldNode yieldNode) {
-            return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(this,
+            return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(
+                    this,
                     () -> yieldNode.executeDispatch(block));
         }
     }

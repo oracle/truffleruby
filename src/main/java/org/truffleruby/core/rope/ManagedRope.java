@@ -16,7 +16,13 @@ public abstract class ManagedRope extends Rope {
     private final CodeRange codeRange;
     private final int characterLength;
 
-    protected ManagedRope(Encoding encoding, CodeRange codeRange, int byteLength, int characterLength, int ropeDepth, byte[] bytes) {
+    protected ManagedRope(
+            Encoding encoding,
+            CodeRange codeRange,
+            int byteLength,
+            int characterLength,
+            int ropeDepth,
+            byte[] bytes) {
         super(encoding, byteLength, ropeDepth, bytes);
 
         this.codeRange = codeRange;

@@ -74,7 +74,12 @@ public abstract class PackedArrayStrategy {
         }
 
         final int index = n * ELEMENTS_PER_ENTRY;
-        System.arraycopy(store, index + ELEMENTS_PER_ENTRY, store, index, context.getOptions().HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY - ELEMENTS_PER_ENTRY - index);
+        System.arraycopy(
+                store,
+                index + ELEMENTS_PER_ENTRY,
+                store,
+                index,
+                context.getOptions().HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY - ELEMENTS_PER_ENTRY - index);
 
         for (int i = 0; i < context.getOptions().HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY; i += ELEMENTS_PER_ENTRY) {
             assert store[i] == null || store[i] instanceof Integer;

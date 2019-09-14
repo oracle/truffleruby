@@ -20,7 +20,11 @@ public class UncachedDispatchNode extends DispatchNode {
 
     @Child private DSLUncachedDispatchNode dslUncachedDispatchNode = DSLUncachedDispatchNode.create();
 
-    public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
+    public UncachedDispatchNode(
+            boolean ignoreVisibility,
+            boolean onlyCallPublic,
+            DispatchAction dispatchAction,
+            MissingBehavior missingBehavior) {
         super(dispatchAction);
         this.missingBehavior = missingBehavior;
         this.ignoreVisibility = ignoreVisibility;
@@ -40,7 +44,16 @@ public class UncachedDispatchNode extends DispatchNode {
             DynamicObject block,
             Object[] arguments) {
 
-        return dslUncachedDispatchNode.dispatch(frame, receiver, name, block, arguments, getDispatchAction(), missingBehavior, ignoreVisibility, onlyCallPublic);
+        return dslUncachedDispatchNode.dispatch(
+                frame,
+                receiver,
+                name,
+                block,
+                arguments,
+                getDispatchAction(),
+                missingBehavior,
+                ignoreVisibility,
+                onlyCallPublic);
     }
 
 }

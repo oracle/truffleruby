@@ -148,7 +148,8 @@ public abstract class ReadUUStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(Arrays.copyOfRange(lElem, 0, index), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        return makeStringNode
+                .executeMake(Arrays.copyOfRange(lElem, 0, index), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
 }

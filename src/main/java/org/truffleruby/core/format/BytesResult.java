@@ -23,7 +23,14 @@ public class BytesResult {
 
     private final Pointer[] associated;
 
-    public BytesResult(byte[] output, int outputLength, int stringLength, CodeRange stringCodeRange, boolean tainted, FormatEncoding encoding, Pointer[] associated) {
+    public BytesResult(
+            byte[] output,
+            int outputLength,
+            int stringLength,
+            CodeRange stringCodeRange,
+            boolean tainted,
+            FormatEncoding encoding,
+            Pointer[] associated) {
         this.output = output;
         this.outputLength = outputLength;
         this.stringLength = stringLength;

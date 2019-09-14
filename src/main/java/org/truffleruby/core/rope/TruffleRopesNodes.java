@@ -50,7 +50,8 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "debug_print_rope", onSingleton = true, required = 1, optional = 1)
     public abstract static class DebugPrintRopeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.DebugPrintRopeNode debugPrintRopeNode = RopeNodesFactory.DebugPrintRopeNodeGen.create();
+        @Child private RopeNodes.DebugPrintRopeNode debugPrintRopeNode = RopeNodesFactory.DebugPrintRopeNodeGen
+                .create();
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
@@ -118,7 +119,8 @@ public abstract class TruffleRopesNodes {
 
         private static String getStructure(SubstringRope rope) {
             final Rope child = rope.getChild();
-            final int characterOffset = RopeOperations.strLength(child.getEncoding(), child.getBytes(), 0, rope.getByteOffset());
+            final int characterOffset = RopeOperations
+                    .strLength(child.getEncoding(), child.getBytes(), 0, rope.getByteOffset());
             return getStructure(child) + "[" + characterOffset + ", " + rope.characterLength() + "]";
         }
 
@@ -154,7 +156,8 @@ public abstract class TruffleRopesNodes {
         @Specialization
         protected DynamicObject createSimpleString(
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));
+            return makeStringNode
+                    .fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));
         }
 
     }

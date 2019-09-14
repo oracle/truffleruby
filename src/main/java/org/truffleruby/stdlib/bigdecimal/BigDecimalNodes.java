@@ -65,18 +65,12 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "+", required = 1)
     public abstract static class AddOpNode extends AbstractAddNode {
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object add(DynamicObject a, DynamicObject b) {
             return add(a, b, getLimit());
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object addSpecial(DynamicObject a, DynamicObject b) {
             return addSpecial(a, b, 0);
         }
@@ -93,19 +87,13 @@ public abstract class BigDecimalNodes {
     public abstract static class AddNode extends AbstractAddNode {
 
         @Override
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object add(DynamicObject a, DynamicObject b, int precision) {
             return super.add(a, b, precision);
         }
 
         @Override
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object addSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.addSpecial(a, b, precision);
         }
@@ -120,18 +108,12 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "-", required = 1)
     public abstract static class SubOpNode extends AbstractSubNode {
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object sub(DynamicObject a, DynamicObject b) {
             return sub(a, b, getLimit());
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object subSpecial(DynamicObject a, DynamicObject b) {
             return subSpecial(a, b, 0);
         }
@@ -148,19 +130,13 @@ public abstract class BigDecimalNodes {
     public abstract static class SubNode extends AbstractSubNode {
 
         @Override
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object sub(DynamicObject a, DynamicObject b, int precision) {
             return super.sub(a, b, precision);
         }
 
         @Override
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object subSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.subSpecial(a, b, precision);
         }
@@ -175,18 +151,12 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "-@")
     public abstract static class NegNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {
-                "isNormal(value)",
-                "!isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "!isNormalZero(value)" })
         protected Object negNormal(DynamicObject value) {
             return createBigDecimal(Layouts.BIG_DECIMAL.getValue(value).negate());
         }
 
-        @Specialization(guards = {
-                "isNormal(value)",
-                "isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "isNormalZero(value)" })
         protected Object negNormalZero(DynamicObject value) {
             return createBigDecimal(BigDecimalType.NEGATIVE_ZERO);
         }
@@ -222,34 +192,22 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "*", required = 1)
     public abstract static class MultOpNode extends AbstractMultNode {
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object mult(DynamicObject a, DynamicObject b) {
             return mult(a, b, getLimit());
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object multNormalSpecial(DynamicObject a, DynamicObject b) {
             return multSpecialNormal(b, a, 0);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object multSpecialNormal(DynamicObject a, DynamicObject b) {
             return multSpecialNormal(a, b, 0);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object multSpecial(DynamicObject a, DynamicObject b) {
             return multSpecial(a, b, 0);
         }
@@ -266,37 +224,25 @@ public abstract class BigDecimalNodes {
     public abstract static class MultNode extends AbstractMultNode {
 
         @Override
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object mult(DynamicObject a, DynamicObject b, int precision) {
             return super.mult(a, b, precision);
         }
 
         @Override
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object multNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.multNormalSpecial(a, b, precision);
         }
 
         @Override
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object multSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
             return super.multSpecialNormal(a, b, precision);
         }
 
         @Override
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object multSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.multSpecial(a, b, precision);
         }
@@ -311,35 +257,26 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = { "/", "quo" }, required = 1)
     public abstract static class DivOpNode extends AbstractDivNode {
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object div(DynamicObject a, DynamicObject b) {
-            final int precision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit());
+            final int precision = defaultDivisionPrecision(
+                    Layouts.BIG_DECIMAL.getValue(a),
+                    Layouts.BIG_DECIMAL.getValue(b),
+                    getLimit());
             return div(a, b, precision);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divNormalSpecial(DynamicObject a, DynamicObject b) {
             return divNormalSpecial(a, b, 0);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object divSpecialNormal(DynamicObject a, DynamicObject b) {
             return divSpecialNormal(a, b, 0);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divSpecialSpecial(DynamicObject a, DynamicObject b) {
             return divSpecialSpecial(a, b, 0);
         }
@@ -355,10 +292,7 @@ public abstract class BigDecimalNodes {
     @NodeChild(value = "precision", type = RubyNode.class)
     public abstract static class DivNode extends AbstractDivNode {
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object div(DynamicObject a, DynamicObject b, NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
                 @Cached("createPrivate()") CallDispatchHeadNode floorNode) {
@@ -370,16 +304,16 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object div(DynamicObject a, DynamicObject b, int precision,
                 @Cached("createBinaryProfile()") ConditionProfile zeroPrecisionProfile) {
             final int newPrecision;
 
             if (zeroPrecisionProfile.profile(precision == 0)) {
-                newPrecision = defaultDivisionPrecision(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b), getLimit());
+                newPrecision = defaultDivisionPrecision(
+                        Layouts.BIG_DECIMAL.getValue(a),
+                        Layouts.BIG_DECIMAL.getValue(b),
+                        getLimit());
             } else {
                 newPrecision = precision;
             }
@@ -387,10 +321,7 @@ public abstract class BigDecimalNodes {
             return super.div(a, b, newPrecision);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divNormalSpecial(DynamicObject a, DynamicObject b, NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile negativeZeroProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
@@ -404,18 +335,12 @@ public abstract class BigDecimalNodes {
         }
 
         @Override
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.divNormalSpecial(a, b, precision);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object divSpecialNormal(DynamicObject a, DynamicObject b, NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile zeroDivisionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
@@ -425,7 +350,8 @@ public abstract class BigDecimalNodes {
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else if (infinityProfile.profile(
-                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.POSITIVE_INFINITY || Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NEGATIVE_INFINITY)) {
+                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.POSITIVE_INFINITY ||
+                            Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NEGATIVE_INFINITY)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
             } else {
                 return divSpecialNormal(a, b, 0);
@@ -433,25 +359,20 @@ public abstract class BigDecimalNodes {
         }
 
         @Override
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object divSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
             return super.divSpecialNormal(a, b, precision);
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divSpecialSpecial(DynamicObject a, DynamicObject b, NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile negZeroProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
             if (negZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(
-                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN || Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
+                    Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN ||
+                            Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else {
                 return divSpecialSpecial(a, b, 0);
@@ -459,10 +380,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Override
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isSpecialRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divSpecialSpecial(DynamicObject a, DynamicObject b, int precision) {
             return super.divSpecialSpecial(a, b, precision);
         }
@@ -495,42 +413,27 @@ public abstract class BigDecimalNodes {
             return result;
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "!isNormalZero(a)",
-                "!isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "!isNormalZero(a)", "!isNormalZero(b)" })
         protected Object divmod(DynamicObject a, DynamicObject b) {
-            final BigDecimal[] result = divmodBigDecimal(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b));
+            final BigDecimal[] result = divmodBigDecimal(
+                    Layouts.BIG_DECIMAL.getValue(a),
+                    Layouts.BIG_DECIMAL.getValue(b));
             final Object[] store = new Object[]{ createBigDecimal(result[0]), createBigDecimal(result[1]) };
             return createArray(store, store.length);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "isNormalZero(a)",
-                "!isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(a)", "!isNormalZero(b)" })
         protected Object divmodZeroDividend(DynamicObject a, DynamicObject b) {
             final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(BigDecimal.ZERO) };
             return createArray(store, store.length);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(b)" })
         protected Object divmodZeroDivisor(DynamicObject a, DynamicObject b) {
             throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object divmodSpecial(DynamicObject a, DynamicObject b,
                 @Cached("createPrivate()") CallDispatchHeadNode signCall,
                 @Cached IntegerCastNode signIntegerCast,
@@ -542,31 +445,42 @@ public abstract class BigDecimalNodes {
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
             if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN)) {
-                final Object[] store = new Object[]{ createBigDecimal(BigDecimalType.NAN), createBigDecimal(BigDecimalType.NAN) };
+                final Object[] store = new Object[]{
+                        createBigDecimal(BigDecimalType.NAN),
+                        createBigDecimal(BigDecimalType.NAN) };
                 return createArray(store, store.length);
             }
 
-            if (nanProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
+            if (nanProfile.profile(
+                    bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
-            if (normalNegProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
-                final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(BigDecimal.ZERO) };
+            if (normalNegProfile.profile(
+                    aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
+                final Object[] store = new Object[]{
+                        createBigDecimal(BigDecimal.ZERO),
+                        createBigDecimal(BigDecimal.ZERO) };
                 return createArray(store, store.length);
             }
 
-            if (negNormalProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (negNormalProfile
+                    .profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
                 final int signA = aType == BigDecimalType.POSITIVE_INFINITY ? 1 : -1;
                 final int signB = Integer.signum(signIntegerCast.executeCastInt(signCall.call(b, "sign")));
                 final int sign = signA * signB; // is between -1 and 1, 0 when nan
 
-                final BigDecimalType type = new BigDecimalType[]{ BigDecimalType.NEGATIVE_INFINITY, BigDecimalType.NAN, BigDecimalType.POSITIVE_INFINITY }[sign + 1];
+                final BigDecimalType type = new BigDecimalType[]{
+                        BigDecimalType.NEGATIVE_INFINITY,
+                        BigDecimalType.NAN,
+                        BigDecimalType.POSITIVE_INFINITY }[sign + 1];
 
                 final Object[] store = new Object[]{ createBigDecimal(type), createBigDecimal(BigDecimalType.NAN) };
                 return createArray(store, store.length);
             }
 
-            if (infinityProfile.profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (infinityProfile
+                    .profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
                 final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(a) };
                 return createArray(store, store.length);
             }
@@ -590,28 +504,18 @@ public abstract class BigDecimalNodes {
             return a.remainder(b);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "!isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "!isNormalZero(b)" })
         protected Object remainder(DynamicObject a, DynamicObject b) {
-            return createBigDecimal(remainderBigDecimal(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b)));
+            return createBigDecimal(
+                    remainderBigDecimal(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b)));
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(b)" })
         protected Object remainderZero(DynamicObject a, DynamicObject b) {
             return createBigDecimal(BigDecimalType.NAN);
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object remainderSpecial(DynamicObject a, DynamicObject b,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
@@ -645,28 +549,17 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "!isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "!isNormalZero(b)" })
         protected Object modulo(DynamicObject a, DynamicObject b) {
             return createBigDecimal(moduloBigDecimal(Layouts.BIG_DECIMAL.getValue(a), Layouts.BIG_DECIMAL.getValue(b)));
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)",
-                "isNormalZero(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(b)" })
         protected Object moduloZero(DynamicObject a, DynamicObject b) {
             throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)"
-        })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object moduloSpecial(DynamicObject a, DynamicObject b,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
@@ -680,19 +573,23 @@ public abstract class BigDecimalNodes {
                 return createBigDecimal(BigDecimalType.NAN);
             }
 
-            if (normalNegProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
+            if (normalNegProfile.profile(
+                    bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
-            if (negNormalProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
+            if (negNormalProfile.profile(
+                    aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
                 return createBigDecimal(BigDecimal.ZERO);
             }
 
-            if (posNegInfProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (posNegInfProfile
+                    .profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
                 return createBigDecimal(BigDecimalType.NAN);
             }
 
-            if (negPosInfProfile.profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
+            if (negPosInfProfile
+                    .profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
                 return createBigDecimal(a);
             }
 
@@ -757,7 +654,9 @@ public abstract class BigDecimalNodes {
                     newPrecision = (-exponent + 4) * (getDigits(aBigDecimal) + 4);
                 }
 
-                return createBigDecimal(power(Layouts.BIG_DECIMAL.getValue(a), exponent,
+                return createBigDecimal(power(
+                        Layouts.BIG_DECIMAL.getValue(a),
+                        exponent,
                         new MathContext(newPrecision, getRoundMode())));
             }
         }
@@ -793,7 +692,8 @@ public abstract class BigDecimalNodes {
                     break;
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
             }
 
             return createBigDecimal(value);
@@ -907,10 +807,7 @@ public abstract class BigDecimalNodes {
             return executeSqrt(a, 1);
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "precision > 0"
-        })
+        @Specialization(guards = { "isNormal(a)", "precision > 0" })
         protected Object sqrt(DynamicObject a, int precision,
                 @Cached("createBinaryProfile()") ConditionProfile positiveValueProfile) {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
@@ -921,10 +818,7 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "precision > 0"
-        })
+        @Specialization(guards = { "!isNormal(a)", "precision > 0" })
         protected Object sqrtSpecial(DynamicObject a, int precision,
                 @Cached BranchProfile nanProfile,
                 @Cached BranchProfile posInfProfile,
@@ -945,7 +839,8 @@ public abstract class BigDecimalNodes {
                     return createBigDecimal(sqrt(BigDecimal.ZERO, new MathContext(precision, getRoundMode())));
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
             }
         }
     }
@@ -963,18 +858,12 @@ public abstract class BigDecimalNodes {
             return compareBigDecimal(a, BigDecimal.valueOf(b));
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isFinite(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isFinite(b)" })
         protected int compareFinite(DynamicObject a, double b) {
             return compareBigDecimal(a, valueOf(b));
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "!isFinite(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "!isFinite(b)" })
         protected Object compareNotFinite(DynamicObject a, double b) {
             if (Double.isNaN(b)) {
                 return nil();
@@ -984,18 +873,12 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isRubyBignum(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isRubyBignum(b)" })
         protected int compare(DynamicObject a, DynamicObject b) {
             return compareBigDecimal(a, new BigDecimal(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = {
-                "isNormal(a)",
-                "isNormalRubyBigDecimal(b)"
-        })
+        @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected int compareNormal(DynamicObject a, DynamicObject b) {
             return compareBigDecimal(a, Layouts.BIG_DECIMAL.getValue(b));
         }
@@ -1005,18 +888,12 @@ public abstract class BigDecimalNodes {
             return compareSpecial(a, createBigDecimal(BigDecimal.valueOf(b)));
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isFinite(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isFinite(b)" })
         protected Object compareSpecialFinite(DynamicObject a, double b) {
             return compareSpecial(a, createBigDecimal(valueOf(b)));
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "!isFinite(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "!isFinite(b)" })
         protected Object compareSpecialInfinite(DynamicObject a, double b) {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(a);
 
@@ -1027,27 +904,18 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isRubyBignum(b)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isRubyBignum(b)" })
         protected Object compareSpecialBignum(DynamicObject a, DynamicObject b) {
             return compareSpecial(a, createBigDecimal(new BigDecimal(Layouts.BIGNUM.getValue(b))));
         }
 
-        @Specialization(guards = {
-                "!isNormal(a)",
-                "isNan(a)"
-        })
+        @Specialization(guards = { "!isNormal(a)", "isNan(a)" })
         protected Object compareSpecialNan(DynamicObject a, DynamicObject b) {
             return nil();
         }
 
         @TruffleBoundary
-        @Specialization(guards = {
-                "isRubyBigDecimal(b)",
-                "!isNormal(a) || !isNormal(b)",
-                "isNormal(a) || !isNan(a)" })
+        @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)", "isNormal(a) || !isNan(a)" })
         protected Object compareSpecial(DynamicObject a, DynamicObject b) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
@@ -1118,18 +986,12 @@ public abstract class BigDecimalNodes {
 
         @Child private GetIntegerConstantNode sign;
 
-        @Specialization(guards = {
-                "isNormal(value)",
-                "isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "isNormalZero(value)" })
         protected int signNormalZero(DynamicObject value) {
             return getConstant("SIGN_POSITIVE_ZERO");
         }
 
-        @Specialization(guards = {
-                "isNormal(value)",
-                "!isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "!isNormalZero(value)" })
         protected int signNormal(DynamicObject value,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             final String name;
@@ -1162,7 +1024,8 @@ public abstract class BigDecimalNodes {
                     break;
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
             }
 
             return getConstant(name);
@@ -1198,19 +1061,13 @@ public abstract class BigDecimalNodes {
     public abstract static class ExponentNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = {
-                "isNormal(value)",
-                "!isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "!isNormalZero(value)" })
         protected long exponent(DynamicObject value) {
             final BigDecimal val = Layouts.BIG_DECIMAL.getValue(value).abs().stripTrailingZeros();
             return val.precision() - val.scale();
         }
 
-        @Specialization(guards = {
-                "isNormal(value)",
-                "isNormalZero(value)"
-        })
+        @Specialization(guards = { "isNormal(value)", "isNormalZero(value)" })
         protected int exponentZero(DynamicObject value) {
             return 0;
         }
@@ -1285,7 +1142,10 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = { "isNormal(value)", "isRubySymbol(roundingMode)" })
         protected Object round(DynamicObject value, int digit, DynamicObject roundingMode,
                 @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
-            return createBigDecimal(round(value, digit, toRoundingMode((int) callRoundModeFromSymbol.call(value, "round_mode_from_symbol", roundingMode))));
+            return createBigDecimal(round(
+                    value,
+                    digit,
+                    toRoundingMode((int) callRoundModeFromSymbol.call(value, "round_mode_from_symbol", roundingMode))));
         }
 
         @Specialization(guards = "isNormal(value)")
@@ -1315,24 +1175,18 @@ public abstract class BigDecimalNodes {
                     throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
 
             }
         }
 
-        @Specialization(guards = {
-                "!isNormal(value)",
-                "wasProvided(precision)",
-                "wasProvided(roundingMode)"
-        })
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(precision)", "wasProvided(roundingMode)" })
         protected Object roundSpecial(DynamicObject value, Object precision, Object roundingMode) {
             return value;
         }
 
-        @Specialization(guards = {
-                "!isNormal(value)",
-                "wasProvided(precision)"
-        })
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(precision)" })
         protected Object roundSpecial(DynamicObject value, Object precision, NotProvided roundingMode) {
             return value;
         }
@@ -1402,7 +1256,8 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "isNormal(value)")
         protected Object precsNormal(DynamicObject value) {
             final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value).abs();
-            final int precs = nearestBiggerMultipleOf9(bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
+            final int precs = nearestBiggerMultipleOf9(
+                    bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
             return createArray(new int[]{ precs, precs + 9 }, 2);
         }
 
@@ -1443,7 +1298,8 @@ public abstract class BigDecimalNodes {
                     return Double.NaN;
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
             }
         }
 
@@ -1466,8 +1322,11 @@ public abstract class BigDecimalNodes {
             final Object numeratorAsRubyValue = numeratorConversionNode.fixnumOrBignum(numerator);
             final Object denominatorAsRubyValue = denominatorConversionNode.fixnumOrBignum(denominator);
 
-            return createRationalNode.call(getContext().getCoreLibrary().getRationalClass(), "convert",
-                    numeratorAsRubyValue, denominatorAsRubyValue);
+            return createRationalNode.call(
+                    getContext().getCoreLibrary().getRationalClass(),
+                    "convert",
+                    numeratorAsRubyValue,
+                    denominatorAsRubyValue);
         }
 
         @Specialization(guards = "!isNormal(value)")
@@ -1493,7 +1352,8 @@ public abstract class BigDecimalNodes {
                     return createRationalNode.call(getContext().getCoreLibrary().getRationalClass(), "convert", 0, 1);
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
             }
         }
 
@@ -1518,7 +1378,10 @@ public abstract class BigDecimalNodes {
         @TruffleBoundary
         @Specialization(guards = "isNormal(value)")
         protected Object unscaled(DynamicObject value) {
-            return makeStringNode.executeMake(Layouts.BIG_DECIMAL.getValue(value).abs().stripTrailingZeros().unscaledValue().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(
+                    Layouts.BIG_DECIMAL.getValue(value).abs().stripTrailingZeros().unscaledValue().toString(),
+                    UTF8Encoding.INSTANCE,
+                    CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
@@ -1550,16 +1413,23 @@ public abstract class BigDecimalNodes {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
             switch (type) {
                 case NEGATIVE_INFINITY:
-                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case POSITIVE_INFINITY:
-                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case NAN:
-                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case NEGATIVE_ZERO:
                     return 0;
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
+                    throw new UnsupportedOperationException(
+                            "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
             }
         }
     }
