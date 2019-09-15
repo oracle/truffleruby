@@ -88,6 +88,17 @@ rm -rf lib/gems/specifications/default
 cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/gems/specifications
 ```
 
+If any of these gemspecs has executables (`s.executables = ...`), then those
+files must be copied under `lib/gems/gems/GEM-VERSION/exe` for `Gem.bin_path` to
+work:
+```
+grep -R executables lib/gems/specifications/default
+cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/gems/GEM-VERSION lib/gems/gems
+```
+
+Note: `gem install --default` might help with this, but it does not seem to
+create the executable files currently, even on MRI.
+
 ## Updating bundled gems
 
 To update a bundled gem, follow these steps:
