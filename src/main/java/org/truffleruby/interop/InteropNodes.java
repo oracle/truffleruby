@@ -206,11 +206,11 @@ public abstract class InteropNodes {
             return InteropNodesFactory.InvokeUncacheableNodeGen.create();
         }
 
-        abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
+        abstract Object execute(Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getCacheLimit()")
         protected Object invokeCached(
-                TruffleObject receiver,
+                Object receiver,
                 Object identifier,
                 Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,

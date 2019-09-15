@@ -33,7 +33,6 @@ import org.truffleruby.platform.ErrnoDescriptions;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -810,7 +809,7 @@ public class CoreExceptions {
                 context.getSymbolTable().getSymbol("<unknown>")));
     }
 
-    public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, String name, Object[] args,
+    public DynamicObject noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
             InteropException exception, Node currentNode) {
         return noMethodError(exception.getMessage(), receiver, name, args, currentNode);
     }
