@@ -1,6 +1,6 @@
 # Updating our version of Ruby
 
-Before you do anything, check with Chris Seaton for clearance to upgrade.
+Before you do anything, check with Benoit Daloze for clearance to upgrade.
 
 The workflow below will allow you to see and reapply the modifications that we
 have to MRI source code while updating.
