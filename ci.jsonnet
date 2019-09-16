@@ -78,8 +78,7 @@ local part_definitions = {
               jt(["build", "--env", self.mx_env] + self.jt_build_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
               [
                 # make sure jt always uses what was just built
-                ["set-export", "VM_DIST_HOME", ["mx", "--env", self.mx_env, "graalvm-home"]],
-                ["set-export", "RUBY_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/ruby"],
+                ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
               ],
     },
 
