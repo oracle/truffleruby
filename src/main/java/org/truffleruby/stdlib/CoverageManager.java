@@ -115,8 +115,13 @@ public class CoverageManager {
                         }
 
                         if (counters != null) {
-                            counters.incrementAndGet(lineNumber);
+                            incrementAndGet();
                         }
+                    }
+
+                    @TruffleBoundary
+                    private void incrementAndGet() {
+                        counters.incrementAndGet(lineNumber);
                     }
 
                 });
