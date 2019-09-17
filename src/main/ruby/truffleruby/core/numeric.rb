@@ -257,6 +257,8 @@ class Numeric
       raise TypeError, "#{other.class} can't be coerced into #{self.class}"
     elsif error == :compare_error
       raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+    elsif error == :bad_coerce_return_error
+      nil
     elsif error == :no_error
       nil
     end
@@ -290,6 +292,12 @@ class Numeric
     return nil unless b
     a <=> b
   end
+
+   private def redo_compare_bad_coerce_return_error(right)
+     b, a = math_coerce(right, :bad_coerce_return_error)
+     return nil unless b
+     a <=> b
+   end
 
   def redo_bit_coerced(meth, right)
     b, a = bit_coerce(right)

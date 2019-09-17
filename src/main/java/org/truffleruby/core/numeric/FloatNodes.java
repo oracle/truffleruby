@@ -419,8 +419,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyBignum(b)" })
-        protected DynamicObject compare(double a, DynamicObject b) {
-            return nil();
+        protected Object compare(double a, DynamicObject b,
+                                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
     }
