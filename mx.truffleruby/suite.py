@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "432df38e6864205e10e52aa4058ce868aedab929",
+                "version": "7980245f92d00f4b6c38688d46f0a586ec397fde",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "432df38e6864205e10e52aa4058ce868aedab929",
+                "version": "7980245f92d00f4b6c38688d46f0a586ec397fde",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -122,7 +122,7 @@ suite = {
         "org.truffleruby.annotations": {
             "dir": "src/annotations",
             "sourceDirs": ["java"],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
@@ -138,7 +138,7 @@ suite = {
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
@@ -150,7 +150,7 @@ suite = {
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
@@ -162,7 +162,7 @@ suite = {
             "dependencies": [
                 "sdk:GRAAL_SDK",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
@@ -184,7 +184,7 @@ suite = {
                 "truffle:TRUFFLE_DSL_PROCESSOR",
                 "TRUFFLERUBY-PROCESSOR",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
@@ -200,7 +200,7 @@ suite = {
         "org.truffleruby.ruby": {
             "dir": "src/main/ruby",
             "sourceDirs": ["."],
-            "javaCompliance": "1.8+",
+            "javaCompliance": "8+",
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -224,7 +224,7 @@ suite = {
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
@@ -238,7 +238,7 @@ suite = {
                 "org.truffleruby.services",
                 "mx:JUNIT",
             ],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0"],
         },
@@ -248,7 +248,7 @@ suite = {
             "dir": "src/tck",
             "sourceDirs": ["java", "ruby"],
             "dependencies": ["truffle:TRUFFLE_TCK"],
-            "javaCompliance": "1.8",
+            "javaCompliance": "8+",
             "license": ["EPL-1.0"],
         },
 
@@ -327,6 +327,10 @@ suite = {
         },
 
         "TRUFFLERUBY-SERVICES": {
+            "moduleInfo": {
+                "name": "org.truffleruby.services",
+                "exports": ["org.truffleruby.services.scriptengine"],
+            },
             "dependencies": [
                 "org.truffleruby.services"
             ],
