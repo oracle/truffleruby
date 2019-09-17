@@ -9,14 +9,18 @@
  */
 package org.truffleruby.language.constants;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -69,6 +73,16 @@ public abstract class GetConstantNode extends RubyBaseNode {
         if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
             return doMissingConstant(module, name, getSymbol(name));
+        }
+
+        String featureString = StringOperations.getString(feature);
+        final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
+        if (expandedPath != null) {
+            final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
+            final ReentrantLock lock = fileLocks.get(expandedPath);
+            if (lock.isHeldByCurrentThread()) {
+                return null;
+            }
         }
 
         if (getContext().getOptions().LOG_AUTOLOAD) {
