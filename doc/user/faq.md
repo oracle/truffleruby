@@ -79,7 +79,7 @@ forked back out of JRuby after it had matured.
 The best way to get in touch with us is to join us in
 https://gitter.im/graalvm/truffleruby, but you can also Tweet to
 [@TruffleRuby](https://twitter.com/truffleruby), or email
-chris.seaton@oracle.com.
+benoit.daloze@oracle.com.
 
 ### How do I know if I’m using TruffleRuby?
 

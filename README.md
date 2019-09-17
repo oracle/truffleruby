@@ -151,7 +151,7 @@ to contribute to TruffleRuby.
 The best way to get in touch with us is to join us in
 https://gitter.im/graalvm/truffleruby, but you can also Tweet to
 [@TruffleRuby](https://twitter.com/truffleruby), or email
-chris.seaton@oracle.com.
+benoit.daloze@oracle.com.
 
 Please report security vulnerabilities via the process outlined at [reporting
 vulnerabilities
