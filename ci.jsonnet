@@ -197,18 +197,6 @@ local part_definitions = {
     } + svm,
   },
 
-  svm: {
-    gate: {
-      # The same as job "gate-vm-native-truffleruby-tip" in
-      # https://github.com/oracle/graal/blob/master/vm/ci_common/common.hocon
-      local build = self,
-      run+: [
-        ["mx", "sversions"],
-        ["mx", "--env", build.mx_env, "gate", "--no-warning-as-error", "--tags", build["$.svm.gate"].tags],
-      ],
-    },
-  },
-
   jdk: {
     labsjdk8: {
       downloads+: {
@@ -318,6 +306,8 @@ local part_definitions = {
         ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
       ],
     },
+
+    testdownstream_aot: { run+: [["mx", "ruby_testdownstream_aot", "$RUBY_BIN"]] },
 
     test_make_standalone_distribution: {
       run+: [
@@ -435,9 +425,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local linux_gate_without_build = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
-      local linux_gate = linux_gate_without_build + $.use.build,
+      local gate_no_build = $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
+      local gate = gate_no_build + $.use.build,
+
+      local linux_gate_no_build = $.platform.linux + gate_no_build,
+      local linux_gate = linux_gate_no_build + $.use.build,
       local linux_gate_jvm = linux_gate + $.env.jvm,
+
+      local darwin_gate_jvm = $.platform.darwin + gate + $.env.jvm,
 
       "ruby-test-specs-linux": linux_gate_jvm + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
       "ruby-test-fast-linux": linux_gate_jvm + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
@@ -446,51 +441,20 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems-linux": linux_gate_jvm + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-ecosystem-linux": linux_gate_jvm + $.use.node + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux": linux_gate_without_build + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
+      "ruby-test-standalone-linux": linux_gate_no_build + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core": linux_gate + $.env.jvm_ce + $.use.truffleruby + $.run.test_compiler,
       # "ruby-test-compiler-graal-enterprise": linux_gate + $.env.jvm_ee + $.use.truffleruby + $.run.test_compiler,
-    } +
 
-    {
-      local darwin_gate = $.platform.darwin + $.cap.gate + $.jdk.labsjdk8 + $.use.common + $.env.jvm + $.use.build + { timelimit: "01:00:00" },
+      "ruby-test-specs-darwin": darwin_gate_jvm + $.run.test_unit_tck_specs + $.run.test_basictest,
+      "ruby-test-mri-darwin": darwin_gate_jvm + $.run.test_mri,
+      "ruby-test-cexts-darwin": darwin_gate_jvm + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems-darwin": darwin_gate_jvm + $.use.gem_test_pack + $.run.test_gems,
 
-      "ruby-test-specs-darwin": darwin_gate + $.run.test_unit_tck_specs + $.run.test_basictest,
-      "ruby-test-mri-darwin": darwin_gate + $.run.test_mri,
-      "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
-      "ruby-test-gems-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_gems,
-    } +
-
-    local svm_test_shared = $.jdk.labsjdk8 + $.use.common + $.cap.gate + $.svm.gate;
-    {
-      local shared = $.env.native {
-        "$.svm.gate":: {
-          tags: "build,ruby",
-        },
-        environment+: {
-          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:GreyToBlackObjectVisitorDiagnosticHistory=16",  # GR-9912
-        },
-        timelimit: "01:00:00",
-      },
-
-      "ruby-test-svm-graal-core-linux": $.platform.linux + svm_test_shared + shared,
-      "ruby-test-svm-graal-core-darwin": $.platform.darwin + svm_test_shared + shared,
-    } + {
-      local shared = $.use.clone_enterprise + $.env.native_ee { timelimit: "01:15:00" },
-      "ruby-test-svm-graal-enterprise-linux": $.platform.linux + svm_test_shared + shared + {
-        "$.svm.gate":: {
-          tags: "build,ruby_product",
-        },
-        environment+: {
-          EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:+VerifyGraalGraphs -H:+VerifyPhases -H:+AOTPriorityInline -H:+VerifyDeoptimizationEntryPoints",
-        },
-      },
-      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + svm_test_shared + shared + {
-        "$.svm.gate":: {
-          tags: "build,darwin_ruby",
-        },
-        # No extra verifications, this CI job is already slow
-      },
+      "ruby-test-svm-graal-core-linux": $.platform.linux + $.env.native + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-core-darwin": $.platform.darwin + $.env.native + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-enterprise-linux": $.platform.linux + $.use.clone_enterprise + $.env.native_ee + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.use.clone_enterprise + $.env.native_ee + gate + $.run.testdownstream_aot,
     },
 
   local other_rubies = {
