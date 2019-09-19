@@ -33,8 +33,8 @@ describe "Kernel#BigDecimal" do
     BigDecimal(pi_string).precs[1].should >= pi_string.size-1
   end
 
-  it "ignores leading whitespace" do
-    BigDecimal("  \t\n \r1234").should == BigDecimal("1234")
+  it "ignores leading and trailing whitespace" do
+    BigDecimal("  \t\n \r1234\t\r\n ").should == BigDecimal("1234")
     BigDecimal("  \t\n \rNaN   \n").nan?.should == true
     BigDecimal("  \t\n \rInfinity   \n").infinite?.should == 1
     BigDecimal("  \t\n \r-Infinity   \n").infinite?.should == -1
