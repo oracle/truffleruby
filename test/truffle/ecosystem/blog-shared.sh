@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -24,11 +22,11 @@ alias truffleruby="jt ruby -S"
 
 set -xe
 
-if [ "$1" != "--no-gem-test-pack" ]; then
+if [ "$2" != "--no-gem-test-pack" ]; then
   gem_test_pack_path="$(jt gem-test-pack)"
 fi
 
-cd test/truffle/ecosystem/blog
+cd "test/truffle/ecosystem/$1"
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
