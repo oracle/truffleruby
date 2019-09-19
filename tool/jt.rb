@@ -1253,6 +1253,13 @@ EOS
       targets.each { |t| puts " * #{t}" }
       exit 1
     end
+
+    # run launchers first before any gem is installed, which may break the test
+    # since it alters executables of default gems when they are updated
+    if (launchers = candidates.find { |c| c.end_with?('launchers.sh') })
+      candidates.unshift candidates.delete launchers
+    end
+
     success = candidates.all? do |test_script|
       sh test_script, *('--no-gem-test-pack' unless use_gem_test_pack), continue_on_failure: true
     end
