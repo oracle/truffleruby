@@ -2084,6 +2084,50 @@ EOS
     mx 'checkstyle', '-f', '--primary'
   end
 
+  def make_specializations_protected
+    changed = false
+    count_braces = -> line { line.count('(') - line.count(')') }
+
+    Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
+      content = File.read file
+      new_content = ''
+
+      looking = false
+      braces = 0
+      content.lines.each do |line|
+        if looking
+          if braces == 0
+            if line =~ /\w+(\[\])? \w+\(/
+              new_line = line.
+                  # change to protected
+                  gsub(/^( *)(public |protected |private |)/, '\1protected ')
+              new_content << new_line
+              looking = false
+            else
+              new_content << line
+            end
+          else
+            braces += count_braces.(line)
+            new_content << line
+          end
+        else
+          looking = line.match?(/^ *@(Specialization|Fallback|CreateCast)/)
+          new_content << line
+          if looking
+            braces = count_braces.(line)
+          end
+        end
+      end
+
+      if content != new_content
+        puts "#{file} updated"
+        changed = true
+        File.write file, new_content
+      end
+    end
+    changed
+  end
+
   def lint(*args)
     check_filename_length
     rubocop
@@ -2099,6 +2143,7 @@ EOS
 
     check_parser
     check_documentation_urls
+    abort 'Some Specializations were not protected.' if make_specializations_protected
   end
 
   def sync
