@@ -410,6 +410,7 @@ suite = {
                 ],
                 "lib/": [
                     "file:lib/json",
+                    "file:lib/gems",
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
@@ -443,28 +444,6 @@ suite = {
                 ],
                 "lib/mri/rbconfig/": [
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/sizeof.su",
-                ],
-                "lib/gems/": [
-                    "file:lib/gems/truffleruby_gem_dir_marker.txt",
-                ],
-                "lib/gems/gems/": [
-                    "file:lib/gems/gems/did_you_mean-1.3.0",
-                    "file:lib/gems/gems/minitest-5.11.3",
-                    "file:lib/gems/gems/net-telnet-0.2.0",
-                    "file:lib/gems/gems/power_assert-1.1.3",
-                    "file:lib/gems/gems/rake-12.3.2",
-                    "file:lib/gems/gems/test-unit-3.2.9",
-                    "file:lib/gems/gems/xmlrpc-0.3.0",
-                ],
-                "lib/gems/specifications/": [
-                    "file:lib/gems/specifications/default",
-                    "file:lib/gems/specifications/did_you_mean-1.3.0.gemspec",
-                    "file:lib/gems/specifications/minitest-5.11.3.gemspec",
-                    "file:lib/gems/specifications/net-telnet-0.2.0.gemspec",
-                    "file:lib/gems/specifications/power_assert-1.1.3.gemspec",
-                    "file:lib/gems/specifications/rake-12.3.2.gemspec",
-                    "file:lib/gems/specifications/test-unit-3.2.9.gemspec",
-                    "file:lib/gems/specifications/xmlrpc-0.3.0.gemspec",
                 ],
                 "lib/truffle/": [
                     "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
