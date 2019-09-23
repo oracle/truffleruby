@@ -69,7 +69,7 @@ $ gu rebuild-images polyglot libpolyglot
 
 ## Using a Ruby package manager
 
-Inside the GraalVM is a `jre/languages/ruby` directory which has the usual
-structure of a Ruby implementation. It is recommended to add this directory to
-a Ruby manager, see [configuring Ruby managers](ruby-managers.md) for more
-information.
+Inside the GraalVM is a `jre/languages/ruby` or `languages/ruby` directory which
+has the usual structure of a Ruby implementation. It is recommended to add this
+directory to a Ruby manager, see [configuring Ruby managers](ruby-managers.md)
+for more information.
