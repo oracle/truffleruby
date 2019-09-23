@@ -35,6 +35,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectType extends ObjectType {
@@ -185,12 +186,14 @@ public class RubyObjectType extends ObjectType {
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode)
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, name);
         } catch (InvalidArrayIndexException e) {
+            errorProfile.enter();
             throw new IllegalStateException("never happens");
         }
     }
@@ -199,12 +202,14 @@ public class RubyObjectType extends ObjectType {
     public static Object readArrayElement(
             DynamicObject receiver,
             long index,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode)
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws InvalidArrayIndexException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             return helperNode.executeStringCachingHelper(receiver, index);
         } catch (UnknownIdentifierException e) {
+            errorProfile.enter();
             throw new IllegalStateException("never happens");
         }
     }
@@ -261,11 +266,13 @@ public class RubyObjectType extends ObjectType {
             long index,
             Object value,
             @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
             helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
         } catch (UnknownIdentifierException e) {
+            errorProfile.enter();
             throw new IllegalStateException("never happens");
         }
     }
@@ -285,7 +292,8 @@ public class RubyObjectType extends ObjectType {
     public static void removeArrayElement(
             DynamicObject receiver,
             long index,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode)
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnsupportedMessageException, InvalidArrayIndexException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
@@ -294,9 +302,11 @@ public class RubyObjectType extends ObjectType {
             if (RubyGuards.fitsInInteger(index) && index >= 0 && index < Layouts.ARRAY.getSize(receiver)) {
                 arrayDeleteAtNode.call(receiver, "delete_at", index);
             } else {
+                errorProfile.enter();
                 throw InvalidArrayIndexException.create(index);
             }
         } else {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
     }
@@ -309,7 +319,8 @@ public class RubyObjectType extends ObjectType {
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashDeleteNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashKeyNode,
             @Exclusive @Cached BooleanCastNode booleanCast,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode)
+            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
@@ -320,6 +331,7 @@ public class RubyObjectType extends ObjectType {
             if (booleanCast.executeToBoolean(hashKeyNode.call(receiver, "key?", key))) {
                 hashDeleteNode.call(receiver, "delete", key);
             } else {
+                errorProfile.enter();
                 throw UnknownIdentifierException.create(name);
             }
             return;
@@ -336,6 +348,7 @@ public class RubyObjectType extends ObjectType {
 
         // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
         // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
+        errorProfile.enter();
         throw UnknownIdentifierException.create(name);
     }
 

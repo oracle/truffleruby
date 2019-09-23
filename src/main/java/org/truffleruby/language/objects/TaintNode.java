@@ -17,6 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class TaintNode extends RubyBaseNode {
 
@@ -57,7 +58,8 @@ public abstract class TaintNode extends RubyBaseNode {
     @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
     protected Object taint(
             DynamicObject object,
-            @Cached WriteObjectFieldNode writeTaintNode) {
+            @Cached WriteObjectFieldNode writeTaintNode,
+            @Cached BranchProfile errorProfile) {
 
         if (isTaintedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -71,6 +73,7 @@ public abstract class TaintNode extends RubyBaseNode {
             }
 
             if (isFrozenNode.executeIsFrozen(object)) {
+                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
             }
         }
