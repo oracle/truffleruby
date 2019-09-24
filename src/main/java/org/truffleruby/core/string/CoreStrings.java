@@ -103,7 +103,7 @@ public class CoreStrings {
         NEGATIVE_STRING_SIZE = new CoreString(context, "negative string size (or size too big)");
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
-        OUT_OF_RANGE = new CoreString(context, "out of range");
+        OUT_OF_RANGE = new CoreString(context, "argument out of range");
         PIPE = new CoreString(context, "|");
         PLUS = new CoreString(context, "+");
         POWER = new CoreString(context, "**");

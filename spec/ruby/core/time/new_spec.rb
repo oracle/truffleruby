@@ -113,6 +113,10 @@ describe "Time.new with a utc_offset argument" do
   it "raises ArgumentError if the utc_offset argument is greater than or equal to 10e9" do
     -> { Time.new(2000, 1, 1, 0, 0, 0, 1000000000) }.should raise_error(ArgumentError)
   end
+
+  it "raises ArgumentError if the month is greater than 12" do
+    -> { Time.new(2000, 16, 1, 0, 0, 0, "+01:00") }.should raise_error(ArgumentError, "argument out of range")
+  end
 end
 
 ruby_version_is "2.6" do
