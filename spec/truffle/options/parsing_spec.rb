@@ -14,13 +14,13 @@ describe "Options" do
 
     it "booleans" do
       ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')").should_not == "true\n"
-      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--frozen-string-literals=true").should == "true\n"
-      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--frozen-string-literals").should == "true\n"
+      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--experimental-options --frozen-string-literals=true").should == "true\n"
+      ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--experimental-options --frozen-string-literals").should == "true\n"
     end
 
     it "integers" do
       ruby_exe("p Truffle::Boot.get_option('default-cache')").should_not == "99\n"
-      ruby_exe("p Truffle::Boot.get_option('default-cache')", options: "--default-cache=99").should == "99\n"
+      ruby_exe("p Truffle::Boot.get_option('default-cache')", options: "--experimental-options --default-cache=99").should == "99\n"
     end
 
     it "enum values" do
@@ -30,8 +30,8 @@ describe "Options" do
     end
 
     it "strings" do
-      ruby_exe("p Truffle::Boot.get_option('launcher')", options: "--launcher=ruby_spec_test_value").should == "\"ruby_spec_test_value\"\n"
-      ruby_exe("p Truffle::Boot.get_option('launcher')", options: "'--launcher=ruby spec test value with spaces'").should == "\"ruby spec test value with spaces\"\n"
+      ruby_exe("p Truffle::Boot.get_option('launcher')", options: "--experimental-options --launcher=ruby_spec_test_value").should == "\"ruby_spec_test_value\"\n"
+      ruby_exe("p Truffle::Boot.get_option('launcher')", options: "--experimental-options '--launcher=ruby spec test value with spaces'").should == "\"ruby spec test value with spaces\"\n"
     end
 
     it "arrays of strings" do

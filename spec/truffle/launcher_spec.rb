@@ -179,7 +179,7 @@ describe "The launcher" do
   end
 
   it "logs options if --options-log is set" do
-    out = ruby_exe("14", options: "--log.level=CONFIG --options-log", args: "2>&1")
+    out = ruby_exe("14", options: "--experimental-options --log.level=CONFIG --options-log", args: "2>&1")
     $?.success?.should == true
     out.should include("[ruby] CONFIG")
   end
@@ -195,13 +195,13 @@ describe "The launcher" do
   end
 
   it "sets the log level using --log.level=" do
-    out = ruby_exe("14", options: "--options-log --log.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "--experimental-options --options-log --log.level=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
 
   it "sets the log level using --log.ruby.level=" do
-    out = ruby_exe("14", options: "--options-log --log.ruby.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "--experimental-options --options-log --log.ruby.level=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
@@ -232,7 +232,7 @@ describe "The launcher" do
   end
 
   it "enables deterministic hashing if --hashing-deterministic is set" do
-    out = ruby_exe("puts 14.hash", options: "--hashing-deterministic", args: "2>&1")
+    out = ruby_exe("puts 14.hash", options: "--experimental-options --hashing-deterministic", args: "2>&1")
     $?.success?.should == true
     out.should include("SEVERE: deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
@@ -279,13 +279,13 @@ describe "The launcher" do
   end
 
   it "understands ruby polyglot options" do
-    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--ruby.rubygems=false")
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --ruby.rubygems=false")
     $?.success?.should == true
     out.should include('false')
   end
 
   it "understands ruby polyglot options without ruby. prefix" do
-    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--rubygems=false")
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --rubygems=false")
     $?.success?.should == true
     out.should include('false')
   end
