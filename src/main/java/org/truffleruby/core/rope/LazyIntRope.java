@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 
+import com.oracle.truffle.api.CompilerDirectives;
+
 public class LazyIntRope extends LazyRope {
 
     final int value;
@@ -55,6 +57,7 @@ public class LazyIntRope extends LazyRope {
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
         if (newCodeRange != getCodeRange()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 

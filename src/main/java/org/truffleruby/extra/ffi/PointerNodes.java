@@ -171,6 +171,7 @@ public abstract class PointerNodes {
                 case NativeTypes.TYPE_ENUM:
                 case NativeTypes.TYPE_VARARGS:
                 default:
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     throw new UnsupportedOperationException("no type size for: " + type);
             }
         }

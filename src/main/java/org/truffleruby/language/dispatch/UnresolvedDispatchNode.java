@@ -97,8 +97,10 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodNameString);
                             break;
                         case RESPOND_TO_METHOD:
+                            CompilerDirectives.transferToInterpreterAndInvalidate();
                             throw new UnsupportedOperationException();
                         default:
+                            CompilerDirectives.transferToInterpreterAndInvalidate();
                             throw new UnsupportedOperationException();
                     }
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {

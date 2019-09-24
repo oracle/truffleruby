@@ -75,6 +75,7 @@ public abstract class SplatCastNode extends RubyNode {
                 return nil;
 
             default: {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
             }
         }

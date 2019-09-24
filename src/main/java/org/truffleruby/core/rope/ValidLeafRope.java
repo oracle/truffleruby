@@ -13,6 +13,8 @@ package org.truffleruby.core.rope;
 import org.jcodings.Encoding;
 import org.truffleruby.core.string.StringSupport;
 
+import com.oracle.truffle.api.CompilerDirectives;
+
 public class ValidLeafRope extends LeafRope {
 
     public ValidLeafRope(byte[] bytes, Encoding encoding, int characterLength) {
@@ -25,6 +27,7 @@ public class ValidLeafRope extends LeafRope {
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
         if (newCodeRange != getCodeRange()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 
