@@ -79,8 +79,10 @@ public class AtExitManager {
     @TruffleBoundary
     public static DynamicObject handleAtExitException(RubyContext context, RaiseException raiseException) {
         final DynamicObject rubyException = raiseException.getException();
-        if (Layouts.BASIC_OBJECT.getLogicalClass(rubyException) == context.getCoreLibrary().getSystemExitClass()) {
-            // Do not show SystemExit errors, just track them for the exit status
+        DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+        if (logicalClass == context.getCoreLibrary().getSystemExitClass() ||
+                logicalClass == context.getCoreLibrary().getSignalExceptionClass()) {
+            // Do not show the backtrace for these
         } else {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);
         }

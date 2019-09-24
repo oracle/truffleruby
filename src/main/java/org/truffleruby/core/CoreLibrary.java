@@ -134,6 +134,7 @@ public class CoreLibrary {
     private final DynamicObjectFactory procFactory;
     private final DynamicObject processModule;
     private final DynamicObject rangeClass;
+    private final DynamicObject posixModule;
     private final DynamicObjectFactory intRangeFactory;
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
@@ -143,6 +144,7 @@ public class CoreLibrary {
     private final DynamicObject regexpErrorClass;
     private final DynamicObject graalErrorClass;
     private final DynamicObject runtimeErrorClass;
+    private final DynamicObject signalExceptionClass;
     private final DynamicObject systemStackErrorClass;
     private final DynamicObject securityErrorClass;
     private final DynamicObject standardErrorClass;
@@ -403,7 +405,7 @@ public class CoreLibrary {
         securityErrorClass = defineClass(exceptionClass, "SecurityError");
 
         // SignalException
-        DynamicObject signalExceptionClass = defineClass(exceptionClass, "SignalException");
+        signalExceptionClass = defineClass(exceptionClass, "SignalException");
         defineClass(signalExceptionClass, "Interrupt");
 
         // SystemExit
@@ -563,7 +565,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Binding");
-        defineModule(truffleModule, "POSIX");
+        posixModule = defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
@@ -1328,6 +1330,14 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getRandomizerFactory() {
         return randomizerFactory;
+    }
+
+    public DynamicObject getSignalExceptionClass() {
+        return signalExceptionClass;
+    }
+
+    public DynamicObject getPosixModule() {
+        return posixModule;
     }
 
     public DynamicObject getSystemExitClass() {

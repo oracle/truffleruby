@@ -10,11 +10,13 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -34,11 +36,13 @@ public class TopLevelRaiseHandler extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         int exitCode = 0;
+        DynamicObject caughtException = null;
 
         try {
             body.execute(frame);
         } catch (RaiseException e) {
             DynamicObject rubyException = AtExitManager.handleAtExitException(getContext(), e);
+            caughtException = rubyException;
             setLastException(frame, rubyException);
             exitCode = statusFromException(rubyException);
         } catch (ExitException e) {
@@ -48,6 +52,10 @@ public class TopLevelRaiseHandler extends RubyNode {
 
             if (atExitException != null) {
                 exitCode = statusFromException(atExitException);
+            }
+
+            if (caughtException != null) {
+                handleSignalException(caughtException);
             }
         }
 
@@ -78,6 +86,15 @@ public class TopLevelRaiseHandler extends RubyNode {
         }
 
         setExceptionVariableNode.setLastException(frame, exception);
+    }
+
+    public void handleSignalException(DynamicObject exception) {
+        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSignalExceptionClass()) {
+            int signo = castToInt(ReadObjectFieldNodeGen.getUncached().execute(exception, "@signo", null));
+            DynamicObject posixModule = coreLibrary().getPosixModule();
+            CallDispatchHeadNode node = CallDispatchHeadNode.createPrivate();
+            node.call(posixModule, "kill", node.call(posixModule, "getpid"), signo);
+        }
     }
 
 }

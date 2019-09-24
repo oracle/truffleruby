@@ -1,0 +1,3 @@
+slow:SignalException sends a signal to the running process when uncaught
+slow:SignalException can be rescued
+slow:SignalException runs after at_ext
