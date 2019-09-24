@@ -75,5 +75,9 @@ kill_server
 
 # put back the original bin/rake, as it gets overwritten by bundle install
 cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/bin/rake
-cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/bin/rake
-cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/rake
+if [ -d "$repo/mxbuild/truffleruby-jvm/jre" ]; then # JDK8
+  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/bin/rake
+  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/rake
+else # JDK11
+  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/languages/ruby/bin/rake
+fi

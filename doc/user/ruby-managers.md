@@ -78,13 +78,24 @@ Make sure you ran the post-install script *before* adding GraalVM to Ruby manage
 
 Then follow these steps to integrate GraalVM with your Ruby manager.
 
+First, we must find the TruffleRuby home.
+On macOS, run:
+```bash
+$ ruby_home=$(path/to/graalvm/Contents/Home/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
+```
+
+On Linux and other platforms, run:
+```bash
+$ ruby_home=$(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
+```
+
 ### rbenv
 
 To add TruffleRuby to `rbenv`, create a symbolic link in the `versions` directory
 of rbenv:
 
 ```bash
-$ ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
+$ ln -s "$ruby_home" "$RBENV_ROOT/versions/truffleruby"
 $ rbenv shell truffleruby
 $ ruby --version
 ```
@@ -94,7 +105,7 @@ $ ruby --version
 To add TruffleRuby to `chruby`, create a symbolic link to the `$HOME/.rubies` directory:
 
 ```bash
-$ ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
+$ ln -s "$ruby_home" "$HOME/.rubies/truffleruby"
 $ chruby truffleruby
 $ ruby --version
 ```
@@ -104,15 +115,10 @@ $ ruby --version
 RVM has a command for adding a precompiled Ruby to the list of available rubies.
 
 ```bash
-$ rvm mount path/to/graalvm/jre/languages/ruby -n truffleruby
+$ rvm mount "$ruby_home" -n truffleruby
 $ rvm use ext-truffleruby
 $ ruby --version
 ```
-
-### macOS
-
-Note that on macOS the path is slightly different, and will be
-`path/to/graalvm/Contents/Home/jre/languages/ruby`.
 
 ## Using TruffleRuby without a Ruby manager
 

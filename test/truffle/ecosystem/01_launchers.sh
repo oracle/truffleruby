@@ -12,6 +12,7 @@ while [ -h "$SELF_PATH" ]; do
   SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
 done
 
+# shellcheck source=test/truffle/common.sh.inc
 source "$(dirname $SELF_PATH)/../common.sh.inc"
 QUERY="ruby $(dirname $SELF_PATH)/../../../tool/query-versions-json.rb"
 
@@ -38,16 +39,19 @@ function check_in_dir() {
 }
 
 # Use the Ruby home of the `jt ruby` launcher
-ruby_home="$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
+graalvm_home="$(jt ruby -e "print Truffle::System.get_java_property('org.graalvm.home')")"
+ruby_home="$(jt ruby -e 'print Truffle::Boot.ruby_home')"
 cd "$ruby_home"
 
 echo '** Check all launchers work'
 check_launchers bin/ true
 check_in_dir bin
 
-if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]; then
-  check_in_dir ../../bin    # graalvm/jre/bin
-  check_in_dir ../../../bin # graalvm/bin
+if [ -n "$graalvm_home" ]; then
+  check_in_dir "$graalvm_home/bin"
+  if [ -d "$graalvm_home/jre/bin" ]; then
+    check_in_dir "$graalvm_home/jre/bin"
+  fi
 fi
 
 echo '** Check gem executables are installed in all bin dirs'
@@ -59,17 +63,21 @@ cd -
 
 version="$(bin/ruby -v)"
 test "$(bin/hello-world.rb)" = "Hello world! from $version"
-if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]; then
-  test "$(../../bin/hello-world.rb)" = "Hello world! from $version"
-  test "$(../../../bin/hello-world.rb)" = "Hello world! from $version"
+if [ -n "$graalvm_home" ]; then
+  test "$($graalvm_home/bin/hello-world.rb)" = "Hello world! from $version"
+  if [ -d "$graalvm_home/jre/bin" ]; then
+    test "$($graalvm_home/jre/bin/hello-world.rb)" = "Hello world! from $version"
+  fi
 fi
 
 bin/gem uninstall hello-world -x
 
 test ! -f "bin/hello-world.rb"
-if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]; then
-  test ! -f "../../bin/hello-world.rb"
-  test ! -f "../../../bin/hello-world.rb"
+if [ -n "$graalvm_home" ]; then
+  test ! -f "$graalvm_home/bin/hello-world.rb"
+  if [ -d "$graalvm_home/jre/bin" ]; then
+    test ! -f "$graalvm_home/jre/bin/hello-world.rb"
+  fi
 fi
 
 echo '** Check bundled gems'
