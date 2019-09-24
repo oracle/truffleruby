@@ -24,13 +24,14 @@ public abstract class ArrayOperations {
 
     public static boolean isPrimitiveStorage(DynamicObject array) {
         Object store = getBackingStore(array);
-        return store == ArrayStrategy.NULL_ARRAY_STORE || store instanceof int[] || store instanceof long[] || store instanceof double[];
+        return store == ArrayStrategy.NULL_ARRAY_STORE || store instanceof int[] || store instanceof long[] ||
+                store instanceof double[];
     }
 
     public static boolean verifyStore(DynamicObject array) {
         final Object backingStore = getBackingStore(array);
-        assert backingStore == ArrayStrategy.NULL_ARRAY_STORE || backingStore instanceof int[] || backingStore instanceof long[] ||
-                backingStore instanceof double[] ||
+        assert backingStore == ArrayStrategy.NULL_ARRAY_STORE || backingStore instanceof int[] ||
+                backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
         final RubyContext context = Layouts.MODULE.getFields(Layouts.ARRAY.getLogicalClass(array)).getContext();

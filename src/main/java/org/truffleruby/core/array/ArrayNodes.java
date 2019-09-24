@@ -260,7 +260,8 @@ public abstract class ArrayNodes {
                         .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
 
                 if (exclusiveEnd <= normalizedIndex) {
-                    return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
+                    return allocateObjectNode
+                            .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
                 }
 
                 final int length = exclusiveEnd - normalizedIndex;
