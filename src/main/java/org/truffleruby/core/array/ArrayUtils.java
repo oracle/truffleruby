@@ -143,6 +143,14 @@ public abstract class ArrayUtils {
         }
     }
 
+    public static long capacityForOneMore(RubyContext context, long current) {
+        if (current < context.getOptions().ARRAY_UNINITIALIZED_SIZE) {
+            return context.getOptions().ARRAY_UNINITIALIZED_SIZE;
+        } else {
+            return current << 1;
+        }
+    }
+
     public static void arraycopy(Object[] src, int srcPos, Object[] dest, int destPos, int length) {
         System.arraycopy(src, srcPos, dest, destPos, length);
     }

@@ -97,7 +97,10 @@ public abstract class ArrayOperations {
 
     @TruffleBoundary
     public static Iterable<Object> toIterable(DynamicObject array) {
-        return ArrayStrategy.of(array).getIterable(array, Layouts.ARRAY.getSize(array));
+        return ArrayStoreLibrary
+                .getFactory()
+                .getUncached()
+                .getIterable(Layouts.ARRAY.getStore(array), 0, Layouts.ARRAY.getSize(array));
     }
 
     @TruffleBoundary

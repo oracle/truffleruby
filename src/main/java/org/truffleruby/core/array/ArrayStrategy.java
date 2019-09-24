@@ -35,7 +35,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayStrategy {
 
-    public static final Object NULL_ARRAY_STORE = new Object();
+    public static final Object NULL_ARRAY_STORE = ArrayStoreLibrary.INITIAL_STORE;
 
     // ArrayStrategy interface
 

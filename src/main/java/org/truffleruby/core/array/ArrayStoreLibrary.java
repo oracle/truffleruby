@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
+
+package org.truffleruby.core.array;
+
+import com.oracle.truffle.api.library.GenerateLibrary;
+import com.oracle.truffle.api.library.Library;
+import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
+
+@GenerateLibrary
+@DefaultExport(IntegerArrayStore.class)
+@DefaultExport(LongArrayStore.class)
+@DefaultExport(DoubleArrayStore.class)
+@DefaultExport(ObjectArrayStore.class)
+public abstract class ArrayStoreLibrary extends Library {
+
+    public static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
+
+    private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
+
+    public static LibraryFactory<ArrayStoreLibrary> getFactory() {
+        return FACTORY;
+    }
+
+    // Read a value from the store
+    public abstract Object read(Object store, long index);
+
+    // Return whether the store can accept this value.
+    public abstract boolean acceptsValue(Object store, Object value);
+
+    // Return whether the store can accept all values that could be held in otherStore.
+    public abstract boolean acceptsAllValues(Object store, Object otherStore);
+
+    public abstract boolean isMutable(Object store);
+
+    public boolean isNative(Object store) {
+        return false;
+    }
+
+    public abstract boolean isPrimitive(Object store);
+
+    public abstract String toString(Object store);
+
+    public abstract void write(Object store, long index, Object valur);
+
+    public abstract long capacity(Object store);
+
+    public abstract Object expand(Object store, long capacity);
+
+    public Object extractRange(Object store, long start, long end) {
+        return DelegatedArrayStorage.create(store, (int) start, (int) (end - start));
+    }
+
+    public abstract void copyContents(Object store, long srcStart, Object dest, long destStart, long length);
+
+    public abstract Object copyStore(Object store, long length);
+
+    public abstract void sort(Object store, long size);
+
+    public abstract Iterable<Object> getIterable(Object store, long start, long length);
+
+    public abstract ArrayAllocator generalizeForValue(Object store, Object newValue);
+
+    public abstract ArrayAllocator generalizeForStore(Object store, Object newStore);
+
+    public abstract ArrayAllocator allocator(Object store);
+
+    public static ArrayAllocator basicAllocator(Object value) {
+        if (value instanceof Integer) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
+        } else if (value instanceof Long) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR;
+        } else if (value instanceof Double) {
+            return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
+        } else {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
+        }
+    }
+
+    public static abstract class ArrayAllocator {
+
+        public abstract Object allocate(long capacity);
+
+        public abstract boolean accepts(Object value);
+
+        public abstract boolean specializesFor(Object value);
+
+        public abstract boolean isDefaultValue(Object value);
+
+    }
+}
