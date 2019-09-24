@@ -21,6 +21,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
@@ -649,7 +650,7 @@ public abstract class HashNodes {
         protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @ExplodeLoop

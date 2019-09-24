@@ -24,7 +24,7 @@ public interface ArrayLayout extends BasicObjectLayout {
             DynamicObject metaClass);
 
     DynamicObject createArray(DynamicObjectFactory factory,
-            @Nullable Object store,
+            Object store,
             int size);
 
     boolean isArray(ObjectType objectType);

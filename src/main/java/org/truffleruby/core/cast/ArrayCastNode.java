@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -76,7 +77,7 @@ public abstract class ArrayCastNode extends RubyNode {
     protected Object cast(Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
-                return createArray(null, 0);
+                return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
 
             case ARRAY_WITH_NIL:
                 return createArray(new Object[]{ nil() }, 1);

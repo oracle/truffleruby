@@ -101,7 +101,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
     }
@@ -258,7 +258,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
             final RubyNode newNode;
 
-            if (store == null) {
+            if (store == ArrayStrategy.NULL_ARRAY_STORE) {
                 newNode = new EmptyArrayLiteralNode(values);
             } else if (store instanceof int[]) {
                 newNode = new IntegerArrayLiteralNode(values);
@@ -278,7 +278,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
         public Object storeSpecialisedFromObjects(Object... objects) {
             if (objects.length == 0) {
-                return null;
+                return ArrayStrategy.NULL_ARRAY_STORE;
             }
 
             boolean canUseInteger = true;

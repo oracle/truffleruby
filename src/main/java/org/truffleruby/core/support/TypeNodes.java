@@ -115,32 +115,32 @@ public abstract class TypeNodes {
 
         @Specialization
         protected DynamicObject instanceVariables(int self) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization
         protected DynamicObject instanceVariables(long self) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization
         protected DynamicObject instanceVariables(boolean self) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(guards = "isNil(object)")
         protected DynamicObject instanceVariablesNil(DynamicObject object) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(guards = "isRubySymbol(object)")
         protected DynamicObject instanceVariablesSymbol(DynamicObject object) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Fallback
         protected DynamicObject instanceVariables(Object object) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
     }
