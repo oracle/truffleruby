@@ -11,6 +11,7 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
@@ -35,6 +36,7 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeG
 import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
+import org.truffleruby.core.regexp.RegexpGuards;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -636,6 +638,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_get_object_encoding", needsSelf = false)
+    @ImportStatic(RegexpGuards.class)
     public static abstract class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
@@ -655,7 +658,12 @@ public abstract class EncodingNodes {
             return object;
         }
 
-        @Specialization(guards = "isRubyRegexp(object)")
+        @Specialization(guards = { "isRubyRegexp(object)", "!isInitialized(object)" })
+        protected Object encodingGetObjectEncodingNotInitializedRegexp(DynamicObject object) {
+            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
+        }
+
+        @Specialization(guards = { "isRubyRegexp(object)", "isInitialized(object)" })
         protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject object) {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.REGEXP.getSource(object).getEncoding());
         }

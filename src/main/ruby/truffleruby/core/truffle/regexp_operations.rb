@@ -16,6 +16,8 @@ module Truffle
       str = str.to_s if str.is_a?(Symbol)
       str = StringValue(str)
 
+      raise Encoding::CompatibilityError unless Encoding.compatible?(re.encoding, str.encoding)
+
       pos = pos < 0 ? pos + str.size : pos
       pos = TrufflePrimitive.string_byte_index_from_char_index(str, pos)
       re.search_region(str, pos, str.bytesize, true)

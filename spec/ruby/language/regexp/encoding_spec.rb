@@ -100,4 +100,16 @@ describe "Regexps with encoding modifiers" do
   it "selects last of multiple encoding specifiers" do
     /foo/ensuensuens.should == /foo/s
   end
+
+  it "raises Encoding::CompatibilityError when trying match against different encodings" do
+    -> { /\A[[:space:]]*\z/.match(" ".encode("UTF-16LE")) }.should raise_error(Encoding::CompatibilityError)
+  end
+
+  it "raises Encoding::CompatibilityError when trying match? against different encodings" do
+    -> { /\A[[:space:]]*\z/.match?(" ".encode("UTF-16LE")) }.should raise_error(Encoding::CompatibilityError)
+  end
+
+  it "raises Encoding::CompatibilityError when trying =~ against different encodings" do
+    -> { /\A[[:space:]]*\z/ =~ " ".encode("UTF-16LE") }.should raise_error(Encoding::CompatibilityError)
+  end
 end
