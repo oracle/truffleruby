@@ -37,7 +37,7 @@ public abstract class ArrayOperations {
         if (SharedObjects.isShared(context, array)) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            if (store != null && store.getClass() == Object[].class) {
+            if (store.getClass() == Object[].class) {
                 final Object[] objectArray = (Object[]) store;
 
                 for (Object element : objectArray) {

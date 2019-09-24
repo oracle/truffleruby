@@ -651,7 +651,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean matchesStore(Object store) {
-            return store != null && store.getClass() == Object[].class;
+            return store.getClass() == Object[].class;
         }
 
         @Override
