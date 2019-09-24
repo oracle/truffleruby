@@ -25,6 +25,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.MetaClassNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -135,6 +136,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             } else if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return !method.isUnimplemented();
             } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
             }
         }

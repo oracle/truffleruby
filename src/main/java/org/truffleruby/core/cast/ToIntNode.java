@@ -65,6 +65,7 @@ public abstract class ToIntNode extends RubyNode {
                     getContext(),
                     coreExceptions().rangeError("bignum too big to convert into `long'", this));
         } else {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException(object.getClass().toString());
         }
     }

@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -88,6 +89,7 @@ public class CachedBoxedSymbolDispatchNode extends CachedDispatchNode {
                 return true;
 
             default:
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
         }
     }

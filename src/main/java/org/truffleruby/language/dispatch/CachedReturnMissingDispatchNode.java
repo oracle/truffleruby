@@ -14,6 +14,7 @@ import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
@@ -87,6 +88,7 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
                 return false;
 
             default:
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
         }
     }

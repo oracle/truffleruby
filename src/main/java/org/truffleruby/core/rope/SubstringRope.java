@@ -12,6 +12,8 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
+import com.oracle.truffle.api.CompilerDirectives;
+
 public class SubstringRope extends ManagedRope {
 
     private final ManagedRope child;
@@ -46,6 +48,7 @@ public class SubstringRope extends ManagedRope {
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
         if (newCodeRange != getCodeRange()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 

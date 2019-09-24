@@ -707,6 +707,7 @@ public class CoreLibrary {
             case TRUE:
                 return true;
             default:
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
         }
     }

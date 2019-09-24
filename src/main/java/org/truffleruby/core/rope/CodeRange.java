@@ -14,6 +14,8 @@
 
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerDirectives;
+
 public enum CodeRange {
     CR_UNKNOWN(0),
     CR_7BIT(1),
@@ -41,6 +43,7 @@ public enum CodeRange {
             case 3:
                 return CR_BROKEN;
             default:
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException("Don't know how to convert code range: " + codeRange);
         }
     }
