@@ -1139,6 +1139,8 @@ class Date
         \d{2}:\d{2}:\d{2}(\.\d+)?
         (z|[-+]\d{2}:\d{2})\s*\z/ix =~ str
       _parse(str)
+    else
+      {}
     end
   end
 
