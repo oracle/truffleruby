@@ -31,8 +31,7 @@ PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'b6150c498a0764ffdc079cddf7f4e68cb141b65c'
 
-JDEBUG_PORT = 8000
-JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
+JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
@@ -579,7 +578,7 @@ module Commands
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
-          --jdebug        run a JDWP debug server on #{JDEBUG_PORT}
+          --jdebug        run a JDWP debug server on port 8000
           --jexception[s] print java exceptions
           --exec          use exec rather than system
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
