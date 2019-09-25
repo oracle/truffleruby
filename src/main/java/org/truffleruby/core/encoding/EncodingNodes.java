@@ -660,10 +660,11 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "isRubyRegexp(object)")
-        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject object) {
+        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject object,
+                @Cached("createBinaryProfile()") ConditionProfile hasRegexpSource) {
             final Rope regexpSource = Layouts.REGEXP.getSource(object);
 
-            if (regexpSource == null) {
+            if (hasRegexpSource.profile(regexpSource == null)) {
                 return getRubyEncodingNode.executeGetRubyEncoding(EncodingManager.getEncoding("BINARY"));
             } else {
                 return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());
