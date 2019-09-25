@@ -349,9 +349,7 @@ end
 
 class Struct
   private def __marshal__(ms)
-    exclude = _attrs.map { |a| :"@#{a}" }
-
-    out =  ms.serialize_instance_variables_prefix(self, exclude)
+    out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
 
     out << 'S'
@@ -364,7 +362,7 @@ class Struct
       out << ms.serialize(value)
     end
 
-    out << ms.serialize_instance_variables_suffix(self, false, exclude)
+    out << ms.serialize_instance_variables_suffix(self)
 
     out
   end
@@ -866,7 +864,7 @@ module Marshal
             [klass, slot, members[i]]
         end
 
-        obj.instance_variable_set "@#{slot}", construct
+        Truffle::CExt.hidden_variable_set obj, slot, construct
       end
 
       obj
