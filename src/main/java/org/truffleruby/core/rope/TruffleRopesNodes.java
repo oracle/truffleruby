@@ -23,7 +23,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::Ropes")
+@CoreClass(value = "Truffle::Ropes", isModule = true)
 public abstract class TruffleRopesNodes {
 
     @CoreMethod(names = "dump_string", onSingleton = true, required = 1)

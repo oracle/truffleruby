@@ -17,7 +17,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::ThreadOperations")
+@CoreClass(value = "Truffle::ThreadOperations", isModule = true)
 public class TruffleThreadNodes {
 
     @CoreMethod(names = "ruby_caller", isModuleFunction = true, required = 1)

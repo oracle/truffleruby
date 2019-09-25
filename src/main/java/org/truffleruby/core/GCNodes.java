@@ -20,7 +20,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@CoreClass("GC")
+@CoreClass(value = "GC", isModule = true)
 public abstract class GCNodes {
 
     @CoreMethod(names = "start", onSingleton = true)

@@ -35,7 +35,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass("Polyglot")
+@CoreClass(value = "Polyglot", isModule = true)
 public abstract class PolyglotNodes {
 
     @CoreMethod(names = "eval", isModuleFunction = true, required = 2)

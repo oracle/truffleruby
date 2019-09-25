@@ -67,7 +67,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass("Truffle::Interop")
+@CoreClass(value = "Truffle::Interop", isModule = true)
 public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): remove create()

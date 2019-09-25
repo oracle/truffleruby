@@ -62,7 +62,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
-@CoreClass("Truffle::Debug")
+@CoreClass(value = "Truffle::Debug", isModule = true)
 public abstract class TruffleDebugNodes {
 
     @CoreMethod(names = "print", onSingleton = true, required = 1)

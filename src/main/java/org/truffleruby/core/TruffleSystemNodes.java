@@ -68,7 +68,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::System")
+@CoreClass(value = "Truffle::System", isModule = true)
 public abstract class TruffleSystemNodes {
 
     @CoreMethod(names = "initial_environment_variables", onSingleton = true)

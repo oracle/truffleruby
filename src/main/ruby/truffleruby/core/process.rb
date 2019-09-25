@@ -94,7 +94,7 @@ module Process
       code = Truffle::Type.coerce_to code, Integer, :to_int
     end
 
-    Truffle.invoke_primitive :vm_exit, code
+    TrufflePrimitive.vm_exit code
   end
 
   section = 'platform.clocks.'
@@ -156,9 +156,9 @@ module Process
 
     case id
     when CLOCK_REALTIME
-      time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
+      time = TrufflePrimitive.process_time_currenttimemillis * 1_000_000
     when CLOCK_MONOTONIC
-      time = Truffle.invoke_primitive(:process_time_nanotime)
+      time = TrufflePrimitive.process_time_nanotime
     else
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
       Errno.handle if time == 0
@@ -322,7 +322,7 @@ module Process
   def self.fork
     raise NotImplementedError, 'fork is not available'
   end
-  Truffle.invoke_primitive :method_unimplement, method(:fork)
+  TrufflePrimitive.method_unimplement method(:fork)
 
   def self.times
     Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
@@ -363,7 +363,7 @@ module Process
 
       if pid == Process.pid && signal != 0
         signal_name = Signal::Numbers[signal].to_sym
-        result = Truffle.invoke_primitive :process_kill_raise, signal_name
+        result = TrufflePrimitive.process_kill_raise signal_name
         if result == -1 # Try kill() if the java Signal.raise() failed
           result = Truffle::POSIX.kill(pid, signal)
           Errno.handle if result == -1
@@ -608,7 +608,7 @@ module Process
         exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
 
         status = Process::Status.new(pid, exitcode, termsig, stopsig)
-        Truffle.invoke_primitive :thread_set_return_code, status
+        TrufflePrimitive.thread_set_return_code status
 
         [pid, status]
       end
@@ -997,11 +997,11 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$0',
-  -> { Truffle.invoke_primitive :global_variable_get, :'$0' },
+  -> { TrufflePrimitive.global_variable_get :'$0' },
   -> v {
     v = StringValue(v)
     Process.setproctitle(v)
-    Truffle.invoke_primitive :global_variable_set, :'$0', v
+    TrufflePrimitive.global_variable_set :'$0', v
   })
 
 alias $PROGRAM_NAME $0

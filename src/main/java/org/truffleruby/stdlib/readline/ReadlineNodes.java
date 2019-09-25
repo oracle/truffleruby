@@ -81,7 +81,7 @@ import jline.console.CursorBuffer;
 import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 
-@CoreClass("Truffle::Readline")
+@CoreClass(value = "Truffle::Readline", isModule = true)
 public abstract class ReadlineNodes {
 
     @CoreMethod(names = "basic_word_break_characters", onSingleton = true)

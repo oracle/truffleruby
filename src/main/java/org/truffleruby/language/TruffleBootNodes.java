@@ -42,7 +42,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass("Truffle::Boot")
+@CoreClass(value = "Truffle::Boot", isModule = true)
 public abstract class TruffleBootNodes {
 
     @CoreMethod(names = "ruby_home", onSingleton = true)

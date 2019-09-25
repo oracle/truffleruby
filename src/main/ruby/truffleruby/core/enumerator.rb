@@ -391,7 +391,7 @@ class Enumerator
     end
 
     def grep(pattern, &block)
-      binding = block ? block.binding : Truffle.invoke_primitive(:caller_binding)
+      binding = block ? block.binding : TrufflePrimitive.caller_binding
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -409,7 +409,7 @@ class Enumerator
     end
 
     def grep_v(pattern, &block)
-      binding = block ? block.binding : Truffle.invoke_primitive(:caller_binding)
+      binding = block ? block.binding : TrufflePrimitive.caller_binding
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first

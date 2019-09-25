@@ -43,7 +43,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::KernelOperations")
+@CoreClass(value = "Truffle::KernelOperations", isModule = true)
 public abstract class TruffleKernelNodes {
 
     @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1)

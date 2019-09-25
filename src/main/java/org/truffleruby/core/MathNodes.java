@@ -54,7 +54,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@CoreClass("Math")
+@CoreClass(value = "Math", isModule = true)
 public abstract class MathNodes {
 
     @CoreMethod(names = "acos", isModuleFunction = true, required = 1)

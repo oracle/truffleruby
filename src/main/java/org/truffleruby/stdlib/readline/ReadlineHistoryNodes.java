@@ -64,7 +64,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import jline.console.history.History;
 
-@CoreClass("Truffle::ReadlineHistory")
+@CoreClass(value = "Truffle::ReadlineHistory", isModule = true)
 public abstract class ReadlineHistoryNodes {
 
     @CoreMethod(names = { "push", "<<" }, rest = true)

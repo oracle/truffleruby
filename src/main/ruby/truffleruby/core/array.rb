@@ -108,7 +108,7 @@ class Array
   end
 
   def *(count)
-    result = Truffle.invoke_primitive(:array_mul, self, count)
+    result = TrufflePrimitive.array_mul(self, count)
     if !undefined.equal?(result)
       result
     elsif str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
@@ -119,7 +119,7 @@ class Array
   end
 
   def ==(other)
-    result = Truffle.invoke_primitive :array_equal, self, other
+    result = TrufflePrimitive.array_equal self, other
     unless undefined.equal?(result)
       return result
     end
@@ -137,7 +137,7 @@ class Array
       total = size
 
       while i < total
-        return false unless Truffle.invoke_primitive(:object_same_or_equal, self[i], other[i])
+        return false unless TrufflePrimitive.object_same_or_equal(self[i], other[i])
         i += 1
       end
     end
@@ -185,7 +185,7 @@ class Array
     if undefined.equal?(value)
       value = length
       if Range === index
-        index = Truffle.invoke_primitive(:range_to_int_range, index)
+        index = TrufflePrimitive.range_to_int_range(index)
         converted = Array.try_convert(value)
         converted = [value] unless converted
         self[index] = converted
@@ -379,7 +379,7 @@ class Array
   end
 
   def eql?(other)
-    result = Truffle.invoke_primitive :array_eql, self, other
+    result = TrufflePrimitive.array_eql self, other
     unless undefined.equal?(result)
       return result
     end
@@ -525,7 +525,7 @@ class Array
 
     out = self.class.allocate # new_reserved size
     if recursively_flatten(self, out, level)
-      Truffle.invoke_primitive(:steal_array_storage, self, out)
+      TrufflePrimitive.steal_array_storage(self, out)
       return self
     end
 
@@ -533,7 +533,7 @@ class Array
   end
 
   def hash
-    unless Truffle.invoke_primitive(:object_can_contain_object, self)
+    unless TrufflePrimitive.object_can_contain_object(self)
       # Primitive arrays do not need the recursion check
       return hash_internal
     end
@@ -679,7 +679,7 @@ class Array
 
     Truffle.check_frozen
 
-    Truffle.invoke_primitive(:steal_array_storage, self, select(&block))
+    TrufflePrimitive.steal_array_storage(self, select(&block))
   end
 
   def last(n=undefined)
@@ -795,7 +795,7 @@ class Array
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
 
-    unless Truffle.invoke_primitive(:integer_fits_into_long, sum)
+    unless TrufflePrimitive.integer_fits_into_long(sum)
       raise RangeError, 'product result is too large'
     end
 
@@ -972,7 +972,7 @@ class Array
 
     n = n % len
     return Array.new(self) if n == 0
-    Truffle.invoke_primitive :array_rotate, self, n
+    TrufflePrimitive.array_rotate self, n
   end
 
   def rotate!(n=1)
@@ -984,7 +984,7 @@ class Array
 
     n = n % len
     return self if n == 0
-    Truffle.invoke_primitive :array_rotate_inplace, self, n
+    TrufflePrimitive.array_rotate_inplace self, n
   end
 
   class SampleRandom
@@ -1120,7 +1120,7 @@ class Array
     Truffle.check_frozen
 
     ary = select(&block)
-    Truffle.invoke_primitive(:steal_array_storage, self, ary) unless size == ary.size
+    TrufflePrimitive.steal_array_storage(self, ary) unless size == ary.size
   end
 
   alias_method :filter!, :select!
@@ -1163,7 +1163,7 @@ class Array
 
     return to_enum(:sort_by!) { size } unless block_given?
 
-    Truffle.invoke_primitive(:steal_array_storage, self, sort_by(&block))
+    TrufflePrimitive.steal_array_storage(self, sort_by(&block))
   end
 
   def to_a
@@ -1264,7 +1264,7 @@ class Array
 
   def zip(*others)
     if !block_given? and others.size == 1 and Array === others[0]
-      return Truffle.invoke_primitive :array_zip, self, others[0]
+      return TrufflePrimitive.array_zip self, others[0]
     end
 
     out = Array.new(size) unless block_given?
@@ -1402,7 +1402,7 @@ class Array
       width *= 2
     end
 
-    Truffle.invoke_primitive(:steal_array_storage, self, source)
+    TrufflePrimitive.steal_array_storage(self, source)
 
     self
   end
@@ -1466,7 +1466,7 @@ class Array
       width *= 2
     end
 
-    Truffle.invoke_primitive(:steal_array_storage, self, source)
+    TrufflePrimitive.steal_array_storage(self, source)
 
     self
   end
@@ -1650,7 +1650,7 @@ class Array
   def uniq(&block)
     copy_of_same_class = dup
     result = super(&block)
-    Truffle.invoke_primitive(:steal_array_storage, copy_of_same_class, result)
+    TrufflePrimitive.steal_array_storage(copy_of_same_class, result)
     copy_of_same_class
   end
 
@@ -1661,7 +1661,7 @@ class Array
     if self.size == result.size
       nil
     else
-      Truffle.invoke_primitive(:steal_array_storage, self, result)
+      TrufflePrimitive.steal_array_storage(self, result)
       self
     end
   end
@@ -1669,7 +1669,7 @@ class Array
   def sort!(&block)
     Truffle.check_frozen
 
-    Truffle.invoke_primitive(:steal_array_storage, self, sort(&block))
+    TrufflePrimitive.steal_array_storage(self, sort(&block))
   end
 
   def swap(a, b)

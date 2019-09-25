@@ -68,7 +68,7 @@ class String
   #
   # TruffleRuby: MRI defines this method in C. We define it in Ruby for simplicity & clarity.
   def to_d
-    Truffle.invoke_primitive :bigdecimal_new, self, Truffle::UNDEFINED, false
+    TrufflePrimitive.bigdecimal_new self, Truffle::UNDEFINED, false
   end
 end
 

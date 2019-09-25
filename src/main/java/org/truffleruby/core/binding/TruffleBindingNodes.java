@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Truffle::Binding")
+@CoreClass(value = "Truffle::Binding", isModule = true)
 public abstract class TruffleBindingNodes {
 
     @CoreMethod(names = "of_caller", isModuleFunction = true)

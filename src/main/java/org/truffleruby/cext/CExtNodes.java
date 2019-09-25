@@ -110,7 +110,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Truffle::CExt")
+@CoreClass(value = "Truffle::CExt", isModule = true)
 public class CExtNodes {
 
     @Primitive(name = "call_with_c_mutex")

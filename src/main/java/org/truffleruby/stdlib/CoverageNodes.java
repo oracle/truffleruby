@@ -26,7 +26,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass("Truffle::Coverage")
+@CoreClass(value = "Truffle::Coverage", isModule = true)
 public abstract class CoverageNodes {
 
     @CoreMethod(names = "enable", onSingleton = true)

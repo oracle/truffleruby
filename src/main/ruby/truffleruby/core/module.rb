@@ -104,7 +104,7 @@ class Module
   end
 
   def const_get(name, inherit = true)
-    value = Truffle.invoke_primitive :module_const_get, self, name, inherit
+    value = TrufflePrimitive.module_const_get self, name, inherit
     unless undefined.equal?(value)
       return value
     end

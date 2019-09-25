@@ -149,11 +149,11 @@ class Float < Numeric
       else
         case half
         when nil, :up
-          Truffle.invoke_primitive(:float_round_up, self)
+          TrufflePrimitive.float_round_up(self)
         when :even
-          Truffle.invoke_primitive(:float_round_even, self)
+          TrufflePrimitive.float_round_even(self)
         when :down
-          Truffle.invoke_primitive(:float_round_down, self)
+          TrufflePrimitive.float_round_down(self)
         else
           raise ArgumentError, "invalid rounding mode: #{half}"
         end

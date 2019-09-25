@@ -36,7 +36,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@CoreClass("ObjectSpace")
+@CoreClass(value = "ObjectSpace", isModule = true)
 public abstract class ObjectSpaceNodes {
 
     @CoreMethod(names = "_id2ref", isModuleFunction = true, required = 1)

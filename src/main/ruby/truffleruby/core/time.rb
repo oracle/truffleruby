@@ -101,7 +101,7 @@ class Time
   end
 
   def zone
-    zone = Truffle.invoke_primitive(:time_zone, self)
+    zone = TrufflePrimitive.time_zone(self)
 
     if zone && zone.ascii_only?
       zone.encode Encoding::US_ASCII
@@ -121,10 +121,10 @@ class Time
   private_constant :CLASS_SALT
 
   def hash
-    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
-    val = Truffle.invoke_primitive :vm_hash_update, val, tv_sec
-    val = Truffle.invoke_primitive :vm_hash_update, val, tv_nsec
-    Truffle.invoke_primitive :vm_hash_end, val
+    val = TrufflePrimitive.vm_hash_start CLASS_SALT
+    val = TrufflePrimitive.vm_hash_update val, tv_sec
+    val = TrufflePrimitive.vm_hash_update val, tv_nsec
+    TrufflePrimitive.vm_hash_end val
   end
 
   def eql?(other)
@@ -148,7 +148,7 @@ class Time
   end
 
   def strftime(format)
-    Truffle.invoke_primitive :time_strftime, self, StringValue(format)
+    TrufflePrimitive.time_strftime self, StringValue(format)
   end
 
   def asctime
@@ -165,7 +165,7 @@ class Time
     if offset
       offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
-    Truffle.invoke_primitive(:time_localtime, self, offset)
+    TrufflePrimitive.time_localtime(self, offset)
   end
 
   def succ
@@ -188,7 +188,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    Truffle.invoke_primitive(:time_add, time, other_sec, other_nsec)
+    TrufflePrimitive.time_add(time, other_sec, other_nsec)
   end
 
   def -(other)
@@ -207,7 +207,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    Truffle.invoke_primitive(:time_add, time, -other_sec, -other_nsec)
+    TrufflePrimitive.time_add(time, -other_sec, -other_nsec)
   end
 
   def round(places = 0)
@@ -280,7 +280,7 @@ class Time
           copy.send(:initialize_copy, sec)
           return copy
         elsif sec.kind_of?(Integer)
-          return Truffle.invoke_primitive :time_at, self, sec, 0
+          return TrufflePrimitive.time_at self, sec, 0
         end
       end
 
@@ -302,11 +302,11 @@ class Time
       sec += nsec / 1_000_000_000
       nsec %= 1_000_000_000
 
-      Truffle.invoke_primitive :time_at, self, sec, nsec
+      TrufflePrimitive.time_at self, sec, nsec
     end
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      time = Truffle.invoke_primitive(:time_s_from_array, self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
+      time = TrufflePrimitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
       return time unless undefined.equal?(time)
 
       if sec.kind_of?(String)

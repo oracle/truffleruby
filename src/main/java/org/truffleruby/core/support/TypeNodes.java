@@ -45,7 +45,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
-@CoreClass("Truffle::Type")
+@CoreClass(value = "Truffle::Type", isModule = true)
 public abstract class TypeNodes {
 
     @CoreMethod(names = "object_kind_of?", onSingleton = true, required = 2)

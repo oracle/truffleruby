@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 
-@CoreClass("Truffle::WeakRefOperations")
+@CoreClass(value = "Truffle::WeakRefOperations", isModule = true)
 public abstract class WeakRefNodes {
 
     private static final WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);

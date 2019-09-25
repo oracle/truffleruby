@@ -433,7 +433,7 @@ module Truffle
           if pid < 0
             # macOS posix_spawnp(3) returns -1 and no pid when the command is not found,
             # Linux returns 0, sets the pid and let the child do the PATH lookup.
-            Truffle.invoke_primitive :thread_set_return_code, Process::Status.new(-1, 127, nil, nil)
+            TrufflePrimitive.thread_set_return_code Process::Status.new(-1, 127, nil, nil)
           else
             # the subprocess will fail, just wait for it
             Process.wait(pid) # Sets $? and avoids a zombie process

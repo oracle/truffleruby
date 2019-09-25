@@ -78,7 +78,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass(value = "VM primitives")
+@CoreClass("VMPrimitives")
 public abstract class VMPrimitiveNodes {
 
     @Primitive(name = "vm_catch", needsSelf = false)

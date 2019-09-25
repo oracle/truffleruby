@@ -31,7 +31,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::Graal")
+@CoreClass(value = "Truffle::Graal", isModule = true)
 public abstract class TruffleGraalNodes {
 
     @CoreMethod(names = "assert_constant", onSingleton = true, required = 1)

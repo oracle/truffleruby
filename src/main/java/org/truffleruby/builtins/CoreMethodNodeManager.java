@@ -97,7 +97,7 @@ public class CoreMethodNodeManager {
                         throw new Error(nodeClass.getEnclosingClass() + " needs a @CoreClass annotation");
                     }
                     moduleName = coreClass.value();
-                    module = getModule(moduleName);
+                    module = getModule(moduleName, coreClass.isModule());
                 }
                 addCoreMethod(module, new MethodDetails(moduleName, methodAnnotation, nodeFactory));
             } else if ((primitiveAnnotation = nodeClass.getAnnotation(Primitive.class)) != null) {
@@ -106,7 +106,7 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private DynamicObject getModule(String fullName) {
+    private DynamicObject getModule(String fullName, boolean isModule) {
         DynamicObject module;
 
         if (fullName.equals("main")) {
@@ -126,7 +126,9 @@ public class CoreMethodNodeManager {
             }
         }
 
-        assert RubyGuards.isRubyModule(module) : fullName;
+        assert isModule
+                ? RubyGuards.isRubyModule(module) && !RubyGuards.isRubyClass(module)
+                : RubyGuards.isRubyClass(module) : fullName;
         return module;
     }
 
@@ -167,10 +169,10 @@ public class CoreMethodNodeManager {
                 method.neverSplit());
     }
 
-    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, boolean isModule, Visibility visibility,
             boolean isModuleFunction, boolean onSingleton,
             boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
-        final DynamicObject module = getModule(moduleName);
+        final DynamicObject module = getModule(moduleName, isModule);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {

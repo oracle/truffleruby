@@ -513,14 +513,16 @@ public class BodyTranslator extends Translator {
                                     new ObjectLiteralNode(frozenString))));
         }
 
+        if (receiver instanceof ConstParseNode &&
+                ((ConstParseNode) receiver).getName().equals("TrufflePrimitive")) {
+            final RubyNode ret = translateInvokePrimitive(sourceSection, node);
+            return addNewlineIfNeeded(node, ret);
+        }
+
         if (receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
             // Truffle.<method>
 
             switch (methodName) {
-                case "invoke_primitive": {
-                    final RubyNode ret = translateInvokePrimitive(sourceSection, node);
-                    return addNewlineIfNeeded(node, ret);
-                }
                 case "privately": {
                     final RubyNode ret = translatePrivately(node);
                     return addNewlineIfNeeded(node, ret);
@@ -573,45 +575,24 @@ public class BodyTranslator extends Translator {
         /*
          * Translates something that looks like
          *
-         *   Truffle.invoke_primitive :foo, arg1, arg2, argN
+         *   TrufflePrimitive.foo arg1, arg2, argN
          *
          * into
          *
          *   InvokePrimitiveNode(FooNode(arg1, arg2, ..., argN))
          */
 
-        final ParseNode firstArgNode = extractFirstArgumentNode(node.getArgsNode());
-        if (!(firstArgNode instanceof SymbolParseNode)) {
-            throw new UnsupportedOperationException(
-                    "Truffle.invoke_primitive must have at least an initial literal symbol argument");
-        }
-
-        final String primitiveName = ((SymbolParseNode) firstArgNode).getName();
+        final String primitiveName = node.getName();
         final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
-
         final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
-        // The first argument was the symbol so we ignore it
-        final RubyNode[] arguments = new RubyNode[args.size() - 1];
-        for (int n = 1; n < args.size(); n++) {
-            arguments[n - 1] = args.get(n).accept(this);
+        final int size = args != null ? args.size() : 0;
+        final RubyNode[] arguments = new RubyNode[size];
+        for (int n = 0; n < size; n++) {
+            arguments[n] = args.get(n).accept(this);
         }
 
         return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
-    }
-
-    private ParseNode extractFirstArgumentNode(ParseNode argsNode) {
-        if (argsNode instanceof ArrayParseNode) {
-            final ArrayParseNode args = (ArrayParseNode) argsNode;
-            if (args.size() < 1) {
-                throw new UnsupportedOperationException(
-                        "Truffle.invoke_primitive must have at least an initial literal symbol argument");
-            }
-            return args.get(0);
-        } else {
-            throw new UnsupportedOperationException(
-                    "Unknown how to extract first argument node of " + argsNode.getClass());
-        }
     }
 
     private RubyNode translatePrivately(CallParseNode node) {
@@ -1975,13 +1956,13 @@ public class BodyTranslator extends Translator {
 
         if (readNode == null) {
             /*
-            
+
               This happens for code such as:
-            
+
                 def destructure4r((*c,d))
                     [c,d]
                 end
-            
+
                We're going to just assume that it should be there and add it...
              */
 

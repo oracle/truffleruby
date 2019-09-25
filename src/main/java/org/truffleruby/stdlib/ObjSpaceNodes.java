@@ -25,7 +25,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::ObjSpace")
+@CoreClass(value = "Truffle::ObjSpace", isModule = true)
 public abstract class ObjSpaceNodes {
 
     @CoreMethod(names = "memsize_of", isModuleFunction = true, required = 1)

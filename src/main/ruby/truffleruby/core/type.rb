@@ -64,17 +64,17 @@ module Truffle
   module Type
 
     def self.object_respond_to?(obj, name, include_private = false)
-      Truffle.invoke_primitive :vm_object_respond_to, obj, name, include_private
+      TrufflePrimitive.vm_object_respond_to obj, name, include_private
     end
 
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)
-      meth = Truffle.invoke_primitive :vm_method_lookup, obj, name
-      !meth.nil? && !Truffle.invoke_primitive(:vm_method_is_basic, meth)
+      meth = TrufflePrimitive.vm_method_lookup obj, name
+      !meth.nil? && !TrufflePrimitive.vm_method_is_basic(meth)
     end
 
     def self.check_funcall_callable(obj, name)
       # TODO BJF Review rb_method_call_status
-      Truffle.invoke_primitive :vm_method_lookup, obj, name
+      TrufflePrimitive.vm_method_lookup obj, name
     end
 
     ##
@@ -156,7 +156,7 @@ module Truffle
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Integer)
-        if Truffle.invoke_primitive(:integer_fits_into_long, val)
+        if TrufflePrimitive.integer_fits_into_long(val)
           return val
         else
           return rb_big2ulong(val)
@@ -191,7 +191,7 @@ module Truffle
 
     def self.rb_big2ulong(val)
       check_ulong(val)
-      Truffle.invoke_primitive(:integer_ulong_from_bignum, val)
+      TrufflePrimitive.integer_ulong_from_bignum(val)
     end
 
     def self.rb_to_f(val)
@@ -217,33 +217,33 @@ module Truffle
     end
 
     def self.fits_into_int?(val)
-      Integer === val && Truffle.invoke_primitive(:integer_fits_into_int, val)
+      Integer === val && TrufflePrimitive.integer_fits_into_int(val)
     end
 
     def self.fits_into_long?(val)
-      Integer === val && Truffle.invoke_primitive(:integer_fits_into_long, val)
+      Integer === val && TrufflePrimitive.integer_fits_into_long(val)
     end
 
     def self.check_int(val)
-      unless Truffle.invoke_primitive(:integer_fits_into_int, val)
+      unless TrufflePrimitive.integer_fits_into_int(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int"
       end
     end
 
     def self.check_uint(val)
-      unless Truffle.invoke_primitive(:integer_fits_into_uint, val)
+      unless TrufflePrimitive.integer_fits_into_uint(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint"
       end
     end
 
     def self.check_long(val)
-      unless Truffle.invoke_primitive(:integer_fits_into_long, val)
+      unless TrufflePrimitive.integer_fits_into_long(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long"
       end
     end
 
     def self.check_ulong(val)
-      unless Truffle.invoke_primitive(:integer_fits_into_ulong, val)
+      unless TrufflePrimitive.integer_fits_into_ulong(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong"
       end
     end
@@ -336,7 +336,7 @@ module Truffle
           return recv.__send__(:method_missing, meth, *args)
         rescue NoMethodError
           # TODO BJF usually more is done here
-          meth = Truffle.invoke_primitive :vm_method_lookup, recv, meth
+          meth = TrufflePrimitive.vm_method_lookup recv, meth
           if meth
             ret = false
           else
@@ -386,8 +386,8 @@ module Truffle
     INT_MAX = 2147483647
 
     def self.clamp_to_int(n)
-      if Truffle.invoke_primitive(:integer_fits_into_int, n)
-        Truffle.invoke_primitive(:integer_lower, n)
+      if TrufflePrimitive.integer_fits_into_int(n)
+        TrufflePrimitive.integer_lower(n)
       else
         n > 0 ? INT_MAX : INT_MIN
       end
@@ -552,8 +552,8 @@ module Truffle
       enc = Encoding.compatible? a, b
 
       unless enc
-        enc_a = Truffle.invoke_primitive :encoding_get_object_encoding, a
-        enc_b = Truffle.invoke_primitive :encoding_get_object_encoding, b
+        enc_a = TrufflePrimitive.encoding_get_object_encoding a
+        enc_b = TrufflePrimitive.encoding_get_object_encoding b
 
         raise Encoding::CompatibilityError, "incompatible character encodings: #{enc_a} and #{enc_b}"
       end
@@ -569,7 +569,7 @@ module Truffle
       if str.ascii_only? || (result_encoding.ascii_compatible? && str.encoding == result_encoding)
         str
       else
-        Truffle.invoke_primitive :string_escape, str
+        TrufflePrimitive.string_escape str
       end
     end
 
@@ -615,7 +615,7 @@ module Truffle
       if !error.nil? && !error.is_a?(Exception)
         raise TypeError, 'assigning non-exception to ?!'
       end
-      Truffle.invoke_primitive(:thread_set_exception, error)
+      TrufflePrimitive.thread_set_exception(error)
     end
   end
 end

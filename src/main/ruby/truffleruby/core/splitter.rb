@@ -86,7 +86,7 @@ module Truffle
           lim = 0
         end
 
-        return Truffle.invoke_primitive :string_awk_split, string, lim
+        return TrufflePrimitive.string_awk_split string, lim
       elsif pattern.kind_of?(Regexp)
       else
         pattern = StringValue(pattern) unless pattern.kind_of?(String)
@@ -168,7 +168,7 @@ module Truffle
       str_size = string.bytesize
 
       while pos < str_size
-        nxt = Truffle.invoke_primitive(:find_string, string, pattern, pos)
+        nxt = TrufflePrimitive.find_string(string, pattern, pos)
         break unless nxt
 
         match_size = nxt - pos

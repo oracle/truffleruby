@@ -60,7 +60,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::RegexpOperations")
+@CoreClass(value = "Truffle::RegexpOperations", isModule = true)
 public class TruffleRegexpNodes {
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)

@@ -91,7 +91,7 @@ class Symbol
     case pattern
     when Regexp
       match_data = pattern.search_region(str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(match_data, TrufflePrimitive.caller_binding)
       match_data
     when String
       raise TypeError, 'type mismatch: String given'
@@ -106,7 +106,7 @@ class Symbol
     case pattern
     when Regexp
       match_data = pattern.search_region(str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(match_data, TrufflePrimitive.caller_binding)
       match_data.byte_begin(0) if match_data
     when String
       raise TypeError, 'type mismatch: String given'
@@ -121,7 +121,7 @@ class Symbol
   end
 
   def encoding
-    Truffle.invoke_primitive :encoding_get_object_encoding, self
+    TrufflePrimitive.encoding_get_object_encoding self
   end
 
   def swapcase
@@ -142,13 +142,13 @@ class Symbol
     if index.kind_of?(Regexp)
       unless undefined.equal?(other)
         match, str = to_s.send(:subpattern, index, other)
-        Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
+        Truffle::RegexpOperations.set_last_match(match, TrufflePrimitive.caller_binding)
         return str
       end
 
       str = to_s
       match_data = index.search_region(str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(match_data, TrufflePrimitive.caller_binding)
       if match_data
         result = match_data.to_s
         Truffle::Type.infect result, index

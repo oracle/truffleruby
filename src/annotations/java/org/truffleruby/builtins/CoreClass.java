@@ -20,4 +20,6 @@ public @interface CoreClass {
 
     String value();
 
+    boolean isModule() default false;
+
 }

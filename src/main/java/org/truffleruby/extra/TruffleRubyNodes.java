@@ -27,7 +27,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("TruffleRuby")
+@CoreClass(value = "TruffleRuby", isModule = true)
 public abstract class TruffleRubyNodes {
 
     @CoreMethod(names = "jit?", onSingleton = true)

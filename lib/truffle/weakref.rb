@@ -31,19 +31,19 @@ class WeakRef < Delegator
   class RefError < ::StandardError; end
 
   def initialize(obj)
-    Truffle.invoke_primitive(:weakref_set_object, self, obj)
+    TrufflePrimitive.weakref_set_object(self, obj)
   end
 
   def __setobj__(obj)
   end
 
   def __getobj__
-    obj = Truffle.invoke_primitive(:weakref_object, self)
+    obj = TrufflePrimitive.weakref_object(self)
     ::Kernel.raise RefError, 'Object has been collected as garbage' unless obj
     obj
   end
 
   def weakref_alive?
-    !!Truffle::invoke_primitive(:weakref_object, self)
+    !!TrufflePrimitive.weakref_object(self)
   end
 end

@@ -144,7 +144,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Kernel")
+@CoreClass(value = "Kernel", isModule = true)
 public abstract class KernelNodes {
 
     /**

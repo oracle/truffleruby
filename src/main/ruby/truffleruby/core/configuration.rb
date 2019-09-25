@@ -32,15 +32,15 @@ module Truffle
     end
 
     def section(section, &block)
-      Truffle.invoke_primitive :vm_get_config_section, section, block
+      TrufflePrimitive.vm_get_config_section section, block
     end
 
     def lookup(name)
-      Truffle.invoke_primitive :vm_get_config_item, name
+      TrufflePrimitive.vm_get_config_item name
     end
 
     def [](name)
-      value = Truffle.invoke_primitive :vm_get_config_item, name
+      value = TrufflePrimitive.vm_get_config_item name
       raise KeyError, "key #{name} not found" if value.nil?
       value
     end

@@ -24,7 +24,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::StringOperations")
+@CoreClass(value = "Truffle::StringOperations", isModule = true)
 public class TruffleStringNodes {
 
     @CoreMethod(names = "truncate", onSingleton = true, required = 2, lowerFixnum = 2)
