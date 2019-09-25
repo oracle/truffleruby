@@ -13,7 +13,6 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.queue.UnsizedQueue;
 
