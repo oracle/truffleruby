@@ -28,6 +28,8 @@ import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.objects.ObjectIVarGetNode;
+import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
@@ -191,4 +193,32 @@ public abstract class TruffleKernelNodes {
         }
 
     }
+
+    // Those primitives store a Symbol as key, so they effectively have
+    // different namespace than normal ivars which use java.lang.String.
+    @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
+    public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubySymbol(name)")
+        protected Object hiddenVariableGet(DynamicObject object, DynamicObject name,
+                                           @Cached ObjectIVarGetNode iVarGetNode) {
+            return iVarGetNode.executeIVarGet(object, name);
+        }
+
+        @Specialization(guards = { "!isDynamicObject(object)", "isRubySymbol(name)" })
+        protected Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
+            return nil();
+        }
+    }
+
+    @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
+    public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubySymbol(name)")
+        protected Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
+                                           @Cached ObjectIVarSetNode iVarSetNode) {
+            return iVarSetNode.executeIVarSet(object, name, value);
+        }
+    }
+
 }

@@ -46,7 +46,7 @@ module Truffle::CExt
     end
 
     def data_holder
-      Truffle::CExt.hidden_variable_get(@object, :data_holder)
+      Truffle::KernelOperations.hidden_variable_get(@object, :data_holder)
     end
   end
 
@@ -1855,6 +1855,14 @@ module Truffle::CExt
     f = f.gsub('%ld', '%d')
 
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
+  end
+
+  def hidden_variable_get(object, name)
+    Truffle::KernelOperations.hidden_variable_get(object, name)
+  end
+
+  def hidden_variable_set(object, name, value)
+    Truffle::KernelOperations.hidden_variable_set object, name, value
   end
 
 end

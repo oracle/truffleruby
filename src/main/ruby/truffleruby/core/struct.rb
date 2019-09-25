@@ -67,8 +67,8 @@ class Struct
       _specialize attrs
 
       attrs.each do |a|
-        define_method(a) { Truffle::CExt.hidden_variable_get(self, a) }
-        define_method(:"#{a}=") { |value| Truffle::CExt.hidden_variable_set(self, a, value) }
+        define_method(a) { Truffle::KernelOperations.hidden_variable_get(self, a) }
+        define_method(:"#{a}=") { |value| Truffle::KernelOperations.hidden_variable_set(self, a, value) }
       end
 
       def self.new(*args, &block)
@@ -131,7 +131,7 @@ class Struct
       values = []
 
       _attrs.each do |var|
-        val = Truffle::CExt.hidden_variable_get(self, var)
+        val = Truffle::KernelOperations.hidden_variable_get(self, var)
         values << "#{var}=#{val.inspect}"
       end
 
@@ -155,7 +155,7 @@ class Struct
     end
 
     attrs.each_with_index do |attr, i|
-      Truffle::CExt.hidden_variable_set self, attr, args[i]
+      Truffle::KernelOperations.hidden_variable_set self, attr, args[i]
     end
   end
 
@@ -186,7 +186,7 @@ class Struct
       raise NameError, "no member '#{var}' in struct"
     end
 
-    Truffle::CExt.hidden_variable_get(self, var)
+    Truffle::KernelOperations.hidden_variable_get(self, var)
   end
 
   def []=(var, obj)
@@ -204,13 +204,13 @@ class Struct
       var = check_index_var(var)
     end
 
-    Truffle::CExt.hidden_variable_set(self, var, obj)
+    Truffle::KernelOperations.hidden_variable_set(self, var, obj)
   end
 
   def dup
     duped = super
     _attrs.each do |a|
-      Truffle::CExt.hidden_variable_set duped, a, Truffle::CExt.hidden_variable_get(self, a)
+      Truffle::KernelOperations.hidden_variable_set duped, a, Truffle::KernelOperations.hidden_variable_get(self, a)
     end
     duped
   end
@@ -249,8 +249,8 @@ class Struct
 
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        mine =   Truffle::CExt.hidden_variable_get(self, var)
-        theirs = Truffle::CExt.hidden_variable_get(other, var)
+        mine =   Truffle::KernelOperations.hidden_variable_get(self, var)
+        theirs = Truffle::KernelOperations.hidden_variable_get(other, var)
 
         return false unless mine.eql? theirs
       end
@@ -271,7 +271,7 @@ class Struct
 
   def each_pair
     return to_enum(:each_pair) { size } unless block_given?
-    _attrs.each { |var| yield [var, Truffle::CExt.hidden_variable_get(self, var)] }
+    _attrs.each { |var| yield [var, Truffle::KernelOperations.hidden_variable_get(self, var)] }
     self
   end
 
@@ -287,7 +287,7 @@ class Struct
     val = TrufflePrimitive.vm_hash_start(CLASS_SALT)
     val = TrufflePrimitive.vm_hash_update(val, size)
     return val if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| TrufflePrimitive.vm_hash_update(val, Truffle::CExt.hidden_variable_get(self, var).hash) }
+      _attrs.each { |var| TrufflePrimitive.vm_hash_update(val, Truffle::KernelOperations.hidden_variable_get(self, var).hash) }
     end
     TrufflePrimitive.vm_hash_end(val)
   end
@@ -311,7 +311,7 @@ class Struct
   end
 
   def to_a
-    _attrs.map { |var| Truffle::CExt.hidden_variable_get(self, var) }
+    _attrs.map { |var| Truffle::KernelOperations.hidden_variable_get(self, var) }
   end
 
   alias_method :values, :to_a
@@ -341,8 +341,8 @@ class Struct
     args, assigns, hashes, vars = [], [], [], []
 
     attrs.each_with_index do |name, i|
-      assigns << "Truffle::CExt.hidden_variable_set(self, #{name.inspect}, a#{i})"
-      vars    << "Truffle::CExt.hidden_variable_get(self, #{name.inspect})"
+      assigns << "Truffle::KernelOperations.hidden_variable_set(self, #{name.inspect}, a#{i})"
+      vars    << "Truffle::KernelOperations.hidden_variable_get(self, #{name.inspect})"
       args    << "a#{i} = nil"
       hashes  << "#{vars[-1]}.hash"
     end
