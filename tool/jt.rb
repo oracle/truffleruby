@@ -31,8 +31,7 @@ PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'b6150c498a0764ffdc079cddf7f4e68cb141b65c'
 
-JDEBUG_PORT = 8000
-JDEBUG = "--vm.agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
+JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
@@ -579,7 +578,7 @@ module Commands
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
-          --jdebug        run a JDWP debug server on #{JDEBUG_PORT}
+          --jdebug        run a JDWP debug server on port 8000
           --jexception[s] print java exceptions
           --exec          use exec rather than system
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
@@ -1909,7 +1908,7 @@ EOS
       raw_sh 'git', 'clone', bitbucket_ee_url, ee_path
     end
 
-    raw_sh 'git', '-C', ee_path, 'fetch', '--all'
+    raw_sh 'git', '-C', ee_path, 'fetch', 'origin'
 
     suite_file = File.join ee_path, 'vm-enterprise/mx.vm-enterprise/suite.py'
     # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
@@ -1919,8 +1918,8 @@ EOS
     # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
     # The suite file is automatically updated on every graal PR merged.
     graal_enterprise_commit = raw_sh(
-        'git', '-C', ee_path, 'log', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m', '-S', merge_commit_in_graal, '--' ,suite_file,
-        capture: true).lines.first.chomp
+        'git', '-C', ee_path, 'log', 'origin/master', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m',
+        '-S', merge_commit_in_graal, '--', suite_file, capture: true).lines.first.chomp
     raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
   end
 
