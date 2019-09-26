@@ -10,6 +10,10 @@ require_relative 'cext_ruby'
 require_relative 'cext_constants'
 
 module Truffle::CExt
+
+  DATA_HOLDER = Object.new
+  DATA_MEMSIZER = Object.new
+
   extend self
 
   class DataHolder
@@ -46,7 +50,7 @@ module Truffle::CExt
     end
 
     def data_holder
-      Truffle::KernelOperations.hidden_variable_get(@object, :data_holder)
+      Truffle::KernelOperations.hidden_variable_get(@object, DATA_HOLDER)
     end
   end
 
@@ -333,7 +337,7 @@ module Truffle::CExt
     when Data
       T_DATA
     when BasicObject
-      if hidden_variable_get(value, :data_holder)
+      if hidden_variable_get(value, DATA_HOLDER)
         T_DATA
       else
         T_OBJECT
@@ -1440,7 +1444,7 @@ module Truffle::CExt
     ruby_class = Object unless ruby_class
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
-    hidden_variable_set object, :data_holder, data_holder
+    hidden_variable_set object, DATA_HOLDER, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
@@ -1451,8 +1455,8 @@ module Truffle::CExt
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
-    hidden_variable_set object, :data_holder, data_holder
-    hidden_variable_set object, :data_memsizer, data_sizer(size, data_holder) unless size.nil?
+    hidden_variable_set object, DATA_HOLDER, data_holder
+    hidden_variable_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
 
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
 
