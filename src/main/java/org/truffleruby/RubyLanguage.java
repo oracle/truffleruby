@@ -12,6 +12,9 @@ package org.truffleruby;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
@@ -73,6 +76,18 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String RUBY_HOME_SCHEME = "rubyHome:";
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
+
+    private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
+    @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
+
+    public Assumption getTracingAssumption() {
+        return tracingAssumption;
+    }
+
+    public void invalidateTracingAssumption() {
+        tracingCyclicAssumption.invalidate();
+        tracingAssumption = tracingCyclicAssumption.getAssumption();
+    }
 
     @Override
     public RubyContext createContext(Env env) {

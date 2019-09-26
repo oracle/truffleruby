@@ -43,10 +43,12 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.utilities.AssumedValue;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}
@@ -54,26 +56,35 @@ import com.oracle.truffle.api.utilities.AssumedValue;
  */
 public class ObjectSpaceManager {
 
-    private final AssumedValue<Boolean> isTracing = new AssumedValue<>("object-space-tracing", Boolean.FALSE);
+    // behaves as volatile by piggybacking on Assumption semantics
+    @CompilationFinal private boolean isTracing = false;
+
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
     private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
 
-    public void traceAllocationsStart() {
+    public void traceAllocationsStart(RubyLanguage language) {
         if (tracingAssumptionActivations.incrementAndGet() == 1) {
-            isTracing.set(Boolean.TRUE);
+            isTracing = true;
+            language.invalidateTracingAssumption();
         }
     }
 
-    public void traceAllocationsStop() {
+    public void traceAllocationsStop(RubyLanguage language) {
         if (tracingAssumptionActivations.decrementAndGet() == 0) {
-            isTracing.set(Boolean.FALSE);
+            isTracing = false;
+            language.invalidateTracingAssumption();
         }
     }
 
-    public boolean isTracing() {
-        return isTracing.get();
+    public boolean isTracing(RubyLanguage language) {
+        try {
+            language.getTracingAssumption().check();
+        } catch (InvalidAssumptionException e) {
+            // Read the value in the interpreter
+        }
+        return isTracing;
     }
 
     public boolean isTracingPaused() {
