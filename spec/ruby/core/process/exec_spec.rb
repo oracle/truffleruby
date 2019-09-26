@@ -212,6 +212,35 @@ describe "Process.exec" do
 
           File.read(@name).should == "writing to fd: #{child_fd}"
         end
+
+        it "lets the process after exec have specified file descriptor dispite close_on_exec" do
+          map_fd_fixture = fixture __FILE__, "map_fd.rb"
+          cmd = <<-EOC
+            f = File.open('#{@name}', 'w+')
+            puts(f.fileno, f.close_on_exec?)
+            STDOUT.flush
+            Process.exec("#{ruby_cmd(map_fd_fixture)} \#{f.fileno}", f.fileno => f.fileno)
+            EOC
+
+          output = ruby_exe(cmd, escape: true)
+          child_fd, close_on_exec = output.split
+
+          child_fd.to_i.should > STDERR.fileno
+          close_on_exec.should == 'true'
+          File.read(@name).should == "writing to fd: #{child_fd}"
+        end
+
+        it "sets close_on_exec to false on specified fd even when it fails" do
+          cmd = <<-EOC
+            f = File.open('#{__FILE__}', 'r')
+            puts(f.close_on_exec?)
+            Process.exec('/', f.fileno => f.fileno) rescue
+            puts(f.close_on_exec?)
+            EOC
+
+          output = ruby_exe(cmd, escape: true)
+          output.split.should == ['true', 'false']
+        end
       end
     end
   end

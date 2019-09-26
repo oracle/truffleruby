@@ -402,7 +402,7 @@ module Truffle
 
           if redirect_fd = @options[:redirect_fd]
             redirect_fd.each_slice(2) do |from, to|
-              redirect_file_descriptor(from, to)
+              redirect_file_descriptor(from, to, alter_process)
             end
           end
         end
@@ -415,9 +415,14 @@ module Truffle
         (flags & File::FD_CLOEXEC) != 0
       end
 
-      def redirect_file_descriptor(from, to)
+      def redirect_file_descriptor(from, to, alter_process)
         to = (-to + 1) if to < 0
-
+        if alter_process && from == to
+          flags = Truffle::POSIX.fcntl(from, File::F_GETFD, 0)
+          unless flags < 0 || flags & File::FD_CLOEXEC == 0
+            Truffle::POSIX.fcntl(from, File::F_SETFD, flags ^ File::FD_CLOEXEC)
+          end
+        end
         result = Truffle::POSIX.dup2(to, from)
         Errno.handle if result < 0
       end
