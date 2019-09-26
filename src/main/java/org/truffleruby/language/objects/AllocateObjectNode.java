@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -62,12 +63,13 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
             @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
+            @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached(
-                    value = "lookupAllocationReporter(context)",
+                    value = "lookupAllocationReporter()",
                     allowUncached = true) AllocationReporter allocationReporter) {
 
-        return trace(context, allocate(context, allocationReporter, factory, values));
+        return trace(language, context, allocate(allocationReporter, factory, values));
     }
 
     // because the factory is not constant
@@ -75,16 +77,18 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
     protected DynamicObject allocateUncached(
             DynamicObject classToAllocate, Object[] values,
+            @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached(
-                    value = "lookupAllocationReporter(context)",
+                    value = "lookupAllocationReporter()",
                     allowUncached = true) AllocationReporter allocationReporter) {
 
-        return trace(context, allocate(context, allocationReporter, getInstanceFactory(classToAllocate), values));
+        return trace(language, context, allocate(allocationReporter, getInstanceFactory(classToAllocate), values));
     }
 
-    protected static AllocationReporter lookupAllocationReporter(RubyContext context) {
-        return context.getEnv().lookup(AllocationReporter.class);
+    protected static AllocationReporter lookupAllocationReporter() {
+        // The AllocationReporter is the same for all contexts inside an Engine
+        return RubyLanguage.getCurrentContext().getEnv().lookup(AllocationReporter.class);
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
@@ -96,8 +100,8 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
                 context.getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
     }
 
-    private DynamicObject trace(RubyContext context, DynamicObject object) {
-        if (context.getObjectSpaceManager().isTracing()) {
+    private DynamicObject trace(RubyLanguage language, RubyContext context, DynamicObject object) {
+        if (context.getObjectSpaceManager().isTracing(language)) {
             traceBoundary(context, object);
         }
         return object;
@@ -159,8 +163,8 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
         return RubyLanguage.getCurrentContext().getOptions().ALLOCATE_CLASS_CACHE;
     }
 
-    private DynamicObject allocate(RubyContext context, AllocationReporter allocationReporter,
-            DynamicObjectFactory factory, Object[] values) {
+    private DynamicObject allocate(AllocationReporter allocationReporter, DynamicObjectFactory factory,
+            Object[] values) {
         if (allocationReporter.isActive()) {
             allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         }
