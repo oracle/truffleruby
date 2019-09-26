@@ -203,7 +203,8 @@ class Struct
     else
       var = check_index_var(var)
     end
-
+    
+    raise FrozenError, "can't modify frozen #{self.class.name}" if frozen?
     Truffle::KernelOperations.hidden_variable_set(self, var, obj)
   end
 
