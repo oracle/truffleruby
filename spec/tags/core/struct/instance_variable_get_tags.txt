@@ -1,2 +1,0 @@
-fails:Struct#instance_variable_get returns nil for attributes
-fails:Struct#instance_variable_get returns a user value for variables with the same name as attributes
