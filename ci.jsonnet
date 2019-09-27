@@ -203,7 +203,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "8u212-jvmci-19.2-b01",
+          version: "8u221-jvmci-19.3-b02",
           platformspecific: true,
         },
       },
@@ -666,6 +666,3 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
-
-
-
