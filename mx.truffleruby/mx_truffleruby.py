@@ -156,7 +156,7 @@ The Ruby openssl C extension needs to be recompiled on your system to work with 
 First, make sure TruffleRuby's dependencies are installed, which are described at:
   https://github.com/oracle/truffleruby/blob/master/README.md#dependencies
 Then run the following command:
-        ${graalvm_home}/jre/languages/ruby/lib/truffle/post_install_hook.sh""",
+        ${graalvm_languages_dir}/ruby/lib/truffle/post_install_hook.sh""",
 ))
 
 mx.update_commands(_suite, {
