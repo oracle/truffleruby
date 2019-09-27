@@ -31,7 +31,7 @@ public class ArrayGuards {
     public static boolean isObjectArray(DynamicObject array) {
         assert RubyGuards.isRubyArray(array);
         final Object store = Layouts.ARRAY.getStore(array);
-        return store != null && store.getClass() == Object[].class;
+        return store.getClass() == Object[].class;
     }
 
     // Higher level properties

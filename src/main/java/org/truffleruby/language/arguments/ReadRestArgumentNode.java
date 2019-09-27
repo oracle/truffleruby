@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayAppendOneNode;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -78,7 +79,7 @@ public class ReadRestArgumentNode extends RubyNode {
         } else {
             if (startIndex >= endIndex) {
                 noArgumentsLeftProfile.enter();
-                resultStore = null;
+                resultStore = ArrayStrategy.NULL_ARRAY_STORE;
                 resultLength = 0;
             } else {
                 subsetOfArgumentsProfile.enter();

@@ -24,20 +24,21 @@ public abstract class ArrayOperations {
 
     public static boolean isPrimitiveStorage(DynamicObject array) {
         Object store = getBackingStore(array);
-        return store == null || store instanceof int[] || store instanceof long[] || store instanceof double[];
+        return store == ArrayStrategy.NULL_ARRAY_STORE || store instanceof int[] || store instanceof long[] ||
+                store instanceof double[];
     }
 
     public static boolean verifyStore(DynamicObject array) {
         final Object backingStore = getBackingStore(array);
-        assert backingStore == null || backingStore instanceof int[] || backingStore instanceof long[] ||
-                backingStore instanceof double[] ||
+        assert backingStore == ArrayStrategy.NULL_ARRAY_STORE || backingStore instanceof int[] ||
+                backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
         final RubyContext context = Layouts.MODULE.getFields(Layouts.ARRAY.getLogicalClass(array)).getContext();
         if (SharedObjects.isShared(context, array)) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            if (store != null && store.getClass() == Object[].class) {
+            if (store.getClass() == Object[].class) {
                 final Object[] objectArray = (Object[]) store;
 
                 for (Object element : objectArray) {
@@ -111,7 +112,7 @@ public abstract class ArrayOperations {
     @TruffleBoundary
     public static int getStoreCapacity(DynamicObject array) {
         Object store = Layouts.ARRAY.getStore(array);
-        if (store == null) {
+        if (store == ArrayStrategy.NULL_ARRAY_STORE) {
             return 0;
         } else {
             if (store instanceof DelegatedArrayStorage) {

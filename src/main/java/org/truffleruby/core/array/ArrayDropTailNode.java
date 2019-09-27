@@ -35,7 +35,7 @@ public abstract class ArrayDropTailNode extends RubyNode {
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
         final int size = strategy.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         } else {
             final int newSize = size - index;
             final Object withoutTail = extractRangeCopyOnWriteNode.execute(array, 0, newSize);

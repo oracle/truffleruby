@@ -65,7 +65,7 @@ public class EmptyArrayNodes {
 
         @Specialization
         protected Object newStore(int size) {
-            return null;
+            return ArrayStrategy.NULL_ARRAY_STORE;
         }
 
         public static EmptyArrayNewStoreNode create() {
@@ -77,7 +77,7 @@ public class EmptyArrayNodes {
 
         @Specialization
         protected Object newStoreCopying(Object store, int size) {
-            return null;
+            return ArrayStrategy.NULL_ARRAY_STORE;
         }
 
         public static EmptyArrayCopyStoreNode create() {
@@ -100,9 +100,9 @@ public class EmptyArrayNodes {
     public static abstract class EmptyArrayExtractRangeNode extends ArrayOperationNodes.ArrayExtractRangeNode {
 
         @Specialization
-        protected Object[] extractRange(Object store, int start, int end) {
+        protected Object extractRange(Object store, int start, int end) {
             assert start == 0 && end == 0;
-            return null;
+            return ArrayStrategy.NULL_ARRAY_STORE;
         }
 
         public static EmptyArrayExtractRangeNode create() {
@@ -127,7 +127,7 @@ public class EmptyArrayNodes {
         @Specialization
         protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             assert start == 0 && end == 0;
-            return null;
+            return ArrayStrategy.NULL_ARRAY_STORE;
         }
 
         public static ArrayExtractRangeCopyOnWriteNode create() {

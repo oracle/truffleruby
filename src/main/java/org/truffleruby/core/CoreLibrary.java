@@ -32,6 +32,7 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rope.CodeRange;
@@ -613,7 +614,7 @@ public class CoreLibrary {
         mainObject = objectFactory.newInstance();
         nil = nilFactory.newInstance();
         emptyDescriptor = new FrameDescriptor(nil);
-        argv = Layouts.ARRAY.createArray(arrayFactory, null, 0);
+        argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
         supportUndefined = NotProvided.INSTANCE;
 
         globalVariables = new GlobalVariables(nil);

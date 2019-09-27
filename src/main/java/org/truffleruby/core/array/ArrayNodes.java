@@ -90,7 +90,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, null, 0);
+            return allocateNode.allocate(rubyClass, ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
     }
@@ -260,7 +260,8 @@ public abstract class ArrayNodes {
                         .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
 
                 if (exclusiveEnd <= normalizedIndex) {
-                    return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), null, 0);
+                    return allocateObjectNode
+                            .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
                 }
 
                 final int length = exclusiveEnd - normalizedIndex;
@@ -578,7 +579,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         protected DynamicObject clear(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
-            strategy.setStoreAndSize(array, null, 0);
+            strategy.setStoreAndSize(array, ArrayStrategy.NULL_ARRAY_STORE, 0);
             return array;
         }
 
@@ -1152,14 +1153,14 @@ public abstract class ArrayNodes {
         @Specialization
         protected DynamicObject initializeNoArgs(DynamicObject array, NotProvided size, NotProvided unusedValue,
                 NotProvided block) {
-            setStoreAndSize(array, null, 0);
+            setStoreAndSize(array, ArrayStrategy.NULL_ARRAY_STORE, 0);
             return array;
         }
 
         @Specialization
         protected DynamicObject initializeOnlyBlock(DynamicObject array, NotProvided size, NotProvided unusedValue,
                 DynamicObject block) {
-            setStoreAndSize(array, null, 0);
+            setStoreAndSize(array, ArrayStrategy.NULL_ARRAY_STORE, 0);
             return array;
         }
 
@@ -1655,13 +1656,13 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object popEmpty(DynamicObject array, int n) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object popZeroNotEmpty(DynamicObject array, int n) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(
@@ -2104,12 +2105,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "n == 0")
         protected Object shiftZero(DynamicObject array, int n) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(guards = { "n > 0", "isEmptyArray(array)" })
         protected Object shiftManyEmpty(DynamicObject array, int n) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization(
@@ -2163,7 +2164,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
         protected DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @ExplodeLoop
@@ -2277,7 +2278,7 @@ public abstract class ArrayNodes {
             final int size = getSize(other);
             final Object store = getStore(other);
             strategy.setStoreAndSize(array, store, size);
-            otherStrategy.setStoreAndSize(other, null, 0);
+            otherStrategy.setStoreAndSize(other, ArrayStrategy.NULL_ARRAY_STORE, 0);
 
             return array;
         }

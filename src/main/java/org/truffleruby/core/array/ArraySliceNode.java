@@ -40,7 +40,7 @@ public abstract class ArraySliceNode extends RubyNode {
         final int to = strategy.getSize(array) + this.to;
 
         if (emptyArray.profile(from >= to)) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         } else {
             final Object slice = extractRangeCopyOnWriteNode.execute(array, from, to);
             return createArray(slice, to - from);

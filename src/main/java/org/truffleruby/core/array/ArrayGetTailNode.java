@@ -35,7 +35,7 @@ public abstract class ArrayGetTailNode extends RubyNode {
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
         final int size = strategy.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
-            return createArray(null, 0);
+            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         } else {
             final Object newStore = extractRangeCopyOnWriteNode.execute(array, index, size);
             return createArray(newStore, size - index);

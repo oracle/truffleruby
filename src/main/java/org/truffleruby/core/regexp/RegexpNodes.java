@@ -36,6 +36,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
@@ -327,7 +328,7 @@ public abstract class RegexpNodes {
         protected Object regexpNames(DynamicObject regexp) {
             final int size = Layouts.REGEXP.getRegex(regexp).numberOfNames();
             if (size == 0) {
-                return createArray(null, size);
+                return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
             }
 
             final Object[] names = new Object[size];

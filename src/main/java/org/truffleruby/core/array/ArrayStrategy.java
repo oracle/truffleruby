@@ -34,6 +34,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayStrategy {
 
+    public static final Object NULL_ARRAY_STORE = new Object();
+
     // ArrayStrategy interface
 
     protected Class<?> type() {
@@ -165,7 +167,7 @@ public abstract class ArrayStrategy {
 
     @TruffleBoundary
     public static ArrayStrategy ofStore(Object store) {
-        if (store == null) {
+        if (store == NULL_ARRAY_STORE) {
             return NullArrayStrategy.INSTANCE;
         } else if (store instanceof int[]) {
             return IntArrayStrategy.INSTANCE;
@@ -184,7 +186,7 @@ public abstract class ArrayStrategy {
 
     private static ArrayStrategy ofDelegatedStore(DelegatedArrayStorage delegatedArrayStorage) {
         Object store = delegatedArrayStorage.storage;
-        if (store == null) {
+        if (store == NULL_ARRAY_STORE) {
             return NullArrayStrategy.DELEGATED_INSTANCE;
         } else if (store instanceof int[]) {
             return IntArrayStrategy.DELEGATED_INSTANCE;
@@ -649,7 +651,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean matchesStore(Object store) {
-            return store != null && store.getClass() == Object[].class;
+            return store.getClass() == Object[].class;
         }
 
         @Override
@@ -773,7 +775,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean matchesStore(Object store) {
-            return store == null;
+            return store == NULL_ARRAY_STORE;
         }
 
         @Override
