@@ -1509,9 +1509,12 @@ VALUE rb_ary_resize(VALUE ary, long len) {
 
 VALUE rb_ary_new_from_args(long n, ...) {
   VALUE array = rb_ary_new_capa(n);
+  va_list args;
+  va_start(args, n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(array, i, (VALUE) polyglot_get_arg(1+i));
+    rb_ary_store(array, i, va_arg(args, VALUE));
   }
+  va_end(args);
   return array;
 }
 
