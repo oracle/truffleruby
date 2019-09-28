@@ -203,7 +203,19 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
+          # Update the openjdk8 version too below when updating this one
           version: "8u221-jvmci-19.3-b02",
+          platformspecific: true,
+        },
+      },
+    },
+
+    # For `jt install jvmci`, verify that `jt install jvmci` still works when changing the version
+    openjdk8: with_path {
+      downloads+: {
+        JAVA_HOME: {
+          name: "openjdk",
+          version: "8u222-jvmci-19.3-b02",
           platformspecific: true,
         },
       },
