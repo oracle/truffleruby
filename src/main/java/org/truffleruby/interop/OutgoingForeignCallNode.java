@@ -45,7 +45,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     public final Object executeCall(Object receiver, String name, Object[] args) {
         CompilerAsserts.partialEvaluationConstant(name);
         return executeCallInner(receiver, name, args);
-    };
+    }
 
     protected abstract Object executeCallInner(Object receiver, String name, Object[] args);
 

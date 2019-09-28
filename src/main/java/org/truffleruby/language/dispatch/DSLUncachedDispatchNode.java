@@ -108,6 +108,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             @Cached IndirectCallNode indirectCallNode,
             @Cached ToSymbolNode toSymbolNode,
             @Cached BranchProfile foreignProfile,
+            @Cached BranchProfile foreignErrorProfile,
             @Cached BranchProfile methodNotFoundProfile,
             @Cached BranchProfile methodMissingProfile,
             @Cached BranchProfile methodMissingNotFoundProfile,
@@ -123,6 +124,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
                 try {
                     return OutgoingForeignCallNodeGen.getUncached().executeCall(receiver, methodName, arguments);
                 } catch (Throwable t) {
+                    foreignErrorProfile.enter();
                     throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
                 }
             }
