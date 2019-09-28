@@ -517,10 +517,6 @@ public class BodyTranslator extends Translator {
             // Truffle.<method>
 
             switch (methodName) {
-                case "primitive":
-                    throw new AssertionError(
-                            "Invalid usage of Truffle.primitive at " +
-                                    context.fileLine(sourceSection.toSourceSection(source)));
                 case "invoke_primitive": {
                     final RubyNode ret = translateInvokePrimitive(sourceSection, node);
                     return addNewlineIfNeeded(node, ret);
@@ -571,48 +567,6 @@ public class BodyTranslator extends Translator {
         }
 
         return addNewlineIfNeeded(node, translated);
-    }
-
-    protected RubyNode translatePrimitive(SourceIndexLength sourceSection, BlockParseNode body,
-            RubyNode loadArguments) {
-        /*
-         * Translates something that looks like
-         *
-         *   def foo
-         *     Truffle.primitive :foo
-         *     fallback code
-         *   end
-         *
-         * into
-         *
-         *   if value = CallPrimitiveNode(FooNode(arg1, arg2, ..., argN))
-         *     return value
-         *   else
-         *     fallback code
-         *   end
-         *
-         * Where the arguments are the same arguments as the method. It looks like this is only exercised with simple
-         * arguments so we're not worrying too much about what happens when they're more complicated (rest,
-         * keywords etc).
-         */
-
-        final CallParseNode node = (CallParseNode) body.get(0);
-        final ArrayParseNode argsNode = (ArrayParseNode) node.getArgsNode();
-        if (argsNode.size() != 1 || !(argsNode.get(0) instanceof SymbolParseNode)) {
-            throw new UnsupportedOperationException("Truffle.primitive must have a single literal symbol argument");
-        }
-
-        final String primitiveName = ((SymbolParseNode) argsNode.get(0)).getName();
-
-        BlockParseNode fallback = new BlockParseNode(body.getPosition());
-        for (int i = 1; i < body.size(); i++) {
-            fallback.add(body.get(i));
-        }
-        RubyNode fallbackNode = fallback.accept(this);
-        fallbackNode = sequence(sourceSection, Arrays.asList(loadArguments, fallbackNode));
-
-        final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
-        return primitive.createCallPrimitiveNode(sourceSection, fallbackNode);
     }
 
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
@@ -1415,9 +1369,6 @@ public class BodyTranslator extends Translator {
         final Arity arity = argsNode.getArity();
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
-        final boolean alwaysClone = context.getOptions().PRIMITIVE_CALLERS_ALWAYS_CLONE &&
-                MethodTranslator.callsPrimitive(bodyNode);
-
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
@@ -1427,7 +1378,7 @@ public class BodyTranslator extends Translator {
                 0,
                 null,
                 argumentDescriptors,
-                alwaysClone);
+                false);
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 environment,

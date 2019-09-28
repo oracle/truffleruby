@@ -20,6 +20,7 @@ public @interface Primitive {
 
     String name();
 
+    // TODO (eregon, 28 Sept 2019): is this still needed?
     boolean needsSelf() default true;
 
     /**

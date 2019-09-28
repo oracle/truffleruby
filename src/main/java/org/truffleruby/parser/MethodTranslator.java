@@ -44,9 +44,6 @@ import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
-import org.truffleruby.parser.ast.BlockParseNode;
-import org.truffleruby.parser.ast.CallParseNode;
-import org.truffleruby.parser.ast.ConstParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
@@ -283,26 +280,14 @@ public class MethodTranslator extends BodyTranslator {
                 true,
                 this).translate();
 
-        final boolean isPrimitive = callsPrimitive(bodyNode);
-
-        RubyNode body;
-        if (isPrimitive) {
-            body = translatePrimitive(sourceSection, (BlockParseNode) bodyNode, loadArguments);
-        } else {
-            body = translateNodeOrNil(sourceSection, bodyNode);
-        }
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
         final RubyNode checkArity = createCheckArityNode(arity);
         checkArity.unsafeSetSourceSection(sourceSection);
 
-        if (isPrimitive) {
-            // Arguments are loaded on the fallback path
-            body = sequence(bodySourceSection, Arrays.asList(checkArity, body));
-        } else {
-            body = sequence(bodySourceSection, Arrays.asList(checkArity, loadArguments, body));
-        }
+        body = sequence(bodySourceSection, Arrays.asList(checkArity, loadArguments, body));
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
@@ -315,22 +300,6 @@ public class MethodTranslator extends BodyTranslator {
         body.unsafeSetSourceSection(sourceSection);
 
         return body;
-    }
-
-    public static boolean callsPrimitive(ParseNode bodyNode) {
-        if (bodyNode instanceof BlockParseNode) {
-            BlockParseNode statements = (BlockParseNode) bodyNode;
-            if (!statements.isEmpty() && statements.get(0) instanceof CallParseNode) {
-                CallParseNode callNode = (CallParseNode) statements.get(0);
-                ParseNode receiver = callNode.getReceiverNode();
-                // Truffle.primitive :name
-                if (callNode.getName().equals("primitive") && receiver instanceof ConstParseNode &&
-                        ((ConstParseNode) receiver).getName().equals("Truffle")) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public RootCallTarget compileMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
