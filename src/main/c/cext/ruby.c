@@ -1617,7 +1617,7 @@ VALUE rb_ary_to_ary(VALUE array) {
   VALUE tmp = rb_check_array_type(array);
 
   if (!NIL_P(tmp)) return tmp;
-  return rb_ary_new3(1, array);
+  return rb_ary_new_from_args(1, array);
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
