@@ -3316,9 +3316,7 @@ public abstract class StringNodes {
             return StringByteSubstringPrimitiveNodeFactory.create(null);
         }
 
-        public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) {
-            return nil();
-        }
+        public abstract Object executeStringByteSubstring(DynamicObject string, Object index, Object length);
 
         @Specialization
         protected Object stringByteSubstring(DynamicObject string, int index, NotProvided length,
