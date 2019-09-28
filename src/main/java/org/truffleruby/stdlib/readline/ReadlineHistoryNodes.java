@@ -40,7 +40,7 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -64,7 +64,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import jline.console.history.History;
 
-@CoreClass(value = "Truffle::ReadlineHistory", isModule = true)
+@CoreModule("Truffle::ReadlineHistory")
 public abstract class ReadlineHistoryNodes {
 
     @CoreMethod(names = { "push", "<<" }, rest = true)

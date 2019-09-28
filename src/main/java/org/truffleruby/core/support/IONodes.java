@@ -71,7 +71,7 @@ import java.util.Arrays;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
@@ -97,7 +97,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@CoreClass("IO")
+@CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
 
     private static final int CLOSED_FD = -1;

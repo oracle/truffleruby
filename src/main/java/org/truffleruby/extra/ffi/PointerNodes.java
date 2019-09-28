@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -41,7 +41,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::FFI::Pointer")
+@CoreModule(value = "Truffle::FFI::Pointer", isClass = true)
 public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);

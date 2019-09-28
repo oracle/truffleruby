@@ -12,7 +12,7 @@ package org.truffleruby.extra;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass(value = "TruffleRuby", isModule = true)
+@CoreModule("TruffleRuby")
 public abstract class TruffleRubyNodes {
 
     @CoreMethod(names = "jit?", onSingleton = true)

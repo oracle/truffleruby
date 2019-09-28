@@ -11,7 +11,7 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.Rope;
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass(value = "Polyglot", isModule = true)
+@CoreModule("Polyglot")
 public abstract class PolyglotNodes {
 
     @CoreMethod(names = "eval", isModuleFunction = true, required = 2)

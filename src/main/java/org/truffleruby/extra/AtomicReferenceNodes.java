@@ -12,7 +12,7 @@ package org.truffleruby.extra;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.language.NotProvided;
@@ -23,7 +23,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("TruffleRuby::AtomicReference")
+@CoreModule(value = "TruffleRuby::AtomicReference", isClass = true)
 public abstract class AtomicReferenceNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

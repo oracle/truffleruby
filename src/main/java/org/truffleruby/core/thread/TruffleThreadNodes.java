@@ -1,7 +1,7 @@
 package org.truffleruby.core.thread;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
@@ -17,7 +17,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass(value = "Truffle::ThreadOperations", isModule = true)
+@CoreModule("Truffle::ThreadOperations")
 public class TruffleThreadNodes {
 
     @CoreMethod(names = "ruby_caller", isModuleFunction = true, required = 1)

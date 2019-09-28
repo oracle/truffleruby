@@ -12,15 +12,15 @@ package org.truffleruby.core;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass(value = "GC", isModule = true)
+@CoreModule("GC")
 public abstract class GCNodes {
 
     @CoreMethod(names = "start", onSingleton = true)

@@ -10,7 +10,7 @@
 package org.truffleruby.core;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import sun.misc.Signal;
 
-@CoreClass("Process")
+@CoreModule(value = "Process", isClass = true)
 public abstract class ProcessNodes {
 
     @Primitive(name = "process_time_nanotime", needsSelf = false)

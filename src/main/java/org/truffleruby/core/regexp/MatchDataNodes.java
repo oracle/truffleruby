@@ -19,7 +19,7 @@ import org.joni.Region;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
@@ -51,7 +51,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("MatchData")
+@CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
 
     @TruffleBoundary

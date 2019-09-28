@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.bool;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -17,7 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@CoreClass("FalseClass")
+@CoreModule(value = "FalseClass", isClass = true)
 public abstract class FalseClassNodes {
 
     @CoreMethod(names = "&", needsSelf = false, required = 1)

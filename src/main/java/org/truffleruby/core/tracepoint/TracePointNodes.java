@@ -12,7 +12,7 @@ package org.truffleruby.core.tracepoint;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("TracePoint")
+@CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

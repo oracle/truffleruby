@@ -12,7 +12,7 @@ package org.truffleruby.core.hash;
 import java.util.Arrays;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -48,7 +48,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Hash")
+@CoreModule(value = "Hash", isClass = true)
 public abstract class HashNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

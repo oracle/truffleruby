@@ -10,7 +10,7 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -22,7 +22,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("NameError")
+@CoreModule(value = "NameError", isClass = true)
 public abstract class NameErrorNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

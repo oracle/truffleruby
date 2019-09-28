@@ -11,7 +11,7 @@ package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -49,7 +49,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Method")
+@CoreModule(value = "Method", isClass = true)
 public abstract class MethodNodes {
 
     public static boolean areInternalMethodEqual(InternalMethod a, InternalMethod b) {

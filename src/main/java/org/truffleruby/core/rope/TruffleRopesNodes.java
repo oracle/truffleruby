@@ -10,7 +10,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.string.StringNodes;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass(value = "Truffle::Ropes", isModule = true)
+@CoreModule("Truffle::Ropes")
 public abstract class TruffleRopesNodes {
 
     @CoreMethod(names = "dump_string", onSingleton = true, required = 1)

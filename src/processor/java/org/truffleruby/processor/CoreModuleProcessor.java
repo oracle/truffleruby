@@ -28,12 +28,12 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 
-@SupportedAnnotationTypes("org.truffleruby.builtins.CoreClass")
-public class CoreClassProcessor extends AbstractProcessor {
+@SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
+public class CoreModuleProcessor extends AbstractProcessor {
 
     private static final String SUFFIX = "Builtins";
 
@@ -47,7 +47,7 @@ public class CoreClassProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
         if (!annotations.isEmpty()) {
-            for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreClass.class)) {
+            for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreModule.class)) {
                 try {
                     processCoreMethod((TypeElement) element);
                 } catch (IOException e) {
@@ -60,7 +60,7 @@ public class CoreClassProcessor extends AbstractProcessor {
     }
 
     private void processCoreMethod(TypeElement element) throws IOException {
-        final CoreClass coreClass = element.getAnnotation(CoreClass.class);
+        final CoreModule coreModule = element.getAnnotation(CoreModule.class);
 
         final PackageElement packageElement = (PackageElement) element.getEnclosingElement();
         final String packageName = packageElement.getQualifiedName().toString();
@@ -75,7 +75,7 @@ public class CoreClassProcessor extends AbstractProcessor {
         final FileObject rubyFile = processingEnv.getFiler().createResource(
                 StandardLocation.SOURCE_OUTPUT,
                 "core_class_stubs",
-                coreClass.value().replace("::", "/") + ".rb",
+                coreModule.value().replace("::", "/") + ".rb",
                 (Element[]) null);
 
 
@@ -100,7 +100,7 @@ public class CoreClassProcessor extends AbstractProcessor {
 
                 rubyStream.println("raise 'this file is a stub file for development and should never be loaded'");
                 rubyStream.println();
-                rubyStream.println((coreClass.isModule() ? "module" : "class") + " " + coreClass.value());
+                rubyStream.println((coreModule.isClass() ? "class" : "module") + " " + coreModule.value());
                 rubyStream.println();
 
                 final StringBuilder rubyPrimitives = new StringBuilder();
@@ -111,7 +111,7 @@ public class CoreClassProcessor extends AbstractProcessor {
 
                         final CoreMethod method = e.getAnnotation(CoreMethod.class);
                         if (method != null) {
-                            processCoreMethod(stream, rubyStream, element, coreClass, klass, method);
+                            processCoreMethod(stream, rubyStream, element, coreModule, klass, method);
                         }
 
                         final Primitive primitive = e.getAnnotation(Primitive.class);
@@ -141,6 +141,7 @@ public class CoreClassProcessor extends AbstractProcessor {
                 rubyStream.println("end");
                 rubyStream.println();
 
+                // TODO (pitr-ch 28-Sep-2019): remove
                 rubyStream.println("module TrufflePrimitive");
                 rubyStream.print(rubyPrimitives);
                 rubyStream.println("end");
@@ -154,7 +155,7 @@ public class CoreClassProcessor extends AbstractProcessor {
             PrintStream stream,
             PrintStream rubyStream,
             TypeElement element,
-            CoreClass coreClass,
+            CoreModule coreModule,
             TypeElement klass, CoreMethod method) {
         final StringJoiner names = new StringJoiner(", ");
         for (String name : method.names()) {
@@ -165,8 +166,8 @@ public class CoreClassProcessor extends AbstractProcessor {
         final boolean onSingleton = method.onSingleton() || method.constructor();
         stream.println("        coreMethodManager.addLazyCoreMethod(" + quote(nodeFactory) + ",");
         stream.println("                " +
-                quote(coreClass.value()) + ", " +
-                coreClass.isModule() + ", " +
+                quote(coreModule.value()) + ", " +
+                coreModule.isClass() + ", " +
                 "Visibility." + method.visibility().name() + ", " +
                 method.isModuleFunction() + ", " +
                 onSingleton + ", " +
