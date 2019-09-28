@@ -140,12 +140,6 @@ class Array
     true
   end
 
-  def [](start, length = undefined)
-    Truffle.primitive :array_aref
-    element_reference_fallback __callee__, start, length
-  end
-  alias :slice :[]
-
   def element_reference_fallback(method_name, start, length)
     if undefined.equal?(length)
       arg = start
