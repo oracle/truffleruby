@@ -32,7 +32,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.NativeTypes;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -126,59 +125,6 @@ public abstract class PointerNodes {
                 default:
                     return -1;
             }
-        }
-
-    }
-
-    @Primitive(name = "nativefunction_type_size", needsSelf = false, lowerFixnum = 1)
-    public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected int typeSize(int type) {
-            switch (type) {
-                case NativeTypes.TYPE_CHAR:
-                case NativeTypes.TYPE_UCHAR:
-                    return 1;
-
-                case NativeTypes.TYPE_SHORT:
-                case NativeTypes.TYPE_USHORT:
-                    return 2;
-
-                case NativeTypes.TYPE_INT:
-                case NativeTypes.TYPE_UINT:
-                    return 4;
-
-                case NativeTypes.TYPE_LONG:
-                case NativeTypes.TYPE_ULONG:
-                case NativeTypes.TYPE_LL:
-                case NativeTypes.TYPE_ULL:
-                    return 8;
-
-                case NativeTypes.TYPE_FLOAT:
-                    return 4;
-
-                case NativeTypes.TYPE_DOUBLE:
-                    return 8;
-
-                case NativeTypes.TYPE_PTR:
-                case NativeTypes.TYPE_STRPTR:
-                case NativeTypes.TYPE_STRING:
-                case NativeTypes.TYPE_CHARARR:
-                    return 8;
-
-                case NativeTypes.TYPE_BOOL:
-                case NativeTypes.TYPE_VOID:
-                case NativeTypes.TYPE_ENUM:
-                case NativeTypes.TYPE_VARARGS:
-                default:
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnsupportedOperationException("no type size for: " + type);
-            }
-        }
-
-        @Specialization(guards = "!isInteger(type)")
-        protected Object fallback(Object type) {
-            return FAILURE;
         }
 
     }
