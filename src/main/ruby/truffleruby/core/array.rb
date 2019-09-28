@@ -176,11 +176,6 @@ class Array
   end
   private :element_reference_fallback
 
-  def []=(index, length, value = undefined)
-    Truffle.primitive :array_aset
-    element_set_fallback(index, length, value)
-  end
-
   def element_set_fallback(index, length, value)
     if undefined.equal?(value)
       value = length
