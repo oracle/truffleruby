@@ -365,8 +365,8 @@ public abstract class RegexpNodes {
 
     }
 
-    @Primitive(name = "regexp_fixed_encoding_p")
-    public static abstract class RegexpFixedEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "fixed_encoding?")
+    public static abstract class RegexpIsFixedEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean fixedEncoding(DynamicObject regexp) {
@@ -375,9 +375,9 @@ public abstract class RegexpNodes {
 
     }
 
-    @Primitive(name = "regexp_initialize", lowerFixnum = 2)
+    @CoreMethod(names = "compile", required = 2, lowerFixnum = 2, visibility = Visibility.PRIVATE)
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpInitializePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class RegexpCompileNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyString(pattern)" })
         protected DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject pattern, int options) {
@@ -398,7 +398,7 @@ public abstract class RegexpNodes {
 
     @CoreMethod(names = "initialize_copy", required = 1, needsSelf = true)
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpInitializeCopyPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class RegexpInitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyRegexp(other)" })
         protected DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject other) {
@@ -420,9 +420,9 @@ public abstract class RegexpNodes {
         }
     }
 
-    @Primitive(name = "regexp_options")
+    @CoreMethod(names = "options")
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpOptionsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class RegexpOptionsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isInitialized(regexp)")
         protected int options(DynamicObject regexp) {
@@ -436,9 +436,9 @@ public abstract class RegexpNodes {
 
     }
 
-    @Primitive(name = "regexp_search_region", lowerFixnum = { 2, 3 })
+    @CoreMethod(names = "search_region", required = 4, lowerFixnum = { 2, 3 })
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpSearchRegionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class RegexpSearchRegionNode extends CoreMethodArrayArgumentsNode {
 
         @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
 

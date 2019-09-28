@@ -85,8 +85,6 @@ module Process
   end
 
   def self.exit!(code=1)
-    Truffle.primitive :vm_exit
-
     case code
     when true
       code = 0
@@ -95,12 +93,8 @@ module Process
     else
       code = Truffle::Type.coerce_to code, Integer, :to_int
     end
-    exit! code
-  end
 
-  def self.time
-    Truffle.primitive :vm_time
-    raise PrimitiveFailure, 'Process.time primitive failed'
+    Truffle.invoke_primitive :vm_exit, code
   end
 
   section = 'platform.clocks.'

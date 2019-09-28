@@ -170,12 +170,12 @@ end
 module Marshal
   class State
     def serialize_encoding?(obj)
-      enc = Truffle::Type.object_encoding(obj)
+      enc = Truffle.invoke_primitive :encoding_get_object_encoding, obj
       enc && enc != Encoding::BINARY
     end
 
     def serialize_encoding(obj)
-      enc = Truffle::Type.object_encoding(obj)
+      enc = Truffle.invoke_primitive :encoding_get_object_encoding, obj
       Truffle.privately do
         case enc
         when Encoding::US_ASCII

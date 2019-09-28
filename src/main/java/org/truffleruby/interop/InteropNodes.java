@@ -1363,13 +1363,12 @@ public abstract class InteropNodes {
 
     }
 
-    @Primitive(name = "to_java_array")
+    @Primitive(name = "interop_to_java_array")
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaArray(
-                DynamicObject interopModule, DynamicObject array,
+        protected Object toJavaArray(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
             return getContext().getEnv().asGuestValue(copyStoreNode.execute(
@@ -1378,19 +1377,18 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = "!isRubyArray(object)")
-        protected Object coerce(DynamicObject interopModule, DynamicObject object) {
+        protected Object coerce(DynamicObject object) {
             return FAILURE;
         }
 
     }
 
-    @Primitive(name = "to_java_list")
+    @Primitive(name = "interop_to_java_list")
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaList(
-                DynamicObject interopModule, DynamicObject array,
+        protected Object toJavaList(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(
@@ -1399,7 +1397,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = "!isRubyArray(object)")
-        protected Object coerce(DynamicObject interopModule, DynamicObject object) {
+        protected Object coerce(DynamicObject object) {
             return FAILURE;
         }
 

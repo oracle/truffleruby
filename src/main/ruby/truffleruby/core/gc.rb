@@ -35,13 +35,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module GC
-  def self.start
-    run(false)
-  end
-
   def self.run(force)
-    Truffle.primitive :vm_gc_start
-    raise PrimitiveFailure, 'GC.run primitive failed'
+    start
   end
 
   # Totally fake.

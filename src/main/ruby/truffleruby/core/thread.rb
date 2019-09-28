@@ -253,11 +253,6 @@ class Thread
     super
   end
 
-  def name
-    Truffle.primitive :thread_get_name
-    Kernel.raise ThreadError, 'Thread#name primitive failed'
-  end
-
   def name=(val)
     unless val.nil?
       val = Truffle::Type.check_null_safe(StringValue(val))
@@ -461,16 +456,6 @@ class ConditionVariable
     raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless raw_mutex.kind_of? Mutex
 
     Truffle.invoke_primitive(:condition_variable_wait, self, raw_mutex, timeout)
-  end
-
-  def signal
-    Truffle.primitive :condition_variable_signal
-    raise PrimitiveFailure
-  end
-
-  def broadcast
-    Truffle.primitive :condition_variable_broadcast
-    raise PrimitiveFailure
   end
 
   def marshal_dump

@@ -444,14 +444,14 @@ public abstract class TimeNodes {
             name = "time_s_from_array",
             needsSelf = true,
             lowerFixnum = {
-                    1 /*sec*/,
+                    1 /* sec */,
                     2 /* min */,
                     3 /* hour */,
                     4 /* mday */,
                     5 /* month */,
                     6 /* year */,
-                    7 /*nsec*/,
-                    8 /*isdst*/ })
+                    7 /* nsec */,
+                    8 /* isdst */ })
     public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
@@ -459,23 +459,20 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
-        protected DynamicObject timeSFromArray(DynamicObject timeClass,
-                int sec, int min, int hour, int mday, int month, int year,
-                int nsec, int isdst, boolean isutc, Object utcoffset) {
+        protected DynamicObject timeSFromArray(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
+                int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        protected Object timeSFromArrayFallback(DynamicObject timeClass,
-                Object sec, int min, int hour, int mday, int month, int year,
-                Object nsec, int isdst, boolean fromutc, Object utcoffset) {
+        protected Object timeSFromArrayFallback(DynamicObject timeClass, Object sec, int min, int hour, int mday,
+                int month, int year, Object nsec, int isdst, boolean fromutc, Object utcoffset) {
             return FAILURE;
         }
 
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
-                int year,
-                int nsec, int isdst, boolean isutc, Object utcoffset) {
+                int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||

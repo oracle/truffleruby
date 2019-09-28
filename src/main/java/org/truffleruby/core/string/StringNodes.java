@@ -279,14 +279,12 @@ public abstract class StringNodes {
         protected DynamicObject substring(DynamicObject source, int offset, int byteLength) {
             final Rope rope = rope(source);
 
-            final DynamicObject ret = allocateObjectNode.allocate(
+            return allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(source),
                     Layouts.STRING.build(
                             false,
                             Layouts.STRING.getTainted(source),
                             substringNode.executeSubstring(rope, offset, byteLength)));
-
-            return ret;
         }
 
     }
@@ -495,10 +493,6 @@ public abstract class StringNodes {
             return ret;
         }
 
-        @Specialization(guards = "!isRubyString(b)")
-        protected Object compare(VirtualFrame frame, DynamicObject a, Object b) {
-            return null;
-        }
     }
 
     @CoreMethod(names = { "<<", "concat" }, required = 1, taintFrom = 1, raiseIfFrozenSelf = true)

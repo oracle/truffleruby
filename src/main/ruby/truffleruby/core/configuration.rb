@@ -28,14 +28,7 @@
 
 module Truffle
   class Configuration
-    def initialize
-    end
-
-    private :initialize
-
-    def get_variable(name)
-      Truffle.primitive :vm_get_config_item
-      raise PrimitiveFailure, 'Truffle::Configuration#get_variable primitive failed'
+    private def initialize
     end
 
     def section(section, &block)
@@ -43,15 +36,14 @@ module Truffle
     end
 
     def lookup(name)
-      get_variable(name)
+      Truffle.invoke_primitive :vm_get_config_item, name
     end
 
     def [](name)
-      value = get_variable(name)
+      value = Truffle.invoke_primitive :vm_get_config_item, name
       raise KeyError, "key #{name} not found" if value.nil?
       value
     end
-
     alias_method :get, :[]
   end
 

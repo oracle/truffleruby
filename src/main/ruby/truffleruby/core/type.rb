@@ -77,11 +77,6 @@ module Truffle
       Truffle.invoke_primitive :vm_method_lookup, obj, name
     end
 
-    def self.object_encoding(obj)
-      Truffle.primitive :encoding_get_object_encoding
-      raise PrimitiveFailure, 'Truffle::Type.object_encoding primitive failed'
-    end
-
     ##
     # Returns an object of given class. If given object already is one, it is
     # returned. Otherwise tries obj.meth and returns the result if it is of the
@@ -557,8 +552,8 @@ module Truffle
       enc = Encoding.compatible? a, b
 
       unless enc
-        enc_a = object_encoding a
-        enc_b = object_encoding b
+        enc_a = Truffle.invoke_primitive :encoding_get_object_encoding, a
+        enc_b = Truffle.invoke_primitive :encoding_get_object_encoding, b
 
         raise Encoding::CompatibilityError, "incompatible character encodings: #{enc_a} and #{enc_b}"
       end

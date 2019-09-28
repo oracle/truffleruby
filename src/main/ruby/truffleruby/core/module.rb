@@ -104,7 +104,11 @@ class Module
   end
 
   def const_get(name, inherit = true)
-    Truffle.primitive :module_const_get
+    value = Truffle.invoke_primitive :module_const_get, self, name, inherit
+    unless undefined.equal?(value)
+      return value
+    end
+
     if name.kind_of?(String)
       names = name.split('::')
       unless names.empty?

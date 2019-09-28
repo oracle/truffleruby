@@ -306,7 +306,8 @@ class Time
     end
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      Truffle.primitive :time_s_from_array
+      time = Truffle.invoke_primitive(:time_s_from_array, self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
+      return time unless undefined.equal?(time)
 
       if sec.kind_of?(String)
         sec = sec.to_i

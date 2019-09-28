@@ -31,7 +31,7 @@ public class CallPrimitiveNode extends RubyNode {
         final Object value = primitive.execute(frame);
 
         // Primitives fail by returning null, allowing the method to continue (the fallback)
-        if (successProfile.profile(value != null)) {
+        if (successProfile.profile(value != PrimitiveNode.FAILURE)) {
             return value;
         } else {
             return fallback.execute(frame);
