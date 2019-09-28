@@ -102,6 +102,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     dir_name='ruby',
     license_files=['LICENSE_TRUFFLERUBY.txt'],
     third_party_license_files=['3rd_party_licenses_truffleruby.txt'],
+    dependencies=[],
     truffle_jars=[],
     support_distributions=[
         'truffleruby:TRUFFLERUBY_GRAALVM_LICENSES',
@@ -117,6 +118,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
+    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'Sulong', 'GraalVM Chrome Inspector', 'GraalVM Profiler', 'VisualVM'],
     truffle_jars=[
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',
