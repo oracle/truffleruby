@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -52,13 +53,17 @@ public abstract class RangeNodes {
         @Specialization(guards = "isIntRange(range)")
         protected DynamicObject map(DynamicObject range, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached YieldNode yieldNode) {
+                @Cached YieldNode yieldNode,
+                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
-            final int direction = begin < end ? +1 : -1;
-            final int length = Math.abs((excludedEnd ? end : end + direction) - begin);
+            int exclusiveEnd = excludedEnd ? end : end + 1;
+            if (noopProfile.profile(begin >= exclusiveEnd)) {
+                return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            }
 
+            final int length = exclusiveEnd - begin;
             Object store = arrayBuilder.start(length);
             int count = 0;
 
@@ -68,7 +73,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yieldNode.executeDispatch(block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, yieldNode.executeDispatch(block, begin + n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
