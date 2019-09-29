@@ -1,0 +1,3 @@
+fails:UnboundMethod#original_name returns the name of the method
+fails:UnboundMethod#original_name returns the original name
+fails:UnboundMethod#original_name returns the original name even when aliased twice

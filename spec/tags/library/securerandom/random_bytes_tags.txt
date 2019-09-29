@@ -1,0 +1,4 @@
+fails:SecureRandom.random_bytes returns a String
+fails:SecureRandom.random_bytes returns a String of the length given as argument
+fails:SecureRandom.random_bytes returns a binary String
+fails:SecureRandom.random_bytes returns a random binary String
