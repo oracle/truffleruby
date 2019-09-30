@@ -83,30 +83,6 @@ class Regexp
   ESCAPE_TABLE[124] = '\\|'
   ESCAPE_TABLE[125] = '\\}'
 
-  ##
-  # See Regexp.new. This may be overridden by subclasses.
-
-  def compile(pattern, opts)
-    Truffle.primitive :regexp_initialize
-    raise PrimitiveFailure, "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
-  end
-  private :compile
-
-  def search_region(str, start, finish, forward) # equiv to MRI's re_search
-    Truffle.primitive :regexp_search_region
-    raise PrimitiveFailure, 'Regexp#search_region primitive failed'
-  end
-
-  def options
-    Truffle.primitive :regexp_options
-    raise PrimitiveFailure, 'Regexp#options primitive failed'
-  end
-
-  def fixed_encoding?
-    Truffle.primitive :regexp_fixed_encoding_p
-    raise PrimitiveFailure, 'Regexp.fixed_encoding? primitive failed'
-  end
-
   class << self
     alias_method :compile, :new
   end
@@ -194,7 +170,7 @@ class Regexp
     code = lang[0] if lang
     opts |= NOENCODING if code == ?n or code == ?N
 
-    compile pattern, opts
+    compile pattern, opts # may be overridden by subclasses
   end
 
   def =~(str)

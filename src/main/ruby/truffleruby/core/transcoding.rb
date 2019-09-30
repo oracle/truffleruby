@@ -226,12 +226,6 @@ class Encoding
                                 self, source, target, offset, size, options)
     end
 
-    def putback(maxbytes=nil)
-      Truffle.primitive :encoding_converter_putback
-
-      putback maxbytes
-    end
-
     def finish
       dest = +''
       status = primitive_convert nil, dest
@@ -318,11 +312,6 @@ class Encoding
       end
 
       exc
-    end
-
-    def primitive_errinfo
-      Truffle.primitive :encoding_converter_primitive_errinfo
-      raise PrimitiveFailure, 'Encoding::Converter#primitive_errinfo primitive failed'
     end
 
     def convpath

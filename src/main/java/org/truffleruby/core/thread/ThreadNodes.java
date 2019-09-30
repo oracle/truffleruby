@@ -561,8 +561,8 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_get_name")
-    public static abstract class ThreadGetNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "name")
+    public static abstract class ThreadNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")
         protected DynamicObject getName(DynamicObject thread) {

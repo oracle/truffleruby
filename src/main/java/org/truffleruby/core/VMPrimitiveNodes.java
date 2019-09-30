@@ -72,7 +72,6 @@ import org.truffleruby.platform.Signals;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -105,19 +104,6 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "vm_gc_start", needsSelf = false)
-    public static abstract class VMGCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject vmGCStart() {
-            getContext().getMarkingService().queueMarking();
-            System.gc();
-            return nil();
-        }
-
-    }
-
     // The hard #exit!
     @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1)
     public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
@@ -125,11 +111,6 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object vmExit(int status) {
             throw new ExitException(status);
-        }
-
-        @Fallback
-        protected Object vmExit(Object status) {
-            return FAILURE;
         }
 
     }
@@ -262,16 +243,6 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object doThrow(Object tag, Object value) {
             throw new ThrowException(tag, value);
-        }
-
-    }
-
-    @Primitive(name = "vm_time", needsSelf = false)
-    public abstract static class TimeNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected long time() {
-            return System.currentTimeMillis() / 1000;
         }
 
     }

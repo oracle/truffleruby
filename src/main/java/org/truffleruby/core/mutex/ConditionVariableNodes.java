@@ -174,8 +174,8 @@ public abstract class ConditionVariableNodes {
 
     }
 
-    @Primitive(name = "condition_variable_signal")
-    public static abstract class SignalNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "signal")
+    public static abstract class SignalNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -203,8 +203,8 @@ public abstract class ConditionVariableNodes {
         }
     }
 
-    @Primitive(name = "condition_variable_broadcast")
-    public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "broadcast")
+    public static abstract class BroadCastNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

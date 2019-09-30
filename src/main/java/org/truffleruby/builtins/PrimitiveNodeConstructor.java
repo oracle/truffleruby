@@ -15,10 +15,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
-import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -42,28 +38,6 @@ public class PrimitiveNodeConstructor {
         return factory.getExecutionSignature().size();
     }
 
-    public RubyNode createCallPrimitiveNode(SourceIndexLength sourceSection, RubyNode fallback) {
-        final RubyNode[] arguments = new RubyNode[getPrimitiveArity()];
-        int argumentsCount = getPrimitiveArity();
-        int start = 0;
-
-        if (annotation.needsSelf()) {
-            arguments[0] = transformArgument(ProfileArgumentNodeGen.create(new ReadSelfNode()), 0);
-            start++;
-            argumentsCount--;
-        }
-
-        for (int n = 0; n < argumentsCount; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen
-                    .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
-            arguments[start + n] = transformArgument(readArgumentNode, n + 1);
-        }
-
-        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
-
-        return Translator.withSourceSection(sourceSection, new CallPrimitiveNode(primitiveNode, fallback));
-    }
-
     public RubyNode createInvokePrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection,
             RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
@@ -78,8 +52,7 @@ public class PrimitiveNodeConstructor {
         }
 
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
-
-        return Translator.withSourceSection(sourceSection, new InvokePrimitiveNode(primitiveNode));
+        return Translator.withSourceSection(sourceSection, primitiveNode);
     }
 
     private RubyNode transformArgument(RubyNode argument, int n) {

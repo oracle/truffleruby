@@ -44,7 +44,8 @@ class String
   Truffle::Graal.always_split(instance_method(:to_sym))
 
   def byteslice(index_or_range, length=undefined)
-    Truffle.primitive :string_byte_substring
+    str = Truffle.invoke_primitive :string_byte_substring, self, index_or_range, length
+    return str unless undefined.equal?(str)
 
     if index_or_range.kind_of? Range
       index = Truffle::Type.rb_num2int(index_or_range.begin)
@@ -1606,7 +1607,9 @@ class String
   end
 
   def <=>(other)
-    Truffle.primitive :string_cmp
+    if String === other
+      return Truffle.invoke_primitive :string_cmp, self, other
+    end
 
     Thread.detect_recursion self, other do
       if other.respond_to?(:<=>) && !other.respond_to?(:to_str)

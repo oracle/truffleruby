@@ -25,8 +25,8 @@ public abstract class YieldNode extends RubyBaseWithoutContextNode {
         return YieldNodeGen.create();
     }
 
-    public final Object executeDispatch(DynamicObject block, Object... argumentsObjects) {
-        return executeDispatchWithArrayArguments(block, argumentsObjects);
+    public final Object executeDispatch(DynamicObject block, Object... args) {
+        return executeDispatchWithArrayArguments(block, args);
     }
 
     public abstract Object executeDispatchWithArrayArguments(DynamicObject block, Object[] argumentsObjects);

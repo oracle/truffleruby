@@ -10,6 +10,7 @@
 
 package org.truffleruby.builtins;
 
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -17,7 +18,8 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 @GenerateNodeFactory
 public abstract class PrimitiveNode extends RubyNode {
 
-    protected static final Object FAILURE = null;
+    // The same as "undefined" in Ruby code
+    protected static final Object FAILURE = NotProvided.INSTANCE;
 
     public PrimitiveNode() {
     }

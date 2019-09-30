@@ -230,13 +230,21 @@ module Truffle
     end
 
     def self.to_java_array(array)
-      Truffle.primitive :to_java_array
-      to_java_array(Truffle::Type.coerce_to(array, Array, :to_a))
+      java_array = Truffle.invoke_primitive(:interop_to_java_array, array)
+      if !undefined.equal?(java_array)
+        java_array
+      else
+        to_java_array(Truffle::Type.coerce_to(array, Array, :to_a))
+      end
     end
 
     def self.to_java_list(array)
-      Truffle.primitive :to_java_list
-      to_java_list(Truffle::Type.coerce_to(array, Array, :to_a))
+      list = Truffle.invoke_primitive(:interop_to_java_list, array)
+      if !undefined.equal?(list)
+        list
+      else
+        to_java_list(Truffle::Type.coerce_to(array, Array, :to_a))
+      end
     end
 
     def self.special_form(receiver, name, *args)

@@ -43,7 +43,10 @@ class Integer < Numeric
   public :remainder
 
   def **(o)
-    Truffle.primitive :integer_pow
+    pow = Truffle.invoke_primitive :integer_pow, self, o
+    unless undefined.equal?(pow)
+      return pow
+    end
 
     if (o.is_a?(Float) || o.is_a?(Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
@@ -86,7 +89,11 @@ class Integer < Numeric
   end
 
   def divmod(b)
-    Truffle.primitive :integer_divmod
+    divmod = Truffle.invoke_primitive :integer_divmod, self, b
+    unless undefined.equal?(divmod)
+      return divmod
+    end
+
     raise ZeroDivisionError if b == 0
     [
       (self / b).floor,

@@ -309,8 +309,8 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @Primitive(name = "encoding_converter_putback", lowerFixnum = 1)
-    public static abstract class EncodingConverterPutbackNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "putback", optional = 1, lowerFixnum = 1)
+    public static abstract class EncodingConverterPutbackNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -410,8 +410,8 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @Primitive(name = "encoding_converter_primitive_errinfo")
-    public static abstract class EncodingConverterErrinfoNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "primitive_errinfo")
+    public static abstract class EncodingConverterErrinfoNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

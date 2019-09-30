@@ -103,11 +103,12 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)" },
+            guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)", "!hasFinalizerRef" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
     protected void shareCachedBasicObject(DynamicObject object,
-            @Cached("object.getShape()") Shape cachedShape) {
+            @Cached("object.getShape()") Shape cachedShape,
+            @Cached("hasFinalizerRefProperty(cachedShape)") boolean hasFinalizerRef) {
         /* No internal fields */
     }
 
@@ -125,6 +126,10 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     protected static boolean isDelegatedObjectArray(DynamicObject array) {
         final Object store = Layouts.ARRAY.getStore(array);
         return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
+    }
+
+    protected static boolean hasFinalizerRefProperty(Shape shape) {
+        return shape.hasProperty(Layouts.FINALIZER_REF_IDENTIFIER);
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {

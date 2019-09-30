@@ -12,6 +12,7 @@ package org.truffleruby.core;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,6 +22,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreClass("GC")
 public abstract class GCNodes {
+
+    @CoreMethod(names = "start", onSingleton = true)
+    public static abstract class GCStartNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected DynamicObject vmGCStart() {
+            getContext().getMarkingService().queueMarking();
+            System.gc();
+            return nil();
+        }
+
+    }
 
     @CoreMethod(names = "count", onSingleton = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {

@@ -32,14 +32,10 @@ class Truffle::Randomizer
   end
 
   attr_reader :seed
-  def seed=(new_seed)
-    set_seed new_seed
-    @seed = new_seed
-  end
 
-  def set_seed(new_seed)
-    Truffle.primitive :randomizer_seed
-    raise PrimitiveFailure, 'Randomizer#seed primitive failed'
+  def seed=(new_seed)
+    Truffle.invoke_primitive :randomizer_set_seed, self, new_seed
+    @seed = new_seed
   end
 
   def swap_seed(new_seed)
@@ -76,28 +72,11 @@ class Truffle::Randomizer
     end
   end
 
-  # Generate a random Float, in the range 0...1.0
-  def random_float
-    Truffle.primitive :randomizer_rand_float
-    raise PrimitiveFailure, 'Randomizer#rand_float primitive failed'
-  end
-
-  # Generate a random Integer, in the range 0...limit
-  def random_integer(limit)
-    Truffle.primitive :randomizer_rand_int
-    raise PrimitiveFailure, 'Randomizer#rand_int primitive failed'
-  end
-
   def random_range(limit)
     min, max = limit.max.coerce(limit.min)
     diff = max - min
     diff += 1 if max.kind_of?(Integer)
     random(diff) + min
-  end
-
-  def generate_seed
-    Truffle.primitive :randomizer_gen_seed
-    raise PrimitiveFailure, 'Randomizer#gen_seed primitive failed'
   end
 
   ##

@@ -333,10 +333,13 @@ class Range
     end
   end
 
-  def collect
-    Truffle.primitive :range_integer_map
-
-    super
+  def collect(&block)
+    ary = Truffle.invoke_primitive(:range_integer_map, self, block)
+    if !undefined.equal?(ary)
+      ary
+    else
+      super(&block)
+    end
   end
   alias_method :map, :collect
 

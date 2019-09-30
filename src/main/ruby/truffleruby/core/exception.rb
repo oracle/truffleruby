@@ -76,9 +76,12 @@ class Exception
   alias_method :__initialize__, :initialize
 
   def backtrace?
-    Truffle.primitive :exception_backtrace?
-
-    backtrace ? true : false
+    result = Truffle.invoke_primitive :exception_backtrace?, self
+    if !undefined.equal?(result)
+      result
+    else
+      backtrace ? true : false
+    end
   end
 
   def set_backtrace(bt)

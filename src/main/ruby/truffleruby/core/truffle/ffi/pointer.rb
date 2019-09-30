@@ -299,18 +299,6 @@ module Truffle::FFI
       type.put_at(self, offset, value)
     end
 
-    # Read bytes from +offset+ from the memory pointed to as type +type+
-    def get_at_offset(offset, type)
-      Truffle.primitive :pointer_get_at_offset
-      raise PrimitiveFailure, 'FFI::Pointer#get_at_offset primitive failed'
-    end
-
-    # Write +val+ as type +type+ to bytes from +offset+
-    def set_at_offset(offset, type, val)
-      Truffle.primitive :pointer_set_at_offset
-      raise PrimitiveFailure, 'FFI::Pointer#set_at_offset primitive failed'
-    end
-
     SIZE = 8
     NULL = Pointer.new(0x0)
   end

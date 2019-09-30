@@ -108,8 +108,10 @@ class Array
   end
 
   def *(count)
-    Truffle.primitive :array_mul
-    if str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
+    result = Truffle.invoke_primitive(:array_mul, self, count)
+    if !undefined.equal?(result)
+      result
+    elsif str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
       join(str)
     else
       self * Truffle::Type.coerce_to(count, Integer, :to_int)
@@ -117,7 +119,10 @@ class Array
   end
 
   def ==(other)
-    Truffle.primitive :array_equal
+    result = Truffle.invoke_primitive :array_equal, self, other
+    unless undefined.equal?(result)
+      return result
+    end
 
     return true if equal?(other)
     unless other.kind_of? Array
@@ -139,12 +144,6 @@ class Array
 
     true
   end
-
-  def [](start, length = undefined)
-    Truffle.primitive :array_aref
-    element_reference_fallback __callee__, start, length
-  end
-  alias :slice :[]
 
   def element_reference_fallback(method_name, start, length)
     if undefined.equal?(length)
@@ -181,11 +180,6 @@ class Array
     end
   end
   private :element_reference_fallback
-
-  def []=(index, length, value = undefined)
-    Truffle.primitive :array_aset
-    element_set_fallback(index, length, value)
-  end
 
   def element_set_fallback(index, length, value)
     if undefined.equal?(value)
@@ -385,7 +379,10 @@ class Array
   end
 
   def eql?(other)
-    Truffle.primitive :array_eql
+    result = Truffle.invoke_primitive :array_eql, self, other
+    unless undefined.equal?(result)
+      return result
+    end
 
     return true if equal? other
     return false unless other.kind_of?(Array)

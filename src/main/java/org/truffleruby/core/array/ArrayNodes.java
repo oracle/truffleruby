@@ -16,6 +16,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import java.util.Arrays;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -51,8 +52,10 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
@@ -211,13 +214,13 @@ public abstract class ArrayNodes {
         }
     }
 
-    @Primitive(name = "array_aref", lowerFixnum = { 1, 2 })
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class IndexNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = { "[]", "slice" }, required = 1, optional = 1, lowerFixnum = { 1, 2 })
+    public abstract static class IndexNode extends ArrayCoreMethodNode {
 
         @Child private ArrayReadDenormalizedNode readNode;
         @Child private ArrayReadSliceDenormalizedNode readSliceNode;
         @Child private ArrayReadSliceNormalizedNode readNormalizedSliceNode;
+        @Child private CallDispatchHeadNode fallbackNode;
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
@@ -277,29 +280,47 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "!isInteger(a)", "!isIntRange(a)" })
         protected Object fallbackIndex(VirtualFrame frame, DynamicObject array, Object a, NotProvided length) {
-            return FAILURE;
+            return fallback(frame, array, a, length);
         }
 
         @Specialization(guards = { "!isInteger(a)", "!isIntRange(a)", "wasProvided(b)" })
         protected Object fallbackSlice1(VirtualFrame frame, DynamicObject array, Object a, Object b) {
-            return FAILURE;
+            return fallback(frame, array, a, b);
         }
 
         @Specialization(guards = { "wasProvided(b)", "!isInteger(b)" })
         protected Object fallbackSlice2(VirtualFrame frame, DynamicObject array, Object a, Object b) {
-            return FAILURE;
+            return fallback(frame, array, a, b);
+        }
+
+        private Object fallback(VirtualFrame frame, DynamicObject array, Object start, Object length) {
+            if (fallbackNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
+            }
+
+            final InternalMethod method = RubyArguments.getMethod(frame);
+            return fallbackNode.call(
+                    array,
+                    "element_reference_fallback",
+                    StringOperations.createString(
+                            getContext(),
+                            StringOperations.encodeRope(method.getName(), UTF8Encoding.INSTANCE)),
+                    start,
+                    length);
         }
 
     }
 
-    @Primitive(name = "array_aset", lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "[]=", required = 2, optional = 1, lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class IndexSetNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IndexSetNode extends ArrayCoreMethodNode {
 
         @Child private ArrayReadNormalizedNode readNode;
         @Child private ArrayWriteNormalizedNode writeNode;
         @Child private ArrayReadSliceNormalizedNode readSliceNode;
+        @Child private CallDispatchHeadNode fallbackNode;
 
         private final BranchProfile negativeIndexProfile = BranchProfile.create();
         private final BranchProfile negativeLengthProfile = BranchProfile.create();
@@ -322,7 +343,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isInteger(indexObject)", "!isRubyRange(indexObject)" })
         @ReportPolymorphism.Exclude
         protected Object set(DynamicObject array, Object indexObject, Object value, NotProvided unused) {
-            return FAILURE;
+            return fallback(array, indexObject, value, unused);
         }
 
         // array[start, length] = object
@@ -330,7 +351,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isRubyArray(value)", "wasProvided(value)" })
         @ReportPolymorphism.Exclude
         protected Object setObject(DynamicObject array, int start, int length, Object value) {
-            return FAILURE;
+            return fallback(array, start, length, value);
         }
 
         // array[start, length] = other_array, with length == other_array.size
@@ -459,7 +480,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isInteger(startObject) || !isInteger(lengthObject)", "wasProvided(value)" })
         protected Object setStartLengthNotInt(DynamicObject array, Object startObject, Object lengthObject,
                 Object value) {
-            return FAILURE;
+            return fallback(array, startObject, lengthObject, value);
         }
 
         // array[start..end] = array
@@ -491,14 +512,14 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "isIntRange(range)", "!isRubyArray(value)" })
         protected Object setRangeWithNonArray(DynamicObject array, DynamicObject range, Object value,
                 NotProvided unused) {
-            return FAILURE;
+            return fallback(array, range, value, unused);
         }
 
         // array[start..end] = object_or_array (non-int range)
 
         @Specialization(guards = { "!isIntRange(range)", "isRubyRange(range)" })
         protected Object setOtherRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
-            return FAILURE;
+            return fallback(array, range, value, unused);
         }
 
         // Helpers
@@ -545,6 +566,15 @@ public abstract class ArrayNodes {
                 readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
             }
             return readSliceNode.executeReadSlice(array, start, length);
+        }
+
+        private Object fallback(DynamicObject array, Object index, Object length, Object value) {
+            if (fallbackNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
+            }
+
+            return fallbackNode.call(array, "element_set_fallback", index, length, value);
         }
 
     }

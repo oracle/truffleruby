@@ -41,6 +41,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -67,8 +68,8 @@ public abstract class RandomizerNodes {
 
     }
 
-    @Primitive(name = "randomizer_seed")
-    public static abstract class RandomizerSeedPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "randomizer_set_seed")
+    public static abstract class RandomizerSetSeedPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyBignum(seed)")
         protected DynamicObject randomizerSeed(DynamicObject randomizer, DynamicObject seed) {
@@ -136,11 +137,12 @@ public abstract class RandomizerNodes {
 
     }
 
-    @Primitive(name = "randomizer_rand_float")
-    public static abstract class RandomizerRandFloatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    // Generate a random Float, in the range 0...1.0
+    @CoreMethod(names = "random_float")
+    public static abstract class RandomFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double randomizerRandFloat(DynamicObject randomizer) {
+        protected double randomFloat(DynamicObject randomizer) {
             // Logic copied from org.jruby.util.Random
             final Randomizer r = Layouts.RANDOMIZER.getRandomizer(randomizer);
             final int a = randomInt(r) >>> 5;
@@ -150,8 +152,9 @@ public abstract class RandomizerNodes {
 
     }
 
-    @Primitive(name = "randomizer_rand_int")
-    public static abstract class RandomizerRandIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    // Generate a random Integer, in the range 0...limit
+    @CoreMethod(names = "random_integer", required = 1)
+    public static abstract class RandomIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected int randomizerRandInt(DynamicObject randomizer, int limit) {
@@ -279,11 +282,11 @@ public abstract class RandomizerNodes {
 
     }
 
-    @Primitive(name = "randomizer_gen_seed")
-    public static abstract class RandomizerGenSeedPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "generate_seed", needsSelf = false)
+    public static abstract class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject randomizerGenSeed(DynamicObject randomizerClass) {
+        protected DynamicObject generateSeed() {
             final BigInteger seed = randomSeedBigInteger(getContext());
             return createBignum(seed);
         }
