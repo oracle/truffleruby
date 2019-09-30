@@ -39,9 +39,6 @@ slow:The launcher prints help:languages containing llvm language options
 slow:The launcher understands ruby polyglot options
 slow:The launcher understands ruby polyglot options without ruby. prefix
 slow:The launcher does not create context on --version and -v
-aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-aot(no sulong):The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher applies Truffle options
 slow:The launcher does not print a Java backtrace for an -S file that's not found
 slow:The launcher prints available user options for --help:languages

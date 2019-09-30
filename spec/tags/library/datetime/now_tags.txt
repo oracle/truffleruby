@@ -1,1 +1,0 @@
-aot:DateTime.now sets the current time
