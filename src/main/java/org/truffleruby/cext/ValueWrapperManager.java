@@ -10,6 +10,8 @@
 package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -185,20 +187,30 @@ public class ValueWrapperManager {
 
     public static class HandleBlock {
 
-        public static final HandleBlock DUMMY_BLOCK = new HandleBlock(0, null);
+        public static final HandleBlock DUMMY_BLOCK = new HandleBlock(null, 0, null);
+
+        private static final Set<HandleBlock> keepAlive = new HashSet<>();
 
         private final long base;
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
         private int count;
 
-        public HandleBlock() {
-            this(allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
+        public HandleBlock(RubyContext context) {
+            this(context, allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
         }
 
-        private HandleBlock(long base, ValueWrapper[] wrappers) {
+        private HandleBlock(RubyContext context, long base, ValueWrapper[] wrappers) {
+            if (context != null && context.getOptions().CEXTS_KEEP_HANDLES_ALIVE) {
+                keepAlive(this);
+            }
             this.base = base;
             this.wrappers = wrappers;
             this.count = 0;
+        }
+
+        @TruffleBoundary
+        private static void keepAlive(HandleBlock block) {
+            keepAlive.add(block);
         }
 
         public long getBase() {
@@ -243,8 +255,8 @@ public class ValueWrapperManager {
             return holder.handleBlock;
         }
 
-        public HandleBlock makeNewBlock() {
-            return (holder.handleBlock = new HandleBlock());
+        public HandleBlock makeNewBlock(RubyContext context) {
+            return (holder.handleBlock = new HandleBlock(context));
         }
     }
 
@@ -295,7 +307,7 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData.makeNewBlock();
+                block = threadData.makeNewBlock(context);
                 context.getValueWrapperManager().addToBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);

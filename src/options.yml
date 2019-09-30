@@ -65,6 +65,7 @@ EXPERT:
     # C extension options
     CEXTS: [cexts, boolean, true, Enable use of C extensions]
     CEXT_LOCK: [cexts-lock, boolean, true, Use a Global Lock when running C extensions]
+    CEXTS_KEEP_HANDLES_ALIVE: [keep-handles-alive, boolean, true, Keep handles for value wrappers alive forever]
 
     # Debugging the values of options
     OPTIONS_LOG: [options-log, boolean, false, Log the final value of all options]
