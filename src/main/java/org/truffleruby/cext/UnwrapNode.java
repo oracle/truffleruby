@@ -14,6 +14,7 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
@@ -79,14 +80,20 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
         @Specialization(guards = "isTaggedObject(handle)")
         protected Object unwrapTaggedObject(long handle,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getValueWrapperManager().getFromHandleMap(handle);
+            final Object object = context.getValueWrapperManager().getFromHandleMap(handle);
+            if (object == null) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RuntimeException("dead handle 0x" + Long.toHexString(handle));
+            }
+            return object;
         }
 
         @Fallback
         protected ValueWrapper unWrapUnexpectedHandle(long handle) {
             // Avoid throwing a specialization exception when given an uninitialized or corrupt
             // handle.
-            return null;
+            CompilerDirectives.transferToInterpreter();
+            throw new RuntimeException("corrupt handle 0x" + Long.toHexString(handle));
         }
 
         public static UnwrapNativeNode create() {
