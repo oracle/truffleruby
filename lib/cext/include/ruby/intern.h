@@ -647,7 +647,7 @@ VALUE rb_detach_process(rb_pid_t pid);
 /* range.c */
 VALUE rb_range_new(VALUE, VALUE, int);
 VALUE rb_range_beg_len(VALUE, long*, long*, long, int);
-MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
+int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
 /* random.c */
 unsigned int rb_genrand_int32(void);
 double rb_genrand_real(void);
