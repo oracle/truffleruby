@@ -267,7 +267,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define FIXNUM_MAX RUBY_FIXNUM_MAX
 #define FIXNUM_MIN RUBY_FIXNUM_MIN
 
-#define RB_INT2FIX(i) (VALUE)((((long)(i)) << 1) | RUBY_FIXNUM_FLAG)
+#define RB_INT2FIX(i) (VALUE)((((unsigned long)(i)) << 1) | RUBY_FIXNUM_FLAG)
 #define INT2FIX(i) RB_INT2FIX(i)
 #define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
 #define LONG2FIX(i) RB_INT2FIX(i)

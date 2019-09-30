@@ -1,6 +1,5 @@
 #include "ruby.h"
 
-#define NO_SANITIZE(x, y)     y
 #define LIKELY(x)             RB_LIKELY(x)
 #define UNLIKELY(x)           RB_UNLIKELY(x)
 
