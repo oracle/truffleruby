@@ -198,9 +198,7 @@ public class ValueWrapperManager {
         private int count;
 
         public HandleBlock() {
-            base = allocator.getFreeBlock();
-            wrappers = new ValueWrapper[BLOCK_SIZE];
-            count = 0;
+            this(allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
         }
 
         private HandleBlock(long base, ValueWrapper[] wrappers) {
