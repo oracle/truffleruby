@@ -109,9 +109,14 @@ class MSpecScript
     [/_spec.rb$/,                       '_tags.txt']
   ]
 
-  if defined?(::TruffleRuby) && TruffleRuby.native?
-    # exclude specs tagged with 'aot'
-    set :xtags, (get(:xtags) || []) + ['aot']
+  if defined?(::TruffleRuby)
+    if TruffleRuby.native?
+      # exclude specs tagged with 'aot'
+      set :xtags, (get(:xtags) || []) + ['aot']
+    else
+      # exclude specs tagged with 'jvm'
+      set :xtags, (get(:xtags) || []) + ['jvm']
+    end
   end
 
   if windows?
