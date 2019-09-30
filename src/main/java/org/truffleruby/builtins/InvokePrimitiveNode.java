@@ -32,6 +32,7 @@ public class InvokePrimitiveNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = primitive.execute(frame);
+        assert value != null : primitive;
 
         if (primitiveSucceededCondition.profile(value != null)) {
             return value;

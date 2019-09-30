@@ -194,7 +194,12 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object message(DynamicObject exception) {
-            return Layouts.EXCEPTION.getMessage(exception);
+            final Object message = Layouts.EXCEPTION.getMessage(exception);
+            if (message == null) {
+                return nil();
+            } else {
+                return message;
+            }
         }
 
     }
@@ -215,7 +220,12 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected DynamicObject formatter(DynamicObject exception) {
-            return Layouts.EXCEPTION.getFormatter(exception);
+            final DynamicObject formatter = Layouts.EXCEPTION.getFormatter(exception);
+            if (formatter == null) {
+                return nil();
+            } else {
+                return formatter;
+            }
         }
 
     }
