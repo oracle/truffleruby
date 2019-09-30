@@ -61,6 +61,7 @@ EXPERT:
     BACKTRACE_ON_INTERRUPT: [backtraces-on-interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
     BACKTRACE_ON_SIGALRM: [backtraces-sigalrm, boolean, '!EMBEDDED', Show the backtraces of all Threads on SIGALRM]
     BACKTRACE_ON_RAISE: [backtraces-raise, boolean, false, Show the backtraces of exceptions at the point of them being raised]
+    BACKTRACE_ON_RESCUE: [backtraces-rescue, boolean, false, Show the backtraces of exceptions at the point of them being rescued]
 
     # C extension options
     CEXTS: [cexts, boolean, true, Enable use of C extensions]

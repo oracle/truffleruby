@@ -112,6 +112,8 @@ public class Options {
     public final boolean BACKTRACE_ON_SIGALRM;
     /** --backtraces-raise=false */
     public final boolean BACKTRACE_ON_RAISE;
+    /** --backtraces-rescue=false */
+    public final boolean BACKTRACE_ON_RESCUE;
     /** --cexts=true */
     public final boolean CEXTS;
     /** --cexts-lock=true */
@@ -309,6 +311,7 @@ public class Options {
         BACKTRACE_ON_INTERRUPT = options.get(OptionsCatalog.BACKTRACE_ON_INTERRUPT_KEY);
         BACKTRACE_ON_SIGALRM = options.hasBeenSet(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) ? options.get(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) : !EMBEDDED;
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
+        BACKTRACE_ON_RESCUE = options.get(OptionsCatalog.BACKTRACE_ON_RESCUE_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
@@ -478,6 +481,8 @@ public class Options {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.backtraces-raise":
                 return BACKTRACE_ON_RAISE;
+            case "ruby.backtraces-rescue":
+                return BACKTRACE_ON_RESCUE;
             case "ruby.cexts":
                 return CEXTS;
             case "ruby.cexts-lock":
