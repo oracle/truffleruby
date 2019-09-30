@@ -43,7 +43,13 @@ module Truffle::CExt
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex_and_frame, callback, [Truffle.invoke_primitive(:cext_wrap,block_arg), Truffle.invoke_primitive(:cext_wrap, callback_arg)], block))
+    Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex_and_frame, callback, [
+        Truffle.invoke_primitive(:cext_wrap, block_arg),
+        Truffle.invoke_primitive(:cext_wrap, callback_arg),
+        0, # argc
+        nil, # argv
+        nil, # blockarg
+    ], block))
   end
 
   def call_with_thread_locally_stored_block(function, *args, &block)
