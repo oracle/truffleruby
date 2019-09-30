@@ -1869,7 +1869,8 @@ COLDFUNC PRINTF_ARGS(void rb_warn(const char*, ...), 1, 2);
 PRINTF_ARGS(void rb_compile_warn(const char *, int, const char*, ...), 3, 4);
 
 #define RUBY_BLOCK_CALL_FUNC_TAKES_BLOCKARG 1
-#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) VALUE yielded_arg, VALUE callback_arg, int __args_count, const VALUE *__args, VALUE __block_arg
+#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) \
+    VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg
 typedef VALUE rb_block_call_func(RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg));
 
 typedef rb_block_call_func *rb_block_call_func_t;
