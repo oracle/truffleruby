@@ -52,8 +52,7 @@ public class PrimitiveNodeConstructor {
         }
 
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
-
-        return Translator.withSourceSection(sourceSection, new InvokePrimitiveNode(primitiveNode));
+        return Translator.withSourceSection(sourceSection, primitiveNode);
     }
 
     private RubyNode transformArgument(RubyNode argument, int n) {
