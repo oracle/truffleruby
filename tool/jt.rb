@@ -480,7 +480,7 @@ module Utilities
   end
 
   def find_java_home
-    ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
+    @java_home ||= ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
   end
 
   def language_dir
@@ -1860,7 +1860,7 @@ EOS
   def install(name, *options)
     case name
     when 'jvmci'
-      install_jvmci
+      puts install_jvmci
     else
       raise "Unknown how to install #{what}"
     end
@@ -1871,14 +1871,16 @@ EOS
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
-    java_home = chdir(dir) do
+    java_home = begin
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
         puts 'Downloading JDK8 with JVMCI'
         jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
-        raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
-        raw_sh 'tar', 'xf', filename
+        chdir(dir) do
+          raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
+          raw_sh 'tar', 'xf', filename
+        end
       end
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
@@ -1889,10 +1891,9 @@ EOS
     abort 'Could not find the extracted JDK' unless java_home
     java_home = File.expand_path(java_home)
 
-    $stderr.puts 'Testing JDK'
-    raw_sh "#{java_home}/bin/java", '-version'
+    java = "#{java_home}/bin/java"
+    abort "#{java_home} does not exist" unless File.executable?(java)
 
-    puts java_home
     java_home
   end
 
