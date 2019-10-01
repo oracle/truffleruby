@@ -1053,7 +1053,13 @@ module Truffle::CExt
   def rb_proc_new(function, value)
     Proc.new do |*args|
       Truffle.invoke_primitive(:cext_unwrap,
-        Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }))
+        Truffle.invoke_primitive(:call_with_c_mutex, function, [
+            Truffle.invoke_primitive(:cext_wrap, args.first), # yieldarg
+            nil, # procarg,
+            0, # argc
+            nil, # argv
+            nil, # blockarg
+        ]))
     end
   end
 
