@@ -2454,9 +2454,7 @@ EOS
       lines.push 'RUN rm -rf truffleruby-tests'
 
       configs.each do |c|
-        excludes = ['fails', 'slow', 'ci']
-        excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
-        excludes += ['aot'] if ['', '--native'].include?(c)
+        excludes = ['fails', 'slow']
 
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
           t_config = c.empty? ? '' : '-T' + c
