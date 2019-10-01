@@ -376,8 +376,6 @@ module Truffle
         @env_array = env.map { |k, v| "#{k}=#{v}" }
 
         if alter_process
-          require 'fcntl'
-
           if pgroup = @options[:pgroup]
             Process.setpgid(0, pgroup)
           end
@@ -396,8 +394,8 @@ module Truffle
               fd = entry.to_i
 
               if fd > 2
-                flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
-                Truffle::POSIX.fcntl(fd, Fcntl::F_SETFD, flags | Fcntl::FD_CLOEXEC) unless flags < 0
+                flags = Truffle::POSIX.fcntl(fd, File::F_GETFD, 0)
+                Truffle::POSIX.fcntl(fd, File::F_SETFD, flags | File::FD_CLOEXEC) unless flags < 0
               end
             end
           end
@@ -413,10 +411,8 @@ module Truffle
       end
 
       def safe_close_on_exec?(fd)
-        require 'fcntl'
-
-        flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
-        (flags & Fcntl::FD_CLOEXEC) != 0
+        flags = Truffle::POSIX.fcntl(fd, File::F_GETFD, 0)
+        (flags & File::FD_CLOEXEC) != 0
       end
 
       def redirect_file_descriptor(from, to)
