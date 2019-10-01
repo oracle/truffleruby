@@ -1860,7 +1860,7 @@ EOS
   def install(name, *options)
     case name
     when 'jvmci'
-      install_jvmci
+      puts install_jvmci
     else
       raise "Unknown how to install #{what}"
     end
@@ -1892,7 +1892,6 @@ EOS
     java = "#{java_home}/bin/java"
     abort "#{java_home} does not exist" unless File.executable?(java)
 
-    puts java_home
     java_home
   end
 
