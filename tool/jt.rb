@@ -1871,14 +1871,16 @@ EOS
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
-    java_home = chdir(dir) do
+    java_home = begin
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
         puts 'Downloading JDK8 with JVMCI'
         jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
-        raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
-        raw_sh 'tar', 'xf', filename
+        chdir(dir) do
+          raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
+          raw_sh 'tar', 'xf', filename
+        end
       end
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
