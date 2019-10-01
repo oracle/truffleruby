@@ -1053,7 +1053,13 @@ module Truffle::CExt
   def rb_proc_new(function, value)
     Proc.new do |*args|
       Truffle.invoke_primitive(:cext_unwrap,
-        Truffle.invoke_primitive(:call_with_c_mutex, function, args.map! { |arg| Truffle.invoke_primitive( :cext_wrap, arg) }))
+        Truffle.invoke_primitive(:call_with_c_mutex, function, [
+            Truffle.invoke_primitive(:cext_wrap, args.first), # yieldarg
+            nil, # procarg,
+            0, # argc
+            nil, # argv
+            nil, # blockarg
+        ]))
     end
   end
 
@@ -1510,7 +1516,13 @@ module Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.__send__(method, *args) do |*block_args|
-      Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, func, [Truffle.invoke_primitive(:cext_wrap, block_args.first), data, block_args.size, RARRAY_PTR(block_args), nil]))
+      Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, func, [
+          Truffle.invoke_primitive(:cext_wrap, block_args.first),
+          data,
+          block_args.size, # argc
+          RARRAY_PTR(block_args), # argv
+          nil, # blockarg
+      ]))
     end
   end
 
@@ -1554,7 +1566,13 @@ module Truffle::CExt
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, func, [Truffle.invoke_primitive(:cext_wrap, caught), Truffle.invoke_primitive(:cext_wrap, data), Truffle.invoke_primitive(:cext_wrap, nil)]))
+      Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, func, [
+          Truffle.invoke_primitive(:cext_wrap, caught),
+          Truffle.invoke_primitive(:cext_wrap, data),
+          0, # argc
+          nil, # argv
+          nil, # blockarg
+      ]))
     end
   end
 
@@ -1653,7 +1671,13 @@ module Truffle::CExt
       end
     else
       call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
-        Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, callback, [Truffle.invoke_primitive(:cext_wrap, block_arg), Truffle.invoke_primitive(:cext_wrap, callback_arg), Truffle.invoke_primitive(:cext_wrap, nil)]))
+        Truffle.invoke_primitive(:cext_unwrap, Truffle.invoke_primitive(:call_with_c_mutex, callback, [
+            Truffle.invoke_primitive(:cext_wrap, block_arg),
+            Truffle.invoke_primitive(:cext_wrap, callback_arg),
+            0, # argc
+            nil, # argv
+            nil, # blockarg
+        ]))
       end
     end
   end
