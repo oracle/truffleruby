@@ -1473,14 +1473,14 @@ public abstract class RopeNodes {
             return rope.getRawBytes();
         }
 
-        @Specialization
-        protected byte[] getBytesNative(NativeRope rope) {
+        @TruffleBoundary
+        @Specialization(guards = "rope.getRawBytes() == null")
+        protected byte[] getBytesManagedAndFlatten(ManagedRope rope) {
             return rope.getBytes();
         }
 
-        @TruffleBoundary
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected byte[] getBytesFromRope(ManagedRope rope) {
+        @Specialization
+        protected byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
         }
     }
