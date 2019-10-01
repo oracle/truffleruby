@@ -51,7 +51,7 @@ import com.oracle.truffle.api.source.SourceSection;
         version = BuildInformationImpl.RUBY_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
-        dependentLanguages = { TruffleRuby.LLVM_ID, "nfi" },
+        dependentLanguages = { "nfi", "llvm" },
         fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,

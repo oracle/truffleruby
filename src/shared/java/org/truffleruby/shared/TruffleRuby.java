@@ -15,7 +15,6 @@ public class TruffleRuby {
     public static final String LANGUAGE_ID = "ruby";
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
-    public static final String LLVM_ID = "llvm";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = BuildInformationImpl.INSTANCE.getRubyVersion();
     public static final String LANGUAGE_BASE_VERSION = BuildInformationImpl.INSTANCE.getRubyBaseVersion();
