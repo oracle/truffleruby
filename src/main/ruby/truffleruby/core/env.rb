@@ -253,10 +253,18 @@ class << ENV
 
   def to_hash
     h = {}
-    each_with_index do |elem|
-      if block_given?
-        elem = yield(elem)
-      end
+    each_pair do |key, value|
+      h[key] = value
+    end
+    h
+  end
+
+  def to_h
+    return to_hash unless block_given?
+
+    h = {}
+    each_pair do |*elem|
+      elem = yield(elem)
       unless elem.respond_to?(:to_ary)
         raise TypeError, "wrong element type #{elem.class} (expected array)"
       end
@@ -270,8 +278,6 @@ class << ENV
     end
     h
   end
-
-  alias_method :to_h, :to_hash
 
   def update(other)
     if block_given?
