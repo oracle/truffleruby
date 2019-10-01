@@ -28,7 +28,7 @@ public class StarNode extends FormatNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        loopNode.executeLoop(frame);
+        loopNode.execute(frame);
         return null;
     }
 
