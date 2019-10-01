@@ -192,7 +192,7 @@ module Truffle
 
         parse_options(options)
 
-        if env
+        if env and !env.empty?
           array = (@options[:env] ||= [])
 
           env.each do |key, value|
