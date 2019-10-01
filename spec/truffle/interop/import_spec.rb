@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { Truffle::Interop.polyglot_access? } do
+guard -> { Truffle::Interop.polyglot_bindings_access? } do
   describe "Truffle::Interop.import" do
 
     it "imports an object" do

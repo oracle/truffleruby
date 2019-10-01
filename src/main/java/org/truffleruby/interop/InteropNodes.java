@@ -1537,12 +1537,12 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "polyglot_access?", onSingleton = true)
-    public abstract static class IsPolyglotAccessAllowedNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "polyglot_bindings_access?", onSingleton = true)
+    public abstract static class IsPolyglotBindingsAccessAllowedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isPolyglotAccessAllowed() {
-            return getContext().getEnv().isPolyglotAccessAllowed();
+        protected boolean isPolyglotBindingsAccessAllowed() {
+            return getContext().getEnv().isPolyglotBindingsAccessAllowed();
         }
 
     }
