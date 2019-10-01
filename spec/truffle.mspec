@@ -109,23 +109,31 @@ class MSpecScript
     [/_spec.rb$/,                       '_tags.txt']
   ]
 
-  if defined?(::TruffleRuby) && TruffleRuby.native?
-    # exclude specs tagged with 'aot'
-    set :xtags, (get(:xtags) || []) + ['aot']
+  set :xtags, (get(:xtags) || [])
+  tags = get(:xtags)
+
+  if defined?(::TruffleRuby)
+    if TruffleRuby.native?
+      # exclude specs tagged with 'aot'
+      tags << 'aot'
+    else
+      # exclude specs tagged with 'jvm'
+      tags << 'jvm'
+    end
   end
 
   if windows?
     # exclude specs tagged with 'windows'
-    set :xtags, (get(:xtags) || []) + ['windows']
+    tags << 'windows'
   elsif linux?
     # exclude specs tagged with 'linux'
-    set :xtags, (get(:xtags) || []) + ['linux']
+    tags << 'linux'
   elsif darwin?
     # exclude specs tagged with 'darwin'
-    set :xtags, (get(:xtags) || []) + ['darwin']
+    tags << 'darwin'
   elsif solaris?
     # exclude specs tagged with 'solaris'
-    set :xtags, (get(:xtags) || []) + ['solaris']
+    tags << 'solaris'
   end
 
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)

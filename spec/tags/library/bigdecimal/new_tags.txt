@@ -1,1 +1,0 @@
-aot:BigDecimal.new treats invalid strings as 0.0
