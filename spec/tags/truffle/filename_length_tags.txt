@@ -1,1 +1,0 @@
-ci:Truffle source files have a small enough filename for eCryptfs
