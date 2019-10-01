@@ -480,7 +480,7 @@ module Utilities
   end
 
   def find_java_home
-    ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
+    @java_home ||= ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
   end
 
   def language_dir
