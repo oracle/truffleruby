@@ -1889,8 +1889,8 @@ EOS
     abort 'Could not find the extracted JDK' unless java_home
     java_home = File.expand_path(java_home)
 
-    $stderr.puts 'Testing JDK'
-    raw_sh "#{java_home}/bin/java", '-version'
+    java = "#{java_home}/bin/java"
+    abort "#{java_home} does not exist" unless File.executable?(java)
 
     puts java_home
     java_home
