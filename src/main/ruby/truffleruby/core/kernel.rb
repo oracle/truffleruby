@@ -168,9 +168,7 @@ module Kernel
   def `(str) #`
     str = StringValue(str) unless str.kind_of?(String)
 
-    io = IO.popen(str)
-    output = io.read
-    io.close
+    output = IO.popen(str) { |io| io.read }
 
     Truffle::Type.external_string output
   end
