@@ -244,7 +244,6 @@ local part_definitions = {
         git: ">=1.8.3",
         mercurial: ">=3.2.4",
         ruby: "==" + mri_version,
-        llvm: "==3.8",
         binutils: ">=2.30",
       },
     },
