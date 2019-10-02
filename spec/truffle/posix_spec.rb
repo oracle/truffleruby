@@ -17,7 +17,7 @@ describe "Trffle::POSIX returns the correct value for an identity function retur
     end
 
     lazy_library = Truffle::POSIX::LazyLibrary.new do
-      Polyglot.eval('nfi', "load '#{lib}'")
+      Truffle.invoke_primitive(:interop_eval_nfi, "load '#{lib}'")
     end
 
     @libtestnfi = Module.new do

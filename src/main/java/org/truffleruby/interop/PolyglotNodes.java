@@ -73,7 +73,7 @@ public abstract class PolyglotNodes {
             final String codeString = StringOperations.getString(code);
             final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
             try {
-                return getContext().getEnv().parse(source);
+                return getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -120,7 +120,7 @@ public abstract class PolyglotNodes {
         private Object eval(Source source) {
             final CallTarget callTarget;
             try {
-                callTarget = getContext().getEnv().parse(source);
+                callTarget = getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }

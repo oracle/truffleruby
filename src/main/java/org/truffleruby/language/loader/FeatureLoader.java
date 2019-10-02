@@ -400,7 +400,7 @@ public class FeatureLoader {
                 final Object result;
 
                 try {
-                    result = context.getEnv().parse(source).call();
+                    result = context.getEnv().parseInternal(source).call();
                 } catch (Exception e) {
                     throw new JavaException(e);
                 }

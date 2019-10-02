@@ -33,7 +33,7 @@ public final class WhileNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        loopNode.executeLoop(frame);
+        loopNode.execute(frame);
         return nil();
     }
 

@@ -85,7 +85,7 @@ public abstract class InteropNodes {
                         .getEnv()
                         .getPublicTruffleFile(StringOperations.getString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
-                getContext().getEnv().parse(source).call();
+                getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
@@ -1286,7 +1286,7 @@ public abstract class InteropNodes {
             }
             final Source source = Source.newBuilder(language, codeString, "(eval)").build();
             try {
-                return getContext().getEnv().parse(source);
+                return getContext().getEnv().parsePublic(source);
             } catch (IllegalStateException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -1294,6 +1294,29 @@ public abstract class InteropNodes {
 
         protected int getCacheLimit() {
             return getContext().getOptions().EVAL_CACHE;
+        }
+
+    }
+
+    @Primitive(name = "interop_eval_nfi")
+    public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(code)")
+        protected Object evalNFI(DynamicObject code,
+                @Cached IndirectCallNode callNode) {
+            return callNode.call(parse(code), RubyNode.EMPTY_ARGUMENTS);
+        }
+
+        @TruffleBoundary
+        protected CallTarget parse(DynamicObject code) {
+            final String codeString = StringOperations.getString(code);
+            final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
+
+            try {
+                return getContext().getEnv().parseInternal(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
 
     }
@@ -1537,12 +1560,12 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "polyglot_access?", onSingleton = true)
-    public abstract static class IsPolyglotAccessAllowedNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "polyglot_bindings_access?", onSingleton = true)
+    public abstract static class IsPolyglotBindingsAccessAllowedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isPolyglotAccessAllowed() {
-            return getContext().getEnv().isPolyglotAccessAllowed();
+        protected boolean isPolyglotBindingsAccessAllowed() {
+            return getContext().getEnv().isPolyglotBindingsAccessAllowed();
         }
 
     }

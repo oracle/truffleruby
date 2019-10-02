@@ -33,7 +33,7 @@ public class TruffleNFIPlatform {
     public TruffleNFIPlatform(RubyContext context) {
         defaultLibrary = (TruffleObject) context
                 .getEnv()
-                .parse(Source.newBuilder("nfi", "default", "native").build())
+                .parseInternal(Source.newBuilder("nfi", "default", "native").build())
                 .call();
 
         size_t = resolveType(context.getNativeConfiguration(), "size_t");
