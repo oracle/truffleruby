@@ -130,7 +130,7 @@ module Utilities
 
   def jvmci_update_and_version
     if env = ENV['JVMCI_VERSION']
-      unless /8u(\d+)-(jvmci-0.\d+)/ =~ env
+      unless /8u(\d+)-(jvmci-\d+\.\d+-b\d+)/ =~ env
         raise 'Could not parse JDK update and JVMCI version from $JVMCI_VERSION'
       end
     else
