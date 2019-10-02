@@ -28,8 +28,8 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
@@ -49,7 +49,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
         if (!annotations.isEmpty()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreModule.class)) {
                 try {
-                    processCoreMethod((TypeElement) element);
+                    processCoreModule((TypeElement) element);
                 } catch (IOException e) {
                     processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage(), element);
                 }
@@ -59,7 +59,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void processCoreMethod(TypeElement element) throws IOException {
+    private void processCoreModule(TypeElement element) throws IOException {
         final CoreModule coreModule = element.getAnnotation(CoreModule.class);
 
         final PackageElement packageElement = (PackageElement) element.getEnclosingElement();
@@ -74,7 +74,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
         final JavaFileObject output = processingEnv.getFiler().createSourceFile(qualifiedName + SUFFIX, element);
         final FileObject rubyFile = processingEnv.getFiler().createResource(
                 StandardLocation.SOURCE_OUTPUT,
-                "core_class_stubs",
+                "core_module_stubs",
                 coreModule.value().replace("::", "/") + ".rb",
                 (Element[]) null);
 
@@ -116,12 +116,15 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
-                            // final String className = klass.getQualifiedName().toString();
                             final String nodeFactory = nodeFactoryName(element, klass);
                             stream.println("        primitiveManager.addLazyPrimitive(" +
                                     quote(primitive.name()) + ", " + quote(nodeFactory) + ");");
 
-                            rubyPrimitives.append("  def self.").append(primitive.name()).append('\n');
+                            rubyPrimitives
+                                    .append("  def self.")
+                                    .append(primitive.name())
+                                    .append("(*args)")
+                                    .append('\n');
                             rubyPrimitives.append("    # language=java").append('\n');
                             rubyPrimitives
                                     .append("    /** @see ")
@@ -141,7 +144,6 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 rubyStream.println("end");
                 rubyStream.println();
 
-                // TODO (pitr-ch 28-Sep-2019): remove
                 rubyStream.println("module TrufflePrimitive");
                 rubyStream.print(rubyPrimitives);
                 rubyStream.println("end");
@@ -198,26 +200,18 @@ public class CoreModuleProcessor extends AbstractProcessor {
             args.add("&block");
         }
 
-        // keywordAsOptional is not handled since it's used only once
-
         rubyStream.println("  def " + (onSingleton ? "self." : "") + method.names()[0] + "(" + args + ")");
         rubyStream.println("    # language=java");
         rubyStream.println("    /** @see " + klass.getQualifiedName().toString() + " */");
         rubyStream.println("  end");
-        rubyStream.println();
 
-        boolean newLine = false;
         for (int i = 1; i < method.names().length; i++) {
             rubyStream.println("  alias_method :" + method.names()[i] + ", :" + method.names()[0]);
-            newLine = true;
         }
         if (method.isModuleFunction()) {
             rubyStream.println("  module_function :" + method.names()[0]);
-            newLine = true;
         }
-        if (newLine) {
-            rubyStream.println();
-        }
+        rubyStream.println();
     }
 
     private boolean anyCoreMethod(List<? extends Element> enclosedElements) {
