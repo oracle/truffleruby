@@ -13,7 +13,7 @@ import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.cext.ValueWrapper;
+import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -78,14 +78,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
              * arrays to a list to achieve this.
              */
             super.processReference(reference);
-            ArrayList<Object[]> keptObjectLists = new ArrayList<>();
-            ValueWrapper[] list;
+            ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
+            ValueWrapperManager.HandleBlock block;
             while (true) {
-                list = (ValueWrapper[]) markingService.keptObjectQueue.poll();
-                if (list == null) {
+                block = (ValueWrapperManager.HandleBlock) markingService.keptObjectQueue.poll();
+                if (block == null) {
                     break;
                 } else {
-                    keptObjectLists.add(list);
+                    keptObjectLists.add(block);
                 }
             }
             if (!keptObjectLists.isEmpty()) {
@@ -194,7 +194,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     }
 
     @TruffleBoundary
-    public void queueForMarking(ValueWrapper[] objects) {
+    public void queueForMarking(ValueWrapperManager.HandleBlock objects) {
         if (objects != null) {
             keptObjectQueue.add(objects);
             runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
@@ -205,7 +205,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
      * Convenience method to schedule marking now. Puts an empty array on the queue.
      */
     public void queueMarking() {
-        queueForMarking(new ValueWrapper[0]);
+        queueForMarking(ValueWrapperManager.HandleBlock.DUMMY_BLOCK);
     }
 
     public void addMarker(DynamicObject object, MarkerAction action) {
@@ -235,7 +235,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         if (oldMarks == null) {
             marks = new Object[0];
         } else {
-            marks = oldMarks;
+            marks = new Object[oldMarks.length];
         }
         index = 0;
     }
@@ -244,7 +244,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     public void addMark(Object obj) {
         if (marks.length == index) {
             Object[] oldMarks = marks;
-            marks = new Object[oldMarks.length * 2];
+            marks = new Object[Integer.max(oldMarks.length * 2, 1)];
             System.arraycopy(oldMarks, 0, marks, 0, oldMarks.length);
         }
         marks[index] = obj;

@@ -75,7 +75,7 @@ public class ValueWrapperManager {
                 threadData,
                 null,
                 ValueWrapperManager.class,
-                () -> context.getMarkingService().queueForMarking(holder.handleBlock.wrappers),
+                () -> context.getMarkingService().queueForMarking(holder.handleBlock),
                 null);
         return threadData;
     }
@@ -189,16 +189,22 @@ public class ValueWrapperManager {
         }
     }
 
-    protected static class HandleBlock {
+    public static class HandleBlock {
+
+        public static final HandleBlock DUMMY_BLOCK = new HandleBlock(0, null);
 
         private final long base;
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
         private int count;
 
         public HandleBlock() {
-            base = allocator.getFreeBlock();
-            wrappers = new ValueWrapper[BLOCK_SIZE];
-            count = 0;
+            this(allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
+        }
+
+        private HandleBlock(long base, ValueWrapper[] wrappers) {
+            this.base = base;
+            this.wrappers = wrappers;
+            this.count = 0;
         }
 
         public long getBase() {
@@ -293,7 +299,7 @@ public class ValueWrapperManager {
             HandleBlock block = threadData.holder.handleBlock;
             if (block == null || block.isFull()) {
                 if (block != null) {
-                    context.getMarkingService().queueForMarking(block.wrappers);
+                    context.getMarkingService().queueForMarking(block);
                 }
                 block = threadData.makeNewBlock();
                 context.getValueWrapperManager().addToBlockMap(block);
