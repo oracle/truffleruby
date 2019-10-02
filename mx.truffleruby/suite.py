@@ -424,12 +424,6 @@ suite = {
                     "file:lib/cext/include/truffleruby",
                     "file:lib/cext/include/*.h",
                 ],
-                "lib/cext/include/sulong/": [
-                    "link:../../sulong-libs/include/polyglot.h",
-                ],
-                "lib/cext/sulong-libs/": [
-                    "extracted-dependency:sulong:SULONG_HOME/*",
-                ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/etc/<libsuffix:etc>",
                     "dependency:org.truffleruby.cext/src/main/c/nkf/<libsuffix:nkf>",
