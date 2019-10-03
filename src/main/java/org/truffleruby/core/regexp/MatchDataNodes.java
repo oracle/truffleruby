@@ -26,6 +26,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToIntNode;
@@ -169,6 +170,27 @@ public abstract class MatchDataNodes {
         final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
         Layouts.MATCH_DATA.setCharOffsets(matchData, charOffsets);
         return charOffsets;
+    }
+
+    @Primitive(name = "matchdata_create")
+    public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
+                @Cached AllocateObjectNode allocateNode) {
+            final Region region = new Region(ArrayHelpers.getSize(starts));
+            int[] startsInt = (int[]) ArrayHelpers.getStore(starts);
+            int[] endsInt = (int[]) ArrayHelpers.getStore(ends);
+            for (int i = 0; i < region.numRegs; i++) {
+                region.beg[i] = startsInt[i];
+                region.end[i] = endsInt[i];
+            }
+
+            return allocateNode.allocate(
+                    coreLibrary().getMatchDataClass(),
+                    Layouts.MATCH_DATA.build(string, regexp, region, null));
+        }
+
     }
 
     @CoreMethod(
