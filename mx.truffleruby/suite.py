@@ -149,6 +149,7 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "truffle:TRUFFLE_API",
             ],
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
@@ -319,6 +320,7 @@ suite = {
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "truffle:TRUFFLE_API",
             ],
             "description": "TruffleRuby Annotation Processor",
             "license": ["EPL-1.0"],
