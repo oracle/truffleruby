@@ -1,3 +1,5 @@
+Q$(MX_VERBOSE) = @
+
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
 DLEXT := dylib
@@ -31,7 +33,7 @@ LDFLAGS += -lrt
 endif
 
 libtruffleposix.$(DLEXT): truffleposix.o Makefile
-	$(CC) -shared $(LDFLAGS) -o $@ $<
+	$(Q) $(CC) -shared $(LDFLAGS) -o $@ $<
 
 truffleposix.o: truffleposix.c Makefile
-	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(NFI_HEADERS_DIR) $<
+	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(NFI_HEADERS_DIR) $<
