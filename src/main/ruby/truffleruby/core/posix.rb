@@ -254,6 +254,7 @@ module Truffle::POSIX
   attach_function :getpid, [], :pid_t
   attach_function :getppid, [], :pid_t
   attach_function :kill, [:pid_t, :int], :int
+  attach_function :raise, [:int], :int, LIBC, false, :raise_signal
   attach_function :getpgrp, [], :pid_t
   attach_function :getpgid, [:pid_t], :pid_t
   attach_function :setpgid, [:pid_t, :pid_t], :int

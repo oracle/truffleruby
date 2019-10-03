@@ -9,15 +9,6 @@
 require_relative '../ruby/spec_helper'
 
 describe "SignalException" do
-  it "sends a signal to the running process when uncaught" do
-    # there is a similar spec in rubyspec, but the JVM catches SIGTERM,
-    # making it hard to tell whether the process was killed by signal
-
-    # make sure there is no backtrace for the exception
-    -> { ruby_exe("raise SignalException, 'SIGKILL'") }.should output_to_fd("", STDERR)
-    $?.termsig.should == Signal.list["KILL"]
-  end
-
   it "can be rescued" do
     ruby_exe(<<-RUBY)
       begin
@@ -43,5 +34,14 @@ describe "SignalException" do
 
     $?.termsig.should == Signal.list["KILL"]
     output.should == "hello\n"
+  end
+
+  it "cannot be trapped with Signal.trap" do
+    ruby_exe(<<-RUBY)
+      Signal.trap("PROF") {}
+      raise(SignalException, "PROF")
+    RUBY
+
+    $?.termsig.should == Signal.list["PROF"]
   end
 end

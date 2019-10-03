@@ -134,7 +134,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory procFactory;
     private final DynamicObject processModule;
     private final DynamicObject rangeClass;
-    private final DynamicObject posixModule;
     private final DynamicObjectFactory intRangeFactory;
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
@@ -565,7 +564,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Binding");
-        posixModule = defineModule(truffleModule, "POSIX");
+        defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
@@ -1334,10 +1333,6 @@ public class CoreLibrary {
 
     public DynamicObject getSignalExceptionClass() {
         return signalExceptionClass;
-    }
-
-    public DynamicObject getPosixModule() {
-        return posixModule;
     }
 
     public DynamicObject getSystemExitClass() {
