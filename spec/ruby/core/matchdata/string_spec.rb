@@ -11,4 +11,10 @@ describe "MatchData#string" do
     str.should == "THX1138."
     str.frozen?.should == true
   end
+
+  it "returns a frozen copy of the matched string for gsub(String)" do
+    'he[[o'.gsub!('[', ']')
+    $~.string.should == 'he[[o'
+    $~.string.frozen?.should == true
+  end
 end
