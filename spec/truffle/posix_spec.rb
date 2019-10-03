@@ -8,7 +8,7 @@
 
 require_relative '../ruby/spec_helper'
 
-describe "Trffle::POSIX returns the correct value for an identity function returning" do
+describe "Truffle::POSIX returns the correct value for an identity function returning" do
   before :all do
     src = fixture __FILE__, "libtestnfi.c"
     lib = src[0...-1] + RbConfig::CONFIG['SOEXT']
