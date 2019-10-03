@@ -42,12 +42,12 @@ public abstract class AtomicReferenceNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initializeNoValue(DynamicObject self, NotProvided notProvided) {
+        protected DynamicObject initializeNoValue(DynamicObject self, NotProvided value) {
             return self;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject initializeNil(DynamicObject self, DynamicObject nil) {
+        @Specialization(guards = "isNil(value)")
+        protected DynamicObject initializeNil(DynamicObject self, DynamicObject value) {
             return self;
         }
 

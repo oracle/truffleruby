@@ -51,7 +51,7 @@ public abstract class BigDecimalNodes {
     public abstract static class NewNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object newBigDecimal(Object value, NotProvided notProvided, boolean strict) {
+        protected Object newBigDecimal(Object value, NotProvided digits, boolean strict) {
             return createBigDecimal(value, strict);
         }
 
@@ -662,7 +662,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(a)")
-        protected Object power(DynamicObject a, int exponent, Object unusedPrecision,
+        protected Object power(DynamicObject a, int exponent, Object precision,
                 @Cached BranchProfile nanProfile,
                 @Cached BranchProfile posInfinityProfile,
                 @Cached BranchProfile negInfinityProfile,
@@ -1154,7 +1154,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(value)")
-        protected Object roundSpecial(DynamicObject value, NotProvided precision, NotProvided roundingMode,
+        protected Object roundSpecial(DynamicObject value, NotProvided digit, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BranchProfile negInfinityProfile,
                 @Cached BranchProfile posInfinityProfile,
@@ -1181,13 +1181,13 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = { "!isNormal(value)", "wasProvided(precision)", "wasProvided(roundingMode)" })
-        protected Object roundSpecial(DynamicObject value, Object precision, Object roundingMode) {
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(digit)", "wasProvided(roundingMode)" })
+        protected Object roundSpecial(DynamicObject value, Object digit, Object roundingMode) {
             return value;
         }
 
-        @Specialization(guards = { "!isNormal(value)", "wasProvided(precision)" })
-        protected Object roundSpecial(DynamicObject value, Object precision, NotProvided roundingMode) {
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(digit)" })
+        protected Object roundSpecial(DynamicObject value, Object digit, NotProvided roundingMode) {
             return value;
         }
 

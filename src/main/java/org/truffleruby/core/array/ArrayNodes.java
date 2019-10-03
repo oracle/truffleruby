@@ -16,12 +16,11 @@ import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
@@ -71,6 +70,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -206,13 +206,18 @@ public abstract class ArrayNodes {
             return result;
         }
 
-        @Specialization(guards = { "!isInteger(object)", "!isLong(object)" })
-        protected Object fallback(DynamicObject array, Object object) {
+        @Specialization(guards = { "!isInteger(count)", "!isLong(count)" })
+        protected Object fallback(DynamicObject array, Object count) {
             return FAILURE;
         }
     }
 
-    @CoreMethod(names = { "[]", "slice" }, required = 1, optional = 1, lowerFixnum = { 1, 2 })
+    @CoreMethod(
+            names = { "[]", "slice" },
+            required = 1,
+            optional = 1,
+            lowerFixnum = { 1, 2 },
+            argumentNames = { "index_start_or_range", "length" })
     public abstract static class IndexNode extends ArrayIndexNode {
 
         @Child private CallDispatchHeadNode fallbackNode;
@@ -228,7 +233,10 @@ public abstract class ArrayNodes {
         }
     }
 
-    @Primitive(name = "array_aref", lowerFixnum = { 1, 2 })
+    @Primitive(
+            name = "array_aref",
+            lowerFixnum = { 1, 2 },
+            argumentNames = { "index_start_or_range", "length_or_value", "value" })
     public abstract static class IndexPrimitiveNode extends ArrayIndexNode {
 
         protected abstract RubyNode[] getArguments();
@@ -239,7 +247,13 @@ public abstract class ArrayNodes {
         }
     }
 
-    @CoreMethod(names = "[]=", required = 2, optional = 1, lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
+    @CoreMethod(
+            names = "[]=",
+            required = 2,
+            optional = 1,
+            lowerFixnum = { 1, 2 },
+            raiseIfFrozenSelf = true,
+            argumentNames = { "index_start_or_range", "length_or_value", "value" })
     public abstract static class IndexSetNode extends ArrayIndexSetNode {
 
         @Child private CallDispatchHeadNode fallbackNode;
@@ -856,7 +870,13 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "initialize", needsBlock = true, optional = 2, raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @CoreMethod(
+            names = "initialize",
+            needsBlock = true,
+            optional = 2,
+            raiseIfFrozenSelf = true,
+            lowerFixnum = 1,
+            argumentNames = { "size_or_copy", "defaultValue", "block" })
     @ImportStatic(ArrayGuards.class)
     public abstract static class InitializeNode extends YieldingCoreMethodNode {
 
@@ -868,14 +888,14 @@ public abstract class ArrayNodes {
                 Object defaultValue, Object block);
 
         @Specialization
-        protected DynamicObject initializeNoArgs(DynamicObject array, NotProvided size, NotProvided unusedValue,
+        protected DynamicObject initializeNoArgs(DynamicObject array, NotProvided size, NotProvided defaultValue,
                 NotProvided block) {
             setStoreAndSize(array, ArrayStrategy.NULL_ARRAY_STORE, 0);
             return array;
         }
 
         @Specialization
-        protected DynamicObject initializeOnlyBlock(DynamicObject array, NotProvided size, NotProvided unusedValue,
+        protected DynamicObject initializeOnlyBlock(DynamicObject array, NotProvided size, NotProvided defaultValue,
                 DynamicObject block) {
             setStoreAndSize(array, ArrayStrategy.NULL_ARRAY_STORE, 0);
             return array;
@@ -883,15 +903,15 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeIntSize(DynamicObject array, int size, Object unusedValue,
-                Object maybeBlock) {
+        protected DynamicObject initializeNegativeIntSize(DynamicObject array, int size, Object defaultValue,
+                Object block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeLongSize(DynamicObject array, long size, Object unusedValue,
-                Object maybeBlock) {
+        protected DynamicObject initializeNegativeLongSize(DynamicObject array, long size, Object defaultValue,
+                Object block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
@@ -899,13 +919,13 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size >= MAX_INT")
-        protected DynamicObject initializeSizeTooBig(DynamicObject array, long size, NotProvided unusedValue,
+        protected DynamicObject initializeSizeTooBig(DynamicObject array, long size, NotProvided defaultValue,
                 NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("array size too big", this));
         }
 
         @Specialization(guards = "size >= 0")
-        protected DynamicObject initializeWithSizeNoValue(DynamicObject array, int size, NotProvided unusedValue,
+        protected DynamicObject initializeWithSizeNoValue(DynamicObject array, int size, NotProvided defaultValue,
                 NotProvided block) {
             final Object[] store = new Object[size];
             Arrays.fill(store, nil());
@@ -914,20 +934,20 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "size >= 0", "wasProvided(value)", "strategy.specializesFor(value)" },
+                guards = { "size >= 0", "wasProvided(defaultValue)", "strategy.specializesFor(defaultValue)" },
                 limit = "STORAGE_STRATEGIES")
-        protected DynamicObject initializeWithSizeAndValue(DynamicObject array, int size, Object value,
+        protected DynamicObject initializeWithSizeAndValue(DynamicObject array, int size, Object defaultValue,
                 NotProvided block,
-                @Cached("forValue(value)") ArrayStrategy strategy,
+                @Cached("forValue(defaultValue)") ArrayStrategy strategy,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached("createBinaryProfile()") ConditionProfile needsFill,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object store = newStoreNode.execute(size);
-            if (needsFill.profile(!strategy.isDefaultValue(value))) {
-                propagateSharingNode.propagate(array, value);
+            if (needsFill.profile(!strategy.isDefaultValue(defaultValue))) {
+                propagateSharingNode.propagate(array, defaultValue);
                 for (int i = 0; i < size; i++) {
-                    setNode.execute(store, i, value);
+                    setNode.execute(store, i, defaultValue);
                 }
             }
             setStoreAndSize(array, store, size);
@@ -935,21 +955,17 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = {
-                        "wasProvided(sizeObject)",
-                        "!isInteger(sizeObject)",
-                        "!isLong(sizeObject)",
-                        "wasProvided(value)" })
-        protected DynamicObject initializeSizeOther(VirtualFrame frame, DynamicObject array, Object sizeObject,
-                Object value, NotProvided block) {
-            int size = toInt(sizeObject);
-            return executeInitialize(frame, array, size, value, block);
+                guards = { "wasProvided(size)", "!isInteger(size)", "!isLong(size)", "wasProvided(defaultValue)" })
+        protected DynamicObject initializeSizeOther(VirtualFrame frame, DynamicObject array, Object size,
+                Object defaultValue, NotProvided block) {
+            int intSize = toInt(size);
+            return executeInitialize(frame, array, intSize, defaultValue, block);
         }
 
         // With block
 
         @Specialization(guards = "size >= 0")
-        protected Object initializeBlock(DynamicObject array, int size, Object unusedValue, DynamicObject block,
+        protected Object initializeBlock(DynamicObject array, int size, Object defaultValue, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached PropagateSharingNode propagateSharingNode) {
             Object store = arrayBuilder.start(size);
@@ -1057,16 +1073,17 @@ public abstract class ArrayNodes {
 
         // With block
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial)", "block != nil()" })
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial_or_symbol)", "block != nil()" })
         @ReportPolymorphism.Exclude
-        protected Object injectEmptyArray(DynamicObject array, Object initial, NotProvided unused,
+        protected Object injectEmptyArray(DynamicObject array, Object initial_or_symbol, NotProvided symbol,
                 DynamicObject block) {
-            return initial;
+            return initial_or_symbol;
         }
 
         @Specialization(guards = { "isEmptyArray(array)", "block != nil()" })
         @ReportPolymorphism.Exclude
-        protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initial, NotProvided unused,
+        protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initial_or_symbol,
+                NotProvided symbol,
                 DynamicObject block) {
             return nil();
         }
@@ -1075,20 +1092,21 @@ public abstract class ArrayNodes {
                 guards = {
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "wasProvided(initial)",
+                        "wasProvided(initial_or_symbol)",
                         "block != nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectWithInitial(DynamicObject array, Object initial, NotProvided unused, DynamicObject block,
+        protected Object injectWithInitial(DynamicObject array, Object initial_or_symbol, NotProvided symbol,
+                DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectBlockHelper(getNode, array, block, store, initial, 0);
+            return injectBlockHelper(getNode, array, block, store, initial_or_symbol, 0);
         }
 
         @Specialization(
                 guards = { "strategy.matches(array)", "!isEmptyArray(array)", "block != nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectNoInitial(DynamicObject array, NotProvided initial, NotProvided unused,
+        protected Object injectNoInitial(DynamicObject array, NotProvided initial_or_symbol, NotProvided symbol,
                 DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
@@ -1116,14 +1134,19 @@ public abstract class ArrayNodes {
         // With Symbol
 
         @Specialization(
-                guards = { "isRubySymbol(symbol)", "isEmptyArray(array)", "wasProvided(initial)", "block == nil()" })
-        protected Object injectSymbolEmptyArray(DynamicObject array, Object initial, DynamicObject symbol,
+                guards = {
+                        "isRubySymbol(symbol)",
+                        "isEmptyArray(array)",
+                        "wasProvided(initial_or_symbol)",
+                        "block == nil()" })
+        protected Object injectSymbolEmptyArray(DynamicObject array, Object initial_or_symbol, DynamicObject symbol,
                 DynamicObject block) {
-            return initial;
+            return initial_or_symbol;
         }
 
-        @Specialization(guards = { "isRubySymbol(symbol)", "isEmptyArray(array)", "block == nil()" })
-        protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject symbol, NotProvided unused,
+        @Specialization(guards = { "isRubySymbol(initial_or_symbol)", "isEmptyArray(array)", "block == nil()" })
+        protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initial_or_symbol,
+                NotProvided symbol,
                 DynamicObject block) {
             return nil();
         }
@@ -1133,30 +1156,30 @@ public abstract class ArrayNodes {
                         "isRubySymbol(symbol)",
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "wasProvided(initial)",
+                        "wasProvided(initial_or_symbol)",
                         "block == nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial,
+        protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial_or_symbol,
                 DynamicObject symbol, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectSymbolHelper(frame, array, symbol, getNode, store, initial, 0);
+            return injectSymbolHelper(frame, array, symbol, getNode, store, initial_or_symbol, 0);
         }
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(symbol)",
+                        "isRubySymbol(initial_or_symbol)",
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
                         "block == nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject symbol,
-                NotProvided unused, DynamicObject block,
+        protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject initial_or_symbol,
+                NotProvided symbol, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectSymbolHelper(frame, array, symbol, getNode, store, getNode.execute(store, 0), 1);
+            return injectSymbolHelper(frame, array, initial_or_symbol, getNode, store, getNode.execute(store, 0), 1);
         }
 
         public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, DynamicObject symbol,
@@ -1459,7 +1482,7 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
 
         @Specialization(guards = "rest.length == 0")
-        protected DynamicObject pushZero(DynamicObject array, NotProvided unusedValue, Object[] rest) {
+        protected DynamicObject pushZero(DynamicObject array, NotProvided value, Object[] rest) {
             return array;
         }
 
@@ -1880,7 +1903,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
-        protected DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
+        protected DynamicObject sortEmpty(DynamicObject array, Object block) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 

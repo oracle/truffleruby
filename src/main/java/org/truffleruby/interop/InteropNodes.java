@@ -17,10 +17,10 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
@@ -1334,9 +1334,9 @@ public abstract class InteropNodes {
     @CoreMethod(names = "java_instanceof?", isModuleFunction = true, required = 2)
     public abstract static class InteropJavaInstanceOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isJavaObject(boxedInstance)", "isJavaClassOrInterface(boxedJavaClass)" })
-        protected boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
-            final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
+        @Specialization(guards = { "isJavaObject(object)", "isJavaClassOrInterface(boxedJavaClass)" })
+        protected boolean javaInstanceOfJava(Object object, TruffleObject boxedJavaClass) {
+            final Object hostInstance = getContext().getEnv().asHostObject(object);
             if (hostInstance == null) {
                 return false;
             } else {
@@ -1345,10 +1345,10 @@ public abstract class InteropNodes {
             }
         }
 
-        @Specialization(guards = { "!isJavaObject(instance)", "isJavaClassOrInterface(boxedJavaClass)" })
-        protected boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
+        @Specialization(guards = { "!isJavaObject(object)", "isJavaClassOrInterface(boxedJavaClass)" })
+        protected boolean javaInstanceOfNotJava(Object object, TruffleObject boxedJavaClass) {
             final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
-            return javaClass.isInstance(instance);
+            return javaClass.isInstance(object);
         }
 
         protected boolean isJavaObject(Object object) {
@@ -1390,13 +1390,13 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaArray(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy,
+        @Specialization(guards = { "isRubyArray(object)", "strategy.matches(object)" }, limit = "STORAGE_STRATEGIES")
+        protected Object toJavaArray(DynamicObject object,
+                @Cached("of(object)") ArrayStrategy strategy,
                 @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
             return getContext().getEnv().asGuestValue(copyStoreNode.execute(
-                    Layouts.ARRAY.getStore(array),
-                    Layouts.ARRAY.getSize(array)));
+                    Layouts.ARRAY.getStore(object),
+                    Layouts.ARRAY.getSize(object)));
         }
 
         @Specialization(guards = "!isRubyArray(object)")
@@ -1410,13 +1410,13 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaList(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy,
+        @Specialization(guards = { "isRubyArray(object)", "strategy.matches(object)" }, limit = "STORAGE_STRATEGIES")
+        protected Object toJavaList(DynamicObject object,
+                @Cached("of(object)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(
-                    Layouts.ARRAY.getStore(array),
-                    Layouts.ARRAY.getSize(array))));
+                    Layouts.ARRAY.getStore(object),
+                    Layouts.ARRAY.getSize(object))));
         }
 
         @Specialization(guards = "!isRubyArray(object)")

@@ -466,7 +466,7 @@ public abstract class TimeNodes {
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
         protected Object timeSFromArrayFallback(DynamicObject timeClass, Object sec, int min, int hour, int mday,
-                int month, int year, Object nsec, int isdst, boolean fromutc, Object utcoffset) {
+                int month, int year, Object nsec, int isdst, boolean isutc, Object utcoffset) {
             return FAILURE;
         }
 

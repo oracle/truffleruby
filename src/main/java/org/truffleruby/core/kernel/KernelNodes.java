@@ -635,7 +635,13 @@ public abstract class KernelNodes {
         protected Object evalBindingUncached(Object object, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line,
                 @Cached IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(object, rope(source), binding, rope(file), line, false);
+            final CodeLoader.DeferredCall deferredCall = doEvalX(
+                    object,
+                    rope(source),
+                    binding,
+                    rope(file),
+                    line,
+                    false);
             return deferredCall.call(callNode);
         }
 
@@ -982,8 +988,8 @@ public abstract class KernelNodes {
             return isANode.executeIsA(self, rubyModule);
         }
 
-        @Specialization(guards = "!isRubyModule(module)")
-        protected boolean isATypeError(Object self, Object module) {
+        @Specialization(guards = "!isRubyModule(rubyModule)")
+        protected boolean isATypeError(Object self, Object rubyModule) {
             throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
         }
 

@@ -198,8 +198,8 @@ public abstract class TypeNodes {
             return true;
         }
 
-        @Specialization(guards = "!isRubyArray(object)")
-        protected boolean other(Object object) {
+        @Specialization(guards = "!isRubyArray(array)")
+        protected boolean other(Object array) {
             return true;
         }
 

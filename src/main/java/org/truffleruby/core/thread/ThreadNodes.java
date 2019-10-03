@@ -309,8 +309,8 @@ public abstract class ThreadNodes {
             return thread;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject join(DynamicObject thread, Object nil) {
+        @Specialization(guards = "isNil(timeout)")
+        protected DynamicObject join(DynamicObject thread, Object timeout) {
             return join(thread, NotProvided.INSTANCE);
         }
 

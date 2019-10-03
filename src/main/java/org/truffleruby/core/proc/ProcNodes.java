@@ -239,12 +239,12 @@ public abstract class ProcNodes {
         }
 
         @Specialization
-        protected Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
+        protected Object call(DynamicObject proc, Object[] args, DynamicObject block) {
             return callBlockNode.executeCallBlock(
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
                     ProcOperations.getSelf(proc),
-                    blockArgument,
+                    block,
                     args);
         }
 

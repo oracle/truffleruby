@@ -132,30 +132,30 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "fill", required = 4, lowerFixnum = { 1, 3, 4 })
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(string)")
-        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart,
+        @Specialization(guards = "isRubyString(source)")
+        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject source, int srcStart,
                 int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
-            final Rope rope = StringOperations.rope(string);
+            final Rope rope = StringOperations.rope(source);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
             System.arraycopy(bytesNode.execute(rope), srcStart, bytes.getUnsafeBytes(), dstStart, length);
-            return string;
+            return source;
         }
 
-        @Specialization(guards = "isRubyPointer(pointer)")
-        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart,
+        @Specialization(guards = "isRubyPointer(source)")
+        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject source, int srcStart,
                 int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 
-            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+            final Pointer ptr = Layouts.POINTER.getPointer(source);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
             PointerNodes.checkNull(ptr, this, nullPointerProfile);
 
             ptr.readBytes(srcStart, bytes.getUnsafeBytes(), dstStart, length);
-            return pointer;
+            return source;
         }
 
     }

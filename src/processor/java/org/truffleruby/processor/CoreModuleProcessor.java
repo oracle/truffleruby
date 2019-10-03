@@ -199,7 +199,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
             TypeElement element,
             TypeElement klass,
             Primitive primitive) {
-        List<String> argumentNames = getArgumentNames(klass, false);
+        List<String> argumentNames = getArgumentNames(klass, primitive.argumentNames(), false, -1);
 
         final String nodeFactory = nodeFactoryName(element, klass);
         stream.println("        primitiveManager.addLazyPrimitive(" +
@@ -262,24 +262,17 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 !coreMethod.isModuleFunction() &&
                 coreMethod.needsSelf();
 
-        final List<String> argumentNames;
-        if (coreMethod.argumentNames().length == 0) {
-            argumentNames = getArgumentNames(klass, hasSelfArgument);
-        } else {
-            if (coreMethod.argumentNames().length != getNumberOfArguments(coreMethod)) {
-                processingEnv.getMessager().printMessage(
-                        Kind.ERROR,
-                        "The size of argumentNames does not match declared number of arguments.",
-                        klass);
-                argumentNames = new ArrayList<>();
-            } else {
-                argumentNames = Arrays.asList(coreMethod.argumentNames());
-            }
-        }
+        int numberOfArguments = getNumberOfArguments(coreMethod);
+        String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
+        final List<String> argumentNames = getArgumentNames(
+                klass,
+                argumentNamesFromAnnotation,
+                hasSelfArgument,
+                numberOfArguments);
 
-        if (argumentNames.isEmpty() && getNumberOfArguments(coreMethod) > 0) {
+        if (argumentNames.isEmpty() && numberOfArguments > 0) {
             processingEnv.getMessager().printMessage(
-                    Kind.WARNING,
+                    Kind.ERROR,
                     "Did not find argument names. If the class has inherited Specializations use org.truffleruby.builtins.CoreMethod.argumentNames",
                     klass);
 
@@ -334,12 +327,34 @@ public class CoreModuleProcessor extends AbstractProcessor {
         rubyStream.println();
     }
 
+    private List<String> getArgumentNames(
+            TypeElement klass,
+            String[] argumentNamesFromAnnotation,
+            boolean hasSelfArgument,
+            int numberOfArguments) {
+        List<String> argumentNames;
+        if (argumentNamesFromAnnotation.length == 0) {
+            argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
+        } else {
+            if (argumentNamesFromAnnotation.length != numberOfArguments && numberOfArguments >= 0) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "The size of argumentNames does not match declared number of arguments.",
+                        klass);
+                argumentNames = new ArrayList<>();
+            } else {
+                argumentNames = Arrays.asList(argumentNamesFromAnnotation);
+            }
+        }
+        return argumentNames;
+    }
+
     private int getNumberOfArguments(CoreMethod coreMethod) {
         return coreMethod.required() + coreMethod.optional() + (coreMethod.rest() ? 1 : 0) +
                 (coreMethod.needsBlock() ? 1 : 0);
     }
 
-    private List<String> getArgumentNames(TypeElement klass, boolean hasSelfArgument) {
+    private List<String> getArgumentNamesFromSpecializations(TypeElement klass, boolean hasSelfArgument) {
         List<String> argumentNames = new ArrayList<>();
         List<VariableElement> argumentElements = new ArrayList<>();
 
@@ -387,7 +402,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 } else {
                     if (!argumentNames.get(index).equals(name)) {
                         processingEnv.getMessager().printMessage(
-                                Kind.WARNING,
+                                Kind.ERROR,
                                 "The argument does not match with the first occurrence of this argument which was '" +
                                         argumentNames.get(index) + "'.",
                                 parameter);

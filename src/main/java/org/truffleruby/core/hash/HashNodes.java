@@ -341,7 +341,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
+        protected Object deletePackedArray(DynamicObject hash, Object key, Object block,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -367,24 +367,24 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            if (maybeBlock == NotProvided.INSTANCE) {
+            if (block == NotProvided.INSTANCE) {
                 return nil();
             } else {
-                return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
+                return yieldNode.executeDispatch((DynamicObject) block, key);
             }
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object delete(DynamicObject hash, Object key, Object maybeBlock) {
+        protected Object delete(DynamicObject hash, Object key, Object block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
             if (hashLookupResult.getEntry() == null) {
-                if (maybeBlock == NotProvided.INSTANCE) {
+                if (block == NotProvided.INSTANCE) {
                     return nil();
                 } else {
-                    return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
+                    return yieldNode.executeDispatch((DynamicObject) block, key);
                 }
             }
 
@@ -621,14 +621,14 @@ public abstract class HashNodes {
             return self;
         }
 
-        @Specialization(guards = "!isRubyHash(other)")
-        protected DynamicObject replaceCoerce(DynamicObject self, Object other,
+        @Specialization(guards = "!isRubyHash(from)")
+        protected DynamicObject replaceCoerce(DynamicObject self, Object from,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().getTruffleTypeModule(),
                     "coerce_to",
-                    other,
+                    from,
                     coreLibrary().getHashClass(),
                     coreStrings().TO_HASH.getSymbol());
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
@@ -725,8 +725,8 @@ public abstract class HashNodes {
             return defaultProc;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
+        @Specialization(guards = "isNil(defaultProc)")
+        protected DynamicObject setDefaultProc(DynamicObject hash, Object defaultProc) {
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
             return nil();

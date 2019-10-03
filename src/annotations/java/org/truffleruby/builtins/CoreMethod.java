@@ -91,7 +91,6 @@ public @interface CoreMethod {
      */
     boolean neverSplit() default false;
 
-
     /**
      * Use these names in Ruby core methods stubs, ignore argument names in Java specializations
      */

@@ -461,7 +461,8 @@ public abstract class RegexpNodes {
 
         @Specialization(
                 guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string, rangeNode)" })
-        protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int ending, boolean forward,
+        protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int ending,
+                boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode) {

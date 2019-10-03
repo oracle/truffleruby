@@ -54,7 +54,7 @@ public abstract class TruffleGraalNodes {
 
     }
 
-    @CoreMethod(names = "always_split", onSingleton = true, required = 1)
+    @CoreMethod(names = "always_split", onSingleton = true, required = 1, argumentNames = "method_or_proc")
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

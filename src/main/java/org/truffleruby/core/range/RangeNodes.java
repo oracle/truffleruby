@@ -474,7 +474,8 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(beginning)", "fitsIntoInteger(ending)" })
-        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long beginning, long ending, boolean excludeEnd) {
+        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long beginning, long ending,
+                boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
@@ -482,7 +483,8 @@ public abstract class RangeNodes {
                     (int) ending);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(beginning) || !fitsIntoInteger(ending)" })
+        @Specialization(
+                guards = { "rubyClass == rangeClass", "!fitsIntoInteger(beginning) || !fitsIntoInteger(ending)" })
         protected DynamicObject longRange(DynamicObject rubyClass, long beginning, long ending, boolean excludeEnd) {
             return Layouts.LONG_RANGE.createLongRange(
                     coreLibrary().getLongRangeFactory(),

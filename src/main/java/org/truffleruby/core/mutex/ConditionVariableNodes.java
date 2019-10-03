@@ -68,14 +68,14 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject rubyCondition, DynamicObject mutex,
-                long durationInNanos,
+                long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
-            waitInternal(rubyCondition, mutexLock, thread, durationInNanos);
+            waitInternal(rubyCondition, mutexLock, thread, timeout);
             return rubyCondition;
         }
 
@@ -98,7 +98,8 @@ public abstract class ConditionVariableNodes {
             });
             mutexLock.unlock();
 
-            Layouts.CONDITION_VARIABLE.setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) + 1);
+            Layouts.CONDITION_VARIABLE
+                    .setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) + 1);
             try {
                 awaitSignal(rubyCondition, thread, durationInNanos, condLock, condition, endNanoTime);
             } catch (Error | RuntimeException e) {
@@ -111,7 +112,8 @@ public abstract class ConditionVariableNodes {
                 consumeSignal(rubyCondition);
                 throw e;
             } finally {
-                Layouts.CONDITION_VARIABLE.setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) - 1);
+                Layouts.CONDITION_VARIABLE
+                        .setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) - 1);
                 condLock.unlock();
                 MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
             }
