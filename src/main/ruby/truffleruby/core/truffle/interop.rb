@@ -221,7 +221,7 @@ module Truffle
 
       # Currently you cannot add methods here, as method calls on this class
       # (when the object is indeed foreign) are sent as interop messages,
-      # rather than looking them up in the class. See #special_form, however.
+      # rather than looking them up in the class.
 
     end
 
@@ -247,57 +247,26 @@ module Truffle
       end
     end
 
-    def self.special_form(receiver, name, *args)
-      case name.to_sym
-      when :delete
-        Truffle::Interop.remove(receiver, *args)
-      when :size
-        Truffle::Interop.size(receiver)
-      when :keys
-        Truffle::Interop.keys(receiver)
-      when :class
-        if Truffle::Interop.java_class?(receiver)
-          Truffle::Interop.read(receiver, :class)
+    def self.foreign_is_a?(receiver, klass)
+      receiver = Truffle::Interop.unbox_if_needed(receiver)
+      if Truffle::Interop.foreign?(receiver)
+        if Truffle::Interop.java_class?(klass)
+          # Checking against a Java class
+          Truffle::Interop.java_instanceof?(receiver, klass)
+        elsif Truffle::Interop.foreign?(klass)
+          # Checking a foreign (not Java) object against a foreign (not Java) class
+          raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
         else
-          Truffle::Interop.invoke(receiver, :class, *args)
-        end
-      when :inspect
-        inspect_foreign(receiver)
-      when :to_s
-        receiver = Truffle::Interop.unbox_if_needed(receiver)
-        if receiver.is_a?(String)
-          receiver
-        else
-          receiver.inspect
-        end
-      when :to_str
-        receiver = Truffle::Interop.unbox_if_needed(receiver)
-        raise NameError, 'no method to_str' unless receiver.is_a?(String)
-        receiver
-      when :is_a?, :kind_of?
-        receiver = Truffle::Interop.unbox_if_needed(receiver)
-        check_class = args.first
-        if Truffle::Interop.foreign?(receiver)
-          if Truffle::Interop.java_class?(check_class)
-            # Checking against a Java class
-            Truffle::Interop.java_instanceof?(receiver, check_class)
-          elsif Truffle::Interop.foreign?(check_class)
-            # Checking a foreign (not Java) object against a foreign (not Java) class
-            raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
-          else
-            # Checking a foreign or Java object against a Ruby class
-            false
-          end
-        else
-          # The receiver unboxed to a Ruby object or a primitive
-          receiver.is_a?(check_class)
+          # Checking a foreign or Java object against a Ruby class
+          false
         end
       else
-        raise
+        # The receiver unboxed to a Ruby object or a primitive
+        receiver.is_a?(klass)
       end
     end
 
-    def self.inspect_foreign(object)
+    def self.foreign_inspect(object)
       object = Truffle::Interop.unbox_if_needed(object)
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       if object.is_a?(String)
@@ -331,7 +300,27 @@ module Truffle
       end
     end
 
-    def self.respond_to?(object, name)
+    def self.foreign_class(receiver, *args)
+      if Truffle::Interop.java_class?(receiver)
+        Truffle::Interop.read(receiver, :class)
+      else
+        Truffle::Interop.invoke(receiver, :class, *args)
+      end
+    end
+
+    def self.foreign_to_s(receiver)
+      receiver = Truffle::Interop.unbox_if_needed(receiver)
+      receiver.is_a?(String) ? receiver : receiver.inspect
+    end
+
+    def self.foreign_to_str(object)
+      # object = as_string object if is_string? object
+      object = Truffle::Interop.unbox_if_needed(object)
+      raise NameError, 'no method to_str' unless object.is_a?(String)
+      object
+    end
+
+    def self.foreign_respond_to?(object, name)
       case name.to_sym
       when :to_a, :to_ary
         Truffle::Interop.size?(object)

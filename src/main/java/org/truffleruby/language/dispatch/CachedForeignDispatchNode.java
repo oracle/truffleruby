@@ -9,18 +9,24 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
     @Child private OutgoingForeignCallNode outgoingForeignCallNode;
+    @Child private TranslateExceptionNode exceptionTranslatingNode;
     final private String methodName;
+    final private BranchProfile errorProfile = BranchProfile.create();
 
     public CachedForeignDispatchNode(RubyContext context, DispatchNode next, String methodName) {
         super(context, methodName, next, DispatchAction.CALL_METHOD);
@@ -53,7 +59,20 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
     }
 
     private Object doDispatch(VirtualFrame frame, Object receiverObject, Object[] arguments) {
-        return outgoingForeignCallNode.executeCall(receiverObject, methodName, arguments);
+        try {
+            return outgoingForeignCallNode.executeCall(receiverObject, methodName, arguments);
+        } catch (Throwable t) {
+            errorProfile.enter();
+            throw getExceptionTranslatingNode().executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
+        }
+    }
+
+    private TranslateExceptionNode getExceptionTranslatingNode() {
+        if (exceptionTranslatingNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            exceptionTranslatingNode = insert(TranslateExceptionNode.create());
+        }
+        return exceptionTranslatingNode;
     }
 
 }

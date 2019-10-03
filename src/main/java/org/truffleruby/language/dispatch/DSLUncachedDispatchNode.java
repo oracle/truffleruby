@@ -23,6 +23,8 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.TranslateExceptionNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -106,9 +108,11 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             @Cached IndirectCallNode indirectCallNode,
             @Cached ToSymbolNode toSymbolNode,
             @Cached BranchProfile foreignProfile,
+            @Cached BranchProfile foreignErrorProfile,
             @Cached BranchProfile methodNotFoundProfile,
             @Cached BranchProfile methodMissingProfile,
-            @Cached BranchProfile methodMissingNotFoundProfile) {
+            @Cached BranchProfile methodMissingNotFoundProfile,
+            @Cached TranslateExceptionNode translateExceptionNode) {
 
         assert this != DSLUncachedDispatchNodeGen.getUncached() || frame == null;
 
@@ -117,7 +121,12 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
         if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
             if (metaClassNode.executeMetaClass(receiver) == context.getCoreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
-                return OutgoingForeignCallNodeGen.getUncached().executeCall(receiver, methodName, arguments);
+                try {
+                    return OutgoingForeignCallNodeGen.getUncached().executeCall(receiver, methodName, arguments);
+                } catch (Throwable t) {
+                    foreignErrorProfile.enter();
+                    throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
+                }
             }
         } else {
             assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";

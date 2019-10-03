@@ -46,9 +46,8 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
     public abstract RuntimeException executeTranslation(Throwable throwable,
             UnsupportedOperationBehavior unsupportedOperationBehavior);
 
-    @Specialization(guards = "unsupportedOperationBehavior == cachedUnsupportedOperationBehavior")
+    @Specialization
     protected RuntimeException translate(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior,
-            @Cached("unsupportedOperationBehavior") UnsupportedOperationBehavior cachedUnsupportedOperationBehavior,
             @Cached BranchProfile controlProfile,
             @Cached BranchProfile raiseProfile,
             @Cached BranchProfile arithmeticProfile,
