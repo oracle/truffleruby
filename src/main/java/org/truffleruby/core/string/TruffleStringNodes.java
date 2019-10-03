@@ -11,7 +11,7 @@ package org.truffleruby.core.string;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.Rope;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::StringOperations")
+@CoreModule("Truffle::StringOperations")
 public class TruffleStringNodes {
 
     @CoreMethod(names = "truncate", onSingleton = true, required = 2, lowerFixnum = 2)

@@ -91,7 +91,7 @@ class Thread
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
   def self.detect_recursion(obj, paired_obj=nil)
-    unless Truffle.invoke_primitive :object_can_contain_object, obj
+    unless TrufflePrimitive.object_can_contain_object obj
       yield
       return false
     end
@@ -208,9 +208,9 @@ class Thread
     attr_accessor :abort_on_exception, :report_on_exception
 
     def new(*args, &block)
-      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread = TrufflePrimitive.thread_allocate(self)
       thread.send(:initialize, *args, &block)
-      unless Truffle.invoke_primitive(:thread_initialized?, thread)
+      unless TrufflePrimitive.thread_initialized?(thread)
         Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
       end
       thread
@@ -219,9 +219,9 @@ class Thread
     def start(*args, &block)
       Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
 
-      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread = TrufflePrimitive.thread_allocate(self)
       thread.send(:internal_thread_initialize)
-      Truffle.invoke_primitive(:thread_initialize, thread, args, block)
+      TrufflePrimitive.thread_initialize(thread, args, block)
       thread
     end
     alias_method :fork, :start
@@ -234,11 +234,11 @@ class Thread
 
   def initialize(*args, &block)
     Kernel.raise ThreadError, 'must be called with a block' unless block
-    if Truffle.invoke_primitive(:thread_initialized?, self)
+    if TrufflePrimitive.thread_initialized?(self)
       Kernel.raise ThreadError, 'already initialized thread'
     end
     internal_thread_initialize
-    Truffle.invoke_primitive(:thread_initialize, self, args, block)
+    TrufflePrimitive.thread_initialize(self, args, block)
   end
 
   private def internal_thread_initialize
@@ -259,7 +259,7 @@ class Thread
       raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
       # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME
     end
-    Truffle.invoke_primitive :thread_set_name, self, val
+    TrufflePrimitive.thread_set_name self, val
     val
   end
 
@@ -271,7 +271,7 @@ class Thread
   PRIORITIES_JAVA_TO_RUBY = [-3, -2, -1, -1, 0, 1, 1, 2, 2, 3]
 
   def priority
-    java_priority = Truffle.invoke_primitive :thread_get_priority, self
+    java_priority = TrufflePrimitive.thread_get_priority self
     PRIORITIES_JAVA_TO_RUBY[java_priority-1]
   end
 
@@ -280,14 +280,14 @@ class Thread
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]
-    Truffle.invoke_primitive :thread_set_priority, self, java_priority
+    TrufflePrimitive.thread_set_priority self, java_priority
     priority
   end
 
   def inspect
     stat = status()
     stat = 'dead' unless stat
-    loc = Truffle.invoke_primitive(:thread_source_location, self)
+    loc = TrufflePrimitive.thread_source_location(self)
     "#<#{self.class}:0x#{object_id.to_s(16)}@#{loc} #{stat}>"
   end
   alias_method :to_s, :inspect
@@ -319,9 +319,9 @@ class Thread
     end
 
     if self == Thread.current
-      Truffle.invoke_primitive :vm_raise_exception, exc, false
+      TrufflePrimitive.vm_raise_exception exc, false
     else
-      Truffle.invoke_primitive :thread_raise, self, exc
+      TrufflePrimitive.thread_raise self, exc
     end
   end
 
@@ -344,8 +344,8 @@ class Thread
   def [](name)
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
-      locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
-      Truffle.invoke_primitive :object_ivar_get, locals, var
+      locals = TrufflePrimitive.thread_get_fiber_locals self
+      TrufflePrimitive.object_ivar_get locals, var
     end
   end
 
@@ -353,22 +353,22 @@ class Thread
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
       Truffle.check_frozen
-      locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
-      Truffle.invoke_primitive :object_ivar_set, locals, var, value
+      locals = TrufflePrimitive.thread_get_fiber_locals self
+      TrufflePrimitive.object_ivar_set locals, var, value
     end
   end
 
   def key?(name)
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
-      locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
-      Truffle.invoke_primitive :object_ivar_defined?, locals, var
+      locals = TrufflePrimitive.thread_get_fiber_locals self
+      TrufflePrimitive.object_ivar_defined? locals, var
     end
   end
 
   def keys
     Truffle::System.synchronized(self) do
-      locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
+      locals = TrufflePrimitive.thread_get_fiber_locals self
       locals.instance_variables
     end
   end
@@ -419,7 +419,7 @@ class ThreadGroup
     raise ThreadError, "can't move from the frozen thread group" if from_tg.frozen?
     raise ThreadError, "can't move from the enclosed thread group" if from_tg.enclosed?
 
-    Truffle.invoke_primitive :thread_set_group, thread, self
+    TrufflePrimitive.thread_set_group thread, self
     self
   end
 
@@ -430,7 +430,7 @@ class ThreadGroup
   Default = ThreadGroup.new
 end
 
-Truffle.invoke_primitive :thread_set_group, Thread.current, ThreadGroup::Default
+TrufflePrimitive.thread_set_group Thread.current, ThreadGroup::Default
 
 class Thread::Backtrace::Location
   def inspect
@@ -455,7 +455,7 @@ class ConditionVariable
 
     raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless raw_mutex.kind_of? Mutex
 
-    Truffle.invoke_primitive(:condition_variable_wait, self, raw_mutex, timeout)
+    TrufflePrimitive.condition_variable_wait(self, raw_mutex, timeout)
   end
 
   def marshal_dump
@@ -478,8 +478,8 @@ Truffle::KernelOperations.define_hooked_variable(
   }
 )
 
-Truffle::KernelOperations.define_read_only_global(:$!, -> { Truffle.invoke_primitive(:thread_get_exception) })
-Truffle::KernelOperations.define_read_only_global(:$?, -> { Truffle.invoke_primitive(:thread_get_return_code) })
+Truffle::KernelOperations.define_read_only_global(:$!, -> { TrufflePrimitive.thread_get_exception })
+Truffle::KernelOperations.define_read_only_global(:$?, -> { TrufflePrimitive.thread_get_return_code })
 
 Truffle::KernelOperations.define_hooked_variable(
   :$@,

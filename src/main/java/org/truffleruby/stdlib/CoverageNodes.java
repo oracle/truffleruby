@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -26,7 +26,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
-@CoreClass("Truffle::Coverage")
+@CoreModule("Truffle::Coverage")
 public abstract class CoverageNodes {
 
     @CoreMethod(names = "enable", onSingleton = true)

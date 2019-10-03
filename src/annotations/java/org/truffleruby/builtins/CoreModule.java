@@ -16,8 +16,9 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CoreClass {
+public @interface CoreModule {
 
     String value();
 
+    boolean isClass() default false;
 }

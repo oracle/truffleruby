@@ -154,7 +154,7 @@ class File < IO
 
     ext_not_present = undefined.equal?(ext)
 
-    if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, path.bytesize)
+    if pos = TrufflePrimitive.find_string_reverse(path, slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.
       if pos == path.bytesize - 1
 
@@ -173,7 +173,7 @@ class File < IO
         return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, path.bytesize)
+        pos = TrufflePrimitive.find_string_reverse(path, slash, path.bytesize)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
           return path
@@ -190,10 +190,10 @@ class File < IO
     ext = StringValue(ext)
 
     if ext == '.*'
-      if pos = Truffle.invoke_primitive(:find_string_reverse, path, '.', path.bytesize)
+      if pos = TrufflePrimitive.find_string_reverse(path, '.', path.bytesize)
         return path.byteslice(0, pos)
       end
-    elsif pos = Truffle.invoke_primitive(:find_string_reverse, path, ext, path.bytesize)
+    elsif pos = TrufflePrimitive.find_string_reverse(path, ext, path.bytesize)
       # Check that ext is the last thing in the string
       if pos == path.bytesize - ext.size
         return path.byteslice(0, pos)
@@ -254,7 +254,7 @@ class File < IO
 
     paths.size
   end
-  Truffle.invoke_primitive(:method_unimplement, method(:lchmod)) unless Truffle::Platform.has_lchmod?
+  TrufflePrimitive.method_unimplement(method(:lchmod)) unless Truffle::Platform.has_lchmod?
 
   ##
   # Changes the owner and group of the
@@ -407,7 +407,7 @@ class File < IO
     chunk_size = last_nonslash(path)
     return +'/' unless chunk_size
 
-    if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, chunk_size)
+    if pos = TrufflePrimitive.find_string_reverse(path, slash, chunk_size)
       return +'/' if pos == 0
 
       path = path.byteslice(0, pos)
@@ -491,7 +491,7 @@ class File < IO
 
         return home.dup
       else
-        unless length = Truffle.invoke_primitive(:find_string, path, '/', 1)
+        unless length = TrufflePrimitive.find_string(path, '/', 1)
           length = path.bytesize
         end
 
@@ -521,7 +521,7 @@ class File < IO
     start = 0
     size = path.bytesize
 
-    while index = Truffle.invoke_primitive(:find_string, path, '/', start) or (start < size and index = size)
+    while index = TrufflePrimitive.find_string(path, '/', start) or (start < size and index = size)
       length = index - start
 
       if length > 0
@@ -558,12 +558,12 @@ class File < IO
     path = Truffle::Type.coerce_to_path(path)
     path_size = path.bytesize
 
-    dot_idx = Truffle.invoke_primitive(:find_string_reverse, path, '.', path_size)
+    dot_idx = TrufflePrimitive.find_string_reverse(path, '.', path_size)
 
     # No dots at all
     return '' unless dot_idx
 
-    slash_idx = Truffle.invoke_primitive(:find_string_reverse, path, '/', path_size)
+    slash_idx = TrufflePrimitive.find_string_reverse(path, '/', path_size)
 
     # pretend there is / just to the left of the start of the string
     slash_idx ||= -1
@@ -725,10 +725,10 @@ class File < IO
 
     if (flags & FNM_EXTGLOB) != 0
       brace_match = braces(pattern, flags).any? do |p|
-        Truffle.invoke_primitive :file_fnmatch, p, path, flags
+        TrufflePrimitive.file_fnmatch p, path, flags
       end
     end
-    brace_match || Truffle.invoke_primitive(:file_fnmatch, pattern, path, flags)
+    brace_match || TrufflePrimitive.file_fnmatch(pattern, path, flags)
   end
 
   ##

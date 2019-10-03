@@ -13,7 +13,7 @@ class Method
   def inspect
     extra = ''
 
-    if Truffle.invoke_primitive :method_unimplemented?, self
+    if TrufflePrimitive.method_unimplemented? self
       extra = ' (not-implemented)'
     else
       file, line = source_location

@@ -179,7 +179,7 @@ class Hash
     if default_proc and !undefined.equal?(key)
       default_proc.call(self, key)
     else
-      Truffle.invoke_primitive :hash_default_value, self
+      TrufflePrimitive.hash_default_value self
     end
   end
 
@@ -193,7 +193,7 @@ class Hash
       end
     end
 
-    Truffle.invoke_primitive :hash_set_default_proc, self, proc
+    TrufflePrimitive.hash_set_default_proc self, proc
   end
 
   def dig(key, *more)
@@ -354,18 +354,18 @@ class Hash
   private_constant :CLASS_SALT
 
   def hash
-    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
-    val = Truffle.invoke_primitive :vm_hash_update, val, size
+    val = TrufflePrimitive.vm_hash_start CLASS_SALT
+    val = TrufflePrimitive.vm_hash_update val, size
     Thread.detect_outermost_recursion self do
       each_pair do |key,value|
-        entry_val = Truffle.invoke_primitive :vm_hash_start, key.hash
-        entry_val = Truffle.invoke_primitive :vm_hash_update, entry_val, value.hash
+        entry_val = TrufflePrimitive.vm_hash_start key.hash
+        entry_val = TrufflePrimitive.vm_hash_update entry_val, value.hash
         # We have to combine these with xor as the hash must not depend on hash order.
-        val ^= Truffle.invoke_primitive :vm_hash_end, entry_val
+        val ^= TrufflePrimitive.vm_hash_end entry_val
       end
     end
 
-    Truffle.invoke_primitive :vm_hash_end, val
+    TrufflePrimitive.vm_hash_end val
   end
 
   def delete_if(&block)

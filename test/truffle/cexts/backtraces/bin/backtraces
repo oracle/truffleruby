@@ -20,7 +20,7 @@ def callback
 end
 
 def ruby_call
-  RB_FUNCALLV.call(Truffle.invoke_primitive( :cext_wrap, self), Truffle.invoke_primitive(:cext_wrap,'callback'), 0, nil)
+  RB_FUNCALLV.call(TrufflePrimitive.cext_wrap(self), TrufflePrimitive.cext_wrap('callback'), 0, nil)
 end
 
 def top
@@ -42,7 +42,7 @@ RB_MUTEX_LOCK = Truffle::Interop.import('rb_mutex_lock')
 LOCK.lock
 
 def double_lock
-  RB_MUTEX_LOCK.call(Truffle.invoke_primitive( :cext_wrap, LOCK))
+  RB_MUTEX_LOCK.call(TrufflePrimitive.cext_wrap(LOCK))
 end
 
 begin

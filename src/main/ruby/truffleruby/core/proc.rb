@@ -90,7 +90,7 @@ class Proc
     file, line = source_location
 
     suffix = ''.b
-    if sym = Truffle.invoke_primitive(:proc_symbol_to_proc_symbol, self)
+    if sym = TrufflePrimitive.proc_symbol_to_proc_symbol(self)
       suffix << "(&#{sym.inspect})"
     elsif file and line
       suffix << "@#{file}:#{line}"

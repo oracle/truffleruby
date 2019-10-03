@@ -46,14 +46,14 @@ class Exception
   end
 
   def to_s
-    msg = Truffle.invoke_primitive :exception_message, self
+    msg = TrufflePrimitive.exception_message self
     if msg.nil?
-      formatter = Truffle.invoke_primitive :exception_formatter, self
+      formatter = TrufflePrimitive.exception_formatter self
       if formatter.nil?
         self.class.to_s
       else
         msg = formatter.call(self).to_s
-        Truffle.invoke_primitive :exception_set_message, self, msg
+        TrufflePrimitive.exception_set_message self, msg
         msg
       end
     else
@@ -76,7 +76,7 @@ class Exception
   alias_method :__initialize__, :initialize
 
   def backtrace?
-    result = Truffle.invoke_primitive :exception_backtrace?, self
+    result = TrufflePrimitive.exception_backtrace? self
     if !undefined.equal?(result)
       result
     else
@@ -195,7 +195,7 @@ class UncaughtThrowError < ArgumentError
   end
 
   def to_s
-    sprintf(Truffle.invoke_primitive(:exception_message, self), @tag)
+    sprintf(TrufflePrimitive.exception_message(self), @tag)
   end
 end
 
@@ -219,7 +219,7 @@ class NameError < StandardError
   def initialize(*args)
     name = args.size > 1 ? args.pop : nil
     super(*args)
-    Truffle.invoke_primitive :name_error_set_name, self, name
+    TrufflePrimitive.name_error_set_name self, name
   end
 end
 
@@ -228,7 +228,7 @@ class NoMethodError < NameError
   def initialize(*arguments)
     args = arguments.size > 2 ? arguments.pop : nil
     super(*arguments) # TODO BJF Jul 24, 2016 Need to handle NoMethodError.new(1,2,3,4)
-    Truffle.invoke_primitive :no_method_error_set_args, self, args
+    TrufflePrimitive.no_method_error_set_args self, args
   end
 end
 
@@ -334,7 +334,7 @@ class SystemCallError < StandardError
   def self.errno_error(message, errno, location)
     message = message ? " - #{message}" : +''
     message = " @ #{location}#{message}" if location
-    Truffle.invoke_primitive :exception_errno_error, message, errno
+    TrufflePrimitive.exception_errno_error message, errno
   end
 
   # We use .new here because when errno is set, we attempt to
@@ -407,7 +407,7 @@ class SystemCallError < StandardError
   # Use splat args here so that arity returns -1 to match MRI.
   def initialize(*args)
     message, errno, location = args
-    Truffle.invoke_primitive :exception_set_errno, self, errno
+    TrufflePrimitive.exception_set_errno self, errno
 
     msg = +'unknown error'
     msg << " @ #{StringValue(location)}" if location

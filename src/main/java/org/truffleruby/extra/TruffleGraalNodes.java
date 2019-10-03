@@ -10,7 +10,7 @@
 package org.truffleruby.extra;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.proc.ProcType;
@@ -31,7 +31,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::Graal")
+@CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
 
     @CoreMethod(names = "assert_constant", onSingleton = true, required = 1)

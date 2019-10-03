@@ -22,12 +22,12 @@ module Math
       # Much faster (~10x) than calling the Math.hypot() / hypot(3)
       Math.sqrt(a*a + b*b)
     else
-      Truffle.invoke_primitive :math_hypot, a, b
+      TrufflePrimitive.math_hypot a, b
     end
   end
 
   def frexp(x)
-    result = Truffle.invoke_primitive(:math_frexp, x)
+    result = TrufflePrimitive.math_frexp(x)
     if !undefined.equal?(result)
       result
     else
@@ -36,7 +36,7 @@ module Math
   end
 
   def ldexp(fraction, exponent)
-    result = Truffle.invoke_primitive(:math_ldexp, fraction, exponent)
+    result = TrufflePrimitive.math_ldexp(fraction, exponent)
     if !undefined.equal?(result)
       result
     elsif Float === exponent and exponent.nan?

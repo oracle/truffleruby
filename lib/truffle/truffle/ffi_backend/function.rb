@@ -82,7 +82,7 @@ module FFI
       end
 
       if blocking
-        result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
+        result = TrufflePrimitive.thread_run_blocking_nfi_system_call -> {
           r = @function.call(*converted_args)
           if Integer === r and r == -1 and Errno.errno == Errno::EINTR::Errno
             undefined # retry

@@ -1,2 +1,2 @@
-org.truffleruby.processor.CoreClassProcessor
+org.truffleruby.processor.CoreModuleProcessor
 org.truffleruby.processor.BuildInformationProcessor

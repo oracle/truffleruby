@@ -95,7 +95,7 @@ class Encoding
       return if encoding.ascii_compatible?
 
       name = encoding.name.upcase.to_sym
-      transcoders = Truffle.invoke_primitive :encoding_transcoders_from_encoding, name
+      transcoders = TrufflePrimitive.encoding_transcoders_from_encoding name
 
       return unless transcoders and transcoders.size == 1
 
@@ -222,8 +222,8 @@ class Encoding
         source.prepend putback
       end
 
-      Truffle.invoke_primitive(:encoding_converter_primitive_convert,
-                                self, source, target, offset, size, options)
+      TrufflePrimitive.encoding_converter_primitive_convert(
+          self, source, target, offset, size, options)
     end
 
     def finish
@@ -244,7 +244,7 @@ class Encoding
     end
 
     def last_error
-      error = Truffle.invoke_primitive :encoding_converter_last_error, self
+      error = TrufflePrimitive.encoding_converter_last_error self
       return if error.nil?
 
       result, source_encoding_name, destination_encoding_name, error_bytes, read_again_bytes = error

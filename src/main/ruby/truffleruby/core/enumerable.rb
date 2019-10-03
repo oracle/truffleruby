@@ -338,7 +338,7 @@ module Enumerable
     return to_enum(:each_with_index, *args) { enumerator_size } unless block_given?
 
     if Array === self
-      Truffle.invoke_primitive(:array_each_with_index, self, block)
+      TrufflePrimitive.array_each_with_index(self, block)
     else
       idx = 0
       each(*args) do
@@ -371,7 +371,7 @@ module Enumerable
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match($~, TrufflePrimitive.caller_binding)
     end
 
     ary
@@ -397,7 +397,7 @@ module Enumerable
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match($~, TrufflePrimitive.caller_binding)
     end
 
     ary
@@ -447,7 +447,7 @@ module Enumerable
 
   def inject(initial=undefined, sym=undefined, &block)
     if Array === self
-      return Truffle.invoke_primitive(:array_inject, self, initial, sym, block)
+      return TrufflePrimitive.array_inject(self, initial, sym, block)
     end
 
     if !block_given? or !undefined.equal?(sym)

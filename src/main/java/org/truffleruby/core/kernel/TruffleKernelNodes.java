@@ -12,7 +12,7 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -43,7 +43,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::KernelOperations")
+@CoreModule("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
 
     @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1)

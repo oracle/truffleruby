@@ -10,7 +10,7 @@
 package org.truffleruby.core.queue;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -34,7 +34,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * We do not reuse much of class Queue since we need to be able to replace the queue in this case
  * and methods are small anyway.
  */
-@CoreClass("SizedQueue")
+@CoreModule(value = "SizedQueue", isClass = true)
 public abstract class SizedQueueNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

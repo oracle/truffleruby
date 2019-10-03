@@ -34,7 +34,7 @@ class Truffle::Randomizer
   attr_reader :seed
 
   def seed=(new_seed)
-    Truffle.invoke_primitive :randomizer_set_seed, self, new_seed
+    TrufflePrimitive.randomizer_set_seed self, new_seed
     @seed = new_seed
   end
 
@@ -172,7 +172,7 @@ class Random
   # Returns a random binary string.
   # The argument size specified the length of the result string.
   def bytes(length)
-    Truffle.invoke_primitive :randomizer_bytes, @randomizer, length
+    TrufflePrimitive.randomizer_bytes @randomizer, length
   end
 end
 

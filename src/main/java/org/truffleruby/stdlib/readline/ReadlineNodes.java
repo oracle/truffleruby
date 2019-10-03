@@ -47,7 +47,7 @@ import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -81,7 +81,7 @@ import jline.console.CursorBuffer;
 import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 
-@CoreClass("Truffle::Readline")
+@CoreModule("Truffle::Readline")
 public abstract class ReadlineNodes {
 
     @CoreMethod(names = "basic_word_break_characters", onSingleton = true)

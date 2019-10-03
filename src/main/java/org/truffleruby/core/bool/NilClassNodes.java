@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.bool;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.inlined.InlinedIsNilNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 
-@CoreClass("NilClass")
+@CoreModule(value = "NilClass", isClass = true)
 public abstract class NilClassNodes {
 
     /** Needs to be in Java for {@link InlinedIsNilNode} */

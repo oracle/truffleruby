@@ -128,7 +128,7 @@ module Truffle
       byte_count_to_copy = sz - dest_offset if byte_count_to_copy > sz - dest_offset
 
       replacement = other.byteslice(other_offset, byte_count_to_copy)
-      Truffle.invoke_primitive(:string_splice, string, replacement, dest_offset, byte_count_to_copy, string.encoding)
+      TrufflePrimitive.string_splice(string, replacement, dest_offset, byte_count_to_copy, string.encoding)
     end
 
     def self.case_mapping_option_to_int(option, downcasing=false)

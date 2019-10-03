@@ -43,7 +43,7 @@ class Integer < Numeric
   public :remainder
 
   def **(o)
-    pow = Truffle.invoke_primitive :integer_pow, self, o
+    pow = TrufflePrimitive.integer_pow self, o
     unless undefined.equal?(pow)
       return pow
     end
@@ -89,7 +89,7 @@ class Integer < Numeric
   end
 
   def divmod(b)
-    divmod = Truffle.invoke_primitive :integer_divmod, self, b
+    divmod = TrufflePrimitive.integer_divmod self, b
     unless undefined.equal?(divmod)
       return divmod
     end

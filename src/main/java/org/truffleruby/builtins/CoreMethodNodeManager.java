@@ -92,12 +92,12 @@ public class CoreMethodNodeManager {
 
             if (methodAnnotation != null) {
                 if (module == null) {
-                    CoreClass coreClass = nodeClass.getEnclosingClass().getAnnotation(CoreClass.class);
-                    if (coreClass == null) {
-                        throw new Error(nodeClass.getEnclosingClass() + " needs a @CoreClass annotation");
+                    CoreModule coreModule = nodeClass.getEnclosingClass().getAnnotation(CoreModule.class);
+                    if (coreModule == null) {
+                        throw new Error(nodeClass.getEnclosingClass() + " needs a @CoreModule annotation");
                     }
-                    moduleName = coreClass.value();
-                    module = getModule(moduleName);
+                    moduleName = coreModule.value();
+                    module = getModule(moduleName, coreModule.isClass());
                 }
                 addCoreMethod(module, new MethodDetails(moduleName, methodAnnotation, nodeFactory));
             } else if ((primitiveAnnotation = nodeClass.getAnnotation(Primitive.class)) != null) {
@@ -106,7 +106,7 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private DynamicObject getModule(String fullName) {
+    private DynamicObject getModule(String fullName, boolean isClass) {
         DynamicObject module;
 
         if (fullName.equals("main")) {
@@ -126,7 +126,9 @@ public class CoreMethodNodeManager {
             }
         }
 
-        assert RubyGuards.isRubyModule(module) : fullName;
+        assert isClass
+                ? RubyGuards.isRubyClass(module)
+                : RubyGuards.isRubyModule(module) && !RubyGuards.isRubyClass(module) : fullName;
         return module;
     }
 
@@ -167,10 +169,10 @@ public class CoreMethodNodeManager {
                 method.neverSplit());
     }
 
-    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, boolean isClass, Visibility visibility,
             boolean isModuleFunction, boolean onSingleton,
             boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
-        final DynamicObject module = getModule(moduleName);
+        final DynamicObject module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {

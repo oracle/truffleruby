@@ -13,7 +13,7 @@ import java.math.BigInteger;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
@@ -48,7 +48,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Integer")
+@CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
 
     public static abstract class BignumCoreMethodNode extends CoreMethodArrayArgumentsNode {

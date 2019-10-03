@@ -326,10 +326,10 @@ class Complex < Numeric
   private_constant :CLASS_SALT
 
   def hash
-    val = Truffle.invoke_primitive :vm_hash_start, CLASS_SALT
-    val = Truffle.invoke_primitive :vm_hash_update, val, @real.hash
-    val = Truffle.invoke_primitive :vm_hash_update, val, @imag.hash
-    Truffle.invoke_primitive :vm_hash_end, val
+    val = TrufflePrimitive.vm_hash_start CLASS_SALT
+    val = TrufflePrimitive.vm_hash_update val, @real.hash
+    val = TrufflePrimitive.vm_hash_update val, @imag.hash
+    TrufflePrimitive.vm_hash_end val
   end
 
   def inspect

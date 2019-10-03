@@ -1048,7 +1048,7 @@ class IO
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
           end
 
-          Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> do
+          TrufflePrimitive.thread_run_blocking_nfi_system_call -> do
             ret = Truffle::POSIX.truffleposix_select(
               readables.size, readables_ptr,
               writables.size, writables_ptr,
@@ -1215,7 +1215,7 @@ class IO
     _offset = Truffle::Type.coerce_to_int offset
     _len = Truffle::Type.coerce_to_int len
 
-    # Truffle.invoke_primitive :io_advise, self, advice, offset, len
+    # TrufflePrimitive.io_advise self, advice, offset, len
     raise 'IO#advise not implemented'
   end
 
@@ -1774,7 +1774,7 @@ class IO
       line = l
       break
     end
-    Truffle::IOOperations.set_last_line(line, Truffle.invoke_primitive(:caller_binding)) if line
+    Truffle::IOOperations.set_last_line(line, TrufflePrimitive.caller_binding) if line
     line
   end
 
@@ -1883,7 +1883,7 @@ class IO
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
   # nil.
   def print(*args)
-    Truffle::IOOperations.print self, args, Truffle.invoke_primitive(:caller_binding)
+    Truffle::IOOperations.print self, args, TrufflePrimitive.caller_binding
   end
 
   ##
@@ -2185,7 +2185,7 @@ class IO
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
-        Truffle.invoke_primitive :vm_set_class, self, io.class
+        TrufflePrimitive.vm_set_class self, io.class
 
         if io.respond_to?(:path)
           @path = io.path
@@ -2598,7 +2598,7 @@ class IO
       fd = @descriptor
       if fd >= 0
         # Need to set even if the instance is frozen
-        Truffle.invoke_primitive :object_ivar_set, self, :@descriptor, -1
+        TrufflePrimitive.object_ivar_set self, :@descriptor, -1
         if fd >= 3 && autoclose?
           ret = Truffle::POSIX.close(fd)
           Errno.handle if ret < 0

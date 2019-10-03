@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.module.ModuleNodes;
@@ -29,7 +29,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@CoreClass("main")
+@CoreModule(value = "main", isClass = true)
 public abstract class MainNodes {
 
     @CoreMethod(names = "public", rest = true, needsSelf = false, visibility = Visibility.PRIVATE)

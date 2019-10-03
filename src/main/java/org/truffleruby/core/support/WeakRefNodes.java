@@ -11,7 +11,7 @@ package org.truffleruby.core.support;
 
 import java.lang.ref.WeakReference;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 
-@CoreClass("Truffle::WeakRefOperations")
+@CoreModule("Truffle::WeakRefOperations")
 public abstract class WeakRefNodes {
 
     private static final WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);

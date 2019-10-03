@@ -40,7 +40,7 @@ module Readline
       raise NotImplementedError, "function Readline.#{method_name}() is unimplemented on this machine"
     end
 
-    Truffle.invoke_primitive :method_unimplement, method(method_name)
+    TrufflePrimitive.method_unimplement method(method_name)
   end
 
   @completion_append_character = ' '
@@ -59,7 +59,7 @@ module Readline
   def self.completion_proc=(proc)
     raise ArgumentError, "argument must respond to `call'" unless proc.respond_to?(:call)
 
-    Truffle.invoke_primitive :readline_set_completion_proc, -> buffer {
+    TrufflePrimitive.readline_set_completion_proc -> buffer {
       result = proc.call(buffer)
       unless Array === result
         result = Array(result)
@@ -74,13 +74,13 @@ module Readline
 
   def self.input=(input)
     Truffle::Type.rb_check_type(input, IO)
-    Truffle.invoke_primitive :readline_set_input, input.fileno, input
+    TrufflePrimitive.readline_set_input input.fileno, input
     input
   end
 
   def self.output=(output)
     Truffle::Type.rb_check_type(output, IO)
-    Truffle.invoke_primitive :readline_set_output, output.fileno, output
+    TrufflePrimitive.readline_set_output output.fileno, output
     output
   end
 

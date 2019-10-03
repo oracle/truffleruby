@@ -10,7 +10,7 @@
 package org.truffleruby.core.fiber;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Fiber")
+@CoreModule(value = "Fiber", isClass = true)
 public abstract class FiberNodes {
 
     public abstract static class FiberTransferNode extends CoreMethodArrayArgumentsNode {

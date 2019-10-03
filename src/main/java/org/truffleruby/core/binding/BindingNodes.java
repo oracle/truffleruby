@@ -15,7 +15,7 @@ import java.util.Set;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Binding")
+@CoreModule(value = "Binding", isClass = true)
 public abstract class BindingNodes {
 
     /** Creates a Binding without a SourceSection, only for Binding used internally and not exposed to the user. */

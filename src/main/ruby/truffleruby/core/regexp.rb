@@ -110,7 +110,7 @@ class Regexp
   end
 
   def self.last_match(index=nil)
-    match = Truffle::RegexpOperations.last_match(Truffle.invoke_primitive(:caller_binding))
+    match = Truffle::RegexpOperations.last_match(TrufflePrimitive.caller_binding)
     if index
       index = Truffle::Type.coerce_to_int index
       match[index] if match
@@ -175,22 +175,22 @@ class Regexp
 
   def =~(str)
     unless str
-      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, 0)
-    Truffle::RegexpOperations.set_last_match(result, Truffle.invoke_primitive(:caller_binding))
+    Truffle::RegexpOperations.set_last_match(result, TrufflePrimitive.caller_binding)
 
     result.begin(0) if result
   end
 
   def match(str, pos=0)
     unless str
-      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, pos)
-    Truffle::RegexpOperations.set_last_match(result, Truffle.invoke_primitive(:caller_binding))
+    Truffle::RegexpOperations.set_last_match(result, TrufflePrimitive.caller_binding)
 
     if result && block_given?
       yield result
@@ -209,16 +209,16 @@ class Regexp
     elsif !other.kind_of? String
       other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
-        Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
+        Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
         return false
       end
     end
 
     if match = match_from(other, 0)
-      Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(match, TrufflePrimitive.caller_binding)
       true
     else
-      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
       false
     end
   end
@@ -240,14 +240,14 @@ class Regexp
   end
 
   def encoding
-    Truffle.invoke_primitive :encoding_get_object_encoding, self
+    TrufflePrimitive.encoding_get_object_encoding self
   end
 
   def ~
-    line = Truffle::IOOperations.last_line(Truffle.invoke_primitive(:caller_binding))
+    line = Truffle::IOOperations.last_line(TrufflePrimitive.caller_binding)
 
     unless line.kind_of?(String)
-      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
+      Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
       return nil
     end
 
@@ -294,7 +294,7 @@ class Regexp
   #    #=> {}
   #
   def named_captures
-    Hash[Truffle.invoke_primitive(:regexp_names, self)].transform_keys!(&:to_s)
+    Hash[TrufflePrimitive.regexp_names(self)].transform_keys!(&:to_s)
   end
 
   #
@@ -313,7 +313,7 @@ class Regexp
   #     #=> []
   #
   def names
-    Truffle.invoke_primitive(:regexp_names, self).map { |x| x.first.to_s }
+    TrufflePrimitive.regexp_names(self).map { |x| x.first.to_s }
   end
 
 end
@@ -336,7 +336,7 @@ class MatchData
   alias_method :eql?, :==
 
   def string
-    Truffle.invoke_primitive(:match_data_get_source, self).dup.freeze
+    TrufflePrimitive.match_data_get_source(self).dup.freeze
   end
 
   def names
@@ -348,7 +348,7 @@ class MatchData
   end
 
   def pre_match_from(idx)
-    source = Truffle.invoke_primitive(:match_data_get_source, self)
+    source = TrufflePrimitive.match_data_get_source(self)
     return source.byteslice(0, 0) if self.byte_begin(0) == 0
     nd = self.byte_begin(0) - 1
     source.byteslice(idx, nd-idx+1)
@@ -356,26 +356,26 @@ class MatchData
 
   def begin(index)
     backref = if String === index || Symbol === index
-                names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
+                names_to_backref = Hash[TrufflePrimitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else
                 Truffle::Type.coerce_to(index, Integer, :to_int)
               end
 
 
-    Truffle.invoke_primitive(:match_data_begin, self, backref)
+    TrufflePrimitive.match_data_begin(self, backref)
   end
 
   def end(index)
     backref = if String === index || Symbol === index
-                names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
+                names_to_backref = Hash[TrufflePrimitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
               else
                 Truffle::Type.coerce_to(index, Integer, :to_int)
               end
 
 
-    Truffle.invoke_primitive(:match_data_end, self, backref)
+    TrufflePrimitive.match_data_end(self, backref)
   end
 
   def collapsing?

@@ -51,7 +51,7 @@ module SecureRandom
   def self.random_bytes(n=nil)
     n = n ? Truffle::Type.coerce_to(n, Integer, :to_int) : 16
 
-    Truffle.invoke_primitive(:vm_dev_urandom_bytes, n)
+    TrufflePrimitive.vm_dev_urandom_bytes(n)
   end
 
   # SecureRandom.hex generates a random hex string.

@@ -11,7 +11,7 @@ package org.truffleruby.core.klass;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.module.ModuleFields;
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-@CoreClass("Class")
+@CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
 
     /**

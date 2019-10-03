@@ -43,7 +43,7 @@ class Encoding
         map[key] = [nil, index]
       end
 
-      Truffle.invoke_primitive :encoding_each_alias, -> alias_name, index do
+      TrufflePrimitive.encoding_each_alias -> alias_name, index do
         key = alias_name.upcase.to_sym
         map[key] = [alias_name, index]
       end
@@ -51,7 +51,7 @@ class Encoding
     end
 
     private def setup_default_encoding(name, key)
-      enc = Truffle.invoke_primitive :encoding_get_default_encoding, name
+      enc = TrufflePrimitive.encoding_get_default_encoding name
       index = if enc
                 # UTF-8 is the default value for those, so optimize for that
                 enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
@@ -74,7 +74,7 @@ class Encoding
   end
 
   Truffle::Boot.delay do
-    LOCALE = Truffle.invoke_primitive :encoding_get_default_encoding, 'locale'
+    LOCALE = TrufflePrimitive.encoding_get_default_encoding 'locale'
   end
 
   def self.aliases
@@ -84,7 +84,7 @@ class Encoding
       next unless index
 
       aname = r.first
-      aliases[aname] = Truffle.invoke_primitive(:encoding_get_encoding_by_index, index).name if aname
+      aliases[aname] = TrufflePrimitive.encoding_get_encoding_by_index(index).name if aname
     end
 
     aliases
@@ -126,14 +126,14 @@ class Encoding
     set_alias_index 'external', enc
     set_alias_index 'filesystem', enc
     @default_external = enc
-    Truffle.invoke_primitive :encoding_set_default_external, enc
+    TrufflePrimitive.encoding_set_default_external enc
   end
 
   def self.default_internal=(enc)
     enc = find(enc) unless enc.nil?
     set_alias_index 'internal', enc
     @default_internal = enc
-    Truffle.invoke_primitive :encoding_set_default_internal, enc
+    TrufflePrimitive.encoding_set_default_internal enc
   end
 
   def self.try_convert(obj)
@@ -151,7 +151,7 @@ class Encoding
     pair = EncodingMap[key]
     if pair
       index = pair.last
-      return index && Truffle.invoke_primitive(:encoding_get_encoding_by_index, index)
+      return index && TrufflePrimitive.encoding_get_encoding_by_index(index)
     end
 
     false
@@ -167,7 +167,7 @@ class Encoding
   def self.name_list
     EncodingMap.map do |_n, r|
       index = r.last
-      r.first or (index and Truffle.invoke_primitive(:encoding_get_encoding_by_index, index).name)
+      r.first or (index and TrufflePrimitive.encoding_get_encoding_by_index(index).name)
     end
   end
 
@@ -187,7 +187,7 @@ class Encoding
 
   def replicate(name)
     name = StringValue(name)
-    new_encoding, index = Truffle.invoke_primitive :encoding_replicate, self, name
+    new_encoding, index = TrufflePrimitive.encoding_replicate self, name
     EncodingMap[name.upcase.to_sym] = [nil, index]
     new_encoding
   end

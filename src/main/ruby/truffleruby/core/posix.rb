@@ -35,7 +35,7 @@ module Truffle::POSIX
   end
 
   LIBC = LazyLibrary.new do
-    Truffle.invoke_primitive :interop_eval_nfi, 'default'
+    TrufflePrimitive.interop_eval_nfi 'default'
   end
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
@@ -45,7 +45,7 @@ module Truffle::POSIX
       else
         libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
       end
-      Truffle.invoke_primitive :interop_eval_nfi, "load '#{libtruffleposix}'"
+      TrufflePrimitive.interop_eval_nfi "load '#{libtruffleposix}'"
     else
       LIBC.resolve
     end
@@ -53,7 +53,7 @@ module Truffle::POSIX
 
   LIBCRYPT = LazyLibrary.new do
     if Truffle::Platform.linux?
-      Truffle.invoke_primitive :interop_eval_nfi, 'load libcrypt.so'
+      TrufflePrimitive.interop_eval_nfi 'load libcrypt.so'
     else
       LIBC.resolve
     end
@@ -133,11 +133,11 @@ module Truffle::POSIX
         string_args.each do |i|
           str = args.fetch(i)
           # TODO CS 14-Nov-17 this involves copying to a Java byte[], and then NFI will copy it again!
-          args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
+          args[i] = TrufflePrimitive.string_to_null_terminated_byte_array str
         end
 
         if blocking
-          result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
+          result = TrufflePrimitive.thread_run_blocking_nfi_system_call -> {
             r = bound_func.call(*args)
             if Integer === r and r == -1 and Errno.errno == EINTR
               undefined # retry
@@ -159,7 +159,7 @@ module Truffle::POSIX
         elsif return_type == :pointer
           result = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
         elsif return_type == :ssize_t
-          result = Truffle.invoke_primitive(:integer_lower, result)
+          result = TrufflePrimitive.integer_lower(result)
         elsif unsigned_return_type
           if result >= 0
             result
@@ -174,7 +174,7 @@ module Truffle::POSIX
       on.define_singleton_method(method_name) do |*|
         raise NotImplementedError, "#{native_name} is not available"
       end
-      Truffle.invoke_primitive :method_unimplement, method(method_name)
+      TrufflePrimitive.method_unimplement method(method_name)
     end
   end
 
@@ -278,13 +278,13 @@ module Truffle::POSIX
 
   attach_function :setenv, [:string, :string, :int], :int, LIBC, false, :setenv_native
   def self.setenv(name, value, overwrite)
-    Truffle.invoke_primitive :posix_invalidate_env, name
+    TrufflePrimitive.posix_invalidate_env name
     setenv_native(name, value, overwrite)
   end
 
   attach_function :unsetenv, [:string], :int, LIBC, false, :unsetenv_native
   def self.unsetenv(name)
-    Truffle.invoke_primitive :posix_invalidate_env, name
+    TrufflePrimitive.posix_invalidate_env name
     unsetenv_native(name)
   end
 
@@ -373,7 +373,7 @@ module Truffle::POSIX
 
   def self.read_string_native(io, length)
     fd = io.fileno
-    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    buffer = TrufflePrimitive.io_get_thread_buffer(length)
     bytes_read = Truffle::POSIX.read(fd, buffer, length)
     if bytes_read < 0
       buffer, bytes_read, errno = nil, bytes_read, Errno.errno
@@ -395,7 +395,7 @@ module Truffle::POSIX
   def self.read_string_polyglot(io, length)
     fd = io.fileno
     if fd == 0
-      read = Truffle.invoke_primitive :io_read_polyglot, length
+      read = TrufflePrimitive.io_read_polyglot length
       [read, 0]
     else
       read_string_native(io, length)
@@ -408,7 +408,7 @@ module Truffle::POSIX
   def self.write_string_native(io, string, continue_on_eagain)
     fd = io.fileno
     length = string.bytesize
-    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    buffer = TrufflePrimitive.io_get_thread_buffer(length)
     buffer.write_string string
 
     written = 0
@@ -440,7 +440,7 @@ module Truffle::POSIX
       # if we get EAGAIN and EWOULDBLOCK? We should try again if we do and
       # continue_on_eagain.
 
-      Truffle.invoke_primitive :io_write_polyglot, fd, string
+      TrufflePrimitive.io_write_polyglot fd, string
     else
       write_string_native(io, string, continue_on_eagain)
     end
@@ -452,7 +452,7 @@ module Truffle::POSIX
   def self.write_string_nonblock_native(io, string)
     fd = io.fileno
     length = string.bytesize
-    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    buffer = TrufflePrimitive.io_get_thread_buffer(length)
     buffer.write_string string
     written = Truffle::POSIX.write(fd, buffer, length)
 
@@ -475,7 +475,7 @@ module Truffle::POSIX
       # stream if we get EAGAIN and EWOULDBLOCK? We should try again if we
       # we get them.
 
-      Truffle.invoke_primitive :io_write_polyglot, fd, string
+      TrufflePrimitive.io_write_polyglot fd, string
     else
       write_string_nonblock_native(io, string)
     end

@@ -114,7 +114,7 @@ module Signal
     end
 
     if number != Names['EXIT']
-      ret = Truffle.invoke_primitive(:vm_watch_signal, signame, handler || 'IGNORE')
+      ret = TrufflePrimitive.vm_watch_signal(signame, handler || 'IGNORE')
       if handler == 'DEFAULT' && !ret
         return +'SYSTEM_DEFAULT'
       end

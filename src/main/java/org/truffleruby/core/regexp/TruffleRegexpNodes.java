@@ -27,7 +27,7 @@ import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -60,7 +60,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("Truffle::RegexpOperations")
+@CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)

@@ -48,7 +48,7 @@ module Truffle::FFI
 
     # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
-      Truffle.invoke_primitive(:pointer_find_type_size, type)
+      TrufflePrimitive.pointer_find_type_size(type)
     end
 
     def self.size
@@ -81,14 +81,14 @@ module Truffle::FFI
     def initialize_copy(from)
       total = from.total
       raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
-      Truffle.invoke_primitive :pointer_malloc, self, total
-      Truffle.invoke_primitive :pointer_copy_memory, address, from.address, total
+      TrufflePrimitive.pointer_malloc self, total
+      TrufflePrimitive.pointer_copy_memory address, from.address, total
       self
     end
 
     def clear
       raise RuntimeError, 'cannot clear unbounded memory area' unless @total
-      Truffle.invoke_primitive :pointer_clear, self, @total
+      TrufflePrimitive.pointer_clear self, @total
     end
 
     def inspect
@@ -159,7 +159,7 @@ module Truffle::FFI
     end
 
     def get_string(offset, length = nil)
-      Truffle.invoke_primitive :pointer_read_string_to_null, address + offset, length
+      TrufflePrimitive.pointer_read_string_to_null address + offset, length
     end
 
     def put_string(offset, str)
@@ -222,7 +222,7 @@ module Truffle::FFI
     end
 
     def get_bytes(offset, length)
-      Truffle.invoke_primitive :pointer_read_bytes, address + offset, length
+      TrufflePrimitive.pointer_read_bytes address + offset, length
     end
 
     def put_bytes(offset, str, index = 0, length = nil)
@@ -237,7 +237,7 @@ module Truffle::FFI
         end
         length = str.bytesize - index
       end
-      Truffle.invoke_primitive :pointer_write_bytes, address + offset, str, index, length
+      TrufflePrimitive.pointer_write_bytes address + offset, str, index, length
       self
     end
 
@@ -250,7 +250,7 @@ module Truffle::FFI
     end
 
     def __copy_from__(pointer, size)
-      Truffle.invoke_primitive :pointer_copy_memory, address, pointer.address, size
+      TrufflePrimitive.pointer_copy_memory address, pointer.address, size
     end
 
     def read_array_of_type(type, reader, length)
@@ -308,8 +308,8 @@ module Truffle::FFI
       super(type, 0)
       @total = @type_size * (count || 1)
 
-      Truffle.invoke_primitive :pointer_malloc, self, @total
-      Truffle.invoke_primitive :pointer_clear, self, @total if clear
+      TrufflePrimitive.pointer_malloc self, @total
+      TrufflePrimitive.pointer_clear self, @total if clear
     end
 
     def self.new(type, count = 1, clear = true)

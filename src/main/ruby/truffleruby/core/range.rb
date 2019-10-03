@@ -42,7 +42,7 @@ class Range
       end
     end
 
-    Truffle.invoke_primitive :range_initialize, self, first, last, exclude_end
+    TrufflePrimitive.range_initialize self, first, last, exclude_end
   end
   private :initialize
 
@@ -191,11 +191,11 @@ class Range
   private_constant :CLASS_SALT
 
   def hash
-    val = Truffle.invoke_primitive(:vm_hash_start, CLASS_SALT)
-    val = Truffle.invoke_primitive(:vm_hash_update, val, exclude_end? ? 1 : 0)
-    val = Truffle.invoke_primitive(:vm_hash_update, val, self.begin.hash)
-    val = Truffle.invoke_primitive(:vm_hash_update, val, self.end.hash)
-    Truffle.invoke_primitive(:vm_hash_end, val)
+    val = TrufflePrimitive.vm_hash_start(CLASS_SALT)
+    val = TrufflePrimitive.vm_hash_update(val, exclude_end? ? 1 : 0)
+    val = TrufflePrimitive.vm_hash_update(val, self.begin.hash)
+    val = TrufflePrimitive.vm_hash_update(val, self.end.hash)
+    TrufflePrimitive.vm_hash_end(val)
   end
 
   def include?(value)
@@ -334,7 +334,7 @@ class Range
   end
 
   def collect(&block)
-    ary = Truffle.invoke_primitive(:range_integer_map, self, block)
+    ary = TrufflePrimitive.range_integer_map(self, block)
     if !undefined.equal?(ary)
       ary
     else

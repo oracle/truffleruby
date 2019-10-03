@@ -10,7 +10,7 @@
 package org.truffleruby.core.basicobject;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -59,7 +59,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@CoreClass("BasicObject")
+@CoreModule(value = "BasicObject", isClass = true)
 public abstract class BasicObjectNodes {
 
     @CoreMethod(names = "!")

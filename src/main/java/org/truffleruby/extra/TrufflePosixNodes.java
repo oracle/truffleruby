@@ -9,7 +9,7 @@
  */
 package org.truffleruby.extra;
 
-import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.string.StringOperations;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@CoreClass("Truffle::POSIX")
+@CoreModule(value = "Truffle::POSIX", isClass = true)
 public abstract class TrufflePosixNodes {
 
     @TruffleBoundary
