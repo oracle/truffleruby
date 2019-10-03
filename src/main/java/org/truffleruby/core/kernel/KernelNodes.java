@@ -585,7 +585,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
-                Object self,
+                Object object,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -599,7 +599,7 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
-            return eval(self, cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(object, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -612,7 +612,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
-                Object self,
+                Object object,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -628,18 +628,18 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            return eval(object, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization
-        protected Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding,
+        protected Object evalBindingUncached(Object object, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line,
                 @Cached IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(self, rope(source), binding, rope(file), line, false);
+            final CodeLoader.DeferredCall deferredCall = doEvalX(object, rope(source), binding, rope(file), line, false);
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object self, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(Object object, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
             final InternalMethod method = new InternalMethod(
                     getContext(),
@@ -652,7 +652,7 @@ public abstract class KernelNodes {
                     callTarget);
 
             return callNode
-                    .call(RubyArguments.pack(parentFrame, null, method, null, self, null, RubyNode.EMPTY_ARGUMENTS));
+                    .call(RubyArguments.pack(parentFrame, null, method, null, object, null, RubyNode.EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
@@ -977,9 +977,9 @@ public abstract class KernelNodes {
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isA(Object self, DynamicObject module,
+        protected boolean isA(Object self, DynamicObject rubyModule,
                 @Cached IsANode isANode) {
-            return isANode.executeIsA(self, module);
+            return isANode.executeIsA(self, rubyModule);
         }
 
         @Specialization(guards = "!isRubyModule(module)")
@@ -1556,8 +1556,8 @@ public abstract class KernelNodes {
     @CoreMethod(names = "set_trace_func", isModuleFunction = true, required = 1)
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject setTraceFunc(Object nil) {
+        @Specialization(guards = "isNil(traceFunc)")
+        protected DynamicObject setTraceFunc(Object traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil();
         }

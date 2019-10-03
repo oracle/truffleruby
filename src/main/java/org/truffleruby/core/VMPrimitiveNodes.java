@@ -158,14 +158,14 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization
-        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
+        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object object, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, object, normalizedName);
             if (method == null) {
                 return nil();
             }
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), object, method);
         }
 
     }

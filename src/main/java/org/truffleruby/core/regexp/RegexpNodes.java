@@ -443,13 +443,13 @@ public abstract class RegexpNodes {
         @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
 
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
-        protected Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int ending,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string, rangeNode)" })
-        protected Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int ending,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }
@@ -461,7 +461,7 @@ public abstract class RegexpNodes {
 
         @Specialization(
                 guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string, rangeNode)" })
-        protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
+        protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int ending, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode) {
@@ -472,10 +472,10 @@ public abstract class RegexpNodes {
 
             if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
-                return matchNode.execute(regexp, string, matcher, start, end, false);
+                return matchNode.execute(regexp, string, matcher, start, ending, false);
             } else {
                 // Search backward through the string.
-                return matchNode.execute(regexp, string, matcher, end, start, false);
+                return matchNode.execute(regexp, string, matcher, ending, start, false);
             }
         }
 

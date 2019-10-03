@@ -692,9 +692,9 @@ public abstract class EncodingNodes {
     public static abstract class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        protected DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
+        protected DynamicObject encodingReplicate(DynamicObject object, DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
-            final Encoding encoding = EncodingOperations.getEncoding(self);
+            final Encoding encoding = EncodingOperations.getEncoding(object);
 
             final DynamicObject newEncoding = replicate(name, encoding);
             return setIndexOrRaiseError(name, newEncoding);

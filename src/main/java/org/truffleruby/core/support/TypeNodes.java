@@ -89,9 +89,9 @@ public abstract class TypeNodes {
         public abstract DynamicObject executeGetIVars(Object self);
 
         @TruffleBoundary
-        @Specialization(guards = { "!isNil(self)", "!isRubySymbol(self)" })
-        protected DynamicObject instanceVariables(DynamicObject self) {
-            Shape shape = self.getShape();
+        @Specialization(guards = { "!isNil(object)", "!isRubySymbol(object)" })
+        protected DynamicObject instanceVariables(DynamicObject object) {
+            Shape shape = object.getShape();
             List<String> names = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
@@ -114,17 +114,17 @@ public abstract class TypeNodes {
         }
 
         @Specialization
-        protected DynamicObject instanceVariables(int self) {
+        protected DynamicObject instanceVariables(int object) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization
-        protected DynamicObject instanceVariables(long self) {
+        protected DynamicObject instanceVariables(long object) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
         @Specialization
-        protected DynamicObject instanceVariables(boolean self) {
+        protected DynamicObject instanceVariables(boolean object) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
@@ -251,8 +251,8 @@ public abstract class TypeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject moduleName(DynamicObject module) {
-            final String name = Layouts.MODULE.getFields(module).getName();
+        protected DynamicObject moduleName(DynamicObject rubyModule) {
+            final String name = Layouts.MODULE.getFields(rubyModule).getName();
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 

@@ -1330,13 +1330,13 @@ public abstract class StringNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        protected DynamicObject initializeJavaString(DynamicObject self, String from, DynamicObject encoding) {
-            StringOperations.setRope(self, StringOperations.encodeRope(from, EncodingOperations.getEncoding(encoding)));
-            return self;
+        protected DynamicObject initializeJavaString(DynamicObject string, String from, DynamicObject encoding) {
+            StringOperations.setRope(string, StringOperations.encodeRope(from, EncodingOperations.getEncoding(encoding)));
+            return string;
         }
 
         @Specialization(guards = "isNil(encoding)")
-        protected DynamicObject initializeJavaStringNoEncoding(DynamicObject self, String from,
+        protected DynamicObject initializeJavaStringNoEncoding(DynamicObject string, String from,
                 DynamicObject encoding) {
             throw new RaiseException(
                     getContext(),
@@ -1346,16 +1346,16 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isRubyString(from)")
-        protected DynamicObject initialize(DynamicObject self, DynamicObject from, DynamicObject encoding) {
-            StringOperations.setRope(self, rope(from));
-            return self;
+        protected DynamicObject initialize(DynamicObject string, DynamicObject from, DynamicObject encoding) {
+            StringOperations.setRope(string, rope(from));
+            return string;
         }
 
         @Specialization(guards = { "!isRubyString(from)", "!isString(from)" })
-        protected DynamicObject initialize(VirtualFrame frame, DynamicObject self, Object from, DynamicObject encoding,
+        protected DynamicObject initialize(VirtualFrame frame, DynamicObject string, Object from, DynamicObject encoding,
                 @Cached ToStrNode toStrNode) {
-            StringOperations.setRope(self, rope(toStrNode.executeToStr(frame, from)));
-            return self;
+            StringOperations.setRope(string, rope(toStrNode.executeToStr(frame, from)));
+            return string;
         }
 
     }

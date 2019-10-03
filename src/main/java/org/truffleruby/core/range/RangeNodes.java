@@ -438,9 +438,9 @@ public abstract class RangeNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isObjectRange(range)")
-        protected boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
-            Layouts.OBJECT_RANGE.setBegin(range, begin);
-            Layouts.OBJECT_RANGE.setEnd(range, end);
+        protected boolean setExcludeEnd(DynamicObject range, Object beginning, Object ending, boolean excludeEnd) {
+            Layouts.OBJECT_RANGE.setBegin(range, beginning);
+            Layouts.OBJECT_RANGE.setEnd(range, ending);
             Layouts.OBJECT_RANGE.setExcludedEnd(range, excludeEnd);
             return excludeEnd;
         }
@@ -465,38 +465,38 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "rubyClass == rangeClass")
-        protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
+        protected DynamicObject intRange(DynamicObject rubyClass, int beginning, int ending, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
-                    begin,
-                    end);
+                    beginning,
+                    ending);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
-        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(beginning)", "fitsIntoInteger(ending)" })
+        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long beginning, long ending, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
-                    (int) begin,
-                    (int) end);
+                    (int) beginning,
+                    (int) ending);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
-        protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(beginning) || !fitsIntoInteger(ending)" })
+        protected DynamicObject longRange(DynamicObject rubyClass, long beginning, long ending, boolean excludeEnd) {
             return Layouts.LONG_RANGE.createLongRange(
                     coreLibrary().getLongRangeFactory(),
                     excludeEnd,
-                    begin,
-                    end);
+                    beginning,
+                    ending);
         }
 
-        @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
+        @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(beginning) || !isIntOrLong(ending))" })
         protected Object objectRange(
                 VirtualFrame frame,
                 DynamicObject rubyClass,
-                Object begin,
-                Object end,
+                Object beginning,
+                Object ending,
                 boolean excludeEnd) {
             if (cmpNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -509,7 +509,7 @@ public abstract class RangeNodes {
 
             final Object cmpResult;
             try {
-                cmpResult = cmpNode.call(begin, "<=>", end);
+                cmpResult = cmpNode.call(beginning, "<=>", ending);
             } catch (RaiseException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
@@ -518,7 +518,7 @@ public abstract class RangeNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
+            return allocateNode.allocate(rubyClass, excludeEnd, beginning, ending);
         }
 
         protected boolean fitsIntoInteger(long value) {

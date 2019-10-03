@@ -146,17 +146,17 @@ public abstract class ExceptionNodes {
          */
         @Specialization(
                 guards = {
-                        "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
+                        "lookupNode.lookup(frame, exception, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
                 limit = "1")
-        protected boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
+        protected boolean backtraceQuery(VirtualFrame frame, DynamicObject exception,
                 @Cached LookupMethodNode lookupNode) {
-            final Object customBacktrace = readCustomBacktrace(self);
+            final Object customBacktrace = readCustomBacktrace(exception);
 
-            return !(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null);
+            return !(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(exception) == null);
         }
 
         @Specialization
-        protected Object fallback(DynamicObject self) {
+        protected Object fallback(DynamicObject exception) {
             return FAILURE;
         }
 

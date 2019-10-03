@@ -54,7 +54,7 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex,
+        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject rubyCondition, DynamicObject mutex,
                 DynamicObject timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
@@ -62,12 +62,12 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
-            waitInternal(self, mutexLock, thread, -1);
-            return self;
+            waitInternal(rubyCondition, mutexLock, thread, -1);
+            return rubyCondition;
         }
 
         @Specialization
-        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex,
+        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject rubyCondition, DynamicObject mutex,
                 long durationInNanos,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
@@ -75,15 +75,15 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
-            waitInternal(self, mutexLock, thread, durationInNanos);
-            return self;
+            waitInternal(rubyCondition, mutexLock, thread, durationInNanos);
+            return rubyCondition;
         }
 
         @TruffleBoundary
-        private void waitInternal(DynamicObject self, ReentrantLock mutexLock, DynamicObject thread,
+        private void waitInternal(DynamicObject rubyCondition, ReentrantLock mutexLock, DynamicObject thread,
                 long durationInNanos) {
-            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
-            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
+            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(rubyCondition);
+            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(rubyCondition);
             final long endNanoTime;
             if (durationInNanos >= 0) {
                 endNanoTime = System.nanoTime() + durationInNanos;
@@ -98,9 +98,9 @@ public abstract class ConditionVariableNodes {
             });
             mutexLock.unlock();
 
-            Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) + 1);
+            Layouts.CONDITION_VARIABLE.setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) + 1);
             try {
-                awaitSignal(self, thread, durationInNanos, condLock, condition, endNanoTime);
+                awaitSignal(rubyCondition, thread, durationInNanos, condLock, condition, endNanoTime);
             } catch (Error | RuntimeException e) {
                 /*
                  * Consume a signal if one was waiting. We do this because the error may have
@@ -108,10 +108,10 @@ public abstract class ConditionVariableNodes {
                  * throws an exception and another thread has attempted to signal us. It is valid
                  * for us to consume this signal because we are still marked as waiting for it.
                  */
-                consumeSignal(self);
+                consumeSignal(rubyCondition);
                 throw e;
             } finally {
-                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                Layouts.CONDITION_VARIABLE.setWaiters(rubyCondition, Layouts.CONDITION_VARIABLE.getWaiters(rubyCondition) - 1);
                 condLock.unlock();
                 MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
             }
