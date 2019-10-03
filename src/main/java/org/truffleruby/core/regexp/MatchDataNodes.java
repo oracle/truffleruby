@@ -40,6 +40,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 
@@ -203,6 +204,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
+        @Child private RegexpNode regexpNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
@@ -321,8 +323,12 @@ public abstract class MatchDataNodes {
             return null;
         }
 
-        protected static DynamicObject getRegexp(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getRegexp(matchData);
+        protected DynamicObject getRegexp(DynamicObject matchData) {
+            if (regexpNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                regexpNode = insert(RegexpNode.create());
+            }
+            return regexpNode.executeGetRegexp(matchData);
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -339,7 +345,7 @@ public abstract class MatchDataNodes {
 
         private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, Rope value) {
             try {
-                return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(
+                return Layouts.REGEXP.getRegex(getRegexp(matchData)).nameToBackrefNumber(
                         value.getBytes(),
                         0,
                         value.byteLength(),
@@ -593,10 +599,30 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "regexp")
     public abstract static class RegexpNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected DynamicObject regexp(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getRegexp(matchData);
+        public static RegexpNode create() {
+            return MatchDataNodesFactory.RegexpNodeFactory.create(null);
         }
+
+        public abstract DynamicObject executeGetRegexp(DynamicObject matchData);
+
+        @Specialization
+        protected DynamicObject regexp(DynamicObject matchData,
+                @Cached("createBinaryProfile()") ConditionProfile profile,
+                @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
+            final DynamicObject value = Layouts.MATCH_DATA.getRegexp(matchData);
+            if (profile.profile(Layouts.REGEXP.isRegexp(value))) {
+                return value;
+            } else {
+                final DynamicObject regexp = (DynamicObject) stringToRegexp.call(
+                        coreLibrary().getTruffleTypeModule(),
+                        "coerce_to_regexp",
+                        value,
+                        true);
+                Layouts.MATCH_DATA.setRegexp(matchData, regexp);
+                return regexp;
+            }
+        }
+
     }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

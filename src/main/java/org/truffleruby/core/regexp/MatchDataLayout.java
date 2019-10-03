@@ -31,7 +31,10 @@ public interface MatchDataLayout extends BasicObjectLayout {
 
     DynamicObject getSource(DynamicObject object);
 
+    /** Either a Regexp or a String for the case of String#gsub(String) */
     DynamicObject getRegexp(DynamicObject object);
+
+    void setRegexp(DynamicObject object, DynamicObject value);
 
     Region getRegion(DynamicObject object);
 

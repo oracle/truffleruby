@@ -72,8 +72,13 @@ module Truffle
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
 
-      pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-      match = pattern.search_region(orig, 0, orig.bytesize, true)
+      if String === pattern
+        index = orig.index(pattern)
+        match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+      else
+        pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+        match = pattern.search_region(orig, 0, orig.bytesize, true)
+      end
 
       return nil unless match
 
@@ -106,7 +111,12 @@ module Truffle
         last_match = match
         last_end = match.byte_end(0)
 
-        match = pattern.match_from orig, offset
+        if String === pattern
+          index = orig.index(pattern, offset)
+          match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+        else
+          match = pattern.match_from orig, offset
+        end
       end
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
