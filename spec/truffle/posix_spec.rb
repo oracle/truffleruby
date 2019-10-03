@@ -12,7 +12,7 @@ describe "Truffle::POSIX returns the correct value for an identity function retu
   before :all do
     src = fixture __FILE__, "libtestnfi.c"
     lib = src[0...-1] + RbConfig::CONFIG['SOEXT']
-    unless system "clang", "-shared", "-o", lib, src
+    unless system RbConfig::CONFIG['CC'], "-shared", "-o", lib, src
       abort "Could not compile libtestnfi"
     end
 
