@@ -44,4 +44,25 @@ describe "SignalException" do
 
     $?.termsig.should == Signal.list["PROF"]
   end
+
+  it "does not self-signal for VTALRM" do
+    IO.popen(ruby_cmd("raise(SignalException, 'VTALRM')"), err: [:child, :out]) { |out|
+      out.read.should include("for SIGVTALRM as it is VM reserved")
+    }
+    $?.termsig.should be_nil
+  end
+
+  it "self-signals for USR1 when running natively" do
+    skip unless TruffleRuby.native?
+    ruby_exe("raise(SignalException, 'USR1')", options: '--native')
+    $?.termsig.should == Signal.list['USR1']
+  end
+
+  it "does not self-signal for USR1 when running on the JVM" do
+    IO.popen(ruby_cmd("raise(SignalException, 'USR1')", options: '--jvm'), err: [:child, :out]) { |out|
+      out.read.should include("for SIGUSR1 as it is VM reserved")
+    }
+
+    $?.termsig.should be_nil
+  end
 end

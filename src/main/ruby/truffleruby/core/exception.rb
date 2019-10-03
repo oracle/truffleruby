@@ -473,6 +473,16 @@ class SignalException < Exception
   private
 
   def reached_top_level
+    banned = ['VTALRM']
+    if !TruffleRuby.native?
+      banned.concat(['FPE', 'ILL', 'SEGV', 'USR1', 'QUIT'])
+    end
+    banned.map! { |name| Signal::Names[name] }
+    if banned.include?(@signo)
+      warn "not acting on top level SignalException for SIG#{Signal::Numbers[@signo]} as it is VM reserved"
+      return
+    end
+
     begin
       Signal.trap(@signo, 'SYSTEM_DEFAULT')
     rescue ArgumentError
