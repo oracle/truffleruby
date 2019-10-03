@@ -35,7 +35,7 @@ module Truffle::POSIX
   end
 
   LIBC = LazyLibrary.new do
-    Truffle.invoke_primitive :interop_eval_nfi, 'default'
+    TrufflePrimitive.interop_eval_nfi 'default'
   end
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
@@ -45,7 +45,7 @@ module Truffle::POSIX
       else
         libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::NATIVE_DLEXT}"
       end
-      Truffle.invoke_primitive :interop_eval_nfi, "load '#{libtruffleposix}'"
+      TrufflePrimitive.interop_eval_nfi "load '#{libtruffleposix}'"
     else
       LIBC.resolve
     end
@@ -53,7 +53,7 @@ module Truffle::POSIX
 
   LIBCRYPT = LazyLibrary.new do
     if Truffle::Platform.linux?
-      Truffle.invoke_primitive :interop_eval_nfi, 'load libcrypt.so'
+      TrufflePrimitive.interop_eval_nfi 'load libcrypt.so'
     else
       LIBC.resolve
     end
