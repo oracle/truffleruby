@@ -1,4 +1,6 @@
 Q$(MX_VERBOSE) = @
+MX_SUBPROCESS_FLAGS = $(MX_VERBOSE:y=-v)
+MKMF_MAKEFILE_SUBPROCESS_FLAGS = $(MX_VERBOSE:y=V=1)
 
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
@@ -12,7 +14,7 @@ $(error This Makefile should be called from mx)
 endif
 
 ROOT := $(realpath ../../..)
-RUBY := $(MX_HOME)/mx -p $(ROOT) miniruby_for_building_cexts
+RUBY := $(MX_HOME)/mx $(MX_SUBPROCESS_FLAGS) -p $(ROOT) miniruby_for_building_cexts
 
 CC := clang
 CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
@@ -78,42 +80,42 @@ cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 cext/ruby.su: cext/Makefile cext/*.c
-	$(Q) cd cext && $(MAKE)
+	$(Q) cd cext && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # openssl.su
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd openssl && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
-	$(Q) cd openssl && $(MAKE)
+	$(Q) cd openssl && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # zlib.su
 zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c
-	$(Q) cd zlib && $(MAKE)
+	$(Q) cd zlib && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # syslog.su
 syslog/Makefile: syslog/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd syslog && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 syslog/syslog.su: syslog/Makefile syslog/syslog.c
-	$(Q) cd syslog && $(MAKE)
+	$(Q) cd syslog && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # nkf.su
 nkf/Makefile: nkf/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd nkf && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 nkf/nkf.su: nkf/Makefile nkf/nkf.c nkf/nkf-utf8/*.c nkf/nkf-utf8/*.h
-	$(Q) cd nkf && $(MAKE)
+	$(Q) cd nkf && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # etc.su
 etc/Makefile: etc/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd etc && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 etc/etc.su: etc/Makefile etc/etc.c
-	$(Q) cd etc && $(MAKE)
+	$(Q) cd etc && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 etc/etc.c: etc/constdefs.h
 
@@ -125,7 +127,7 @@ rbconfig-sizeof/Makefile: rbconfig-sizeof/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd rbconfig-sizeof && $(RUBY) -rmkmf extconf.rb || $(IF_EXTCONF_FAIL)
 
 rbconfig-sizeof/sizeof.su: rbconfig-sizeof/Makefile rbconfig-sizeof/sizes.c
-	$(Q) cd rbconfig-sizeof && $(MAKE)
+	$(Q) cd rbconfig-sizeof && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # psych.su
 # Always use the bundled libyaml, as we want it as bitcode and avoid extra handles
@@ -133,4 +135,4 @@ psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml || $(IF_EXTCONF_FAIL)
 
 psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
-	$(Q) cd psych && $(MAKE)
+	$(Q) cd psych && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
