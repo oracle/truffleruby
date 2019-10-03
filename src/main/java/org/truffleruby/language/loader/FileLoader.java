@@ -60,7 +60,7 @@ public class FileLoader {
             RubyLanguage.LOGGER.info("loading " + path);
         }
 
-        final TruffleFile file = getSafeTruffleFile(env, path);
+        final TruffleFile file = getSafeTruffleFile(context, path);
         ensureReadable(file);
 
         final String name;
@@ -85,7 +85,8 @@ public class FileLoader {
         return new RubySource(source, sourceRope);
     }
 
-    private TruffleFile getSafeTruffleFile(Env env, String path) {
+    static TruffleFile getSafeTruffleFile(RubyContext context, String path) {
+        final Env env = context.getEnv();
         final TruffleFile file;
         try {
             file = env.getInternalTruffleFile(path).getCanonicalFile();
@@ -112,7 +113,7 @@ public class FileLoader {
         }
     }
 
-    private boolean isStdLibRubyOrCExtFile(TruffleFile relativePathFromHome) {
+    private static boolean isStdLibRubyOrCExtFile(TruffleFile relativePathFromHome) {
         final String fileName = relativePathFromHome.getName();
         if (fileName == null) {
             return false;
