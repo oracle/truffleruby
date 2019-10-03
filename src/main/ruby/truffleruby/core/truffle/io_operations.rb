@@ -81,7 +81,7 @@ module Truffle
 
       elsif Truffle::POSIX.respond_to?(:dup3)
         # Atomically dupe and set close-on-exec if supported by the platform.
-        r = Truffle::POSIX.dup3(old_fd, new_fd, Fcntl::O_CLOEXEC)
+        r = Truffle::POSIX.dup3(old_fd, new_fd, File::CLOEXEC)
         Errno.handle if r == -1
 
       else
@@ -89,11 +89,11 @@ module Truffle
         r = Truffle::POSIX.dup2(old_fd, new_fd)
         Errno.handle if r == -1
 
-        flags = Truffle::POSIX.fcntl(new_fd, Fcntl::F_GETFD, 0)
+        flags = Truffle::POSIX.fcntl(new_fd, File::F_GETFD, 0)
         Errno.handle if flags < 0
 
-        if (flags & Fcntl::FD_CLOEXEC) == 0
-          Truffle::POSIX.fcntl(new_fd, Fcntl::F_SETFD, flags | Fcntl::FD_CLOEXEC)
+        if (flags & File::FD_CLOEXEC) == 0
+          Truffle::POSIX.fcntl(new_fd, File::F_SETFD, flags | File::FD_CLOEXEC)
         end
       end
     end
