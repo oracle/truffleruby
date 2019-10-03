@@ -379,15 +379,15 @@ public class FeatureLoader {
 
     @TruffleBoundary
     public TruffleObject loadCExtLibrary(String feature, String path) {
-        if (!new File(path).exists()) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().loadError(path + " does not exists", path, null));
-        }
-
         Metrics.printTime("before-load-cext-" + feature);
         try {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
+            if (!truffleFile.exists()) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(path + " does not exist", path, null));
+            }
+
             final Source source = Source.newBuilder("llvm", truffleFile).build();
             final Object result;
             try {
