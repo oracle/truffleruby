@@ -598,16 +598,18 @@ module Process
     input_pid = Truffle::Type.coerce_to input_pid, Integer, :to_int
     flags ||= 0
 
-    FFI::MemoryPointer.new(:int, 3) do |ptr|
+    FFI::MemoryPointer.new(:int, 4) do |ptr|
       pid = Truffle::POSIX.truffleposix_waitpid(input_pid, flags, ptr)
       if pid == 0
         return nil
       elsif pid == -1
         Errno.handle "No child process: #{input_pid}"
       else
-        exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
+        ints = ptr.read_array_of_int(4)
+        exitcode, termsig, stopsig, = ints.map { |e| e == -1000 ? nil : e }
+        raw_status = ints.last
 
-        status = Process::Status.new(pid, exitcode, termsig, stopsig)
+        status = Process::Status.new(pid, exitcode, termsig, stopsig, raw_status)
         TrufflePrimitive.thread_set_return_code status
 
         [pid, status]
@@ -729,11 +731,12 @@ module Process
     attr_reader :termsig
     attr_reader :stopsig
 
-    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil)
+    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil, raw_status=nil)
       @pid = pid
       @status = status
       @termsig = termsig
       @stopsig = stopsig
+      @raw_status = raw_status
     end
 
     def exitstatus
@@ -741,7 +744,7 @@ module Process
     end
 
     def to_i
-      @status
+      @raw_status
     end
 
     def &(num)
