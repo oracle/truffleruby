@@ -238,8 +238,6 @@ public class Options {
     public final boolean INLINE_DEFAULT;
     /** --core-always-clone=false */
     public final boolean CORE_ALWAYS_CLONE;
-    /** --primitive-callers-always-clone=CLONE_DEFAULT */
-    public final boolean PRIMITIVE_CALLERS_ALWAYS_CLONE;
     /** --always-split-honor=CLONE_DEFAULT */
     public final boolean ALWAYS_SPLIT_HONOR;
     /** --inline-needs-caller-frame=INLINE_DEFAULT */
@@ -378,7 +376,6 @@ public class Options {
         CLONE_DEFAULT = options.get(OptionsCatalog.CLONE_DEFAULT_KEY);
         INLINE_DEFAULT = options.get(OptionsCatalog.INLINE_DEFAULT_KEY);
         CORE_ALWAYS_CLONE = options.get(OptionsCatalog.CORE_ALWAYS_CLONE_KEY);
-        PRIMITIVE_CALLERS_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.PRIMITIVE_CALLERS_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.PRIMITIVE_CALLERS_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         ALWAYS_SPLIT_HONOR = options.hasBeenSet(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) ? options.get(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) : CLONE_DEFAULT;
         INLINE_NEEDS_CALLER_FRAME = options.hasBeenSet(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) ? options.get(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) : INLINE_DEFAULT;
         YIELD_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
@@ -613,8 +610,6 @@ public class Options {
                 return INLINE_DEFAULT;
             case "ruby.core-always-clone":
                 return CORE_ALWAYS_CLONE;
-            case "ruby.primitive-callers-always-clone":
-                return PRIMITIVE_CALLERS_ALWAYS_CLONE;
             case "ruby.always-split-honor":
                 return ALWAYS_SPLIT_HONOR;
             case "ruby.inline-needs-caller-frame":
