@@ -39,14 +39,14 @@ def build_truffleruby(args):
     jt('build', '--no-sforceimports', '--no-ee-checkout')
 
 def miniruby_for_building_cexts(args):
-    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER'])
+    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])
     mx_binary = join(mx._mx_home, 'mx')
     options = [
         '--experimental-options',
         '--building-core-cexts',
         '--home=' + root,
         '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
-        '--disable-gems'
+        '--disable-gems',
     ]
     mx.run_java(jvm_args + ['org.truffleruby.launcher.RubyLauncher'] + options + args)
 
@@ -118,7 +118,11 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
-    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'Sulong', 'GraalVM Chrome Inspector', 'GraalVM Profiler', 'VisualVM'],
+    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'Sulong', 'LLVM.org toolchain', 'GraalVM Chrome Inspector', 'GraalVM Profiler', 'VisualVM'],
+    standalone_dependencies={
+        'Sulong': ('lib/sulong', ['bin/<exe:lli>']),
+        'LLVM.org toolchain': ('lib/llvm-toolchain', []),
+    },
     truffle_jars=[
         'truffleruby:TRUFFLERUBY',
         'truffleruby:TRUFFLERUBY-SHARED',

@@ -51,13 +51,3 @@ MacPorts should also work but is not actively tested.
 ```bash
 $ sudo port install openssl
 ```
-
-## Remapping
-
-If `libssl` is in a non-standard location for your system, you can use the
-experimental `--cexts-remap` option. Let us know if you find that you need to
-use this.
-
-```
---cexts-remap=libssl.so:path/to/libssl.so
-```

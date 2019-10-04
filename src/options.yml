@@ -65,7 +65,6 @@ EXPERT:
     # C extension options
     CEXTS: [cexts, boolean, true, Enable use of C extensions]
     CEXT_LOCK: [cexts-lock, boolean, true, Use a Global Lock when running C extensions]
-    CEXTS_LIBRARY_REMAP: [cexts-remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']
 
     # Debugging the values of options
     OPTIONS_LOG: [options-log, boolean, false, Log the final value of all options]

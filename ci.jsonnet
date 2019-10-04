@@ -225,7 +225,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "11-20190902-162937",
+          version: "ce-11-20190917-093434",
           platformspecific: true,
         },
       },
@@ -244,7 +244,6 @@ local part_definitions = {
         git: ">=1.8.3",
         mercurial: ">=3.2.4",
         ruby: "==" + mri_version,
-        llvm: "==3.8",
         binutils: ">=2.30",
       },
     },
@@ -311,6 +310,10 @@ local part_definitions = {
 
     test_cexts: {
       is_after+:: ["$.use.common"],
+      environment+: {
+        # GR-18622, for libc++
+        LD_LIBRARY_PATH: "$BUILD_DIR/graal/sulong/mxbuild/SULONG_LLVM_ORG/lib:$LD_LIBRARY_PATH",
+      },
       run+: [
         ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
       ],

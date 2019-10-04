@@ -11,6 +11,8 @@ package org.truffleruby.language;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.nodes.LanguageInfo;
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -41,6 +43,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.llvm.api.Toolchain;
 
 @CoreModule("Truffle::Boot")
 public abstract class TruffleBootNodes {
@@ -382,6 +385,29 @@ public abstract class TruffleBootNodes {
         @Specialization
         protected boolean singleThreaded() {
             return getContext().getOptions().SINGLE_THREADED;
+        }
+
+    }
+
+    @CoreMethod(names = "tool_path", onSingleton = true, required = 1)
+    public abstract static class ToolPathNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubySymbol(toolName)")
+        protected DynamicObject toolPath(DynamicObject toolName,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final LanguageInfo llvmInfo = getContext().getEnv().getInternalLanguages().get("llvm");
+            final Toolchain toolchain = getContext().getEnv().lookup(llvmInfo, Toolchain.class);
+            if (toolchain == null) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("Could not find the LLVM Toolchain", this));
+            }
+            final TruffleFile path = toolchain.getToolPath(Layouts.SYMBOL.getString(toolName));
+            if (path != null) {
+                return makeStringNode.executeMake(path.getPath(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            } else {
+                return nil();
+            }
         }
 
     }

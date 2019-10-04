@@ -9,7 +9,7 @@ suite = {
                 "name": "tools",
                 "subdir": True,
                 # version must always be equal to the version of the "sulong" import below
-                "version": "5084ef550cff94e3c09b39da49f0db3faeb60cad",
+                "version": "761048c0abe76d0a6961d22078567dd408f5d190",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -19,7 +19,7 @@ suite = {
                 "name": "sulong",
                 "subdir": True,
                 # version must always be equal to the version of the "tools" import above
-                "version": "5084ef550cff94e3c09b39da49f0db3faeb60cad",
+                "version": "761048c0abe76d0a6961d22078567dd408f5d190",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -259,27 +259,25 @@ suite = {
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
+                "sulong:SULONG", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "sulong:SULONG_BOOTSTRAP_TOOLCHAIN", # graalvm-native-clang
                 "sulong:SULONG_HOME", # polyglot.h
             ],
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
-              "SULONG_HEADERS_DIR": "<path:SULONG_HOME>/include",
-              "SULONG_POLYGLOT_H": "<path:SULONG_HOME>/include/polyglot.h",
             },
             "output": ".",
             "results": [
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
-                "src/main/c/sulongmock/sulongmock.o",
-                "src/main/c/cext/ruby.o",
-                "src/main/c/cext/ruby.su",
-                "src/main/c/etc/etc.su",
-                "src/main/c/nkf/nkf.su",
-                "src/main/c/openssl/openssl.su",
-                "src/main/c/psych/psych.su",
-                "src/main/c/rbconfig-sizeof/sizeof.su",
-                "src/main/c/syslog/syslog.su",
-                "src/main/c/zlib/zlib.su",
+                "src/main/c/cext/<lib:truffleruby>",
+                "src/main/c/etc/<libsuffix:etc>",
+                "src/main/c/nkf/<libsuffix:nkf>",
+                "src/main/c/openssl/<libsuffix:openssl>",
+                "src/main/c/psych/<libsuffix:psych>",
+                "src/main/c/rbconfig-sizeof/<libsuffix:sizeof>",
+                "src/main/c/syslog/<libsuffix:syslog>",
+                "src/main/c/zlib/<libsuffix:zlib>",
             ],
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -350,9 +348,9 @@ suite = {
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
+                "sulong:SULONG_API",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
-                "sulong:SULONG",
             ],
             "description": "TruffleRuby",
             "license": [
@@ -418,9 +416,7 @@ suite = {
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
-                    "dependency:org.truffleruby.cext/src/main/c/sulongmock/sulongmock.o",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby.o",
-                    "dependency:org.truffleruby.cext/src/main/c/cext/ruby.su",
+                    "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/ccan",
@@ -428,22 +424,16 @@ suite = {
                     "file:lib/cext/include/truffleruby",
                     "file:lib/cext/include/*.h",
                 ],
-                "lib/cext/include/sulong/": [
-                    "link:../../sulong-libs/include/polyglot.h",
-                ],
-                "lib/cext/sulong-libs/": [
-                    "extracted-dependency:sulong:SULONG_HOME/*",
-                ],
                 "lib/mri/": [
-                    "dependency:org.truffleruby.cext/src/main/c/etc/etc.su",
-                    "dependency:org.truffleruby.cext/src/main/c/nkf/nkf.su",
-                    "dependency:org.truffleruby.cext/src/main/c/openssl/openssl.su",
-                    "dependency:org.truffleruby.cext/src/main/c/psych/psych.su",
-                    "dependency:org.truffleruby.cext/src/main/c/syslog/syslog.su",
-                    "dependency:org.truffleruby.cext/src/main/c/zlib/zlib.su",
+                    "dependency:org.truffleruby.cext/src/main/c/etc/<libsuffix:etc>",
+                    "dependency:org.truffleruby.cext/src/main/c/nkf/<libsuffix:nkf>",
+                    "dependency:org.truffleruby.cext/src/main/c/openssl/<libsuffix:openssl>",
+                    "dependency:org.truffleruby.cext/src/main/c/psych/<libsuffix:psych>",
+                    "dependency:org.truffleruby.cext/src/main/c/syslog/<libsuffix:syslog>",
+                    "dependency:org.truffleruby.cext/src/main/c/zlib/<libsuffix:zlib>",
                 ],
                 "lib/mri/rbconfig/": [
-                    "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/sizeof.su",
+                    "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/<libsuffix:sizeof>",
                 ],
                 "lib/truffle/": [
                     "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",

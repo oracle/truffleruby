@@ -14,4 +14,15 @@ $srcs = %w[ruby.c internal.c st.c]
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
 
-create_makefile('ruby')
+# Do no link against libtruffleruby for libtruffleruby itself.
+# We still need libtruffleruby to link against libpolyglot-mock,
+# otherwise linking fails with "Undefined symbols" on macOS.
+if Truffle::Platform.darwin?
+  # Set the install_name of libtruffleruby on macOS, so C exts linking to it
+  # will know they need to look at the rpath to find it.
+  $LIBRUBYARG = "-Wl,-install_name,@rpath/libtruffleruby.dylib -lpolyglot-mock"
+else
+  $LIBRUBYARG = "-lpolyglot-mock"
+end
+
+create_makefile('libtruffleruby')

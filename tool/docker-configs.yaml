@@ -21,11 +21,6 @@ ol7:
     - RUN yum install -y openssl-devel
   cext:
     - RUN yum install -y make
-    - RUN yum install -y oraclelinux-developer-release-el7
-    - RUN yum install -y oracle-softwarecollection-release-el7
-    - RUN yum install -y llvm-toolset-7
-    - ENV PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
-    - ENV LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
   cppext:
     - RUN yum-config-manager --enable ol7_developer_EPEL
     - RUN yum install -y libcxx
@@ -55,7 +50,7 @@ ubuntu1804:
   openssl:
     - RUN apt-get install -y libssl-dev
   cext:
-    - RUN apt-get install -y make clang llvm
+    - RUN apt-get install -y make
   cppext:
     - RUN apt-get install -y libc++-dev libc++abi-dev
   rvm:
@@ -83,7 +78,7 @@ ubuntu1604:
   openssl:
     - RUN apt-get install -y libssl-dev
   cext:
-    - RUN apt-get install -y make clang llvm
+    - RUN apt-get install -y make
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
@@ -110,7 +105,7 @@ fedora28:
   openssl:
     - RUN dnf install -y openssl-devel
   cext:
-    - RUN dnf install -y make clang llvm
+    - RUN dnf install -y make
   cppext:
     - RUN dnf install -y libcxx-devel
     - RUN dnf install -y libcxx

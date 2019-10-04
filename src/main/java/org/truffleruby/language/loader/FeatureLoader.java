@@ -11,24 +11,20 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.TruffleFile;
+import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.WrapNodeGen;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -40,7 +36,6 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.ArityException;
@@ -65,8 +60,6 @@ public class FeatureLoader {
 
     private final Object cextImplementationLock = new Object();
     private boolean cextImplementationLoaded = false;
-    private TruffleObject sulongLoadLibraryFunction;
-    private Map<String, String> nativeLibraryMap;
 
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
@@ -282,10 +275,10 @@ public class FeatureLoader {
             return withExtension;
         }
 
-        final String asSU = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
+        final String asCExt = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
 
-        if (asSU != null) {
-            return asSU;
+        if (asCExt != null) {
+            return asCExt;
         }
 
         final String withoutExtension = findFeatureWithExactPath(path);
@@ -346,14 +339,13 @@ public class FeatureLoader {
                 final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
-                final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
-                final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
-
-                sulongLoadLibraryFunction = requireNode
-                        .findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
+                final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" +
+                        RubyLanguage.CEXT_EXTENSION;
+                final TruffleObject library = loadCExtLibRuby(rubyLibPath, feature);
 
                 final TruffleObject initFunction = requireNode
-                        .findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
+                        .findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
+
                 try {
                     InteropLibrary.getFactory().getUncached(initFunction).execute(initFunction, truffleCExt);
                 } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -367,120 +359,61 @@ public class FeatureLoader {
         }
     }
 
-    private List<TruffleObject> loadCExtLibRuby(String rubySUpath, String feature) {
+    private TruffleObject loadCExtLibRuby(String rubyLibPath, String feature) {
         if (context.getOptions().CEXTS_LOG_LOAD) {
-            RubyLanguage.LOGGER.info(() -> String.format("loading cext implementation %s", rubySUpath));
+            RubyLanguage.LOGGER.info(() -> String.format("loading cext implementation %s", rubyLibPath));
         }
 
-        if (!new File(rubySUpath).exists()) {
+        if (!new File(rubyLibPath).exists()) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().loadError(
-                            "this TruffleRuby distribution does not have the C extension implementation file ruby.su",
+                            "this TruffleRuby distribution does not have the C extension implementation file " +
+                                    rubyLibPath,
                             feature,
                             null));
         }
 
-        return loadCExtLibrary("ruby.su", rubySUpath);
+        return loadCExtLibrary("libtruffleruby", rubyLibPath);
     }
 
     @TruffleBoundary
-    public List<TruffleObject> loadCExtLibrary(String feature, String path) {
-        if (!new File(path).exists()) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().loadError(path + " does not exists", path, null));
-        }
-
-        final List<TruffleObject> libraries = new ArrayList<>();
-
+    public TruffleObject loadCExtLibrary(String feature, String path) {
         Metrics.printTime("before-load-cext-" + feature);
         try {
-            final CExtLoader cextLoader = new CExtLoader(this::loadNativeLibrary, source -> {
-                final Object result;
+            final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
+            if (!truffleFile.exists()) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(path + " does not exist", path, null));
+            }
 
-                try {
-                    result = context.getEnv().parseInternal(source).call();
-                } catch (Exception e) {
-                    throw new JavaException(e);
-                }
+            final Source source = Source.newBuilder("llvm", truffleFile).build();
+            final Object result;
+            try {
+                result = context.getEnv().parseInternal(source).call();
+            } catch (Exception e) {
+                throw new JavaException(e);
+            }
 
-                if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(
-                            context,
-                            context.getCoreExceptions().loadError(
-                                    String.format(
-                                            "%s returned a %s rather than a TruffleObject",
-                                            path,
-                                            result.getClass().getSimpleName()),
-                                    path,
-                                    null));
-                }
+            if (!(result instanceof TruffleObject)) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                String.format(
+                                        "%s returned a %s rather than a TruffleObject",
+                                        path,
+                                        result.getClass().getSimpleName()),
+                                path,
+                                null));
+            }
 
-                libraries.add((TruffleObject) result);
-            });
-            cextLoader.loadLibrary(path);
+            return (TruffleObject) result;
         } catch (IOException e) {
             throw new JavaException(e);
         } finally {
             Metrics.printTime("after-load-cext-" + feature);
         }
-
-        return libraries;
-    }
-
-    private void loadNativeLibrary(String library) {
-        assert sulongLoadLibraryFunction != null;
-
-        final String remapped = remapNativeLibrary(library);
-
-        if (context.getOptions().CEXTS_LOG_LOAD) {
-            if (remapped.equals(library)) {
-                RubyLanguage.LOGGER.info(() -> String.format("loading native library %s", library));
-            } else {
-                RubyLanguage.LOGGER
-                        .info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
-            }
-        }
-
-        TruffleObject libraryRubyString = WrapNodeGen.getUncached().execute(StringOperations.createString(
-                context,
-                StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
-        try {
-            InteropLibrary.getFactory().getUncached(sulongLoadLibraryFunction).execute(
-                    sulongLoadLibraryFunction,
-                    libraryRubyString);
-        } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-            throw new JavaException(e);
-        }
-    }
-
-    private String remapNativeLibrary(String library) {
-        return getNativeLibraryMap().getOrDefault(library, library);
-    }
-
-    private synchronized Map<String, String> getNativeLibraryMap() {
-        if (nativeLibraryMap == null) {
-            nativeLibraryMap = new HashMap<>();
-
-            for (String mapPair : context.getOptions().CEXTS_LIBRARY_REMAP) {
-                final int divider = mapPair.indexOf(':');
-
-                if (divider == -1) {
-                    throw new RuntimeException(
-                            OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
-                }
-
-                final String library = mapPair.substring(0, divider);
-                final String remap = mapPair.substring(divider + 1);
-
-                nativeLibraryMap.put(library, remap);
-            }
-
-            nativeLibraryMap = Collections.unmodifiableMap(nativeLibraryMap);
-        }
-
-        return nativeLibraryMap;
     }
 
     // TODO (pitr-ch 16-Mar-2016): this protects the $LOADED_FEATURES only in this class,

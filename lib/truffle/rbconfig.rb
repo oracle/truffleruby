@@ -64,13 +64,14 @@ module RbConfig
     'build'             => host,
     'build_os'          => host_os_full,
     'configure_args'    => ' ',
+    'CCDLFLAGS'         => '-fPIC',
     'COUTFLAG'          => '-o ',
     'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
     'DLDFLAGS'          => '',
     'DLDLIBS'           => '',
-    'DLEXT'             => 'su',
-    'ENABLE_SHARED'     => 'yes',
+    'DLEXT'             => Truffle::Platform::DLEXT,
+    'ENABLE_SHARED'     => 'yes', # We use a dynamic library for libruby
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
     'EXEEXT'            => '',
@@ -83,14 +84,11 @@ module RbConfig
     'LIBEXT'            => 'a',
     'LIBRUBY'           => '',
     'LIBRUBY_A'         => '',
-    'LIBRUBYARG'        => '',
-    'LIBRUBYARG_SHARED' => '',
     'LIBRUBYARG_STATIC' => '',
-    'LIBRUBY_SO'        => 'cext/ruby.su',
+    'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::DLEXT}",
     'LIBS'              => libs,
-    'NATIVE_DLEXT'      => Truffle::Platform::NATIVE_DLEXT,
     'NULLCMD'           => ':',
-    'OBJEXT'            => 'bc',
+    'OBJEXT'            => 'o',
     'OUTFLAG'           => '-o ',
     'optflags'          => '',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR,
@@ -100,6 +98,7 @@ module RbConfig
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
     'ruby_version'      => ruby_abi_version,
+    'SOEXT'             => Truffle::Platform::SOEXT,
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
   }
@@ -179,6 +178,20 @@ module RbConfig
     mkconfig['datarootdir'] = '$(prefix)/share'
     expanded['ridir'] = "#{datarootdir}/ri"
     mkconfig['ridir'] = '$(datarootdir)/ri'
+
+    # Defined here for RubyInline
+    cc = Truffle::Boot.tool_path(:CC)
+    cxx = Truffle::Boot.tool_path(:CXX)
+
+    expanded['CC'] = mkconfig['CC'] = cc
+    expanded['CXX'] = mkconfig['CXX'] = cxx
+
+    expanded['CPP'] = "#{cc} -E"
+    mkconfig['CPP'] = '$(CC) -E'
+    expanded['LDSHARED'] = "#{cc} -shared"
+    mkconfig['LDSHARED'] = '$(CC) -shared'
+    expanded['LDSHAREDXX'] = "#{cxx} -shared"
+    mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
   end
 
   launcher = Truffle::Boot.get_option 'launcher'
@@ -188,10 +201,6 @@ module RbConfig
     else
       launcher = ruby_install_name
     end
-  end
-
-  if ruby_home
-    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/linker.rb"
   end
 
   RUBY = launcher

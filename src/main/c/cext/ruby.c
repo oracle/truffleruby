@@ -1509,9 +1509,12 @@ VALUE rb_ary_resize(VALUE ary, long len) {
 
 VALUE rb_ary_new_from_args(long n, ...) {
   VALUE array = rb_ary_new_capa(n);
+  va_list args;
+  va_start(args, n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(array, i, (VALUE) polyglot_get_arg(1+i));
+    rb_ary_store(array, i, va_arg(args, VALUE));
   }
+  va_end(args);
   return array;
 }
 
@@ -1614,7 +1617,7 @@ VALUE rb_ary_to_ary(VALUE array) {
   VALUE tmp = rb_check_array_type(array);
 
   if (!NIL_P(tmp)) return tmp;
-  return rb_ary_new3(1, array);
+  return rb_ary_new_from_args(1, array);
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
@@ -2957,13 +2960,6 @@ VALUE rb_java_to_string(VALUE obj) {
 
 void* rb_tr_new_managed_struct_internal(void *type) {
   return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct", type);
-}
-
-// Deprecated truffle LLVM intrinsic only used internally here
-void truffle_load_library(const char *string);
-
-void rb_tr_load_library(VALUE library) {
-  truffle_load_library(RSTRING_PTR(library));
 }
 
 // Remaining functions

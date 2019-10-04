@@ -116,8 +116,6 @@ public class Options {
     public final boolean CEXTS;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
-    /** --cexts-remap=new String[]{} */
-    public final String[] CEXTS_LIBRARY_REMAP;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
     /** --log-load=false */
@@ -315,7 +313,6 @@ public class Options {
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
-        CEXTS_LIBRARY_REMAP = options.get(OptionsCatalog.CEXTS_LIBRARY_REMAP_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
         LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
@@ -488,8 +485,6 @@ public class Options {
                 return CEXTS;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
-            case "ruby.cexts-remap":
-                return CEXTS_LIBRARY_REMAP;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":

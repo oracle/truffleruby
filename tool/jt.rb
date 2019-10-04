@@ -40,7 +40,6 @@ RUBOCOP_INCLUDE_LIST = %w[
   lib/truffle
   src/main/ruby/truffleruby
   src/test/ruby
-  tool/generate-sulongmock.rb
   tool/jt.rb
   spec/truffle
 ]
@@ -49,6 +48,7 @@ ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
 ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
 SOEXT = ON_MAC ? 'dylib' : 'so'
+DLEXT = SOEXT # See core/truffle/platform.rb
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -485,7 +485,8 @@ module Utilities
 
   def language_dir
     java_home = find_java_home || ENV.fetch('JAVA_HOME')
-    if java_home =~ /jdk-11/
+    raise "Java home #{java_home} does not exist" unless Dir.exist?(java_home)
+    if Dir.exist?("#{java_home}/jmods")
       'languages'
     else
       'jre/languages'
@@ -567,7 +568,7 @@ module Commands
       jt clean                                       clean
       jt env                                         prints the current environment
       jt rebuild [build options]                     clean, sforceimports, and build
-      jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
+      jt dis <file>                                  finds the bitcode file in the project, disassembles, and returns new filename
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
@@ -859,7 +860,7 @@ module Commands
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
     ext_dir = "#{cext_dir}/ext/#{name}"
-    target = "#{cext_dir}/lib/#{name}/#{name}.su"
+    target = "#{cext_dir}/lib/#{name}/#{name}.#{DLEXT}"
     compile_cext(name, ext_dir, target, clang_opts)
   end
 
@@ -871,7 +872,7 @@ module Commands
       run_ruby(env, '-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exist?('Makefile')
         raw_sh('make')
-        FileUtils::Verbose.cp("#{name}.su", target) if target
+        FileUtils::Verbose.cp("#{name}.#{DLEXT}", target) if target
       else
         STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
       end
@@ -1128,40 +1129,18 @@ module Commands
   end
 
   private def test_cexts(*args)
-    all_tests = %w(tools openssl minimum method module globals backtraces xopenssl postinstallhook gems)
+    all_tests = %w(tools minimum method module globals backtraces xopenssl postinstallhook gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
-    tests -= %w[openssl xopenssl] if no_openssl
+    tests -= %w[xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
-
-    if ENV['TRUFFLERUBY_CI'] && ON_MAC
-      raise 'no system clang' unless which('clang')
-      %w[opt llvm-link].each do |tool|
-        raise "should not have #{tool} in PATH in TruffleRuby CI" if which(tool)
-      end
-    end
 
     tests.each do |test_name|
       case test_name
       when 'tools'
         # Test tools
         run_ruby 'test/truffle/cexts/test-preprocess.rb'
-
-      when 'openssl'
-        # Test that we can compile and run some basic C code that uses openssl
-        if ENV['OPENSSL_PREFIX']
-          openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SOEXT}"
-        else
-          openssl_cflags = []
-          openssl_lib = "libssl.#{SOEXT}"
-        end
-
-        sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-        mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
-        out = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
-        raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
         # Test that we can compile and run some very basic C extensions
@@ -1215,7 +1194,7 @@ EOS
           gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
           ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", ['-Werror=implicit-function-declaration']
+          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
 
           next if gem_name == 'psd_native' # psd_native is excluded just for running
           run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
@@ -1223,16 +1202,18 @@ EOS
                    "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
         end
 
-          # Tests using gem install to compile the cexts
+        # Tests using gem install to compile the cexts
         sh 'test/truffle/cexts/puma/puma.sh'
         sh 'test/truffle/cexts/sqlite3/sqlite3.sh'
         sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
         sh 'test/truffle/cexts/json/json.sh'
 
-          # Test a gem dynamically compiling a C extension
-        sh 'test/truffle/cexts/RubyInline/RubyInline.sh'
+        # Test a gem dynamically compiling a C extension
+        # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
+        # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
+        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless ON_MAC
 
-          # Test cexts used by many projects
+        # Test cexts used by many projects
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
       else
         raise "unknown test: #{test_name}"

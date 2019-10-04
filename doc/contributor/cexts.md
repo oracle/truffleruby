@@ -50,11 +50,6 @@ C extension is actually being used by looking for these log lines.
 [ruby] INFO loading cext module ...
 ```
 
-## Tools
-
-The `tool/cext-compile-explore.rb` script can be used to show the output of
-stages of the C preprocessor and LLVM IR.
-
 ## Implementation
 
 We run Ruby C extensions using Sulong, running any dynamically linked libraries
@@ -63,10 +58,7 @@ natively.
 ### Compilation
 
 We compile C extensions using the standard `mkmf` tool, and `clang` compilers
-which have flags set to generate bitcode instead of machine code. We separately
-run the LLVM `opt` tool to specifically apply some optimizations that we need
-such as `mem2reg`. We link the bitcode files into a `.su` file (just a JAR of
-the bitcode files), using the `su-link` tool in Sulong.
+which have flags set to generate bitcode alongside machine code.
 
 We pipe C source code through a pre-processor `lib/cext/preprocess.rb` before it
 goes to `clang` to workaround some limitations.
