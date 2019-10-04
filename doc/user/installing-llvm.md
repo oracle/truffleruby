@@ -37,16 +37,8 @@ $ sudo dnf install libcxx-devel
 
 ## macOS
 
-### Development Tools and System Headers
-
-First, make sure you have installed the command line developer tools from Xcode:
+On macOS, make sure you have installed the command line developer tools from Xcode:
 
 ```bash
 $ xcode-select --install
-```
-
-On macOS Mojave, you also have to install headers, as macOS does not provide system headers in standard locations:
-
-```bash
-$ open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 ```
