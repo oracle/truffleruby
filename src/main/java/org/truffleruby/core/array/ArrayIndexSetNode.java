@@ -99,8 +99,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
         final int replacementSize = getSize(replacement);
 
         if (recursiveProfile.profile(array == replacement)) {
-            final DynamicObject copy = readSlice(array, 0, arraySize);
-            return executeSet(array, start, length, copy);
+            replacement = readSlice(array, 0, arraySize); // Make a copy
         }
 
         if (moveElementsProfile.profile(start + length <= arraySize)) {
