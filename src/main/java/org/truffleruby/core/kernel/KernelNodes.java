@@ -22,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -983,13 +983,13 @@ public abstract class KernelNodes {
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isA(Object self, DynamicObject rubyModule,
+        protected boolean isA(Object self, DynamicObject module,
                 @Cached IsANode isANode) {
-            return isANode.executeIsA(self, rubyModule);
+            return isANode.executeIsA(self, module);
         }
 
-        @Specialization(guards = "!isRubyModule(rubyModule)")
-        protected boolean isATypeError(Object self, Object rubyModule) {
+        @Specialization(guards = "!isRubyModule(module)")
+        protected boolean isATypeError(Object self, Object module) {
             throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
         }
 

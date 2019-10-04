@@ -665,8 +665,8 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGet(DynamicObject rubyModule, String name) {
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, rubyModule, name, lookupConstantNode);
+        protected Object rbConstGet(DynamicObject module, String name) {
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
     }
@@ -685,8 +685,8 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGetFrom(DynamicObject rubyModule, String name) {
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, rubyModule, name, lookupConstantNode);
+        protected Object rbConstGetFrom(DynamicObject module, String name) {
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
     }
@@ -703,9 +703,9 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstSet(DynamicObject rubyModule, String name, Object value,
+        protected Object rbConstSet(DynamicObject module, String name, Object value,
                 @Cached ConstSetNode constSetNode) {
-            return constSetNode.setConstantNoCheckName(rubyModule, name, value);
+            return constSetNode.setConstantNoCheckName(module, name, value);
         }
 
     }
@@ -715,9 +715,9 @@ public class CExtNodes {
 
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
-        @Specialization(guards = { "isRubyModule(rubyModule)", "isRubySymbol(name)" })
-        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject rubyModule, DynamicObject name) {
-            return setVisibilityNode.executeSetVisibility(frame, rubyModule, new Object[]{ name });
+        @Specialization(guards = { "isRubyModule(module)", "isRubySymbol(name)" })
+        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
+            return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
     }
@@ -1351,12 +1351,12 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int ending) {
+        protected Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
             return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
                     StringOperations.rope(str).getBytes(),
                     start,
                     p,
-                    ending);
+                    end);
         }
 
     }
@@ -1367,7 +1367,7 @@ public class CExtNodes {
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int ending,
+        protected Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
@@ -1379,7 +1379,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            return calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, ending);
+            return calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
         }
 
         private CodeRange codeRange(Rope rope) {

@@ -15,9 +15,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;

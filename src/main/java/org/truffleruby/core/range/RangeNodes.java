@@ -9,12 +9,11 @@
  */
 package org.truffleruby.core.range;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -42,6 +41,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 
 @CoreModule(value = "Range", isClass = true)
@@ -438,9 +438,9 @@ public abstract class RangeNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isObjectRange(range)")
-        protected boolean setExcludeEnd(DynamicObject range, Object beginning, Object ending, boolean excludeEnd) {
-            Layouts.OBJECT_RANGE.setBegin(range, beginning);
-            Layouts.OBJECT_RANGE.setEnd(range, ending);
+        protected boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
+            Layouts.OBJECT_RANGE.setBegin(range, begin);
+            Layouts.OBJECT_RANGE.setEnd(range, end);
             Layouts.OBJECT_RANGE.setExcludedEnd(range, excludeEnd);
             return excludeEnd;
         }
@@ -465,40 +465,38 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "rubyClass == rangeClass")
-        protected DynamicObject intRange(DynamicObject rubyClass, int beginning, int ending, boolean excludeEnd) {
+        protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
-                    beginning,
-                    ending);
+                    begin,
+                    end);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(beginning)", "fitsIntoInteger(ending)" })
-        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long beginning, long ending,
-                boolean excludeEnd) {
+        @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
+        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(
                     coreLibrary().getIntRangeFactory(),
                     excludeEnd,
-                    (int) beginning,
-                    (int) ending);
+                    (int) begin,
+                    (int) end);
         }
 
-        @Specialization(
-                guards = { "rubyClass == rangeClass", "!fitsIntoInteger(beginning) || !fitsIntoInteger(ending)" })
-        protected DynamicObject longRange(DynamicObject rubyClass, long beginning, long ending, boolean excludeEnd) {
+        @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
+        protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.LONG_RANGE.createLongRange(
                     coreLibrary().getLongRangeFactory(),
                     excludeEnd,
-                    beginning,
-                    ending);
+                    begin,
+                    end);
         }
 
-        @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(beginning) || !isIntOrLong(ending))" })
+        @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected Object objectRange(
                 VirtualFrame frame,
                 DynamicObject rubyClass,
-                Object beginning,
-                Object ending,
+                Object begin,
+                Object end,
                 boolean excludeEnd) {
             if (cmpNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -511,7 +509,7 @@ public abstract class RangeNodes {
 
             final Object cmpResult;
             try {
-                cmpResult = cmpNode.call(beginning, "<=>", ending);
+                cmpResult = cmpNode.call(begin, "<=>", end);
             } catch (RaiseException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
@@ -520,7 +518,7 @@ public abstract class RangeNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            return allocateNode.allocate(rubyClass, excludeEnd, beginning, ending);
+            return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
         }
 
         protected boolean fitsIntoInteger(long value) {

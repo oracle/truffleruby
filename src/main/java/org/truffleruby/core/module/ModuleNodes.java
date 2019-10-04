@@ -919,13 +919,13 @@ public abstract class ModuleNodes {
         // Symbol
 
         @Specialization(guards = { "inherit", "isRubySymbol(name)" })
-        protected Object getConstant(DynamicObject rubyModule, DynamicObject name, boolean inherit) {
-            return getConstant(rubyModule, Layouts.SYMBOL.getString(name));
+        protected Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
-        protected Object getConstantNoInherit(DynamicObject rubyModule, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(rubyModule, Layouts.SYMBOL.getString(name));
+        protected Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, Layouts.SYMBOL.getString(name));
         }
 
         // String
@@ -933,29 +933,29 @@ public abstract class ModuleNodes {
         @Specialization(
                 guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" },
                 limit = "getLimit()")
-        protected Object getConstantStringCached(DynamicObject rubyModule, DynamicObject name, boolean inherit,
+        protected Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(rubyModule, cachedString);
+            return getConstant(module, cachedString);
         }
 
         @Specialization(
                 guards = { "inherit", "isRubyString(name)", "!isScoped(name)" },
                 replaces = "getConstantStringCached")
-        protected Object getConstantString(DynamicObject rubyModule, DynamicObject name, boolean inherit) {
-            return getConstant(rubyModule, StringOperations.getString(name));
+        protected Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, StringOperations.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
-        protected Object getConstantNoInheritString(DynamicObject rubyModule, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(rubyModule, StringOperations.getString(name));
+        protected Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, StringOperations.getString(name));
         }
 
         // Scoped String
         @Specialization(guards = { "isRubyString(name)", "isScoped(name)" })
-        protected Object getConstantScoped(DynamicObject rubyModule, DynamicObject name, boolean inherit) {
+        protected Object getConstantScoped(DynamicObject module, DynamicObject name, boolean inherit) {
             return FAILURE;
         }
 

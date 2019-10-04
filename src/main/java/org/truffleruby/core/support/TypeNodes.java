@@ -251,8 +251,8 @@ public abstract class TypeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject moduleName(DynamicObject rubyModule) {
-            final String name = Layouts.MODULE.getFields(rubyModule).getName();
+        protected DynamicObject moduleName(DynamicObject module) {
+            final String name = Layouts.MODULE.getFields(module).getName();
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
