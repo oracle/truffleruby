@@ -225,7 +225,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "11-20190902-162937",
+          version: "ce-11-20190917-093434",
           platformspecific: true,
         },
       },
