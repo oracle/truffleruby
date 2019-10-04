@@ -391,14 +391,6 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 if (addingArguments) {
                     argumentNames.add(name);
                     argumentElements.add(parameter);
-
-                    if (KEYWORDS.contains(name)) {
-                        processingEnv.getMessager().printMessage(
-                                Kind.ERROR,
-                                "The argument should not be a Ruby keyword.",
-                                parameter);
-
-                    }
                 } else {
                     if (!argumentNames.get(index).equals(name)) {
                         processingEnv.getMessager().printMessage(
@@ -410,6 +402,13 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 }
                 index++;
             }
+        }
+
+        for (int i = 0; i < argumentNames.size(); i++) {
+            String arg = argumentNames.get(i);
+            String snake_case = arg.replaceAll("(.)(\\p{Upper})", "$1_$2").toLowerCase();
+            String no_keyword = KEYWORDS.contains(snake_case) ? snake_case + "_" : snake_case;
+            argumentNames.set(i, no_keyword);
         }
 
         return argumentNames;
