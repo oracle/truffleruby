@@ -145,7 +145,7 @@ class Array
     true
   end
 
-  def element_reference_fallback(method_name, start, length)
+  private def element_reference_fallback(start, length)
     if undefined.equal?(length)
       arg = start
       case arg
@@ -163,11 +163,11 @@ class Array
         start_index = Truffle::Type.clamp_to_int(start_index)
         end_index = Truffle::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
-        send(method_name, range)
+        TrufflePrimitive.array_aref(self, range, undefined)
       else
         arg = Truffle::Type.rb_num2long(arg)
         return nil unless Truffle::Type.fits_into_int?(arg)
-        send(method_name, arg)
+        TrufflePrimitive.array_aref(self, arg, undefined)
       end
     else
       start_index = start.to_int
@@ -176,23 +176,22 @@ class Array
       Truffle::Type.check_long(end_index)
       start_index = Truffle::Type.clamp_to_int(start_index)
       end_index = Truffle::Type.clamp_to_int(end_index)
-      send(method_name, start_index, end_index)
+      TrufflePrimitive.array_aref(self, start_index, end_index)
     end
   end
-  private :element_reference_fallback
 
-  def element_set_fallback(index, length, value)
+  private def element_set_fallback(index, length, value)
     if undefined.equal?(value)
       value = length
       if Range === index
         index = TrufflePrimitive.range_to_int_range(index)
         converted = Array.try_convert(value)
         converted = [value] unless converted
-        self[index] = converted
+        TrufflePrimitive.array_aset(self, index, converted, undefined)
         value
       else
         index = Truffle::Type.rb_num2long(index)
-        self[index] = value
+        TrufflePrimitive.array_aset(self, index, value, undefined)
       end
     else
       index = Truffle::Type.rb_num2long(index)
@@ -202,11 +201,10 @@ class Array
         converted = Array.try_convert(value)
         converted = [value] unless converted
       end
-      self[index, length] = converted
+      TrufflePrimitive.array_aset(self, index, length, converted)
       value
     end
   end
-  private :element_set_fallback
 
   def assoc(obj)
     each do |x|
