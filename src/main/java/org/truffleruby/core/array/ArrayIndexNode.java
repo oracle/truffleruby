@@ -73,14 +73,9 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
         }
     }
 
-    @Specialization(guards = { "!isInteger(a)", "!isIntRange(a)" })
-    protected Object fallbackIndex(DynamicObject array, Object a, NotProvided length) {
-        return fallback(array, a, length);
-    }
-
-    @Specialization(guards = { "!isInteger(a)", "!isIntRange(a)", "wasProvided(b)" })
-    protected Object fallbackSlice1(DynamicObject array, Object a, Object b) {
-        return fallback(array, a, b);
+    @Specialization(guards = { "!isInteger(index)", "!isIntRange(index)" })
+    protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength) {
+        return fallback(array, index, maybeLength);
     }
 
     @Specialization(guards = { "wasProvided(b)", "!isInteger(b)" })
