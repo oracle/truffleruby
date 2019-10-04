@@ -485,7 +485,8 @@ module Utilities
 
   def language_dir
     java_home = find_java_home || ENV.fetch('JAVA_HOME')
-    if java_home =~ /jdk-11/
+    raise "Java home #{java_home} does not exist" unless Dir.exist?(java_home)
+    if Dir.exist?("#{java_home}/jmods")
       'languages'
     else
       'jre/languages'
