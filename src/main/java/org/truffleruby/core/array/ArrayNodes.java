@@ -1073,16 +1073,16 @@ public abstract class ArrayNodes {
 
         // With block
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial_or_symbol)", "block != nil()" })
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)", "block != nil()" })
         @ReportPolymorphism.Exclude
-        protected Object injectEmptyArray(DynamicObject array, Object initial_or_symbol, NotProvided symbol,
+        protected Object injectEmptyArray(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block) {
-            return initial_or_symbol;
+            return initialOrSymbol;
         }
 
         @Specialization(guards = { "isEmptyArray(array)", "block != nil()" })
         @ReportPolymorphism.Exclude
-        protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initial_or_symbol,
+        protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initialOrSymbol,
                 NotProvided symbol,
                 DynamicObject block) {
             return nil();
@@ -1092,21 +1092,21 @@ public abstract class ArrayNodes {
                 guards = {
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "wasProvided(initial_or_symbol)",
+                        "wasProvided(initialOrSymbol)",
                         "block != nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectWithInitial(DynamicObject array, Object initial_or_symbol, NotProvided symbol,
+        protected Object injectWithInitial(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectBlockHelper(getNode, array, block, store, initial_or_symbol, 0);
+            return injectBlockHelper(getNode, array, block, store, initialOrSymbol, 0);
         }
 
         @Specialization(
                 guards = { "strategy.matches(array)", "!isEmptyArray(array)", "block != nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectNoInitial(DynamicObject array, NotProvided initial_or_symbol, NotProvided symbol,
+        protected Object injectNoInitial(DynamicObject array, NotProvided initialOrSymbol, NotProvided symbol,
                 DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
@@ -1137,15 +1137,15 @@ public abstract class ArrayNodes {
                 guards = {
                         "isRubySymbol(symbol)",
                         "isEmptyArray(array)",
-                        "wasProvided(initial_or_symbol)",
+                        "wasProvided(initialOrSymbol)",
                         "block == nil()" })
-        protected Object injectSymbolEmptyArray(DynamicObject array, Object initial_or_symbol, DynamicObject symbol,
+        protected Object injectSymbolEmptyArray(DynamicObject array, Object initialOrSymbol, DynamicObject symbol,
                 DynamicObject block) {
-            return initial_or_symbol;
+            return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isRubySymbol(initial_or_symbol)", "isEmptyArray(array)", "block == nil()" })
-        protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initial_or_symbol,
+        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)", "block == nil()" })
+        protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol,
                 DynamicObject block) {
             return nil();
@@ -1156,30 +1156,30 @@ public abstract class ArrayNodes {
                         "isRubySymbol(symbol)",
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "wasProvided(initial_or_symbol)",
+                        "wasProvided(initialOrSymbol)",
                         "block == nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial_or_symbol,
+        protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initialOrSymbol,
                 DynamicObject symbol, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectSymbolHelper(frame, array, symbol, getNode, store, initial_or_symbol, 0);
+            return injectSymbolHelper(frame, array, symbol, getNode, store, initialOrSymbol, 0);
         }
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(initial_or_symbol)",
+                        "isRubySymbol(initialOrSymbol)",
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
                         "block == nil()" },
                 limit = "STORAGE_STRATEGIES")
-        protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject initial_or_symbol,
+        protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
-            return injectSymbolHelper(frame, array, initial_or_symbol, getNode, store, getNode.execute(store, 0), 1);
+            return injectSymbolHelper(frame, array, initialOrSymbol, getNode, store, getNode.execute(store, 0), 1);
         }
 
         public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, DynamicObject symbol,
