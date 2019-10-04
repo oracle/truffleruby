@@ -15,8 +15,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
 /** {@link BiFunction} as a Node */
-public abstract interface BiFunctionNode extends NodeInterface {
+public interface BiFunctionNode extends NodeInterface {
 
-    public abstract Object accept(VirtualFrame frame, Object hash, Object key);
+    Object accept(VirtualFrame frame, Object hash, Object key);
 
 }
