@@ -90,8 +90,10 @@ public class TopLevelRaiseHandler extends RubyNode {
 
     public void handleSignalException(DynamicObject exception) {
         if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSignalExceptionClass()) {
-            CallDispatchHeadNode node = CallDispatchHeadNode.createPrivate();
-            node.call(exception, "reached_top_level");
+            getContext().getSafepointManager().pauseAllThreadsAndExecute(this, false, (thread, current_node) -> {
+                CallDispatchHeadNode node = CallDispatchHeadNode.createPrivate();
+                node.call(exception, "reached_top_level");
+            });
         }
     }
 
