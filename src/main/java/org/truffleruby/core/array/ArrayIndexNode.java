@@ -7,6 +7,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
@@ -73,14 +74,14 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
         }
     }
 
-    @Specialization(guards = { "!isInteger(index)", "!isIntRange(index)" })
+    @Specialization(guards = "isFallback(index, maybeLength)")
     protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength) {
         return fallback(array, index, maybeLength);
     }
 
-    @Specialization(guards = { "wasProvided(length)", "!isInteger(length)" })
-    protected Object fallbackLength(DynamicObject array, Object index, Object length) {
-        return fallback(array, index, length);
+    protected boolean isFallback(Object index, Object length) {
+        return (!RubyGuards.isInteger(index) && !RubyGuards.isIntRange(index)) ||
+                (RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length));
     }
 
     protected Object fallback(DynamicObject array, Object start, Object length) {
