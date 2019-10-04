@@ -15,8 +15,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
 /** {@link BiConsumer} as a Node */
-public abstract interface BiConsumerNode extends NodeInterface {
+public interface BiConsumerNode extends NodeInterface {
 
-    public abstract void accept(VirtualFrame frame, Object key, Object value, Object state);
+    void accept(VirtualFrame frame, Object key, Object value, Object state);
 
 }
