@@ -78,9 +78,9 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
         return fallback(array, index, maybeLength);
     }
 
-    @Specialization(guards = { "wasProvided(b)", "!isInteger(b)" })
-    protected Object fallbackSlice2(DynamicObject array, Object a, Object b) {
-        return fallback(array, a, b);
+    @Specialization(guards = { "wasProvided(length)", "!isInteger(length)" })
+    protected Object fallbackLength(DynamicObject array, Object index, Object length) {
+        return fallback(array, index, length);
     }
 
     protected Object fallback(DynamicObject array, Object start, Object length) {
