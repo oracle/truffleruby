@@ -1738,6 +1738,10 @@ size_t rb_hash_size_num(VALUE hash) {
   return (size_t) FIX2ULONG(rb_hash_size(hash));
 }
 
+struct st_table *rb_hash_tbl(VALUE hash, const char *file, int line) {
+  rb_tr_error("rb_hash_tbl not implemented");
+}
+
 // Class
 
 const char* rb_class2name(VALUE ruby_class) {
@@ -3125,6 +3129,10 @@ VALUE rb_tracearg_raised_exception(rb_trace_arg_t *trace_arg) {
 
 VALUE rb_tracearg_object(rb_trace_arg_t *trace_arg) {
   rb_tr_error("rb_tracearg_object not implemented");
+}
+
+rb_trace_arg_t *rb_tracearg_from_tracepoint(VALUE tpval) {
+  rb_tr_error("rb_tracearg_from_tracepoint not implemented");
 }
 
 int rb_postponed_job_register(unsigned int flags, rb_postponed_job_func_t func, void *data) {
