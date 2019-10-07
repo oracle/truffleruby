@@ -101,7 +101,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
-    ROPE_LAZY_SUBSTRINGS: [rope-lazy-substrings, boolean, true, Indicates whether a substring operation on a rope should be performed lazily]
 
     # Inline cache sizes
     DEFAULT_CACHE: [default-cache, integer, 8, Default size for caches]
@@ -124,7 +123,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     ENCODING_COMPATIBLE_QUERY_CACHE: [encoding-compatible-query-cache, integer, DEFAULT_CACHE, 'Encoding.compatible? cache size']
     ENCODING_LOADED_CLASSES_CACHE: [encoding-loaded-classes-cache, integer, DEFAULT_CACHE, Cache size of encoding operations based on anticipated number of total active encodings]
     THREAD_CACHE: [thread-cache, integer, DEFAULT_CACHE, Cache size of operations that depend on a particular thread]
-    ROPE_CLASS_CACHE: [rope-class-cache, integer, 8, Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls]
     INTEROP_CONVERT_CACHE: [interop-convert-cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
     INTEROP_EXECUTE_CACHE: [interop-execute-cache, integer, DEFAULT_CACHE, Cache size for interop EXECUTE messages]
     INTEROP_INVOKE_CACHE: [interop-invoke-cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]

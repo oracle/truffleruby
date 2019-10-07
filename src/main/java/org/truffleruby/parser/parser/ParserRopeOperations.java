@@ -11,46 +11,16 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.language.RubyBaseNode;
-
-import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.core.rope.RopeNodesFactory;
 
 public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
-        return ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding);
+        return RopeNodesFactory.WithEncodingNodeGen.getUncached().executeWithEncoding(rope, encoding);
     }
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
-        return ropeNode.getSubstringNode().executeSubstring(rope, sharedStart, sharedLength);
+        return RopeNodesFactory.SubstringNodeGen.getUncached().executeSubstring(rope, sharedStart, sharedLength);
     }
-
-    private static class RopeNode extends RubyBaseNode {
-
-        @Child RopeNodes.SubstringNode substringNode;
-        @Child RopeNodes.WithEncodingNode withEncodingNode;
-
-        public RopeNodes.SubstringNode getSubstringNode() {
-            if (substringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                substringNode = insert(RopeNodes.SubstringNode.create());
-            }
-
-            return substringNode;
-        }
-
-        public RopeNodes.WithEncodingNode getWithEncodingNode() {
-            if (withEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                withEncodingNode = insert(RopeNodes.WithEncodingNode.create());
-            }
-
-            return withEncodingNode;
-        }
-
-    }
-
-    private final RopeNode ropeNode = new RopeNode();
 
 }
