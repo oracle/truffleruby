@@ -6,7 +6,6 @@ You will need:
 
 * Java JDK 8
 * Ruby 2
-* [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)
 
 ## Workspace directory
