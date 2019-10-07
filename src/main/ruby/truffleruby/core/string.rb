@@ -571,7 +571,7 @@ class String
       if char
         index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
       else
-        array << "\\x#{getbyte(index).to_s(16)}"
+        array << "\\x#{getbyte(index).to_s(16).upcase}"
         index += 1
       end
     end
