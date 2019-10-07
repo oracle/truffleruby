@@ -44,6 +44,7 @@ public class InternalMethod implements ObjectGraphNode {
     /** A flag to tell whether there exist refinements of this method */
     private final boolean refined;
     private final DynamicObject proc; // only if method is created from a Proc
+    private final DynamicObject methodNameSymbol; // unused, but stored to keep present in the symbol table
 
     private final RootCallTarget callTarget;
     private final DynamicObject capturedBlock;
@@ -121,7 +122,8 @@ public class InternalMethod implements ObjectGraphNode {
                 proc,
                 callTarget,
                 capturedBlock,
-                null);
+                null,
+                context.getSymbolTable().getSymbol(name));
     }
 
     private InternalMethod(
@@ -138,7 +140,8 @@ public class InternalMethod implements ObjectGraphNode {
             DynamicObject proc,
             RootCallTarget callTarget,
             DynamicObject capturedBlock,
-            InternalMethod originalMethod) {
+            InternalMethod originalMethod,
+            DynamicObject methodNameSymbol) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert lexicalScope != null;
         assert originalMethod == null || !originalMethod.isRefined();
@@ -156,6 +159,7 @@ public class InternalMethod implements ObjectGraphNode {
         this.callTarget = callTarget;
         this.capturedBlock = capturedBlock;
         this.originalMethod = originalMethod;
+        this.methodNameSymbol = methodNameSymbol;
     }
 
     public SharedMethodInfo getSharedMethodInfo() {
@@ -218,7 +222,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    originalMethod);
+                    originalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -240,7 +245,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    originalMethod);
+                    originalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -262,7 +268,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    originalMethod);
+                    originalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -284,7 +291,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    newOriginalMethod);
+                    newOriginalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -306,7 +314,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    originalMethod);
+                    originalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -328,7 +337,8 @@ public class InternalMethod implements ObjectGraphNode {
                     proc,
                     callTarget,
                     capturedBlock,
-                    originalMethod);
+                    originalMethod,
+                    methodNameSymbol);
         }
     }
 
@@ -347,7 +357,8 @@ public class InternalMethod implements ObjectGraphNode {
                 proc,
                 callTarget,
                 capturedBlock,
-                originalMethod);
+                originalMethod,
+                methodNameSymbol);
     }
 
     public InternalMethod unimplemented() {
@@ -365,7 +376,8 @@ public class InternalMethod implements ObjectGraphNode {
                 proc,
                 callTarget,
                 capturedBlock,
-                originalMethod);
+                originalMethod,
+                methodNameSymbol);
     }
 
     @TruffleBoundary
