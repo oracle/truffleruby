@@ -17,6 +17,9 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class Rope {
 
+    // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
+    public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
+
     // Useful for debugging. Setting to false allow to catch wrong usages.
     protected static final boolean ALLOW_TO_STRING = true;
 
