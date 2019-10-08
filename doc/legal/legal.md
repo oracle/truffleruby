@@ -10,11 +10,11 @@ TruffleRuby is copyright (c) 2013-2019 Oracle and/or its
 affiliates, and is made available to you under the terms of any one of the
 following three licenses:
 
-* Eclipse Public License version 1.0, or
+* Eclipse Public License version 2.0, or
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1.
 
-See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
+See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 
 ## MRI
 
