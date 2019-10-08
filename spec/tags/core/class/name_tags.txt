@@ -1,0 +1,1 @@
+fails:Class#name returns nil for a singleton class object
