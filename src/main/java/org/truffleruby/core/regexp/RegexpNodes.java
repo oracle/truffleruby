@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
@@ -43,6 +44,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -130,6 +132,9 @@ public abstract class RegexpNodes {
             int options) {
         assert RubyGuards.isRubyRegexp(regexp);
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
+        if (regexpOptions.isEncodingNone()) {
+            setSource = RopeOperations.withEncoding(setSource, ASCIIEncoding.INSTANCE);
+        }
         final Regex regex = TruffleRegexpNodes.compile(currentNode, context, setSource, regexpOptions);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
