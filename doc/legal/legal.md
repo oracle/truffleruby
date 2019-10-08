@@ -56,18 +56,18 @@ MIT licence, see `mit.txt`.
 
 ## JRuby
 
-TruffleRuby contains code from JRuby 9.1.13.0, including Java implementation
+TruffleRuby contains code from JRuby 9.2.8.0, including Java implementation
 code, build system, shell script launchers, standard library modified from MRI,
 and so on.
 
 Where original files had JRuby licence headers we have copied them over. In
 general this code is available under any of these licences:
 
-* Eclipse Public License version 1.0, or
+* Eclipse Public License version 2.0, or
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1.
 
-See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
+See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 
 Some libraries that were spun out of JRuby, such as ByteList, have been
 incorporated into our source code. These were under the same copyright and

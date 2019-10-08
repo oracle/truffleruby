@@ -9,7 +9,7 @@
  *
  *
  * Some of the code in this class is modified from org.jruby.util.StringSupport,
- * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
+ * licensed under the same EPL 2.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 package org.truffleruby.aot;
 

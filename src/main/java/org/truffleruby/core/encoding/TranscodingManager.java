@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  *
- * Contains code modified from JRuby's RubyConverter.java and licensed under the same EPL1.0/GPL 2.0/LGPL 2.1
+ * Contains code modified from JRuby's RubyConverter.java and licensed under the same EPL 2.0/GPL 2.0/LGPL 2.1
  * used throughout.
  *
  * Contains code modified jcodings's TranscoderDB.java and EConv.java, which is licensed under the MIT license:

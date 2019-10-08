@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1.
  *
  * Some of the code in this class is modified from org.jruby.runtime.encoding.EncodingService,
- * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
+ * licensed under the same EPL 2.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 package org.truffleruby.core.encoding;
 

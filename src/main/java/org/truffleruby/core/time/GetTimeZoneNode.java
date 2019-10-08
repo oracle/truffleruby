@@ -9,7 +9,7 @@
  *
  * Some of the code for parsing timezones in this class is transposed
  * from org.jruby.RubyTime and licensed under the same
- * EPL 1.0/GPL 2.0/LGPL 2.1 used throughout.
+ * EPL 2.0/GPL 2.0/LGPL 2.1 used throughout.
  *
  * Copyright (C) 2001 Chad Fowler <chadfowler@chadfowler.com>
  * Copyright (C) 2001-2004 Jan Arne Petersen <jpetersen@uni-bonn.de>
