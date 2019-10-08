@@ -55,4 +55,8 @@ describe "Regexp#encoding" do
     /foo/.encoding.should_not == Encoding::EUC_JP
     Encoding.default_internal = old_internal
   end
+
+  it "allows otherwisr invalid characters if NOENCODING is specified" do
+    Regexp.new('([\x00-\xFF])', Regexp::IGNORECASE, 'n').encoding.should == Encoding::BINARY
+  end
 end
