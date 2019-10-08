@@ -1892,7 +1892,7 @@ char* ruby_strdup(const char *str) {
 // Calls
 
 int rb_respond_to(VALUE object, ID name) {
-  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(object, "respond_to?", name));
+  return RUBY_CEXT_INVOKE("rb_respond_to", object, ID2SYM(name));
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {

@@ -947,6 +947,10 @@ module Truffle::CExt
     recv.public_send(meth, *args, &block)
   end
 
+  def rb_respond_to(object, name)
+    object.respond_to?(name)
+  end
+
   def rb_funcallv_public(recv, meth, args)
     recv.public_send(meth, *args)
   end
