@@ -903,15 +903,15 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeIntSize(DynamicObject array, int size, Object defaultValue,
-                Object block) {
+        protected DynamicObject initializeNegativeIntSize(
+                DynamicObject array, int size, Object unusedDefaultValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeLongSize(DynamicObject array, long size, Object defaultValue,
-                Object block) {
+        protected DynamicObject initializeNegativeLongSize(
+                DynamicObject array, long size, Object unusedDefaultValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
@@ -965,7 +965,7 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = "size >= 0")
-        protected Object initializeBlock(DynamicObject array, int size, Object defaultValue, DynamicObject block,
+        protected Object initializeBlock(DynamicObject array, int size, Object unusedDefaultValue, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached PropagateSharingNode propagateSharingNode) {
             Object store = arrayBuilder.start(size);
@@ -1903,7 +1903,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
-        protected DynamicObject sortEmpty(DynamicObject array, Object block) {
+        protected DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 

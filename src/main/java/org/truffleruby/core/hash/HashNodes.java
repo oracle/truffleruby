@@ -341,7 +341,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected Object deletePackedArray(DynamicObject hash, Object key, Object block,
+        protected Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -367,24 +367,24 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            if (block == NotProvided.INSTANCE) {
+            if (maybeBlock == NotProvided.INSTANCE) {
                 return nil();
             } else {
-                return yieldNode.executeDispatch((DynamicObject) block, key);
+                return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
             }
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object delete(DynamicObject hash, Object key, Object block) {
+        protected Object delete(DynamicObject hash, Object key, Object maybeBlock) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
             if (hashLookupResult.getEntry() == null) {
-                if (block == NotProvided.INSTANCE) {
+                if (maybeBlock == NotProvided.INSTANCE) {
                     return nil();
                 } else {
-                    return yieldNode.executeDispatch((DynamicObject) block, key);
+                    return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
                 }
             }
 

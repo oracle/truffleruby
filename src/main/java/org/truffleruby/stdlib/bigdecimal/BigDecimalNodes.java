@@ -662,7 +662,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(a)")
-        protected Object power(DynamicObject a, int exponent, Object precision,
+        protected Object power(DynamicObject a, int exponent, Object unusedPrecision,
                 @Cached BranchProfile nanProfile,
                 @Cached BranchProfile posInfinityProfile,
                 @Cached BranchProfile negInfinityProfile,

@@ -328,10 +328,8 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     private List<String> getArgumentNames(
-            TypeElement klass,
-            String[] argumentNamesFromAnnotation,
-            boolean hasSelfArgument,
-            int numberOfArguments) {
+            TypeElement klass, String[] argumentNamesFromAnnotation, boolean hasSelfArgument, int numberOfArguments) {
+
         List<String> argumentNames;
         if (argumentNamesFromAnnotation.length == 0) {
             argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
@@ -387,7 +385,15 @@ public class CoreModuleProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                String name = parameter.getSimpleName().toString();
+                String nameCanBeKeyword = parameter
+                        .getSimpleName()
+                        .toString()
+                        .replaceAll("(.)(\\p{Upper})", "$1_$2")
+                        .toLowerCase()
+                        .replaceAll("^(maybe|unused)_", "");
+                String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
+
+
                 if (addingArguments) {
                     argumentNames.add(name);
                     argumentElements.add(parameter);
@@ -396,19 +402,13 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         processingEnv.getMessager().printMessage(
                                 Kind.ERROR,
                                 "The argument does not match with the first occurrence of this argument which was '" +
-                                        argumentNames.get(index) + "'.",
+                                        argumentElements.get(index).getSimpleName() +
+                                        "' (translated to Ruby as '" + argumentNames.get(index) + "').",
                                 parameter);
                     }
                 }
                 index++;
             }
-        }
-
-        for (int i = 0; i < argumentNames.size(); i++) {
-            String arg = argumentNames.get(i);
-            String snake_case = arg.replaceAll("(.)(\\p{Upper})", "$1_$2").toLowerCase();
-            String no_keyword = KEYWORDS.contains(snake_case) ? snake_case + "_" : snake_case;
-            argumentNames.set(i, no_keyword);
         }
 
         return argumentNames;
