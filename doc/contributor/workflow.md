@@ -77,6 +77,13 @@ Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
+### Building C Extensions Faster
+
+To speed up compilation of bundled C extensions, it is recommended to use
+*native* toolchain launchers, which save around 1 minute of build time.
+See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
+in Sulong to build and use them.
+
 ## Running
 
 `jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
