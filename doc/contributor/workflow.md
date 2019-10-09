@@ -5,8 +5,7 @@
 You will need:
 
 * Java JDK 8
-* Ruby 2
-* [LLVM](../user/installing-llvm.md)
+* Ruby >= 2.4
 * [`libssl`](../user/installing-libssl.md)
 
 ## Workspace directory
@@ -18,13 +17,17 @@ $ mkdir truffleruby-ws
 $ cd truffleruby-ws
 ```
 
+You can then clone the repository:
+```bash
+$ git clone https://github.com/oracle/truffleruby.git
+$ cd truffleruby
+```
+
 ## Developer tool
 
 We then use a Ruby script to run most commands.
 
 ```bash
-$ git clone https://github.com/oracle/truffleruby.git
-$ cd truffleruby
 $ ruby tool/jt.rb --help
 ```
 
@@ -54,67 +57,74 @@ $ jt mx version
 $ jt build
 ```
 
-By default the `jt build` command builds GraalVM containing only the Ruby
-language. The built GraalVM can be found in `mxbuild/truffleruby-jvm` directory.
-If you'd like to build GraalVM with the native image using the Substrate VM, you
-can do so by providing an extra option `--env` to the build command.
+By default the `jt build` command builds a small JVM-only (no native images)
+GraalVM containing only the Ruby language. The built GraalVM can be found in the
+`mxbuild/truffleruby-jvm` directory.
 
+There are multiple *configurations* available to build TruffleRuby:
+* `jvm`: the default, JVM-only, no GraalVM compiler
+* `jvm-ce`: JVM-only, with the GraalVM compiler
+* `native`: Builds a native image of TruffleRuby using SubstrateVM
+
+To build one of these configurations, pass `--env` to the build command:
 ```bash
-$ jt build --env native
+$ jt build [--env CONFIGURATION]
 ```
 
-This GraalVM build will be created in `mxbuild/truffleruby-native`.
+The GraalVM build will be created in `mxbuild/truffleruby-${configuration}`.
 
 Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
+### Building C Extensions Faster
+
+To speed up compilation of bundled C extensions, it is recommended to use
+*native* toolchain launchers, which save around 1 minute of build time.
+See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
+in Sulong to build and use them.
+
+## Running
+
+`jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
+command. Additionally, `jt ruby` sets a couple of extra options to help you when
+developing, such as loading the core library from disk rather than the JAR.
+`jt ruby` prints the real command it's running as it starts.
+
+If you are running a Ruby environment manager like `rvm`, `rbenv`, or `chruby`
+please run `rvm use system`, `rbenv system`, or `chruby system` to clear their
+environment variables, so that the correct gems are picked up.
+
+If you want to run the TruffleRuby with another configuration than `jvm`, pass
+the configuration name after `--use`:
+```bash
+$ jt [--use CONFIGURATION] ruby ...
+```
+
 ## Testing
 
-We have 'specs' which come from the Ruby Spec Suite. These are usually high
-quality, small tests, and are our priority at the moment. We also have MRI's
-unit tests, which are often very complex and we aren't actively working on now.
-Finally, we have tests of our own. The integration tests test more macro use of
-Ruby. The ecosystem tests test commands related to Ruby. The gems tests test a
-small number of key Ruby 3rd party modules.
+We have 'specs' which come from [the Ruby Spec Suite](https://github.com/ruby/spec).
+These are usually high quality, small tests, and are our priority at the moment.
+We also have MRI's unit tests, which are often very complex and we aren't
+actively working on now. Finally, we have tests of our own. The integration
+tests test more macro use of Ruby. The ecosystem tests test commands related to
+Ruby. The gems tests test a small number of key Ruby 3rd party modules.
 
 The basic test to run every time you make changes is the "fast specs", a subset
-of specs which runs in reasonable time. If you are running a Ruby environment
-manager like `rvm`, `rbenv`, or `chruby` please run `rvm use system`, `rbenv
-system`, or `chruby system` to clear their environment variables.
+of specs which runs in reasonable time.
 
 ```bash
-$ jt test fast
+$ jt [--use CONFIGURATION] test fast
 ```
 
 Other tests take longer and require more setup, so we don't normally run them
 locally unless we're working on that functionality (instead, the CI runs them).
 
-If you'd like to run tests with the native TruffleRuby binary, you can do so by
-providing the `--use` option. Please note that you must follow the steps to
-build the native image before it can be used for tests.
-
+Specs under `spec/ruby` are supposed to pass on both Truffle and MRI.
+To run the tests or specs on MRI, pass `--use ruby`:
 ```bash
-$ jt --use native test fast
-```
-
-Tests under `spec/ruby` are supposed to pass on both Truffle and MRI. Use `jt
---use mri/bin/ruby path/to/spec.rb` to run the test on MRI, assuming you have
-MRI in your PATH.
-
-## Running
-
-`jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
-command. Although it does set a couple of extra options to help you when
-developing, such as loading the core library from disk rather than the JAR.
-`jt ruby` prints the real command it's running as it starts.
-
-If you'd like to run the native TruffleRuby binary, you can do so by providing
-the `--use` option. Please note that you must follow the steps to build the
-native image before it can be used.
-
-```bash
-$ jt --use native ruby ...
+jt --use ruby path/to/spec.rb # assumes you have MRI in your PATH
+jt --use /full/path/to/bin/ruby path/to/spec.rb
 ```
 
 ## Options
@@ -131,19 +141,23 @@ to Ruby exceptions. You can leave off the value to set the option to `true`.
 
 To see all options run `jt ruby --help:languages`.
 
-The development launcher supports `RUBY_BIN`, `JAVACMD`, `JAVA_HOME`, and
-`JAVA_OPTS`.
-
-Ruby command line options and arguments can also be set in `RUBYOPT`.
+Ruby command line options and arguments can also be set in `RUBYOPT` or
+`TRUFFLERUBYOPT`.
 
 ## Running with Graal
 
-See the document on [building graal](building-graal.md), and then run `jt ruby`
-as normal.
+To build TruffleRuby with the GraalVM CE compiler, use:
+```bash
+$ jt build --env jvm-ce
+```
+
+Then, run TruffleRuby with:
+```bash
+$ jt --use jvm-ce ruby ...
+```
 
 We have flags in `jt` to set some options, such as `--trace` for
-`--vm.Dgraal.TraceTruffleCompilation=true` and `--igv` for
-`--vm.Dgraal.Dump=Truffle`.
+`--vm.Dgraal.TraceTruffleCompilation=true`.
 
 ## Testing with Graal
 

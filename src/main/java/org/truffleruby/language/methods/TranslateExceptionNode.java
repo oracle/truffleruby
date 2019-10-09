@@ -176,7 +176,7 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
         }
 
         final StringBuilder builder = new StringBuilder();
-        builder.append("Truffle doesn't have a case for the ");
+        builder.append("TruffleRuby doesn't have a case for the ");
         builder.append(exception.getNode().getClass().getName());
         builder.append(" node with values of type ");
 

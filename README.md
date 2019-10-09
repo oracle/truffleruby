@@ -106,7 +106,6 @@ environment, for example by unmounting system filesystems such as `/dev/shm`.
 
 ## Dependencies
 
-* [LLVM](doc/user/installing-llvm.md) to build and run C extensions
 * [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
 * [zlib](doc/user/installing-zlib.md) for the `zlib` C extension
 

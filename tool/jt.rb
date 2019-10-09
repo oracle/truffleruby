@@ -568,7 +568,6 @@ module Commands
       jt clean                                       clean
       jt env                                         prints the current environment
       jt rebuild [build options]                     clean, sforceimports, and build
-      jt dis <file>                                  finds the bitcode file in the project, disassembles, and returns new filename
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
@@ -688,14 +687,6 @@ module Commands
     else
       raise ArgumentError, project
     end
-  end
-
-  def dis(file)
-    dis = `which llvm-dis-3.8 llvm-dis 2>/dev/null`.lines.first.chomp
-    file = `find #{TRUFFLERUBY_DIR} -name "#{file}"`.lines.first.chomp
-    raise ArgumentError, "file not found:`#{file}`" if file.empty?
-    sh dis, file
-    puts Pathname(file).sub_ext('.ll')
   end
 
   def env
