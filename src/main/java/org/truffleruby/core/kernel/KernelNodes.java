@@ -570,7 +570,7 @@ public abstract class KernelNodes {
             }
         }
 
-        public abstract Object execute(VirtualFrame frame, Object self, DynamicObject source, DynamicObject binding,
+        public abstract Object execute(VirtualFrame frame, Object target, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line);
 
         // If the source defines new local variables, those should be set in the Binding.
@@ -585,7 +585,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
-                Object object,
+                Object target,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -599,7 +599,7 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
-            return eval(object, cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -612,7 +612,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
-                Object object,
+                Object target,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -628,15 +628,15 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(object, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            return eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization
-        protected Object evalBindingUncached(Object object, DynamicObject source, DynamicObject binding,
+        protected Object evalBindingUncached(Object target, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
-                    object,
+                    target,
                     rope(source),
                     binding,
                     rope(file),
@@ -645,7 +645,7 @@ public abstract class KernelNodes {
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object object, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(Object target, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
             final InternalMethod method = new InternalMethod(
                     getContext(),
@@ -658,11 +658,11 @@ public abstract class KernelNodes {
                     callTarget);
 
             return callNode
-                    .call(RubyArguments.pack(parentFrame, null, method, null, object, null, RubyNode.EMPTY_ARGUMENTS));
+                    .call(RubyArguments.pack(parentFrame, null, method, null, target, null, RubyNode.EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object self, Rope source,
+        private CodeLoader.DeferredCall doEvalX(Object target, Rope source,
                 DynamicObject binding,
                 Rope file,
                 int line,
@@ -679,7 +679,7 @@ public abstract class KernelNodes {
                     declarationContext,
                     rootNode,
                     frame,
-                    self);
+                    target);
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,

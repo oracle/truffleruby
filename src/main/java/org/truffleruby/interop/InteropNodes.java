@@ -1390,17 +1390,17 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(object)", "strategy.matches(object)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaArray(DynamicObject object,
-                @Cached("of(object)") ArrayStrategy strategy,
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        protected Object toJavaArray(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
             return getContext().getEnv().asGuestValue(copyStoreNode.execute(
-                    Layouts.ARRAY.getStore(object),
-                    Layouts.ARRAY.getSize(object)));
+                    Layouts.ARRAY.getStore(array),
+                    Layouts.ARRAY.getSize(array)));
         }
 
-        @Specialization(guards = "!isRubyArray(object)")
-        protected Object coerce(DynamicObject object) {
+        @Specialization(guards = "!isRubyArray(array)")
+        protected Object coerce(DynamicObject array) {
             return FAILURE;
         }
 
@@ -1410,17 +1410,17 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(object)", "strategy.matches(object)" }, limit = "STORAGE_STRATEGIES")
-        protected Object toJavaList(DynamicObject object,
-                @Cached("of(object)") ArrayStrategy strategy,
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        protected Object toJavaList(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(
-                    Layouts.ARRAY.getStore(object),
-                    Layouts.ARRAY.getSize(object))));
+                    Layouts.ARRAY.getStore(array),
+                    Layouts.ARRAY.getSize(array))));
         }
 
-        @Specialization(guards = "!isRubyArray(object)")
-        protected Object coerce(DynamicObject object) {
+        @Specialization(guards = "!isRubyArray(array)")
+        protected Object coerce(DynamicObject array) {
             return FAILURE;
         }
 

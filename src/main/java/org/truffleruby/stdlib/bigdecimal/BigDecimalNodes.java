@@ -1129,32 +1129,32 @@ public abstract class BigDecimalNodes {
     public abstract static class RoundNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNormal(value)")
-        protected Object round(DynamicObject value, NotProvided digit, NotProvided roundingMode,
+        protected Object round(DynamicObject value, NotProvided ndigits, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
             return fixnumOrBignumNode.fixnumOrBignum(round(value, 0, getRoundMode()));
         }
 
         @Specialization(guards = "isNormal(value)")
-        protected Object round(DynamicObject value, int digit, NotProvided roundingMode) {
-            return createBigDecimal(round(value, digit, getRoundMode()));
+        protected Object round(DynamicObject value, int ndigits, NotProvided roundingMode) {
+            return createBigDecimal(round(value, ndigits, getRoundMode()));
         }
 
         @Specialization(guards = { "isNormal(value)", "isRubySymbol(roundingMode)" })
-        protected Object round(DynamicObject value, int digit, DynamicObject roundingMode,
+        protected Object round(DynamicObject value, int ndigits, DynamicObject roundingMode,
                 @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
             return createBigDecimal(round(
                     value,
-                    digit,
+                    ndigits,
                     toRoundingMode((int) callRoundModeFromSymbol.call(value, "round_mode_from_symbol", roundingMode))));
         }
 
         @Specialization(guards = "isNormal(value)")
-        protected Object round(DynamicObject value, int digit, int roundingMode) {
-            return createBigDecimal(round(value, digit, toRoundingMode(roundingMode)));
+        protected Object round(DynamicObject value, int ndigits, int roundingMode) {
+            return createBigDecimal(round(value, ndigits, toRoundingMode(roundingMode)));
         }
 
         @Specialization(guards = "!isNormal(value)")
-        protected Object roundSpecial(DynamicObject value, NotProvided digit, NotProvided roundingMode,
+        protected Object roundSpecial(DynamicObject value, NotProvided ndigits, NotProvided roundingMode,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached BranchProfile negInfinityProfile,
                 @Cached BranchProfile posInfinityProfile,
@@ -1181,22 +1181,22 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = { "!isNormal(value)", "wasProvided(digit)", "wasProvided(roundingMode)" })
-        protected Object roundSpecial(DynamicObject value, Object digit, Object roundingMode) {
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(ndigits)", "wasProvided(roundingMode)" })
+        protected Object roundSpecial(DynamicObject value, Object ndigits, Object roundingMode) {
             return value;
         }
 
-        @Specialization(guards = { "!isNormal(value)", "wasProvided(digit)" })
-        protected Object roundSpecial(DynamicObject value, Object digit, NotProvided roundingMode) {
+        @Specialization(guards = { "!isNormal(value)", "wasProvided(ndigits)" })
+        protected Object roundSpecial(DynamicObject value, Object ndigits, NotProvided roundingMode) {
             return value;
         }
 
         @TruffleBoundary
-        private BigDecimal round(DynamicObject value, int digit, RoundingMode roundingMode) {
+        private BigDecimal round(DynamicObject value, int ndigits, RoundingMode roundingMode) {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(value);
 
-            if (digit <= valueBigDecimal.scale()) {
-                return valueBigDecimal.movePointRight(digit).setScale(0, roundingMode).movePointLeft(digit);
+            if (ndigits <= valueBigDecimal.scale()) {
+                return valueBigDecimal.movePointRight(ndigits).setScale(0, roundingMode).movePointLeft(ndigits);
             } else {
                 // Do not perform rounding when not required
                 return valueBigDecimal;
