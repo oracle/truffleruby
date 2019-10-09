@@ -71,11 +71,11 @@ For a `String` or `Symbol`, produces a `java.lang.String`, similar to
 
 ### `IS_POINTER`
 
-Calls `__pointer__?` if the object responds to it, otherwise returns `false`.
+Calls `polyglot_pointer?` if the object responds to it, otherwise returns `false`.
 
 ### `AS_POINTER`
 
-Calls `__address__` if the object responds to it, otherwise throws
+Calls `polyglot_address` if the object responds to it, otherwise throws
 `UnsupportedMessageException`.
 
 ### `TO_NATIVE`

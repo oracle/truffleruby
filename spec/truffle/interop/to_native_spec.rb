@@ -28,12 +28,12 @@ describe "Truffle::Interop.to_native" do
       @pointer = Truffle::FFI::Pointer.new(0x123)
     end
 
-    def obj.__pointer__?
+    def obj.polyglot_pointer?
       !@pointer.nil?
     end
 
-    def obj.__address__
-      @pointer.__address__
+    def obj.polyglot_address
+      @pointer.polyglot_address
     end
 
     Truffle::Interop.pointer?(obj).should be_false

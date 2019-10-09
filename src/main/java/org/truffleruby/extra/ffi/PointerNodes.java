@@ -139,7 +139,7 @@ public abstract class PointerNodes {
 
     }
 
-    @CoreMethod(names = { "address", "__address__", "to_i" })
+    @CoreMethod(names = { "address", "polyglot_address", "to_i" })
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

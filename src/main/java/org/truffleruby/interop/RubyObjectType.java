@@ -141,8 +141,8 @@ public class RubyObjectType extends ObjectType {
 
         // TODO (pitr-ch 18-Mar-2019): branchProfile?
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
-        if (respondNode.doesRespondTo(null, "__pointer__?", receiver)) {
-            return booleanCastNode.executeToBoolean(dispatchNode.call(receiver, "__pointer__?"));
+        if (respondNode.doesRespondTo(null, "polyglot_pointer?", receiver)) {
+            return booleanCastNode.executeToBoolean(dispatchNode.call(receiver, "polyglot_pointer?"));
         } else {
             return false;
         }
@@ -160,8 +160,8 @@ public class RubyObjectType extends ObjectType {
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
-        if (respondNode.doesRespondTo(null, "__address__", receiver)) {
-            return longCastNode.executeCastLong(dispatchNode.call(receiver, "__address__"));
+        if (respondNode.doesRespondTo(null, "polyglot_address", receiver)) {
+            return longCastNode.executeCastLong(dispatchNode.call(receiver, "polyglot_address"));
         } else {
             throw UnsupportedMessageException.create();
         }
