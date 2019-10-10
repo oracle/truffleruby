@@ -34,4 +34,8 @@ public @interface Primitive {
      */
     boolean raiseIfFrozenSelf() default false;
 
+    /**
+     * Use these names in Ruby core methods stubs, ignore argument names in Java specializations.
+     */
+    String[] argumentNames() default {};
 }

@@ -621,14 +621,14 @@ public abstract class HashNodes {
             return self;
         }
 
-        @Specialization(guards = "!isRubyHash(other)")
-        protected DynamicObject replaceCoerce(DynamicObject self, Object other,
+        @Specialization(guards = "!isRubyHash(from)")
+        protected DynamicObject replaceCoerce(DynamicObject self, Object from,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().getTruffleTypeModule(),
                     "coerce_to",
-                    other,
+                    from,
                     coreLibrary().getHashClass(),
                     coreStrings().TO_HASH.getSymbol());
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
@@ -725,8 +725,8 @@ public abstract class HashNodes {
             return defaultProc;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
+        @Specialization(guards = "isNil(defaultProc)")
+        protected DynamicObject setDefaultProc(DynamicObject hash, Object defaultProc) {
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
             return nil();

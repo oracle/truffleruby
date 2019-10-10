@@ -597,8 +597,8 @@ public abstract class EncodingNodes {
             return encoding;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject noDefaultExternal(DynamicObject nil) {
+        @Specialization(guards = "isNil(encoding)")
+        protected DynamicObject noDefaultExternal(DynamicObject encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("default external can not be nil", this));
@@ -640,24 +640,24 @@ public abstract class EncodingNodes {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
 
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject encodingGetObjectEncodingString(DynamicObject string) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(string).getEncoding());
+        @Specialization(guards = "isRubyString(object)")
+        protected DynamicObject encodingGetObjectEncodingString(DynamicObject object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(object).getEncoding());
         }
 
-        @Specialization(guards = "isRubySymbol(symbol)")
-        protected DynamicObject encodingGetObjectEncodingSymbol(DynamicObject symbol) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.SYMBOL.getRope(symbol).getEncoding());
+        @Specialization(guards = "isRubySymbol(object)")
+        protected DynamicObject encodingGetObjectEncodingSymbol(DynamicObject object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.SYMBOL.getRope(object).getEncoding());
         }
 
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        protected DynamicObject encodingGetObjectEncoding(DynamicObject encoding) {
-            return encoding;
+        @Specialization(guards = "isRubyEncoding(object)")
+        protected DynamicObject encodingGetObjectEncoding(DynamicObject object) {
+            return object;
         }
 
-        @Specialization(guards = "isRubyRegexp(regexp)")
-        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject regexp) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.REGEXP.getSource(regexp).getEncoding());
+        @Specialization(guards = "isRubyRegexp(object)")
+        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.REGEXP.getSource(object).getEncoding());
         }
 
         @Specialization(
@@ -692,9 +692,9 @@ public abstract class EncodingNodes {
     public static abstract class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        protected DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
+        protected DynamicObject encodingReplicate(DynamicObject object, DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
-            final Encoding encoding = EncodingOperations.getEncoding(self);
+            final Encoding encoding = EncodingOperations.getEncoding(object);
 
             final DynamicObject newEncoding = replicate(name, encoding);
             return setIndexOrRaiseError(name, newEncoding);

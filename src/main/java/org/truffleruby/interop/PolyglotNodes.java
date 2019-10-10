@@ -11,9 +11,9 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -85,7 +85,12 @@ public abstract class PolyglotNodes {
 
     }
 
-    @CoreMethod(names = "eval_file", isModuleFunction = true, required = 1, optional = 1)
+    @CoreMethod(
+            names = "eval_file",
+            isModuleFunction = true,
+            required = 1,
+            optional = 1,
+            argumentNames = { "file_name_or_id", "file_name" })
     public abstract static class EvalFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

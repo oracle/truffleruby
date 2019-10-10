@@ -247,8 +247,8 @@ public abstract class PointerNodes {
             return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
         }
 
-        @Specialization(guards = "isNil(noLimit)")
-        protected DynamicObject readStringToNull(long address, DynamicObject noLimit,
+        @Specialization(guards = "isNil(limit)")
+        protected DynamicObject readStringToNull(long address, DynamicObject limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);

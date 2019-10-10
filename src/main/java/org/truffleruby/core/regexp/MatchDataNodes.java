@@ -19,9 +19,9 @@ import org.joni.Region;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -171,7 +171,13 @@ public abstract class MatchDataNodes {
         return charOffsets;
     }
 
-    @CoreMethod(names = "[]", required = 1, optional = 1, lowerFixnum = { 1, 2 }, taintFrom = 0)
+    @CoreMethod(
+            names = "[]",
+            required = 1,
+            optional = 1,
+            lowerFixnum = { 1, 2 },
+            taintFrom = 0,
+            argumentNames = { "index_start_range_or_name", "length" })
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;

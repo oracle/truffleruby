@@ -158,14 +158,14 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization
-        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
+        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
-            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, self, normalizedName);
+            InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
             if (method == null) {
                 return nil();
             }
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, method);
         }
 
     }
@@ -269,20 +269,20 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(signalNameString)", "isRubyProc(proc)" })
-        protected boolean watchSignalProc(DynamicObject signalNameString, DynamicObject proc) {
+        @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(action)" })
+        protected boolean watchSignalProc(DynamicObject signalName, DynamicObject action) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
-                SharedObjects.writeBarrier(getContext(), proc);
+                SharedObjects.writeBarrier(getContext(), action);
             }
 
             final RubyContext context = getContext();
 
-            final String signalName = StringOperations.getString(signalNameString);
-            return registerHandler(signalName, () -> {
+            final String signal = StringOperations.getString(signalName);
+            return registerHandler(signal, () -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe(
-                            "signal " + signalName + " caught but can't create a thread to handle it so ignoring");
+                            "signal " + signal + " caught but can't create a thread to handle it so ignoring");
                     return;
                 }
 
@@ -299,9 +299,9 @@ public abstract class VMPrimitiveNodes {
                     // Not in a context, so we cannot use TruffleLogger
                     final PrintStream printStream = new PrintStream(context.getEnv().err(), true);
                     printStream.println(
-                            "[ruby] SEVERE: signal " + signalName +
+                            "[ruby] SEVERE: signal " + signal +
                                     " caught but can't create a thread to handle it so ignoring and restoring the default handler");
-                    Signals.restoreDefaultHandler(signalName);
+                    Signals.restoreDefaultHandler(signal);
                     return;
                 }
                 try {
@@ -311,7 +311,7 @@ public abstract class VMPrimitiveNodes {
                                 if (rubyThread == rootThread &&
                                         fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager
                                                 .getCurrentFiber()) {
-                                    ProcOperations.rootCall(proc);
+                                    ProcOperations.rootCall(action);
                                 }
                             });
                 } finally {

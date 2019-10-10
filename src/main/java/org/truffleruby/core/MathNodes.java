@@ -38,9 +38,9 @@
 package org.truffleruby.core;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.ToFNode;
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule("Math")
 public abstract class MathNodes {
 
-    @CoreMethod(names = "acos", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "acos", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ACosNode extends SimpleMonadicMathNode {
 
         @Override
@@ -72,7 +72,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "acosh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "acosh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ACosHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -91,7 +91,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "asin", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "asin", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ASinNode extends SimpleMonadicMathNode {
 
         @Override
@@ -106,7 +106,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "asinh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "asinh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ASinHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -132,7 +132,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "atan", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "atan", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ATanNode extends SimpleMonadicMathNode {
 
         @Override
@@ -142,7 +142,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "atan2", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "atan2", isModuleFunction = true, required = 2, argumentNames = { "y", "x" })
     public abstract static class ATan2Node extends SimpleDyadicMathNode {
 
         @Override
@@ -152,7 +152,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "atanh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "atanh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ATanHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -181,7 +181,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "cbrt", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "cbrt", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class CbRtNode extends SimpleMonadicMathNode {
 
         @Override
@@ -191,7 +191,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "cos", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "cos", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class CosNode extends SimpleMonadicMathNode {
 
         @Override
@@ -201,7 +201,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "cosh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "cosh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class CosHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -211,7 +211,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "erf", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "erf", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ErfNode extends SimpleMonadicMathNode {
 
         @Override
@@ -233,7 +233,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "erfc", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "erfc", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ErfcNode extends SimpleMonadicMathNode {
 
         @Override
@@ -276,7 +276,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "exp", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "exp", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class ExpNode extends SimpleMonadicMathNode {
 
         @Override
@@ -321,7 +321,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "gamma", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "gamma", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class GammaNode extends SimpleMonadicMathNode {
 
         @Override
@@ -494,7 +494,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "log10", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "log10", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class Log10Node extends SimpleMonadicMathNode {
 
         @Override
@@ -509,7 +509,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "log2", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "log2", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class Log2Node extends SimpleMonadicMathNode {
 
         private final double LOG2 = Math.log(2);
@@ -526,7 +526,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "sin", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "sin", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class SinNode extends SimpleMonadicMathNode {
 
         @Override
@@ -536,7 +536,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "sinh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "sinh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class SinHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -546,7 +546,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "tan", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "tan", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class TanNode extends SimpleMonadicMathNode {
 
         @Override
@@ -556,7 +556,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "tanh", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "tanh", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class TanHNode extends SimpleMonadicMathNode {
 
         @Override
@@ -566,7 +566,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "sqrt", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "sqrt", isModuleFunction = true, required = 1, argumentNames = { "number" })
     public abstract static class SqrtNode extends SimpleMonadicMathNode {
 
         @Override

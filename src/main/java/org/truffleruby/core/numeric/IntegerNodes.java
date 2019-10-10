@@ -1481,8 +1481,8 @@ public abstract class IntegerNodes {
             return CoreLibrary.fitsIntoInteger(a);
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean fitsIntoIntBignum(DynamicObject b) {
+        @Specialization(guards = "isRubyBignum(a)")
+        protected boolean fitsIntoIntBignum(DynamicObject a) {
             return false;
         }
 
@@ -1501,8 +1501,8 @@ public abstract class IntegerNodes {
             return CoreLibrary.fitsIntoUnsignedInteger(a);
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean fitsIntoUIntBignum(DynamicObject b) {
+        @Specialization(guards = "isRubyBignum(a)")
+        protected boolean fitsIntoUIntBignum(DynamicObject a) {
             return false;
         }
 
@@ -1521,8 +1521,8 @@ public abstract class IntegerNodes {
             return true;
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean fitsIntoLongBignum(DynamicObject b) {
+        @Specialization(guards = "isRubyBignum(a)")
+        protected boolean fitsIntoLongBignum(DynamicObject a) {
             return false;
         }
 
@@ -1541,9 +1541,9 @@ public abstract class IntegerNodes {
             return true;
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean fitsIntoULongBignum(DynamicObject b) {
-            BigInteger bi = Layouts.BIGNUM.getValue(b);
+        @Specialization(guards = "isRubyBignum(a)")
+        protected boolean fitsIntoULongBignum(DynamicObject a) {
+            BigInteger bi = Layouts.BIGNUM.getValue(a);
             if (bi.signum() >= 0) {
                 return bi.bitLength() <= 64;
             } else {
@@ -1616,15 +1616,15 @@ public abstract class IntegerNodes {
         }
 
         // Highest bit we can set is the 30th due to sign
-        @Specialization(guards = { "a == 2", "b >= 0", "b <= 30" })
-        protected int powTwoInt(int a, int b) {
-            return 1 << b;
+        @Specialization(guards = { "base == 2", "exponent >= 0", "exponent <= 30" })
+        protected int powTwoInt(int base, int exponent) {
+            return 1 << exponent;
         }
 
         // Highest bit we can set is the 62nd due to sign
-        @Specialization(guards = { "a == 2", "b >= 0", "b <= 62" }, replaces = "powTwoInt")
-        protected long powTwoLong(int a, int b) {
-            return 1L << b;
+        @Specialization(guards = { "base == 2", "exponent >= 0", "exponent <= 62" }, replaces = "powTwoInt")
+        protected long powTwoLong(int base, int exponent) {
+            return 1L << exponent;
         }
 
         @ExplodeLoop
@@ -1684,40 +1684,40 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "exponent < 0")
-        protected Object pow(long a, long exponent) {
+        protected Object pow(long base, long exponent) {
             return FAILURE;
         }
 
         @Specialization
-        protected Object powDouble(long a, double b,
+        protected Object powDouble(long base, double exponent,
                 @Cached("createBinaryProfile()") ConditionProfile complexProfile) {
-            if (complexProfile.profile(a < 0)) {
+            if (complexProfile.profile(base < 0)) {
                 return FAILURE;
             } else {
-                return Math.pow(a, b);
+                return Math.pow(base, exponent);
             }
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected Object powBignum(long a, DynamicObject b,
+        @Specialization(guards = "isRubyBignum(exponent)")
+        protected Object powBignum(long base, DynamicObject exponent,
                 @Cached("new()") WarnNode warnNode) {
-            if (a == 0) {
+            if (base == 0) {
                 return 0;
             }
 
-            if (a == 1) {
+            if (base == 1) {
                 return 1;
             }
 
-            if (a == -1) {
-                if (testBit(Layouts.BIGNUM.getValue(b), 0)) {
+            if (base == -1) {
+                if (testBit(Layouts.BIGNUM.getValue(exponent), 0)) {
                     return -1;
                 } else {
                     return 1;
                 }
             }
 
-            if (compareTo(Layouts.BIGNUM.getValue(b), BigInteger.ZERO) < 0) {
+            if (compareTo(Layouts.BIGNUM.getValue(exponent), BigInteger.ZERO) < 0) {
                 return FAILURE;
             }
 
@@ -1731,33 +1731,34 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object pow(DynamicObject a, long b,
+        protected Object pow(DynamicObject base, long exponent,
                 @Cached("createBinaryProfile()") ConditionProfile negativeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile maybeTooBigProfile,
                 @Cached("new()") WarnNode warnNode) {
-            if (negativeProfile.profile(b < 0)) {
+            if (negativeProfile.profile(exponent < 0)) {
                 return FAILURE;
             } else {
-                final BigInteger base = Layouts.BIGNUM.getValue(a);
-                final int baseBitLength = base.bitLength();
+                final BigInteger bigIntegerBase = Layouts.BIGNUM.getValue(base);
+                final int baseBitLength = bigIntegerBase.bitLength();
 
                 // Logic for promoting integer exponentiation into doubles taken from MRI.
                 // We replicate the logic exactly so we match MRI's ranges.
-                if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
+                if (maybeTooBigProfile
+                        .profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * exponent > BIGLEN_LIMIT))) {
                     warnNode.warningMessage(
                             getContext().getCallStack().getTopMostUserSourceSection(),
                             "in a**b, b may be too big");
-                    return powBigIntegerDouble(base, b);
+                    return powBigIntegerDouble(bigIntegerBase, exponent);
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
-                return createBignum(pow(base, (int) b));
+                return createBignum(pow(bigIntegerBase, (int) exponent));
             }
         }
 
         @Specialization
-        protected Object pow(DynamicObject a, double b) {
-            double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
+        protected Object pow(DynamicObject base, double exponent) {
+            double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(base), exponent);
             if (Double.isNaN(doublePow)) {
                 // Instead of returning NaN, run the fallback code which can create a complex result
                 return FAILURE;
@@ -1766,13 +1767,18 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected Object pow(DynamicObject a, DynamicObject b) {
+        @Specialization(guards = "isRubyBignum(exponent)")
+        protected Object pow(DynamicObject base, DynamicObject exponent) {
             return FAILURE;
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        protected Object pow(Object a, Object b) {
+        @Specialization(
+                guards = {
+                        "!isInteger(exponent)",
+                        "!isLong(exponent)",
+                        "!isDouble(exponent)",
+                        "!isRubyBignum(exponent)" })
+        protected Object pow(Object base, Object exponent) {
             return FAILURE;
         }
 

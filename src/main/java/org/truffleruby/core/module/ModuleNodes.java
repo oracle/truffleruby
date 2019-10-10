@@ -22,10 +22,10 @@ import java.util.concurrent.ConcurrentMap;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -954,8 +954,8 @@ public abstract class ModuleNodes {
         }
 
         // Scoped String
-        @Specialization(guards = { "isRubyString(fullName)", "isScoped(fullName)" })
-        protected Object getConstantScoped(DynamicObject module, DynamicObject fullName, boolean inherit) {
+        @Specialization(guards = { "isRubyString(name)", "isScoped(name)" })
+        protected Object getConstantScoped(DynamicObject module, DynamicObject name, boolean inherit) {
             return FAILURE;
         }
 
@@ -1058,7 +1058,13 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "define_method", needsBlock = true, required = 1, optional = 1, neverSplit = true)
+    @CoreMethod(
+            names = "define_method",
+            needsBlock = true,
+            required = 1,
+            optional = 1,
+            neverSplit = true,
+            argumentNames = { "name", "proc_or_method", "block" })
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "proc", type = RubyNode.class)
@@ -1569,7 +1575,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "public_instance_methods", optional = 1)
+    @CoreMethod(names = "public_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
     public abstract static class PublicInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public PublicInstanceMethodsNode() {
@@ -1578,7 +1584,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "protected_instance_methods", optional = 1)
+    @CoreMethod(names = "protected_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
     public abstract static class ProtectedInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public ProtectedInstanceMethodsNode() {
@@ -1587,7 +1593,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "private_instance_methods", optional = 1)
+    @CoreMethod(names = "private_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
     public abstract static class PrivateInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public PrivateInstanceMethodsNode() {
@@ -1620,7 +1626,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "public_method_defined?", required = 1)
+    @CoreMethod(names = "public_method_defined?", required = 1, argumentNames = { "name" })
     public abstract static class PublicMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public PublicMethodDefinedNode() {
@@ -1629,7 +1635,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "protected_method_defined?", required = 1)
+    @CoreMethod(names = "protected_method_defined?", required = 1, argumentNames = { "name" })
     public abstract static class ProtectedMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public ProtectedMethodDefinedNode() {
@@ -1638,7 +1644,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "private_method_defined?", required = 1)
+    @CoreMethod(names = "private_method_defined?", required = 1, argumentNames = { "name" })
     public abstract static class PrivateMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public PrivateMethodDefinedNode() {
@@ -1874,7 +1880,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "undef_method", rest = true, neverSplit = true)
+    @CoreMethod(names = "undef_method", rest = true, neverSplit = true, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();

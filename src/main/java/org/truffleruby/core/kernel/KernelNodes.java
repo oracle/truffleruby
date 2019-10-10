@@ -22,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -570,7 +570,7 @@ public abstract class KernelNodes {
             }
         }
 
-        public abstract Object execute(VirtualFrame frame, Object self, DynamicObject source, DynamicObject binding,
+        public abstract Object execute(VirtualFrame frame, Object target, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line);
 
         // If the source defines new local variables, those should be set in the Binding.
@@ -585,7 +585,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
-                Object self,
+                Object target,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -599,7 +599,7 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
-            return eval(self, cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -612,7 +612,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
-                Object self,
+                Object target,
                 DynamicObject source,
                 DynamicObject binding,
                 DynamicObject file,
@@ -628,18 +628,24 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            return eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization
-        protected Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding,
+        protected Object evalBindingUncached(Object target, DynamicObject source, DynamicObject binding,
                 DynamicObject file, int line,
                 @Cached IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(self, rope(source), binding, rope(file), line, false);
+            final CodeLoader.DeferredCall deferredCall = doEvalX(
+                    target,
+                    rope(source),
+                    binding,
+                    rope(file),
+                    line,
+                    false);
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object self, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(Object target, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
             final InternalMethod method = new InternalMethod(
                     getContext(),
@@ -652,11 +658,11 @@ public abstract class KernelNodes {
                     callTarget);
 
             return callNode
-                    .call(RubyArguments.pack(parentFrame, null, method, null, self, null, RubyNode.EMPTY_ARGUMENTS));
+                    .call(RubyArguments.pack(parentFrame, null, method, null, target, null, RubyNode.EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object self, Rope source,
+        private CodeLoader.DeferredCall doEvalX(Object target, Rope source,
                 DynamicObject binding,
                 Rope file,
                 int line,
@@ -673,7 +679,7 @@ public abstract class KernelNodes {
                     declarationContext,
                     rootNode,
                     frame,
-                    self);
+                    target);
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
@@ -1556,8 +1562,8 @@ public abstract class KernelNodes {
     @CoreMethod(names = "set_trace_func", isModuleFunction = true, required = 1)
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(nil)")
-        protected DynamicObject setTraceFunc(Object nil) {
+        @Specialization(guards = "isNil(traceFunc)")
+        protected DynamicObject setTraceFunc(Object traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil();
         }

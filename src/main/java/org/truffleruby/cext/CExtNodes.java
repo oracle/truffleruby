@@ -927,8 +927,8 @@ public class CExtNodes {
     @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(nil)")
-        protected Object rbSysErrFailNoMessage(int errno, DynamicObject nil) {
+        @Specialization(guards = "isNil(message)")
+        protected Object rbSysErrFailNoMessage(int errno, DynamicObject message) {
             throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", this));
         }
 

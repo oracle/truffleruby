@@ -152,36 +152,36 @@ public abstract class FloatNodes {
         }
 
         @Specialization(replaces = "powCached")
-        protected double pow(double a, long b) {
-            return Math.pow(a, b);
+        protected double pow(double base, long exponent) {
+            return Math.pow(base, exponent);
         }
 
         @Specialization
-        protected Object pow(VirtualFrame frame, double a, double b) {
-            if (complexProfile.profile(a < 0 && b != Math.round(b))) {
+        protected Object pow(VirtualFrame frame, double base, double exponent) {
+            if (complexProfile.profile(base < 0 && exponent != Math.round(exponent))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     complexConvertNode = insert(CallDispatchHeadNode.createPrivate());
                     complexPowNode = insert(CallDispatchHeadNode.createPrivate());
                 }
 
-                final Object aComplex = complexConvertNode.call(coreLibrary().getComplexClass(), "convert", a, 0);
+                final Object aComplex = complexConvertNode.call(coreLibrary().getComplexClass(), "convert", base, 0);
 
-                return complexPowNode.call(aComplex, "**", b);
+                return complexPowNode.call(aComplex, "**", exponent);
             } else {
-                return Math.pow(a, b);
+                return Math.pow(base, exponent);
             }
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected double pow(double a, DynamicObject b) {
-            return Math.pow(a, Layouts.BIGNUM.getValue(b).doubleValue());
+        @Specialization(guards = "isRubyBignum(exponent)")
+        protected double pow(double base, DynamicObject exponent) {
+            return Math.pow(base, Layouts.BIGNUM.getValue(exponent).doubleValue());
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
-        protected Object powCoerced(double a, Object b,
+        @Specialization(guards = "!isRubyNumber(exponent)")
+        protected Object powCoerced(double base, Object exponent,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().POWER.getSymbol(), b);
+            return redoCoerced.call(base, "redo_coerced", coreStrings().POWER.getSymbol(), exponent);
         }
 
     }
