@@ -1,11 +1,11 @@
 module TruffleInteropSpecs
 
   class AsPointerClass
-    def __pointer__?
+    def polyglot_pointer?
       true
     end
 
-    def __address__
+    def polyglot_address
       0x123
     end
   end

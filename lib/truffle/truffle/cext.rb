@@ -88,7 +88,7 @@ module Truffle::CExt
       @strpointer ||= RStringPtr.new(@encoding.name)
     end
 
-    def __pointer__?
+    def polyglot_pointer?
       true
     end
 
@@ -97,13 +97,13 @@ module Truffle::CExt
       self
     end
 
-    def __address__
+    def polyglot_address
       # TODO (pitr-ch 27-Mar-2019): should be in to_native, and not return pointer? when address is nil
       @address ||= cache_address
     end
 
     def cache_address
-      addr = name.__address__
+      addr = name.polyglot_address
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
       end
@@ -147,11 +147,11 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_size(@string)
     end
 
-    def __pointer__?
+    def polyglot_pointer?
       true
     end
 
-    def __address__
+    def polyglot_address
       @address ||= Truffle::CExt.string_pointer_to_native(@string)
     end
 
@@ -187,11 +187,11 @@ module Truffle::CExt
       @array.size
     end
 
-    def __pointer__?
+    def polyglot_pointer?
       true
     end
 
-    def __address__
+    def polyglot_address
       raise RuntimeError, 'RARRAY_PTRs cannot be converted to native pointers yet'
     end
 
@@ -222,11 +222,11 @@ module Truffle::CExt
       0
     end
 
-    def __pointer__?
+    def polyglot_pointer?
       true
     end
 
-    def __address__
+    def polyglot_address
       @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
 
