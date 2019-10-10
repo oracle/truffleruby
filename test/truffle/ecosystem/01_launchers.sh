@@ -58,7 +58,7 @@ echo '** Check gem executables are installed in all bin dirs'
 
 cd "$(dirname $SELF_PATH)/hello-world"
 "$ruby_home/bin/gem" build hello-world.gemspec
-"$ruby_home/bin/gem" install hello-world-0.0.1.gem
+"$ruby_home/bin/gem" install --local hello-world-0.0.1.gem
 cd -
 
 version="$(bin/ruby -v)"
