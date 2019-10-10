@@ -369,6 +369,14 @@ module Truffle::CExt
     rb_type(value) == type
   end
 
+  def RTYPEDDATA_P(value)
+    if hidden_variable_get(value, DATA_HOLDER) && hidden_variable_get(value, :data_type)
+      true
+    else
+      false
+    end
+  end
+
   def rb_check_type(value, type)
     # TODO CS 23-Jul-16 there's more to this method than this...
     if rb_type(value) != type

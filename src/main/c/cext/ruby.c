@@ -2951,6 +2951,14 @@ void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   return RTYPEDDATA_DATA(value);
 }
 
+const rb_data_type_t *RTYPEDDATA_TYPE(VALUE value) {
+  return rb_tr_hidden_variable_get(value, "data_type");
+}
+
+bool RTYPEDDATA_P(VALUE value) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTYPEDDATA_P", value));
+}
+
 // VM
 
 VALUE rb_tr_ruby_verbose_ptr;

@@ -28,6 +28,17 @@ describe "CApiWrappedTypedStruct" do
     @s.typed_get_struct(a).should == 1024
   end
 
+  it "is a T_DATA" do
+    a = @s.typed_wrap_struct(1024)
+    @s.T_DATA?(a).should be_true
+    @s.T_DATA?('not T_DATA').should be_false
+  end
+
+  it "returns true for RTYPEDDATA_P" do
+    a = @s.typed_wrap_struct(1024)
+    @s.RTYPEDDATA?(a).should be_true
+  end
+
   it "throws an exception for a wrong type" do
     a = @s.typed_wrap_struct(1024)
     -> { @s.typed_get_struct_other(a) }.should raise_error(TypeError)

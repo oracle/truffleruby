@@ -147,11 +147,25 @@ VALUE sws_typed_change_struct(VALUE self, VALUE obj, VALUE new_val) {
   return Qnil;
 }
 
+VALUE sws_t_data_p(VALUE self, VALUE obj) {
+  return RB_TYPE_P(obj, RUBY_T_DATA) ? Qtrue : Qfalse;
+}
+
+VALUE sws_rtypeddata_p(VALUE self, VALUE obj) {
+  if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
+    return Qtrue;
+  } else {
+    return Qfalse;
+  }
+}
+
 void Init_typed_data_spec(void) {
   VALUE cls = rb_define_class("CApiAllocTypedSpecs", rb_cObject);
   rb_define_alloc_func(cls, sdaf_alloc_typed_func);
   rb_define_method(cls, "typed_wrapped_data", sdaf_typed_get_struct, 0);
   cls = rb_define_class("CApiWrappedTypedStructSpecs", rb_cObject);
+  rb_define_method(cls, "T_DATA?", sws_t_data_p, 1);
+  rb_define_method(cls, "RTYPEDDATA?", sws_rtypeddata_p, 1);
   rb_define_method(cls, "typed_wrap_struct", sws_typed_wrap_struct, 1);
   rb_define_method(cls, "typed_get_struct", sws_typed_get_struct, 1);
   rb_define_method(cls, "typed_get_struct_other", sws_typed_get_struct_different_type, 1);

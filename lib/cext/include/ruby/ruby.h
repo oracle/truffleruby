@@ -1181,8 +1181,8 @@ struct RTypedData {
 
 #define DATA_PTR(dta) (RDATA(dta)->data)
 
-#define RTYPEDDATA_P(v)    (RTYPEDDATA(v)->typed_flag == 1)
-#define RTYPEDDATA_TYPE(v) (RTYPEDDATA(v)->type)
+bool RTYPEDDATA_P(VALUE v);
+const rb_data_type_t *RTYPEDDATA_TYPE(VALUE v);
 #define RTYPEDDATA_DATA(v) (RTYPEDDATA(v)->data)
 
 /*
