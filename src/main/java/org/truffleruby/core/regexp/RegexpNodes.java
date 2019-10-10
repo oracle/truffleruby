@@ -132,9 +132,6 @@ public abstract class RegexpNodes {
             int options) {
         assert RubyGuards.isRubyRegexp(regexp);
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        if (regexpOptions.isEncodingNone()) {
-            setSource = RopeOperations.withEncoding(setSource, ASCIIEncoding.INSTANCE);
-        }
         final Regex regex = TruffleRegexpNodes.compile(currentNode, context, setSource, regexpOptions);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
