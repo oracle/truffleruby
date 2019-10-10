@@ -4,6 +4,7 @@ New features:
 
 * Compilation of C extensions is now done with an internal LLVM toolchain producing both native code and bitcode. This means more C extensions should compile out of the box and this should resolve most linker-related issues.
 * It is no longer necessary to install LLVM for installing C extensions on TruffleRuby.
+* It is no longer necessary to install libc++ and libc++abi for installing C++ extensions on TruffleRuby.
 * On macOS, it is no longer necessary to install the system headers package (#1417).
 
 Bug fixes:

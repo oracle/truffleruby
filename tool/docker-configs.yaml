@@ -21,10 +21,6 @@ ol7:
     - RUN yum install -y openssl-devel
   cext:
     - RUN yum install -y make
-  cppext:
-    - RUN yum-config-manager --enable ol7_developer_EPEL
-    - RUN yum install -y libcxx
-    - RUN yum install -y libcxx-devel
   rvm:
 ubuntu1804:
   base: ubuntu:18.04
@@ -51,8 +47,6 @@ ubuntu1804:
     - RUN apt-get install -y libssl-dev
   cext:
     - RUN apt-get install -y make
-  cppext:
-    - RUN apt-get install -y libc++-dev libc++abi-dev
   rvm:
 ubuntu1604:
   base: ubuntu:16.04
@@ -79,8 +73,6 @@ ubuntu1604:
     - RUN apt-get install -y libssl-dev
   cext:
     - RUN apt-get install -y make
-  cppext:
-    - RUN apt-get install -y libc++-dev
   rvm:
 fedora28:
   base: fedora:28
@@ -106,8 +98,5 @@ fedora28:
     - RUN dnf install -y openssl-devel
   cext:
     - RUN dnf install -y make
-  cppext:
-    - RUN dnf install -y libcxx-devel
-    - RUN dnf install -y libcxx
   rvm:
     - RUN dnf install -y procps
