@@ -28,7 +28,7 @@ warnflags = [
 
 base_cflags = "#{debugflags} #{warnflags}"
 cflags = "#{base_cflags} -fPIC -c"
-cxxflags = "#{cflags} -stdlib=libc++"
+cxxflags = cflags
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
 
