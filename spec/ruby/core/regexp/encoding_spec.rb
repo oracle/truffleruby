@@ -56,7 +56,7 @@ describe "Regexp#encoding" do
     Encoding.default_internal = old_internal
   end
 
-  it "allows otherwisr invalid characters if NOENCODING is specified" do
-    Regexp.new('([\x00-\xFF])', Regexp::IGNORECASE, 'n').encoding.should == Encoding::BINARY
+  it "allows otherwise invalid characters if NOENCODING is specified" do
+    Regexp.new('([\x00-\xFF])', Regexp::IGNORECASE | Regexp::NOENCODING).encoding.should == Encoding::BINARY
   end
 end
