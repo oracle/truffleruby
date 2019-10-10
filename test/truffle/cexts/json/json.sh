@@ -4,14 +4,11 @@ source test/truffle/common.sh.inc
 
 jt gem-test-pack
 
-jt ruby -S gem install --local "$(jt gem-test-pack)/gem-cache/json-2.1.0.gem" -V -N --backtrace
+jt ruby -S gem install --local "$(jt gem-test-pack)/gem-cache/json-2.2.0.gem" -V -N --backtrace
 
-# Disable debug output by Bash as it creates extra output
-set +x
+output=$(jt --silent ruby -e 'gem "json"; require "json"; puts JSON.dump({ a: 1 })')
 
-output=$(jt --silent ruby -rjson -e 'print JSON' 2>&1)
-
-if [ "$output" = "JSON" ]; then
+if [ "$output" = '{"a":1}' ]; then
   echo Success
 else
   echo Unexpected output

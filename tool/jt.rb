@@ -29,7 +29,7 @@ abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERS
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'b6150c498a0764ffdc079cddf7f4e68cb141b65c'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '0d24b400927e58dc0ada9c76c15fb2b7915008d4'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
