@@ -14,6 +14,7 @@ module Truffle::CExt
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new
   RB_TYPE = Object.new
+  ALLOCATOR_FUNC = Object.new
 
   extend self
 
@@ -1278,6 +1279,13 @@ module Truffle::CExt
     eval(str)
   end
 
+  BASIC_ALLOC = ::BasicObject.singleton_class.instance_method(:__allocate__)
+
+  def rb_newobj_of(ruby_class)
+    # we need to bypass __allocate__ on ruby_class
+    BASIC_ALLOC.bind(ruby_class).call
+  end
+
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.define_method(:__allocate__) do
       TrufflePrimitive.cext_unwrap(TrufflePrimitive.call_with_c_mutex(function, [TrufflePrimitive.cext_wrap(self)]))
@@ -1285,10 +1293,26 @@ module Truffle::CExt
     class << ruby_class
       private :__allocate__
     end
+    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, function)
+  end
+
+  def rb_get_alloc_func(ruby_class)
+    return nil unless Class === ruby_class
+    begin
+      allocate_method = ruby_class.method(:__allocate__).owner
+    rescue NameError
+      nil
+    else
+      hidden_variable_get(allocate_method, ALLOCATOR_FUNC)
+    end
   end
 
   def rb_undef_alloc_func(ruby_class)
     ruby_class.singleton_class.send(:undef_method, :__allocate__)
+  rescue NameError
+    # it's fine to call this on a class that doesn't have an allocator
+  else
+    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
   end
 
   def rb_alias(mod, new_name, old_name)

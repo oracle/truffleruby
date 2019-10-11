@@ -886,5 +886,55 @@ describe "CApiObject" do
         o.instance_variables.should == []
       end
     end
+
+    describe "allocator accessors" do
+      describe "rb_define_alloc_func" do
+        it "sets up the allocator" do
+          klass = Class.new
+          @o.rb_define_alloc_func(klass)
+          klass.allocate.should have_instance_variable(:@from_custom_allocator)
+        end
+      end
+
+      describe "rb_get_alloc_func" do
+        it "gets the allocator that is defined directly on a class" do
+          klass = Class.new
+          @o.rb_define_alloc_func(klass)
+          @o.speced_allocator?(Object).should be_false
+          @o.speced_allocator?(klass).should be_true
+        end
+
+        it "gets the allocator that is inherited" do
+          parent = Class.new
+          @o.rb_define_alloc_func(parent)
+          klass = Class.new(parent)
+          @o.speced_allocator?(Object).should be_false
+          @o.speced_allocator?(klass).should be_true
+        end
+      end
+
+      describe "rb_undef_alloc_func" do
+        it "does nothing when called on a class without a custom allocator" do
+          -> { @o.allocator_nil?(Class.new) }.should_not raise_error
+        end
+
+        it "undefs the allocator for the class" do
+          klass = Class.new
+          @o.rb_define_alloc_func(klass)
+          @o.speced_allocator?(klass).should be_true
+          @o.rb_undef_alloc_func(klass)
+          @o.allocator_nil?(klass).should be_true
+        end
+
+        it "undefs the allocator for a class that inherits a allocator" do
+          parent = Class.new
+          @o.rb_define_alloc_func(parent)
+          klass = Class.new(parent)
+          @o.speced_allocator?(klass).should be_true
+          @o.rb_undef_alloc_func(klass)
+          @o.allocator_nil?(klass).should be_true
+        end
+      end
+    end
   end
 end
