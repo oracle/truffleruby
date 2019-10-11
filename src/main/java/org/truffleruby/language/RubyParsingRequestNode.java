@@ -73,7 +73,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 sourceRope = StringOperations.encodeRope(source.getCharacters().toString(), UTF8Encoding.INSTANCE);
             }
 
-            // Just do Truffle::Boot.INTERACTIVE_BINDING.eval(code) for interactive sources.
+            // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
             // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
             final Object interactiveBinding = Layouts.MODULE
                     .getFields(context.getCoreLibrary().getTruffleBootModule())
