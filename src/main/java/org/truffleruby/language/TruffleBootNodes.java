@@ -392,6 +392,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "tool_path", onSingleton = true, required = 1)
     public abstract static class ToolPathNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubySymbol(toolName)")
         protected DynamicObject toolPath(DynamicObject toolName,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
