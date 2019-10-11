@@ -39,11 +39,11 @@ import com.oracle.truffle.api.source.Source;
 
 public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final TruffleLanguage.ContextReference<RubyContext> contextReference;
     private final Source source;
     private final boolean interactive;
     private final String[] argumentNames;
 
+    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @CompilationFinal private Rope sourceRope;
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private DynamicObject mainObject;
@@ -53,7 +53,6 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
     public RubyParsingRequestNode(RubyLanguage language, Source source, String[] argumentNames) {
         super(language, null, null);
-        this.contextReference = language.getContextReference();
         this.source = source;
         this.interactive = source.isInteractive();
         this.argumentNames = argumentNames;
@@ -62,6 +61,10 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
     @Override
     public Object execute(VirtualFrame frame) {
         printTimeMetric("before-script");
+        if (contextReference == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            contextReference = lookupContextReference(RubyLanguage.class);
+        }
         final RubyContext context = contextReference.get();
 
         if (interactive) {

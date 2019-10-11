@@ -32,10 +32,10 @@ import com.oracle.truffle.api.source.Source;
 
 public class RubyInlineParsingRequestNode extends ExecutableNode {
 
-    private final TruffleLanguage.ContextReference<RubyContext> contextReference;
     private final Source source;
     private final MaterializedFrame currentFrame;
 
+    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private InternalMethod method;
 
@@ -43,13 +43,16 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
 
     public RubyInlineParsingRequestNode(RubyLanguage language, Source source, MaterializedFrame currentFrame) {
         super(language);
-        contextReference = language.getContextReference();
         this.source = source;
         this.currentFrame = currentFrame;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
+        if (contextReference == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            contextReference = lookupContextReference(RubyLanguage.class);
+        }
         final RubyContext context = contextReference.get();
 
         if (cachedContext == null) {

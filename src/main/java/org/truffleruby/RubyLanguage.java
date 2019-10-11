@@ -145,10 +145,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return getCurrentContext(RubyLanguage.class);
     }
 
-    public static ContextReference<RubyContext> getCurrentContextReference() {
-        return getCurrentLanguage(RubyLanguage.class).getContextReference();
-    }
-
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
         return Truffle.getRuntime().createCallTarget(
