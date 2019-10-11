@@ -457,6 +457,11 @@ int ruby_snprintf(char *str, size_t n, char const *fmt, ...) {
   rb_tr_error("ruby_snprintf not implemented");
 }
 
+#undef vsnprintf
+int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap) {
+  return vsnprintf(str, n, fmt, ap);
+}
+
 void rb_need_block(void) {
   if (!rb_block_given_p()) {
     rb_raise(rb_eLocalJumpError, "no block given");
