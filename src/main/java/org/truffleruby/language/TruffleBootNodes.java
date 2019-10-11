@@ -396,6 +396,11 @@ public abstract class TruffleBootNodes {
         protected DynamicObject toolPath(DynamicObject toolName,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final LanguageInfo llvmInfo = getContext().getEnv().getInternalLanguages().get("llvm");
+            if (llvmInfo == null) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("Could not find Sulong in internal languages", this));
+            }
             final Toolchain toolchain = getContext().getEnv().lookup(llvmInfo, Toolchain.class);
             if (toolchain == null) {
                 throw new RaiseException(
