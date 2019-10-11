@@ -2257,7 +2257,6 @@ EOS
     lines.push(*distro.fetch('zlib'))
     lines.push(*distro.fetch('openssl'))
     lines.push(*distro.fetch('cext'))
-    lines.push(*distro.fetch('cppext'))
 
     lines.push 'WORKDIR /test'
     lines.push 'RUN useradd -ms /bin/bash test'

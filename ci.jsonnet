@@ -310,10 +310,6 @@ local part_definitions = {
 
     test_cexts: {
       is_after+:: ["$.use.common"],
-      environment+: {
-        # GR-18622, for libc++
-        LD_LIBRARY_PATH: "$BUILD_DIR/graal/sulong/mxbuild/SULONG_LLVM_ORG/lib:$LD_LIBRARY_PATH",
-      },
       run+: [
         ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
       ],
