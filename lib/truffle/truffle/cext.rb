@@ -1512,12 +1512,13 @@ module Truffle::CExt
   end
 
   def rb_block_call(object, method, args, func, data)
+    outer_self = self
     object.__send__(method, *args) do |*block_args|
       TrufflePrimitive.cext_unwrap(TrufflePrimitive.call_with_c_mutex(func, [
           TrufflePrimitive.cext_wrap(block_args.first),
           data,
           block_args.size, # argc
-          RARRAY_PTR(block_args), # argv
+          outer_self.RARRAY_PTR(block_args), # argv
           nil, # blockarg
       ]))
     end
