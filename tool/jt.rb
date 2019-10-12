@@ -2063,6 +2063,17 @@ EOS
     end
   end
 
+  def check_license
+    v = '1.0' # to avoid self-matching
+    ["Eclipse Public License version #{v}", "Eclipse Public License #{v}", "EPL #{v}", "EPL#{v}", "EPL-#{v}"].each do |match|
+      output = `git -C #{TRUFFLERUBY_DIR} grep '#{match}'`
+      output = output.lines.reject { |line| line.start_with?('lib/mri/rubygems/util/licenses.rb:') }.join
+      unless output.empty?
+        abort "There should be no mention of #{match} in the repository:\n#{output}"
+      end
+    end
+  end
+
   def checkstyle
     mx 'checkstyle', '-f', '--primary'
   end
@@ -2126,6 +2137,7 @@ EOS
 
     check_parser
     check_documentation_urls
+    check_license
     abort 'Some Specializations were not protected.' if make_specializations_protected
   end
 
