@@ -1,4 +1,4 @@
-# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -8,8 +8,17 @@
 
 require 'rugged'
 
+abort "USAGE: ruby #{$0} YEAR" unless ARGV.first
+year = Integer(ARGV.first)
+since = Time.new(year, 1, 1, 0, 0, 0)
+last_day_of_year = Time.new(year+1, 1, 1, 0, 0, 0)
+
+puts "Fixing copyright years for commits between #{since} and #{last_day_of_year}"
+
+new_copyright_year = year == Time.now.year ? year : "#{year}, #{Time.now.year}"
+
 RB_COPYRIGHT = <<-EOS
-# Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) #{new_copyright_year} Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -21,7 +30,7 @@ EOS
 
 JAVA_COPYRIGHT = <<-EOS
 /*
- * Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) #{new_copyright_year} Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -33,15 +42,16 @@ EOS
 
 NEW_COPYRIGHT = {
   '.rb' => RB_COPYRIGHT,
-  '.java' => JAVA_COPYRIGHT
+  '.java' => JAVA_COPYRIGHT,
+  '.c' => JAVA_COPYRIGHT,
+  '.h' => JAVA_COPYRIGHT,
 }
 
-EXTENSIONS = %w[.java .rb]
+EXTENSIONS = %w[.java .rb .c .h]
 
-COPYRIGHT = /Copyright \(c\) (?<year1>\d{4})(?:, (?<year2>\d{4}))? Oracle\b/
+COPYRIGHT = /Copyright \(c\) (?<year1>\d{4})(?:, (?<year2>\d{4}))* Oracle\b/
 
 OTHER_COPYRIGHTS = [
-  /Copyright \(c\) \d{4} Software Architecture Group, Hasso Plattner Institute/,
   /Copyright \(c\) \d{4}(?:-\d{4})?,? Evan Phoenix/,
   /Copyright \(c\) \d{4} Engine Yard/,
   /Copyright \(c\) \d{4} Akinori MUSHA/, # SHA-2
@@ -49,10 +59,9 @@ OTHER_COPYRIGHTS = [
   /Copyright \(C\) \d{4}-\d{4} Wayne Meissner/, # FFI
   /Copyright \(c\) \d{4}, Brian Shirai/, # rubysl-socket
   /Ruby is copyrighted free software by Yukihiro Matsumoto/, # MRI license
-  #Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
   /Copyright(?:::)?\s+\(C\)\s+\d{4}\s+Network Applied Communication Laboratory, Inc\./, # MRI stdlibs: thread, timeout
-  /\* BEGIN LICENSE BLOCK \**\s*\n\s*\*\s*Version: EPL 1\.0\/GPL 2\.0\/LGPL 2\.1/,
-  /#+\s*BEGIN LICENSE BLOCK\s*#+\s*\n\s*#\s*Version: EPL 1\.0\/GPL 2\.0\/LGPL 2\.1/,
+  /\* BEGIN LICENSE BLOCK \**\s*\n\s*\*\s*Version: EPL 2\.0\/GPL 2\.0\/LGPL 2\.1/,
+  /#+\s*BEGIN LICENSE BLOCK\s*#+\s*\n\s*#\s*Version: EPL 2\.0\/GPL 2\.0\/LGPL 2\.1/,
 ]
 
 truffle_paths = %w[
@@ -64,13 +73,27 @@ truffle_paths = %w[
 ] + [__FILE__]
 
 excludes = %w[
+  lib/cext/include/ccan
+  lib/cext/include/internal.h
+  lib/cext/include/ruby
+  lib/cext/include/truffleruby/config_
   lib/truffle/date
+  lib/truffle/ffi
+  lib/truffle/io/console/size.rb
   lib/truffle/pathname
   lib/truffle/securerandom
+  src/main/c/cext/st.c
+  src/main/c/etc
+  src/main/c/nkf
+  src/main/c/openssl
+  src/main/c/psych
+  src/main/c/rbconfig-sizeof
+  src/main/c/syslog
+  src/main/c/zlib
   test/truffle/pack-real-usage.rb
   test/truffle/cexts
   test/truffle/ecosystem
-  src/main/c/openssl
+  test/truffle/integration/backtraces/fixtures
 ]
 
 excluded_files = %w[
@@ -81,28 +104,25 @@ truffle_paths.each do |path|
   puts "WARNING: incorrect path #{path}" unless File.exist? path
 end
 
-abort "USAGE: ruby #{$0} DAYS" unless ARGV.first
-days = Integer(ARGV.first)
-since = Time.now - days * 24 * 3600
-
-puts "Fixing copyright years for commits in the last #{days} days"
-
-now_year = Time.now.year # Hack this with previous year if needed
-abort "Too far back in time: #{since} but we are in #{now_year}" unless since.year == now_year
-
 repo = Rugged::Repository.new('.')
 
 head_commit = repo.head.target
+last_commit = head_commit
 first_commit = nil
 
 repo.walk(head_commit, Rugged::SORT_DATE) { |commit|
+  if commit.time >= last_day_of_year
+    last_commit = commit
+  end
   break if commit.time < since
   first_commit = commit
 }
 
 abort "No commit in that range" unless first_commit
 
-diff = first_commit.diff(head_commit)
+puts "First commit: #{first_commit.time}, last commit #{last_commit.time}"
+
+diff = first_commit.diff(last_commit)
 
 paths = diff.each_delta.to_a.map { |delta|
   delta.new_file[:path]
@@ -130,7 +150,7 @@ paths.each do |file|
   year1 = Integer(year1)
   year2 = Integer(year2 || year1)
 
-  if now_year > year2
+  if year > year2
     contents = File.read(file)
     years = "#{year1}, #{now_year}"
     contents.sub!(COPYRIGHT, "Copyright (c) #{years} Oracle")
