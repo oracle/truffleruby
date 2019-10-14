@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
- * Eclipse Public License version 1.0, or
+ * Eclipse Public License version 2.0, or
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  *
  * Some of the code for parsing timezones in this class is transposed
  * from org.jruby.RubyTime and licensed under the same
- * EPL 1.0/GPL 2.0/LGPL 2.1 used throughout.
+ * EPL 2.0/GPL 2.0/LGPL 2.1 used throughout.
  *
  * Copyright (C) 2001 Chad Fowler <chadfowler@chadfowler.com>
  * Copyright (C) 2001-2004 Jan Arne Petersen <jpetersen@uni-bonn.de>

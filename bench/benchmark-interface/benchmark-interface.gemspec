@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = 'A new format for writing Ruby benchmarks, and a tool ' \
                        'that lets you run benchmarks written in many formats ' \
                        'with many different benchmarking tools'
-  spec.licenses      = ['EPL-1.0', 'GPL-2.0', 'LGPL-2.1']
+  spec.licenses      = ['EPL-2.0', 'GPL-2.0', 'LGPL-2.1']
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.require_paths = ['lib']

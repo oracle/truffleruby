@@ -29,9 +29,9 @@ suite = {
     },
 
     "licenses": {
-        "EPL-1.0": {
-            "name": "Eclipse Public License 1.0",
-            "url": "https://opensource.org/licenses/EPL-1.0",
+        "EPL-2.0": {
+            "name": "Eclipse Public License 2.0",
+            "url": "https://opensource.org/licenses/EPL-2.0",
         },
         "BSD-simplified": {
             "name": "Simplified BSD License (2-clause BSD license)",
@@ -47,7 +47,7 @@ suite = {
         "truffleruby-binary-snapshots": {
             "url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
             "licenses": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
                 "MIT",              # JCodings, minitest, did_you_mean, rake
@@ -125,7 +125,7 @@ suite = {
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.shared": {
@@ -141,7 +141,7 @@ suite = {
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.processor": {
@@ -154,7 +154,7 @@ suite = {
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.services": {
@@ -166,7 +166,7 @@ suite = {
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby": {
@@ -191,7 +191,7 @@ suite = {
             "findbugsIgnoresGenerated": True,
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
@@ -203,7 +203,7 @@ suite = {
             "sourceDirs": ["."],
             "javaCompliance": "8+",
             "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
             ],
             "externalProjects": {
@@ -228,7 +228,7 @@ suite = {
             "javaCompliance": "8+",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.test": {
@@ -241,7 +241,7 @@ suite = {
             ],
             "javaCompliance": "8+",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.tck": {
@@ -250,7 +250,7 @@ suite = {
             "sourceDirs": ["java", "ruby"],
             "dependencies": ["truffle:TRUFFLE_TCK"],
             "javaCompliance": "8+",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "org.truffleruby.cext": {
@@ -281,7 +281,7 @@ suite = {
                 "src/main/c/zlib/<libsuffix:zlib>",
             ],
             "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
             ],
         },
@@ -296,7 +296,7 @@ suite = {
                 "org.truffleruby.annotations"
             ],
             "description": "TruffleRuby Annotations",
-            "license": ["EPL-1.0"]
+            "license": ["EPL-2.0"]
         },
 
         # Required to share code between the launcher and the rest,
@@ -311,7 +311,7 @@ suite = {
                 "sdk:GRAAL_SDK",
             ],
             "description": "TruffleRuby Shared constants and predicates",
-            "license": ["EPL-1.0"]
+            "license": ["EPL-2.0"]
         },
 
         "TRUFFLERUBY-PROCESSOR": {
@@ -323,7 +323,7 @@ suite = {
                 "truffle:TRUFFLE_API",
             ],
             "description": "TruffleRuby Annotation Processor",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "TRUFFLERUBY-SERVICES": {
@@ -338,7 +338,7 @@ suite = {
                 "sdk:GRAAL_SDK",
             ],
             "description": "TruffleRuby services",
-            "license": ["EPL-1.0"]
+            "license": ["EPL-2.0"]
         },
 
         "TRUFFLERUBY": {
@@ -356,7 +356,7 @@ suite = {
             ],
             "description": "TruffleRuby",
             "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
@@ -375,7 +375,7 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "description": "TruffleRuby Launcher",
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT": {
@@ -452,7 +452,7 @@ suite = {
                 ],
             },
             "license": [
-                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
@@ -482,14 +482,14 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
             ],
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
 
         "TRUFFLERUBY-TCK": {
             "testDistribution": True,
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": ["truffle:TRUFFLE_TCK"],
-            "license": ["EPL-1.0"],
+            "license": ["EPL-2.0"],
         },
     },
 }

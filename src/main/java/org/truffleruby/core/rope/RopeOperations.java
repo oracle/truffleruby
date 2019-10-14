@@ -3,13 +3,13 @@
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
- * Eclipse Public License version 1.0, or
+ * Eclipse Public License version 2.0, or
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  *
  *
  * Some of the code in this class is modified from org.jruby.runtime.Helpers and org.jruby.util.StringSupport,
- * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
+ * licensed under the same EPL 2.0/GPL 2.0/LGPL 2.1 used throughout.
  *
  * Contains code modified from ByteList's ByteList.java
  *
