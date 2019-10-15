@@ -60,6 +60,8 @@ local part_definitions = {
           "MAVEN_OPTS",
           "no_proxy",
         ],
+        # Fail if any command part of the pipe fails
+        ["set", "-o", "pipefail"],
         ["ruby", "--version"],
       ],
 
