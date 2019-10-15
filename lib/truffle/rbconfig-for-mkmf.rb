@@ -18,7 +18,6 @@ optflags = ''
 debugflags = ''
 warnflags = [
   '-Wimplicit-function-declaration', # To make missing C ext functions clear
-  '-Wundef',                         # Warn for undefined preprocessor macros
   '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
   '-Wno-int-to-pointer-cast',        # Same as above
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
@@ -40,6 +39,8 @@ if Truffle::Boot.get_option 'building-core-cexts'
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
   cppflags << relative_debug_paths
+
+  warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
 else
   libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
