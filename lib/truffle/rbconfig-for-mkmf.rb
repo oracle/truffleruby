@@ -41,6 +41,7 @@ if Truffle::Boot.get_option 'building-core-cexts'
   cppflags << relative_debug_paths
 
   warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
+  warnflags << '-Werror' # Make sure there are no warnings in core C extensions
 else
   libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
