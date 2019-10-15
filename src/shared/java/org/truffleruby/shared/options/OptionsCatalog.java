@@ -24,7 +24,7 @@ public class OptionsCatalog {
     public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String> WORKING_DIRECTORY_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> DEBUG_KEY = new OptionKey<>(false);
-    public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE, EnumOptionType.optionTypeFor(Verbosity.class, Verbosity.FALSE));
+    public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE, EnumOptionType.optionTypeFor(Verbosity.class));
     public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");

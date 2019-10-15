@@ -15,8 +15,8 @@ import org.graalvm.options.OptionType;
 
 public class EnumOptionType {
 
-    public static <T extends Enum<T>> OptionType<T> optionTypeFor(Class<T> type, T defaultValue) {
-        return new OptionType<>(type.getName(), defaultValue, v -> Enum.valueOf(type, v.toUpperCase(Locale.ENGLISH)));
+    public static <T extends Enum<T>> OptionType<T> optionTypeFor(Class<T> type) {
+        return new OptionType<>(type.getName(), v -> Enum.valueOf(type, v.toUpperCase(Locale.ENGLISH)));
     }
 
 }
