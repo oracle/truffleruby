@@ -95,9 +95,6 @@ begin
     for_file.call('$(CXX)', cxx_flags))
 end
 
-# From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "$(CC) -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-
-%w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
+%w[COMPILE_C COMPILE_CXX TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
 end
