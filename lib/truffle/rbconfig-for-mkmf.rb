@@ -26,8 +26,7 @@ warnflags = [
   '-ferror-limit=500'
 ].join(' ')
 
-base_cflags = "#{debugflags} #{warnflags}"
-cflags = "#{base_cflags} -fPIC -c"
+cflags = "#{debugflags} #{warnflags}"
 cxxflags = cflags
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
@@ -83,8 +82,8 @@ begin
     "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
   end
 
-  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@'
-  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@'
+  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
+  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
 
   mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call('$(CC)', c_flags)
   mkconfig['COMPILE_C'] = with_conditional_preprocessing.call(
@@ -97,7 +96,7 @@ begin
 end
 
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "$(CC) -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "$(CC) -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
