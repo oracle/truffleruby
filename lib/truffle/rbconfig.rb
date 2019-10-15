@@ -90,7 +90,6 @@ module RbConfig
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
     'OUTFLAG'           => '-o ',
-    'optflags'          => '',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR,
     'prefix'            => '',
     'RM'                => 'rm -f',

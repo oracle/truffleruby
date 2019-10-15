@@ -13,6 +13,8 @@
 require 'rbconfig'
 require_relative 'truffle/cext_preprocessor.rb'
 
+# Determine the various flags for native compilation
+optflags = ''
 debugflags = ''
 warnflags = [
   '-Wimplicit-function-declaration', # To make missing C ext functions clear
@@ -23,17 +25,13 @@ warnflags = [
   '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-ferror-limit=500'
-].join(' ')
+]
 
-cflags = "#{debugflags} #{warnflags}"
-cxxflags = cflags
+cppflags = ''
+defs = ''
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
-
 dlext = RbConfig::CONFIG['DLEXT']
-
-expanded = RbConfig::CONFIG
-mkconfig = RbConfig::MAKEFILE_CONFIG
 
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
@@ -41,7 +39,7 @@ if Truffle::Boot.get_option 'building-core-cexts'
   libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
-  expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
+  cppflags << relative_debug_paths
 else
   libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
@@ -50,16 +48,38 @@ end
 libtruffleruby_dir = File.dirname(libtruffleruby)
 librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
 
+warnflags = warnflags.join(' ')
+
+# Set values in RbConfig
+expanded = RbConfig::CONFIG
+mkconfig = RbConfig::MAKEFILE_CONFIG
+
 common = {
-  'LIBRUBYARG' => librubyarg,
-  'LIBRUBYARG_SHARED' => librubyarg,
+  'optflags' => optflags,
   'debugflags' => debugflags,
   'warnflags' => warnflags,
-  'CFLAGS' => cflags,
-  'CXXFLAGS' => cxxflags
+  'cppflags' => cppflags,
+  'DEFS' => defs,
+  'LIBRUBYARG' => librubyarg,
+  'LIBRUBYARG_SHARED' => librubyarg,
 }
 expanded.merge!(common)
 mkconfig.merge!(common)
+
+cflags = \
+expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
+mkconfig['cflags'] = '$(optflags) $(debugflags) $(warnflags)'
+expanded['CFLAGS'] = cflags
+mkconfig['CFLAGS'] = '$(cflags)'
+
+cxxflags = \
+expanded['cxxflags'] = "#{optflags} #{debugflags} #{warnflags}"
+mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
+expanded['CXXFLAGS'] = cxxflags
+mkconfig['CXXFLAGS'] = '$(cxxflags)'
+defs = ''
+expanded['CPPFLAGS'] = " #{defs} #{cppflags}"
+mkconfig['CPPFLAGS'] = ' $(DEFS) $(cppflags)'
 
 # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
 # C or C++ file) to add the file's path as the first entry on the
