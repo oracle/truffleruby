@@ -85,7 +85,6 @@ begin
   c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
   cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
 
-  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call('$(CC)', c_flags)
   mkconfig['COMPILE_C'] = with_conditional_preprocessing.call(
     for_pipe.call('$(CC)', c_flags),
     for_file.call('$(CC)', c_flags))
@@ -95,6 +94,6 @@ begin
     for_file.call('$(CXX)', cxx_flags))
 end
 
-%w[COMPILE_C COMPILE_CXX TRUFFLE_RAW_COMPILE_C].each do |key|
+%w[COMPILE_C COMPILE_CXX].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
 end
