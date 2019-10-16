@@ -392,10 +392,16 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "tool_path", onSingleton = true, required = 1)
     public abstract static class ToolPathNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubySymbol(toolName)")
         protected DynamicObject toolPath(DynamicObject toolName,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final LanguageInfo llvmInfo = getContext().getEnv().getInternalLanguages().get("llvm");
+            if (llvmInfo == null) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("Could not find Sulong in internal languages", this));
+            }
             final Toolchain toolchain = getContext().getEnv().lookup(llvmInfo, Toolchain.class);
             if (toolchain == null) {
                 throw new RaiseException(

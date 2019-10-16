@@ -18,7 +18,6 @@ public class StringArrayOptionType {
 
     public static final OptionType<String[]> INSTANCE = new OptionType<>(
             "String[]",
-            new String[]{},
             StringArrayOptionType::parseStringArray);
 
     @SuppressWarnings("fallthrough")
