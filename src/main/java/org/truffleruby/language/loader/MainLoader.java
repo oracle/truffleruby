@@ -53,7 +53,7 @@ public class MainLoader {
         return new RubySource(source, sourceRope);
     }
 
-    private Rope transformScript(RubyNode currentNode, String path, byte[] sourceBytes) throws IOException {
+    private Rope transformScript(RubyNode currentNode, String path, byte[] sourceBytes) {
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
         if (embeddedScript.shouldTransform(sourceBytes)) {
