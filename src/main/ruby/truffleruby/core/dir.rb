@@ -287,16 +287,19 @@ class Dir
 
       if block_given?
         original_path = self.getwd
+        TrufflePrimitive.dir_set_truffle_working_directory(path)
         ret = Truffle::POSIX.chdir path
         Errno.handle(path) if ret != 0
 
         begin
           yield path
         ensure
+          TrufflePrimitive.dir_set_truffle_working_directory(original_path)
           ret = Truffle::POSIX.chdir original_path
           Errno.handle(original_path) if ret != 0
         end
       else
+        TrufflePrimitive.dir_set_truffle_working_directory(path)
         ret = Truffle::POSIX.chdir path
         Errno.handle path if ret != 0
         ret
