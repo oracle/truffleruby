@@ -372,4 +372,9 @@ public class BacktraceFormatter {
         return node;
     }
 
+    public static String formatJavaThrowableMessage(Throwable t) {
+        final String message = t.getMessage();
+        return (message != null ? message : "<no message>") + " (" + t.getClass().getSimpleName() + ")";
+    }
+
 }
