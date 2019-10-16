@@ -25,7 +25,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
@@ -208,9 +208,7 @@ public abstract class TruffleBootNodes {
                         throw new IllegalStateException();
                 }
             } catch (IOException e) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().ioError(BacktraceFormatter.formatJavaThrowableMessage(e) + " -- " + toExecute, this));
+                throw new JavaException(e);
             }
 
             getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
