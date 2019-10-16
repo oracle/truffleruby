@@ -264,19 +264,19 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String fullMessage, Node currentNode, Throwable javaThrowable) {
+    public DynamicObject runtimeError(String message, Node currentNode, Throwable javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
         DynamicObject errorMessage = StringOperations
-                .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String fullMessage, Backtrace backtrace) {
+    public DynamicObject runtimeError(String message, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
         DynamicObject errorMessage = StringOperations
-                .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
     }
 
