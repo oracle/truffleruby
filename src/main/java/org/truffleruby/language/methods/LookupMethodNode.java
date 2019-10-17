@@ -51,10 +51,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
         return executeLookupMethod(frame, self, name, false, false);
     }
 
-    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility,
-            boolean onlyLookupPublic) {
-        CompilerAsserts.partialEvaluationConstant(ignoreVisibility);
-        CompilerAsserts.partialEvaluationConstant(onlyLookupPublic);
+    public InternalMethod lookup(
+            VirtualFrame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
         return executeLookupMethod(frame, self, name, ignoreVisibility, onlyLookupPublic);
     }
 
@@ -69,7 +67,9 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             guards = {
                     "metaClass(metaClassNode, self) == cachedSelfMetaClass",
                     "name == cachedName",
-                    "contextReference.get() == cachedContext" },
+                    "contextReference.get() == cachedContext",
+                    "ignoreVisibility == cachedIgnoreVisibility",
+                    "onlyLookupPublic == cachedOnlyLookupPublic" },
             assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
@@ -82,13 +82,20 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("name") String cachedName,
             @Cached MetaClassNode metaClassNode,
+            @Cached(value = "ignoreVisibility", allowUncached = true) boolean cachedIgnoreVisibility,
+            @Cached(value = "onlyLookupPublic", allowUncached = true) boolean cachedOnlyLookupPublic,
             @Cached("metaClass(metaClassNode, self)") DynamicObject cachedSelfMetaClass,
-            @Cached("doCachedLookup(cachedContext, frame, self, cachedName, ignoreVisibility, onlyLookupPublic)") MethodLookupResult methodLookupResult) {
+            @Cached("doCachedLookup(cachedContext, frame, self, cachedName, cachedIgnoreVisibility, cachedOnlyLookupPublic)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
     }
 
-    @Specialization(replaces = "lookupMethodCached")
+    @Specialization(
+            guards = {
+                    "ignoreVisibility == cachedIgnoreVisibility",
+                    "onlyLookupPublic == cachedOnlyLookupPublic" },
+            replaces = "lookupMethodCached",
+            limit = "1")
     protected InternalMethod lookupMethodUncached(
             Frame frame,
             Object self,
@@ -98,6 +105,8 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached MetaClassNode callerMetaClassNode,
             @Cached MetaClassNode metaClassNode,
+            @Cached(value = "ignoreVisibility", allowUncached = true) boolean cachedIgnoreVisibility,
+            @Cached(value = "onlyLookupPublic", allowUncached = true) boolean cachedOnlyLookupPublic,
             @Cached("createBinaryProfile()") ConditionProfile noCallerMethodProfile,
             @Cached("createBinaryProfile()") ConditionProfile isSendProfile,
             @Cached BranchProfile foreignProfile,
@@ -139,13 +148,13 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
 
         // Check visibility
 
-        if (!ignoreVisibility) {
+        if (!cachedIgnoreVisibility) {
             final Visibility visibility = method.getVisibility();
             if (publicProfile.profile(visibility == Visibility.PUBLIC)) {
                 return method;
             }
 
-            if (onlyLookupPublic) {
+            if (cachedOnlyLookupPublic) {
                 return null;
             }
 
