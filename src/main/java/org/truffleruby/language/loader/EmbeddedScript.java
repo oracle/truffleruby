@@ -9,11 +9,10 @@
  */
 package org.truffleruby.language.loader;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -36,9 +35,9 @@ public class EmbeddedScript {
         return isShebangLine(sourceBytes) || context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     }
 
-    public byte[] transformForExecution(RubyNode currentNode, byte[] sourceBytes, String path) throws IOException {
+    byte[] transformForExecution(RubyNode currentNode, byte[] sourceBytes, String path) {
         // Guess the transformed output will be no more than twice as long as the input
-        final ByteArrayOutputStream transformed = new ByteArrayOutputStream(sourceBytes.length * 2);
+        final ByteArrayBuilder transformed = new ByteArrayBuilder(sourceBytes.length * 2);
 
         int n = 0;
 
@@ -74,10 +73,10 @@ public class EmbeddedScript {
             final boolean rubyShebangLine = isRubyShebangLine(sourceBytes, lineStart, lineLength);
 
             if (!rubyShebangLine) {
-                transformed.write(PREFIX_COMMENT);
+                transformed.append(PREFIX_COMMENT);
             }
 
-            transformed.write(sourceBytes, lineStart, lineLength);
+            transformed.append(sourceBytes, lineStart, lineLength);
 
             // We stop iterating after the Ruby shebang
 
@@ -88,9 +87,9 @@ public class EmbeddedScript {
 
         // Just copy the rest
 
-        transformed.write(sourceBytes, n, sourceBytes.length - n);
+        transformed.append(sourceBytes, n, sourceBytes.length - n);
 
-        return transformed.toByteArray();
+        return transformed.getBytes();
     }
 
     private boolean isShebangLine(byte[] bytes) {

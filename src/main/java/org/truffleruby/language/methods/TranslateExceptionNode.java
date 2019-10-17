@@ -300,9 +300,7 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
                 builder.append(formattedBacktrace).append('\n');
             } else {
                 // Java exception, print it formatted like a Ruby exception
-                final String message = t.getMessage();
-                builder.append(message != null ? message : "<no message>");
-                builder.append(" (").append(t.getClass().getSimpleName()).append(")\n");
+                builder.append(BacktraceFormatter.formatJavaThrowableMessage(t)).append('\n');
 
                 if (t instanceof TruffleException) {
                     lastBacktrace = new Backtrace((TruffleException) t);

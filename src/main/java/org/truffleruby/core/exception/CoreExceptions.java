@@ -11,6 +11,7 @@ package org.truffleruby.core.exception;
 
 import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
+import java.io.IOException;
 import java.util.EnumSet;
 
 import org.jcodings.Encoding;
@@ -263,19 +264,19 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String fullMessage, Node currentNode, Throwable javaThrowable) {
+    public DynamicObject runtimeError(String message, Node currentNode, Throwable javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
         DynamicObject errorMessage = StringOperations
-                .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String fullMessage, Backtrace backtrace) {
+    public DynamicObject runtimeError(String message, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
         DynamicObject errorMessage = StringOperations
-                .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
     }
 
@@ -897,17 +898,16 @@ public class CoreExceptions {
     // IOError
 
     @TruffleBoundary
-    public DynamicObject ioError(String error, String fileName, Node currentNode) {
+    public DynamicObject ioError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().getIOErrorClass();
-        DynamicObject errorMessage = StringOperations.createString(
-                context,
-                StringOperations.encodeRope(StringUtils.format("%s -- %s", error, fileName), UTF8Encoding.INSTANCE));
+        DynamicObject errorMessage = StringOperations
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
-    public DynamicObject ioError(String fileName, Node currentNode) {
-        return ioError("Error reading file", fileName, currentNode);
+    public DynamicObject ioError(IOException exception, Node currentNode) {
+        return ioError(BacktraceFormatter.formatJavaThrowableMessage(exception), currentNode);
     }
 
     // RangeError

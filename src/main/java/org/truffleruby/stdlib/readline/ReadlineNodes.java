@@ -178,7 +178,7 @@ public abstract class ReadlineNodes {
                     result.set(readline.readLine(prompt));
                     return BlockingAction.SUCCESS;
                 } catch (IOException e) {
-                    throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
+                    throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
                 }
             }, ThreadManager.EMPTY_UNBLOCKING_ACTION);
 
@@ -278,7 +278,7 @@ public abstract class ReadlineNodes {
             try {
                 getContext().getConsoleHolder().getReadline().redrawLine();
             } catch (IOException e) {
-                throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
             return nil();
