@@ -496,11 +496,12 @@ module Utilities
   def mx(*args, **kwargs)
     mx_args = args.dup
 
-    if java_home = find_java_home
-      mx_args.unshift '--java-home', java_home
-    end
+    env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
+    java_home = find_java_home
+    mx_args.unshift '--java-home', java_home if java_home
+    mx_args.unshift find_mx
 
-    raw_sh find_mx, *mx_args, **kwargs
+    raw_sh(env, *mx_args, **kwargs)
   end
 
   def mx_os
@@ -681,6 +682,7 @@ module Commands
       sh 'rm', '-rf', 'spec/ruby/ext'
       Dir.glob("#{TRUFFLERUBY_DIR}/mxbuild/{*,.*}") do |path|
         next if File.basename(path).start_with?('truffleruby-')
+        next if File.basename(path).start_with?('toolchain')
         next if %w(. ..).include? File.basename(path)
         sh 'rm', '-rf', path
       end
@@ -1896,6 +1898,31 @@ EOS
     raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
   end
 
+  def bootstrap_toolchain
+    sulong_home = File.join(TRUFFLERUBY_DIR, '..', 'graal', 'sulong')
+    graal_version = get_truffle_version
+    toolchain_dir = File.join(TRUFFLERUBY_DIR, 'mxbuild', 'toolchain')
+    destination = File.join(toolchain_dir, graal_version)
+    unless File.exist? destination
+      puts "Building toolchain for: #{graal_version}"
+      mx '-p', sulong_home, '--env', 'toolchain-only', 'build'
+      toolchain_graalvm = mx('-p', sulong_home, '--env', 'toolchain-only', 'graalvm-home', capture: true).lines.last.chomp
+      FileUtils.mkdir_p destination
+      FileUtils.cp_r toolchain_graalvm + '/.', destination
+    end
+
+    # leave only 4 newest built toolchains
+    caches = Dir.glob(File.join(toolchain_dir, '*'))
+    caches.delete destination
+    oldest = caches.sort_by { |f| File.ctime f }[0...-4]
+    unless oldest.empty?
+      puts "Removing old cached toolchains: #{oldest.join ' '}"
+      File.rm_rf oldest
+    end
+
+    destination
+  end
+
   private def build_graalvm(*options)
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
@@ -1929,7 +1956,7 @@ EOS
 
     mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
 
-    mx(*mx_args, 'build', *mx_build_options)
+    mx({ 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain }, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
