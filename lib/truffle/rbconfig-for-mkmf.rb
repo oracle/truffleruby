@@ -13,29 +13,24 @@
 require 'rbconfig'
 require_relative 'truffle/cext_preprocessor.rb'
 
+# Determine the various flags for native compilation
+optflags = ''
 debugflags = ''
 warnflags = [
   '-Wimplicit-function-declaration', # To make missing C ext functions clear
-  '-Wundef',                         # Warn for undefined preprocessor macros
-  '-Wno-unknown-warning-option',     # If we're on an earlier version of clang without a warning option, ignore it
   '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
   '-Wno-int-to-pointer-cast',        # Same as above
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
   '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
   '-ferror-limit=500'
-].join(' ')
+]
 
-base_cflags = "#{debugflags} #{warnflags}"
-cflags = "#{base_cflags} -fPIC -c"
-cxxflags = cflags
+cppflags = ''
+defs = ''
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
-
 dlext = RbConfig::CONFIG['DLEXT']
-
-expanded = RbConfig::CONFIG
-mkconfig = RbConfig::MAKEFILE_CONFIG
 
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
@@ -43,7 +38,10 @@ if Truffle::Boot.get_option 'building-core-cexts'
   libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
-  expanded['CPPFLAGS'] = mkconfig['CPPFLAGS'] = relative_debug_paths
+  cppflags << relative_debug_paths
+
+  warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
+  warnflags << '-Werror' # Make sure there are no warnings in core C extensions
 else
   libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 end
@@ -52,16 +50,38 @@ end
 libtruffleruby_dir = File.dirname(libtruffleruby)
 librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
 
+warnflags = warnflags.join(' ')
+
+# Set values in RbConfig
+expanded = RbConfig::CONFIG
+mkconfig = RbConfig::MAKEFILE_CONFIG
+
 common = {
-  'LIBRUBYARG' => librubyarg,
-  'LIBRUBYARG_SHARED' => librubyarg,
+  'optflags' => optflags,
   'debugflags' => debugflags,
   'warnflags' => warnflags,
-  'CFLAGS' => cflags,
-  'CXXFLAGS' => cxxflags
+  'cppflags' => cppflags,
+  'DEFS' => defs,
+  'LIBRUBYARG' => librubyarg,
+  'LIBRUBYARG_SHARED' => librubyarg,
 }
 expanded.merge!(common)
 mkconfig.merge!(common)
+
+cflags = \
+expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
+mkconfig['cflags'] = '$(optflags) $(debugflags) $(warnflags)'
+expanded['CFLAGS'] = cflags
+mkconfig['CFLAGS'] = '$(cflags)'
+
+cxxflags = \
+expanded['cxxflags'] = "#{optflags} #{debugflags} #{warnflags}"
+mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
+expanded['CXXFLAGS'] = cxxflags
+mkconfig['CXXFLAGS'] = '$(cxxflags)'
+defs = ''
+expanded['CPPFLAGS'] = " #{defs} #{cppflags}"
+mkconfig['CPPFLAGS'] = ' $(DEFS) $(cppflags)'
 
 # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
 # C or C++ file) to add the file's path as the first entry on the
@@ -83,10 +103,9 @@ begin
     "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
   end
 
-  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@'
-  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@'
+  c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
+  cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
 
-  mkconfig['TRUFFLE_RAW_COMPILE_C'] = for_file.call('$(CC)', c_flags)
   mkconfig['COMPILE_C'] = with_conditional_preprocessing.call(
     for_pipe.call('$(CC)', c_flags),
     for_file.call('$(CC)', c_flags))
@@ -96,9 +115,6 @@ begin
     for_file.call('$(CXX)', cxx_flags))
 end
 
-# From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-mkconfig['TRY_LINK'] = "$(CC) -o conftest $(INCFLAGS) $(CPPFLAGS) #{base_cflags} $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
-
-%w[COMPILE_C COMPILE_CXX TRY_LINK TRUFFLE_RAW_COMPILE_C].each do |key|
+%w[COMPILE_C COMPILE_CXX].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
 end
