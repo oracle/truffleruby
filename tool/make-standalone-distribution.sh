@@ -23,7 +23,6 @@ case $(uname -m) in
 esac
 
 # Build
-mx sversions
 tool/jt.rb build --env native
 
 release_home="$(cd ../graal/vm/mxbuild/$os-$arch/RUBY_STANDALONE_SVM*/* && pwd -P)"
