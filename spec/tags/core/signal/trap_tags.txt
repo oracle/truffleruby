@@ -6,4 +6,3 @@ slow:Signal.trap the special EXIT signal code can unset the handler
 slow:Signal.trap returns 'DEFAULT' for the initial SIGINT handler
 slow:Signal.trap accepts 'SYSTEM_DEFAULT' and uses the OS handler for SIGPIPE
 slow:Signal.trap allows to register a handler for all known signals, except reserved signals for which it raises ArgumentError
-fails(GR-18399 JDK11 only):Signal.trap allows to register a handler for all known signals, except reserved signals for which it raises ArgumentError
