@@ -73,7 +73,7 @@ module Truffle
       end
 
       if String === pattern
-        index = byte_index(orig, pattern)
+        index = byte_index(orig, pattern, 0)
         match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
       else
         pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
@@ -192,36 +192,15 @@ module Truffle
     end
 
     def self.byte_index(src, str, start=undefined)
-      if undefined.equal?(start)
-        start = 0
-      else
-        start = Truffle::Type.coerce_to_int start
-
-        start += src.bytesize if start < 0
-        if start < 0 or start > src.bytesize
-          Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding) if str.kind_of? Regexp
-          return
-        end
+      start += src.bytesize if start < 0
+      if start < 0 or start > src.bytesize
+        Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding) if str.kind_of? Regexp
+        return
       end
 
-      if str.kind_of? Regexp
-        Truffle::Type.compatible_encoding src, str
-
-        if match = str.match_from(src, start)
-          Truffle::RegexpOperations.set_last_match(match, TrufflePrimitive.caller_binding)
-          return match.begin(0)
-        else
-          Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding)
-          return
-        end
-      end
-
-      str = StringValue(str)
       return start if str == ''
 
       Truffle::Type.compatible_encoding src, str
-
-      return if str.bytesize > src.bytesize
 
       TrufflePrimitive.string_byte_index(src, str, start)
     end
