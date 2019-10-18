@@ -394,10 +394,15 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   return argc;
 }
 
-#define rb_iv_get(val, name) \
-  (__builtin_constant_p(name) ?                             \
-   __extension__ (rb_ivar_get(val, rb_intern(name))) :      \
-   rb_iv_get(val, name))
+#define rb_iv_get(obj, name) \
+  (__builtin_constant_p(name) ? \
+   rb_ivar_get(obj, rb_intern(name)) : \
+   rb_iv_get(obj, name))
+
+#define rb_iv_set(obj, name, val) \
+  (__builtin_constant_p(name) ? \
+   rb_ivar_set(obj, rb_intern(name), val) : \
+   rb_iv_set(obj, name, val))
 
 #if defined(__cplusplus)
 }

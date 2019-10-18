@@ -1968,6 +1968,7 @@ VALUE rb_iv_get(VALUE object, const char *name) {
   return RUBY_CEXT_INVOKE("rb_ivar_get", object, rb_to_id(rb_str_new_cstr(name)));
 }
 
+#undef rb_iv_set
 VALUE rb_iv_set(VALUE object, const char *name, VALUE value) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_ivar_set", object, rb_to_id(rb_str_new_cstr(name)), value);
   return value;
