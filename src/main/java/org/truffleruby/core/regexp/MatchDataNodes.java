@@ -177,7 +177,7 @@ public abstract class MatchDataNodes {
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
+        protected Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
                 @Cached AllocateObjectNode allocateNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
             int[] startsInt = (int[]) ArrayHelpers.getStore(starts);
