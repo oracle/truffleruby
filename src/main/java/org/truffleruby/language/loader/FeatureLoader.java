@@ -139,7 +139,7 @@ public class FeatureLoader {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         if (nfi == null) {
             // The current working cannot change if there are no native calls
-            return System.getProperty("user.dir");
+            return context.getEnv().getCurrentWorkingDirectory().getPath();
         }
         final int bufferSize = PATH_MAX;
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
