@@ -312,6 +312,9 @@ public class TruffleRegexpNodes {
     @TruffleBoundary
     public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
         try {
+            if (options.isEncodingNone()) {
+                bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
+            }
             Encoding enc = bytes.getEncoding();
             Encoding[] fixedEnc = new Encoding[]{ null };
             RopeBuilder unescaped = ClassicRegexp
