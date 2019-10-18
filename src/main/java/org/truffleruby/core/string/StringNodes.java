@@ -4190,6 +4190,59 @@ public abstract class StringNodes {
         }
     }
 
+    @Primitive(name = "string_byte_index", needsSelf = false, lowerFixnum = 3)
+    public static abstract class StringByteIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(pattern)")
+        protected Object stringCharacterIndex(DynamicObject string, DynamicObject pattern, int offset,
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
+            if (offset < 0) {
+                return nil();
+            }
+
+            final Rope stringRope = rope(string);
+            final Rope patternRope = rope(pattern);
+
+            final int total = stringRope.byteLength();
+            int p = 0;
+            final int e = p + total;
+            final int pe = patternRope.byteLength();
+            final int l = e - pe + 1;
+
+            final byte[] stringBytes = stringRope.getBytes();
+            final byte[] patternBytes = patternRope.getBytes();
+
+            p += offset;
+
+            if (stringRope.isSingleByteOptimizable()) {
+                for (; p < l; p++) {
+                    if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                        return p;
+                    }
+                }
+
+                return nil();
+            }
+
+            final Encoding enc = stringRope.getEncoding();
+            final CodeRange cr = stringRope.getCodeRange();
+            int c = 0;
+
+            for (; p < l; p += c) {
+                c = calculateCharacterLengthNode.characterLength(enc, cr, stringBytes, p, e);
+                if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
+                    return nil();
+                }
+                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                    return p;
+                }
+            }
+
+            return nil();
+        }
+    }
+
     /**
      * Calculates the byte offset of a character, indicated by a character index, starting from a provided byte offset
      * into the rope. Providing a 0 starting offset simply finds the byte offset for the nth character into the rope,

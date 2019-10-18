@@ -72,8 +72,13 @@ module Truffle
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
 
-      pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-      match = pattern.search_region(orig, 0, orig.bytesize, true)
+      if String === pattern
+        index = byte_index(orig, pattern, 0)
+        match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+      else
+        pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+        match = pattern.search_region(orig, 0, orig.bytesize, true)
+      end
 
       return nil unless match
 
@@ -106,7 +111,12 @@ module Truffle
         last_match = match
         last_end = match.byte_end(0)
 
-        match = pattern.match_from orig, offset
+        if String === pattern
+          index = byte_index(orig, pattern, offset)
+          match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+        else
+          match = pattern.match_from orig, offset
+        end
       end
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
@@ -179,6 +189,20 @@ module Truffle
         else raise ArgumentError, 'too many options'
         end
       end
+    end
+
+    def self.byte_index(src, str, start=undefined)
+      start += src.bytesize if start < 0
+      if start < 0 or start > src.bytesize
+        Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding) if str.kind_of? Regexp
+        return
+      end
+
+      return start if str == ''
+
+      Truffle::Type.compatible_encoding src, str
+
+      TrufflePrimitive.string_byte_index(src, str, start)
     end
   end
 end
