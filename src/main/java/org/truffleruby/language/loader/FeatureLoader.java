@@ -61,6 +61,7 @@ public class FeatureLoader {
     private final Object cextImplementationLock = new Object();
     private boolean cextImplementationLoaded = false;
 
+    private String cwd = null;
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
 
@@ -135,7 +136,19 @@ public class FeatureLoader {
         }
     }
 
+    public void setWorkingDirectory(String cwd) {
+        this.cwd = cwd;
+    }
+
     public String getWorkingDirectory() {
+        if (cwd != null) {
+            return cwd;
+        } else {
+            return cwd = initializeWorkingDirectory();
+        }
+    }
+
+    private String initializeWorkingDirectory() {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         if (nfi == null) {
             // The current working cannot change if there are no native calls
@@ -153,19 +166,20 @@ public class FeatureLoader {
     }
 
     /** Make a path absolute, by expanding relative to the context CWD. */
-    private String makeAbsolute(String cwd, String path) {
+    private String makeAbsolute(String path) {
         final File file = new File(path);
         if (file.isAbsolute()) {
             return path;
         } else {
+            String cwd = getWorkingDirectory();
             return new File(cwd, path).getPath();
         }
     }
 
-    public String canonicalize(String cwd, String path) {
+    public String canonicalize(String path) {
         // First, make the path absolute, by expanding relative to the context CWD
         // Otherwise, getCanonicalPath() uses user.dir as CWD which is incorrect.
-        final String absolutePath = makeAbsolute(cwd, path);
+        final String absolutePath = makeAbsolute(path);
         try {
             return new File(absolutePath).getCanonicalPath();
         } catch (IOException e) {
@@ -202,20 +216,18 @@ public class FeatureLoader {
             });
         }
 
-        final String cwd = getWorkingDirectory();
-
         if (context.getOptions().LOG_FEATURE_LOCATION) {
-            RubyLanguage.LOGGER.info(String.format("current directory: %s", cwd));
+            RubyLanguage.LOGGER.info(String.format("current directory: %s", getWorkingDirectory()));
         }
 
         if (feature.startsWith("./")) {
-            feature = cwd + "/" + feature.substring(2);
+            feature = getWorkingDirectory() + "/" + feature.substring(2);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 RubyLanguage.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
-            feature = dirname(cwd) + "/" + feature.substring(3);
+            feature = dirname(getWorkingDirectory()) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 RubyLanguage.LOGGER.info(String.format("feature adjusted to %s", feature));
@@ -229,7 +241,7 @@ public class FeatureLoader {
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
                 // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                final String loadPath = canonicalize(cwd, pathObject.toString());
+                final String loadPath = canonicalize(pathObject.toString());
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));

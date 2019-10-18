@@ -137,6 +137,7 @@ public abstract class TruffleSystemNodes {
                 throw new JavaException(e);
             }
             getContext().getEnv().setCurrentWorkingDirectory(canonicalFile);
+            getContext().getFeatureLoader().setWorkingDirectory(canonicalFile.getPath());
             return dir;
         }
     }
