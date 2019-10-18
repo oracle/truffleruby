@@ -19,7 +19,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -39,15 +38,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
 
     // TODO (pitr-ch 01-Apr-2019): support to_int special form with new interop, consider others
     // TODO (pitr-ch 16-Sep-2019): merge into a dispatch node when it is migrated to DSL
-    //  so we do not awkwardly assume here the name is constant
     // FIXME (pitr 13-Sep-2019): @Cached.Shared("arity") does not work, It thinks "The cache initializer does not match"
 
-    public final Object executeCall(Object receiver, String name, Object[] args) {
-        CompilerAsserts.partialEvaluationConstant(name);
-        return executeCallInner(receiver, name, args);
-    }
-
-    protected abstract Object executeCallInner(Object receiver, String name, Object[] args);
+    public abstract Object executeCall(Object receiver, String name, Object[] args);
 
     protected final static String INDEX_READ = "[]";
     protected final static String INDEX_WRITE = "[]=";
@@ -69,7 +62,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     protected final static String IS_A = "is_a?";
     protected final static String KIND_OF = "kind_of?";
 
-    @Specialization(guards = { "cachedName.equals(INDEX_READ)", "args.length == 1" })
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(INDEX_READ)", "args.length == 1" }, limit = "1")
     protected Object indexRead(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -77,7 +70,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return readNode.execute(receiver, args[0]);
     }
 
-    @Specialization(guards = { "cachedName.equals(INDEX_WRITE)", "args.length == 2" })
+    @Specialization(
+            guards = { "name == cachedName", "cachedName.equals(INDEX_WRITE)", "args.length == 2" },
+            limit = "1")
     protected Object indexWrite(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -85,7 +80,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return writeUncacheableNode.execute(receiver, args[0], args[1]);
     }
 
-    @Specialization(guards = "cachedName.equals(CALL)")
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(CALL)" }, limit = "1")
     protected Object call(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -93,7 +88,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return executeUncacheableNode.execute(receiver, args);
     }
 
-    @Specialization(guards = "cachedName.equals(NEW)")
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(NEW)" }, limit = "1")
     protected Object newOutgoing(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -101,7 +96,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return newNode.execute(receiver, args);
     }
 
-    @Specialization(guards = { "cachedName.equals(SEND)", "args.length >= 1" })
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(SEND)", "args.length >= 1" }, limit = "1")
     protected Object sendOutgoing(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -113,7 +108,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return dispatchNode.dispatch(null, receiver, sendName, null, sendArgs);
     }
 
-    @Specialization(guards = { "cachedName.equals(NIL)", "args.length == 0" })
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(NIL)", "args.length == 0" }, limit = "1")
     protected Object nil(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -121,7 +116,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return nullUncacheableNode.execute(receiver);
     }
 
-    @Specialization(guards = { "cachedName.equals(EQUAL)", "args.length == 1" })
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
     protected Object isEqual(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -151,7 +146,10 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     }
 
     @Specialization(
-            guards = { "canHaveBadArguments(cachedName)", "badArity(args, cachedArity, cachedName)" },
+            guards = {
+                    "name == cachedName",
+                    "canHaveBadArguments(cachedName)",
+                    "badArity(args, cachedArity, cachedName)" },
             limit = "1" /* the name is constant*/)
     protected Object withBadArguments(
             Object receiver, String name, Object[] args,
@@ -254,7 +252,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         }
     }
 
-    @Specialization(guards = "isOperatorMethod(cachedName)")
+    @Specialization(guards = { "name == cachedName", "isOperatorMethod(cachedName)" }, limit = "1")
     protected Object operator(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -262,16 +260,19 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         return node.executeCall(receiver, name, args);
     }
 
-    @Specialization(guards = {
-            "!cachedName.equals(INDEX_READ)",
-            "!cachedName.equals(INDEX_WRITE)",
-            "!cachedName.equals(CALL)",
-            "!cachedName.equals(NEW)",
-            "!cachedName.equals(SEND)",
-            "!cachedName.equals(NIL)",
-            "!cachedName.equals(EQUAL)",
-            "!isRedirectToTruffleInterop(cachedName)",
-            "!isOperatorMethod(cachedName)" })
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "!cachedName.equals(INDEX_READ)",
+                    "!cachedName.equals(INDEX_WRITE)",
+                    "!cachedName.equals(CALL)",
+                    "!cachedName.equals(NEW)",
+                    "!cachedName.equals(SEND)",
+                    "!cachedName.equals(NIL)",
+                    "!cachedName.equals(EQUAL)",
+                    "!isRedirectToTruffleInterop(cachedName)",
+                    "!isOperatorMethod(cachedName)" },
+            limit = "1")
     protected Object notOperator(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
