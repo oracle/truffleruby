@@ -6,19 +6,38 @@ New features:
 * It is no longer necessary to install LLVM for installing C extensions on TruffleRuby.
 * It is no longer necessary to install libc++ and libc++abi for installing C++ extensions on TruffleRuby.
 * On macOS, it is no longer necessary to install the system headers package (#1417).
+* License updated to EPL 2.0/GPL 2.0/LGPL 2.1 like recent JRuby.
 
 Bug fixes:
 
 * `rb_undef_method` now works for private methods (#1731).
+* Fixed several issues when requiring C extensions concurrently (#1565).
+* `self.method ||= value` with a private method now works correctly (#1673).
+* Fixed `RegexpError: invalid multibyte escape` for binary regexps with a non-binary String (#1433).
+* Arrays now report their methods to other languages for interopability (#1768).
+* Installing `sassc` now works due to using the LLVM toolchain (#1753).
+* Renamed `Truffle::Interop.respond_to?` to avoid conflict with Ruby's `respond_to?` (#1491).
 
 Compatibility:
 
-* `GC.stat` can now take an option (#1716).
+* `GC.stat` can now take an optional argument (#1716).
 * `Kernel#load` with `wrap` has been implemented (#1739).
 * Implemented `Kernel#spawn` with `:chdir` (#1492).
 * Implemented `rb_str_drop_bytes`, notably used by OpenSSL (#1740).
+* Include executables of default gems, needed for `rails new` in Rails 6.
+* Use compilation flags similar to MRI for C extension compilation.
+* Warn for `gem update --system` as it is not fully supported yet and is often not needed.
 
-# 19.2.0
+Performance:
+
+* Core methods are no longer always cloned, which reduces memory footprint and should improve warmup.
+* Inline cache calls to `rb_intern()` with a constant name in C extensions.
+* Improve allocation speed of native handles for C extensions.
+* Improve the performance of `NIL_P` and `INT2FIX` in C extensions.
+* Various fixes to improve Rack performance.
+* Optimize `String#gsub(String)` by not creating a `Regexp` and using `String#index` instead.
+
+# 19.2.0, August 2019
 
 New features:
 
