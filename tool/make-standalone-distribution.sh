@@ -9,23 +9,10 @@
 set -e
 set -x
 
-# Check platform
-case $(uname) in
-  Linux) os=linux ;;
-  Darwin) os=darwin ;;
-  *) echo "unknown platform $(uname)" 1>&2; exit 1 ;;
-esac
-
-# Check architecture
-case $(uname -m) in
-  x86_64) arch=amd64 ;;
-  *) echo "unknown architecture $(uname -m)" 1>&2; exit 1 ;;
-esac
-
 # Build
 tool/jt.rb build --env native
 
-release_home="$(cd ../graal/vm/mxbuild/$os-$arch/RUBY_STANDALONE_SVM*/* && pwd -P)"
+release_home=$(tool/jt.rb mx --env native standalone-home ruby)
 
 # Test the post-install hook
 TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.sh"
