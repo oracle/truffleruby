@@ -7,7 +7,8 @@
 # GNU Lesser General Public License version 2.1.
 
 import os
-from os.path import join
+import pipes
+from os.path import join, exists, basename
 
 import mx
 import mx_sdk
@@ -40,6 +41,73 @@ class VerboseMx:
     def __exit__(self, exc_type, exc_value, traceback):
         mx.get_opts().verbose = self.verbose
 
+# Project classes
+
+class TruffleRubyBootstrapLauncherProject(mx.Project):
+    def __init__(self, suite, name, deps, workingSets, theLicense, **kwArgs):
+        super(TruffleRubyBootstrapLauncherProject, self).__init__(suite, name, subDir=None, srcDirs=[], deps=deps, workingSets=workingSets, d=suite.dir, theLicense=theLicense, **kwArgs)
+
+    def launchers(self):
+        result = join(self.get_output_root(), 'miniruby')
+        yield result, 'TOOL', 'miniruby'
+
+    def getArchivableResults(self, use_relpath=True, single=False):
+        for result, _, prefixed in self.launchers():
+            yield result, prefixed
+
+    def getBuildTask(self, args):
+        return TruffleRubyBootstrapLauncherBuildTask(self, args, 1)
+
+
+class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
+    def __str__(self):
+        return "Generating " + self.subject.name
+
+    def newestOutput(self):
+        return mx.TimeStampFile.newest([result for result, _, _ in self.subject.launchers()])
+
+    def needsBuild(self, newestInput):
+        sup = super(TruffleRubyBootstrapLauncherBuildTask, self).needsBuild(newestInput)
+        if sup[0]:
+            return sup
+
+        for result, _, _ in self.subject.launchers():
+            if not exists(result):
+                return True, result + ' does not exist'
+            with open(result, "r") as f:
+                on_disk = f.read()
+            if on_disk != self.contents(result):
+                return True, 'command line changed for ' + basename(result)
+
+        return False, 'up to date'
+
+    def build(self):
+        mx.ensure_dir_exists(self.subject.get_output_root())
+        for result, _, _ in self.subject.launchers():
+            with open(result, "w") as f:
+                f.write(self.contents(result))
+            os.chmod(result, 0o755)
+
+    def clean(self, forBuild=False):
+        if exists(self.subject.get_output_root()):
+            mx.rmtree(self.subject.get_output_root())
+
+    def contents(self, result):
+        java = mx.get_jdk().java
+        classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
+        jvm_args = [pipes.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
+        main_class = 'org.truffleruby.launcher.RubyLauncher'
+        ruby_options = [
+            '--experimental-options',
+            '--building-core-cexts',
+            '--home=' + root,
+            '--launcher=' + result,
+            '--disable-gems',
+            '--disable-rubyopt',
+        ]
+        command = [java] + jvm_args + [main_class] + ruby_options + ['"$@"']
+        return "#!/usr/bin/env bash\n" + "exec " + " ".join(command) + "\n"
+
 # Commands
 
 def jt(*args):
@@ -49,19 +117,6 @@ def jt(*args):
 def build_truffleruby(args):
     mx.command_function('sversions')([])
     jt('build', '--no-sforceimports', '--no-ee-checkout')
-
-def miniruby_for_building_cexts(args):
-    jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])
-    mx_binary = join(mx._mx_home, 'mx')
-    options = [
-        '--experimental-options',
-        '--building-core-cexts',
-        '--home=' + root,
-        '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
-        '--disable-gems',
-        '--disable-rubyopt',
-    ]
-    mx.run_java(jvm_args + ['org.truffleruby.launcher.RubyLauncher'] + options + args)
 
 def ruby_run_ruby(args):
     """run TruffleRuby (through tool/jt.rb)"""
@@ -186,7 +241,6 @@ Then run the following command:
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
     'build_truffleruby': [build_truffleruby, ''],
-    'miniruby_for_building_cexts': [miniruby_for_building_cexts, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],

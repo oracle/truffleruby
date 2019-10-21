@@ -246,19 +246,28 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
+        "org.truffleruby.bootstrap.launcher": {
+            "class": "TruffleRubyBootstrapLauncherProject",
+            "buildDependencies": [
+                "TRUFFLERUBY", # We need this jar to run extconf.rb
+                "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
+                "sulong:SULONG", # We need this jar to find the toolchain with Toolchain#getToolPath
+            ],
+            "license": ["EPL-2.0"],
+        },
+
         "org.truffleruby.cext": {
             "native": True,
             "dir": "src/main/c",
             "buildDependencies": [
-                "TRUFFLERUBY", # We need this jar to run extconf.rb
-                "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
-                "sulong:SULONG", # We need this jar to find the toolchain with Toolchain#getToolPath
                 "sulong:SULONG_BOOTSTRAP_TOOLCHAIN", # graalvm-native-clang
                 "sulong:SULONG_HOME", # polyglot.h
+                "TRUFFLERUBY-BOOTSTRAP-LAUNCHER",
             ],
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
+              "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
             },
             "output": ".",
             "results": [
@@ -354,6 +363,15 @@ suite = {
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
             ],
+        },
+
+        "TRUFFLERUBY-BOOTSTRAP-LAUNCHER": {
+            "native": True,
+            "layout": {
+                "./": "dependency:org.truffleruby.bootstrap.launcher/*",
+            },
+            "description": "TruffleRuby Bootstrap Launcher to build core C extensions",
+            "license": ["EPL-2.0"],
         },
 
         "TRUFFLERUBY-LAUNCHER": {
