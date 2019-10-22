@@ -1490,12 +1490,22 @@ class String
   end
 
   def start_with?(*prefixes)
+    binding = TrufflePrimitive.caller_binding
+
     prefixes.each do |original_prefix|
-      prefix = Truffle::Type.rb_check_convert_type original_prefix, String, :to_str
-      unless prefix
-        raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
+      case original_prefix
+      when Regexp
+        Truffle::Type.compatible_encoding(self, original_prefix)
+        match_data = original_prefix.match_onwards(self, 0, true)
+        Truffle::RegexpOperations.set_last_match(match_data, binding)
+        return true if match_data
+      else
+        prefix = Truffle::Type.rb_check_convert_type original_prefix, String, :to_str
+        unless prefix
+          raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
+        end
+        return true if self[0, prefix.length] == prefix
       end
-      return true if self[0, prefix.length] == prefix
     end
     false
   end
