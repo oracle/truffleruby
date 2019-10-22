@@ -893,7 +893,7 @@ public class RubyLexer implements MagicCommentHandler {
                     // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                     // so we can report that it will be ignored.
                     if (!tokenSeen || (parserSupport.getContext() != null &&
-                            parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
+                            parserSupport.getContext().getCoreLibrary().isVerbose())) {
                         if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
