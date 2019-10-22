@@ -18,6 +18,7 @@ Bug fixes:
 * Installing `sassc` now works due to using the LLVM toolchain (#1753).
 * Renamed `Truffle::Interop.respond_to?` to avoid conflict with Ruby's `respond_to?` (#1491).
 * Warn only if `$VERBOSE` is `true` when a magic comment is ignored (#1757).
+* Make C extensions use the same libssl as the one used for the openssl C extension (#1770).
 
 Compatibility:
 
