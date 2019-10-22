@@ -68,7 +68,6 @@ module RbConfig
     'COUTFLAG'          => '-o ',
     'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
-    'DLDFLAGS'          => '',
     'DLDLIBS'           => '',
     'DLEXT'             => Truffle::Platform::DLEXT,
     'ENABLE_SHARED'     => 'yes', # We use a dynamic library for libruby
@@ -79,7 +78,6 @@ module RbConfig
     'host_cpu'          => host_cpu,
     'host'              => host,
     'host_os'           => host_os_full,
-    'LDFLAGS'           => '',
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
     'LIBRUBY'           => '',
