@@ -29,7 +29,7 @@ warnflags = [
 cppflags = ''
 defs = ''
 ldflags = ''
-dldflags = ''
+dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
 dlext = RbConfig::CONFIG['DLEXT']

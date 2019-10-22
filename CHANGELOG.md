@@ -29,6 +29,7 @@ Compatibility:
 * Include executables of default gems, needed for `rails new` in Rails 6.
 * Use compilation flags similar to MRI for C extension compilation.
 * Warn for `gem update --system` as it is not fully supported yet and is often not needed.
+* Pass `-undefined dynamic_lookup` to the linker on macOS like MRI.
 
 Performance:
 
