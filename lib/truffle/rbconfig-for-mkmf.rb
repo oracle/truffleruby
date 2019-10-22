@@ -28,13 +28,27 @@ warnflags = [
 
 cppflags = ''
 defs = ''
+ldflags = ''
+dldflags = ''
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
 dlext = RbConfig::CONFIG['DLEXT']
 
+# Make C extensions use the same libssl as the one used for the openssl C extension
+if Truffle::Platform.darwin?
+  require 'truffle/openssl-prefix'
+  openssl_prefix = ENV['OPENSSL_PREFIX']
+  if openssl_prefix
+    # Change the same variables as MRI's --with-opt-dir configure option would
+    cppflags << " -I#{openssl_prefix}/include"
+    ldflags << " -L#{openssl_prefix}/lib"
+    dldflags << " -L#{openssl_prefix}/lib"
+  end
+end
+
+# Set extra flags needed for --building-core-cexts
 if Truffle::Boot.get_option 'building-core-cexts'
   ruby_home = Truffle::Boot.ruby_home
-
   libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
   relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
@@ -62,6 +76,8 @@ common = {
   'warnflags' => warnflags,
   'cppflags' => cppflags,
   'DEFS' => defs,
+  'DLDFLAGS' => dldflags,
+  'LDFLAGS' => ldflags,
   'LIBRUBYARG' => librubyarg,
   'LIBRUBYARG_SHARED' => librubyarg,
 }
