@@ -17,6 +17,7 @@ Bug fixes:
 * Arrays now report their methods to other languages for interopability (#1768).
 * Installing `sassc` now works due to using the LLVM toolchain (#1753).
 * Renamed `Truffle::Interop.respond_to?` to avoid conflict with Ruby's `respond_to?` (#1491).
+* Warn only if `$VERBOSE` is `true` when a magic comment is ignored (#1757).
 
 Compatibility:
 
