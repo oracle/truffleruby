@@ -148,9 +148,9 @@ to contribute to TruffleRuby.
 
 ## Contact
 
-The best way to get in touch with us is to join us in
-https://gitter.im/graalvm/truffleruby, but you can also Tweet to
-[@TruffleRuby](https://twitter.com/truffleruby), or email
+The best way to get in touch with us is to join the channel `#truffleruby` of the
+[GraalVM Slack](https://join.slack.com/t/graalvm/shared_invite/enQtNzk0NTc5MzUyNzg5LTAwY2YyODQ4MzJjMGJjZGQzMWY2ZDA3NWI3YzEzNDRlNGQ1MTZkYzkzM2JkYjIxMTY2NGQzNjUxOGQzZGExZmU).
+You can also Tweet to [@TruffleRuby](https://twitter.com/truffleruby), or email
 benoit.daloze@oracle.com.
 
 Please report security vulnerabilities via the process outlined at [reporting
