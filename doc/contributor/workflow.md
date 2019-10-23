@@ -84,6 +84,10 @@ To speed up compilation of bundled C extensions, it is recommended to use
 See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
 in Sulong to build and use them.
 
+Or set `export JT_CACHE_TOOLCHAIN=true` environment variable to have the
+toolchain built and used by `jt` automatically. `jt` will keep the 4 newest
+built toolchains to avoid rebuilding when branches are switched.
+
 ## Running
 
 `jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
