@@ -23,7 +23,7 @@ public interface MatchDataLayout extends BasicObjectLayout {
     DynamicObjectFactory createMatchDataShape(DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    Object[] build(DynamicObject source, DynamicObject regexp, Region region, @Nullable Region charOffsets);
+    Object[] build(@Nullable DynamicObject source, @Nullable DynamicObject regexp, @Nullable Region region, @Nullable Region charOffsets);
 
     boolean isMatchData(DynamicObject object);
 
@@ -31,12 +31,16 @@ public interface MatchDataLayout extends BasicObjectLayout {
 
     DynamicObject getSource(DynamicObject object);
 
+    void setSource(DynamicObject object, DynamicObject value);
+
     /** Either a Regexp or a String for the case of String#gsub(String) */
     DynamicObject getRegexp(DynamicObject object);
 
     void setRegexp(DynamicObject object, DynamicObject value);
 
     Region getRegion(DynamicObject object);
+
+    void setRegion(DynamicObject object, Region value);
 
     Region getCharOffsets(DynamicObject object);
 

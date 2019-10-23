@@ -628,13 +628,36 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        // MatchData can be allocated in MRI but it does not seem to be any useful
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+        protected DynamicObject allocate(DynamicObject rubyClass, @Cached AllocateObjectNode allocateNode) {
+            return allocateNode.allocate(rubyClass, Layouts.MATCH_DATA.build(null, null, null, null));
         }
 
+    }
+
+    @CoreMethod(names = "initialize_copy", required = 1, raiseIfFrozenSelf = true)
+    public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject initializeCopy(DynamicObject self, DynamicObject from) {
+            if (self == from) {
+                return self;
+            }
+
+            if (!Layouts.MATCH_DATA.isMatchData(from)) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeError("initialize_copy should take same class object", this));
+            }
+
+
+            Layouts.MATCH_DATA.setSource(self, Layouts.MATCH_DATA.getSource(from));
+            Layouts.MATCH_DATA.setRegexp(self, Layouts.MATCH_DATA.getRegexp(from));
+            Layouts.MATCH_DATA.setRegion(self, Layouts.MATCH_DATA.getRegion(from));
+            Layouts.MATCH_DATA.setCharOffsets(self, Layouts.MATCH_DATA.getCharOffsets(from));
+            return self;
+        }
     }
 
     @Primitive(name = "match_data_get_source")
