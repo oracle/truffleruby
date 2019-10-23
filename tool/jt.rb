@@ -1964,8 +1964,7 @@ EOS
 
     mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
 
-    cache_toolchain = ENV['JT_CACHE_TOOLCHAIN']
-    env = (ci? || !cache_toolchain) ? {} : { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain }
+    env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
     mx(env, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
