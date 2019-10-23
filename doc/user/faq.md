@@ -76,10 +76,7 @@ forked back out of JRuby after it had matured.
 
 ### Who do I ask about TruffleRuby?
 
-The best way to get in touch with us is to join us in
-https://gitter.im/graalvm/truffleruby, but you can also Tweet to
-[@TruffleRuby](https://twitter.com/truffleruby), or email
-benoit.daloze@oracle.com.
+See the Contact section in the [README](../../README.md#contact).
 
 ### How do I know if I’m using TruffleRuby?
 
