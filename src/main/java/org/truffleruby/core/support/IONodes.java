@@ -489,7 +489,6 @@ public abstract class IONodes {
                     .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
         }
 
-        @TruffleBoundary
         public static Pointer getBuffer(RubyContext context, long size) {
             final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
             final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
@@ -497,11 +496,16 @@ public abstract class IONodes {
             if (buffer.getSize() >= size) {
                 return buffer;
             } else {
-                buffer.freeNoAutorelease();
-                final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
-                Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
-                return newBuffer;
+                return reallocateBUffer(size, rubyThread, buffer);
             }
+        }
+
+        @TruffleBoundary
+        private static Pointer reallocateBUffer(long size, final DynamicObject rubyThread, final Pointer buffer) {
+            buffer.freeNoAutorelease();
+            final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
+            Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
+            return newBuffer;
         }
 
     }

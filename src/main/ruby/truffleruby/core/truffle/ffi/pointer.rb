@@ -334,4 +334,31 @@ module Truffle::FFI
       ptr
     end
   end
+
+  class Pool
+
+    def self.allocate(*args)
+      length = 0
+      offsets = []
+      args.each_slice(2) do |type, count|
+        type_size = case type
+                    when nil
+                      1
+                    when Integer
+                      type
+                    when Symbol
+                      Pointer.find_type_size(type)
+                    else
+                      type.size
+                    end
+        offsets << length
+        length += (type_size * count)
+      end
+      buffer = TrufflePrimitive.io_get_thread_buffer(length)
+      ptrs = []
+      offsets.each { |offset| buffer = buffer + offset; ptrs << buffer }
+      ptrs
+    end
+
+  end
 end
