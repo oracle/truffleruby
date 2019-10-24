@@ -5,6 +5,11 @@ describe "MatchData#inspect" do
     @match_data = /(.)(.)(\d+)(\d)/.match("THX1138.")
   end
 
+  it "returns a String when receiver is uninitialized" do
+    match_data = MatchData.allocate
+    match_data.inspect.should be_kind_of(String)
+  end
+
   it "returns a String" do
     @match_data.inspect.should be_kind_of(String)
   end

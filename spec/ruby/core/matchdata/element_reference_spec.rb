@@ -1,6 +1,11 @@
 require_relative '../../spec_helper'
 
 describe "MatchData#[]" do
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data[1] }.should raise_error(TypeError)
+  end
+
   it "acts as normal array indexing [index]" do
     md = /(.)(.)(\d+)(\d)/.match("THX1138.")
 

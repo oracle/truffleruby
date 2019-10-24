@@ -321,6 +321,7 @@ end
 class MatchData
 
   def offset(idx)
+    check_initialized
     out = []
     out << self.begin(idx)
     out << self.end(idx)
@@ -328,7 +329,11 @@ class MatchData
   end
 
   def ==(other)
+    return true if equal?(other)
+
     other.kind_of?(MatchData) &&
+      TrufflePrimitive.match_data_initialized?(self) &&
+      TrufflePrimitive.match_data_initialized?(other) &&
       string == other.string  &&
       regexp == other.regexp  &&
       captures == other.captures
@@ -336,18 +341,22 @@ class MatchData
   alias_method :eql?, :==
 
   def string
+    check_initialized
     TrufflePrimitive.match_data_get_source(self).dup.freeze
   end
 
   def names
+    check_initialized
     regexp.names
   end
 
   def named_captures
+    check_initialized
     names.collect { |name| [name, self[name]] }.to_h
   end
 
   def pre_match_from(idx)
+    check_initialized
     source = TrufflePrimitive.match_data_get_source(self)
     return source.byteslice(0, 0) if self.byte_begin(0) == 0
     nd = self.byte_begin(0) - 1
@@ -355,6 +364,7 @@ class MatchData
   end
 
   def begin(index)
+    check_initialized
     backref = if String === index || Symbol === index
                 names_to_backref = Hash[TrufflePrimitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
@@ -367,6 +377,7 @@ class MatchData
   end
 
   def end(index)
+    check_initialized
     backref = if String === index || Symbol === index
                 names_to_backref = Hash[TrufflePrimitive.regexp_names(self.regexp)]
                 names_to_backref[index.to_sym].last
@@ -379,10 +390,12 @@ class MatchData
   end
 
   def collapsing?
+    check_initialized
     self.byte_begin(0) == self.byte_end(0)
   end
 
   def inspect
+    return super unless TrufflePrimitive.match_data_initialized?(self)
     str = "#<MatchData \"#{self[0]}\""
     idx = 0
     captures.zip(names) do |capture, name|
@@ -393,11 +406,19 @@ class MatchData
   end
 
   def values_at(*indexes)
+    check_initialized
     indexes.map { |i| self[i] }.flatten(1)
   end
 
   def to_s
+    check_initialized
     self[0]
+  end
+
+  private def check_initialized
+    unless TrufflePrimitive.match_data_initialized?(self)
+      raise TypeError, "uninitialized Match"
+    end
   end
 end
 

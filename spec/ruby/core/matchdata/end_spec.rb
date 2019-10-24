@@ -101,4 +101,11 @@ describe "MatchData#end" do
       match_data.end(:æ).should == 2
     end
   end
+
+  context "when uninitialized" do
+    it "raises TypeError" do
+      match_data = MatchData.allocate
+      -> { match_data.end(0) }.should raise_error(TypeError)
+    end
+  end
 end

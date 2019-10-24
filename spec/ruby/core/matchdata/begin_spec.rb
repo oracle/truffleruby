@@ -101,4 +101,11 @@ describe "MatchData#begin" do
       match_data.begin(:æ).should == 1
     end
   end
+
+  context "when uninitialized" do
+    it "raises TypeError" do
+      match_data = MatchData.allocate
+      -> { match_data.begin(0) }.should raise_error(TypeError)
+    end
+  end
 end
