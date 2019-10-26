@@ -1,3 +1,9 @@
+# 20.0.0
+
+Bug fixes:
+
+* Fix `Tempfile#{size,length}` when the IO is not flushed (#1765).
+
 # 19.3.0
 
 New features:
