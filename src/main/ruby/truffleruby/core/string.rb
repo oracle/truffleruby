@@ -1490,7 +1490,8 @@ class String
   end
 
   def start_with?(*prefixes)
-    binding = TrufflePrimitive.caller_binding
+    # This is the workaround because `TrufflePrimitive.caller_binding` doesn't work inside blocks yet.
+    binding = TrufflePrimitive.caller_binding if prefixes.any?(Regexp)
 
     prefixes.each do |original_prefix|
       case original_prefix
