@@ -1,0 +1,1 @@
+fails:ENV.select selects via the enumerator
