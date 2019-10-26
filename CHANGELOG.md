@@ -1,3 +1,9 @@
+# 20.0.0
+
+Compatibility:
+
+* Implemented `String#start_with?(Regexp)` (#1771).
+
 # 19.3.0
 
 New features:
