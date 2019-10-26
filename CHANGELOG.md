@@ -1,3 +1,9 @@
+# 20.0.0
+
+Bug fixes:
+
+* Dump and load instance variables in subclasses of `Exception` (#1766).
+
 # 19.3.0
 
 New features:
