@@ -1,0 +1,3 @@
+fails:ENV.slice returns a hash of the given environment variable names and their values
+fails:ENV.slice ignores each String that is not an environment variable name
+fails:ENV.slice raises TypeError if any argument is not a String and does not respond to #to_str
