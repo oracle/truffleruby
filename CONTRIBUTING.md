@@ -17,3 +17,11 @@ And finally, we have some more technical contributor documentation, which might
 be useful to someone working on TruffleRuby.
 
 https://github.com/oracle/truffleruby/tree/master/doc/contributor
+
+When opening a Pull Request, please add a ChangeLog entry with the format:
+
+```
+* Description (#PR number, @author).
+```
+
+See the [the ChangeLog](CHANGELOG.md) for examples.
