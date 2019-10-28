@@ -2644,7 +2644,12 @@ MESSAGE
   def mkmf_failed(path)
     unless $makefile_created or File.exist?("Makefile")
       opts = $arg_config.collect {|t, n| "\t#{t}#{n ? "=#{n}" : ""}\n"}
-      abort "*** #{path} failed ***\n" + FailedMessage + opts.join
+      if defined?(::TruffleRuby) and File.exist?('mkmf.log')
+        Logging::log_close
+        abort "*** #{path} failed ***\n" + FailedMessage + opts.join + "\nContents of mkmf.log:\n#{File.read('mkmf.log')}"
+      else
+        abort "*** #{path} failed ***\n" + FailedMessage + opts.join
+      end
     end
   end
 
