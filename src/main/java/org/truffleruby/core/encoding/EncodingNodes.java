@@ -664,10 +664,10 @@ public abstract class EncodingNodes {
                 @Cached("createBinaryProfile()") ConditionProfile hasRegexpSource) {
             final Rope regexpSource = Layouts.REGEXP.getSource(object);
 
-            if (hasRegexpSource.profile(regexpSource == null)) {
-                return getRubyEncodingNode.executeGetRubyEncoding(EncodingManager.getEncoding("BINARY"));
-            } else {
+            if (hasRegexpSource.profile(regexpSource != null)) {
                 return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());
+            } else {
+                return getRubyEncodingNode.executeGetRubyEncoding(EncodingManager.getEncoding("BINARY"));
             }
         }
 
