@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Tempfile#{size,length}` when the IO is not flushed (#1765, @rafaelfranca).
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
+* Fix Date._iso8601 and Date._rfc3339 when the string is an invalid date (#1773, @rafaelfranca).
 
 Compatibility:
 
