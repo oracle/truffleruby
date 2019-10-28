@@ -134,6 +134,7 @@ module Truffle
         hints[:ai_flags]    = flags || 0
 
         res_p = Truffle::FFI::Pool.allocate(:pointer, 1)[0]
+        res_p.write_pointer(0)
         err   = _getaddrinfo(host, service, hints.pointer, res_p)
 
         raise SocketError, gai_strerror(err) unless err == 0
@@ -259,6 +260,7 @@ module Truffle
         end
 
         res_p = Truffle::FFI::Pool.allocate(:pointer, 1)[0]
+        res_p.write_pointer(0)
 
         err = _getaddrinfo(host, port.to_s, hints.pointer, res_p)
 
