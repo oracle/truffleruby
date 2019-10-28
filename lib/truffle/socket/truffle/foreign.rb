@@ -341,7 +341,7 @@ module Truffle
           address = address[0...i]
         end
 
-        pointer = Truffle::FFI::Pool.allocate(:pointer, size)
+        pointer = Truffle::FFI::Pool.allocate(:pointer, size)[0]
 
         status = inet_pton(family, address, pointer)
 
