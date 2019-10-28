@@ -116,7 +116,7 @@ public class CoreExceptions {
     }
 
     public DynamicObject argumentErrorOutOfRange(Node currentNode) {
-        return argumentError(coreStrings().OUT_OF_RANGE.getRope(), currentNode, null);
+        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), currentNode, null);
     }
 
     public DynamicObject argumentErrorNegativeArraySize(Node currentNode) {
