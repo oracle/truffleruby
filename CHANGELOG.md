@@ -7,6 +7,8 @@ Bug fixes:
 
 * Dump and load instance variables in subclasses of `Exception` (#1766).
 
+* Fix Tempfile#size and #length when the IO is not flushed (#1765, @rafaelfranca)
+
 # 19.3.0
 
 New features:
