@@ -1,14 +1,19 @@
 # 20.0.0
 
+New features:
+
+
+Bug fixes:
+
+* Fix `Tempfile#{size,length}` when the IO is not flushed (#1765, @rafaelfranca).
+* Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
+
 Compatibility:
 
-* Implemented `String#start_with?(Regexp)` (#1771).
-Bug fixes:
+* Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
 
-* Dump and load instance variables in subclasses of `Exception` (#1766).
-Bug fixes:
+Performance:
 
-* Fix `Tempfile#{size,length}` when the IO is not flushed (#1765).
 
 # 19.3.0
 
@@ -22,22 +27,22 @@ New features:
 
 Bug fixes:
 
-* `rb_undef_method` now works for private methods (#1731).
+* `rb_undef_method` now works for private methods (#1731, @cky).
 * Fixed several issues when requiring C extensions concurrently (#1565).
 * `self.method ||= value` with a private method now works correctly (#1673).
 * Fixed `RegexpError: invalid multibyte escape` for binary regexps with a non-binary String (#1433).
 * Arrays now report their methods to other languages for interopability (#1768).
 * Installing `sassc` now works due to using the LLVM toolchain (#1753).
 * Renamed `Truffle::Interop.respond_to?` to avoid conflict with Ruby's `respond_to?` (#1491).
-* Warn only if `$VERBOSE` is `true` when a magic comment is ignored (#1757).
+* Warn only if `$VERBOSE` is `true` when a magic comment is ignored (#1757, @nirvdrum).
 * Make C extensions use the same libssl as the one used for the openssl C extension (#1770).
 
 Compatibility:
 
-* `GC.stat` can now take an optional argument (#1716).
+* `GC.stat` can now take an optional argument (#1716, @kirs).
 * `Kernel#load` with `wrap` has been implemented (#1739).
 * Implemented `Kernel#spawn` with `:chdir` (#1492).
-* Implemented `rb_str_drop_bytes`, notably used by OpenSSL (#1740).
+* Implemented `rb_str_drop_bytes`, notably used by OpenSSL (#1740, @cky).
 * Include executables of default gems, needed for `rails new` in Rails 6.
 * Use compilation flags similar to MRI for C extension compilation.
 * Warn for `gem update --system` as it is not fully supported yet and is often not needed.
@@ -62,7 +67,7 @@ New features:
 Bug fixes:
 
 * Set `RbConfig::CONFIG['ruby_version']` to the same value as the TruffleRuby version. This fixes reusing C extensions between different versions of TruffleRuby with Bundler (#1715).
-* Fixed `Symbol#match` returning `MatchData` (#1706).
+* Fixed `Symbol#match` returning `MatchData` (#1706, @zhublik).
 * Allow `Time#strftime` to be called with binary format strings.
 * Do not modify the argument passed to `IO#write` when the encoding does not match (#1714).
 * Use the class where the method was defined to check if an `UnboundMethod` can be used for `#define_method` (#1710).
@@ -71,7 +76,7 @@ Bug fixes:
 
 Compatibility:
 
-* Added `Kernel#then` (#1703).
+* Added `Kernel#then` (#1703, @zhublik).
 * `FFI::Struct#[]=` is now supported for inline character arrays.
 * `blocking: true` is now supported for `FFI::Library#attach_function`.
 * Implemented `Proc#>>` and `#<<` (#1688).
@@ -124,7 +129,7 @@ Compatibility:
 * Implemented `Integer#{allbits?,anybits?,nobits?}`.
 * `Integer#{ceil,floor,truncate}` now accept a precision and `Integer#round` accepts a rounding mode.
 * Added missing `Enumerable#filter` and `Enumerator::Lazy#filter` aliases to the respective `select` method (#1610).
-* Implemented more `Ripper` methods as no-ops (#1694).
+* Implemented more `Ripper` methods as no-ops (#1694, @Mogztter).
 * Implemented `rb_enc_sprintf` (#1702).
 * Implemented `ENV#{filter,filter!}` aliases for `select` and `select!`.
 * Non-blocking `StringIO` and `Socket` APIs now support `exception: false` like MRI (#1702).
@@ -277,7 +282,7 @@ Bug fixes:
 * Fixed several problems with `Numeric#step` related to default arguments, infinite sequences, and bad argument types (#1520).
 * Fixed incorrect raising of `ArgumentError` with `Range#step` when at least one component of the `Range` is `Float::INFINITY` (#1503).
 * Fixed the wrong encoding being associated with certain forms of heredoc strings (#1563).
-* Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533).
+* Call `#coerce` on right hand operator if `BigDecimal` is the left hand operator (#1533, @Quintasan).
 * Fixed return type of division of `Integer.MIN_VALUE` and `Long.MIN_VALUE` by -1 (#1581).
 * `Exception#cause` is now correctly set for internal exceptions (#1560).
 * `rb_num2ull` is now implemented as well as being declared in the `ruby.h` header (#1573).
@@ -379,7 +384,8 @@ Bug fixes:
 
 * Added `rb_eEncodingError` for C extensions (#1437).
 * Fixed race condition when creating threads (#1445).
-* Handle `exception: false` for IO#write_nonblock (#1457).
+* Handle `exception: false` for IO#write_nonblock (#1457, @ioquatix).
+* Fixed `Socket#connect_nonblock` for the `EISCONN` case (#1465, @ioquatix).
 * `File.expand_path` now raises an exception for a non-absolute user-home.
 * `ArgumentError` messages now better match MRI (#1467).
 * Added support for `:float_millisecond`, `:millisecond`, and `:second` time units to `Process.clock_gettime` (#1468).
