@@ -1,3 +1,0 @@
-fails:String#start_with? supports regexps
-fails:String#start_with? supports regexps with ^ and $ modifiers
-fails:String#start_with? sets Regexp.last_match if it returns true
