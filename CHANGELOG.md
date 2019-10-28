@@ -45,6 +45,7 @@ Performance:
 * Improve the performance of `NIL_P` and `INT2FIX` in C extensions.
 * Various fixes to improve Rack performance.
 * Optimize `String#gsub(String)` by not creating a `Regexp` and using `String#index` instead.
+* Fixed "FrameWithoutBoxing should not be materialized" compilation issue in `TryNode`.
 
 # 19.2.0, August 2019
 
