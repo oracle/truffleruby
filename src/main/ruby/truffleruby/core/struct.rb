@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, keyword_init: true, &block)
+  def self.new(klass_name, *attrs, keyword_init: false, &block)
     if klass_name
       if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
@@ -64,7 +64,7 @@ class Struct
     end
 
     klass = Class.new self do
-      _specialize attrs
+      _specialize attrs unless keyword_init
 
       attrs.each do |a|
         define_method(a) { TrufflePrimitive.object_hidden_var_get(self, a) }
@@ -80,6 +80,7 @@ class Struct
       end
 
       const_set :STRUCT_ATTRS, attrs
+      const_set :KEYWORD_INIT, keyword_init
     end
 
     Struct.const_set klass_name, klass if klass_name
@@ -154,8 +155,28 @@ class Struct
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
     end
 
-    attrs.each_with_index do |attr, i|
-      TrufflePrimitive.object_hidden_var_set self, attr, args[i]
+    if self.class::KEYWORD_INIT
+      if args.length > 1 || !args.first.is_a?(Hash)
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+      end
+      kw_args = args.first
+
+      unknowns = []
+      kw_args.each_pair do |attr, value|
+        if attrs.include?(attr)
+          TrufflePrimitive.object_hidden_var_set self, attr, value
+        else
+          unknowns << attr
+        end
+      end
+
+      if unknowns.size > 0
+        raise ArgumentError, "unknown keywords: #{unknowns.join(', ')}"
+      end
+    else
+      attrs.each_with_index do |attr, i|
+        TrufflePrimitive.object_hidden_var_set self, attr, args[i]
+      end
     end
   end
 
