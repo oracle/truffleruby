@@ -464,6 +464,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = {
                 "isInitialized(regexp)",
                 "isRubyString(string)",
+                "isValidEncoding(string, rangeNode)",
                 "!isRubyEncoding(isCompatibleNode.executeCompatibleQuery(regexp, string))" })
         protected Object searchRegionIncompatibleEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
                 boolean forward,
