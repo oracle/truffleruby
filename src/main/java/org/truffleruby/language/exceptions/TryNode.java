@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
@@ -19,6 +20,7 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class TryNode extends RubyNode {
@@ -76,7 +78,7 @@ public class TryNode extends RubyNode {
         }
     }
 
-    @ExplodeLoop
+    @ExplodeLoop(kind = LoopExplosionKind.FULL_EXPLODE_UNTIL_RETURN)
     private Object handleException(VirtualFrame frame, RaiseException exception) {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {
@@ -94,6 +96,7 @@ public class TryNode extends RubyNode {
                      */
                     TruffleStackTrace.fillIn(exception);
 
+                    CompilerAsserts.partialEvaluationConstant(rescue);
                     return setLastExceptionAndRunRescue(frame, exception, rescue);
                 }
             }
