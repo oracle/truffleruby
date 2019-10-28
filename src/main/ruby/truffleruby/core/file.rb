@@ -1318,6 +1318,7 @@ class File < IO
 
   def size
     raise IOError, 'closed stream' if closed?
+    flush
     s = Truffle::POSIX.truffleposix_fstat_size(@descriptor)
 
     if s >= 0

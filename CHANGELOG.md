@@ -6,6 +6,9 @@ Compatibility:
 Bug fixes:
 
 * Dump and load instance variables in subclasses of `Exception` (#1766).
+Bug fixes:
+
+* Fix `Tempfile#{size,length}` when the IO is not flushed (#1765).
 
 # 19.3.0
 
