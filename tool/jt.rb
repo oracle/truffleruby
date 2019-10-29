@@ -1925,7 +1925,7 @@ EOS
     oldest = caches.sort_by { |f| File.ctime f }[0...-4]
     unless oldest.empty?
       puts "Removing old cached toolchains: #{oldest.join ' '}"
-      File.rm_rf oldest
+      FileUtils.rm_rf oldest
     end
 
     destination
