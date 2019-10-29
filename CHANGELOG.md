@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Tempfile#{size,length}` when the IO is not flushed (#1765, @rafaelfranca).
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
+* Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
 
 Compatibility:
 
