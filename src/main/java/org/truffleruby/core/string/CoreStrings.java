@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 public class CoreStrings {
 
     public final CoreString AMPERSAND;
+    public final CoreString ARGUMENT_OUT_OF_RANGE;
     public final CoreString ASSIGNMENT;
     public final CoreString CALL;
     public final CoreString CANT_COMPRESS_NEGATIVE;
@@ -46,7 +47,6 @@ public class CoreStrings {
     public final CoreString NEGATIVE_STRING_SIZE;
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
-    public final CoreString ARGUMENT_OUT_OF_RANGE;
     public final CoreString PIPE;
     public final CoreString PLUS;
     public final CoreString POWER;
@@ -71,6 +71,7 @@ public class CoreStrings {
 
     public CoreStrings(RubyContext context) {
         AMPERSAND = new CoreString(context, "&");
+        ARGUMENT_OUT_OF_RANGE = new CoreString(context, "argument out of range");
         ASSIGNMENT = new CoreString(context, "assignment");
         CALL = new CoreString(context, "call");
         CANT_COMPRESS_NEGATIVE = new CoreString(context, "can't compress negative numbers");
@@ -103,7 +104,6 @@ public class CoreStrings {
         NEGATIVE_STRING_SIZE = new CoreString(context, "negative string size (or size too big)");
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
-        ARGUMENT_OUT_OF_RANGE = new CoreString(context, "argument out of range");
         PIPE = new CoreString(context, "|");
         PLUS = new CoreString(context, "+");
         POWER = new CoreString(context, "**");
