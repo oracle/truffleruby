@@ -37,7 +37,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
@@ -461,35 +460,18 @@ public abstract class RegexpNodes {
             return StringUtils.format("invalid byte sequence in %s", Layouts.STRING.getRope(string).getEncoding());
         }
 
-        @Specialization(guards = {
-                "isInitialized(regexp)",
-                "isRubyString(string)",
-                "isValidEncoding(string, rangeNode)",
-                "!isRubyEncoding(isCompatibleNode.executeCompatibleQuery(regexp, string))" })
-        protected Object searchRegionIncompatibleEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
-                boolean forward,
-                @Cached ToEncodingNode toEncodingNode,
-                @Cached("toEncodingNode.executeToEncoding(regexp)") Encoding regexpEncoding,
-                @Cached("toEncodingNode.executeToEncoding(string)") Encoding stringEncoding,
-                @Cached EncodingNodes.CompatibleQueryNode isCompatibleNode) {
-            throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(regexpEncoding, stringEncoding, this));
-        }
-
         @Specialization(
-                guards = {
-                        "isInitialized(regexp)",
-                        "isRubyString(string)",
-                        "isValidEncoding(string, rangeNode)",
-                        "isRubyEncoding(isCompatibleNode.executeCompatibleQuery(regexp, string))" })
+                guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string, rangeNode)" })
         protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
-                @Cached EncodingNodes.CompatibleQueryNode isCompatibleNode) {
+                @Cached EncodingNodes.CheckEncodingNode checkEncodingNode) {
+            checkEncodingNode.executeCheckEncoding(regexp, string);
+
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes
                     .createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0);
-
 
             if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
