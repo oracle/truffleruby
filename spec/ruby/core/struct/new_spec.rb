@@ -74,6 +74,10 @@ describe "Struct.new" do
     end
   end
 
+  it "raises ArgumentError when there is a duplicate member" do
+    -> { Struct.new(:foo, :foo) }.should raise_error(ArgumentError, "duplicate member: foo")
+  end
+
   it "raises a TypeError if object is not a Symbol" do
     obj = mock(':ruby')
     def obj.to_sym() :ruby end
@@ -153,6 +157,10 @@ describe "Struct.new" do
         obj = @struct_with_kwa.new(name: "elefant", legs: 4)
         obj.name.should == "elefant"
         obj.legs.should == 4
+      end
+
+      it "raises when there is a duplicate member" do
+        -> { Struct.new(:foo, :foo, keyword_init: true) }.should raise_error(ArgumentError, "duplicate member: foo")
       end
 
       describe "new class instantiation" do
