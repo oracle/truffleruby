@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Tempfile#{size,length}` when the IO is not flushed (#1765, @rafaelfranca).
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
+* Fixed interactions between attributes and instance variables in structs (#1776, @chrisseaton).
 
 Compatibility:
 
