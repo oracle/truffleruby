@@ -194,6 +194,9 @@ public abstract class TruffleKernelNodes {
 
     }
 
+    // Those two primitives store the key as a Ruby object, so they have
+    // different namespace than normal ivars which use java.lang.String.
+
     @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
     public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
 
