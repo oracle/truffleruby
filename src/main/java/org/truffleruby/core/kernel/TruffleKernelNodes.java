@@ -28,8 +28,6 @@ import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
@@ -192,34 +190,6 @@ public abstract class TruffleKernelNodes {
             return value;
         }
 
-    }
-
-    // Those two primitives store the key as a Ruby object, so they have
-    // different namespace than normal ivars which use java.lang.String.
-
-    @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
-    public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object hiddenVariableGet(DynamicObject object, Object identifier,
-                                           @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, identifier);
-        }
-
-        @Specialization(guards = "!isDynamicObject(object)")
-        protected Object hiddenVariableGetPrimitive(Object object, Object identifier) {
-            return nil();
-        }
-    }
-
-    @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
-    public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object hiddenVariableSet(DynamicObject object, Object identifier, Object value,
-                                           @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, identifier, value);
-        }
     }
 
 }

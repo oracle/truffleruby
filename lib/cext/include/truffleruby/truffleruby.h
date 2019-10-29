@@ -26,8 +26,8 @@ NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
 #define rb_tr_debug(args...) polyglot_invoke(RUBY_CEXT, "rb_tr_debug", args)
 long rb_tr_obj_id(VALUE object);
-void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
-VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
+void rb_tr_object_hidden_var_set(VALUE object, const char *name, VALUE value);
+VALUE rb_tr_object_hidden_var_get(VALUE object, const char *name);
 int rb_tr_obj_equal(VALUE first, VALUE second);
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);

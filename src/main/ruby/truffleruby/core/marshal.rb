@@ -864,7 +864,7 @@ module Marshal
             [klass, slot, members[i]]
         end
 
-        Truffle::KernelOperations.hidden_variable_set obj, slot, construct
+        TrufflePrimitive.object_hidden_var_set obj, slot, construct
       end
 
       obj

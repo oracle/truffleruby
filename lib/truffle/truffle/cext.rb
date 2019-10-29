@@ -50,7 +50,7 @@ module Truffle::CExt
     end
 
     def data_holder
-      Truffle::KernelOperations.hidden_variable_get(@object, DATA_HOLDER)
+      TrufflePrimitive.object_hidden_var_get(@object, DATA_HOLDER)
     end
   end
 
@@ -1862,11 +1862,11 @@ module Truffle::CExt
   end
 
   def hidden_variable_get(object, name)
-    Truffle::KernelOperations.hidden_variable_get(object, name)
+    TrufflePrimitive.object_hidden_var_get(object, name)
   end
 
   def hidden_variable_set(object, name, value)
-    Truffle::KernelOperations.hidden_variable_set object, name, value
+    TrufflePrimitive.object_hidden_var_set object, name, value
   end
 
 end
