@@ -208,12 +208,11 @@ class Struct
     Truffle::KernelOperations.hidden_variable_set(self, var, obj)
   end
 
-  def dup
-    duped = super
-    _attrs.each do |a|
-      Truffle::KernelOperations.hidden_variable_set duped, a, Truffle::KernelOperations.hidden_variable_get(self, a)
+  def initialize_copy(other)
+    Truffle.privately { other._attrs }.each do |a|
+      Truffle::KernelOperations.hidden_variable_set self, a, Truffle::KernelOperations.hidden_variable_get(other, a)
     end
-    duped
+    self
   end
 
   def check_index_var(var)
