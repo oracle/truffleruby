@@ -192,8 +192,6 @@ public class Options {
     public final int ENCODING_COMPATIBLE_QUERY_CACHE;
     /** --encoding-loaded-classes-cache=DEFAULT_CACHE */
     public final int ENCODING_LOADED_CLASSES_CACHE;
-    /** --thread-cache=DEFAULT_CACHE */
-    public final int THREAD_CACHE;
     /** --interop-convert-cache=DEFAULT_CACHE */
     public final int INTEROP_CONVERT_CACHE;
     /** --interop-execute-cache=DEFAULT_CACHE */
@@ -206,6 +204,10 @@ public class Options {
     public final int TIME_FORMAT_CACHE;
     /** --integer-pow-cache=DEFAULT_CACHE */
     public final int POW_CACHE;
+    /** --thread-cache=1 */
+    public final int THREAD_CACHE;
+    /** --identity-cache=1 */
+    public final int IDENTITY_CACHE;
     /** --array-dup-cache=3 */
     public final int ARRAY_DUP_CACHE;
     /** --frame-variable-access-cache=5 */
@@ -347,13 +349,14 @@ public class Options {
         CLASS_CACHE = options.hasBeenSet(OptionsCatalog.CLASS_CACHE_KEY) ? options.get(OptionsCatalog.CLASS_CACHE_KEY) : DEFAULT_CACHE;
         ENCODING_COMPATIBLE_QUERY_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) : DEFAULT_CACHE;
         ENCODING_LOADED_CLASSES_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) : DEFAULT_CACHE;
-        THREAD_CACHE = options.hasBeenSet(OptionsCatalog.THREAD_CACHE_KEY) ? options.get(OptionsCatalog.THREAD_CACHE_KEY) : DEFAULT_CACHE;
         INTEROP_CONVERT_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) : DEFAULT_CACHE;
         INTEROP_EXECUTE_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_EXECUTE_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_EXECUTE_CACHE_KEY) : DEFAULT_CACHE;
         INTEROP_INVOKE_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_INVOKE_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_INVOKE_CACHE_KEY) : DEFAULT_CACHE;
         INTEROP_NEW_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_NEW_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_NEW_CACHE_KEY) : DEFAULT_CACHE;
         TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
+        THREAD_CACHE = options.get(OptionsCatalog.THREAD_CACHE_KEY);
+        IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
         FRAME_VARIABLE_ACCESS_CACHE = options.get(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
@@ -555,8 +558,6 @@ public class Options {
                 return ENCODING_COMPATIBLE_QUERY_CACHE;
             case "ruby.encoding-loaded-classes-cache":
                 return ENCODING_LOADED_CLASSES_CACHE;
-            case "ruby.thread-cache":
-                return THREAD_CACHE;
             case "ruby.interop-convert-cache":
                 return INTEROP_CONVERT_CACHE;
             case "ruby.interop-execute-cache":
@@ -569,6 +570,10 @@ public class Options {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
                 return POW_CACHE;
+            case "ruby.thread-cache":
+                return THREAD_CACHE;
+            case "ruby.identity-cache":
+                return IDENTITY_CACHE;
             case "ruby.array-dup-cache":
                 return ARRAY_DUP_CACHE;
             case "ruby.frame-variable-access-cache":
