@@ -19,6 +19,7 @@ Compatibility:
 
 Performance:
 
+* `rb_type` information is now cached on classes as a hidden variable to improve performance.
 
 # 19.3.0
 
