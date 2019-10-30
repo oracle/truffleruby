@@ -27,6 +27,7 @@ end
 abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
+GRAAL_DIR = File.join(TRUFFLERUBY_DIR, '..', 'graal')
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = '0d24b400927e58dc0ada9c76c15fb2b7915008d4'
@@ -129,7 +130,7 @@ module Utilities
       raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
       $1
     when :repository
-      raw_sh('git', 'rev-parse', 'HEAD', capture: true, no_print_cmd: true, chdir: File.join(TRUFFLERUBY_DIR, '..', 'graal')).chomp
+      raw_sh('git', 'rev-parse', 'HEAD', capture: true, no_print_cmd: true, chdir: GRAAL_DIR).chomp
     else
       raise ArgumentError, from: from
     end
@@ -1879,7 +1880,7 @@ EOS
 
   def checkout_enterprise_revision
     ee_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal-enterprise')
-    graal_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal')
+    graal_path = File.expand_path GRAAL_DIR
     unless File.directory?(ee_path)
       github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
       bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: true).chomp
@@ -1905,7 +1906,7 @@ EOS
   end
 
   def bootstrap_toolchain
-    sulong_home = File.join(TRUFFLERUBY_DIR, '..', 'graal', 'sulong')
+    sulong_home = File.join(GRAAL_DIR, 'sulong')
     # clone the graal repository if it is missing
     mx 'sversions' unless File.directory? sulong_home
     graal_version = get_truffle_version from: :repository
@@ -2016,7 +2017,7 @@ EOS
 
   private def check_dsl_usage
     # Change the annotation retention policy in Truffle so we can inspect specializations.
-    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
+    raw_sh("find #{GRAAL_DIR}/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
     begin
       mx 'clean', '--dependencies', 'org.truffleruby'
       # We need to build with -parameters to get parameter names.
@@ -2026,7 +2027,7 @@ EOS
       run_ruby({ 'TRUFFLE_CHECK_DSL_USAGE' => 'true' }, '--lazy-default=false', '-e', 'exit')
     ensure
       # Revert the changes we made to the Truffle source.
-      raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
+      raw_sh("find #{GRAAL_DIR}/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
     end
   end
 
