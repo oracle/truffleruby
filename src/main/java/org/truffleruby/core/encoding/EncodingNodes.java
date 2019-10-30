@@ -667,7 +667,7 @@ public abstract class EncodingNodes {
             if (hasRegexpSource.profile(regexpSource != null)) {
                 return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());
             } else {
-                return getRubyEncodingNode.executeGetRubyEncoding(EncodingManager.getEncoding("BINARY"));
+                return getRubyEncodingNode.executeGetRubyEncoding(ASCIIEncoding.INSTANCE);
             }
         }
 
