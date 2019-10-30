@@ -1468,6 +1468,8 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile isTrueProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile respondToMissingProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
             dispatch = DoesRespondDispatchHeadNode.createPublic();
@@ -1494,9 +1496,10 @@ public abstract class KernelNodes {
                 ret = dispatch.doesRespondTo(frame, name, object);
             }
 
-            if (ret) {
+            if (isTrueProfile.profile(ret)) {
                 return true;
-            } else if (dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object)) {
+            } else if (respondToMissingProfile
+                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
                 return respondToMissing(
                         frame,
                         object,
@@ -1518,9 +1521,10 @@ public abstract class KernelNodes {
                 ret = dispatch.doesRespondTo(frame, name, object);
             }
 
-            if (ret) {
+            if (isTrueProfile.profile(ret)) {
                 return true;
-            } else if (dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object)) {
+            } else if (respondToMissingProfile
+                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
                 return respondToMissing(frame, object, name, includeProtectedAndPrivate);
             } else {
                 return false;

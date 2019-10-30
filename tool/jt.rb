@@ -295,10 +295,6 @@ module Utilities
     @git_branch ||= `GIT_DIR="#{TRUFFLERUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
   end
 
-  def igv_running?
-    `ps ax`.include?('idealgraphvisualizer')
-  end
-
   def no_gem_vars_env
     {
       'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
@@ -783,8 +779,7 @@ module Commands
         vm_args << '--vm.Dgraal.TraceTruffleCompilation=true'
       when '--igv', '--igv-full'
         truffleruby_compiler!
-        vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=:2' : '--vm.Dgraal.Dump=TruffleTree,PartialEscape:2')
-        vm_args << '--vm.Dgraal.PrintGraphFile=true' unless igv_running?
+        vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=Truffle:2' : '--vm.Dgraal.Dump=Truffle:1')
         vm_args << '--vm.Dgraal.PrintBackendCFG=false'
       when '--exec'
         options[:use_exec] = true
