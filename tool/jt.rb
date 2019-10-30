@@ -1919,13 +1919,15 @@ EOS
       FileUtils.cp_r toolchain_graalvm + '/.', destination
     end
 
-    # leave only 4 newest built toolchains
-    caches = Dir.glob(File.join(toolchain_dir, '*'))
-    caches.delete destination
-    oldest = caches.sort_by { |f| File.ctime f }[0...-4]
-    unless oldest.empty?
+    # mark as used
+    FileUtils.touch destination
+    # leave only 4 built toolchains which were used last
+    caches = Dir.
+        glob(File.join(toolchain_dir, '*')).
+        sort_by { |cached_toolchain_path| File.mtime cached_toolchain_path }
+    unless (oldest = caches[0...-4]).empty?
       puts "Removing old cached toolchains: #{oldest.join ' '}"
-      File.rm_rf oldest
+      FileUtils.rm_rf oldest
     end
 
     destination
