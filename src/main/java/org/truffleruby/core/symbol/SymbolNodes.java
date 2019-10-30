@@ -74,7 +74,7 @@ public abstract class SymbolNodes {
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
-        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getDefaultCacheLimit()")
+        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
         protected long hashCached(DynamicObject symbol,
                 @Cached("isPreInitializing()") boolean preInitializing,
                 @Cached("symbol") DynamicObject cachedSymbol,
@@ -102,7 +102,7 @@ public abstract class SymbolNodes {
 
         @Specialization(
                 guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
-                limit = "getCacheLimit()")
+                limit = "getIdentityCacheLimit()")
         protected DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
                 @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,

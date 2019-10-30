@@ -1380,7 +1380,7 @@ public abstract class RopeNodes {
             return true;
         }
 
-        @Specialization(guards = { "a == cachedA", "b == cachedB", }, limit = "getDefaultCacheLimit()")
+        @Specialization(guards = { "a == cachedA", "b == cachedB", }, limit = "getIdentityCacheLimit()")
         protected boolean cachedRopes(Rope a, Rope b,
                 @Cached("a") Rope cachedA,
                 @Cached("b") Rope cachedB,
@@ -1404,7 +1404,7 @@ public abstract class RopeNodes {
             return a.getRawBytes()[0] == b.getRawBytes()[0];
         }
 
-        @Specialization(guards = "a != b", replaces = { "sameByteArrays", "characterEqual" })
+        @Specialization(guards = "a != b", replaces = { "cachedRopes", "sameByteArrays", "characterEqual" })
         protected boolean fullRopeEqual(Rope a, Rope b,
                 @Cached("createBinaryProfile()") ConditionProfile aRawBytesProfile,
                 @Cached BranchProfile sameByteArraysProfile,

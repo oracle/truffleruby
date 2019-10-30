@@ -335,11 +335,11 @@ public abstract class ClassNodes {
     public abstract static class SuperClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = { "rubyClass == cachedRubyCLass", "cachedSuperclass != null" },
+                guards = { "rubyClass == cachedRubyClass", "cachedSuperclass != null" },
                 limit = "getCacheLimit()")
         protected Object getSuperClass(DynamicObject rubyClass,
-                @Cached("rubyClass") DynamicObject cachedRubyCLass,
-                @Cached("fastLookUp(cachedRubyCLass)") DynamicObject cachedSuperclass) {
+                @Cached("rubyClass") DynamicObject cachedRubyClass,
+                @Cached("fastLookUp(cachedRubyClass)") DynamicObject cachedSuperclass) {
             // caches only initialized classes, just allocated will go through slow look up
             return cachedSuperclass;
         }
