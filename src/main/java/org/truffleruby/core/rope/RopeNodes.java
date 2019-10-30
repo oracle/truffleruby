@@ -1411,8 +1411,7 @@ public abstract class RopeNodes {
                 @Cached BranchProfile differentLengthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile aCalculatedHashProfile,
                 @Cached("createBinaryProfile()") ConditionProfile bCalculatedHashProfile,
-                @Cached BranchProfile differentHashCodeProfile,
-                @Cached BranchProfile compareBytesProfile,
+                @Cached("createBinaryProfile()") ConditionProfile differentHashProfile,
                 @Cached BytesNode aBytesNode,
                 @Cached BytesNode bBytesNode) {
             if (aRawBytesProfile.profile(a.getRawBytes() != null) && a.getRawBytes() == b.getRawBytes()) {
@@ -1426,14 +1425,10 @@ public abstract class RopeNodes {
             }
 
             if (aCalculatedHashProfile.profile(a.isHashCodeCalculated()) &&
-                    bCalculatedHashProfile.profile(b.isHashCodeCalculated())) {
-                if (a.calculatedHashCode() != b.calculatedHashCode()) {
-                    differentHashCodeProfile.enter();
-                    return false;
-                }
+                    bCalculatedHashProfile.profile(b.isHashCodeCalculated()) &&
+                    differentHashProfile.profile(a.calculatedHashCode() != b.calculatedHashCode())) {
+                return false;
             }
-
-            compareBytesProfile.enter();
 
             final byte[] aBytes = aBytesNode.execute(a);
             final byte[] bBytes = bBytesNode.execute(b);
