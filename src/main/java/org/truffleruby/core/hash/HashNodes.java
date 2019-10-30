@@ -93,11 +93,8 @@ public abstract class HashNodes {
                     final DynamicObject pairArray = (DynamicObject) pair;
                     final Object pairStore = Layouts.ARRAY.getStore(pairArray);
 
-                    if (pairStore != null && pairStore.getClass() != Object[].class) {
-                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
-                    }
-
-                    if (Layouts.ARRAY.getSize(pairArray) != 2) {
+                    if ((pairStore != null && pairStore.getClass() != Object[].class) ||
+                            (Layouts.ARRAY.getSize(pairArray) != 2)) {
                         return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
