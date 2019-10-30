@@ -102,7 +102,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> PACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> UNPACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> EVAL_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> ENCODING_COMPATIBLE_QUERY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> ENCODING_LOADED_CLASSES_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> INTEROP_CONVERT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -113,6 +112,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
+    public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> FRAME_VARIABLE_ACCESS_CACHE_KEY = new OptionKey<>(5);
     public static final OptionKey<Integer> ARRAY_UNINITIALIZED_SIZE_KEY = new OptionKey<>(16);
@@ -715,13 +715,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor CLASS_CACHE = OptionDescriptor
-            .newBuilder(CLASS_CACHE_KEY, "ruby.class-cache")
-            .help(".class and .metaclass cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor ENCODING_COMPATIBLE_QUERY_CACHE = OptionDescriptor
             .newBuilder(ENCODING_COMPATIBLE_QUERY_CACHE_KEY, "ruby.encoding-compatible-query-cache")
             .help("Encoding.compatible? cache size")
@@ -788,6 +781,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
             .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
             .help("Cache size for inline caches comparing against an object identity")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CLASS_CACHE = OptionDescriptor
+            .newBuilder(CLASS_CACHE_KEY, "ruby.class-cache")
+            .help(".class and .metaclass cache size")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1147,8 +1147,6 @@ public class OptionsCatalog {
                 return UNPACK_CACHE;
             case "ruby.eval-cache":
                 return EVAL_CACHE;
-            case "ruby.class-cache":
-                return CLASS_CACHE;
             case "ruby.encoding-compatible-query-cache":
                 return ENCODING_COMPATIBLE_QUERY_CACHE;
             case "ruby.encoding-loaded-classes-cache":
@@ -1169,6 +1167,8 @@ public class OptionsCatalog {
                 return THREAD_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
+            case "ruby.class-cache":
+                return CLASS_CACHE;
             case "ruby.array-dup-cache":
                 return ARRAY_DUP_CACHE;
             case "ruby.frame-variable-access-cache":
@@ -1312,7 +1312,6 @@ public class OptionsCatalog {
             PACK_CACHE,
             UNPACK_CACHE,
             EVAL_CACHE,
-            CLASS_CACHE,
             ENCODING_COMPATIBLE_QUERY_CACHE,
             ENCODING_LOADED_CLASSES_CACHE,
             INTEROP_CONVERT_CACHE,
@@ -1323,6 +1322,7 @@ public class OptionsCatalog {
             POW_CACHE,
             THREAD_CACHE,
             IDENTITY_CACHE,
+            CLASS_CACHE,
             ARRAY_DUP_CACHE,
             FRAME_VARIABLE_ACCESS_CACHE,
             ARRAY_UNINITIALIZED_SIZE,
