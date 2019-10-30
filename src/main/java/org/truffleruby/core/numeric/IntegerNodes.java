@@ -11,6 +11,7 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
@@ -1627,7 +1628,7 @@ public abstract class IntegerNodes {
             return 1L << exponent;
         }
 
-        @ExplodeLoop
+        @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(
                 guards = {
                         "isIntOrLong(base)",

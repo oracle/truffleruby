@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -71,7 +72,7 @@ public abstract class HashLiteralNode extends RubyNode {
             super(keyValues);
         }
 
-        @ExplodeLoop
+        @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Override
         public Object execute(VirtualFrame frame) {
             final Object[] store = PackedArrayStrategy.createStore(getContext());

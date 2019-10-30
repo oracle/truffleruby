@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
@@ -71,7 +72,7 @@ public abstract class HashNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.createPrivate();
 
-        @ExplodeLoop
+        @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
         protected Object construct(DynamicObject hashClass, Object[] args) {
             final DynamicObject array = (DynamicObject) args[0];
