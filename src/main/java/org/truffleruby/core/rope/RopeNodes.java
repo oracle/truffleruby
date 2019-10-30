@@ -1432,8 +1432,12 @@ public abstract class RopeNodes {
 
             final byte[] aBytes = aBytesNode.execute(a);
             final byte[] bBytes = bBytesNode.execute(b);
-            assert aBytes.length == bBytes.length;
 
+            // Fold the a.length == b.length condition at compilation in Arrays.equals() since we already know it holds
+            if (aBytes.length != bBytes.length) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new Error("unreachable");
+            }
             return Arrays.equals(aBytes, bBytes);
         }
 
