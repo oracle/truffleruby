@@ -337,7 +337,7 @@ module Truffle::FFI
 
   class Pool
 
-    def self.allocate(*args)
+    def self.stack_alloc(*args)
       length = 0
       offsets = []
       args.each_slice(2) do |type, count|
