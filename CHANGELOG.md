@@ -9,6 +9,7 @@ Bug fixes:
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
 * Fix `Date._iso8601` and `Date._rfc3339` when the string is an invalid date (#1773, @rafaelfranca).
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
+* Match out of range ArgumentError message with MRI (#1774, @rafaelfranca)
 
 Compatibility:
 
