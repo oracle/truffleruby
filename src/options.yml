@@ -122,7 +122,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     CLASS_CACHE: [class-cache, integer, DEFAULT_CACHE, .class and .metaclass cache size]
     ENCODING_COMPATIBLE_QUERY_CACHE: [encoding-compatible-query-cache, integer, DEFAULT_CACHE, 'Encoding.compatible? cache size']
     ENCODING_LOADED_CLASSES_CACHE: [encoding-loaded-classes-cache, integer, DEFAULT_CACHE, Cache size of encoding operations based on anticipated number of total active encodings]
-    THREAD_CACHE: [thread-cache, integer, DEFAULT_CACHE, Cache size of operations that depend on a particular thread]
+    THREAD_CACHE: [thread-cache, integer, 1, Cache size of operations that depend on a particular thread]
     INTEROP_CONVERT_CACHE: [interop-convert-cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
     INTEROP_EXECUTE_CACHE: [interop-execute-cache, integer, DEFAULT_CACHE, Cache size for interop EXECUTE messages]
     INTEROP_INVOKE_CACHE: [interop-invoke-cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]
