@@ -496,12 +496,12 @@ public abstract class IONodes {
             if (buffer.getSize() >= size) {
                 return buffer;
             } else {
-                return reallocateBUffer(size, rubyThread, buffer);
+                return reallocateBuffer(size, rubyThread, buffer);
             }
         }
 
         @TruffleBoundary
-        private static Pointer reallocateBUffer(long size, final DynamicObject rubyThread, final Pointer buffer) {
+        private static Pointer reallocateBuffer(long size, final DynamicObject rubyThread, final Pointer buffer) {
             buffer.freeNoAutorelease();
             final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
             Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
