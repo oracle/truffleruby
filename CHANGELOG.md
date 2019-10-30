@@ -16,6 +16,7 @@ Compatibility:
 
 Performance:
 
+* Change to using thread local buffers for socket calls to reduce allocations.
 
 # 19.3.0
 
