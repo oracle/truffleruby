@@ -186,7 +186,7 @@ public abstract class TypeNodes {
 
         @Specialization
         protected Object objectHiddenVarGet(DynamicObject object, Object identifier,
-                                            @Cached ObjectIVarGetNode iVarGetNode) {
+                @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, identifier);
         }
 
@@ -201,7 +201,7 @@ public abstract class TypeNodes {
 
         @Specialization
         protected Object objectHiddenVarSet(DynamicObject object, Object identifier, Object value,
-                                            @Cached ObjectIVarSetNode iVarSetNode) {
+                @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, identifier, value);
         }
     }
