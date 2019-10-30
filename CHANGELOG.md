@@ -11,6 +11,7 @@ Bug fixes:
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
 * Match out of range ArgumentError message with MRI (#1774, @rafaelfranca)
 * Raise Encoding::CompatibilityError with incompatible encodings on regexp (#1775, @rafaelfranca).
+* Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
 
 Compatibility:
 
