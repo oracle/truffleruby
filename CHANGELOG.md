@@ -10,6 +10,7 @@ Bug fixes:
 * Fix `Date._iso8601` and `Date._rfc3339` when the string is an invalid date (#1773, @rafaelfranca).
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
 * Match out of range ArgumentError message with MRI (#1774, @rafaelfranca)
+* Raise Encoding::CompatibilityError with incompatible encodings on regexp (#1775, @rafaelfranca).
 
 Compatibility:
 

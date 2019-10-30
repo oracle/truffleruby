@@ -38,6 +38,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -443,13 +444,13 @@ public abstract class RegexpNodes {
         @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
 
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
-        protected Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object notInitialized(DynamicObject regexp, DynamicObject string, int start, int end,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string, rangeNode)" })
-        protected Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object invalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }
@@ -464,11 +465,13 @@ public abstract class RegexpNodes {
         protected Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached TruffleRegexpNodes.MatchNode matchNode) {
+                @Cached TruffleRegexpNodes.MatchNode matchNode,
+                @Cached EncodingNodes.CheckEncodingNode checkEncodingNode) {
+            checkEncodingNode.executeCheckEncoding(regexp, string);
+
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes
                     .createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0);
-
 
             if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
