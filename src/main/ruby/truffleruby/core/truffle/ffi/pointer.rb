@@ -338,7 +338,7 @@ module Truffle::FFI
   class Pool
 
     def self.stack_alloc(*args)
-      length = 0
+      total_length = 0
       offsets = []
       args.each_slice(2) do |type, count|
         type_size = case type
@@ -351,13 +351,12 @@ module Truffle::FFI
                     else
                       type.size
                     end
-        offsets << length
-        length += (type_size * count)
+        length = (type_size * count)
+        offsets << [total_length, length]
+        total_length += length
       end
-      buffer = TrufflePrimitive.io_get_thread_buffer(length)
-      ptrs = []
-      offsets.each { |offset| buffer = buffer + offset; ptrs << buffer }
-      ptrs
+      buffer = TrufflePrimitive.io_get_thread_buffer(total_length)
+      offsets.map { |offset| ptr = buffer + offset[0]; ptr.total = offset[1]; ptr }
     end
 
   end
