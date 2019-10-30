@@ -16,6 +16,7 @@ Compatibility:
 
 Performance:
 
+* Use a smaller limit for identity-based inline caches to improve warmup by avoiding too many deoptimizations.
 
 # 19.3.0
 
