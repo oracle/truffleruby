@@ -70,7 +70,6 @@ import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -485,8 +484,8 @@ public abstract class IONodes {
 
         @Specialization
         protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
-                                                @Cached AllocateObjectNode allocateObjectNode,
-                                                @Cached GetCurrentRubyThreadNode currentThreadNode) {
+                @Cached AllocateObjectNode allocateObjectNode,
+                @Cached GetCurrentRubyThreadNode currentThreadNode) {
             DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
                     .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(thread, size));
