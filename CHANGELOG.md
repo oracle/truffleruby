@@ -11,6 +11,7 @@ Bug fixes:
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
 * Match out of range ArgumentError message with MRI (#1774, @rafaelfranca)
 * Raise Encoding::CompatibilityError with incompatible encodings on regexp (#1775, @rafaelfranca).
+* Fixed interactions between attributes and instance variables in structs (#1776, @chrisseaton).
 
 Compatibility:
 

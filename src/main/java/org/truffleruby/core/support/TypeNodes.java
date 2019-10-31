@@ -178,6 +178,34 @@ public abstract class TypeNodes {
         }
     }
 
+    // Those two primitives store the key as a Ruby object, so they have
+    // different namespace than normal ivars which use java.lang.String.
+
+    @Primitive(name = "object_hidden_var_get")
+    public abstract static class ObjectHiddenVarGetNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object objectHiddenVarGet(DynamicObject object, Object identifier,
+                @Cached ObjectIVarGetNode iVarGetNode) {
+            return iVarGetNode.executeIVarGet(object, identifier);
+        }
+
+        @Specialization(guards = "!isDynamicObject(object)")
+        protected Object hiddenVariableGetPrimitive(Object object, Object identifier) {
+            return nil();
+        }
+    }
+
+    @Primitive(name = "object_hidden_var_set")
+    public abstract static class ObjectHiddenVarSetNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object objectHiddenVarSet(DynamicObject object, Object identifier, Object value,
+                @Cached ObjectIVarSetNode iVarSetNode) {
+            return iVarSetNode.executeIVarSet(object, identifier, value);
+        }
+    }
+
     @Primitive(name = "object_can_contain_object")
     @ImportStatic(ArrayGuards.class)
     public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {

@@ -552,11 +552,11 @@ VALUE rb_obj_id(VALUE object) {
   return RUBY_INVOKE(object, "object_id");
 }
 
-void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value) {
+void rb_tr_object_hidden_var_set(VALUE object, const char *name, VALUE value) {
   RUBY_CEXT_INVOKE_NO_WRAP("hidden_variable_set", object, rb_intern(name), value);
 }
 
-VALUE rb_tr_hidden_variable_get(VALUE object, const char *name) {
+VALUE rb_tr_object_hidden_var_get(VALUE object, const char *name) {
   return RUBY_CEXT_INVOKE_NO_WRAP("hidden_variable_get", object, rb_intern(name));
 }
 
@@ -2916,7 +2916,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if (rb_tr_hidden_variable_get(value, "data_type") != data_type) {
+  if (rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);

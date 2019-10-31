@@ -65,7 +65,11 @@ class Struct
 
     klass = Class.new self do
       _specialize attrs
-      attr_accessor(*attrs)
+
+      attrs.each do |a|
+        define_method(a) { TrufflePrimitive.object_hidden_var_get(self, a) }
+        define_method(:"#{a}=") { |value| TrufflePrimitive.object_hidden_var_set(self, a, value) }
+      end
 
       def self.new(*args, &block)
         subclass_new(*args, &block)
@@ -127,7 +131,7 @@ class Struct
       values = []
 
       _attrs.each do |var|
-        val = instance_variable_get :"@#{var}"
+        val = TrufflePrimitive.object_hidden_var_get(self, var)
         values << "#{var}=#{val.inspect}"
       end
 
@@ -143,11 +147,6 @@ class Struct
 
   alias_method :inspect, :to_s
 
-  def instance_variables
-    # Hide the ivars used to store the struct fields
-    super() - _attrs.map { |a| "@#{a}".to_sym }
-  end
-
   def initialize(*args)
     attrs = _attrs
 
@@ -156,7 +155,7 @@ class Struct
     end
 
     attrs.each_with_index do |attr, i|
-      instance_variable_set :"@#{attr}", args[i]
+      TrufflePrimitive.object_hidden_var_set self, attr, args[i]
     end
   end
 
@@ -175,8 +174,10 @@ class Struct
 
   def [](var)
     case var
-    when Symbol, String
+    when Symbol
       # ok
+    when String
+      var = var.to_sym
     else
       var = check_index_var(var)
     end
@@ -185,7 +186,7 @@ class Struct
       raise NameError, "no member '#{var}' in struct"
     end
 
-    instance_variable_get(:"@#{var}")
+    TrufflePrimitive.object_hidden_var_get(self, var)
   end
 
   def []=(var, obj)
@@ -203,7 +204,15 @@ class Struct
       var = check_index_var(var)
     end
 
-    instance_variable_set(:"@#{var}", obj)
+    Truffle.check_frozen
+    TrufflePrimitive.object_hidden_var_set(self, var, obj)
+  end
+
+  def initialize_copy(other)
+    Truffle.privately { other._attrs }.each do |a|
+      TrufflePrimitive.object_hidden_var_set self, a, TrufflePrimitive.object_hidden_var_get(other, a)
+    end
+    self
   end
 
   def check_index_var(var)
@@ -240,8 +249,8 @@ class Struct
 
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        mine =   instance_variable_get(:"@#{var}")
-        theirs = other.instance_variable_get(:"@#{var}")
+        mine =   TrufflePrimitive.object_hidden_var_get(self, var)
+        theirs = TrufflePrimitive.object_hidden_var_get(other, var)
 
         return false unless mine.eql? theirs
       end
@@ -262,7 +271,7 @@ class Struct
 
   def each_pair
     return to_enum(:each_pair) { size } unless block_given?
-    _attrs.each { |var| yield [var, instance_variable_get(:"@#{var}")] }
+    _attrs.each { |var| yield [var, TrufflePrimitive.object_hidden_var_get(self, var)] }
     self
   end
 
@@ -278,7 +287,7 @@ class Struct
     val = TrufflePrimitive.vm_hash_start(CLASS_SALT)
     val = TrufflePrimitive.vm_hash_update(val, size)
     return val if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| TrufflePrimitive.vm_hash_update(val, instance_variable_get(:"@#{var}").hash) }
+      _attrs.each { |var| TrufflePrimitive.vm_hash_update(val, TrufflePrimitive.object_hidden_var_get(self, var).hash) }
     end
     TrufflePrimitive.vm_hash_end(val)
   end
@@ -302,7 +311,7 @@ class Struct
   end
 
   def to_a
-    _attrs.map { |var| instance_variable_get :"@#{var}" }
+    _attrs.map { |var| TrufflePrimitive.object_hidden_var_get(self, var) }
   end
 
   alias_method :values, :to_a
@@ -329,39 +338,13 @@ class Struct
 
     return unless superclass.equal? Struct
 
-    # To allow for optimization, we generate code with normal ivar
-    # references for all attributes whose names can be written as
-    # tIVAR tokens. For example, of the following struct attributes
-    #
-    #   Struct.new(:a, :@b, :c?, :'d-e')
-    #
-    # only the first, :a, can be written as a valid tIVAR token:
-    #
-    #   * :a can be written as @a
-    #   * :@b becomes @@b and would be interpreted as a tCVAR
-    #   * :c? becomes @c? and be interpreted as the beginning of
-    #     a ternary expression
-    #   * :'d-e' becomes @d-e and would be interpreted as a method
-    #     invocation
-    #
-    # Attribute names that cannot be written as tIVAR tokens will
-    # fall back to using #instance_variable_(get|set).
-
     args, assigns, hashes, vars = [], [], [], []
 
     attrs.each_with_index do |name, i|
-      name = "@#{name}"
-
-      if name =~ /^@[a-z_]\w*$/i
-        assigns << "#{name} = a#{i}"
-        vars    << name
-      else
-        assigns << "instance_variable_set(:#{name.inspect}, a#{i})"
-        vars    << "instance_variable_get(:#{name.inspect})"
-      end
-
-      args   << "a#{i} = nil"
-      hashes << "#{vars[-1]}.hash"
+      assigns << "TrufflePrimitive.object_hidden_var_set(self, #{name.inspect}, a#{i})"
+      vars    << "TrufflePrimitive.object_hidden_var_get(self, #{name.inspect})"
+      args    << "a#{i} = nil"
+      hashes  << "#{vars[-1]}.hash"
     end
 
     hash_calculation = hashes.map do |calc|

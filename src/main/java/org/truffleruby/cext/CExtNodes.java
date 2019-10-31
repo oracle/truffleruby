@@ -79,8 +79,6 @@ import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
@@ -1156,33 +1154,6 @@ public class CExtNodes {
             return (DynamicObject) toSCall.call(object, "to_s");
         }
 
-    }
-
-    // Those primitives store a Symbol as key, so they effectively have
-    // different namespace than normal ivars which use java.lang.String.
-    @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
-    public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object hiddenVariableGet(DynamicObject object, DynamicObject name,
-                @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name);
-        }
-
-        @Specialization(guards = { "!isDynamicObject(object)", "isRubySymbol(name)" })
-        protected Object hiddenVariableGetPrimitive(Object object, DynamicObject name) {
-            return nil();
-        }
-    }
-
-    @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
-    public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
-                @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name, value);
-        }
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
