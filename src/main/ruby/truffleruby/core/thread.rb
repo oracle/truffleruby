@@ -395,7 +395,9 @@ class Thread
   end
 end
 
-Thread.current.send :internal_thread_initialize
+Truffle::Boot.redo do
+  Thread.current.send :internal_thread_initialize
+end
 
 class ThreadGroup
   def initialize
