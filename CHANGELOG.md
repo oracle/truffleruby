@@ -16,6 +16,7 @@ Compatibility:
 
 Performance:
 
+* Long array strategies now correctly declare that they accept Integers, reducing deoptimisations and proomotions to Object arrays.
 
 # 19.3.0
 
