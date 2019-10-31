@@ -367,7 +367,7 @@ module Truffle::CExt
   end
 
   def RB_TYPE_P(value, type)
-    return rb_type(value) == type
+    rb_type(value) == type
   end
 
   def rb_check_type(value, type)
