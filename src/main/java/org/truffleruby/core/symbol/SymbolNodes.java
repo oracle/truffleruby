@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.symbol;
 
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
@@ -93,6 +94,7 @@ public abstract class SymbolNodes {
 
     }
 
+    @ReportPolymorphism
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
@@ -176,10 +178,6 @@ public abstract class SymbolNodes {
 
         protected DeclarationContext getDeclarationContext(VirtualFrame frame) {
             return RubyArguments.tryGetDeclarationContext(readCallerFrame.execute(frame));
-        }
-
-        protected FrameDescriptor getDescriptor(VirtualFrame frame) {
-            return frame.getFrameDescriptor();
         }
 
     }
