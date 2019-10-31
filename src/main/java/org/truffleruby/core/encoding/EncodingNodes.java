@@ -58,6 +58,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Encoding", isClass = true)
 public abstract class EncodingNodes {
 
+    @ReportPolymorphism
     @CoreMethod(names = "ascii_compatible?")
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
 
@@ -406,6 +407,7 @@ public abstract class EncodingNodes {
         }
     }
 
+    @ReportPolymorphism
     @CoreMethod(names = "dummy?")
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
 
