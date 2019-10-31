@@ -353,6 +353,7 @@ module Truffle::CExt
     when Symbol
       T_SYMBOL
     when Integer
+      #rb_tr_cached_type. The final type must be calculated for each number.
       T_FIXNUM
     when Time
       T_DATA
