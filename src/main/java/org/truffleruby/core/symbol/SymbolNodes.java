@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.symbol;
 
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
@@ -74,7 +75,7 @@ public abstract class SymbolNodes {
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
-        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getDefaultCacheLimit()")
+        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
         protected long hashCached(DynamicObject symbol,
                 @Cached("isPreInitializing()") boolean preInitializing,
                 @Cached("symbol") DynamicObject cachedSymbol,
@@ -93,6 +94,7 @@ public abstract class SymbolNodes {
 
     }
 
+    @ReportPolymorphism
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
@@ -102,7 +104,7 @@ public abstract class SymbolNodes {
 
         @Specialization(
                 guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
-                limit = "getCacheLimit()")
+                limit = "getIdentityCacheLimit()")
         protected DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
                 @Cached("symbol") DynamicObject cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
@@ -176,10 +178,6 @@ public abstract class SymbolNodes {
 
         protected DeclarationContext getDeclarationContext(VirtualFrame frame) {
             return RubyArguments.tryGetDeclarationContext(readCallerFrame.execute(frame));
-        }
-
-        protected FrameDescriptor getDescriptor(VirtualFrame frame) {
-            return frame.getFrameDescriptor();
         }
 
     }

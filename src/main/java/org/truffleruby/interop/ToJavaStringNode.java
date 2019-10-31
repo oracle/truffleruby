@@ -72,7 +72,9 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
         }
     }
 
-    @Specialization(guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" }, limit = "getLimit()")
+    @Specialization(
+            guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" },
+            limit = "getIdentityCacheLimit()")
     protected String symbolCached(DynamicObject symbol,
             @Cached("symbol") DynamicObject cachedSymbol,
             @Cached("symbolToString(symbol)") String convertedString) {
@@ -88,7 +90,7 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
         return Layouts.SYMBOL.getString(symbol);
     }
 
-    @Specialization(guards = "string == cachedString", limit = "getLimit()")
+    @Specialization(guards = "string == cachedString", limit = "getIdentityCacheLimit()")
     protected String javaStringCached(String string,
             @Cached("string") String cachedString) {
         return cachedString;
@@ -101,6 +103,10 @@ public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
 
     protected int getLimit() {
         return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
+    }
+
+    protected int getIdentityCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().IDENTITY_CACHE;
     }
 
 }

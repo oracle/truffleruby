@@ -77,6 +77,10 @@ public abstract class RubyBaseNode extends RubyBaseWithoutContextNode {
         return getContext().getCoreExceptions();
     }
 
+    protected int getIdentityCacheLimit() {
+        return getContext().getOptions().IDENTITY_CACHE;
+    }
+
     protected int getDefaultCacheLimit() {
         return getContext().getOptions().DEFAULT_CACHE;
     }

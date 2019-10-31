@@ -58,10 +58,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Encoding", isClass = true)
 public abstract class EncodingNodes {
 
+    @ReportPolymorphism
     @CoreMethod(names = "ascii_compatible?")
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "encoding == cachedEncoding", limit = "getCacheLimit()")
+        @Specialization(guards = "encoding == cachedEncoding", limit = "getIdentityCacheLimit()")
         protected boolean isAsciiCompatibleCached(DynamicObject encoding,
                 @Cached("encoding") DynamicObject cachedEncoding,
                 @Cached("isAsciiCompatible(cachedEncoding)") boolean isAsciiCompatible) {
@@ -71,10 +72,6 @@ public abstract class EncodingNodes {
         @Specialization(replaces = "isAsciiCompatibleCached")
         protected boolean isAsciiCompatibleUncached(DynamicObject encoding) {
             return isAsciiCompatible(encoding);
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_LOADED_CLASSES_CACHE;
         }
 
         protected static boolean isAsciiCompatible(DynamicObject encoding) {
@@ -414,30 +411,22 @@ public abstract class EncodingNodes {
         }
     }
 
+    @ReportPolymorphism
     @CoreMethod(names = "dummy?")
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "encoding == cachedEncoding", limit = "getCacheLimit()")
+        @Specialization(guards = "encoding == cachedEncoding", limit = "getIdentityCacheLimit()")
         protected boolean isDummyCached(DynamicObject encoding,
                 @Cached("encoding") DynamicObject cachedEncoding,
-                @Cached("isDummy(cachedEncoding)") boolean isDummy) {
+                @Cached("isDummyUncached(cachedEncoding)") boolean isDummy) {
             return isDummy;
         }
 
         @Specialization(replaces = "isDummyCached")
         protected boolean isDummyUncached(DynamicObject encoding) {
-            return isDummy(encoding);
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_LOADED_CLASSES_CACHE;
-        }
-
-        protected static boolean isDummy(DynamicObject encoding) {
-            assert RubyGuards.isRubyEncoding(encoding);
-
             return Layouts.ENCODING.getEncoding(encoding).isDummy();
         }
+
     }
 
     @CoreMethod(names = { "name", "to_s" })
