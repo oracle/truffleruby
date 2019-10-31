@@ -356,7 +356,7 @@ module Truffle::FFI
         total_length += length
       end
       buffer = TrufflePrimitive.io_get_thread_buffer(total_length)
-      offsets.map { |offset| ptr = buffer + offset[0]; ptr.total = offset[1]; ptr }
+      offsets.map { |offset, length| buffer.slice(offset, length) }
     end
 
   end
