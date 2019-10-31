@@ -142,7 +142,8 @@ public class FeatureLoader {
             return System.getProperty("user.dir");
         }
         final int bufferSize = PATH_MAX;
-        final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
+        final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+        final Pointer buffer = GetThreadBufferNode.getBuffer(rubyThread, bufferSize);
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
         if (address == 0) {
             context.send(context.getCoreLibrary().getErrnoModule(), "handle");

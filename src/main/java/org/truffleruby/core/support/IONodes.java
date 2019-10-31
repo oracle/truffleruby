@@ -82,6 +82,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Visibility;
@@ -483,14 +484,15 @@ public abstract class IONodes {
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getThreadBuffer(long size,
-                @Cached AllocateObjectNode allocateObjectNode) {
+        protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
+                                                @Cached AllocateObjectNode allocateObjectNode,
+                                                @Cached GetCurrentRubyThreadNode currentThreadNode) {
+            DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
-                    .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
+                    .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(thread, size));
         }
 
-        public static Pointer getBuffer(RubyContext context, long size) {
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+        public static Pointer getBuffer(DynamicObject rubyThread, long size) {
             final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
 
             if (buffer.getSize() >= size) {
