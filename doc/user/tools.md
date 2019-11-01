@@ -163,6 +163,45 @@ Sampling CallTree. Recorded 3102 samples with period 1ms.
                rb_enc_str_new                                                                |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~1301:37035-37101 
 ```
 
+### Coverage
+
+The coverage tool reports coverage by statement, line, and root. *Root* means
+the root of a function, so how many methods and blocks were covered. Enable
+it with `--coverage`.
+
+```
+-------------------------------------------------------------------------------------------------------------------------------------
+Code coverage histogram.
+  Shows what percent of each element was covered during execution
+-------------------------------------------------------------------------------------------------------------------------------------
+ Path                                                                                            |  Statements |    Lines |    Roots
+-------------------------------------------------------------------------------------------------------------------------------------
+ chunky_png-1.3.11/lib/chunky_png.rb                                                             |     100.00% |  100.00% |  100.00%
+ chunky_png-1.3.11/lib/chunky_png/canvas.rb                                                      |      58.40% |   69.41% |   35.90%
+ chunky_png-1.3.11/lib/chunky_png/canvas/adam7_interlacing.rb                                    |      28.57% |   50.00% |   28.57%
+ chunky_png-1.3.11/lib/chunky_png/canvas/data_url_exporting.rb                                   |      80.00% |   83.33% |   80.00%
+ chunky_png-1.3.11/lib/chunky_png/canvas/data_url_importing.rb                                   |      57.14% |   70.00% |   80.00%
+ chunky_png-1.3.11/lib/chunky_png/canvas/drawing.rb                                              |       8.28% |   44.02% |   13.33%
+ chunky_png-1.3.11/lib/chunky_png/canvas/masking.rb                                              |      28.57% |   51.72% |   44.44%
+ chunky_png-1.3.11/lib/chunky_png/canvas/operations.rb                                           |      42.42% |   65.07% |   21.95%
+ chunky_png-1.3.11/lib/chunky_png/canvas/png_decoding.rb                                         |      52.84% |   68.27% |   26.98%
+ chunky_png-1.3.11/lib/chunky_png/canvas/png_encoding.rb                                         |      44.44% |   62.07% |   40.43%
+ chunky_png-1.3.11/lib/chunky_png/canvas/resampling.rb                                           |      17.46% |   48.51% |   25.00%
+ chunky_png-1.3.11/lib/chunky_png/canvas/stream_exporting.rb                                     |      61.54% |   72.22% |   44.44%
+ chunky_png-1.3.11/lib/chunky_png/canvas/stream_importing.rb                                     |      31.82% |   45.83% |   40.00%
+ chunky_png-1.3.11/lib/chunky_png/chunk.rb                                                       |      82.84% |   86.32% |   68.42%
+ chunky_png-1.3.11/lib/chunky_png/color.rb                                                       |      41.82% |   59.00% |   33.93%
+ chunky_png-1.3.11/lib/chunky_png/compatibility.rb                                               |      75.00% |   66.67% |   75.00%
+ chunky_png-1.3.11/lib/chunky_png/datastream.rb                                                  |      83.56% |   87.50% |   80.00%
+ chunky_png-1.3.11/lib/chunky_png/dimension.rb                                                   |      42.11% |   62.07% |   23.08%
+ chunky_png-1.3.11/lib/chunky_png/image.rb                                                       |      85.00% |   90.32% |   90.00%
+ chunky_png-1.3.11/lib/chunky_png/palette.rb                                                     |      41.18% |   63.46% |   42.31%
+ chunky_png-1.3.11/lib/chunky_png/point.rb                                                       |      42.86% |   62.96% |   25.00%
+ chunky_png-1.3.11/lib/chunky_png/vector.rb                                                      |      40.98% |   63.10% |   10.34%
+ chunky_png-1.3.11/lib/chunky_png/version.rb                                                     |     100.00% |  100.00% |  100.00%
+-------------------------------------------------------------------------------------------------------------------------------------
+```
+
 ## Debugging
 
 ### Chrome Inspector
