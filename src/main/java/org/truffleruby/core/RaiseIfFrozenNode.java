@@ -14,38 +14,30 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsFrozenNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class RaiseIfFrozenNode extends RubyNode {
+@NodeChild("value")
+public abstract class RaiseIfFrozenNode extends RubyNode {
 
-    private final BranchProfile errorProfile = BranchProfile.create();
-
-    @Child private RubyNode child;
-    @Child private IsFrozenNode isFrozenNode;
-
-    public RaiseIfFrozenNode(RubyNode child) {
-        this.child = child;
+    public static RaiseIfFrozenNode create() {
+        return RaiseIfFrozenNodeGen.create(null);
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        Object result = child.execute(frame);
+    public abstract void execute(Object object);
 
-        if (executeIsFrozen(result)) {
+    @Specialization
+    protected Object check(Object value,
+            @Cached IsFrozenNode isFrozenNode,
+            @Cached BranchProfile errorProfile) {
+
+        if (isFrozenNode.execute(value)) {
             errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().frozenError(result, this));
+            throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
         }
 
-        return result;
-    }
-
-    private boolean executeIsFrozen(Object value) {
-        if (isFrozenNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNode.create());
-        }
-        return isFrozenNode.executeIsFrozen(value);
+        return value;
     }
 }

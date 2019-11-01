@@ -171,7 +171,7 @@ public abstract class SingletonClassNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             isFrozenNode = insert(IsFrozenNode.create());
         }
-        return isFrozenNode.executeIsFrozen(object);
+        return isFrozenNode.execute(object);
     }
 
     protected int getCacheLimit() {
