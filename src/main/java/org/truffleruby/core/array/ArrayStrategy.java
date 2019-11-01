@@ -372,7 +372,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            return value instanceof Long;
+            return value instanceof Long || value instanceof Integer;
         }
 
         @Override

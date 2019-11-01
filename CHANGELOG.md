@@ -20,6 +20,7 @@ Compatibility:
 Performance:
 
 * Use a smaller limit for identity-based inline caches to improve warmup by avoiding too many deoptimizations.
+* Long array strategies now correctly declare that they accept Integers, reducing deoptimisations and proomotions to Object arrays.
 
 # 19.3.0
 
