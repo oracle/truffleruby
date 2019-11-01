@@ -11,9 +11,11 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -82,10 +84,8 @@ public abstract class RequireNode extends RubyContextNode {
 
     private boolean requireConsideringAutoload(String feature, String expandedPath, DynamicObject pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final RubyConstant autoloadConstant = featureLoader.isAutoloadPath(expandedPath);
-        if (autoloadConstant != null &&
-                // Do not autoload recursively from the #require call in GetConstantNode
-                !autoloadConstant.getAutoloadConstant().isAutoloading()) {
+        final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
+        if (autoloadConstants != null) {
             if (getConstantNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 getConstantNode = insert(GetConstantNode.create());
@@ -96,29 +96,41 @@ public abstract class RequireNode extends RubyContextNode {
             }
 
             if (getContext().getOptions().LOG_AUTOLOAD) {
+                String info = autoloadConstants
+                        .stream()
+                        .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
+                        .collect(Collectors.joining(" and "));
                 RubyLanguage.LOGGER
                         .info(() -> String.format(
-                                "%s: requiring %s which is registered as an autoload for %s with %s",
+                                "%s: requiring %s which is registered as an autoload for %s",
                                 getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                                 feature,
-                                autoloadConstant,
-                                autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                                info));
             }
 
-            boolean[] result = new boolean[1];
-            Runnable require = () -> result[0] = doRequire(feature, expandedPath, pathString);
-            try {
-                getConstantNode.autoloadConstant(
-                        LexicalScope.IGNORE,
-                        autoloadConstant.getDeclaringModule(),
-                        autoloadConstant.getName(),
-                        autoloadConstant,
-                        lookupConstantNode,
-                        require);
-            } finally {
-                featureLoader.removeAutoload(autoloadConstant);
+            final boolean result;
+            for (RubyConstant autoloadConstant : autoloadConstants) {
+                getConstantNode.autoloadConstantStart(autoloadConstant);
             }
-            return result[0];
+            try {
+                result = doRequire(feature, expandedPath, pathString);
+
+                for (RubyConstant autoloadConstant : autoloadConstants) {
+                    getConstantNode.autoloadResolveConstant(
+                            LexicalScope.IGNORE,
+                            autoloadConstant.getDeclaringModule(),
+                            autoloadConstant.getName(),
+                            autoloadConstant,
+                            lookupConstantNode);
+                }
+            } finally {
+                for (RubyConstant autoloadConstant : autoloadConstants) {
+                    getConstantNode.autoloadConstantStop(autoloadConstant);
+                    featureLoader.removeAutoload(autoloadConstant);
+                }
+            }
+
+            return result;
         } else {
             return doRequire(feature, expandedPath, pathString);
         }

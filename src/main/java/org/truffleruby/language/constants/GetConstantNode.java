@@ -112,40 +112,57 @@ public abstract class GetConstantNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
-            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
+    public void autoloadConstantStart(RubyConstant autoloadConstant) {
         final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
         autoloadConstant.getAutoloadConstant().startAutoLoad();
+
+        // We need to notify cached lookup that we are autoloading the constant, as constant
+        // lookup changes based on whether an autoload constant is loading or not (constant
+        // lookup ignores being-autoloaded constants).
+        fields.newConstantsVersion();
+    }
+
+    @TruffleBoundary
+    public void autoloadConstantStop(RubyConstant autoloadConstant) {
+        autoloadConstant.getAutoloadConstant().stopAutoLoad();
+    }
+
+    @TruffleBoundary
+    public Object autoloadResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode) {
+        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
+
+        RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+
+        // check if the constant was set in the ancestors of autoloadConstantModule
+        if (resolvedConstant != null &&
+                (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
+                        resolvedConstant.getDeclaringModule() == coreLibrary().objectClass)) {
+            // all is good, just return that constant
+        } else {
+            // If the autoload constant was not set in the ancestors, undefine the constant
+            fields.undefineConstantIfStillAutoload(autoloadConstant, name);
+
+            // redo lookup, to consider the undefined constant
+            resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+        }
+
+        return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
+    }
+
+    @TruffleBoundary
+    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
+        autoloadConstantStart(autoloadConstant);
         try {
-
-            // We need to notify cached lookup that we are autoloading the constant, as constant
-            // lookup changes based on whether an autoload constant is loading or not (constant
-            // lookup ignores being-autoloaded constants).
-            fields.newConstantsVersion();
-
             require.run();
 
-            RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
-
-            // check if the constant was set in the ancestors of autoloadConstantModule
-            if (resolvedConstant != null &&
-                    (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
-                            resolvedConstant.getDeclaringModule() == coreLibrary().objectClass)) {
-                // all is good, just return that constant
-            } else {
-                // If the autoload constant was not set in the ancestors, undefine the constant
-                fields.undefineConstantIfStillAutoload(autoloadConstant, name);
-
-                // redo lookup, to consider the undefined constant
-                resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
-            }
-
-            return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
-
+            return autoloadResolveConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode);
         } finally {
-            autoloadConstant.getAutoloadConstant().stopAutoLoad();
+            autoloadConstantStop(autoloadConstant);
         }
     }
 
