@@ -662,6 +662,17 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::AutoloadSelfDuringRequire.should be_kind_of(Class)
   end
 
+  it "handles multiple autoloads in the same file" do
+    $LOAD_PATH.unshift(File.expand_path('../fixtures/multi', __FILE__))
+    begin
+      require 'foo/bar_baz'
+      ModuleSpecs::Autoload::Foo::Bar.should be_kind_of(Class)
+      ModuleSpecs::Autoload::Foo::Baz.should be_kind_of(Class)
+    ensure
+      $LOAD_PATH.shift
+    end
+  end
+
   it "calls #to_path on non-string filenames" do
     p = mock('path')
     p.should_receive(:to_path).and_return @non_existent
