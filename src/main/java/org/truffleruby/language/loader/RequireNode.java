@@ -20,13 +20,11 @@ import java.util.stream.Collectors;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
-import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -57,9 +55,6 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Child private WarningNode warningNode;
 
-    @Child private GetConstantNode getConstantNode;
-    @Child private LookupConstantNode lookupConstantNode;
-
     public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
@@ -86,15 +81,6 @@ public abstract class RequireNode extends RubyContextNode {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
         if (autoloadConstants != null) {
-            if (getConstantNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                getConstantNode = insert(GetConstantNode.create());
-            }
-            if (lookupConstantNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lookupConstantNode = insert(LookupConstantNode.create(true, true, true));
-            }
-
             if (getContext().getOptions().LOG_AUTOLOAD) {
                 String info = autoloadConstants
                         .stream()
@@ -108,29 +94,17 @@ public abstract class RequireNode extends RubyContextNode {
                                 info));
             }
 
-            final boolean result;
             for (RubyConstant autoloadConstant : autoloadConstants) {
-                getConstantNode.autoloadConstantStart(autoloadConstant);
+                GetConstantNode.autoloadConstantStart(autoloadConstant);
             }
             try {
-                result = doRequire(feature, expandedPath, pathString);
-
-                for (RubyConstant autoloadConstant : autoloadConstants) {
-                    getConstantNode.autoloadResolveConstant(
-                            LexicalScope.IGNORE,
-                            autoloadConstant.getDeclaringModule(),
-                            autoloadConstant.getName(),
-                            autoloadConstant,
-                            lookupConstantNode);
-                }
+                return doRequire(feature, expandedPath, pathString);
             } finally {
                 for (RubyConstant autoloadConstant : autoloadConstants) {
-                    getConstantNode.autoloadConstantStop(autoloadConstant);
+                    GetConstantNode.autoloadConstantStop(autoloadConstant);
                     featureLoader.removeAutoload(autoloadConstant);
                 }
             }
-
-            return result;
         } else {
             return doRequire(feature, expandedPath, pathString);
         }

@@ -107,25 +107,30 @@ public abstract class GetConstantNode extends RubyContextNode {
                     autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
 
-        final Runnable require = () -> callRequireNode.call(coreLibrary().mainObject, "require", feature);
-        return autoloadConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode, require);
+        // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
+        autoloadConstantStart(autoloadConstant);
+        try {
+            callRequireNode.call(coreLibrary().mainObject, "require", feature);
+
+            // This needs to run while the autoload is marked as isAutoloading(), to avoid infinite recursion
+            return autoloadResolveConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode);
+        } finally {
+            autoloadConstantStop(autoloadConstant);
+        }
     }
 
     @TruffleBoundary
-    public void autoloadConstantStart(RubyConstant autoloadConstant) {
-        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
-        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
-
+    public static void autoloadConstantStart(RubyConstant autoloadConstant) {
         autoloadConstant.getAutoloadConstant().startAutoLoad();
 
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
-        fields.newConstantsVersion();
+        Layouts.MODULE.getFields(autoloadConstant.getDeclaringModule()).newConstantsVersion();
     }
 
     @TruffleBoundary
-    public void autoloadConstantStop(RubyConstant autoloadConstant) {
+    public static void autoloadConstantStop(RubyConstant autoloadConstant) {
         autoloadConstant.getAutoloadConstant().stopAutoLoad();
     }
 
@@ -151,19 +156,6 @@ public abstract class GetConstantNode extends RubyContextNode {
         }
 
         return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
-    }
-
-    @TruffleBoundary
-    public Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
-            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode, Runnable require) {
-        autoloadConstantStart(autoloadConstant);
-        try {
-            require.run();
-
-            return autoloadResolveConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode);
-        } finally {
-            autoloadConstantStop(autoloadConstant);
-        }
     }
 
     @Specialization(
