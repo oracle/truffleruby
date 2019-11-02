@@ -293,11 +293,11 @@ class Numeric
     a <=> b
   end
 
-   private def redo_compare_bad_coerce_return_error(right)
-     b, a = math_coerce(right, :bad_coerce_return_error)
-     return nil unless b
-     a <=> b
-   end
+  private def redo_compare_bad_coerce_return_error(right)
+    b, a = math_coerce(right, :bad_coerce_return_error)
+    return nil unless b
+    a <=> b
+  end
 
   def redo_bit_coerced(meth, right)
     b, a = bit_coerce(right)
