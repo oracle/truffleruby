@@ -13,6 +13,7 @@ Bug fixes:
 * Raise Encoding::CompatibilityError with incompatible encodings on regexp (#1775, @rafaelfranca).
 * Fixed interactions between attributes and instance variables in structs (#1776, @chrisseaton).
 * Coercion fixes for `TCPServer.new` (#1780, @XrXr)
+* Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 
 Compatibility:
 
