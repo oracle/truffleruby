@@ -156,6 +156,8 @@ class Struct
     end
 
     if self.class::KEYWORD_INIT
+      return if args.empty?
+      
       if args.length > 1 || !args.first.is_a?(Hash)
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
       end
