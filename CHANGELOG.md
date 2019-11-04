@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
+* Implemented the `unit` argument of `Time.at` (#1791, @XrXr).
 
 Performance:
 
