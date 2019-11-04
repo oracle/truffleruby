@@ -147,7 +147,6 @@ describe "Struct.new" do
     context "keyword_init: true option" do
       before :all do
         @struct_with_kwa = Struct.new(:name, :legs, keyword_init: true)
-        @struct_without_kwa = Struct.new(:name, :legs, keyword_init: false)
       end
 
       it "creates a class that accepts keyword arguments to initialize" do
@@ -184,6 +183,10 @@ describe "Struct.new" do
     end
 
     context "keyword_init: false option" do
+      before :all do
+        @struct_without_kwa = Struct.new(:name, :legs, keyword_init: false)
+      end
+
       it "behaves like it does without :keyword_init option" do
         obj = @struct_without_kwa.new("elefant", 4)
         obj.name.should == "elefant"
