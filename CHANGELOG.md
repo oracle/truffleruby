@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
+* Various improvements to `SignalException` and signal handling (#1790, @XrXr).
 
 Performance:
 
