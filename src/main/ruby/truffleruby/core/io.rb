@@ -1015,13 +1015,15 @@ class IO
       readables_ready, writables_ready, errorables_ready)
   end
 
-  def self.do_to_fds(array)
-    array.map do |e|
-      if IO === e
-        e.fileno
-      else
-        e[1].fileno
-      end
+  def self.do_to_fds(array, ptr)
+    size = FFI::Pointer.find_type_size(:int)
+    array.each_with_index do |e, i|
+      fd = if IO === e
+             e.fileno
+           else
+             e[1].fileno
+           end
+      ptr.put(:int, i * size, fd)
     end
   end
 
@@ -1041,9 +1043,9 @@ class IO
         readables_ready, writables_ready, errorables_ready)
     readables_ptr, writables_ptr, errorables_ptr = Truffle::FFI::Pool.stack_alloc(
                                     :int, readables.size, :int, writables.size, :int, errorables.size)
-    readables_ptr.write_array_of_int(do_to_fds(readables))
-    writables_ptr.write_array_of_int(do_to_fds(writables))
-    errorables_ptr.write_array_of_int(do_to_fds(errorables))
+    do_to_fds(readables, readables_ptr)
+    do_to_fds(writables, writables_ptr)
+    do_to_fds(errorables, errorables_ptr)
 
     if original_timeout
       start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
