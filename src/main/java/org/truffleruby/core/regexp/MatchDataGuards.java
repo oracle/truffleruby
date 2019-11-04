@@ -15,6 +15,6 @@ import org.truffleruby.Layouts;
 
 public class MatchDataGuards {
     public static boolean isInitialized(DynamicObject matchData) {
-        return Layouts.MATCH_DATA.getRegexp(matchData) != null;
+        return Layouts.MATCH_DATA.getSource(matchData) != null;
     }
 }

@@ -23,7 +23,8 @@ public interface MatchDataLayout extends BasicObjectLayout {
     DynamicObjectFactory createMatchDataShape(DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    Object[] build(@Nullable DynamicObject source, @Nullable DynamicObject regexp, @Nullable Region region, @Nullable Region charOffsets);
+    Object[] build(@Nullable DynamicObject source, @Nullable DynamicObject regexp, @Nullable Region region,
+            @Nullable Region charOffsets);
 
     boolean isMatchData(DynamicObject object);
 

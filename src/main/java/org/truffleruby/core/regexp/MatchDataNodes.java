@@ -288,7 +288,12 @@ public abstract class MatchDataNodes {
             return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = { "isInitialized(matchData)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
+        @Specialization(
+                guards = {
+                        "isInitialized(matchData)",
+                        "!isRubySymbol(index)",
+                        "!isRubyString(index)",
+                        "!isIntRange(index)" })
         protected Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -299,7 +304,7 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "isInitialized(matchData)", "isIntRange(range)"})
+        @Specialization(guards = { "isInitialized(matchData)", "isIntRange(range)" })
         protected Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations
@@ -705,7 +710,8 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass, @Cached AllocateObjectNode allocateNode) {
+        protected DynamicObject allocate(DynamicObject rubyClass,
+                @Cached AllocateObjectNode allocateNode) {
             return allocateNode.allocate(rubyClass, Layouts.MATCH_DATA.build(null, null, null, null));
         }
 
