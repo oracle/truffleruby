@@ -94,10 +94,9 @@ class Struct
     new name, *attrs
   end
 
-  def _attrs # :nodoc:
+  private def _attrs # :nodoc:
     self.class::STRUCT_ATTRS
   end
-  private :_attrs
 
   def select
     return to_enum(:select) { size } unless block_given?
@@ -145,10 +144,9 @@ class Struct
       end
     end
   end
-
   alias_method :inspect, :to_s
 
-  def initialize(*args)
+  private def initialize(*args)
     attrs = _attrs
 
     unless args.length <= attrs.length
@@ -181,8 +179,6 @@ class Struct
       end
     end
   end
-
-  private :initialize
 
   def ==(other)
     return false if self.class != other.class
@@ -238,7 +234,7 @@ class Struct
     self
   end
 
-  def check_index_var(var)
+  private def check_index_var(var)
     var = Integer(var)
     a_len = _attrs.length
     if var > a_len - 1
@@ -249,7 +245,6 @@ class Struct
     end
     _attrs[var]
   end
-  private :check_index_var
 
   def dig(key, *more)
     result = nil
@@ -303,7 +298,6 @@ class Struct
   # that hashes will be deterministic.
 
   CLASS_SALT = 0xa1982d79
-
   private_constant :CLASS_SALT
 
   def hash
@@ -318,7 +312,6 @@ class Struct
   def length
     _attrs.length
   end
-
   alias_method :size, :length
 
   def self.length
@@ -336,7 +329,6 @@ class Struct
   def to_a
     _attrs.map { |var| TrufflePrimitive.object_hidden_var_get(self, var) }
   end
-
   alias_method :values, :to_a
 
   def values_at(*args)
