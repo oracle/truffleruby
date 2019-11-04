@@ -175,6 +175,8 @@ The main authors of TruffleRuby ordered by first contribution are:
 * Brandon Fish
 * Duncan MacGregor
 * Christian Wirth
+* Rafael França
+* Alan Wu
 
 Additionally:
 
