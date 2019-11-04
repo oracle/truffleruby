@@ -10,12 +10,13 @@
 package org.truffleruby.extra.ffi;
 
 import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.interop.messages.PointerMessages;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@Layout
+@Layout(dispatch = PointerMessages.class)
 public interface PointerLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createPointerShape(DynamicObject logicalClass,

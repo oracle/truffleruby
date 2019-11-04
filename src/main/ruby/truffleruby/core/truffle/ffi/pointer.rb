@@ -105,15 +105,6 @@ module Truffle::FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
-    def polyglot_pointer?
-      true
-    end
-
-    # Every IS_POINTER object should also have TO_NATIVE
-    def to_native
-      self
-    end
-
     # FFI's #to_ptr conversion
     def to_ptr
       self

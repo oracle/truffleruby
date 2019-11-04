@@ -11,12 +11,13 @@ package org.truffleruby.core.symbol;
 
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.interop.messages.SymbolMessages;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@Layout
+@Layout(dispatch = SymbolMessages.class)
 public interface SymbolLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createSymbolShape(

@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.interop.messages.StringMessages;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -19,7 +20,7 @@ import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@Layout
+@Layout(dispatch = StringMessages.class)
 public interface StringLayout extends BasicObjectLayout {
 
     HiddenKey TAINTED_IDENTIFIER = Layouts.TAINTED_IDENTIFIER;
