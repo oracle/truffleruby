@@ -1,10 +1,4 @@
 fails:Time.at passed Numeric roundtrips a Rational produced by #to_r
-fails:Time.at passed [Time, Numeric, format] supports Float second argument
-fails:Time.at passed [Time, Numeric, format] :nanosecond format treats second argument as nanoseconds
-fails:Time.at passed [Time, Numeric, format] :nsec format treats second argument as nanoseconds
-fails:Time.at passed [Time, Numeric, format] :microsecond format treats second argument as microseconds
-fails:Time.at passed [Time, Numeric, format] :usec format treats second argument as microseconds
-fails:Time.at passed [Time, Numeric, format] :millisecond format treats second argument as milliseconds
 fails:Time.at :in keyword argument could be UTC offset as a String in '+HH:MM or '-HH:MM' format
 fails:Time.at :in keyword argument could be UTC offset as a number of seconds
 fails:Time.at :in keyword argument could be a timezone object
