@@ -4276,12 +4276,13 @@ VALUE rb_str_tmp_new(long len) {
 
 #undef rb_utf8_str_new
 VALUE rb_utf8_str_new(const char *ptr, long len) {
-  rb_tr_error("rb_utf8_str_new not implemented");
+  return rb_enc_str_new(ptr, len, rb_utf8_encoding());
 }
 
 #undef rb_utf8_str_new_cstr
 VALUE rb_utf8_str_new_cstr(const char *ptr) {
-  rb_tr_error("rb_utf8_str_new_cstr not implemented");
+  // TODO CS 11-Oct-19 would be nice to read in one go rather than strlen followed by read
+  return rb_utf8_str_new(ptr, strlen(ptr));
 }
 
 VALUE rb_str_new_static(const char *ptr, long len) {
@@ -4293,7 +4294,7 @@ VALUE rb_usascii_str_new_static(const char *ptr, long len) {
 }
 
 VALUE rb_utf8_str_new_static(const char *ptr, long len) {
-  rb_tr_error("rb_utf8_str_new_static not implemented");
+  return rb_utf8_str_new(ptr, len);
 }
 
 void rb_str_shared_replace(VALUE str, VALUE str2) {
