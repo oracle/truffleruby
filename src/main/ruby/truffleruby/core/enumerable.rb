@@ -990,10 +990,12 @@ end
 
 class Array
   # Copy methods from Enumerable that should also be defined on Array
-  public :any?
-  public :take
-  public :drop_while, :take_while
-  public :frozen?
-  public :sum
-  public :min, :max
+  alias_method :any?, :any?
+  alias_method :take, :take
+  alias_method :drop_while, :drop_while
+  alias_method :take_while, :take_while
+  alias_method :frozen?, :frozen?
+  alias_method :sum, :sum
+  alias_method :min, :min
+  alias_method :max, :max
 end

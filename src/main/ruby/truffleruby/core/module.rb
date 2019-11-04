@@ -49,7 +49,8 @@
 class Module
 
   # Copy methods from Kernel that should also be defined on Module like on MRI
-  public :==, :freeze
+  alias_method :==, :==
+  alias_method :freeze, :freeze
 
   def include?(mod)
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
