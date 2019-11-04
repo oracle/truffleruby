@@ -150,7 +150,7 @@ local part_definitions = {
       environment+: { path+:: ["$NODE/bin"] },
     },
     
-    sqlite38: { packages+: { sqlite: ">=3.8" } },
+    sqlite331: { packages+: { sqlite: ">=3.31" } },
   },
 
   env: {
@@ -453,7 +453,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
       "ruby-test-gems-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin":       $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.use.node + $.use.sqlite38 + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux":  $.platform.linux  + $.jdk.v8 + gate_no_build + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
       "ruby-test-compiler-graal-core":    $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
