@@ -15,6 +15,7 @@ Bug fixes:
 * Coercion fixes for `TCPServer.new` (#1780, @XrXr)
 * Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
+* Don't clone methods when setting method to the same visibility (#1794, @XrXr).
 
 Compatibility:
 
