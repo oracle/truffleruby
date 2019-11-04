@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
@@ -17,6 +18,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.loader.FeatureLoader;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -68,6 +70,24 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
         if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
+            return doMissingConstant(module, name, getSymbol(name));
+        }
+
+        final FeatureLoader featureLoader = getContext().getFeatureLoader();
+        final String expandedPath = featureLoader.findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
+        if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
+            // We found an autoload constant while we are already require-ing the autoload file,
+            // consider it missing to avoid circular require warnings and calling #require twice.
+            // For instance, autoload :RbConfig, "rbconfig"; require "rbconfig" causes this.
+            // Also see https://github.com/oracle/truffleruby/pull/1779 and GR-14590
+            if (getContext().getOptions().LOG_AUTOLOAD) {
+                RubyLanguage.LOGGER.info(() -> String.format(
+                        "%s: %s::%s is being treated as missing while loading %s",
+                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        Layouts.MODULE.getFields(module).getName(),
+                        name,
+                        expandedPath));
+            }
             return doMissingConstant(module, name, getSymbol(name));
         }
 
