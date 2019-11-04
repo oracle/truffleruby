@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
+* Implemented `rb_utf8_str_new`, `rb_utf8_str_new_cstr`, `rb_utf8_str_new_static` (#1788, @chrisseaton).
 
 Performance:
 
