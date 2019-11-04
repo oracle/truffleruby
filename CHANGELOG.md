@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
+* Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
 
 Performance:
 
