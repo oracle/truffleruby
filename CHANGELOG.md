@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
+* Implemented `MatchData#dup` (#1792, @XrXr).
 
 Performance:
 
