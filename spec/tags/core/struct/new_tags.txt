@@ -1,1 +1,2 @@
 fails:Struct.new overwrites previously defined constants with string as first argument
+fails:Struct.new keyword_init: true option new class instantiation allows no arguments

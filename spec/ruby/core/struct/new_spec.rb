@@ -162,6 +162,18 @@ describe "Struct.new" do
           obj.legs.should == 4
         end
 
+        it "allows missing arguments" do
+          obj = @struct_with_kwa.new(name: "elefant")
+          obj.name.should == "elefant"
+          obj.legs.should be_nil
+        end
+
+        it "allows no arguments" do
+          obj = @struct_with_kwa.new
+          obj.name.should be_nil
+          obj.legs.should be_nil
+        end
+
         it "raises ArgumentError when passed not declared keyword argument" do
           -> {
             @struct_with_kwa.new(name: "elefant", legs: 4, foo: "bar")
