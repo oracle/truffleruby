@@ -65,6 +65,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_INTERRUPT_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> BACKTRACE_ON_RESCUE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
@@ -452,6 +453,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor BACKTRACE_ON_RAISE = OptionDescriptor
             .newBuilder(BACKTRACE_ON_RAISE_KEY, "ruby.backtraces-raise")
             .help("Show the backtraces of exceptions at the point of them being raised")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_RESCUE = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_RESCUE_KEY, "ruby.backtraces-rescue")
+            .help("Show the backtraces of exceptions at the point of them being rescued")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1073,6 +1081,8 @@ public class OptionsCatalog {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.backtraces-raise":
                 return BACKTRACE_ON_RAISE;
+            case "ruby.backtraces-rescue":
+                return BACKTRACE_ON_RESCUE;
             case "ruby.cexts":
                 return CEXTS;
             case "ruby.cexts-lock":
@@ -1275,6 +1285,7 @@ public class OptionsCatalog {
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
             BACKTRACE_ON_RAISE,
+            BACKTRACE_ON_RESCUE,
             CEXTS,
             CEXT_LOCK,
             OPTIONS_LOG,
