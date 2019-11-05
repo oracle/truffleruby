@@ -32,7 +32,7 @@ describe "SignalException" do
       raise SignalException, 'SIGKILL'
     RUBY
 
-    $?.termsig.should == Signal.list["KILL"]
+    $?.termsig.should == Signal.list.fetch("KILL")
     output.should == "hello\n"
   end
 
@@ -42,7 +42,7 @@ describe "SignalException" do
       raise(SignalException, "PROF")
     RUBY
 
-    $?.termsig.should == Signal.list["PROF"]
+    $?.termsig.should == Signal.list.fetch("PROF")
   end
 
   it "does not self-signal for VTALRM" do
@@ -55,7 +55,7 @@ describe "SignalException" do
   it "self-signals for USR1 when running natively" do
     skip unless TruffleRuby.native?
     ruby_exe("raise(SignalException, 'USR1')", options: '--native')
-    $?.termsig.should == Signal.list['USR1']
+    $?.termsig.should == Signal.list.fetch('USR1')
   end
 
   it "does not self-signal for USR1 when running on the JVM" do
