@@ -52,10 +52,11 @@ describe "SignalException" do
     $?.termsig.should be_nil
   end
 
-  it "self-signals for USR1 when running natively" do
-    skip unless TruffleRuby.native?
-    ruby_exe("raise(SignalException, 'USR1')", options: '--native')
-    $?.termsig.should == Signal.list.fetch('USR1')
+  guard -> { TruffleRuby.native? } do
+    it "self-signals for USR1 when running natively" do
+      ruby_exe("raise(SignalException, 'USR1')", options: '--native')
+      $?.termsig.should == Signal.list.fetch('USR1')
+    end
   end
 
   it "does not self-signal for USR1 when running on the JVM" do
