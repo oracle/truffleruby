@@ -30,4 +30,9 @@ describe "MatchData#names" do
     r = /(?<hay>hay)(?<dot>.)(?<hay>tack)/
     'haystack'.match(r).names.should == r.names
   end
+
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data.names }.should raise_error(TypeError)
+  end
 end

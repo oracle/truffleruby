@@ -31,4 +31,9 @@ describe "MatchData#pre_match" do
     str = "abc".force_encoding Encoding::ISO_8859_1
     str.match(/a/).pre_match.encoding.should equal(Encoding::ISO_8859_1)
   end
+
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data.pre_match }.should raise_error(TypeError)
+  end
 end

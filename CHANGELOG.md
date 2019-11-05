@@ -24,6 +24,7 @@ Compatibility:
 * Implemented `rb_utf8_str_new`, `rb_utf8_str_new_cstr`, `rb_utf8_str_new_static` (#1788, @chrisseaton).
 * Implemented the `unit` argument of `Time.at` (#1791, @XrXr).
 * Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
+* Implemented `MatchData#dup` (#1792, @XrXr).
 
 Performance:
 

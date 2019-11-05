@@ -12,4 +12,9 @@ describe 'MatchData#named_captures' do
   it 'returns the latest matched capture, even if a later one that does not match exists' do
     /\A(?<a>.)(?<b>.)(?<b>.)(?<a>.)?\z/.match('012').named_captures.should == { 'a' => '0', 'b' => '2' }
   end
+
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data.named_captures }.should raise_error(TypeError)
+  end
 end
