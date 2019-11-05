@@ -220,10 +220,11 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         String strValue = string;
 
         strValue = strValue.replaceFirst("^\\s+", "");
+        strValue = strValue.replaceFirst("\\s+$", "");
 
         // TODO (pitr 26-May-2015): create specialization without trims and other cleanups, use rewriteOn
 
-        switch (strValue.trim()) {
+        switch (strValue) {
             case "NaN":
                 return BigDecimalType.NAN;
             case "Infinity":
