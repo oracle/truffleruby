@@ -17,6 +17,7 @@ Bug fixes:
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
 * Strip trailing whitespaces when BigDecimal gets a string (#1796, @XrXr).
 * Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
+* Don't clone methods when setting method to the same visibility (#1794, @XrXr).
 
 Compatibility:
 

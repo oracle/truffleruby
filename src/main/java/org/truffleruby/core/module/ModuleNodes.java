@@ -2013,6 +2013,11 @@ public abstract class ModuleNodes {
                         coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
             }
 
+            // Do nothing if the method already exists with the same visibility, like MRI
+            if (method.getVisibility() == visibility) {
+                return;
+            }
+
             /*
              * If the method was already defined in this class, that's fine
              * {@link addMethod} will overwrite it, otherwise we do actually
