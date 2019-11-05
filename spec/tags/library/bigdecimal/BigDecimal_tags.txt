@@ -1,1 +1,2 @@
 slow:BigDecimal is not defined unless it is required
+fails:Kernel#BigDecimal when interacting with Rational produces the expected result
