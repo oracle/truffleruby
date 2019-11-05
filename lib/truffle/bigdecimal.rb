@@ -267,7 +267,7 @@ class BigDecimal < Numeric
   end
 
   def self._load(data)
-    new(data.split(':').last)
+    BigDecimal(data.split(':').last)
   end
 
   private def add_spaces_to_s(string, reverse, space_frequency)
