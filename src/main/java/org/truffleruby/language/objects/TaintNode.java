@@ -72,7 +72,7 @@ public abstract class TaintNode extends RubyBaseNode {
                 isFrozenNode = insert(IsFrozenNode.create());
             }
 
-            if (isFrozenNode.executeIsFrozen(object)) {
+            if (isFrozenNode.execute(object)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
             }

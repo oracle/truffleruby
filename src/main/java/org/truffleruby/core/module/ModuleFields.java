@@ -30,7 +30,7 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -208,7 +208,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     // TODO (eregon, 12 May 2015): ideally all callers would be nodes and check themselves.
     public void checkFrozen(RubyContext context, Node currentNode) {
-        if (context.getCoreLibrary() != null && IsFrozenNode.isFrozen(rubyModuleObject)) {
+        if (context.getCoreLibrary() != null && IsFrozenNodeGen.getUncached().execute(rubyModuleObject)) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
         }
     }

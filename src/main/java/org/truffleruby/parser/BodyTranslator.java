@@ -28,7 +28,7 @@ import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.IsUndefinedNode;
-import org.truffleruby.core.RaiseIfFrozenNode;
+import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
@@ -312,7 +312,7 @@ public class BodyTranslator extends Translator {
         final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
 
         final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
-                new RaiseIfFrozenNode(new GetDefaultDefineeNode()),
+                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
                 newNameNode,
                 oldNameNode);
 
@@ -651,7 +651,7 @@ public class BodyTranslator extends Translator {
     private RubyNode translateCheckFrozen(SourceIndexLength sourceSection) {
         return Translator.withSourceSection(
                 sourceSection,
-                new RaiseIfFrozenNode(new SelfNode(environment.getFrameDescriptor())));
+                RaiseIfFrozenNodeGen.create(new SelfNode(environment.getFrameDescriptor())));
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
@@ -1310,7 +1310,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode moduleNode = new RaiseIfFrozenNode(new GetDefaultDefineeNode());
+        final RubyNode moduleNode = RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode());
         final RubyNode ret = translateMethodDefinition(
                 sourceSection,
                 moduleNode,
@@ -1799,7 +1799,7 @@ public class BodyTranslator extends Translator {
         }
 
         RubyNode self = new SelfNode(environment.getFrameDescriptor());
-        self = new RaiseIfFrozenNode(self);
+        self = RaiseIfFrozenNodeGen.create(self);
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3169,7 +3169,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
-                new RaiseIfFrozenNode(new GetDefaultDefineeNode()),
+                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
                 translateNameNodeToSymbol(node.getName())
         });
 
