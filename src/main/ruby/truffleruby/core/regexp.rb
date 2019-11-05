@@ -417,7 +417,7 @@ class MatchData
 
   private def check_initialized
     unless TrufflePrimitive.match_data_initialized?(self)
-      raise TypeError, "uninitialized Match"
+      raise TypeError, 'uninitialized Match'
     end
   end
 end
