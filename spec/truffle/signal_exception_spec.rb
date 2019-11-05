@@ -22,7 +22,7 @@ describe "SignalException" do
     $?.exitstatus.should == 0
   end
 
-  it "runs after at_ext" do
+  it "runs after at_exit" do
     output = ruby_exe(<<-RUBY)
       at_exit do
         puts "hello"

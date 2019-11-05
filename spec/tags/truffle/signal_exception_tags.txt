@@ -1,5 +1,5 @@
 slow:SignalException can be rescued
-slow:SignalException runs after at_ext
+slow:SignalException runs after at_exit
 slow:SignalException cannot be trapped with Signal.trap
 slow:SignalException does not self-signal for VTALRM
 slow:SignalException does not self-signal for USR1 when running on the JVM
