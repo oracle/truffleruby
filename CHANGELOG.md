@@ -16,6 +16,7 @@ Bug fixes:
 * Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
 * Strip trailing whitespaces when BigDecimal gets a string (#1796, @XrXr).
+* Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
 
 Compatibility:
 
