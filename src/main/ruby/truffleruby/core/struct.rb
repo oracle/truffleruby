@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, keyword_init: true, &block)
+  def self.new(klass_name, *attrs, keyword_init: false, &block)
     if klass_name
       if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
@@ -64,7 +64,7 @@ class Struct
     end
 
     klass = Class.new self do
-      _specialize attrs
+      _specialize attrs unless keyword_init
 
       attrs.each do |a|
         define_method(a) { TrufflePrimitive.object_hidden_var_get(self, a) }
@@ -80,6 +80,7 @@ class Struct
       end
 
       const_set :STRUCT_ATTRS, attrs
+      const_set :KEYWORD_INIT, keyword_init
     end
 
     Struct.const_set klass_name, klass if klass_name
@@ -93,10 +94,9 @@ class Struct
     new name, *attrs
   end
 
-  def _attrs # :nodoc:
+  private def _attrs # :nodoc:
     self.class::STRUCT_ATTRS
   end
-  private :_attrs
 
   def select
     return to_enum(:select) { size } unless block_given?
@@ -144,22 +144,41 @@ class Struct
       end
     end
   end
-
   alias_method :inspect, :to_s
 
-  def initialize(*args)
+  private def initialize(*args)
     attrs = _attrs
 
     unless args.length <= attrs.length
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
     end
 
-    attrs.each_with_index do |attr, i|
-      TrufflePrimitive.object_hidden_var_set self, attr, args[i]
+    if self.class::KEYWORD_INIT
+      return if args.empty?
+
+      if args.length > 1 || !args.first.is_a?(Hash)
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+      end
+      kw_args = args.first
+
+      unknowns = []
+      kw_args.each_pair do |attr, value|
+        if attrs.include?(attr)
+          TrufflePrimitive.object_hidden_var_set self, attr, value
+        else
+          unknowns << attr
+        end
+      end
+
+      unless unknowns.empty?
+        raise ArgumentError, "unknown keywords: #{unknowns.join(', ')}"
+      end
+    else
+      attrs.each_with_index do |attr, i|
+        TrufflePrimitive.object_hidden_var_set self, attr, args[i]
+      end
     end
   end
-
-  private :initialize
 
   def ==(other)
     return false if self.class != other.class
@@ -215,7 +234,7 @@ class Struct
     self
   end
 
-  def check_index_var(var)
+  private def check_index_var(var)
     var = Integer(var)
     a_len = _attrs.length
     if var > a_len - 1
@@ -226,7 +245,6 @@ class Struct
     end
     _attrs[var]
   end
-  private :check_index_var
 
   def dig(key, *more)
     result = nil
@@ -280,7 +298,6 @@ class Struct
   # that hashes will be deterministic.
 
   CLASS_SALT = 0xa1982d79
-
   private_constant :CLASS_SALT
 
   def hash
@@ -295,7 +312,6 @@ class Struct
   def length
     _attrs.length
   end
-
   alias_method :size, :length
 
   def self.length
@@ -313,7 +329,6 @@ class Struct
   def to_a
     _attrs.map { |var| TrufflePrimitive.object_hidden_var_get(self, var) }
   end
-
   alias_method :values, :to_a
 
   def values_at(*args)
