@@ -84,12 +84,6 @@ describe "BigDecimal" do
       BigDecimal(@b, @a.precs[0]).to_s.should == "0.166666666666666667e3"
     end
 
-    it "BigDecimal(Rational) with bigger-than-double numerator" do
-      rational = 99999999999999999999/100r
-      rational.numerator.should > 2**64
-      BigDecimal(rational, 100).to_s.should == "0.99999999999999999999e18"
-    end
-
     # Check the top-level expression works as we expect
 
     it "produces a BigDecimal" do

@@ -24,6 +24,12 @@ describe "Kernel#BigDecimal" do
     }
   end
 
+  it "BigDecimal(Rational) with bigger-than-double numerator" do
+    rational = 99999999999999999999/100r
+    rational.numerator.should > 2**64
+    BigDecimal(rational, 100).to_s.should == "0.99999999999999999999e18"
+  end
+
   it "accepts significant digits >= given precision" do
     BigDecimal("3.1415923", 10).precs[1].should >= 10
   end
