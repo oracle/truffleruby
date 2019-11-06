@@ -195,8 +195,8 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @array = Truffle.invoke_primitive(:array_store_to_native, @array)
-      Truffle.invoke_primitive(:array_store_address, @array)
+      @array = TrufflePrimitive.array_store_to_native(@array)
+      TrufflePrimitive.array_store_address(@array)
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
