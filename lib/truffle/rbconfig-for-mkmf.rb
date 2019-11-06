@@ -9,6 +9,9 @@
 # Split from rbconfig.rb since we needed to do expensive tasks like checking the
 # clang, opt and llvm-link versions, historically.
 # TODO: consider merging in rbconfig.rb
+#
+# encoding: ascii-8bit
+# frozen-string-literal: false
 
 require 'rbconfig'
 require_relative 'truffle/cext_preprocessor.rb'

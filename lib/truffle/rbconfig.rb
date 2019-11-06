@@ -31,6 +31,8 @@
 #
 #  RbConfig.expand method imported from MRI sources
 #
+# encoding: ascii-8bit
+# frozen-string-literal: false
 
 module RbConfig
 

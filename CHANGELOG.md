@@ -20,6 +20,7 @@ Bug fixes:
 * Don't clone methods when setting method to the same visibility (#1794, @XrXr).
 * BigDecimal() deal with large rationals precisely (#1797, @XrXr).
 * Make it possible to call `instance_exec` with `rb_block_call` (#1802, @XrXr).
+* Building C extensions should now work with frozen string literals.
 
 Compatibility:
 
