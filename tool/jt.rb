@@ -1792,6 +1792,7 @@ EOS
   def profile(*args)
     require_ruby_launcher!
     env = args.first.is_a?(Hash) ? args.shift : {}
+    stdin = args.delete '-'
 
     require 'tempfile'
 
@@ -1800,7 +1801,7 @@ EOS
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
     begin
-      profile_data = run_ruby(env, *run_args, capture: true)
+      profile_data = stdin ? $stdin.read : run_ruby(env, *run_args, capture: true)
 
       profile_data_file = Tempfile.new %w[truffleruby-profile .json]
       profile_data_file.write(profile_data)
