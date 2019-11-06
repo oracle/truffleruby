@@ -17,7 +17,6 @@
 #include <ruby/encoding.h>
 #include <ruby/io.h>
 #include <ruby/thread_native.h>
-#include <sulong/polyglot.h>
 
 #include <stdlib.h>
 #include <stdarg.h>

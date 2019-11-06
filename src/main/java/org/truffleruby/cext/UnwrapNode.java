@@ -168,6 +168,12 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
             return value;
         }
 
+        @Specialization
+        protected ValueWrapper longToWrapper(long value,
+                @Cached NativeToWrapperNode nativeToWrapperNode) {
+            return nativeToWrapperNode.execute(value);
+        }
+
         @Specialization(
                 guards = { "!isWrapper(value)", "values.isPointer(value)" },
                 limit = "getCacheLimit()",
@@ -215,6 +221,12 @@ public abstract class UnwrapNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "isTaggedLong(value.getHandle())")
     protected long unwrapValueTaggedLong(ValueWrapper value) {
         return value.getHandle() >> 1;
+    }
+
+    @Specialization
+    protected Object longToWrapper(long value,
+            @Cached UnwrapNativeNode unwrapNode) {
+        return unwrapNode.execute(value);
     }
 
     @Specialization(
