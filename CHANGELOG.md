@@ -19,6 +19,7 @@ Bug fixes:
 * Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
 * Don't clone methods when setting method to the same visibility (#1794, @XrXr).
 * BigDecimal() deal with large rationals precisely (#1797, @XrXr).
+* `Process::Status#to_i` return raw `waitpid(2)` status (#1800, @XrXr).
 
 Compatibility:
 
