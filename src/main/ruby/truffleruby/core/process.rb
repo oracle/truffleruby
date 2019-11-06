@@ -748,16 +748,16 @@ module Process
     end
 
     def &(num)
-      @status & num
+      @raw_status & num
     end
 
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
-      @status == other
+      @raw_status == other
     end
 
     def >>(num)
-      @status >> num
+      @raw_status >> num
     end
 
     def coredump?
@@ -765,7 +765,7 @@ module Process
     end
 
     def exited?
-      @status != nil
+      @raw_status != nil
     end
 
     def pid
@@ -782,7 +782,7 @@ module Process
 
     def success?
       if exited?
-        @status == 0
+        @raw_status == 0
       else
         nil
       end
