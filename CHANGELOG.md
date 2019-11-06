@@ -33,6 +33,7 @@ Performance:
 * Use a smaller limit for identity-based inline caches to improve warmup by avoiding too many deoptimizations.
 * Long array strategies now correctly declare that they accept Integers, reducing deoptimisations and proomotions to Object arrays.
 * Enable inline caching of symbol conversion for `rb_iv_get` and `rb_iv_set`.
+* `rb_type` information is now cached on classes as a hidden variable to improve performance.
 
 # 19.3.0
 
