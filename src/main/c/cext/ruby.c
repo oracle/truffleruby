@@ -17,6 +17,7 @@
 #include <ruby/encoding.h>
 #include <ruby/io.h>
 #include <ruby/thread_native.h>
+#include <sulong/polyglot.h>
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -1497,7 +1498,7 @@ VALUE rb_Array(VALUE array) {
 }
 
 VALUE *RARRAY_PTR_IMPL(VALUE array) {
-  return (VALUE *) RUBY_CEXT_INVOKE_NO_WRAP("RARRAY_PTR", array);
+  return (VALUE *) polyglot_as_typed(RUBY_CEXT_INVOKE_NO_WRAP("RARRAY_PTR", array), polyglot_array_typeid(polyglot_i64_typeid(), RARRAY_LEN(array)));
 }
 
 VALUE rb_ary_new() {
