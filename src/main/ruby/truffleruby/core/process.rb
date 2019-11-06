@@ -731,16 +731,16 @@ module Process
     attr_reader :termsig
     attr_reader :stopsig
 
-    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil, raw_status=nil)
+    def initialize(pid=nil, exitstatus=nil, termsig=nil, stopsig=nil, raw_status=nil)
       @pid = pid
-      @status = status
+      @exitstatus = exitstatus
       @termsig = termsig
       @stopsig = stopsig
       @raw_status = raw_status
     end
 
     def exitstatus
-      @status
+      @exitstatus
     end
 
     def to_i
@@ -789,7 +789,7 @@ module Process
     end
 
     def to_s
-      "pid #{@pid.inspect} exit #{@status.inspect}"
+      "pid #{@pid.inspect} exit #{@exitstatus.inspect}"
     end
 
     def inspect
