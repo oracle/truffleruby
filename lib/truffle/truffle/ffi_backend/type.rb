@@ -195,7 +195,7 @@ module FFI
   FFI::Type::Struct = StructByValue
 
   class FunctionType < Type
-    attr_reader :return_type, :param_types, :enums, :blocking
+    attr_reader :return_type, :param_types, :enums, :blocking, :function_index
 
     def initialize(return_type, param_types, options = {})
       super(FFI::Type::POINTER.size, FFI::Type::POINTER.alignment, FFI::Type::POINTER.nfi_type)
@@ -212,6 +212,7 @@ module FFI
       @param_types = param_types
       @enums = options[:enums]
       @blocking = options[:blocking]
+      @function_index = param_types.index { |type| FFI::FunctionType === type }
 
       if varargs
         @signature = nfi_varags_signature(@return_type, varargs, @param_types)

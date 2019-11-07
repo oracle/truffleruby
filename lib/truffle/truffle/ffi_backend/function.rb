@@ -67,23 +67,19 @@ module FFI
       enums = @function_info.enums
       blocking = @function_info.blocking
 
-      converted_args = args.dup
-      if block
-        function_index = param_types.index { |type| FFI::FunctionType === type }
-        converted_args.insert(function_index, block)
+      args.insert(@function_info.function_index, block) if block
+
+      unless args.size == param_types.size
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{param_types.size})"
       end
 
-      unless converted_args.size == param_types.size
-        raise ArgumentError, "wrong number of arguments (given #{converted_args.size}, expected #{param_types.size})"
-      end
-
-      converted_args.each_with_index do |arg, i|
-        converted_args[i] = convert_ruby_to_native(param_types[i], arg, enums)
+      args.each_with_index do |arg, i|
+        args[i] = convert_ruby_to_native(param_types[i], arg, enums)
       end
 
       if blocking
         result = TrufflePrimitive.thread_run_blocking_nfi_system_call -> {
-          r = @function.call(*converted_args)
+          r = @function.call(*args)
           if Integer === r and r == -1 and Errno.errno == Errno::EINTR::Errno
             undefined # retry
           else
@@ -91,7 +87,7 @@ module FFI
           end
         }
       else
-        result = @function.call(*converted_args)
+        result = @function.call(*args)
       end
 
       convert_native_to_ruby(return_type, result)
