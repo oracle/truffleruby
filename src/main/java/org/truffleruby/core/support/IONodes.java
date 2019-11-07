@@ -96,6 +96,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
@@ -485,16 +486,19 @@ public abstract class IONodes {
         @Specialization
         protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
                 @Cached AllocateObjectNode allocateObjectNode,
-                @Cached GetCurrentRubyThreadNode currentThreadNode) {
+                @Cached GetCurrentRubyThreadNode currentThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile sizeProfile) {
             DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
-                    .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(thread, size));
+                    .allocate(
+                            getContext().getCoreLibrary().getTruffleFFIPointerClass(),
+                            getBuffer(thread, size, sizeProfile));
         }
 
-        public static Pointer getBuffer(DynamicObject rubyThread, long size) {
+        public static Pointer getBuffer(DynamicObject rubyThread, long size, ConditionProfile sizeProfile) {
             final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
 
-            if (buffer.getSize() >= size) {
+            if (sizeProfile.profile(buffer.getSize() >= size)) {
                 return buffer;
             } else {
                 return reallocateBuffer(size, rubyThread, buffer);
