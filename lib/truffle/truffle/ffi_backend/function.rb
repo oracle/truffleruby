@@ -67,10 +67,7 @@ module FFI
       enums = @function_info.enums
       blocking = @function_info.blocking
 
-      if block
-        function_index = param_types.index { |type| FFI::FunctionType === type }
-        args.insert(function_index, block)
-      end
+      args.insert(@function_info.function_index, block) if block
 
       unless args.size == param_types.size
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{param_types.size})"
