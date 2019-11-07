@@ -19,6 +19,7 @@ Bug fixes:
 * Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
 * Don't clone methods when setting method to the same visibility (#1794, @XrXr).
 * BigDecimal() deal with large rationals precisely (#1797, @XrXr).
+* Struct.new: check for duplicate members (#1803, @XrXr).
 
 Compatibility:
 
