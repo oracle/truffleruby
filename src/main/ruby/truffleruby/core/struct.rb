@@ -63,6 +63,11 @@ class Struct
       end
     end
 
+    duplicates = attrs.uniq!
+    if duplicates
+      raise ArgumentError, "duplicate member: #{duplicates.first}"
+    end
+
     klass = Class.new self do
       _specialize attrs unless keyword_init
 
