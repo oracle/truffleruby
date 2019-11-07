@@ -1517,7 +1517,7 @@ module Truffle::CExt
           TrufflePrimitive.cext_wrap(block_args.first),
           data,
           block_args.size, # argc
-          RARRAY_PTR(block_args), # argv
+          Truffle::CExt.RARRAY_PTR(block_args), # argv
           nil, # blockarg
       ]))
     end
