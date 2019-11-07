@@ -728,8 +728,7 @@ module Process
 
   class Status
 
-    attr_reader :termsig
-    attr_reader :stopsig
+    attr_reader :exitstatus, :termsig, :stopsig
 
     def initialize(pid=nil, exitstatus=nil, termsig=nil, stopsig=nil, raw_status=nil)
       @pid = pid
@@ -737,10 +736,6 @@ module Process
       @termsig = termsig
       @stopsig = stopsig
       @raw_status = raw_status
-    end
-
-    def exitstatus
-      @exitstatus
     end
 
     def to_i
