@@ -80,8 +80,7 @@ Calls `polyglot_address` if the object responds to it, otherwise throws
 
 ### `TO_NATIVE`
 
-Calls `to_native` if the object responds to it, otherwise throws
-`UnsupportedMessageException`.
+Calls `polyglot_to_native` if the object responds to it.
 
 ### `IS_NULL`
 

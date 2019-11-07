@@ -24,7 +24,7 @@ describe "Truffle::Interop.to_native" do
   it "calls #to_native does internal conversion to support as_pointer" do
     obj = Object.new
 
-    def obj.to_native
+    def obj.polyglot_to_native
       @pointer = Truffle::FFI::Pointer.new(0x123)
     end
 
