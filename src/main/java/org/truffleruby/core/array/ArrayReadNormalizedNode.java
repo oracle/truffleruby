@@ -54,4 +54,7 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
         return index >= 0 && index < strategy.getSize(array);
     }
 
+    public static ArrayReadNormalizedNode create() {
+        return ArrayReadNormalizedNodeGen.create(null, null);
+    }
 }
