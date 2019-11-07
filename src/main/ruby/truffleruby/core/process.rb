@@ -746,13 +746,13 @@ module Process
       @raw_status & num
     end
 
+    def >>(num)
+      @raw_status >> num
+    end
+
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
       @raw_status == other
-    end
-
-    def >>(num)
-      @raw_status >> num
     end
 
     def coredump?
