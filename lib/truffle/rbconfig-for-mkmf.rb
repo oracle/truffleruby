@@ -1,3 +1,5 @@
+# frozen-string-literal: false
+#
 # Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -9,9 +11,6 @@
 # Split from rbconfig.rb since we needed to do expensive tasks like checking the
 # clang, opt and llvm-link versions, historically.
 # TODO: consider merging in rbconfig.rb
-#
-# encoding: ascii-8bit
-# frozen-string-literal: false
 
 require 'rbconfig'
 require_relative 'truffle/cext_preprocessor.rb'
