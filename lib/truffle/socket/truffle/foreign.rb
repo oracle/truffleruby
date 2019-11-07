@@ -304,7 +304,10 @@ module Truffle
 
       def self.socketpair(family, type, protocol)
         pointer = Truffle::FFI::Pool.stack_alloc(:int, 2)
-        _socketpair(family, type, protocol, pointer)
+        pointer.clear
+        status = _socketpair(family, type, protocol, pointer)
+
+        Errno.handle('socketpair(2)') unless status == 0
 
         pointer.read_array_of_int(2)
       end
