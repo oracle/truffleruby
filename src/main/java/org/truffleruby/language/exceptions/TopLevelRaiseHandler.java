@@ -10,7 +10,6 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyNode;
@@ -88,12 +87,9 @@ public class TopLevelRaiseHandler extends RubyNode {
         setExceptionVariableNode.setLastException(frame, exception);
     }
 
-    public void handleSignalException(DynamicObject exception) {
+    private void handleSignalException(DynamicObject exception) {
         if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSignalExceptionClass()) {
-            getContext().getSafepointManager().pauseAllThreadsAndExecute(this, true, (thread, current_node) -> {
-                CallDispatchHeadNode node = CallDispatchHeadNode.getUncached();
-                node.call(exception, "reached_top_level");
-            });
+            CallDispatchHeadNode.getUncached().call(exception, "reached_top_level");
         }
     }
 
