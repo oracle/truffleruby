@@ -9,27 +9,12 @@
 require_relative '../ruby/spec_helper'
 
 describe "SignalException" do
+  # Differs from MRI
   it "does not self-signal for VTALRM" do
     IO.popen([*ruby_exe, "-e", "raise(SignalException, 'VTALRM')"], err: [:child, :out]) do |out|
       out.read.should include("for SIGVTALRM as it is VM reserved")
     end
-    $?.termsig.should be_nil
-  end
-
-  guard -> { TruffleRuby.native? } do
-    it "self-signals for USR1 when running natively" do
-      ruby_exe("raise(SignalException, 'USR1')")
-      $?.termsig.should == Signal.list.fetch('USR1')
-    end
-  end
-
-  guard -> { !TruffleRuby.native? } do
-    it "does not self-signal for USR1 when running on the JVM" do
-      IO.popen([*ruby_exe, "-e", "raise(SignalException, 'USR1')"], err: [:child, :out]) do |out|
-        out.read.should include("for SIGUSR1 as it is VM reserved")
-      end
-
-      $?.termsig.should be_nil
-    end
+    $?.termsig.should == nil
+    $?.exitstatus.should == 1
   end
 end

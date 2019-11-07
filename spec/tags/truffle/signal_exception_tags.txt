@@ -1,3 +1,1 @@
 slow:SignalException does not self-signal for VTALRM
-slow:SignalException does not self-signal for USR1 when running on the JVM
-slow:SignalException self-signals for USR1 when running natively

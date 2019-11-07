@@ -109,4 +109,9 @@ describe "SignalException" do
 
     $?.termsig.should == Signal.list.fetch("PROF")
   end
+
+  it "self-signals for USR1" do
+    ruby_exe("raise(SignalException, 'USR1')")
+    $?.termsig.should == Signal.list.fetch('USR1')
+  end
 end
