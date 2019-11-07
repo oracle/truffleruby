@@ -765,7 +765,7 @@ module Process
     end
 
     def exited?
-      @raw_status != nil
+      @exitstatus != nil
     end
 
     def pid
@@ -782,7 +782,7 @@ module Process
 
     def success?
       if exited?
-        @raw_status == 0
+        @exitstatus == 0
       else
         nil
       end
