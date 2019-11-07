@@ -487,6 +487,7 @@ class SignalException < Exception
       Signal.trap(@signo, 'SYSTEM_DEFAULT')
     rescue ArgumentError
       # some signals are reserved but we can raise them anyways
+      nil
     end
     Truffle::POSIX.raise_signal(@signo)
   end
