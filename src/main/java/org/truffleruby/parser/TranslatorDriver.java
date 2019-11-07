@@ -277,7 +277,7 @@ public class TranslatorDriver {
 
         // Catch return
 
-        if (parserContext == ParserContext.TOP_LEVEL || parserContext == ParserContext.TOP_LEVEL_FIRST) {
+        if (parserContext.isTopLevel()) {
             truffleNode = new CatchForMethodNode(environment.getReturnID(), truffleNode);
         } else if (parserContext != ParserContext.INLINE) {
             truffleNode = new CatchReturnAsErrorNode(truffleNode);
