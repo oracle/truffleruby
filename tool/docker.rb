@@ -122,11 +122,9 @@ class JT
 
       lines << 'WORKDIR /test'
 
-      unless root
-        lines << 'RUN useradd -ms /bin/bash test'
-        lines << 'RUN chown test /test'
-        lines << 'USER test'
-      end
+      lines << 'RUN useradd -ms /bin/bash test'
+      lines << 'RUN chown test /test'
+      lines << 'USER test' unless root
 
       docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
 
@@ -195,6 +193,24 @@ class JT
         ruby_bin = "#{ruby_base}/bin"
       end
 
+      if full_test
+        test_files = %w[
+          spec
+          test/truffle/compiler/pe
+          versions.json
+        ]
+
+        chdir(docker_dir) do
+          FileUtils.rm_rf 'truffleruby-tests'
+          raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
+          test_files.each do |file|
+            FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+          end
+          FileUtils.rm_rf 'truffleruby-tests'
+        end
+      end
+
+
       if rebuild_images
         if [:public, :graalvm].include?(install_method)
           FileUtils.copy native_component, docker_dir
@@ -235,11 +251,10 @@ class JT
       end
 
       if full_test
-        lines << "RUN git clone #{truffleruby_repo} truffleruby-tests"
-        lines << "RUN cd truffleruby-tests && git checkout #{test_branch}"
-        lines << 'RUN cp -r truffleruby-tests/spec .'
-        lines << 'RUN cp -r truffleruby-tests/test/truffle/compiler/pe .'
-        lines << 'RUN rm -rf truffleruby-tests'
+        test_files.each do |path|
+          file = File.basename(path)
+          lines << "COPY --chown=test #{file} #{file}"
+        end
 
         configs.each do |c|
           excludes = ['fails', 'slow']
