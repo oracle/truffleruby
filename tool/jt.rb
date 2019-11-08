@@ -1741,14 +1741,11 @@ EOS
   def benchmark(*args)
     require_ruby_launcher!
 
-    run_args = []
+    vm_args = []
     if truffleruby?
-      run_args.push '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
-    run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
-    run_args.push(*args)
-
-    run_ruby(*run_args, use_exec: true)
+    run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
 
   def profile(*args)
