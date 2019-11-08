@@ -284,6 +284,7 @@ class Dir
 
     def chdir(path = ENV['HOME'])
       path = Truffle::Type.coerce_to_path path
+      path = path.dup.force_encoding(Encoding::LOCALE) if path.encoding == Encoding::BINARY
 
       if block_given?
         original_path = self.getwd
