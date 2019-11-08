@@ -25,6 +25,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 @ReportPolymorphism
 public abstract class ArrayReadNormalizedNode extends RubyNode {
 
+    public static ArrayReadNormalizedNode create() {
+        return ArrayReadNormalizedNodeGen.create(null, null);
+    }
+
     public abstract Object executeRead(DynamicObject array, int index);
 
     // Read within the bounds of an array with actual storage
@@ -52,9 +56,5 @@ public abstract class ArrayReadNormalizedNode extends RubyNode {
 
     protected static boolean isInBounds(DynamicObject array, int index, ArrayStrategy strategy) {
         return index >= 0 && index < strategy.getSize(array);
-    }
-
-    public static ArrayReadNormalizedNode create() {
-        return ArrayReadNormalizedNodeGen.create(null, null);
     }
 }

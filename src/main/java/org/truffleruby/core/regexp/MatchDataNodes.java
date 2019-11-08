@@ -186,8 +186,8 @@ public abstract class MatchDataNodes {
                 @Cached ArrayReadNormalizedNode readNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
             for (int i = 0; i < region.numRegs; i++) {
-                region.beg[i] = (int)readNode.executeRead(starts, i);
-                region.end[i] = (int)readNode.executeRead(ends, i);
+                region.beg[i] = (int) readNode.executeRead(starts, i);
+                region.end[i] = (int) readNode.executeRead(ends, i);
             }
 
             return allocateNode.allocate(
