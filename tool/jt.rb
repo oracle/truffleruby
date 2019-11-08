@@ -1741,22 +1741,10 @@ EOS
   def benchmark(*args)
     require_ruby_launcher!
 
-    args.map! do |a|
-      if a.include?('.rb')
-        benchmark = find_benchmark(a)
-        raise 'benchmark not found' unless File.exist?(benchmark)
-        benchmark
-      else
-        a
-      end
-    end
-
     run_args = []
-
     if truffleruby?
       run_args.push '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
-
     run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push(*args)
 
