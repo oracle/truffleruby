@@ -55,9 +55,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         private void check(R previous, R next) {
 
             if (next != null && next == previous) {
-                Error e = new Error();
-                e.printStackTrace();
-                throw e;
+                throw new Error();
             }
 
         }
