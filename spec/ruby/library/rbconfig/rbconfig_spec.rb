@@ -23,6 +23,20 @@ describe 'RbConfig::CONFIG' do
       File.should.exist?("#{archdir}/etc.#{RbConfig::CONFIG['DLEXT']}")
     end
   end
+
+  it "contains no frozen strings" do
+    s = <<-EOF
+require 'rbconfig'
+RbConfig::CONFIG.each do |k, v|
+  if v.frozen?
+    puts "\#{k} Failure"
+  end
+end
+puts 'Done'
+EOF
+
+    ruby_exe( s, options: '--enable-frozen-string-literal', escape: true ).should == "Done\n"
+  end
 end
 
 describe "RbConfig::TOPDIR" do
