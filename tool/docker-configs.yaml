@@ -13,7 +13,7 @@ ol7:
   images: gcc
   zlib: zlib-devel
   openssl: openssl-devel
-  cext: make
+  cext: gcc make
 ubuntu1804:
   base: ubuntu:18.04
   setup:
@@ -32,7 +32,7 @@ ubuntu1804:
   images: gcc
   zlib: libz-dev
   openssl: libssl-dev
-  cext: make
+  cext: gcc make
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -51,7 +51,7 @@ ubuntu1604:
   images: gcc
   zlib: libz-dev
   openssl: libssl-dev
-  cext: make
+  cext: gcc make
 fedora28:
   base: fedora:28
   setup:
@@ -67,4 +67,4 @@ fedora28:
   images: gcc
   zlib: zlib-devel
   openssl: openssl-devel
-  cext: make
+  cext: gcc make
