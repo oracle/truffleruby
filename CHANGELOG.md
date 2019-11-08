@@ -23,6 +23,7 @@ Bug fixes:
 * Struct.new: check for duplicate members (#1803, @XrXr).
 * `Process::Status#to_i` return raw `waitpid(2)` status (#1800, @XrXr).
 * Process#exec: set close-on-exec to false for fd redirection (#1805, @XrXr, @rafaelfranca).
+* Keep the Truffle working directory in sync with the native working directory.
 
 Compatibility:
 
