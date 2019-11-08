@@ -1,0 +1,1 @@
+slow:mkmf can be run with frozen string literals
