@@ -23,7 +23,7 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  versions = JSON.parse(File.read(File.join(File.dirname(__FILE__), '../../versions.json')))
+  versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
 
   launchers = { bundle:      /^Bundler version #{versions['gems']['default']['bundler']}$/,
                 bundler:     /^Bundler version #{versions['gems']['default']['bundler']}$/,
