@@ -27,7 +27,7 @@ end
 abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
-GRAAL_DIR = File.join(TRUFFLERUBY_DIR, '..', 'graal')
+GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = '0d24b400927e58dc0ada9c76c15fb2b7915008d4'
