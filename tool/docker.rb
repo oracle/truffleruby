@@ -98,23 +98,24 @@ class JT
       run_post_install_hook = rebuild_openssl
 
       lines = []
+      packages = []
 
       lines.push "FROM #{distro.fetch('base')}"
-
       lines.push(*distro.fetch('setup'))
-
       lines.push(*distro.fetch('locale'))
 
-      lines.push(*distro.fetch('curl')) if install_method == :public
-      lines.push(*distro.fetch('git')) if install_method == :source || full_test
-      lines.push(*distro.fetch('which')) if full_test
-      lines.push(*distro.fetch('find')) if full_test
-      lines.push(*distro.fetch('source')) if install_method == :source
-      lines.push(*distro.fetch('images')) if rebuild_images
+      packages << distro.fetch('curl') if install_method == :public
+      packages << distro.fetch('git') if install_method == :source || full_test
+      packages << distro.fetch('which') if full_test
+      packages << distro.fetch('find') if full_test
+      packages << distro.fetch('source') if install_method == :source
+      packages << distro.fetch('images') if rebuild_images
 
-      lines.push(*distro.fetch('zlib'))
-      lines.push(*distro.fetch('openssl'))
-      lines.push(*distro.fetch('cext'))
+      packages << distro.fetch('zlib')
+      packages << distro.fetch('openssl')
+      packages << distro.fetch('cext')
+
+      lines << [distro.fetch('install'), *packages.compact].join(' ')
 
       lines.push 'WORKDIR /test'
       lines.push 'RUN useradd -ms /bin/bash test'
