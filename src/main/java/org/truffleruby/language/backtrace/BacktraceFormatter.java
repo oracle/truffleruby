@@ -31,6 +31,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 
 public class BacktraceFormatter {
 
@@ -187,13 +188,7 @@ public class BacktraceFormatter {
         try {
             return formatLineInternal(activations, n, exception);
         } catch (Exception e) {
-            if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-                e.printStackTrace();
-
-                if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                    printBacktraceOnEnvStderr(null);
-                }
-            }
+            TranslateExceptionNode.logJavaException(context, null, e);
 
             final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
             return StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame);
