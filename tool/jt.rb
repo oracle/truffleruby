@@ -277,14 +277,6 @@ module Utilities
     end
   end
 
-  def find_gem(name)
-    [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
-      found = Dir.glob("#{dir}/#{name}").sort.first
-      return File.expand_path(found) if found
-    end
-    raise "Can't find the #{name} gem - gem install it in this repository, or put it in the repository directory or its parent"
-  end
-
   def git_branch
     @git_branch ||= `GIT_DIR="#{TRUFFLERUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
   end
@@ -1765,7 +1757,6 @@ EOS
       run_args.push '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
-    run_args.push "-I#{find_gem('benchmark-ips')}/lib" rescue nil
     run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push(*args)
 
