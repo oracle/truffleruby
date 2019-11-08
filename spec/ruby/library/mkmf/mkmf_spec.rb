@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'mkmf' do
-  it 'can be run with frozen string literals' do
-    ruby_exe('puts "Success"', options: '-rmkmf --enable-frozen-string-literal', escape: true).should == "Success\n"
+  it 'can be required with --enable-frozen-string-literal' do
+    ruby_exe('p MakeMakefile', options: '-rmkmf --enable-frozen-string-literal').should == "MakeMakefile\n"
   end
 end

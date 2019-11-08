@@ -24,18 +24,16 @@ describe 'RbConfig::CONFIG' do
     end
   end
 
-  it "contains no frozen strings" do
-    s = <<-EOF
-require 'rbconfig'
-RbConfig::CONFIG.each do |k, v|
-  if v.frozen?
-    puts "\#{k} Failure"
-  end
-end
-puts 'Done'
-EOF
-
-    ruby_exe( s, options: '--enable-frozen-string-literal', escape: true ).should == "Done\n"
+  it "contains no frozen strings even with --enable-frozen-string-literal" do
+    ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
+      require 'rbconfig'
+      RbConfig::CONFIG.each do |k, v|
+        if v.frozen?
+          puts "\#{k} Failure"
+        end
+      end
+      puts 'Done'
+    RUBY
   end
 end
 

@@ -1,1 +1,1 @@
-slow:RbConfig::CONFIG contains no frozen strings
+slow:RbConfig::CONFIG contains no frozen strings even with --enable-frozen-string-literal

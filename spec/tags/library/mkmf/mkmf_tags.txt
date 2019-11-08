@@ -1,1 +1,1 @@
-slow:mkmf can be run with frozen string literals
+slow:mkmf can be required with --enable-frozen-string-literal
