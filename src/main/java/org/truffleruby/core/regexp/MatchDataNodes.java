@@ -28,6 +28,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
@@ -181,13 +182,12 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
-                @Cached AllocateObjectNode allocateNode) {
+                @Cached AllocateObjectNode allocateNode,
+                @Cached ArrayReadNormalizedNode readNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
-            int[] startsInt = (int[]) ArrayHelpers.getStore(starts);
-            int[] endsInt = (int[]) ArrayHelpers.getStore(ends);
             for (int i = 0; i < region.numRegs; i++) {
-                region.beg[i] = startsInt[i];
-                region.end[i] = endsInt[i];
+                region.beg[i] = (int) readNode.executeRead(starts, i);
+                region.end[i] = (int) readNode.executeRead(ends, i);
             }
 
             return allocateNode.allocate(
