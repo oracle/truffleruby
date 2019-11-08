@@ -58,6 +58,7 @@ class JT
       rebuild_openssl = true
       basic_test = false
       full_test = false
+      root = false
 
       until args.empty?
         arg = args.shift
@@ -89,6 +90,8 @@ class JT
         when '--test'
           full_test = true
           test_branch = args.shift
+        when '--root'
+          root = true
         else
           abort "unknown option #{arg}"
         end
@@ -118,9 +121,12 @@ class JT
       lines << [distro.fetch('install'), *packages.compact].join(' ')
 
       lines.push 'WORKDIR /test'
-      lines.push 'RUN useradd -ms /bin/bash test'
-      lines.push 'RUN chown test /test'
-      lines.push 'USER test'
+
+      unless root
+        lines.push 'RUN useradd -ms /bin/bash test'
+        lines.push 'RUN chown test /test'
+        lines.push 'USER test'
+      end
 
       docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
 
