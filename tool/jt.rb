@@ -1891,7 +1891,7 @@ EOS
     # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
     # The suite file is automatically updated on every graal PR merged.
     graal_enterprise_commit = raw_sh(
-        'git', '-C', ee_path, 'log', 'origin/master', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m',
+        'git', '-C', ee_path, 'log', 'origin/release/graal-vm/19.3', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m',
         '-S', merge_commit_in_graal, '--', suite_file, capture: true).lines.first.chomp
     raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
   end
