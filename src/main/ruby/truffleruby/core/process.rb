@@ -598,16 +598,18 @@ module Process
     input_pid = Truffle::Type.coerce_to input_pid, Integer, :to_int
     flags ||= 0
 
-    FFI::MemoryPointer.new(:int, 3) do |ptr|
+    FFI::MemoryPointer.new(:int, 4) do |ptr|
       pid = Truffle::POSIX.truffleposix_waitpid(input_pid, flags, ptr)
       if pid == 0
         return nil
       elsif pid == -1
         Errno.handle "No child process: #{input_pid}"
       else
-        exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
+        ints = ptr.read_array_of_int(4)
+        exitcode, termsig, stopsig, = ints.map { |e| e == -1000 ? nil : e }
+        raw_status = ints.last
 
-        status = Process::Status.new(pid, exitcode, termsig, stopsig)
+        status = Process::Status.new(pid, exitcode, termsig, stopsig, raw_status)
         TrufflePrimitive.thread_set_return_code status
 
         [pid, status]
@@ -726,35 +728,31 @@ module Process
 
   class Status
 
-    attr_reader :termsig
-    attr_reader :stopsig
+    attr_reader :exitstatus, :termsig, :stopsig
 
-    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil)
+    def initialize(pid=nil, exitstatus=nil, termsig=nil, stopsig=nil, raw_status=nil)
       @pid = pid
-      @status = status
+      @exitstatus = exitstatus
       @termsig = termsig
       @stopsig = stopsig
-    end
-
-    def exitstatus
-      @status
+      @raw_status = raw_status
     end
 
     def to_i
-      @status
+      @raw_status
     end
 
     def &(num)
-      @status & num
+      @raw_status & num
+    end
+
+    def >>(num)
+      @raw_status >> num
     end
 
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
-      @status == other
-    end
-
-    def >>(num)
-      @status >> num
+      @raw_status == other
     end
 
     def coredump?
@@ -762,7 +760,7 @@ module Process
     end
 
     def exited?
-      @status != nil
+      @exitstatus != nil
     end
 
     def pid
@@ -779,14 +777,14 @@ module Process
 
     def success?
       if exited?
-        @status == 0
+        @exitstatus == 0
       else
         nil
       end
     end
 
     def to_s
-      "pid #{@pid.inspect} exit #{@status.inspect}"
+      "pid #{@pid.inspect} exit #{@exitstatus.inspect}"
     end
 
     def inspect

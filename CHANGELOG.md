@@ -21,6 +21,7 @@ Bug fixes:
 * BigDecimal() deal with large rationals precisely (#1797, @XrXr).
 * Make it possible to call `instance_exec` with `rb_block_call` (#1802, @XrXr).
 * Struct.new: check for duplicate members (#1803, @XrXr).
+* `Process::Status#to_i` return raw `waitpid(2)` status (#1800, @XrXr).
 
 Compatibility:
 
