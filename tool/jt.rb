@@ -516,11 +516,6 @@ module Utilities
       ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
     end
   end
-
-  def newer?(input, output)
-    return true unless File.exist? output
-    File.mtime(input) > File.mtime(output)
-  end
 end
 
 module Commands
