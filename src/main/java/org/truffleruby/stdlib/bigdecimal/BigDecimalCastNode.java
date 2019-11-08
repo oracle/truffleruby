@@ -135,7 +135,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
         } else if (object instanceof Double) {
             return BigDecimal.valueOf((double) object);
         } else if (RubyGuards.isRubyBignum(object)) {
-            return BigDecimal.valueOf(Layouts.BIGNUM.getValue((DynamicObject) object).doubleValue());
+            return new BigDecimal(Layouts.BIGNUM.getValue((DynamicObject) object));
         } else {
             throw new UnsupportedOperationException();
         }

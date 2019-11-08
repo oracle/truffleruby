@@ -40,7 +40,7 @@ Object.deprecate_constant :Fixnum, :Bignum
 class Integer < Numeric
 
   # Have a copy in Integer of the Numeric version, as MRI does
-  public :remainder
+  alias_method :remainder, :remainder
 
   def **(o)
     pow = TrufflePrimitive.integer_pow self, o

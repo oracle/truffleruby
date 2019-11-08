@@ -166,7 +166,7 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 
 ## Authors
 
-The main authors of TruffleRuby in order of joining the project are:
+The main authors of TruffleRuby ordered by first contribution are:
 
 * Chris Seaton
 * Benoit Daloze
@@ -175,6 +175,8 @@ The main authors of TruffleRuby in order of joining the project are:
 * Brandon Fish
 * Duncan MacGregor
 * Christian Wirth
+* Rafael França
+* Alan Wu
 
 Additionally:
 

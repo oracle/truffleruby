@@ -48,6 +48,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -870,6 +871,7 @@ public abstract class MathNodes {
         return (y < 0.0) ? -abs : abs;
     }
 
+    @TruffleBoundary
     public static double nemes_gamma(double x) {
         double int_part = (int) x;
 
@@ -884,6 +886,7 @@ public abstract class MathNodes {
         public final double value;
         public final double sign;
 
+        @TruffleBoundary
         public NemesLogGamma(double x) {
             if (Double.isInfinite(x)) {
                 value = Double.POSITIVE_INFINITY;

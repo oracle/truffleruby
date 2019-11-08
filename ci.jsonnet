@@ -227,7 +227,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "ce-11.0.5+9-jvmci-19.3-b03",
+          version: "ce-11.0.5+10-jvmci-19.3-b04",
           platformspecific: true,
         },
       },

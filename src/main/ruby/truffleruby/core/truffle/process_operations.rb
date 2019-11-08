@@ -113,7 +113,7 @@ module Truffle
 
     class Execute
       def initialize
-        @options = { close_others: true }
+        @options = {}
         @files_for_child = []
       end
 

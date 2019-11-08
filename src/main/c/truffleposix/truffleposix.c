@@ -249,7 +249,7 @@ int truffleposix_getpriority(int which, id_t who) {
   return r;
 }
 
-pid_t truffleposix_waitpid(pid_t pid, int options, int result[3]) {
+pid_t truffleposix_waitpid(pid_t pid, int options, int result[4]) {
   int status = 0;
   pid_t r = waitpid(pid, &status, options);
   if (r <= 0) {
@@ -268,6 +268,7 @@ pid_t truffleposix_waitpid(pid_t pid, int options, int result[3]) {
   result[0] = exitcode;
   result[1] = termsig;
   result[2] = stopsig;
+  result[3] = status;
   return r;
 }
 

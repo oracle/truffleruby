@@ -30,6 +30,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -477,7 +478,7 @@ public abstract class KernelNodes {
 
             propagateTaintNode.propagate(self, newObject);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.executeIsFrozen(self))) {
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.execute(self))) {
                 if (freezeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     freezeNode = insert(FreezeNode.create());
@@ -754,7 +755,7 @@ public abstract class KernelNodes {
                 isFrozenNode = insert(IsFrozenNode.create());
             }
 
-            return isFrozenNode.executeIsFrozen(self);
+            return isFrozenNode.execute(self);
         }
 
     }
@@ -1929,7 +1930,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsFrozenNode isFrozenNode;
+        @Child private RaiseIfFrozenNode raiseIfFrozenNode;
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
         @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
@@ -1965,11 +1966,11 @@ public abstract class KernelNodes {
         }
 
         protected void checkFrozen(Object object) {
-            if (isFrozenNode == null) {
+            if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNode.create());
+                raiseIfFrozenNode = insert(RaiseIfFrozenNode.create());
             }
-            isFrozenNode.raiseIfFrozen(object);
+            raiseIfFrozenNode.execute(object);
         }
 
     }

@@ -82,6 +82,10 @@ public class TryNode extends RubyNode {
     private Object handleException(VirtualFrame frame, RaiseException exception) {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {
+                if (getContext().getOptions().BACKTRACE_ON_RESCUE) {
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(exception.getException());
+                }
+
                 if (canOmitBacktrace) {
                     /* If we're in this branch, we've already determined that the rescue body doesn't access `$!`.
                      * Thus, we can safely skip writing that value. Writing to `$!` is quite expensive, so we want

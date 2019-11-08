@@ -10,7 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.RaiseIfFrozenNode;
+import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.language.RubyNode;
@@ -59,7 +59,7 @@ public class PrimitiveNodeConstructor {
         if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
             return FixnumLowerNodeGen.create(argument);
         } else if (n == 0 && annotation.raiseIfFrozenSelf()) {
-            return new RaiseIfFrozenNode(argument);
+            return RaiseIfFrozenNodeGen.create(argument);
         } else {
             return argument;
         }

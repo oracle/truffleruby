@@ -50,7 +50,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             isFrozenNode = insert(IsFrozenNode.create());
         }
-        return isFrozenNode.executeIsFrozen(value);
+        return isFrozenNode.execute(value);
     }
 
     private Object dup(Object value) {

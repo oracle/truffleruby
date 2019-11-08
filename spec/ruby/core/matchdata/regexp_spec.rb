@@ -15,4 +15,9 @@ describe "MatchData#regexp" do
     'he[[o'.gsub('[', ']')
     $~.regexp.should == /\[/
   end
+
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data.regexp }.should raise_error(TypeError)
+  end
 end

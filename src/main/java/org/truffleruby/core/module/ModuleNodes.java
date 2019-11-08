@@ -31,6 +31,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.RaiseIfFrozenNode;
+import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
@@ -87,7 +88,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
@@ -1810,7 +1810,7 @@ public abstract class ModuleNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
+        @Child private RaiseIfFrozenNode raiseIfFrozenNode = RaiseIfFrozenNode.create();
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
@@ -1822,7 +1822,7 @@ public abstract class ModuleNodes {
         }
 
         private void removeMethod(VirtualFrame frame, DynamicObject module, String name) {
-            isFrozenNode.raiseIfFrozen(module);
+            raiseIfFrozenNode.execute(module);
 
             if (Layouts.MODULE.getFields(module).removeMethod(name)) {
                 if (RubyGuards.isSingletonClass(module)) {
@@ -1884,7 +1884,7 @@ public abstract class ModuleNodes {
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(
+        @Child private RaiseIfFrozenNode raiseIfFrozenNode = RaiseIfFrozenNodeGen.create(
                 ProfileArgumentNodeGen.create(new ReadSelfNode()));
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
@@ -2011,6 +2011,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
+            }
+
+            // Do nothing if the method already exists with the same visibility, like MRI
+            if (method.getVisibility() == visibility) {
+                return;
             }
 
             /*

@@ -31,4 +31,9 @@ describe "MatchData#post_match" do
     str = "abc".force_encoding Encoding::ISO_8859_1
     str.match(/c/).post_match.encoding.should equal(Encoding::ISO_8859_1)
   end
+
+  it "raises TypeError when uninitialized" do
+    match_data = MatchData.allocate
+    -> { match_data.post_match }.should raise_error(TypeError)
+  end
 end

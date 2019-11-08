@@ -15,16 +15,29 @@ Bug fixes:
 * Coercion fixes for `TCPServer.new` (#1780, @XrXr)
 * Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
+* Strip trailing whitespaces when BigDecimal gets a string (#1796, @XrXr).
+* Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
+* Don't clone methods when setting method to the same visibility (#1794, @XrXr).
+* BigDecimal() deal with large rationals precisely (#1797, @XrXr).
+* Make it possible to call `instance_exec` with `rb_block_call` (#1802, @XrXr).
+* Struct.new: check for duplicate members (#1803, @XrXr).
+* `Process::Status#to_i` return raw `waitpid(2)` status (#1800, @XrXr).
 
 Compatibility:
 
 * Implemented `String#start_with?(Regexp)` (#1771, @zhublik).
 * Various improvements to `SignalException` and signal handling (#1790, @XrXr).
+* Implemented `rb_utf8_str_new`, `rb_utf8_str_new_cstr`, `rb_utf8_str_new_static` (#1788, @chrisseaton).
+* Implemented the `unit` argument of `Time.at` (#1791, @XrXr).
+* Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
+* Implemented `MatchData#dup` (#1792, @XrXr).
 
 Performance:
 
 * Use a smaller limit for identity-based inline caches to improve warmup by avoiding too many deoptimizations.
 * Long array strategies now correctly declare that they accept Integers, reducing deoptimisations and proomotions to Object arrays.
+* Enable inline caching of symbol conversion for `rb_iv_get` and `rb_iv_set`.
+* `rb_type` information is now cached on classes as a hidden variable to improve performance.
 
 # 19.3.0
 

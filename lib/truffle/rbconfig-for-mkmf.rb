@@ -58,6 +58,11 @@ if Truffle::Boot.get_option 'building-core-cexts'
   warnflags << '-Werror' # Make sure there are no warnings in core C extensions
 else
   libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
+
+  # GR-19453: workaround for finding libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
+  rpath_libcxx = " -rpath #{File.expand_path("../../lib", RbConfig::CONFIG['CC'])}"
+  ldflags << rpath_libcxx
+  dldflags << rpath_libcxx
 end
 
 # Link to libtruffleruby by absolute path

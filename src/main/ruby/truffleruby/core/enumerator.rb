@@ -496,11 +496,12 @@ class Enumerator
       end
     end
 
-    public :chunk
-    public :chunk_while
-    public :slice_after
-    public :slice_before
-    public :slice_when
+    # clone these methods from the superclass
+    alias_method :chunk, :chunk
+    alias_method :chunk_while, :chunk_while
+    alias_method :slice_after, :slice_after
+    alias_method :slice_before, :slice_before
+    alias_method :slice_when, :slice_when
 
     def uniq
       if block_given?
