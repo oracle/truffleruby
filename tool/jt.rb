@@ -1661,10 +1661,6 @@ EOS
     metrics_time_format_results(samples, use_json, flamegraph)
   end
 
-  def command_format(*args)
-    mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
-  end
-
   private def metrics_time_format_results(samples, use_json, flamegraph)
     min_time = Float(ENV.fetch('TRUFFLERUBY_METRICS_MIN_TIME', '-1'))
 
@@ -2017,6 +2013,10 @@ EOS
       args += RUBOCOP_INCLUDE_LIST
     end
     sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
+  end
+
+  def command_format(*args)
+    mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
   end
 
   private def check_filename_length
