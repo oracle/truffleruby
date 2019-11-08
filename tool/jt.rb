@@ -258,14 +258,6 @@ module Utilities
     raise 'This command requires TruffleRuby.' unless truffleruby?
   end
 
-  def find_repo(name)
-    [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
-      found = Dir.glob("#{dir}/#{name}*").sort.first
-      return File.expand_path(found) if found
-    end
-    raise "Can't find the #{name} repo - clone it into the repository directory or its parent"
-  end
-
   def find_or_clone_repo(url, commit=nil)
     name = File.basename url, '.git'
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
@@ -630,7 +622,6 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
-      jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt install jvmci                              install a JVMCI JDK in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
@@ -1823,15 +1814,6 @@ EOS
     ensure
       flamegraph_data_file.close! if flamegraph_data_file
       profile_data_file.close! if profile_data_file
-    end
-  end
-
-  def where(*args)
-    case args.shift
-    when 'repos'
-      args.each do |a|
-        puts find_repo(a)
-      end
     end
   end
 
