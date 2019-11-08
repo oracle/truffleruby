@@ -72,3 +72,46 @@ describe "rescuing SignalException" do
     end
   end
 end
+
+describe "SignalException" do
+  it "can be rescued" do
+    ruby_exe(<<-RUBY)
+      begin
+        raise SignalException, 'SIGKILL'
+      rescue SignalException
+        exit(0)
+      end
+      exit(1)
+    RUBY
+
+    $?.exitstatus.should == 0
+  end
+
+  it "runs after at_exit" do
+    output = ruby_exe(<<-RUBY)
+      at_exit do
+        puts "hello"
+        $stdout.flush
+      end
+
+      raise SignalException, 'SIGKILL'
+    RUBY
+
+    $?.termsig.should == Signal.list.fetch("KILL")
+    output.should == "hello\n"
+  end
+
+  it "cannot be trapped with Signal.trap" do
+    ruby_exe(<<-RUBY)
+      Signal.trap("PROF") {}
+      raise(SignalException, "PROF")
+    RUBY
+
+    $?.termsig.should == Signal.list.fetch("PROF")
+  end
+
+  it "self-signals for USR1" do
+    ruby_exe("raise(SignalException, 'USR1')")
+    $?.termsig.should == Signal.list.fetch('USR1')
+  end
+end

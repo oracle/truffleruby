@@ -143,6 +143,7 @@ public class CoreLibrary {
     private final DynamicObject regexpErrorClass;
     private final DynamicObject graalErrorClass;
     private final DynamicObject runtimeErrorClass;
+    private final DynamicObject signalExceptionClass;
     private final DynamicObject systemStackErrorClass;
     private final DynamicObject securityErrorClass;
     private final DynamicObject standardErrorClass;
@@ -403,7 +404,7 @@ public class CoreLibrary {
         securityErrorClass = defineClass(exceptionClass, "SecurityError");
 
         // SignalException
-        DynamicObject signalExceptionClass = defineClass(exceptionClass, "SignalException");
+        signalExceptionClass = defineClass(exceptionClass, "SignalException");
         defineClass(signalExceptionClass, "Interrupt");
 
         // SystemExit
@@ -1328,6 +1329,10 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getRandomizerFactory() {
         return randomizerFactory;
+    }
+
+    public DynamicObject getSignalExceptionClass() {
+        return signalExceptionClass;
     }
 
     public DynamicObject getSystemExitClass() {
