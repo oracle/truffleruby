@@ -209,9 +209,7 @@ class JT
 
       lines.push "ENV PATH=#{ruby_bin}:$PATH"
 
-      configs = ['']
-      configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
-      configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
+      configs = [:public, :graalvm].include?(install_method) ? %w[--native --jvm] : ['']
 
       configs.each do |c|
         lines.push "RUN ruby #{c} --version"
@@ -221,12 +219,7 @@ class JT
         configs.each do |c|
           lines.push "RUN cp -r #{ruby_base}/lib/gems /test/clean-gems"
 
-          if c == '' && install_method != :source
-            gem = 'gem'
-          else
-            gem = "ruby #{c} -Sgem"
-          end
-
+          gem = "ruby #{c} -S gem"
           lines.push "RUN #{gem} install color"
           lines.push "RUN ruby #{c} -rcolor -e 'raise unless defined?(Color)'"
 
