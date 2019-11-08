@@ -219,14 +219,14 @@ class JT
         configs.each do |c|
           lines.push "RUN cp -r #{ruby_base}/lib/gems /test/clean-gems"
 
-          gem = "ruby #{c} -S gem"
-          lines.push "RUN #{gem} install color"
+          gem_install = "ruby #{c} -S gem install --no-document"
+          lines.push "RUN #{gem_install} color"
           lines.push "RUN ruby #{c} -rcolor -e 'raise unless defined?(Color)'"
 
-          lines.push "RUN #{gem} install oily_png"
+          lines.push "RUN #{gem_install} oily_png"
           lines.push "RUN ruby #{c} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"
 
-          lines.push "RUN #{gem} install unf"
+          lines.push "RUN #{gem_install} unf"
           lines.push "RUN ruby #{c} -runf -e 'raise unless defined?(UNF)'"
 
           lines.push "RUN rm -rf #{ruby_base}/lib/gems"
