@@ -775,16 +775,6 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean specializesFor(Object value) {
-            return !(value instanceof Integer) && !(value instanceof Long) && !(value instanceof Double);
-        }
-
-        @Override
-        public boolean isDefaultValue(Object value) {
-            return value == null;
-        }
-
-        @Override
         public boolean matchesStore(Object store) {
             return store != null && store.getClass() == NativeArrayStorage.class;
         }
