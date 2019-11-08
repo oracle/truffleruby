@@ -38,9 +38,12 @@
  */
 package org.truffleruby.core;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.TruffleFile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -58,6 +61,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
@@ -115,6 +119,27 @@ public abstract class TruffleSystemNodes {
             return System.getenv(name);
         }
 
+    }
+
+    @Primitive(name = "dir_set_truffle_working_directory")
+    public abstract static class SetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(dir)")
+        protected DynamicObject setTruffleWorkingDir(DynamicObject dir) {
+            TruffleFile truffleFile = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(dir));
+            final TruffleFile canonicalFile;
+            try {
+                canonicalFile = truffleFile.getCanonicalFile();
+            } catch (NoSuchFileException e) {
+                return nil(); // Let the following chdir() fail
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+            getContext().getEnv().setCurrentWorkingDirectory(canonicalFile);
+            getContext().getFeatureLoader().setWorkingDirectory(canonicalFile.getPath());
+            return dir;
+        }
     }
 
     @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)

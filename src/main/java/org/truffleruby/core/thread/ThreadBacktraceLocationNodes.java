@@ -54,7 +54,7 @@ public class ThreadBacktraceLocationNodes {
             } else {
                 final String canonicalPath;
                 if (new File(path).isAbsolute()) { // A normal file
-                    canonicalPath = getContext().getFeatureLoader().canonicalize(null, path);
+                    canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                 } else { // eval()
                     canonicalPath = path;
                 }
