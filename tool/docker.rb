@@ -29,26 +29,21 @@ class JT
 
     private def docker_test(*args)
       distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
-      managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
       distros.each do |distro|
-        managers.each do |manager|
-          puts '**********************************'
-          puts '**********************************'
-          puts '**********************************'
-          distros.each do |d|
-            managers.each do |m|
-              print "#{d} #{m}"
-              print '     <---' if [d, m] == [distro, manager]
-              puts
-            end
-          end
-          puts '**********************************'
-          puts '**********************************'
-          puts '**********************************'
-
-          docker 'build', distro, manager, *args
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+        distros.each do |d|
+          print d
+          print '     <---' if d == distro
+          puts
         end
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+
+        docker 'build', distro, *args
       end
     end
 
@@ -61,7 +56,6 @@ class JT
       public_version = '1.0.0-rc14'
       rebuild_images = false
       rebuild_openssl = true
-      manager = :none
       basic_test = false
       full_test = false
 
@@ -90,10 +84,6 @@ class JT
           native_component = args.shift
         when '--no-rebuild-openssl'
           rebuild_openssl = false
-        when '--no-manager'
-          manager = :none
-        when '--rbenv', '--chruby', '--rvm'
-          manager = arg[2..-1].to_sym
         when '--basic-test'
           basic_test = true
         when '--test'
@@ -116,10 +106,9 @@ class JT
       lines.push(*distro.fetch('locale'))
 
       lines.push(*distro.fetch('curl')) if install_method == :public
-      lines.push(*distro.fetch('git')) if install_method == :source || manager != :none || full_test
-      lines.push(*distro.fetch('which')) if manager == :rvm || full_test
+      lines.push(*distro.fetch('git')) if install_method == :source || full_test
+      lines.push(*distro.fetch('which')) if full_test
       lines.push(*distro.fetch('find')) if full_test
-      lines.push(*distro.fetch('rvm')) if manager == :rvm
       lines.push(*distro.fetch('source')) if install_method == :source
       lines.push(*distro.fetch('images')) if rebuild_images
 
@@ -211,56 +200,14 @@ class JT
         end
       end
 
-      case manager
-      when :none
-        lines.push "ENV PATH=#{ruby_bin}:$PATH"
-
-        setup_env = ->(command) do
-          command
-        end
-      when :rbenv
-        lines.push 'RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv'
-        lines.push 'RUN mkdir /home/test/.rbenv/versions'
-        lines.push 'ENV PATH=/home/test/.rbenv/bin:$PATH'
-        lines.push 'RUN rbenv --version'
-
-        lines.push "RUN ln -s #{ruby_base} /home/test/.rbenv/versions/truffleruby"
-        lines.push 'RUN rbenv versions'
-
-        setup_env = ->(command) do
-          "eval \"$(rbenv init -)\" && rbenv shell truffleruby && #{command}"
-        end
-      when :chruby
-        lines.push 'RUN git clone --depth 1 https://github.com/postmodern/chruby.git'
-        lines.push 'ENV CRUBY_SH=/test/chruby/share/chruby/chruby.sh'
-        lines.push "RUN bash -c 'source $CRUBY_SH && chruby --version'"
-
-        lines.push 'RUN mkdir /home/test/.rubies'
-        lines.push "RUN ln -s #{ruby_base} /home/test/.rubies/truffleruby"
-        lines.push "RUN bash -c 'source $CRUBY_SH && chruby'"
-
-        setup_env = ->(command) do
-          "bash -c 'source $CRUBY_SH && chruby truffleruby && #{command.gsub("'", "'\\\\''")}'"
-        end
-      when :rvm
-        lines.push 'RUN git clone --depth 1 https://github.com/rvm/rvm.git'
-        lines.push 'ENV RVM_SCRIPT=/test/rvm/scripts/rvm'
-        lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm --version'"
-
-        lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm mount #{ruby_base} -n truffleruby'"
-        lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm list'"
-
-        setup_env = ->(command) do
-          "bash -c 'source $RVM_SCRIPT && rvm use ext-truffleruby && #{command.gsub("'", "'\\\\''")}'"
-        end
-      end
+      lines.push "ENV PATH=#{ruby_bin}:$PATH"
 
       configs = ['']
       configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
       configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
 
       configs.each do |c|
-        lines.push 'RUN ' + setup_env["ruby #{c} --version"]
+        lines.push "RUN ruby #{c} --version"
       end
 
       if basic_test || full_test
@@ -273,14 +220,14 @@ class JT
             gem = "ruby #{c} -Sgem"
           end
 
-          lines.push 'RUN ' + setup_env["#{gem} install color"]
-          lines.push 'RUN ' + setup_env["ruby #{c} -rcolor -e 'raise unless defined?(Color)'"]
+          lines.push "RUN #{gem} install color"
+          lines.push "RUN ruby #{c} -rcolor -e 'raise unless defined?(Color)'"
 
-          lines.push 'RUN ' + setup_env["#{gem} install oily_png"]
-          lines.push 'RUN ' + setup_env["ruby #{c} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"]
+          lines.push "RUN #{gem} install oily_png"
+          lines.push "RUN ruby #{c} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"
 
-          lines.push 'RUN ' + setup_env["#{gem} install unf"]
-          lines.push 'RUN ' + setup_env["ruby #{c} -runf -e 'raise unless defined?(UNF)'"]
+          lines.push "RUN #{gem} install unf"
+          lines.push "RUN ruby #{c} -runf -e 'raise unless defined?(UNF)'"
 
           lines.push "RUN rm -rf #{ruby_base}/lib/gems"
           lines.push "RUN mv /test/clean-gems #{ruby_base}/lib/gems"
@@ -300,16 +247,16 @@ class JT
           [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
             t_config = c.empty? ? '' : '-T' + c
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
-            lines.push 'RUN ' + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"]
+            lines.push "RUN ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
           end
         end
 
         configs.each do |c|
-          lines.push 'RUN ' + setup_env["ruby #{c} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"]
+          lines.push "RUN ruby #{c} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"
         end
       end
 
-      lines.push 'CMD ' + setup_env['bash']
+      lines.push 'CMD bash'
 
       lines.join("\n") + "\n"
     end
