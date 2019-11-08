@@ -281,7 +281,7 @@ module Utilities
     if File.exist?(benchmark)
       benchmark
     else
-      File.join(TRUFFLERUBY_DIR, 'bench', benchmark)
+      "#{TRUFFLERUBY_DIR}/bench/#{benchmark}"
     end
   end
 
@@ -1876,8 +1876,7 @@ EOS
   end
 
   def checkout_enterprise_revision
-    ee_path = File.expand_path File.join(TRUFFLERUBY_DIR, '..', 'graal-enterprise')
-    graal_path = File.expand_path GRAAL_DIR
+    ee_path = File.expand_path '../graal-enterprise', TRUFFLERUBY_DIR
     unless File.directory?(ee_path)
       github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
       bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: true).chomp
@@ -1892,7 +1891,7 @@ EOS
     suite_file = File.join ee_path, 'vm-enterprise/mx.vm-enterprise/suite.py'
     # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
     merge_commit_in_graal = raw_sh(
-        'git', '-C', graal_path, 'log', '--pretty=%H', '--grep=PullRequest:', '--merges', '--max-count=1', get_truffle_version,
+        'git', '-C', GRAAL_DIR, 'log', '--pretty=%H', '--grep=PullRequest:', '--merges', '--max-count=1', get_truffle_version,
         capture: true).chomp
     # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
     # The suite file is automatically updated on every graal PR merged.
