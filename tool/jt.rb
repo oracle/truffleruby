@@ -1753,35 +1753,23 @@ EOS
     env = args.first.is_a?(Hash) ? args.shift : {}
     stdin = args.delete '-'
 
-    require 'tempfile'
-
     repo = find_or_clone_repo('https://github.com/eregon/FlameGraph.git', 'graalvm')
+    Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
 
-    run_args = *DEFAULT_PROFILE_OPTIONS + args
+    profile_data_file = "#{PROFILES_DIR}/truffleruby-profile.json"
+    flamegraph_data_file = "#{PROFILES_DIR}/truffleruby-flamegraph-data.stacks"
+    svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
 
-    begin
-      profile_data = stdin ? $stdin.read : run_ruby(env, *run_args, capture: true)
-
-      profile_data_file = Tempfile.new %w[truffleruby-profile .json]
-      profile_data_file.write(profile_data)
-      profile_data_file.close
-
-      flamegraph_data = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
-
-      flamegraph_data_file = Tempfile.new 'truffleruby-flamegraph-data'
-      flamegraph_data_file.write(flamegraph_data)
-      flamegraph_data_file.close
-
-      svg_data = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
-
-      Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
-      svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
-      File.open(svg_filename, 'w') { |f| f.write(svg_data) }
-      app_open svg_filename
-    ensure
-      flamegraph_data_file.close! if flamegraph_data_file
-      profile_data_file.close! if profile_data_file
+    if stdin
+      File.write(profile_data_file, STDIN.read)
+    else
+      run_args = *DEFAULT_PROFILE_OPTIONS + args
+      run_ruby(env, *run_args, out: profile_data_file)
     end
+    raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file, out: flamegraph_data_file
+    raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file, out: svg_filename
+
+    app_open svg_filename
   end
 
   def install(name, *options)
