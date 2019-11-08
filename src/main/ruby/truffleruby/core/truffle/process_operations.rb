@@ -419,7 +419,7 @@ module Truffle
         to = (-to + 1) if to < 0
         if alter_process && from == to
           flags = Truffle::POSIX.fcntl(from, File::F_GETFD, 0)
-          unless flags < 0 || flags & File::FD_CLOEXEC == 0
+          if flags >= 0 && (flags & File::FD_CLOEXEC) != 0
             Truffle::POSIX.fcntl(from, File::F_SETFD, flags ^ File::FD_CLOEXEC)
           end
         end
