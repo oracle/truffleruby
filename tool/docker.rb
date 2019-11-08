@@ -267,7 +267,7 @@ class JT
         end
 
         configs.each do |c|
-          lines << "RUN ruby #{c} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb"
+          lines << "RUN ruby #{c} --vm.Dgraal.TruffleCompilationExceptionsAreThrown=true --vm.Dgraal.TruffleIterativePartialEscape=true pe/pe.rb || true"
         end
       end
 
