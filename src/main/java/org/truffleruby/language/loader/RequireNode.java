@@ -324,6 +324,14 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @TruffleBoundary
     private void handleCExtensionException(String feature, Exception e) {
+        if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
+            e.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
+            }
+        }
+
         final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
         if (linkErrorException != null) {
             final String linkError = linkErrorException.getMessage();
