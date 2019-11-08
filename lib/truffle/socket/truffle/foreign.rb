@@ -95,35 +95,33 @@ module Truffle
       attach_function :freeifaddrs, [:pointer], :void
 
       def self.bind(descriptor, sockaddr)
-        memory_pointer(:char, sockaddr.bytesize) do |sockaddr_p|
-          sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+        sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
 
-          _bind(descriptor, sockaddr_p, sockaddr.bytesize)
-        end
+        sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+
+        _bind(descriptor, sockaddr_p, sockaddr.bytesize)
       end
 
       def self.connect(descriptor, sockaddr)
         sockaddr = Socket.coerce_to_string(sockaddr)
 
-        memory_pointer(:char, sockaddr.bytesize) do |sockaddr_p|
-          sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+        sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
 
-          _connect(descriptor, sockaddr_p, sockaddr.bytesize)
-        end
+        sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+
+        _connect(descriptor, sockaddr_p, sockaddr.bytesize)
       end
 
       def self.getsockopt(descriptor, level, optname)
-        memory_pointer(256) do |val|
-          memory_pointer(:socklen_t) do |length|
-            length.write_int(256)
+        val, length = Truffle::FFI::Pool.stack_alloc(:char, 256, :socklen_t, 1)
 
-            err = _getsockopt(descriptor, level, optname, val, length)
+        length.write_int(256)
 
-            Errno.handle('Unable to get socket option') unless err == 0
+        err = _getsockopt(descriptor, level, optname, val, length)
 
-            return val.read_string(length.read_int)
-          end
-        end
+        Errno.handle('Unable to get socket option') unless err == 0
+
+        val.read_string(length.read_int)
       end
 
       def self.getaddrinfo(host, service = nil, family = nil, socktype = nil,
@@ -135,7 +133,8 @@ module Truffle
         hints[:ai_protocol] = protocol || 0
         hints[:ai_flags]    = flags || 0
 
-        res_p = memory_pointer(:pointer)
+        res_p = Truffle::FFI::Pool.stack_alloc(:pointer, 1)
+        res_p.clear
         err   = _getaddrinfo(host, service, hints.pointer, res_p)
 
         raise SocketError, gai_strerror(err) unless err == 0
@@ -173,8 +172,6 @@ module Truffle
 
           # Be sure to feed a legit pointer to freeaddrinfo
           freeaddrinfo(ptr) unless ptr.null?
-
-          res_p.free
         end
       end
 
@@ -188,32 +185,29 @@ module Truffle
                            reverse_lookup = !BasicSocket.do_not_reverse_lookup)
         name_info = []
 
-        char_pointer(sockaddr.bytesize) do |sockaddr_p|
-          char_pointer(::Socket::NI_MAXHOST) do |node|
-            char_pointer(::Socket::NI_MAXSERV) do |service|
-              sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+        sockaddr_p, node, service = Truffle::FFI::Pool.stack_alloc(
+          :char, sockaddr.bytesize, :char, ::Socket::NI_MAXHOST, :char, ::Socket::NI_MAXSERV)
 
-              if reverse_lookup
-                err = _getnameinfo(sockaddr_p, sockaddr.bytesize, node,
-                                   ::Socket::NI_MAXHOST, nil, 0, 0)
+        sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
 
-                name_info[2] = node.read_string if err == 0
-              end
+        if reverse_lookup
+          err = _getnameinfo(sockaddr_p, sockaddr.bytesize, node,
+                             ::Socket::NI_MAXHOST, nil, 0, 0)
 
-              err = _getnameinfo(sockaddr_p, sockaddr.bytesize, node,
-                                 ::Socket::NI_MAXHOST, service,
-                                 ::Socket::NI_MAXSERV, flags)
-
-              raise SocketError, gai_strerror(err) unless err == 0
-
-              sa_family = SockaddrIn.new(sockaddr_p)[:sin_family]
-
-              name_info[0] = ::Socket::Constants::AF_TO_FAMILY[sa_family]
-              name_info[1] = service.read_string
-              name_info[3] = node.read_string
-            end
-          end
+          name_info[2] = node.read_string if err == 0
         end
+
+        err = _getnameinfo(sockaddr_p, sockaddr.bytesize, node,
+                           ::Socket::NI_MAXHOST, service,
+                           ::Socket::NI_MAXSERV, flags)
+
+        raise SocketError, gai_strerror(err) unless err == 0
+
+        sa_family = SockaddrIn.new(sockaddr_p)[:sin_family]
+
+        name_info[0] = ::Socket::Constants::AF_TO_FAMILY[sa_family]
+        name_info[1] = service.read_string
+        name_info[3] = node.read_string
 
         name_info[2] = name_info[3] unless name_info[2]
 
@@ -221,30 +215,25 @@ module Truffle
       end
 
       def self.getpeername(descriptor)
-        memory_pointer(:char, 128) do |sockaddr_storage_p|
-          memory_pointer(:socklen_t) do |len_p|
-            len_p.write_int(128)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
+        len_p.write_int(128)
 
-            err = _getpeername(descriptor, sockaddr_storage_p, len_p)
+        err = _getpeername(descriptor, sockaddr_storage_p, len_p)
 
-            Errno.handle('getpeername(2)') unless err == 0
+        Errno.handle('getpeername(2)') unless err == 0
 
-            sockaddr_storage_p.read_string(len_p.read_int)
-          end
-        end
+        sockaddr_storage_p.read_string(len_p.read_int)
       end
 
       def self.getsockname(descriptor)
-        memory_pointer(:char, 128) do |sockaddr_storage_p|
-          memory_pointer(:socklen_t) do |len_p|
-            len_p.write_int(128)
-            err = _getsockname(descriptor, sockaddr_storage_p, len_p)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
 
-            Errno.handle('getsockname(2)') unless err == 0
+        len_p.write_int(128)
+        err = _getsockname(descriptor, sockaddr_storage_p, len_p)
 
-            sockaddr_storage_p.read_string(len_p.read_int)
-          end
-        end
+        Errno.handle('getsockname(2)') unless err == 0
+
+        sockaddr_storage_p.read_string(len_p.read_int)
       end
 
       def self.pack_sockaddr_in(host, port, family = ::Socket::AF_UNSPEC,
@@ -270,7 +259,8 @@ module Truffle
           host = '0.0.0.0'
         end
 
-        res_p = memory_pointer(:pointer)
+        res_p = Truffle::FFI::Pool.stack_alloc(:pointer, 1)
+        res_p.clear
 
         err = _getaddrinfo(host, port.to_s, hints.pointer, res_p)
 
@@ -288,8 +278,6 @@ module Truffle
           ptr = res_p.read_pointer
 
           freeaddrinfo(ptr) unless ptr.null?
-
-          res_p.free
         end
       end
 
@@ -315,11 +303,13 @@ module Truffle
       end
 
       def self.socketpair(family, type, protocol)
-        memory_pointer(:int, 2) do |pointer|
-          _socketpair(family, type, protocol, pointer)
+        pointer = Truffle::FFI::Pool.stack_alloc(:int, 2)
+        pointer.clear
+        status = _socketpair(family, type, protocol, pointer)
 
-          pointer.read_array_of_int(2)
-        end
+        Errno.handle('socketpair(2)') unless status == 0
+
+        pointer.read_array_of_int(2)
       end
 
       def self.char_pointer(length, &block)
@@ -354,13 +344,13 @@ module Truffle
           address = address[0...i]
         end
 
-        memory_pointer(:pointer, size) do |pointer|
-          status = inet_pton(family, address, pointer)
+        pointer = Truffle::FFI::Pool.stack_alloc(:pointer, size)
 
-          Errno.handle('inet_pton()') if status < 1
+        status = inet_pton(family, address, pointer)
 
-          pointer.get_array_of_uchar(0, size)
-        end
+        Errno.handle('inet_pton()') if status < 1
+
+        pointer.get_array_of_uchar(0, size)
       end
     end
   end

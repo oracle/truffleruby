@@ -70,7 +70,6 @@ import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -82,6 +81,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Visibility;
@@ -96,6 +96,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
@@ -483,25 +484,33 @@ public abstract class IONodes {
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getThreadBuffer(long size,
-                @Cached AllocateObjectNode allocateObjectNode) {
+        protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
+                @Cached AllocateObjectNode allocateObjectNode,
+                @Cached GetCurrentRubyThreadNode currentThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile sizeProfile) {
+            DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
-                    .allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
+                    .allocate(
+                            getContext().getCoreLibrary().getTruffleFFIPointerClass(),
+                            getBuffer(thread, size, sizeProfile));
+        }
+
+        public static Pointer getBuffer(DynamicObject rubyThread, long size, ConditionProfile sizeProfile) {
+            final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
+
+            if (sizeProfile.profile(buffer.getSize() >= size)) {
+                return buffer;
+            } else {
+                return reallocateBuffer(size, rubyThread, buffer);
+            }
         }
 
         @TruffleBoundary
-        public static Pointer getBuffer(RubyContext context, long size) {
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
-            final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
-
-            if (buffer.getSize() >= size) {
-                return buffer;
-            } else {
-                buffer.freeNoAutorelease();
-                final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
-                Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
-                return newBuffer;
-            }
+        private static Pointer reallocateBuffer(long size, final DynamicObject rubyThread, final Pointer buffer) {
+            buffer.freeNoAutorelease();
+            final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
+            Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
+            return newBuffer;
         }
 
     }

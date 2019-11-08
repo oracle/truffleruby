@@ -44,6 +44,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class FeatureLoader {
@@ -142,7 +143,8 @@ public class FeatureLoader {
             return System.getProperty("user.dir");
         }
         final int bufferSize = PATH_MAX;
-        final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
+        final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+        final Pointer buffer = GetThreadBufferNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
         if (address == 0) {
             context.send(context.getCoreLibrary().getErrnoModule(), "handle");
