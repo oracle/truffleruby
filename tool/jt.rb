@@ -196,7 +196,7 @@ module Utilities
     raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
 
     unless @silent
-      shortened_path = @ruby_launcher.gsub(%r[^#{TRUFFLERUBY_DIR}/], '').gsub(%r[/bin/ruby$], '').gsub(%r[/#{language_dir}/ruby$], '')
+      shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/ruby$], '').sub(%r[/#{language_dir}/ruby$], '')
       tags = [*('Native' if truffleruby_native?),
               *('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
