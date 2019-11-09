@@ -110,6 +110,7 @@ suite = {
                 "test/truffle/ecosystem/hello-world",
                 "test/truffle/ecosystem/rails-app",
                 "test/truffle/offline",
+                "tool/docker",
                 "rubyspec_temp",
             ]
         },
