@@ -71,7 +71,7 @@ class JT
         when '--graalvm'
           install_method = :graalvm
           graalvm_tarball = args.shift
-          graalvm_component = args.shift
+          graalvm_components = args.shift.split(':').map { |path| File.expand_path(path) }
         when '--standalone'
           install_method = :standalone
           standalone_tarball = args.shift
@@ -145,7 +145,7 @@ class JT
         graalvm_base = '/test/graalvm'
         lines << "RUN mkdir #{graalvm_base}"
         lines << "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-        lines << "RUN #{graalvm_base}/bin/gu install org.graalvm.ruby | tee install.log"
+        lines << "RUN #{graalvm_base}/bin/gu install ruby | tee install.log"
         lines.push(*check_post_install_message)
         ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
         graalvm_bin = "#{graalvm_base}/bin"
@@ -153,18 +153,22 @@ class JT
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :graalvm
         FileUtils.copy graalvm_tarball, docker_dir unless print_only
-        FileUtils.copy graalvm_component, docker_dir unless print_only
         graalvm_tarball = File.basename(graalvm_tarball)
-        graalvm_component = File.basename(graalvm_component)
         lines << "COPY #{graalvm_tarball} /test/"
-        lines << "COPY #{graalvm_component} /test/"
         graalvm_base = '/test/graalvm'
         lines << "RUN mkdir #{graalvm_base}"
         lines << "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-        ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
         graalvm_bin = "#{graalvm_base}/bin"
+
+        graalvm_components.each do |component|
+          FileUtils.copy component, docker_dir unless print_only
+          component = File.basename(component)
+          lines << "COPY #{component} /test/"
+          lines << "RUN #{graalvm_bin}/gu install --file /test/#{component} | tee -a install.log"
+        end
+        ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
         ruby_bin = graalvm_bin
-        lines << "RUN #{graalvm_bin}/gu install --file /test/#{graalvm_component} | tee install.log"
+
         lines.push(*check_post_install_message)
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :standalone

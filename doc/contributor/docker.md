@@ -30,9 +30,9 @@ $ jt docker print --fedora28 --source
 Or, to run a full set of tests on a set of new release candidate tarballs:
 
 ```bash
-$ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable-ce.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable-ee.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
+$ jt docker test --graalvm graalvm-ce.tar.gz llvm-toolchain-installable.jar:ruby-installable-ce.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
 $ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
@@ -50,7 +50,7 @@ Pick one of:
 Pick one of:
 
 * From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0` (default)
-* From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz ruby-installable.jar`
+* From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz llvm-toolchain-installable.jar:ruby-installable.jar`
 * From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
 * From source, `--source master`
 
