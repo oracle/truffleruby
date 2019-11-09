@@ -109,13 +109,15 @@ class JT
 
       packages << distro.fetch('curl') if install_method == :public || install_method == :source
       packages << distro.fetch('git') if install_method == :source || full_test
+      packages << distro.fetch('tar') if install_method != :source
       packages << distro.fetch('which') if full_test
       packages << distro.fetch('find') if full_test
-      packages << distro.fetch('source') if install_method == :source
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
       packages << distro.fetch('cext')
+
+      packages << distro.fetch('source') if install_method == :source
 
       lines << [distro.fetch('install'), *packages.compact].join(' ')
 

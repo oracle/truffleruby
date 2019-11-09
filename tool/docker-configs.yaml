@@ -1,6 +1,7 @@
 rpm_packages: &rpm_packages
   curl: curl
   git: git
+  tar: tar gzip
   which: which
   find: findutils
   zlib: zlib-devel
@@ -11,6 +12,7 @@ rpm_packages: &rpm_packages
 deb_packages: &deb_packages
   curl: curl
   git: git
+  tar:
   which:
   find:
   zlib: libz-dev
