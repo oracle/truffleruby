@@ -3,14 +3,12 @@ ol7:
   setup:
   locale:
     - ENV LANG=en_US.UTF-8
-  jdk: openjdk1.8.0_181
   install: RUN yum install -y
   curl: curl
   which: which
   find:
   git: git
   source: java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper gcc libstdc++-static python ruby
-  images: gcc
   zlib: zlib-devel
   openssl: openssl-devel
   cext: gcc make
@@ -22,14 +20,12 @@ ubuntu1804:
     - RUN apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  jdk: openjdk1.8.0_181
   install: RUN apt-get install -y
   curl: curl
   which:
   find:
   git: git
   source: openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  images: gcc
   zlib: libz-dev
   openssl: libssl-dev
   cext: gcc libxml2 make
@@ -41,14 +37,12 @@ ubuntu1604:
     - RUN apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  jdk: openjdk1.8.0_181
   install: RUN apt-get install -y
   curl: curl
   which:
   find:
   git: git
   source: openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  images: gcc
   zlib: libz-dev
   openssl: libssl-dev
   cext: gcc libxml2 make
@@ -57,14 +51,12 @@ fedora28:
   setup:
   locale:
     - ENV LANG=en_US.UTF-8
-  jdk: openjdk1.8.0_181
   install: RUN dnf install -y
   curl: curl
   git: git
   which: which
   find: findutils
-  source: java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper make gcc libstdc++-static python ruby rubygem-json
-  images: gcc
   zlib: zlib-devel
   openssl: openssl-devel
   cext: gcc make
+  source: file gcc-c++ python ruby rubygem-json

@@ -68,7 +68,7 @@ test/mri/tests/cext-c/**/mkmf.log
 /mri_tests.txt
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack
-/tool/docker/*
+/tool/docker
 /tool/llvm-ol7/*.tar.gz
 
 # Benchmarking

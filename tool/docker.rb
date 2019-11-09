@@ -10,7 +10,7 @@ class JT
       when nil, 'test'
         docker_test(*args)
       when 'print'
-        puts dockerfile(*args)
+        puts dockerfile(*args, '--print')
       else
         abort "Unkown jt docker command #{command}"
       end
@@ -50,7 +50,6 @@ class JT
     private def dockerfile(*args)
       config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
-      truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
       distro = 'ol7'
       install_method = :public
       public_version = '1.0.0-rc14'
@@ -59,12 +58,11 @@ class JT
       basic_test = false
       full_test = false
       root = false
+      print_only = false
 
       until args.empty?
         arg = args.shift
         case arg
-        when '--repo'
-          truffleruby_repo = args.shift
         when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
           distro = arg[2..-1]
         when '--public'
@@ -92,6 +90,8 @@ class JT
           test_branch = args.shift
         when '--root'
           root = true
+        when '--print'
+          print_only = true
         else
           abort "unknown option #{arg}"
         end
@@ -112,7 +112,6 @@ class JT
       packages << distro.fetch('which') if full_test
       packages << distro.fetch('find') if full_test
       packages << distro.fetch('source') if install_method == :source
-      packages << distro.fetch('images') if rebuild_images
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
@@ -126,7 +125,11 @@ class JT
       lines << 'RUN chown test /test'
       lines << 'USER test' unless root
 
-      docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+      unless print_only
+        docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+        FileUtils.rm_rf docker_dir
+        Dir.mkdir docker_dir
+      end
 
       check_post_install_message = [
           "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
@@ -147,8 +150,8 @@ class JT
         ruby_bin = graalvm_bin
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :graalvm
-        FileUtils.copy graalvm_tarball, docker_dir
-        FileUtils.copy graalvm_component, docker_dir
+        FileUtils.copy graalvm_tarball, docker_dir unless print_only
+        FileUtils.copy graalvm_component, docker_dir unless print_only
         graalvm_tarball = File.basename(graalvm_tarball)
         graalvm_component = File.basename(graalvm_component)
         lines << "COPY #{graalvm_tarball} /test/"
@@ -163,7 +166,7 @@ class JT
         lines.push(*check_post_install_message)
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :standalone
-        FileUtils.copy standalone_tarball, docker_dir
+        FileUtils.copy standalone_tarball, docker_dir unless print_only
         standalone_tarball = File.basename(standalone_tarball)
         lines << "COPY #{standalone_tarball} /test/"
         ruby_base = '/test/truffleruby-standalone'
@@ -174,26 +177,16 @@ class JT
       when :source
         lines << 'RUN git clone --depth 1 https://github.com/graalvm/mx.git'
         lines << 'ENV PATH=$PATH:/test/mx'
-        lines << 'RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git'
-
-        # Disable compiler warnings as errors, as we may be using a more recent compiler
-        lines << "RUN sed -i 's/WARNINGS_ARE_ERRORS = -Werror/WARNINGS_ARE_ERRORS = /g' graal-jvmci-8/make/linux/makefiles/gcc.make"
-
-        lines << 'RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build'
-        lines << "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
-        lines << 'ENV PATH=$JAVA_HOME/bin:$PATH'
-        lines << 'ENV JVMCI_VERSION_CHECK=ignore'
-        lines << 'RUN java -version'
-        lines << 'RUN git clone https://github.com/oracle/graal.git'
-        lines << "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
-        lines << 'RUN cd truffleruby && mx build'
-        lines << 'RUN cd graal/compiler && mx build'
-        lines << "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/jdk1.8/graal.jar'"
-        ruby_base = '/test/truffleruby'
+        raw_sh 'git', 'clone', '--branch', source_branch, TRUFFLERUBY_DIR, "#{docker_dir}/truffleruby" unless print_only
+        raw_sh 'git', 'clone', GRAAL_DIR, "#{docker_dir}/graal" unless print_only
+        lines << 'COPY --chown=test truffleruby truffleruby'
+        lines << 'COPY --chown=test graal graal'
+        lines << 'RUN cd truffleruby && tool/jt.rb build'
+        ruby_base = '/test/truffleruby/mxbuild/truffleruby-jvm'
         ruby_bin = "#{ruby_base}/bin"
       end
 
-      if full_test
+      if full_test and !print_only
         test_files = %w[
           spec
           test/truffle/compiler/pe
@@ -201,7 +194,6 @@ class JT
         ]
 
         chdir(docker_dir) do
-          FileUtils.rm_rf 'truffleruby-tests'
           raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
           test_files.each do |file|
             FileUtils.cp_r "truffleruby-tests/#{file}", '.'
@@ -213,7 +205,7 @@ class JT
 
       if rebuild_images
         if [:public, :graalvm].include?(install_method)
-          FileUtils.copy native_component, docker_dir
+          FileUtils.copy native_component, docker_dir unless print_only
           native_component = File.basename(native_component)
           lines << "COPY #{native_component} /test/"
           lines << "RUN #{graalvm_bin}/gu install --file /test/#{native_component} | tee install.log"

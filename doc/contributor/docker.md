@@ -67,7 +67,6 @@ Pick any of:
 * Print the Dockerfile rather than building it, `print` instead of `build`
 * Rebuild `polyglot` and `libpolyglot` images after installing the Ruby component, `--rebuild-images`
 * Run a full set of Docker tests we care about, `test` instead of `build`
-* Use a custom TruffleRuby repo, `--repo url`
 * Do not rebuild `openssl`, to test error messages, `--no-rebuild-openssl`
 
 When using `test` you need to specify the method of installing, and what to do.
