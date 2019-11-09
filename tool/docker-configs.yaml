@@ -1,17 +1,39 @@
+rpm_packages: &rpm_packages
+  curl: curl
+  git: git
+  which: which
+  find: findutils
+  zlib: zlib-devel
+  openssl: openssl-devel
+  cext: gcc make
+  source: file gcc-c++ python ruby
+
+deb_packages: &deb_packages
+  curl: curl
+  git: git
+  which:
+  find:
+  zlib: libz-dev
+  openssl: libssl-dev
+  cext: gcc libxml2 make
+  source: file g++ python ruby
+
 ol7:
   base: oraclelinux:7-slim
   setup:
   locale:
     - ENV LANG=en_US.UTF-8
   install: RUN yum install -y
-  curl: curl
-  which: which
-  find:
-  git: git
-  source: java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper gcc libstdc++-static python ruby
-  zlib: zlib-devel
-  openssl: openssl-devel
-  cext: gcc make
+  <<: *rpm_packages
+
+fedora28:
+  base: fedora:28
+  setup:
+  locale:
+    - ENV LANG=en_US.UTF-8
+  install: RUN dnf install -y
+  <<: *rpm_packages
+
 ubuntu1804:
   base: ubuntu:18.04
   setup:
@@ -21,14 +43,8 @@ ubuntu1804:
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
   install: RUN apt-get install -y
-  curl: curl
-  which:
-  find:
-  git: git
-  source: openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  zlib: libz-dev
-  openssl: libssl-dev
-  cext: gcc libxml2 make
+  <<: *deb_packages
+
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -38,25 +54,4 @@ ubuntu1604:
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
   install: RUN apt-get install -y
-  curl: curl
-  which:
-  find:
-  git: git
-  source: openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  zlib: libz-dev
-  openssl: libssl-dev
-  cext: gcc libxml2 make
-fedora28:
-  base: fedora:28
-  setup:
-  locale:
-    - ENV LANG=en_US.UTF-8
-  install: RUN dnf install -y
-  curl: curl
-  git: git
-  which: which
-  find: findutils
-  zlib: zlib-devel
-  openssl: openssl-devel
-  cext: gcc make
-  source: file gcc-c++ python ruby rubygem-json
+  <<: *deb_packages
