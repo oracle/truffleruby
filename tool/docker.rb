@@ -107,7 +107,7 @@ class JT
       lines.push(*distro.fetch('setup'))
       lines.push(*distro.fetch('locale'))
 
-      packages << distro.fetch('curl') if install_method == :public
+      packages << distro.fetch('curl') if install_method == :public || install_method == :source
       packages << distro.fetch('git') if install_method == :source || full_test
       packages << distro.fetch('which') if full_test
       packages << distro.fetch('find') if full_test
