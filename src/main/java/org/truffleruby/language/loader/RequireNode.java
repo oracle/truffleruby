@@ -33,6 +33,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
@@ -324,6 +325,8 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @TruffleBoundary
     private void handleCExtensionException(String feature, Exception e) {
+        TranslateExceptionNode.logJavaException(getContext(), this, e);
+
         final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
         if (linkErrorException != null) {
             final String linkError = linkErrorException.getMessage();

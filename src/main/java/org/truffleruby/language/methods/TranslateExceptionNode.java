@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -45,6 +46,16 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
 
     public abstract RuntimeException executeTranslation(Throwable throwable,
             UnsupportedOperationBehavior unsupportedOperationBehavior);
+
+    public static void logJavaException(RubyContext context, Node currentNode, Throwable exception) {
+        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
+            exception.printStackTrace();
+
+            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(currentNode);
+            }
+        }
+    }
 
     @Specialization
     protected RuntimeException translate(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior,
@@ -95,14 +106,7 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
 
     @TruffleBoundary
     private DynamicObject translateArithmeticException(RubyContext context, ArithmeticException exception) {
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            exception.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
-
+        logJavaException(context, this, exception);
         return context.getCoreExceptions().zeroDivisionError(this, exception);
     }
 
@@ -113,14 +117,7 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
             System.err.print("[ruby] WARNING StackOverflowError\n");
         }
 
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            error.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
-
+        logJavaException(context, this, error);
         return context.getCoreExceptions().systemStackErrorStackLevelTooDeep(this, error);
     }
 
@@ -131,26 +128,13 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
             System.err.print("[ruby] WARNING OutOfMemoryError\n");
         }
 
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            error.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
-
+        logJavaException(context, this, error);
         return context.getCoreExceptions().noMemoryError(this, error);
     }
 
     @TruffleBoundary
     private DynamicObject translateIllegalArgument(RubyContext context, IllegalArgumentException exception) {
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            exception.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
+        logJavaException(context, this, exception);
 
         String message = exception.getMessage();
 
@@ -167,13 +151,7 @@ public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode 
             UnsupportedSpecializationException exception,
             UnsupportedOperationBehavior unsupportedOperationBehavior) {
 
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            exception.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
+        logJavaException(context, this, exception);
 
         final StringBuilder builder = new StringBuilder();
         builder.append("TruffleRuby doesn't have a case for the ");
