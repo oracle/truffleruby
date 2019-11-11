@@ -1,27 +1,41 @@
+rpm_packages: &rpm_packages
+  curl: curl
+  git: git
+  tar: tar gzip
+  which: which
+  find: findutils
+  zlib: zlib-devel
+  openssl: openssl-devel
+  cext: gcc make
+  source: file gcc-c++ python ruby
+
+deb_packages: &deb_packages
+  curl: curl
+  git: git
+  tar:
+  which:
+  find:
+  zlib: libz-dev
+  openssl: libssl-dev
+  cext: gcc libxml2 make
+  source: file g++ python ruby
+
 ol7:
   base: oraclelinux:7-slim
   setup:
   locale:
     - ENV LANG=en_US.UTF-8
-  curl:
-    - RUN yum install -y curl
-  which:
-    - RUN yum install -y which
-  find:
-  git:
-    - RUN yum install -y git
-  source:
-    - RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper gcc libstdc++-static python ruby
-  images:
-    - RUN yum install -y gcc
-  jdk: openjdk1.8.0_181
-  zlib:
-    - RUN yum install -y zlib-devel
-  openssl:
-    - RUN yum install -y openssl-devel
-  cext:
-    - RUN yum install -y make
-  rvm:
+  install: RUN yum install -y
+  <<: *rpm_packages
+
+fedora28:
+  base: fedora:28
+  setup:
+  locale:
+    - ENV LANG=en_US.UTF-8
+  install: RUN dnf install -y
+  <<: *rpm_packages
+
 ubuntu1804:
   base: ubuntu:18.04
   setup:
@@ -30,24 +44,9 @@ ubuntu1804:
     - RUN apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  curl:
-    - RUN apt-get install -y curl
-  which:
-  find:
-  git:
-    - RUN apt-get install -y git  
-  source:
-    - RUN apt-get install -y openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  images:
-    - RUN apt-get install -y gcc
-  jdk: openjdk1.8.0_181
-  zlib:
-    - RUN apt-get install -y libz-dev
-  openssl:
-    - RUN apt-get install -y libssl-dev
-  cext:
-    - RUN apt-get install -y make
-  rvm:
+  install: RUN apt-get install -y
+  <<: *deb_packages
+
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -56,47 +55,5 @@ ubuntu1604:
     - RUN apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  curl:
-    - RUN apt-get install -y curl
-  which:
-  find:
-  git:
-    - RUN apt-get install -y git  
-  source:
-    - RUN apt-get install -y openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
-  images:
-    - RUN apt-get install -y gcc
-  jdk: openjdk1.8.0_181
-  zlib:
-    - RUN apt-get install -y libz-dev
-  openssl:
-    - RUN apt-get install -y libssl-dev
-  cext:
-    - RUN apt-get install -y make
-  rvm:
-fedora28:
-  base: fedora:28
-  setup:
-  locale:
-    - ENV LANG=en_US.UTF-8
-  curl:
-    - RUN dnf install -y curl
-  git:
-    - RUN dnf install -y git
-  which:
-    - RUN dnf install -y which
-  find:
-    - RUN dnf install -y findutils
-  source:
-    - RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper make gcc libstdc++-static python ruby rubygem-json
-  images:
-    - RUN dnf install -y gcc
-  jdk: openjdk1.8.0_181
-  zlib:
-    - RUN dnf install -y zlib-devel
-  openssl:
-    - RUN dnf install -y openssl-devel
-  cext:
-    - RUN dnf install -y make
-  rvm:
-    - RUN dnf install -y procps
+  install: RUN apt-get install -y
+  <<: *deb_packages
