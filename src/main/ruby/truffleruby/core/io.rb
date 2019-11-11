@@ -1023,7 +1023,7 @@ class IO
            else
              e[1].fileno
            end
-      ptr.put(:int, i * size, fd)
+      ptr.put_int(i * size, fd)
     end
   end
 
