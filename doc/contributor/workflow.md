@@ -2,11 +2,11 @@
 
 ## Requirements
 
-You will need:
+See the [Dependencies in the README](../../README.md#dependencies).
+Additionally, you will need:
 
 * Java JDK 8
 * Ruby >= 2.4
-* [`libssl`](../user/installing-libssl.md)
 
 ## Workspace directory
 
