@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -72,20 +71,21 @@ public abstract class HashLiteralNode extends RubyNode {
             super(keyValues);
         }
 
-        @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
+        @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
             final Object[] store = PackedArrayStrategy.createStore(getContext());
 
             int size = 0;
 
-            initializers: for (int n = 0; n < keyValues.length / 2; n++) {
+            for (int n = 0; n < keyValues.length / 2; n++) {
                 Object key = keyValues[n * 2].execute(frame);
                 key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(key, false);
 
                 final int hashed = hash(key);
 
                 final Object value = keyValues[n * 2 + 1].execute(frame);
+                boolean duplicateKey = false;
 
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
@@ -93,12 +93,15 @@ public abstract class HashLiteralNode extends RubyNode {
                             callEqual(key, PackedArrayStrategy.getKey(store, i))) {
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
-                        continue initializers;
+                        duplicateKey = true;
+                        break;
                     }
                 }
 
-                PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
-                size++;
+                if (!duplicateKey) {
+                    PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
+                    size++;
+                }
             }
 
             return coreLibrary()
