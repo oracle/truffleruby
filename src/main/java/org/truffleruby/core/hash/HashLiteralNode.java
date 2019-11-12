@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -66,6 +67,7 @@ public abstract class HashLiteralNode extends RubyNode {
         @Child private CallDispatchHeadNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
+        private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
@@ -91,6 +93,7 @@ public abstract class HashLiteralNode extends RubyNode {
                     if (i < size &&
                             hashed == PackedArrayStrategy.getHashed(store, i) &&
                             callEqual(key, PackedArrayStrategy.getKey(store, i))) {
+                        duplicateKeyProfile.enter();
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
                         duplicateKey = true;
