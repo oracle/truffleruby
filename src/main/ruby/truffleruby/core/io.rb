@@ -1009,91 +1009,11 @@ class IO
     writables_ready = []
     errorables_ready = []
 
-    do_select(
+    Truffle::IOOperations.select(
       readables, writables, errorables,
       original_timeout, timeout_us,
       readables_ready, writables_ready, errorables_ready)
   end
-
-  def self.do_to_fds(array, ptr)
-    size = FFI::Pointer.find_type_size(:int)
-    array.each_with_index do |e, i|
-      fd = if IO === e
-             e.fileno
-           else
-             e[1].fileno
-           end
-      ptr.put_int(i * size, fd)
-    end
-  end
-
-  def self.do_mark_ready(ptr, ios, ready)
-    ptr.read_array_of_int(ios.size).each_with_index do |fd, i|
-      if fd >= 0
-        io = ios[i]
-        io = io[0] if Array === io
-        ready << io
-      end
-    end
-  end
-
-  def self.do_select(
-        readables, writables, errorables,
-        original_timeout, timeout_us,
-        readables_ready, writables_ready, errorables_ready)
-    readables_ptr, writables_ptr, errorables_ptr = Truffle::FFI::Pool.stack_alloc(
-                                    :int, readables.size, :int, writables.size, :int, errorables.size)
-    do_to_fds(readables, readables_ptr)
-    do_to_fds(writables, writables_ptr)
-    do_to_fds(errorables, errorables_ptr)
-
-    if original_timeout
-      start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-    end
-
-    result = :retry
-    while (result == :retry) do
-      ret = TrufflePrimitive.thread_run_blocking_nfi_system_call -> do
-        Truffle::POSIX.truffleposix_select(
-          readables.size, readables_ptr,
-          writables.size, writables_ptr,
-          errorables.size, errorables_ptr,
-          timeout_us)
-      end
-      result = if ret < 0
-                 if Errno.errno == Errno::EINTR::Errno
-                   if original_timeout
-                     # Update timeout
-                     now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                     waited = now - start
-                     if waited >= timeout_us
-                       nil # timeout
-                     else
-                       timeout_us = original_timeout - waited
-                       :retry # retry
-                     end
-                   else
-                     :retry # retry
-                   end
-                 else
-                   Errno.handle
-                 end
-               else
-                 ret
-               end
-    end
-    if result == 0
-      nil # timeout
-    else
-      do_mark_ready(readables_ptr, readables, readables_ready)
-      do_mark_ready(writables_ptr, writables, writables_ready)
-      do_mark_ready(errorables_ptr, errorables, errorables_ready)
-      [readables_ready, writables_ready, errorables_ready]
-    end
-  end
-  private_class_method :do_to_fds
-  private_class_method :do_mark_ready
-  private_class_method :do_select
 
   ##
   # Opens the given path, returning the underlying file descriptor as an Integer.
