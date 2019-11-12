@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -87,7 +88,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
         return Layouts.HASH.getSize(hash);
     }
 
-    @ExplodeLoop
+    @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(replaces = "getConstantIndexPackedArray")
     protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
             BiFunctionNode defaultValueNode,
@@ -110,7 +111,6 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
         notInHashProfile.enter();
         return defaultValueNode.accept(frame, hash, key);
-
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
