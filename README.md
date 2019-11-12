@@ -106,7 +106,7 @@ environment, for example by unmounting system filesystems such as `/dev/shm`.
 
 ## Dependencies
 
-* [make](doc/user/installing-llvm.md) for building C and C++ extensions.
+* [make, gcc and libxml2](doc/user/installing-llvm.md) for building C and C++ extensions.
 * [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
 * [zlib](doc/user/installing-zlib.md) for the `zlib` C extension
 
