@@ -274,7 +274,7 @@ module Truffle::FFI
 
     def get(type, offset)
       begin
-        type = FFI.find_type(type)
+        type = ::FFI.find_type(type)
       rescue TypeError => e
         raise ArgumentError, e.message
       end
@@ -283,7 +283,7 @@ module Truffle::FFI
 
     def put(type, offset, value)
       begin
-        type = FFI.find_type(type)
+        type = ::FFI.find_type(type)
       rescue TypeError => e
         raise ArgumentError, e.message
       end
