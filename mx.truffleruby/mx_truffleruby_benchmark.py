@@ -276,10 +276,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         else:
             benchmark_file = benchmark
             benchmark_names = []
-        if '.rb' in benchmark_file:
-            arguments.extend([benchmark_file])
-        else:
-            arguments.extend([self.directory() + '/' + benchmark_file + '.rb'])
+        arguments.extend(['bench/' + self.directory() + '/' + benchmark_file + '.rb'])
         arguments.extend(benchmark_names)
         arguments.extend(bmSuiteArgs)
         out = mx.OutputCapture()
