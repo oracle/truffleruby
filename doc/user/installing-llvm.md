@@ -6,16 +6,16 @@ version, see [the documentation for that version](https://github.com/oracle/truf
 
 The `make` utility as well as the dependencies of the toolchain still need to be available to build C and C++ extensions.
 
-## Debian-based: Ubuntu, etc
-
-```bash
-$ apt-get install make gcc libxml2
-```
-
 ## RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
 $ sudo dnf install make gcc libxml2
+```
+
+## Debian-based: Ubuntu, etc
+
+```bash
+$ sudo apt-get install make gcc libxml2
 ```
 
 ## macOS

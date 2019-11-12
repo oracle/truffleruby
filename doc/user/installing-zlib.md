@@ -3,22 +3,16 @@
 TruffleRuby provides the `zlib` module but not the native `zlib` system
 library that the module uses.
 
-## Oracle Linux
+## RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
-$ yum install zlib-devel
+$ sudo dnf install zlib-devel
 ```
 
-## Ubuntu
+## Debian-based: Ubuntu, etc
 
 ```bash
-$ apt-get install libz-dev
-```
-
-## Fedora
-
-```bash
-$ yum install zlib-devel
+$ sudo apt-get install libz-dev
 ```
 
 ## macOS
