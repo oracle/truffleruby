@@ -269,14 +269,6 @@ module Utilities
     path
   end
 
-  def find_benchmark(benchmark)
-    if File.exist?(benchmark)
-      benchmark
-    else
-      "#{TRUFFLERUBY_DIR}/bench/#{benchmark}"
-    end
-  end
-
   def git_branch
     @git_branch ||= `GIT_DIR="#{TRUFFLERUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
   end
