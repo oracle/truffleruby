@@ -523,15 +523,18 @@ class MicroBenchmarkSuite(AllBenchmarksBenchmarkSuite):
         return 'micro'
 
     def benchmarkList(self, bmSuiteArgs):
+        # Generates a list similar to `asciidoctor_benchmarks` to handle multiple benchmarks per file
         ruby_benchmarks = join(rubyDir, 'bench')
         benchmarks = []
-        for root, _, files in os.walk(join(ruby_benchmarks, 'micro')):
+        micro_dir = join(ruby_benchmarks, 'micro')
+        for root, _, files in os.walk(micro_dir):
             for name in files:
                 if name.endswith('.rb'):
-                    benchmark_file = join(root, name)[len(ruby_benchmarks)+1:]
+                    benchmark_file = join(root, name)
                     out = mx.OutputCapture()
                     jt(['benchmark', 'list', benchmark_file], out=out)
-                    benchmarks.extend([benchmark_file + ':' + b.strip() for b in out.data.split('\n') if len(b.strip()) > 0])
+                    benchmark_file_from_micro_dir = benchmark_file[len(micro_dir)+1:-3]
+                    benchmarks.extend([benchmark_file_from_micro_dir + ':' + b.strip() for b in out.data.split('\n') if len(b.strip()) > 0])
         return benchmarks
 
     def time(self):
