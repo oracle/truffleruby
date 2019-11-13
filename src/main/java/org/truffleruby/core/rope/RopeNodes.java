@@ -27,7 +27,9 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
@@ -606,7 +608,9 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
         protected Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
-                @Cached MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached MakeLeafRopeNode makeLeafRopeNode,
+                @Cached BytesNode leftBytesNode,
+                @Cached BytesNode rightBytesNode) {
             // This specialization was added to a special case where broken code range(s),
             // may concat to form a valid code range.
             try {
@@ -617,8 +621,8 @@ public abstract class RopeNodes {
                         getContext().getCoreExceptions().argumentErrorTooLargeString(this));
             }
 
-            final byte[] leftBytes = left.getBytes();
-            final byte[] rightBytes = right.getBytes();
+            final byte[] leftBytes = leftBytesNode.execute(left);
+            final byte[] rightBytes = rightBytesNode.execute(right);
             final byte[] bytes = new byte[leftBytes.length + rightBytes.length];
             System.arraycopy(leftBytes, 0, bytes, 0, leftBytes.length);
             System.arraycopy(rightBytes, 0, bytes, leftBytes.length, rightBytes.length);
@@ -1798,4 +1802,165 @@ public abstract class RopeNodes {
 
     }
 
+    public abstract static class CompareRopesNode extends RubyBaseNode {
+
+        public static CompareRopesNode create() {
+            return CompareRopesNodeGen.create();
+        }
+
+        public abstract int execute(Rope firstRope, Rope secondRope);
+
+        @Specialization
+        protected int executeNativeNative(NativeRope firstRope, NativeRope secondRope,
+                @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalProfile,
+                @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
+                @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached BytesNode firstBytesNode,
+                @Cached BytesNode secondBytesNode) {
+            return compareRopes(
+                    firstRope,
+                    secondRope,
+                    equalSubsequenceProfile,
+                    equalLengthProfile,
+                    firstStringShorterProfile,
+                    greaterThanProfile,
+                    equalProfile,
+                    notComparableProfile,
+                    encodingIndexGreaterThanProfile,
+                    firstBytesNode,
+                    secondBytesNode);
+        }
+
+        @Specialization
+        protected int executeNativeNative(ManagedRope firstRope, ManagedRope secondRope,
+                @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalProfile,
+                @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
+                @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached BytesNode firstBytesNode,
+                @Cached BytesNode secondBytesNode) {
+            return compareRopes(
+                    firstRope,
+                    secondRope,
+                    equalSubsequenceProfile,
+                    equalLengthProfile,
+                    firstStringShorterProfile,
+                    greaterThanProfile,
+                    equalProfile,
+                    notComparableProfile,
+                    encodingIndexGreaterThanProfile,
+                    firstBytesNode,
+                    secondBytesNode);
+        }
+
+        @Specialization
+        protected int executeNativeNative(ManagedRope firstRope, NativeRope secondRope,
+                @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalProfile,
+                @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
+                @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached BytesNode firstBytesNode,
+                @Cached BytesNode secondBytesNode) {
+            return compareRopes(
+                    firstRope,
+                    secondRope,
+                    equalSubsequenceProfile,
+                    equalLengthProfile,
+                    firstStringShorterProfile,
+                    greaterThanProfile,
+                    equalProfile,
+                    notComparableProfile,
+                    encodingIndexGreaterThanProfile,
+                    firstBytesNode,
+                    secondBytesNode);
+        }
+
+        @Specialization
+        protected int executeNativeNative(NativeRope firstRope, ManagedRope secondRope,
+                @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
+                @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
+                @Cached("createBinaryProfile()") ConditionProfile equalProfile,
+                @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
+                @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached BytesNode firstBytesNode,
+                @Cached BytesNode secondBytesNode) {
+            return compareRopes(
+                    firstRope,
+                    secondRope,
+                    equalSubsequenceProfile,
+                    equalLengthProfile,
+                    firstStringShorterProfile,
+                    greaterThanProfile,
+                    equalProfile,
+                    notComparableProfile,
+                    encodingIndexGreaterThanProfile,
+                    firstBytesNode,
+                    secondBytesNode);
+        }
+
+        private int compareRopes(Rope firstRope, Rope secondRope,
+                ConditionProfile equalSubsequenceProfile,
+                ConditionProfile equalLengthProfile,
+                ConditionProfile firstStringShorterProfile,
+                ConditionProfile greaterThanProfile,
+                ConditionProfile equalProfile,
+                ConditionProfile notComparableProfile,
+                ConditionProfile encodingIndexGreaterThanProfile,
+                BytesNode firstBytesNode,
+                BytesNode secondBytesNode) {
+            final boolean firstRopeShorter = firstStringShorterProfile
+                    .profile(firstRope.byteLength() < secondRope.byteLength());
+            final int memcmpLength;
+            if (firstRopeShorter) {
+                memcmpLength = firstRope.byteLength();
+            } else {
+                memcmpLength = secondRope.byteLength();
+            }
+
+            final byte[] bytes = firstBytesNode.execute(firstRope);
+            final byte[] otherBytes = secondBytesNode.execute(secondRope);
+
+            final int ret;
+            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength);
+            if (equalSubsequenceProfile.profile(cmp == 0)) {
+                if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
+                    ret = 0;
+                } else {
+                    if (firstRopeShorter) {
+                        ret = -1;
+                    } else {
+                        ret = 1;
+                    }
+                }
+            } else {
+                ret = greaterThanProfile.profile(cmp > 0) ? 1 : -1;
+            }
+
+            if (equalProfile.profile(ret == 0)) {
+                if (notComparableProfile.profile(!RopeOperations.areComparable(firstRope, secondRope))) {
+                    if (encodingIndexGreaterThanProfile
+                            .profile(firstRope.getEncoding().getIndex() > secondRope.getEncoding().getIndex())) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+            }
+
+            return ret;
+
+        }
+    }
 }
