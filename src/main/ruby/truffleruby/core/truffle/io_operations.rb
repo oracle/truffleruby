@@ -135,7 +135,8 @@ module Truffle
       end
     end
 
-    def self.mark_ready(ptr, ios, ready)
+    def self.mark_ready(ptr, ios)
+      ready = []
       ptr.read_array_of_int(ios.size).each_with_index do |fd, i|
         if fd >= 0
           io = ios[i]
@@ -143,12 +144,12 @@ module Truffle
           ready << io
         end
       end
+      ready
     end
 
     def self.select(
           readables, writables, errorables,
-          original_timeout, timeout_us,
-          readables_ready, writables_ready, errorables_ready)
+          original_timeout, timeout_us)
       readables_ptr, writables_ptr, errorables_ptr = Truffle::FFI::Pool.stack_alloc(
                                       :int, readables.size, :int, writables.size, :int, errorables.size)
       to_fds(readables, readables_ptr)
@@ -193,10 +194,7 @@ module Truffle
       if result == 0
         nil # timeout
       else
-        mark_ready(readables_ptr, readables, readables_ready)
-        mark_ready(writables_ptr, writables, writables_ready)
-        mark_ready(errorables_ptr, errorables, errorables_ready)
-        [readables_ready, writables_ready, errorables_ready]
+        [mark_ready(readables_ptr, readables), mark_ready(writables_ptr, writables), mark_ready(errorables_ptr, errorables)]
       end
     end
 

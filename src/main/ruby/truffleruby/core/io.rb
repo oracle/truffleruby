@@ -1005,14 +1005,9 @@ class IO
     original_timeout = timeout_us
     timeout_us ||= -1
 
-    readables_ready = []
-    writables_ready = []
-    errorables_ready = []
-
     Truffle::IOOperations.select(
       readables, writables, errorables,
-      original_timeout, timeout_us,
-      readables_ready, writables_ready, errorables_ready)
+      original_timeout, timeout_us)
   end
 
   ##
