@@ -30,7 +30,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '0d24b400927e58dc0ada9c76c15fb2b7915008d4'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '91ca6dfb6eb4752fab63760128b2b69086f3ea39'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -1213,9 +1213,9 @@ EOS
     use_gem_test_pack = !args.delete('--no-gem-test-pack')
     gem_test_pack if use_gem_test_pack
 
-    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
-    single_test            = !args.empty?
-    test_names             = single_test ? '{' + args.join(',') + '}' : '*'
+    tests_path = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
+    single_test = !args.empty?
+    test_names = single_test ? '{' + args.join(',') + '}' : '*'
 
     candidates = Dir["#{tests_path}/#{test_names}.sh"].sort
     if candidates.empty?
@@ -1224,7 +1224,15 @@ EOS
       targets.each { |t| puts " * #{t}" }
       exit 1
     end
+
+    # run launchers first before any gem is installed, which may break the test
+    # since it alters executables of default gems when they are updated
+    if (launchers = candidates.find { |c| c.end_with?('launchers.sh') })
+      candidates.unshift candidates.delete launchers
+    end
+
     success = candidates.all? do |test_script|
+      next true if test_script.end_with? 'shared.sh'
       sh test_script, *('--no-gem-test-pack' unless use_gem_test_pack), continue_on_failure: true
     end
     exit success

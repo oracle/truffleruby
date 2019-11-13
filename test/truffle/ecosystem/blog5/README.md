@@ -130,13 +130,11 @@ while attempting to view a page.
 
 If the gems need to be updated: 
 
-* check that `truffleruby bundle config --local cache_path "$gem_test_pack/gem-cache"`
+* check that `jt ruby -S bundle config --local cache_path "$gem_test_pack/gem-cache"`
   is set
 
-* run `bundle install --no-prune` which will install missing gems and it will 
+* run `jt ruby -S bundle install --no-prune` which will install missing gems and it will 
   also update the cache at `$gem_test_pack/gem-cache`. `--no-prune` will prevent
   deletion of other gems in the directory which are used by other tests.
   
 * push the updates in gem test pack repository
-
-

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -18,16 +16,17 @@ test=$(dirname "$truffle")
 repo=$(dirname "$test")
 
 shopt -s expand_aliases
+# shellcheck disable=SC2139
 alias jt="ruby ${repo}/tool/jt.rb"
 alias truffleruby="jt ruby -S"
 
 set -xe
 
-if [ "$1" != "--no-gem-test-pack" ]; then
+if [ "$2" != "--no-gem-test-pack" ]; then
   gem_test_pack_path="$(jt gem-test-pack)"
 fi
 
-cd test/truffle/ecosystem/blog
+cd "test/truffle/ecosystem/$1"
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
@@ -74,10 +73,10 @@ test "$(curl -s "$url")" = '[]'
 kill_server
 
 # put back the original bin/rake, as it gets overwritten by bundle install
-cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/bin/rake
+cp "$repo/bin/rake" "$repo/mxbuild/truffleruby-jvm/bin/rake"
 if [ -d "$repo/mxbuild/truffleruby-jvm/jre" ]; then # JDK8
-  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/bin/rake
-  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/rake
+  cp "$repo/bin/rake" "$repo/mxbuild/truffleruby-jvm/jre/bin/rake"
+  cp "$repo/bin/rake" "$repo/mxbuild/truffleruby-jvm/jre/languages/ruby/bin/rake"
 else # JDK11
-  cp $repo/bin/rake $repo/mxbuild/truffleruby-jvm/languages/ruby/bin/rake
+  cp "$repo/bin/rake" "$repo/mxbuild/truffleruby-jvm/languages/ruby/bin/rake"
 fi
