@@ -1005,87 +1005,10 @@ class IO
     original_timeout = timeout_us
     timeout_us ||= -1
 
-    readables_ready = []
-    writables_ready = []
-    errorables_ready = []
-
-    mark_ready = -> ptr, ios, ready {
-      ptr.read_array_of_int(ios.size).each_with_index do |fd, i|
-        if fd >= 0
-          io = ios[i]
-          io = io[0] if Array === io
-          ready << io
-        end
-      end
-    }
-
-    to_fds = -> array {
-      array.map do |e|
-        if IO === e
-          e.fileno
-        else
-          e[1].fileno
-        end
-      end
-    }
-
-    do_select(
+    Truffle::IOOperations.select(
       readables, writables, errorables,
-      mark_ready, to_fds,
-      original_timeout, timeout_us,
-      readables_ready, writables_ready, errorables_ready)
+      original_timeout, timeout_us)
   end
-
-  def self.do_select(
-        readables, writables, errorables,
-        mark_ready, to_fds,
-        original_timeout, timeout_us,
-        readables_ready, writables_ready, errorables_ready)
-    Truffle::POSIX.with_array_of_ints(to_fds.call(readables)) do |readables_ptr|
-      Truffle::POSIX.with_array_of_ints(to_fds.call(writables)) do |writables_ptr|
-        Truffle::POSIX.with_array_of_ints(to_fds.call(errorables)) do |errorables_ptr|
-          if original_timeout
-            start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-          end
-
-          TrufflePrimitive.thread_run_blocking_nfi_system_call -> do
-            ret = Truffle::POSIX.truffleposix_select(
-              readables.size, readables_ptr,
-              writables.size, writables_ptr,
-              errorables.size, errorables_ptr,
-              timeout_us)
-            if ret < 0
-              if Errno.errno == Errno::EINTR::Errno
-                if original_timeout
-                  # Update timeout
-                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                  waited = now - start
-                  if waited >= timeout_us
-                    nil # timeout
-                  else
-                    timeout_us = original_timeout - waited
-                    undefined # retry
-                  end
-                else
-                  undefined # retry
-                end
-              else
-                Errno.handle
-              end
-            elsif ret == 0
-              nil # timeout
-            else
-              mark_ready.call(readables_ptr, readables, readables_ready)
-              mark_ready.call(writables_ptr, writables, writables_ready)
-              mark_ready.call(errorables_ptr, errorables, errorables_ready)
-              [readables_ready, writables_ready, errorables_ready]
-            end
-          end
-        end
-      end
-    end
-  end
-  private_class_method :do_select
 
   ##
   # Opens the given path, returning the underlying file descriptor as an Integer.
