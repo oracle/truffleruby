@@ -300,7 +300,7 @@ local part_definitions = {
       packages+: {
         "pip:pylint": "==1.9.0",
       },
-      run+: jt(["lint"]),
+      run+: jt(["lint", "--testpack"]),
     },
 
     test_basictest: { run+: jt(["test", "basictest"]) },
