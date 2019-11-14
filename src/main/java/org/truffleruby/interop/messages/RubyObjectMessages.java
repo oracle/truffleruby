@@ -137,14 +137,9 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
-
-        // TODO (pitr-ch 18-Mar-2019): branch profile?
-        if (respondNode.doesRespondTo(null, "to_native", receiver)) {
-            // FIXME (pitr 18-Mar-2019): now it returns no value;
-            dispatchNode.call(receiver, "to_native");
-
+        if (respondNode.doesRespondTo(null, "polyglot_to_native", receiver)) {
+            dispatchNode.call(receiver, "polyglot_to_native");
         }
-
     }
 
     @ExportMessage
