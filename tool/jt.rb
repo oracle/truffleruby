@@ -2070,7 +2070,7 @@ EOS
             new_content << line
           end
         else
-          looking = line.match?(/^ *@(Specialization|Fallback|CreateCast)/)
+          looking = /^ *@(Specialization|Fallback|CreateCast)/ =~ line
           new_content << line
           if looking
             braces = count_braces.(line)
