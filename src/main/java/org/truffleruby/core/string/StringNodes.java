@@ -78,7 +78,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.jcodings.Config;
 import org.jcodings.Encoding;
-import org.jcodings.SingleByteEncoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
