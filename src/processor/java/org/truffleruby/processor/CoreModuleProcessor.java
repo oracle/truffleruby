@@ -27,6 +27,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
@@ -37,6 +38,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
@@ -87,6 +89,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
     private final Set<String> processed = new HashSet<>();
     private TypeMirror virtualFrame;
+    private TypeMirror objectType;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -98,6 +101,10 @@ public class CoreModuleProcessor extends AbstractProcessor {
         virtualFrame = processingEnv
                 .getElementUtils()
                 .getTypeElement("com.oracle.truffle.api.frame.VirtualFrame")
+                .asType();
+        objectType = processingEnv
+                .getElementUtils()
+                .getTypeElement("java.lang.Object")
                 .asType();
 
         if (!annotations.isEmpty()) {
@@ -167,6 +174,9 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
                         final CoreMethod coreMethod = klass.getAnnotation(CoreMethod.class);
                         if (coreMethod != null) {
+                            if (coreMethod.optional() > 0 || coreMethod.needsBlock()) {
+                                checkAmbiguousOptionalArguments(coreMethod, klass);
+                            }
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
 
@@ -191,6 +201,110 @@ public class CoreModuleProcessor extends AbstractProcessor {
             }
         }
 
+    }
+
+    private void checkAmbiguousOptionalArguments(CoreMethod coreMethod, TypeElement klass) {
+        for (Element el : klass.getEnclosedElements()) {
+            if (!(el instanceof ExecutableElement)) {
+                continue; // we are interested only in executable elements
+            }
+
+            final ExecutableElement specializationMethod = (ExecutableElement) el;
+
+            Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+            if (specializationAnnotation == null) {
+                continue; // we are interested only in Specialization methods
+            }
+
+            List<? extends VariableElement> parameters = specializationMethod.getParameters();
+
+            int n = parameters.size() - 1;
+            // Ignore all the @Cached methods from our consideration.
+            while (n >= 0 && parameters.get(n).getAnnotation(Cached.class) != null) {
+                n--;
+            }
+
+            if (coreMethod.needsBlock()) {
+                if (n < 0) {
+                    processingEnv.getMessager().printMessage(
+                            Kind.ERROR,
+                            "invalid block method parameter position for",
+                            specializationMethod);
+                    continue;
+                }
+                isParameterUnguarded(specializationAnnotation, parameters.get(n));
+                n--; // Ignore block argument.
+            }
+
+            if (coreMethod.rest()) {
+                if (n < 0) {
+                    processingEnv.getMessager().printMessage(
+                            Kind.ERROR,
+                            "missing rest method parameter",
+                            specializationMethod);
+                    continue;
+                }
+
+                if (parameters.get(n).asType().getKind() != TypeKind.ARRAY) {
+                    processingEnv.getMessager().printMessage(
+                            Kind.ERROR,
+                            "rest method parameter is not array",
+                            parameters.get(n));
+                    continue;
+                }
+                n--; // ignore final Object[] argument
+            }
+
+            for (int i = 0; i < coreMethod.optional(); i++, n--) {
+                if (n < 0) {
+                    processingEnv.getMessager().printMessage(
+                            Kind.ERROR,
+                            "invalid optional parameter count for",
+                            specializationMethod);
+                    continue;
+                }
+                isParameterUnguarded(specializationAnnotation, parameters.get(n));
+            }
+        }
+    }
+
+    private void isParameterUnguarded(Specialization specializationAnnotation, VariableElement parameter) {
+        String name = parameter.getSimpleName().toString();
+
+        // A specialization will only be called if the types of the arguments match its declared parameter
+        // types. So a specialization with a declared optional parameter of type NotProvided will only be
+        // called if that argument is not supplied. Similarly a specialization with a DynamicObject optional
+        // parameter will only be called if the value has been supplied.
+        //
+        // Since Object is the super type of NotProvided any optional parameter declaration of type Object
+        // must have additional guards to check whether this specialization should be called, or must make
+        // it clear in the parameter name (by using unused or maybe prefix) that it may not have been
+        // provided or is not used.
+
+        if (processingEnv.getTypeUtils().isSameType(parameter.asType(), objectType) &&
+                !name.startsWith("unused") &&
+                !name.startsWith("maybe") &&
+                !isGuarded(name, specializationAnnotation.guards())) {
+            processingEnv.getMessager().printMessage(
+                    Kind.ERROR,
+                    "Since Object is the super type of NotProvided any optional parameter declaration of type Object " +
+                            "must have additional guards to check whether this specialization should be called, " +
+                            "or must make it clear in the parameter name (by using unused or maybe prefix) " +
+                            "that it may not have been provided or is not used.",
+                    parameter);
+        }
+
+    }
+
+    private static boolean isGuarded(String name, String[] guards) {
+        for (String guard : guards) {
+            if (guard.equals("wasProvided(" + name + ")") ||
+                    guard.equals("wasNotProvided(" + name + ")") ||
+                    guard.equals("isNil(" + name + ")")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void processPrimitive(

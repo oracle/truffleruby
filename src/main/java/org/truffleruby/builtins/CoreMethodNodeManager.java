@@ -283,7 +283,6 @@ public class CoreMethodNodeManager {
         final int nArgs = required + optional;
 
         if (CHECK_DSL_USAGE) {
-            AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(nodeFactory, method);
             LowerFixnumChecker.checkLowerFixnumArguments(nodeFactory, needsSelf ? 1 : 0, method.lowerFixnum());
         }
 
@@ -428,7 +427,7 @@ public class CoreMethodNodeManager {
 
     public void allMethodInstalled() {
         if (CHECK_DSL_USAGE) {
-            if (!(AmbiguousOptionalArgumentChecker.SUCCESS && LowerFixnumChecker.SUCCESS)) {
+            if (!(LowerFixnumChecker.SUCCESS)) {
                 throw new Error("The DSL checkers failed!");
             }
         }
