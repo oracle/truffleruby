@@ -1896,6 +1896,7 @@ public abstract class ModuleNodes {
             return module;
         }
 
+        /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
         @Specialization(guards = "isRubySymbol(name)")
         protected DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, DynamicObject name) {
             undefMethod(frame, module, Layouts.SYMBOL.getString(name));
