@@ -88,8 +88,9 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     private final Set<String> processed = new HashSet<>();
-    private TypeMirror virtualFrame;
+    private TypeMirror virtualFrameType;
     private TypeMirror objectType;
+    private TypeMirror rubyNodeType;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -98,13 +99,17 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
-        virtualFrame = processingEnv
+        virtualFrameType = processingEnv
                 .getElementUtils()
                 .getTypeElement("com.oracle.truffle.api.frame.VirtualFrame")
                 .asType();
         objectType = processingEnv
                 .getElementUtils()
                 .getTypeElement("java.lang.Object")
+                .asType();
+        rubyNodeType = processingEnv
+                .getElementUtils()
+                .getTypeElement("org.truffleruby.language.RubyNode")
                 .asType();
 
         if (!annotations.isEmpty()) {
@@ -177,12 +182,20 @@ public class CoreModuleProcessor extends AbstractProcessor {
                             if (coreMethod.optional() > 0 || coreMethod.needsBlock()) {
                                 checkAmbiguousOptionalArguments(coreMethod, klass);
                             }
+                            // Do not use needsSelf=true in module functions, it is either the module/class or the instance.
+                            // Usage of needsSelf is quite rare for singleton methods (except constructors).
+                            boolean needsSelf = coreMethod.constructor() ||
+                                    (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
+                                            coreMethod.needsSelf());
+
+                            checkLowerFixnumArguments(coreMethod.lowerFixnum(), klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
 
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
+                            checkLowerFixnumArguments(primitive.lowerFixnum(), klass, primitive.needsSelf());
                         }
                     }
                 }
@@ -200,7 +213,106 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 rubyStream.println();
             }
         }
+    }
 
+    private void checkLowerFixnumArguments(int[] lowerFixnum, TypeElement klass, boolean needsSelf) {
+        byte[] lowerArgs = null;
+
+        List<ExecutableElement> specializationMethods = new ArrayList<>();
+
+        TypeElement klassIt = klass;
+        while (true) {
+            for (Element el : klassIt.getEnclosedElements()) {
+                if (!(el instanceof ExecutableElement)) {
+                    continue; // we are interested only in executable elements
+                }
+
+                final ExecutableElement specializationMethod = (ExecutableElement) el;
+
+                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+                if (specializationAnnotation == null) {
+                    continue; // we are interested only in Specialization methods
+                }
+
+                specializationMethods.add(specializationMethod);
+            }
+
+            // TODO (pitr-ch 15-Nov-2019): did not we need to find superclasses somewhere else as well ?
+            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
+            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+                break;
+            }
+        }
+
+        for (ExecutableElement specializationMethod : specializationMethods) {
+            List<? extends VariableElement> parameters = specializationMethod.getParameters();
+            int skip = needsSelf ? 1 : 0;
+
+            if (parameters.size() > 0 &&
+                    processingEnv.getTypeUtils().isSameType(parameters.get(0).asType(), virtualFrameType)) {
+                skip++;
+            }
+
+            int end = parameters.size();
+            for (int i = end - 1; i >= skip; i--) {
+                boolean cached = parameters.get(i).getAnnotation(Cached.class) != null;
+                if (cached) {
+                    end--;
+                } else {
+                    break;
+                }
+            }
+
+            if (lowerArgs == null) {
+                if (end < skip) {
+                    processingEnv.getMessager().printMessage(
+                            Kind.ERROR,
+                            "should have needsSelf = false",
+                            specializationMethod);
+                    continue;
+                }
+                lowerArgs = new byte[end - skip];
+            } else {
+                assert lowerArgs.length == end - skip;
+            }
+
+            for (int i = skip; i < end; i++) {
+                TypeKind argumentType = parameters.get(i).asType().getKind();
+                if (argumentType == TypeKind.INT) {
+                    lowerArgs[i - skip] |= 0b01;
+                } else if (argumentType == TypeKind.LONG) {
+                    lowerArgs[i - skip] |= 0b10;
+                }
+            }
+        }
+
+        if (lowerArgs == null) {
+            processingEnv.getMessager().printMessage(
+                    Kind.ERROR,
+                    "could not find specializations (lowerArgs == null)",
+                    klass);
+            return;
+        }
+
+        // Verify against the lowerFixnum annotation
+        for (int i = 0; i < lowerArgs.length; i++) {
+            boolean shouldLower = lowerArgs[i] == 0b01; // int without long
+            if (shouldLower && !contains(lowerFixnum, i + 1)) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "should use lowerFixnum for argument " + (i + 1),
+                        klass);
+            }
+        }
+    }
+
+    private static boolean contains(int[] array, int value) {
+        for (int n = 0; n < array.length; n++) {
+            if (array[n] == value) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void checkAmbiguousOptionalArguments(CoreMethod coreMethod, TypeElement klass) {
@@ -373,8 +485,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 names + ");");
 
         final boolean hasSelfArgument = !coreMethod.onSingleton() && !coreMethod.constructor() &&
-                !coreMethod.isModuleFunction() &&
-                coreMethod.needsSelf();
+                !coreMethod.isModuleFunction() && coreMethod.needsSelf();
 
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
@@ -490,7 +601,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                     continue; // we ignore arguments having annotations like @Cached
                 }
 
-                if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrame)) {
+                if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
                     continue;
                 }
 
