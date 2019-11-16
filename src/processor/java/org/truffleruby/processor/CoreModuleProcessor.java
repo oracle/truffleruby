@@ -39,7 +39,9 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
 public class CoreModuleProcessor extends AbstractProcessor {
@@ -179,23 +181,23 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
                         final CoreMethod coreMethod = klass.getAnnotation(CoreMethod.class);
                         if (coreMethod != null) {
-                            if (coreMethod.optional() > 0 || coreMethod.needsBlock()) {
-                                checkAmbiguousOptionalArguments(coreMethod, klass);
-                            }
                             // Do not use needsSelf=true in module functions, it is either the module/class or the instance.
                             // Usage of needsSelf is quite rare for singleton methods (except constructors).
                             boolean needsSelf = coreMethod.constructor() ||
                                     (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
                                             coreMethod.needsSelf());
 
-                            checkLowerFixnumArguments(coreMethod.lowerFixnum(), klass, needsSelf);
+                            CoreMethod checkAmbiguous = coreMethod.optional() > 0 || coreMethod.needsBlock()
+                                    ? coreMethod
+                                    : null;
+                            checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
 
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
-                            checkLowerFixnumArguments(primitive.lowerFixnum(), klass, primitive.needsSelf());
+                            checks(primitive.lowerFixnum(), null, klass, primitive.needsSelf());
                         }
                     }
                 }
@@ -215,50 +217,33 @@ public class CoreModuleProcessor extends AbstractProcessor {
         }
     }
 
-    private void checkLowerFixnumArguments(int[] lowerFixnum, TypeElement klass, boolean needsSelf) {
+    private void checks(int[] lowerFixnum, CoreMethod coreMethod, TypeElement klass, boolean needsSelf) {
         byte[] lowerArgs = null;
 
-        List<ExecutableElement> specializationMethods = getSpecializationMethods(klass);
+        TypeElement klassIt = klass;
+        while (true) {
+            for (Element el : klassIt.getEnclosedElements()) {
+                if (!(el instanceof ExecutableElement)) {
+                    continue; // we are interested only in executable elements
+                }
 
-        for (ExecutableElement specializationMethod : specializationMethods) {
-            List<? extends VariableElement> parameters = specializationMethod.getParameters();
-            int skip = needsSelf ? 1 : 0;
+                final ExecutableElement specializationMethod = (ExecutableElement) el;
 
-            if (parameters.size() > 0 &&
-                    processingEnv.getTypeUtils().isSameType(parameters.get(0).asType(), virtualFrameType)) {
-                skip++;
+                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+                if (specializationAnnotation == null) {
+                    continue; // we are interested only in Specialization methods
+                }
+
+                lowerArgs = checkLowerFixnumArguments(specializationMethod, needsSelf, lowerArgs);
+                if (coreMethod != null) {
+                    checkAmbiguousOptionalArguments(coreMethod, specializationMethod, specializationAnnotation);
+                }
+
             }
 
-            int end = parameters.size();
-            for (int i = end - 1; i >= skip; i--) {
-                boolean cached = parameters.get(i).getAnnotation(Cached.class) != null;
-                if (cached) {
-                    end--;
-                } else {
-                    break;
-                }
-            }
-
-            if (lowerArgs == null) {
-                if (end < skip) {
-                    processingEnv.getMessager().printMessage(
-                            Kind.ERROR,
-                            "should have needsSelf = false",
-                            specializationMethod);
-                    continue;
-                }
-                lowerArgs = new byte[end - skip];
-            } else {
-                assert lowerArgs.length == end - skip;
-            }
-
-            for (int i = skip; i < end; i++) {
-                TypeKind argumentType = parameters.get(i).asType().getKind();
-                if (argumentType == TypeKind.INT) {
-                    lowerArgs[i - skip] |= 0b01;
-                } else if (argumentType == TypeKind.LONG) {
-                    lowerArgs[i - skip] |= 0b10;
-                }
+            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
+            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+                break;
             }
         }
 
@@ -282,32 +267,48 @@ public class CoreModuleProcessor extends AbstractProcessor {
         }
     }
 
-    private List<ExecutableElement> getSpecializationMethods(TypeElement klass) {
-        List<ExecutableElement> specializationMethods = new ArrayList<>();
+    private byte[] checkLowerFixnumArguments(ExecutableElement specializationMethod, boolean needsSelf,
+            byte[] lowerArgs) {
+        List<? extends VariableElement> parameters = specializationMethod.getParameters();
+        int skip = needsSelf ? 1 : 0;
 
-        TypeElement klassIt = klass;
-        while (true) {
-            for (Element el : klassIt.getEnclosedElements()) {
-                if (!(el instanceof ExecutableElement)) {
-                    continue; // we are interested only in executable elements
-                }
+        if (parameters.size() > 0 &&
+                processingEnv.getTypeUtils().isSameType(parameters.get(0).asType(), virtualFrameType)) {
+            skip++;
+        }
 
-                final ExecutableElement specializationMethod = (ExecutableElement) el;
-
-                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
-                if (specializationAnnotation == null) {
-                    continue; // we are interested only in Specialization methods
-                }
-
-                specializationMethods.add(specializationMethod);
-            }
-
-            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
-            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+        int end = parameters.size();
+        for (int i = end - 1; i >= skip; i--) {
+            boolean cached = parameters.get(i).getAnnotation(Cached.class) != null;
+            if (cached) {
+                end--;
+            } else {
                 break;
             }
         }
-        return specializationMethods;
+
+        if (lowerArgs == null) {
+            if (end < skip) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "should have needsSelf = false",
+                        specializationMethod);
+                return lowerArgs;
+            }
+            lowerArgs = new byte[end - skip];
+        } else {
+            assert lowerArgs.length == end - skip;
+        }
+
+        for (int i = skip; i < end; i++) {
+            TypeKind argumentType = parameters.get(i).asType().getKind();
+            if (argumentType == TypeKind.INT) {
+                lowerArgs[i - skip] |= 0b01;
+            } else if (argumentType == TypeKind.LONG) {
+                lowerArgs[i - skip] |= 0b10;
+            }
+        }
+        return lowerArgs;
     }
 
     private static boolean contains(int[] array, int value) {
@@ -319,68 +320,60 @@ public class CoreModuleProcessor extends AbstractProcessor {
         return false;
     }
 
-    private void checkAmbiguousOptionalArguments(CoreMethod coreMethod, TypeElement klass) {
-        for (Element el : klass.getEnclosedElements()) {
-            if (!(el instanceof ExecutableElement)) {
-                continue; // we are interested only in executable elements
+    private void checkAmbiguousOptionalArguments(
+            CoreMethod coreMethod,
+            ExecutableElement specializationMethod,
+            Specialization specializationAnnotation) {
+        List<? extends VariableElement> parameters = specializationMethod.getParameters();
+        int n = parameters.size() - 1;
+        // Ignore all the @Cached methods from our consideration.
+        while (n >= 0 &&
+                (parameters.get(n).getAnnotation(Cached.class) != null ||
+                        parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
+                        parameters.get(n).getAnnotation(CachedContext.class) != null)) {
+            n--;
+        }
+
+        if (coreMethod.needsBlock()) {
+            if (n < 0) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "invalid block method parameter position for",
+                        specializationMethod);
+                return;
+            }
+            isParameterUnguarded(specializationAnnotation, parameters.get(n));
+            n--; // Ignore block argument.
+        }
+
+        if (coreMethod.rest()) {
+            if (n < 0) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "missing rest method parameter",
+                        specializationMethod);
+                return;
             }
 
-            final ExecutableElement specializationMethod = (ExecutableElement) el;
-
-            Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
-            if (specializationAnnotation == null) {
-                continue; // we are interested only in Specialization methods
+            if (parameters.get(n).asType().getKind() != TypeKind.ARRAY) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "rest method parameter is not array",
+                        parameters.get(n));
+                return;
             }
+            n--; // ignore final Object[] argument
+        }
 
-            List<? extends VariableElement> parameters = specializationMethod.getParameters();
-
-            int n = parameters.size() - 1;
-            // Ignore all the @Cached methods from our consideration.
-            while (n >= 0 && parameters.get(n).getAnnotation(Cached.class) != null) {
-                n--;
+        for (int i = 0; i < coreMethod.optional(); i++, n--) {
+            if (n < 0) {
+                processingEnv.getMessager().printMessage(
+                        Kind.ERROR,
+                        "invalid optional parameter count for",
+                        specializationMethod);
+                continue;
             }
-
-            if (coreMethod.needsBlock()) {
-                if (n < 0) {
-                    processingEnv.getMessager().printMessage(
-                            Kind.ERROR,
-                            "invalid block method parameter position for",
-                            specializationMethod);
-                    continue;
-                }
-                isParameterUnguarded(specializationAnnotation, parameters.get(n));
-                n--; // Ignore block argument.
-            }
-
-            if (coreMethod.rest()) {
-                if (n < 0) {
-                    processingEnv.getMessager().printMessage(
-                            Kind.ERROR,
-                            "missing rest method parameter",
-                            specializationMethod);
-                    continue;
-                }
-
-                if (parameters.get(n).asType().getKind() != TypeKind.ARRAY) {
-                    processingEnv.getMessager().printMessage(
-                            Kind.ERROR,
-                            "rest method parameter is not array",
-                            parameters.get(n));
-                    continue;
-                }
-                n--; // ignore final Object[] argument
-            }
-
-            for (int i = 0; i < coreMethod.optional(); i++, n--) {
-                if (n < 0) {
-                    processingEnv.getMessager().printMessage(
-                            Kind.ERROR,
-                            "invalid optional parameter count for",
-                            specializationMethod);
-                    continue;
-                }
-                isParameterUnguarded(specializationAnnotation, parameters.get(n));
-            }
+            isParameterUnguarded(specializationAnnotation, parameters.get(n));
         }
     }
 
@@ -584,49 +577,69 @@ public class CoreModuleProcessor extends AbstractProcessor {
     private List<String> getArgumentNamesFromSpecializations(TypeElement klass, boolean hasSelfArgument) {
         List<String> argumentNames = new ArrayList<>();
         List<VariableElement> argumentElements = new ArrayList<>();
-        List<ExecutableElement> specializationMethods = getSpecializationMethods(klass);
-        for (ExecutableElement specializationMethod : specializationMethods) {
-            boolean addingArguments = argumentNames.isEmpty();
 
-            int index = 0;
-            boolean skippedSelf = false;
-            for (VariableElement parameter : specializationMethod.getParameters()) {
-                if (!parameter.getAnnotationMirrors().isEmpty()) {
-                    continue; // we ignore arguments having annotations like @Cached
+        TypeElement klassIt = klass;
+        while (true) {
+            for (Element el : klassIt.getEnclosedElements()) {
+                if (!(el instanceof ExecutableElement)) {
+                    continue; // we are interested only in executable elements
                 }
 
-                if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
-                    continue;
+                final ExecutableElement specializationMethod = (ExecutableElement) el;
+
+                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+                if (specializationAnnotation == null) {
+                    continue; // we are interested only in Specialization methods
                 }
 
-                if (hasSelfArgument && !skippedSelf) {
-                    skippedSelf = true;
-                    continue;
-                }
+                boolean addingArguments = argumentNames.isEmpty();
 
-                String nameCanBeKeyword = parameter
-                        .getSimpleName()
-                        .toString()
-                        .replaceAll("(.)(\\p{Upper})", "$1_$2")
-                        .toLowerCase()
-                        .replaceAll("^(maybe|unused)_", "");
-                String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
-
-
-                if (addingArguments) {
-                    argumentNames.add(name);
-                    argumentElements.add(parameter);
-                } else {
-                    if (!argumentNames.get(index).equals(name)) {
-                        processingEnv.getMessager().printMessage(
-                                Kind.ERROR,
-                                "The argument does not match with the first occurrence of this argument which was '" +
-                                        argumentElements.get(index).getSimpleName() +
-                                        "' (translated to Ruby as '" + argumentNames.get(index) + "').",
-                                parameter);
+                int index = 0;
+                boolean skippedSelf = false;
+                for (VariableElement parameter : specializationMethod.getParameters()) {
+                    if (!parameter.getAnnotationMirrors().isEmpty()) {
+                        continue; // we ignore arguments having annotations like @Cached
                     }
+
+                    if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
+                        continue;
+                    }
+
+                    if (hasSelfArgument && !skippedSelf) {
+                        skippedSelf = true;
+                        continue;
+                    }
+
+                    String nameCanBeKeyword = parameter
+                            .getSimpleName()
+                            .toString()
+                            .replaceAll("(.)(\\p{Upper})", "$1_$2")
+                            .toLowerCase()
+                            .replaceAll("^(maybe|unused)_", "");
+                    String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
+
+
+                    if (addingArguments) {
+                        argumentNames.add(name);
+                        argumentElements.add(parameter);
+                    } else {
+                        if (!argumentNames.get(index).equals(name)) {
+                            processingEnv.getMessager().printMessage(
+                                    Kind.ERROR,
+                                    "The argument does not match with the first occurrence of this argument which was '" +
+                                            argumentElements.get(index).getSimpleName() +
+                                            "' (translated to Ruby as '" + argumentNames.get(index) + "').",
+                                    parameter);
+                        }
+                    }
+                    index++;
                 }
-                index++;
+
+            }
+
+            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
+            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+                break;
             }
         }
 
