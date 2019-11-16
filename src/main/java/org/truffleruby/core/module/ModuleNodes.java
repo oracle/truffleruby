@@ -1575,7 +1575,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "public_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
+    @CoreMethod(names = "public_instance_methods", optional = 1)
     public abstract static class PublicInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public PublicInstanceMethodsNode() {
@@ -1584,7 +1584,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "protected_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
+    @CoreMethod(names = "protected_instance_methods", optional = 1)
     public abstract static class ProtectedInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public ProtectedInstanceMethodsNode() {
@@ -1593,7 +1593,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "private_instance_methods", optional = 1, argumentNames = { "include_ancestors" })
+    @CoreMethod(names = "private_instance_methods", optional = 1)
     public abstract static class PrivateInstanceMethodsNode extends AbstractInstanceMethodsNode {
 
         public PrivateInstanceMethodsNode() {
@@ -1626,7 +1626,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "public_method_defined?", required = 1, argumentNames = { "name" })
+    @CoreMethod(names = "public_method_defined?", required = 1)
     public abstract static class PublicMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public PublicMethodDefinedNode() {
@@ -1635,7 +1635,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "protected_method_defined?", required = 1, argumentNames = { "name" })
+    @CoreMethod(names = "protected_method_defined?", required = 1)
     public abstract static class ProtectedMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public ProtectedMethodDefinedNode() {
@@ -1644,7 +1644,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "private_method_defined?", required = 1, argumentNames = { "name" })
+    @CoreMethod(names = "private_method_defined?", required = 1)
     public abstract static class PrivateMethodDefinedNode extends AbstractMethodDefinedNode {
 
         public PrivateMethodDefinedNode() {

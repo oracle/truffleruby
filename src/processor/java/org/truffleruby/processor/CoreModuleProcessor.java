@@ -218,31 +218,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
     private void checkLowerFixnumArguments(int[] lowerFixnum, TypeElement klass, boolean needsSelf) {
         byte[] lowerArgs = null;
 
-        List<ExecutableElement> specializationMethods = new ArrayList<>();
-
-        TypeElement klassIt = klass;
-        while (true) {
-            for (Element el : klassIt.getEnclosedElements()) {
-                if (!(el instanceof ExecutableElement)) {
-                    continue; // we are interested only in executable elements
-                }
-
-                final ExecutableElement specializationMethod = (ExecutableElement) el;
-
-                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
-                if (specializationAnnotation == null) {
-                    continue; // we are interested only in Specialization methods
-                }
-
-                specializationMethods.add(specializationMethod);
-            }
-
-            // TODO (pitr-ch 15-Nov-2019): did not we need to find superclasses somewhere else as well ?
-            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
-            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
-                break;
-            }
-        }
+        List<ExecutableElement> specializationMethods = getSpecializationMethods(klass);
 
         for (ExecutableElement specializationMethod : specializationMethods) {
             List<? extends VariableElement> parameters = specializationMethod.getParameters();
@@ -304,6 +280,34 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         klass);
             }
         }
+    }
+
+    private List<ExecutableElement> getSpecializationMethods(TypeElement klass) {
+        List<ExecutableElement> specializationMethods = new ArrayList<>();
+
+        TypeElement klassIt = klass;
+        while (true) {
+            for (Element el : klassIt.getEnclosedElements()) {
+                if (!(el instanceof ExecutableElement)) {
+                    continue; // we are interested only in executable elements
+                }
+
+                final ExecutableElement specializationMethod = (ExecutableElement) el;
+
+                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+                if (specializationAnnotation == null) {
+                    continue; // we are interested only in Specialization methods
+                }
+
+                specializationMethods.add(specializationMethod);
+            }
+
+            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
+            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+                break;
+            }
+        }
+        return specializationMethods;
     }
 
     private static boolean contains(int[] array, int value) {
@@ -580,23 +584,13 @@ public class CoreModuleProcessor extends AbstractProcessor {
     private List<String> getArgumentNamesFromSpecializations(TypeElement klass, boolean hasSelfArgument) {
         List<String> argumentNames = new ArrayList<>();
         List<VariableElement> argumentElements = new ArrayList<>();
-
-        for (Element el : klass.getEnclosedElements()) {
-            if (!(el instanceof ExecutableElement)) {
-                continue; // we are interested only in executable elements
-            }
-
-            final ExecutableElement executableElement = (ExecutableElement) el;
-
-            if (executableElement.getAnnotation(Specialization.class) == null) {
-                continue; // we are interested only in Specialization methods
-            }
-
+        List<ExecutableElement> specializationMethods = getSpecializationMethods(klass);
+        for (ExecutableElement specializationMethod : specializationMethods) {
             boolean addingArguments = argumentNames.isEmpty();
 
             int index = 0;
             boolean skippedSelf = false;
-            for (VariableElement parameter : executableElement.getParameters()) {
+            for (VariableElement parameter : specializationMethod.getParameters()) {
                 if (!parameter.getAnnotationMirrors().isEmpty()) {
                     continue; // we ignore arguments having annotations like @Cached
                 }
