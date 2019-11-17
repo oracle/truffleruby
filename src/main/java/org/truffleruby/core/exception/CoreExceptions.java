@@ -251,8 +251,8 @@ public class CoreExceptions {
         return runtimeError("Truffle::Graal.assert_not_compiled can only be called lexically", currentNode);
     }
 
-    public DynamicObject runtimeErrorNeverPartOfCompilation(Node currentNode) {
-        return runtimeError("Truffle::Graal.assert_never_part_of_compilation can only be called lexically", currentNode);
+    public DynamicObject runtimeErrorBailout(Node currentNode) {
+        return runtimeError("Truffle::Graal.bailout can only be called lexically", currentNode);
     }
 
     public DynamicObject runtimeErrorCoverageNotEnabled(Node currentNode) {
