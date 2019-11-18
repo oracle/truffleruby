@@ -49,8 +49,8 @@ import org.truffleruby.language.objects.IsTaintedNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -176,6 +176,20 @@ public abstract class MatchDataNodes {
         final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
         Layouts.MATCH_DATA.setCharOffsets(matchData, charOffsets);
         return charOffsets;
+    }
+
+    @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
+    public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object create(DynamicObject regexp, DynamicObject string, int start, int end,
+                @Cached AllocateObjectNode allocateNode) {
+            final Region region = new Region(start, end);
+            return allocateNode.allocate(
+                    coreLibrary().getMatchDataClass(),
+                    Layouts.MATCH_DATA.build(string, regexp, region, null));
+        }
+
     }
 
     @Primitive(name = "matchdata_create")

@@ -74,7 +74,7 @@ module Truffle
 
       if String === pattern
         index = byte_index(orig, pattern, 0)
-        match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+        match = index ? TrufflePrimitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
       else
         pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
         match = pattern.search_region(orig, 0, orig.bytesize, true)
@@ -113,7 +113,7 @@ module Truffle
 
         if String === pattern
           index = byte_index(orig, pattern, offset)
-          match = index ? TrufflePrimitive.matchdata_create(pattern, orig.dup, [index], [index + pattern.bytesize]) : nil
+          match = index ? TrufflePrimitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
         else
           match = pattern.match_from orig, offset
         end
