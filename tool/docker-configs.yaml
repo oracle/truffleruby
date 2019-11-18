@@ -39,21 +39,19 @@ fedora28:
 ubuntu1804:
   base: ubuntu:18.04
   setup:
-    - RUN apt-get update
   locale:
-    - RUN apt-get install -y locales
+    - RUN apt-get update && apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  install: RUN apt-get install -y
+  install: RUN apt-get update && apt-get install -y
   <<: *deb_packages
 
 ubuntu1604:
   base: ubuntu:16.04
   setup:
-    - RUN apt-get update
   locale:
-    - RUN apt-get install -y locales
+    - RUN apt-get update && apt-get install -y locales
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
-  install: RUN apt-get install -y
+  install: RUN apt-get update && apt-get install -y
   <<: *deb_packages
