@@ -18,7 +18,9 @@ import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayExtractRangeN
 import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayGetNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArrayNewStoreNodeGen;
 import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArraySetNodeGen;
+import org.truffleruby.core.array.IntegerArrayNodesFactory.IntArraySortNodeGen;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -125,15 +127,16 @@ public class IntegerArrayNodes {
         }
     }
 
-    public static abstract class ArraySortNode extends ArrayOperationNodes.ArraySortNode {
+    public static abstract class IntArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
+        @TruffleBoundary
         @Specialization
         protected void sort(int[] store, int size) {
             Arrays.sort(store, 0, size);
         }
 
-        public static ArraySortNode create() {
-            return IntegerArrayNodesFactory.ArraySortNodeGen.create();
+        public static IntArraySortNode create() {
+            return IntArraySortNodeGen.create();
         }
     }
 }

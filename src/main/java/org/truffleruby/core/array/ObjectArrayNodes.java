@@ -20,6 +20,7 @@ import org.truffleruby.core.array.ObjectArrayNodesFactory.ObjectArrayNewStoreNod
 import org.truffleruby.core.array.ObjectArrayNodesFactory.ObjectArraySetNodeGen;
 import org.truffleruby.core.array.ObjectArrayNodesFactory.ObjectArraySortNodeGen;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -121,6 +122,7 @@ public class ObjectArrayNodes {
 
     public static abstract class ObjectArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
+        @TruffleBoundary
         @Specialization
         protected void sort(Object[] store, int size) {
             Arrays.sort(store, 0, size);

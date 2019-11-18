@@ -94,6 +94,7 @@ public abstract class MatchDataNodes {
         return e;
     }
 
+    @TruffleBoundary
     private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
         // Taken from org.jruby.RubyMatchData
         Arrays.sort(pairs);
