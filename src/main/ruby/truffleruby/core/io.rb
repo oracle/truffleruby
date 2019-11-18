@@ -942,7 +942,7 @@ class IO
   # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
   #                 Rubinius does not.
   #
-  def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
+  def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
       unless Truffle::Type.object_kind_of? timeout, Numeric
         raise TypeError, 'Timeout must be numeric'
@@ -951,63 +951,53 @@ class IO
       raise ArgumentError, 'timeout must be positive' if timeout < 0
 
       # Microseconds, rounded down
-      timeout_us = Integer(timeout * 1_000_000)
+      timeout = remaining_timeout = Integer(timeout * 1_000_000)
+    else
+      remaining_timeout = -1
     end
 
     if readables
-      readables =
-        Truffle::Type.coerce_to(readables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
-            unless obj.__send__(:buffer_empty?)
-              return [[obj],[],[]]
-            end
-            obj
-          else
-            io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
-            [obj, io]
-          end
-        end
+      readables = Truffle::Type.coerce_to(readables, Array, :to_ary)
+      readable_ios = readables.map do |obj|
+        io = Truffle::Type.coerce_to(obj, IO, :to_io)
+        raise IOError, 'closed stream' if io.closed?
+        return [[obj], [], []] unless io.__send__(:buffer_empty?)
+        io
+      end
+    else
+      readables = []
+      readable_ios = []
     end
 
     if writables
-      writables =
-        Truffle::Type.coerce_to(writables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
-            obj
-          else
-            io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
-            [obj, io]
-          end
-        end
+      writables = Truffle::Type.coerce_to(writables, Array, :to_ary)
+      writable_ios = writables.map do |obj|
+        io = Truffle::Type.coerce_to(obj, IO, :to_io)
+        raise IOError, 'closed stream' if io.closed?
+        io
+      end
+    else
+      writables = []
+      writable_ios = []
     end
 
     if errorables
-      errorables =
-        Truffle::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, 'closed stream' if obj.closed?
-            obj
-          else
-            io = Truffle::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, 'closed stream' if io.closed?
-            [obj, io]
-          end
-        end
+      errorables = Truffle::Type.coerce_to(errorables, Array, :to_ary)
+      errorable_ios = errorables.map do |obj|
+        io = Truffle::Type.coerce_to(obj, IO, :to_io)
+        raise IOError, 'closed stream' if io.closed?
+        io
+      end
+    else
+      errorables = []
+      errorable_ios = []
     end
 
-    readables ||= []
-    writables ||= []
-    errorables ||= []
-    original_timeout = timeout_us
-    timeout_us ||= -1
-
     Truffle::IOOperations.select(
-      readables, writables, errorables,
-      original_timeout, timeout_us)
+        readables, readable_ios,
+        writables, writable_ios,
+        errorables, errorable_ios,
+        timeout, remaining_timeout)
   end
 
   ##
