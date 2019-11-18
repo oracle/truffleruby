@@ -30,6 +30,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
@@ -48,8 +49,8 @@ import org.truffleruby.language.objects.IsTaintedNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -177,17 +178,32 @@ public abstract class MatchDataNodes {
         return charOffsets;
     }
 
+    @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
+    public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object create(DynamicObject regexp, DynamicObject string, int start, int end,
+                @Cached AllocateObjectNode allocateNode) {
+            final Region region = new Region(start, end);
+            return allocateNode.allocate(
+                    coreLibrary().getMatchDataClass(),
+                    Layouts.MATCH_DATA.build(string, regexp, region, null));
+        }
+
+    }
+
     @Primitive(name = "matchdata_create")
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
                 @Cached AllocateObjectNode allocateNode,
-                @Cached ArrayReadNormalizedNode readNode) {
+                @Cached ArrayReadNormalizedNode readNode,
+                @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
             for (int i = 0; i < region.numRegs; i++) {
-                region.beg[i] = (int) readNode.executeRead(starts, i);
-                region.end[i] = (int) readNode.executeRead(ends, i);
+                region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
+                region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
             }
 
             return allocateNode.allocate(
