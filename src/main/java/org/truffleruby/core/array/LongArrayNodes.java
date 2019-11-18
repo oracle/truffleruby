@@ -20,6 +20,7 @@ import org.truffleruby.core.array.LongArrayNodesFactory.LongArrayNewStoreNodeGen
 import org.truffleruby.core.array.LongArrayNodesFactory.LongArraySetNodeGen;
 import org.truffleruby.core.array.LongArrayNodesFactory.LongArraySortNodeGen;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -121,6 +122,7 @@ public class LongArrayNodes {
 
     public static abstract class LongArraySortNode extends ArrayOperationNodes.ArraySortNode {
 
+        @TruffleBoundary
         @Specialization
         protected void sort(long[] store, int size) {
             Arrays.sort(store, 0, size);

@@ -315,7 +315,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public ArraySortNode sortNode() {
-            return IntegerArrayNodes.ArraySortNode.create();
+            return IntegerArrayNodes.IntArraySortNode.create();
         }
 
         @Override
