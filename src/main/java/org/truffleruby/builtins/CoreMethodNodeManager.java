@@ -55,7 +55,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class CoreMethodNodeManager {
 
-    public static final boolean CHECK_DSL_USAGE = System.getenv("TRUFFLE_CHECK_DSL_USAGE") != null;
     private final RubyContext context;
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
@@ -77,8 +76,6 @@ public class CoreMethodNodeManager {
                 addCoreMethodNodes(factory);
             }
         }
-
-        allMethodInstalled();
     }
 
     public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
@@ -282,11 +279,6 @@ public class CoreMethodNodeManager {
         final int optional = method.optional();
         final int nArgs = required + optional;
 
-        if (CHECK_DSL_USAGE) {
-            AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(nodeFactory, method);
-            LowerFixnumChecker.checkLowerFixnumArguments(nodeFactory, needsSelf ? 1 : 0, method.lowerFixnum());
-        }
-
         for (int n = 0; n < nArgs; n++) {
             RubyNode readArgumentNode = ProfileArgumentNodeGen
                     .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
@@ -424,14 +416,6 @@ public class CoreMethodNodeManager {
             throw new JavaException(e);
         }
         return (NodeFactory<? extends RubyNode>) instance;
-    }
-
-    public void allMethodInstalled() {
-        if (CHECK_DSL_USAGE) {
-            if (!(AmbiguousOptionalArgumentChecker.SUCCESS && LowerFixnumChecker.SUCCESS)) {
-                throw new Error("The DSL checkers failed!");
-            }
-        }
     }
 
     public static class MethodDetails {

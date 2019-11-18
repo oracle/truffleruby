@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -41,6 +42,10 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
 public class CoreModuleProcessor extends AbstractProcessor {
+
+    ProcessingEnvironment getProcessingEnvironment() {
+        return processingEnv;
+    }
 
     private static final String SUFFIX = "Builtins";
     private static final Set<String> KEYWORDS;
@@ -86,7 +91,9 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     private final Set<String> processed = new HashSet<>();
-    private TypeMirror virtualFrame;
+    TypeMirror virtualFrameType;
+    TypeMirror objectType;
+    TypeMirror rubyNodeType;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -95,9 +102,17 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
-        virtualFrame = processingEnv
+        virtualFrameType = processingEnv
                 .getElementUtils()
                 .getTypeElement("com.oracle.truffle.api.frame.VirtualFrame")
+                .asType();
+        objectType = processingEnv
+                .getElementUtils()
+                .getTypeElement("java.lang.Object")
+                .asType();
+        rubyNodeType = processingEnv
+                .getElementUtils()
+                .getTypeElement("org.truffleruby.language.RubyNode")
                 .asType();
 
         if (!annotations.isEmpty()) {
@@ -167,12 +182,23 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
                         final CoreMethod coreMethod = klass.getAnnotation(CoreMethod.class);
                         if (coreMethod != null) {
+                            // Do not use needsSelf=true in module functions, it is either the module/class or the instance.
+                            // Usage of needsSelf is quite rare for singleton methods (except constructors).
+                            boolean needsSelf = coreMethod.constructor() ||
+                                    (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
+                                            coreMethod.needsSelf());
+
+                            CoreMethod checkAmbiguous = coreMethod.optional() > 0 || coreMethod.needsBlock()
+                                    ? coreMethod
+                                    : null;
+                            CoreModuleChecks.checks(this, coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
 
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
+                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, primitive.needsSelf());
                         }
                     }
                 }
@@ -190,7 +216,6 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 rubyStream.println();
             }
         }
-
     }
 
     private void processPrimitive(
@@ -259,8 +284,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 names + ");");
 
         final boolean hasSelfArgument = !coreMethod.onSingleton() && !coreMethod.constructor() &&
-                !coreMethod.isModuleFunction() &&
-                coreMethod.needsSelf();
+                !coreMethod.isModuleFunction() && coreMethod.needsSelf();
 
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
@@ -356,58 +380,68 @@ public class CoreModuleProcessor extends AbstractProcessor {
         List<String> argumentNames = new ArrayList<>();
         List<VariableElement> argumentElements = new ArrayList<>();
 
-        for (Element el : klass.getEnclosedElements()) {
-            if (!(el instanceof ExecutableElement)) {
-                continue; // we are interested only in executable elements
-            }
-
-            final ExecutableElement executableElement = (ExecutableElement) el;
-
-            if (executableElement.getAnnotation(Specialization.class) == null) {
-                continue; // we are interested only in Specialization methods
-            }
-
-            boolean addingArguments = argumentNames.isEmpty();
-
-            int index = 0;
-            boolean skippedSelf = false;
-            for (VariableElement parameter : executableElement.getParameters()) {
-                if (!parameter.getAnnotationMirrors().isEmpty()) {
-                    continue; // we ignore arguments having annotations like @Cached
+        TypeElement klassIt = klass;
+        while (true) {
+            for (Element el : klassIt.getEnclosedElements()) {
+                if (!(el instanceof ExecutableElement)) {
+                    continue; // we are interested only in executable elements
                 }
 
-                if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrame)) {
-                    continue;
+                final ExecutableElement specializationMethod = (ExecutableElement) el;
+
+                Specialization specializationAnnotation = specializationMethod.getAnnotation(Specialization.class);
+                if (specializationAnnotation == null) {
+                    continue; // we are interested only in Specialization methods
                 }
 
-                if (hasSelfArgument && !skippedSelf) {
-                    skippedSelf = true;
-                    continue;
-                }
+                boolean addingArguments = argumentNames.isEmpty();
 
-                String nameCanBeKeyword = parameter
-                        .getSimpleName()
-                        .toString()
-                        .replaceAll("(.)(\\p{Upper})", "$1_$2")
-                        .toLowerCase()
-                        .replaceAll("^(maybe|unused)_", "");
-                String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
-
-
-                if (addingArguments) {
-                    argumentNames.add(name);
-                    argumentElements.add(parameter);
-                } else {
-                    if (!argumentNames.get(index).equals(name)) {
-                        processingEnv.getMessager().printMessage(
-                                Kind.ERROR,
-                                "The argument does not match with the first occurrence of this argument which was '" +
-                                        argumentElements.get(index).getSimpleName() +
-                                        "' (translated to Ruby as '" + argumentNames.get(index) + "').",
-                                parameter);
+                int index = 0;
+                boolean skippedSelf = false;
+                for (VariableElement parameter : specializationMethod.getParameters()) {
+                    if (!parameter.getAnnotationMirrors().isEmpty()) {
+                        continue; // we ignore arguments having annotations like @Cached
                     }
+
+                    if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
+                        continue;
+                    }
+
+                    if (hasSelfArgument && !skippedSelf) {
+                        skippedSelf = true;
+                        continue;
+                    }
+
+                    String nameCanBeKeyword = parameter
+                            .getSimpleName()
+                            .toString()
+                            .replaceAll("(.)(\\p{Upper})", "$1_$2")
+                            .toLowerCase()
+                            .replaceAll("^(maybe|unused)_", "");
+                    String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
+
+
+                    if (addingArguments) {
+                        argumentNames.add(name);
+                        argumentElements.add(parameter);
+                    } else {
+                        if (!argumentNames.get(index).equals(name)) {
+                            processingEnv.getMessager().printMessage(
+                                    Kind.ERROR,
+                                    "The argument does not match with the first occurrence of this argument which was '" +
+                                            argumentElements.get(index).getSimpleName() +
+                                            "' (translated to Ruby as '" + argumentNames.get(index) + "').",
+                                    parameter);
+                        }
+                    }
+                    index++;
                 }
-                index++;
+
+            }
+
+            klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
+            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
+                break;
             }
         }
 
