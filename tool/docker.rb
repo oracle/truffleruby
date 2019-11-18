@@ -104,7 +104,6 @@ class JT
       packages = []
 
       lines << "FROM #{distro.fetch('base')}"
-      lines.push(*distro.fetch('setup'))
       lines.push(*distro.fetch('locale'))
 
       packages << distro.fetch('curl') if install_method == :public || install_method == :source
