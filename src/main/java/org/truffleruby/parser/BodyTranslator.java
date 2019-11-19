@@ -254,6 +254,7 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.AssertConstantNodeGen;
+import org.truffleruby.platform.BailoutNode;
 import org.truffleruby.platform.AssertNotCompiledNodeGen;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -547,6 +548,10 @@ public class BodyTranslator extends Translator {
                 return addNewlineIfNeeded(node, ret);
             } else if (methodName.equals("assert_not_compiled")) {
                 final RubyNode ret = AssertNotCompiledNodeGen.create();
+                ret.unsafeSetSourceSection(sourceSection);
+                return addNewlineIfNeeded(node, ret);
+            } else if (methodName.equals("bailout")) {
+                final RubyNode ret = BailoutNode.create(((ArrayParseNode) node.getArgsNode()).get(0).accept(this));
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);
             }

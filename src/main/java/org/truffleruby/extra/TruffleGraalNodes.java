@@ -37,6 +37,7 @@ public abstract class TruffleGraalNodes {
     @CoreMethod(names = "assert_constant", onSingleton = true, required = 1)
     public abstract static class AssertConstantNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         protected DynamicObject assertConstant(Object value) {
             throw new RaiseException(getContext(), coreExceptions().runtimeErrorNotConstant(this));
@@ -47,9 +48,21 @@ public abstract class TruffleGraalNodes {
     @CoreMethod(names = "assert_not_compiled", onSingleton = true)
     public abstract static class AssertNotCompiledNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         protected DynamicObject assertNotCompiled() {
             throw new RaiseException(getContext(), coreExceptions().runtimeErrorCompiled(this));
+        }
+
+    }
+
+    @CoreMethod(names = "bailout", onSingleton = true, required = 1)
+    public abstract static class BailoutNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(message)")
+        protected DynamicObject bailout(DynamicObject message) {
+            throw new RaiseException(getContext(), coreExceptions().runtimeErrorBailout(this));
         }
 
     }
