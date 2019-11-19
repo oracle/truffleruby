@@ -100,11 +100,8 @@ class JT
       distro = config.fetch(distro)
       run_post_install_hook = rebuild_openssl
 
-      lines = []
       packages = []
-
-      lines << "FROM #{distro.fetch('base')}"
-      lines.push(*distro.fetch('locale'))
+      packages << distro.fetch('locale')
 
       packages << distro.fetch('curl') if install_method == :public || install_method == :source
       packages << distro.fetch('git') if install_method == :source
@@ -118,7 +115,11 @@ class JT
 
       packages << distro.fetch('source') if install_method == :source
 
-      lines << [distro.fetch('install'), *packages.compact].join(' ')
+      lines = [
+        "FROM #{distro.fetch('base')}",
+        [distro.fetch('install'), *packages.compact].join(' '),
+        *distro.fetch('set-locale'),
+      ]
 
       lines << 'WORKDIR /test'
 

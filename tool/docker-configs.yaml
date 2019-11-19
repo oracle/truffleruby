@@ -1,4 +1,5 @@
 rpm_packages: &rpm_packages
+  locale:
   curl: curl
   git: git
   tar: tar gzip
@@ -10,6 +11,7 @@ rpm_packages: &rpm_packages
   source: file gcc-c++ python ruby
 
 deb_packages: &deb_packages
+  locale: locales
   curl: curl
   git: git
   tar:
@@ -22,22 +24,21 @@ deb_packages: &deb_packages
 
 ol7:
   base: oraclelinux:7-slim
-  locale:
+  set-locale:
     - ENV LANG=en_US.UTF-8
   install: RUN yum install -y
   <<: *rpm_packages
 
 fedora28:
   base: fedora:28
-  locale:
+  set-locale:
     - ENV LANG=en_US.UTF-8
   install: RUN dnf install -y
   <<: *rpm_packages
 
 ubuntu1804:
   base: ubuntu:18.04
-  locale:
-    - RUN apt-get update && apt-get install -y locales
+  set-locale:
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
   install: RUN apt-get update && apt-get install -y
@@ -45,8 +46,7 @@ ubuntu1804:
 
 ubuntu1604:
   base: ubuntu:16.04
-  locale:
-    - RUN apt-get update && apt-get install -y locales
+  set-locale:
     - RUN locale-gen en_US.UTF-8
     - ENV LANG=en_US.UTF-8
   install: RUN apt-get update && apt-get install -y
