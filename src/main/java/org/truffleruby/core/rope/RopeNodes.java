@@ -1836,7 +1836,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        protected int executeNativeNative(ManagedRope firstRope, ManagedRope secondRope,
+        protected int executeManagedManaged(ManagedRope firstRope, ManagedRope secondRope,
                 @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
@@ -1861,7 +1861,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        protected int executeNativeNative(ManagedRope firstRope, NativeRope secondRope,
+        protected int executeManagedNative(ManagedRope firstRope, NativeRope secondRope,
                 @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
@@ -1886,7 +1886,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        protected int executeNativeNative(NativeRope firstRope, ManagedRope secondRope,
+        protected int executeNativeManaged(NativeRope firstRope, ManagedRope secondRope,
                 @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
