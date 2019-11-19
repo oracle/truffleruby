@@ -70,7 +70,6 @@ public class NativeArrayNodes {
         protected void setGeneric(NativeArrayStorage storage, int index, Object object,
                 @Cached WrapNode wrapNode,
                 @CachedLibrary(limit = "1") InteropLibrary values) {
-            storage.markedObjects[index] = object;
             try {
                 storage.pointer.writeLong(8 * index, values.asPointer(wrapNode.execute(object)));
             } catch (UnsupportedMessageException e) {
