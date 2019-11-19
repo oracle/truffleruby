@@ -22,7 +22,7 @@ public abstract class BailoutNode extends RubyNode {
 
     @Specialization(guards = "isRubyString(message)")
     protected DynamicObject bailout(DynamicObject message,
-            @Cached("create()") ToJavaStringNode toJavaStringNode) {
+            @Cached ToJavaStringNode toJavaStringNode) {
         CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
         return nil();
     }
