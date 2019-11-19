@@ -191,19 +191,21 @@ class JT
         ruby_bin = "#{ruby_base}/bin"
       end
 
-      if full_test and !print_only
+      if full_test
         test_files = %w[
           spec
           test/truffle/compiler/pe
           versions.json
         ]
 
-        chdir(docker_dir) do
-          raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
-          test_files.each do |file|
-            FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+        unless print_only
+          chdir(docker_dir) do
+            raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
+            test_files.each do |file|
+              FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+            end
+            FileUtils.rm_rf 'truffleruby-tests'
           end
-          FileUtils.rm_rf 'truffleruby-tests'
         end
       end
 
