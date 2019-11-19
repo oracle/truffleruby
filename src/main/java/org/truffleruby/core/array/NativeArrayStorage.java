@@ -13,7 +13,6 @@ import java.util.Set;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.cext.UnwrapNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.objects.ObjectGraphNode;

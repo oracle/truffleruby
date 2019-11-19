@@ -17,7 +17,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.cext.WrapNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapNativeNode;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayCapacityNodeGen;

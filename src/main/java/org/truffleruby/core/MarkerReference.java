@@ -11,7 +11,6 @@ package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
 class MarkerReference extends ReferenceProcessingService.WeakProcessingReference<MarkerReference, Object> {
 
