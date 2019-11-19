@@ -189,6 +189,8 @@ class JT
         lines << 'RUN cd truffleruby && tool/jt.rb build'
         ruby_base = '/test/truffleruby/mxbuild/truffleruby-jvm'
         ruby_bin = "#{ruby_base}/bin"
+      else
+        raise "Unknown install method: #{install_method}"
       end
 
       if full_test
