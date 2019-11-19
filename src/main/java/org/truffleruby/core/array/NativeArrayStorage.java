@@ -39,7 +39,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         }
     }
 
-    public void preserveMambers() {
+    public void preserveMembers() {
         for (int i = 0; i < length; i++) {
             final Object value = UnwrapNativeNodeGen.getUncached().execute(pointer.readLong(8 * i));
             markedObjects[i] = value;

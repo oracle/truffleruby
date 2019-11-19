@@ -2085,7 +2085,7 @@ public abstract class ArrayNodes {
             Object oldStore = Layouts.ARRAY.getStore(array);
             Object newStore = newStoreNode.execute(size);
             copyToNode.execute(oldStore, newStore, 0, 0, size);
-            getContext().getMarkingService().addMarker(newStore, (aStore) -> ((NativeArrayStorage) aStore).preserveMambers());
+            getContext().getMarkingService().addMarker(newStore, (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
             Layouts.ARRAY.setStore(array, newStore);
             return array;
         }
