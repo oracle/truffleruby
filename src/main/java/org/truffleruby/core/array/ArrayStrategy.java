@@ -13,8 +13,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.cext.ValueWrapperManager;
-import org.truffleruby.cext.UnwrapNode.UnwrapNativeNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayBoxedCopyNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;

@@ -2074,7 +2074,8 @@ public abstract class ArrayNodes {
     public abstract static class StoreToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {
-                "oldStrategy.matches(array)", "oldStrategy != nativeStrategy"
+                "oldStrategy.matches(array)",
+                "oldStrategy != nativeStrategy"
         }, limit = "ARRAY_STRATEGIES")
         protected DynamicObject storeToNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,
@@ -2085,13 +2086,16 @@ public abstract class ArrayNodes {
             Object oldStore = Layouts.ARRAY.getStore(array);
             Object newStore = newStoreNode.execute(size);
             copyToNode.execute(oldStore, newStore, 0, 0, size);
-            getContext().getMarkingService().addMarker(newStore, (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
+            getContext().getMarkingService().addMarker(
+                    newStore,
+                    (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
             Layouts.ARRAY.setStore(array, newStore);
             return array;
         }
 
         @Specialization(guards = {
-                "oldStrategy.matches(array)", "oldStrategy == nativeStrategy"
+                "oldStrategy.matches(array)",
+                "oldStrategy == nativeStrategy"
         }, limit = "ARRAY_STRATEGIES")
         protected DynamicObject storeIsNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,
@@ -2105,7 +2109,8 @@ public abstract class ArrayNodes {
     public abstract static class StoreAddressNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {
-                "oldStrategy.matches(array)", "oldStrategy == nativeStrategy"
+                "oldStrategy.matches(array)",
+                "oldStrategy == nativeStrategy"
         }, limit = "ARRAY_STRATEGIES")
         protected long storeIsNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,

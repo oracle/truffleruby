@@ -73,7 +73,11 @@ public class NativeArrayNodes {
             try {
                 storage.pointer.writeLong(8 * index, values.asPointer(wrapNode.execute(object)));
             } catch (UnsupportedMessageException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Could not convert value for native storage", this));
+                throw new RaiseException(
+                        getContext(),
+                        getContext()
+                                .getCoreExceptions()
+                                .argumentError("Could not convert value for native storage", this));
             }
         }
 
@@ -117,12 +121,16 @@ public class NativeArrayNodes {
     public static abstract class NativeArrayCopyToNode extends ArrayOperationNodes.ArrayCopyToNode {
 
         @Specialization(guards = "toStrategy.matchesStore(to)")
-        protected void copyToOther(NativeArrayStorage from, Object to, int sourceStart, int destinationStart, int length,
+        protected void copyToOther(NativeArrayStorage from, Object to, int sourceStart, int destinationStart,
+                int length,
                 @Cached("ofStore(to)") ArrayStrategy toStrategy,
                 @Cached("toStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached UnwrapNativeNode unwrapNode) {
             for (int i = 0; i < length; i++) {
-                setNode.execute(to, destinationStart + i, unwrapNode.execute(from.pointer.readLong(8 * (sourceStart + i))));
+                setNode.execute(
+                        to,
+                        destinationStart + i,
+                        unwrapNode.execute(from.pointer.readLong(8 * (sourceStart + i))));
             }
         }
 
