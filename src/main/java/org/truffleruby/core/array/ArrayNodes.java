@@ -2111,7 +2111,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy oldStrategy,
                 @Cached("nativeOf(array)") ArrayStrategy nativeStrategy) {
             NativeArrayStorage storage = (NativeArrayStorage) Layouts.ARRAY.getStore(array);
-            return storage.storage.getAddress();
+            return storage.pointer.getAddress();
         }
     }
 }

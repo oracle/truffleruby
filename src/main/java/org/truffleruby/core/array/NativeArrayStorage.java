@@ -19,12 +19,12 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 public final class NativeArrayStorage implements ObjectGraphNode {
 
-    public final Pointer storage;
+    public final Pointer pointer;
     public final Object[] markedObjects;
     public final int length;
 
-    public NativeArrayStorage(Pointer stoarge, int length) {
-        this.storage = stoarge;
+    public NativeArrayStorage(Pointer pointer, int length) {
+        this.pointer = pointer;
         this.length = length;
         this.markedObjects = new Object[length];
     }
@@ -32,7 +32,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     @Override
     public void getAdjacentObjects(Set<DynamicObject> reachable) {
         for (int i = 0; i < length; i++) {
-            final Object value = UnwrapNativeNodeGen.getUncached().execute(storage.readLong(8 * i));
+            final Object value = UnwrapNativeNodeGen.getUncached().execute(pointer.readLong(8 * i));
             if (value instanceof DynamicObject) {
                 reachable.add((DynamicObject) value);
             }
@@ -41,7 +41,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     public void preserveMambers() {
         for (int i = 0; i < length; i++) {
-            final Object value = UnwrapNativeNodeGen.getUncached().execute(storage.readLong(8 * i));
+            final Object value = UnwrapNativeNodeGen.getUncached().execute(pointer.readLong(8 * i));
             markedObjects[i] = value;
         }
     }

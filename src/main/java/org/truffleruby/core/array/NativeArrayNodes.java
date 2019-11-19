@@ -48,7 +48,7 @@ public class NativeArrayNodes {
         @Specialization
         protected Object get(NativeArrayStorage storage, int index,
                 @Cached UnwrapNativeNode unwrapNode) {
-            return unwrapNode.execute(storage.storage.readLong(8 * index));
+            return unwrapNode.execute(storage.pointer.readLong(8 * index));
         }
 
         public static NativeArrayGetNode create() {
@@ -62,9 +62,8 @@ public class NativeArrayNodes {
         protected void set(NativeArrayStorage storage, int index, Object object,
                 @Cached WrapNode wrapNode,
                 @CachedLibrary(limit = "1") InteropLibrary values) throws UnsupportedMessageException {
-            storage.markedObjects[index] = object;
             long value = values.asPointer(wrapNode.execute(object));
-            storage.storage.writeLong(8 * index, value);
+            storage.pointer.writeLong(8 * index, value);
         }
 
         @Specialization(replaces = "set")
@@ -73,7 +72,7 @@ public class NativeArrayNodes {
                 @CachedLibrary(limit = "1") InteropLibrary values) {
             storage.markedObjects[index] = object;
             try {
-                storage.storage.writeLong(8 * index, values.asPointer(wrapNode.execute(object)));
+                storage.pointer.writeLong(8 * index, values.asPointer(wrapNode.execute(object)));
             } catch (UnsupportedMessageException e) {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Could not convert value for native storage", this));
             }
@@ -104,7 +103,7 @@ public class NativeArrayNodes {
             Object[] newStore = new Object[size];
             assert size >= store.length;
             for (int i = 0; i < store.length; i++) {
-                newStore[i] = unwrapNode.execute(store.storage.readLong(8 * i));
+                newStore[i] = unwrapNode.execute(store.pointer.readLong(8 * i));
             }
             return newStore;
         }
@@ -122,7 +121,7 @@ public class NativeArrayNodes {
                 @Cached("toStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached UnwrapNativeNode unwrapNode) {
             for (int i = 0; i < length; i++) {
-                setNode.execute(to, destinationStart + i, unwrapNode.execute(from.storage.readLong(8 * (sourceStart + i))));
+                setNode.execute(to, destinationStart + i, unwrapNode.execute(from.pointer.readLong(8 * (sourceStart + i))));
             }
         }
 
@@ -138,7 +137,7 @@ public class NativeArrayNodes {
                 @Cached UnwrapNativeNode unwrapNode) {
             Object[] newStore = new Object[end - start];
             for (int i = start; i < end; i++) {
-                newStore[i] = unwrapNode.execute(store.storage.readLong(8 * (i)));
+                newStore[i] = unwrapNode.execute(store.pointer.readLong(8 * (i)));
             }
             return newStore;
         }
