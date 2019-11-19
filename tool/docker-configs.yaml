@@ -3,8 +3,7 @@ rpm_packages: &rpm_packages
   curl: curl
   git: git
   tar: tar gzip
-  which: which
-  find: findutils
+  specs: which findutils
   zlib: zlib-devel
   openssl: openssl-devel
   cext: gcc make
@@ -15,8 +14,7 @@ deb_packages: &deb_packages
   curl: curl
   git: git
   tar:
-  which:
-  find:
+  specs: netbase
   zlib: libz-dev
   openssl: libssl-dev
   cext: gcc libxml2 make

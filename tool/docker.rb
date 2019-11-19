@@ -106,8 +106,7 @@ class JT
       packages << distro.fetch('curl') if install_method == :public || install_method == :source
       packages << distro.fetch('git') if install_method == :source
       packages << distro.fetch('tar') if install_method != :source
-      packages << distro.fetch('which') if full_test
-      packages << distro.fetch('find') if full_test
+      packages << distro.fetch('specs') if full_test
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
