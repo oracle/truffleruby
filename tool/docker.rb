@@ -100,18 +100,13 @@ class JT
       distro = config.fetch(distro)
       run_post_install_hook = rebuild_openssl
 
-      lines = []
       packages = []
-
-      lines << "FROM #{distro.fetch('base')}"
-      lines.push(*distro.fetch('setup'))
-      lines.push(*distro.fetch('locale'))
+      packages << distro.fetch('locale')
 
       packages << distro.fetch('curl') if install_method == :public || install_method == :source
-      packages << distro.fetch('git') if install_method == :source || full_test
+      packages << distro.fetch('git') if install_method == :source
       packages << distro.fetch('tar') if install_method != :source
-      packages << distro.fetch('which') if full_test
-      packages << distro.fetch('find') if full_test
+      packages << distro.fetch('specs') if full_test
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
@@ -119,7 +114,11 @@ class JT
 
       packages << distro.fetch('source') if install_method == :source
 
-      lines << [distro.fetch('install'), *packages.compact].join(' ')
+      lines = [
+        "FROM #{distro.fetch('base')}",
+        [distro.fetch('install'), *packages.compact].join(' '),
+        *distro.fetch('set-locale'),
+      ]
 
       lines << 'WORKDIR /test'
 
@@ -190,21 +189,25 @@ class JT
         lines << 'RUN cd truffleruby && tool/jt.rb build'
         ruby_base = '/test/truffleruby/mxbuild/truffleruby-jvm'
         ruby_bin = "#{ruby_base}/bin"
+      else
+        raise "Unknown install method: #{install_method}"
       end
 
-      if full_test and !print_only
+      if full_test
         test_files = %w[
           spec
           test/truffle/compiler/pe
           versions.json
         ]
 
-        chdir(docker_dir) do
-          raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
-          test_files.each do |file|
-            FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+        unless print_only
+          chdir(docker_dir) do
+            raw_sh 'git', 'clone', '--branch', test_branch, TRUFFLERUBY_DIR, 'truffleruby-tests'
+            test_files.each do |file|
+              FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+            end
+            FileUtils.rm_rf 'truffleruby-tests'
           end
-          FileUtils.rm_rf 'truffleruby-tests'
         end
       end
 
