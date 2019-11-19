@@ -37,7 +37,6 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.Node;
@@ -544,12 +543,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final String name = this.name;
         if (name == null) {
             // Lazily compute the anonymous name because it is expensive
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            final String anonymousName = createAnonymousName();
-            this.name = anonymousName;
-            return anonymousName;
+            return getAnonymousName();
         }
         return name;
+    }
+
+    @TruffleBoundary
+    private String getAnonymousName() {
+        final String anonymousName = createAnonymousName();
+        this.name = anonymousName;
+        return anonymousName;
     }
 
     public void setFullName(String name) {
