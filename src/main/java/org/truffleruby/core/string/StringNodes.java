@@ -3396,49 +3396,14 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringAreComparableNode extends RubyBaseNode {
 
-        @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.AreComparableRopesNode areComparableRopesNode = RopeNodes.AreComparableRopesNode.create();
 
         public abstract boolean executeAreComparable(DynamicObject first, DynamicObject second);
 
-        @Specialization(guards = "getEncoding(a) == getEncoding(b)")
+        @Specialization
         protected boolean sameEncoding(DynamicObject a, DynamicObject b) {
-            return true;
+            return areComparableRopesNode.execute(Layouts.STRING.getRope(a), Layouts.STRING.getRope(b));
         }
-
-        @Specialization(guards = "isEmpty(a)")
-        protected boolean firstEmpty(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = "isEmpty(b)")
-        protected boolean secondEmpty(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "is7Bit(a, codeRangeNode)", "is7Bit(b, codeRangeNode)" })
-        protected boolean bothCR7bit(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "is7Bit(a, codeRangeNode)", "isAsciiCompatible(b)" })
-        protected boolean CR7bitASCII(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "isAsciiCompatible(a)", "is7Bit(b, codeRangeNode)" })
-        protected boolean ASCIICR7bit(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Fallback
-        protected boolean notCompatible(DynamicObject a, DynamicObject b) {
-            return false;
-        }
-
-        protected static Encoding getEncoding(DynamicObject string) {
-            return rope(string).getEncoding();
-        }
-
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
