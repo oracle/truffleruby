@@ -15,10 +15,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.CodeSource;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -64,19 +67,31 @@ public class BuildInformationProcessor extends AbstractProcessor {
     }
 
     private File findHome() throws URISyntaxException {
-        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-        if (codeSource == null) {
-            throw new RuntimeException("Could not find the source code for " + getClass());
+        final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        final File jarOrClassPath;
+        if (codeSource == null || codeSource.getLocation() == null) {
+            String className = getClass().getName().replace('.', '/') + ".class";
+            URL location = getClass().getClassLoader().getResource(className);
+            if (location == null) {
+                throw new RuntimeException("Could not find the source code for " + getClass());
+            }
+            Matcher matcher = Pattern.compile("^file:(.+)!/.+\\.class$").matcher(location.getPath());
+            if (!matcher.matches()) {
+                throw new RuntimeException("Could not parse URL " + location.getPath());
+            }
+            jarOrClassPath = new File(matcher.group(1));
+        } else {
+            jarOrClassPath = new File(codeSource.getLocation().toURI());
         }
-        File source = new File(codeSource.getLocation().toURI());
+
         // this is probably `mxbuild/org.truffleruby.processor/bin` or `mxbuild/dists/jdk1.8/truffleruby-processor.jar`
         // let's try to find `mxbuild`
+        File source = jarOrClassPath;
         while (!source.getName().equals("mxbuild")) {
             source = source.getParentFile();
             if (source == null) {
                 throw new RuntimeException(
-                        "Could not find `mxbuild` in the source path for " + getClass() + ": " +
-                                codeSource.getLocation());
+                        "Could not find `mxbuild` in the source path for " + getClass() + ": " + jarOrClassPath);
             }
         }
         return source.getParentFile();
