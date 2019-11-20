@@ -746,7 +746,7 @@ public abstract class ArrayStrategy {
 
     // Native storage
 
-    private static class NativeArrayStrategy extends ArrayStrategy {
+    private static final class NativeArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new NativeArrayStrategy();
 
@@ -777,7 +777,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean matchesStore(Object store) {
-            return store != null && store.getClass() == NativeArrayStorage.class;
+            return store instanceof NativeArrayStorage;
         }
 
         @Override
