@@ -126,6 +126,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
+import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
@@ -433,15 +434,7 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubyString(b)")
         protected int compare(DynamicObject a, DynamicObject b,
                 @Cached("createBinaryProfile()") ConditionProfile sameRopeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
-                @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
-                @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
-                @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
-                @Cached("createBinaryProfile()") ConditionProfile equalProfile,
-                @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
-                @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
-                @Cached RopeNodes.BytesNode firstBytesNode,
-                @Cached RopeNodes.BytesNode secondBytesNode) {
+                @Cached RopeNodes.CompareRopesNode compareNode) {
             // Taken from org.jruby.RubyString#op_cmp
 
             final Rope firstRope = rope(a);
@@ -451,46 +444,7 @@ public abstract class StringNodes {
                 return 0;
             }
 
-            final boolean firstRopeShorter = firstStringShorterProfile
-                    .profile(firstRope.byteLength() < secondRope.byteLength());
-            final int memcmpLength;
-            if (firstRopeShorter) {
-                memcmpLength = firstRope.byteLength();
-            } else {
-                memcmpLength = secondRope.byteLength();
-            }
-
-            final byte[] bytes = firstBytesNode.execute(firstRope);
-            final byte[] otherBytes = secondBytesNode.execute(secondRope);
-
-            final int ret;
-            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength);
-            if (equalSubsequenceProfile.profile(cmp == 0)) {
-                if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
-                    ret = 0;
-                } else {
-                    if (firstRopeShorter) {
-                        ret = -1;
-                    } else {
-                        ret = 1;
-                    }
-                }
-            } else {
-                ret = greaterThanProfile.profile(cmp > 0) ? 1 : -1;
-            }
-
-            if (equalProfile.profile(ret == 0)) {
-                if (notComparableProfile.profile(!RopeOperations.areComparable(firstRope, secondRope))) {
-                    if (encodingIndexGreaterThanProfile
-                            .profile(firstRope.getEncoding().getIndex() > secondRope.getEncoding().getIndex())) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                }
-            }
-
-            return ret;
+            return compareNode.execute(firstRope, secondRope);
         }
 
     }
@@ -3442,49 +3396,14 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringAreComparableNode extends RubyBaseNode {
 
-        @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RopeNodes.AreComparableRopesNode areComparableRopesNode = RopeNodes.AreComparableRopesNode.create();
 
         public abstract boolean executeAreComparable(DynamicObject first, DynamicObject second);
 
-        @Specialization(guards = "getEncoding(a) == getEncoding(b)")
+        @Specialization
         protected boolean sameEncoding(DynamicObject a, DynamicObject b) {
-            return true;
+            return areComparableRopesNode.execute(Layouts.STRING.getRope(a), Layouts.STRING.getRope(b));
         }
-
-        @Specialization(guards = "isEmpty(a)")
-        protected boolean firstEmpty(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = "isEmpty(b)")
-        protected boolean secondEmpty(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "is7Bit(a, codeRangeNode)", "is7Bit(b, codeRangeNode)" })
-        protected boolean bothCR7bit(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "is7Bit(a, codeRangeNode)", "isAsciiCompatible(b)" })
-        protected boolean CR7bitASCII(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Specialization(guards = { "isAsciiCompatible(a)", "is7Bit(b, codeRangeNode)" })
-        protected boolean ASCIICR7bit(DynamicObject a, DynamicObject b) {
-            return true;
-        }
-
-        @Fallback
-        protected boolean notCompatible(DynamicObject a, DynamicObject b) {
-            return false;
-        }
-
-        protected static Encoding getEncoding(DynamicObject string) {
-            return rope(string).getEncoding();
-        }
-
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
@@ -4260,26 +4179,28 @@ public abstract class StringNodes {
             return ByteIndexFromCharIndexNodeGen.create();
         }
 
+        @Child protected SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
+
         public abstract int execute(Rope rope, int startByteOffset, int characterIndex);
 
-        @Specialization(guards = "rope.isSingleByteOptimizable()")
+        @Specialization(guards = "isSingleByteOptimizable(rope)")
         protected int singleByteOptimizable(Rope rope, int startByteOffset, int characterIndex) {
             return startByteOffset + characterIndex;
         }
 
-        @Specialization(guards = { "!rope.isSingleByteOptimizable()", "isFixedWidthEncoding(rope)" })
+        @Specialization(guards = { "!isSingleByteOptimizable(rope)", "isFixedWidthEncoding(rope)" })
         protected int fixedWidthEncoding(Rope rope, int startByteOffset, int characterIndex) {
             final Encoding encoding = rope.getEncoding();
             return startByteOffset + characterIndex * encoding.minLength();
         }
 
         @Specialization(
-                guards = { "!rope.isSingleByteOptimizable()", "!isFixedWidthEncoding(rope)", "characterIndex == 0" })
+                guards = { "!isSingleByteOptimizable(rope)", "!isFixedWidthEncoding(rope)", "characterIndex == 0" })
         protected int multiByteZeroIndex(Rope rope, int startByteOffset, int characterIndex) {
             return startByteOffset;
         }
 
-        @Specialization(guards = { "!rope.isSingleByteOptimizable()", "!isFixedWidthEncoding(rope)" })
+        @Specialization(guards = { "!isSingleByteOptimizable(rope)", "!isFixedWidthEncoding(rope)" })
         protected int multiBytes(Rope rope, int startByteOffset, int characterIndex,
                 @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
@@ -4314,6 +4235,10 @@ public abstract class StringNodes {
             } else {
                 return p;
             }
+        }
+
+        protected boolean isSingleByteOptimizable(Rope rope) {
+            return singleByteOptimizableNode.execute(rope);
         }
 
     }

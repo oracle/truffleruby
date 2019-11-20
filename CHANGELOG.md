@@ -45,6 +45,7 @@ Performance:
 * `rb_type` information is now cached on classes as a hidden variable to improve performance.
 * Change to using thread local buffers for socket calls to reduce allocations.
 * Refactor `IO.select` to reduce copying and optimisation boundaries.
+* Refactor various `String` and `Rope` nodes to avoid Truffle performance warnings.
 
 # 19.3.0
 

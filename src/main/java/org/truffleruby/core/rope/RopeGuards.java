@@ -40,4 +40,12 @@ public class RopeGuards {
         return rope.getEncoding().isFixedWidth();
     }
 
+    public static boolean is7Bit(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
+        return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
+    }
+
+    public static boolean isAsciiCompatible(Rope rope) {
+        return rope.getEncoding().isAsciiCompatible();
+    }
+
 }
