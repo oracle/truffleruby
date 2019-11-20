@@ -583,32 +583,6 @@ public class RopeOperations {
         }
     }
 
-    public static boolean areComparable(Rope rope, Rope other) {
-        // Taken from org.jruby.util.StringSupport.areComparable.
-
-        if (rope.getEncoding() == other.getEncoding() ||
-                rope.isEmpty() || other.isEmpty()) {
-            return true;
-        }
-        return areComparableViaCodeRange(rope, other);
-    }
-
-    public static boolean areComparableViaCodeRange(Rope string, Rope other) {
-        // Taken from org.jruby.util.StringSupport.areComparableViaCodeRange.
-
-        CodeRange cr1 = string.getCodeRange();
-        CodeRange cr2 = other.getCodeRange();
-
-        if (cr1 == CR_7BIT && (cr2 == CR_7BIT || other.getEncoding().isAsciiCompatible())) {
-            return true;
-        }
-        if (cr2 == CR_7BIT && string.getEncoding().isAsciiCompatible()) {
-            return true;
-        }
-        return false;
-    }
-
-
     public static RopeBuilder getRopeBuilderReadOnly(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
