@@ -17,6 +17,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.cext.WrapNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapNativeNode;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayCapacityNodeGen;
@@ -58,27 +59,24 @@ public class NativeArrayNodes {
 
     public static abstract class NativeArraySetNode extends ArrayOperationNodes.ArraySetNode {
 
-        @Specialization(rewriteOn = UnsupportedMessageException.class)
+        @Specialization
         protected void set(NativeArrayStorage storage, int index, Object object,
                 @Cached WrapNode wrapNode,
-                @CachedLibrary(limit = "1") InteropLibrary values) throws UnsupportedMessageException {
-            long value = values.asPointer(wrapNode.execute(object));
-            storage.writeElement(index, value);
-        }
-
-        @Specialization(replaces = "set")
-        protected void setGeneric(NativeArrayStorage storage, int index, Object object,
-                @Cached WrapNode wrapNode,
-                @CachedLibrary(limit = "1") InteropLibrary values) {
+                @CachedLibrary(limit = "1") InteropLibrary values,
+                @Cached BranchProfile errorProfile) {
+            long value;
             try {
-                storage.writeElement(index, values.asPointer(wrapNode.execute(object)));
+                value = values.asPointer(wrapNode.execute(object));
             } catch (UnsupportedMessageException e) {
+                errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext()
                                 .getCoreExceptions()
                                 .argumentError("Could not convert value for native storage", this));
             }
+
+            storage.writeElement(index, value);
         }
 
         public static NativeArraySetNode create() {
