@@ -25,6 +25,7 @@ import sun.misc.Unsafe;
 public class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
+    public static final int SIZE = Long.BYTES;
 
     /**
      * Allocates memory and produces a pointer to it. Does not clear or

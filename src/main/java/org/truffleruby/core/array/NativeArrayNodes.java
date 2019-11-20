@@ -48,7 +48,7 @@ public class NativeArrayNodes {
         @Specialization
         protected Object get(NativeArrayStorage storage, int index,
                 @Cached UnwrapNativeNode unwrapNode) {
-            return unwrapNode.execute(storage.pointer.readLong(8 * index));
+            return unwrapNode.execute(storage.readElement(index));
         }
 
         public static NativeArrayGetNode create() {
@@ -63,7 +63,7 @@ public class NativeArrayNodes {
                 @Cached WrapNode wrapNode,
                 @CachedLibrary(limit = "1") InteropLibrary values) throws UnsupportedMessageException {
             long value = values.asPointer(wrapNode.execute(object));
-            storage.pointer.writeLong(8 * index, value);
+            storage.writeElement(index, value);
         }
 
         @Specialization(replaces = "set")
@@ -71,7 +71,7 @@ public class NativeArrayNodes {
                 @Cached WrapNode wrapNode,
                 @CachedLibrary(limit = "1") InteropLibrary values) {
             try {
-                storage.pointer.writeLong(8 * index, values.asPointer(wrapNode.execute(object)));
+                storage.writeElement(index, values.asPointer(wrapNode.execute(object)));
             } catch (UnsupportedMessageException e) {
                 throw new RaiseException(
                         getContext(),
@@ -108,7 +108,7 @@ public class NativeArrayNodes {
             Object[] newStore = new Object[size];
             assert size >= store.length;
             for (int i = 0; i < store.length; i++) {
-                newStore[i] = unwrapNode.execute(store.pointer.readLong(8 * i));
+                newStore[i] = unwrapNode.execute(store.readElement(i));
             }
             return newStore;
         }
@@ -130,7 +130,7 @@ public class NativeArrayNodes {
                 setNode.execute(
                         to,
                         destinationStart + i,
-                        unwrapNode.execute(from.pointer.readLong(8 * (sourceStart + i))));
+                        unwrapNode.execute(from.readElement(sourceStart + i)));
             }
         }
 
@@ -146,7 +146,7 @@ public class NativeArrayNodes {
                 @Cached UnwrapNativeNode unwrapNode) {
             Object[] newStore = new Object[end - start];
             for (int i = start; i < end; i++) {
-                newStore[i] = unwrapNode.execute(store.pointer.readLong(8 * (i)));
+                newStore[i] = unwrapNode.execute(store.readElement(i));
             }
             return newStore;
         }

@@ -848,7 +848,7 @@ public abstract class ArrayStrategy {
                         throw new NoSuchElementException();
                     }
 
-                    final long value = nativeStorage.pointer.readLong(8 * n);
+                    final long value = nativeStorage.readElement(n);
                     final Object object = UnwrapNativeNodeGen.getUncached().execute(value);
                     n++;
                     return object;
