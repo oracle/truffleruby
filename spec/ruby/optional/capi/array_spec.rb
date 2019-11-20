@@ -254,7 +254,8 @@ describe "C-API Array function" do
       a = [1, 2, 3]
       b = [0, 0, 0]
       @s.RARRAY_PTR_memcpy(a, b)
-      a.should == b
+      b.should == [1, 2, 3]
+      a.should == [1, 2, 3] # check a was not modified
     end
   end
 
