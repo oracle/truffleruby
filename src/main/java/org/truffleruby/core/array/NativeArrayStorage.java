@@ -20,7 +20,8 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 public final class NativeArrayStorage implements ObjectGraphNode {
 
     public final Pointer pointer;
-    public final Object[] markedObjects;
+    /** Used to keep elements alive */
+    private final Object[] markedObjects;
     public final int length;
 
     public NativeArrayStorage(Pointer pointer, int length) {
