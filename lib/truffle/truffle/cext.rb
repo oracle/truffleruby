@@ -195,7 +195,7 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @array = TrufflePrimitive.array_store_to_native(@array)
+      TrufflePrimitive.array_store_to_native(@array)
       TrufflePrimitive.array_store_address(@array)
     end
 
