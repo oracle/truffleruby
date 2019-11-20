@@ -36,6 +36,7 @@ Compatibility:
 * Implemented the `unit` argument of `Time.at` (#1791, @XrXr).
 * Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
 * Implemented `MatchData#dup` (#1792, @XrXr).
+* Implemented a native storage strategy for arrays to allow better C extension compatibility.
 
 Performance:
 
