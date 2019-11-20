@@ -2079,7 +2079,7 @@ public abstract class ArrayNodes {
         }, limit = "ARRAY_STRATEGIES")
         protected DynamicObject storeToNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,
-                @Cached("nativeOf(array)") ArrayStrategy nativeStrategy,
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy,
                 @Cached("nativeStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
                 @Cached("oldStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
             int size = oldStrategy.getSize(array);
@@ -2099,7 +2099,7 @@ public abstract class ArrayNodes {
         }, limit = "ARRAY_STRATEGIES")
         protected DynamicObject storeIsNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,
-                @Cached("nativeOf(array)") ArrayStrategy nativeStrategy) {
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
             return array;
         }
     }
@@ -2114,7 +2114,7 @@ public abstract class ArrayNodes {
         }, limit = "ARRAY_STRATEGIES")
         protected long storeIsNative(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy oldStrategy,
-                @Cached("nativeOf(array)") ArrayStrategy nativeStrategy) {
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
             NativeArrayStorage storage = (NativeArrayStorage) Layouts.ARRAY.getStore(array);
             return storage.pointer.getAddress();
         }

@@ -214,7 +214,7 @@ public abstract class ArrayStrategy {
         return ofStore(Layouts.ARRAY.getStore(array));
     }
 
-    public static ArrayStrategy nativeOf(Object store) {
+    public static ArrayStrategy nativeStrategy() {
         return NativeArrayStrategy.INSTANCE;
     }
 
