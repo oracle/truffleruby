@@ -76,4 +76,8 @@ public class CheckArityNode extends RubyContextSourceNode {
         return true;
     }
 
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        return new CheckArityNode(arity, body.simplifyAsTailExpression());
+    }
 }

@@ -48,4 +48,23 @@ public final class SequenceNode extends RubyContextSourceNode {
         return body;
     }
 
+    @Override
+    public boolean isContinuable() {
+        for (int n = 0; n < body.length - 1; n++) {
+            if (!body[n].isContinuable()) {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        if (body.length != 0) {
+            body[body.length - 1] = body[body.length - 1].simplifyAsTailExpression();
+        }
+        return this;
+    }
 }

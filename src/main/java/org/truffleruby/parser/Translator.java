@@ -86,9 +86,13 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private static List<RubyNode> flatten(List<RubyNode> sequence, boolean allowTrailingNil) {
+        return flattenFromN(sequence, allowTrailingNil, 0);
+    }
+
+    private static List<RubyNode> flattenFromN(List<RubyNode> sequence, boolean allowTrailingNil, int n) {
         final List<RubyNode> flattened = new ArrayList<>();
 
-        for (int n = 0; n < sequence.size(); n++) {
+        for (; n < sequence.size(); n++) {
             final boolean lastNode = n == sequence.size() - 1;
             final RubyNode node = sequence.get(n);
 
@@ -98,6 +102,10 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
                 }
             } else if (node instanceof SequenceNode) {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));
+            } else if (node.canSubsumeFollowing() && !lastNode) {
+                List<RubyNode> rest = flattenFromN(sequence, allowTrailingNil, n + 1);
+                flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(new RubyNode[rest.size()]))));
+                return flattened;
             } else {
                 flattened.add(node);
             }

@@ -16,6 +16,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class UnlessNode extends RubyContextSourceNode {
 
@@ -29,6 +30,11 @@ public class UnlessNode extends RubyContextSourceNode {
         this.thenBody = thenBody;
     }
 
+    public UnlessNode(BooleanCastNode condition, RubyNode thenBody) {
+        this.condition = condition;
+        this.thenBody = thenBody;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         if (!conditionProfile.profile(condition.executeBoolean(frame))) {
@@ -38,4 +44,28 @@ public class UnlessNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public boolean canSubsumeFollowing() {
+        return !thenBody.isContinuable();
+    }
+
+    @Override
+    public RubyNode subsumeFollowing(RubyNode following) {
+        RubyNode newNode = new IfElseNode(condition, following, thenBody);
+        SourceSection source = getSourceSection();
+        if (source != null) {
+            newNode.unsafeSetSourceSection(source);
+        }
+        return newNode;
+    }
+
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        final UnlessNode unlessNode = new UnlessNode(condition, thenBody.simplifyAsTailExpression());
+        SourceSection source = getSourceSection();
+        if (source != null) {
+            unlessNode.unsafeSetSourceSection(source);
+        }
+        return unlessNode;
+    }
 }

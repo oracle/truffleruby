@@ -272,4 +272,20 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return getContext().getOptions().DEFAULT_CACHE;
         }
     }
+
+    public boolean isContinuable() {
+        return true;
+    }
+
+    public boolean canSubsumeFollowing() {
+        return false;
+    }
+
+    public RubyNode subsumeFollowing(RubyNode following) {
+        throw new UnsupportedOperationException();
+    }
+
+    public RubyNode simplifyAsTailExpression() {
+        return this;
+    }
 }

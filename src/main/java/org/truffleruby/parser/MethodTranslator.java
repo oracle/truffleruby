@@ -165,7 +165,7 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
         body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
 
@@ -271,7 +271,7 @@ public class MethodTranslator extends BodyTranslator {
                 true,
                 this).translate();
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
