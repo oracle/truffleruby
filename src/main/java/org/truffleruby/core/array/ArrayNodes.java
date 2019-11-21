@@ -2069,4 +2069,54 @@ public abstract class ArrayNodes {
 
     }
 
+    @Primitive(name = "array_store_to_native")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class StoreToNativeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {
+                "oldStrategy.matches(array)",
+                "oldStrategy != nativeStrategy"
+        }, limit = "ARRAY_STRATEGIES")
+        protected DynamicObject storeToNative(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy oldStrategy,
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy,
+                @Cached("nativeStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
+                @Cached("oldStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode) {
+            int size = oldStrategy.getSize(array);
+            Object oldStore = Layouts.ARRAY.getStore(array);
+            Object newStore = newStoreNode.execute(size);
+            copyToNode.execute(oldStore, newStore, 0, 0, size);
+            getContext().getMarkingService().addMarker(
+                    newStore,
+                    (aStore) -> ((NativeArrayStorage) aStore).preserveMembers());
+            Layouts.ARRAY.setStore(array, newStore);
+            return array;
+        }
+
+        @Specialization(guards = {
+                "oldStrategy.matches(array)",
+                "oldStrategy == nativeStrategy"
+        }, limit = "ARRAY_STRATEGIES")
+        protected DynamicObject storeIsNative(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy oldStrategy,
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
+            return array;
+        }
+    }
+
+    @Primitive(name = "array_store_address")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class StoreAddressNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = {
+                "oldStrategy.matches(array)",
+                "oldStrategy == nativeStrategy"
+        }, limit = "ARRAY_STRATEGIES")
+        protected long storeIsNative(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy oldStrategy,
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
+            NativeArrayStorage storage = (NativeArrayStorage) Layouts.ARRAY.getStore(array);
+            return storage.getAddress();
+        }
+    }
 }

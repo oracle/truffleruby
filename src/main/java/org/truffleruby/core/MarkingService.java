@@ -42,7 +42,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class MarkingService extends ReferenceProcessingService<MarkerReference> {
 
     public static interface MarkerAction {
-        public abstract void mark(DynamicObject owner);
+        public abstract void mark(Object owner);
     }
 
     public static class MarkRunnerReference extends WeakProcessingReference<MarkRunnerReference, Object> {
@@ -208,7 +208,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         queueForMarking(ValueWrapperManager.HandleBlock.DUMMY_BLOCK);
     }
 
-    public void addMarker(DynamicObject object, MarkerAction action) {
+    public void addMarker(Object object, MarkerAction action) {
         add(new MarkerReference(object, referenceProcessor.processingQueue, action, this));
     }
 
@@ -218,7 +218,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     private void runMarkerInternal(MarkerReference markerReference) {
         if (!context.isFinalizing()) {
-            DynamicObject owner = markerReference.get();
+            Object owner = markerReference.get();
             if (owner != null) {
                 final MarkerAction action = markerReference.action;
                 action.mark(owner);

@@ -3032,8 +3032,6 @@ typedef struct {
     VALUE klass;
 } new_wrap_arg_t;
 
-POLYGLOT_DECLARE_TYPE(new_wrap_arg_t)
-
 static VALUE
 new_wrap(VALUE tmp)
 {
@@ -3060,11 +3058,11 @@ gzfile_wrap(int argc, VALUE *argv, VALUE klass, int close_io_on_error)
 
     if (close_io_on_error) {
 	int state = 0;
-	new_wrap_arg_t *arg = rb_tr_new_managed_struct(new_wrap_arg_t);
-	arg->argc = argc;
-	arg->argv = argv;
-	arg->klass = klass;
-	obj = rb_protect(new_wrap, (VALUE)arg, &state);
+	new_wrap_arg_t arg;
+	arg.argc = argc;
+	arg.argv = argv;
+	arg.klass = klass;
+	obj = rb_protect(new_wrap, (VALUE)&arg, &state);
 	if (state) {
 	    rb_io_close(argv[0]);
 	    rb_jump_tag(state);
