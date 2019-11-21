@@ -1,3 +1,5 @@
+main = self
+
 describe :kernel_load, shared: true do
   before :each do
     CodeLoadingSpecs.spec_setup
@@ -102,6 +104,31 @@ describe :kernel_load, shared: true do
       @object.load(path, true)
 
       ScratchPad.recorded.first.should equal(String)
+    end
+
+    it "sets self as a copy of the top-level main" do
+      path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
+      @object.load(path, true)
+
+      top_level = ScratchPad.recorded.last
+      top_level.to_s.should == "main"
+      top_level.should_not equal(main)
+      top_level.should be_an_instance_of(Object)
+    end
+
+    it "includes modules included in main's singleton class in self's class" do
+      mod = Module.new
+      main.extend(mod)
+
+      main_ancestors = main.singleton_class.ancestors[1..-1]
+      main_ancestors.first.should == mod
+
+      path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
+      @object.load(path, true)
+
+      top_level = ScratchPad.recorded.last
+      top_level_ancestors = top_level.singleton_class.ancestors[-main_ancestors.size..-1]
+      top_level_ancestors.should == main_ancestors
     end
 
     describe "with top-level methods" do
