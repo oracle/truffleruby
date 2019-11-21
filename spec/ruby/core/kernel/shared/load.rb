@@ -97,21 +97,25 @@ describe :kernel_load, shared: true do
       @object.load(path, true)
 
       Object.const_defined?(:LoadSpecWrap).should be_false
+
+      wrap_module = ScratchPad.recorded[1]
+      wrap_module.should be_an_instance_of(Module)
     end
 
     it "allows referencing outside namespaces" do
       path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
       @object.load(path, true)
 
-      ScratchPad.recorded.first.should equal(String)
+      ScratchPad.recorded[0].should equal(String)
     end
 
     it "sets self as a copy of the top-level main" do
       path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
       @object.load(path, true)
 
-      top_level = ScratchPad.recorded.last
+      top_level = ScratchPad.recorded[2]
       top_level.to_s.should == "main"
+      top_level.method(:to_s).owner.should == top_level.singleton_class
       top_level.should_not equal(main)
       top_level.should be_an_instance_of(Object)
     end
@@ -126,9 +130,12 @@ describe :kernel_load, shared: true do
       path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
       @object.load(path, true)
 
-      top_level = ScratchPad.recorded.last
+      top_level = ScratchPad.recorded[2]
       top_level_ancestors = top_level.singleton_class.ancestors[-main_ancestors.size..-1]
       top_level_ancestors.should == main_ancestors
+
+      wrap_module = ScratchPad.recorded[1]
+      top_level.singleton_class.ancestors.should == [top_level.singleton_class, wrap_module, *main_ancestors]
     end
 
     describe "with top-level methods" do
