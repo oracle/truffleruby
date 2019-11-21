@@ -101,7 +101,7 @@ describe :kernel_load, shared: true do
       path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
       @object.load(path, true)
 
-      ScratchPad.recorded.first.should be_an_instance_of(Class)
+      ScratchPad.recorded.first.should equal(String)
     end
 
     describe "with top-level methods" do
