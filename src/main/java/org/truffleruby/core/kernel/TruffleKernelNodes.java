@@ -12,17 +12,18 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
-import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
@@ -80,32 +81,29 @@ public abstract class TruffleKernelNodes {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            final DynamicObject wrapClass;
-
+            final DynamicObject wrapModule;
             if (wrap) {
-                wrapClass = ClassNodes.createInitializedRubyClass(
-                        getContext(),
-                        null,
-                        null,
-                        getContext().getCoreLibrary().getObjectClass(),
-                        null);
+                wrapModule = ModuleNodes
+                        .createModule(getContext(), null, coreLibrary().getModuleClass(), null, null, this);
             } else {
-                wrapClass = null;
+                wrapModule = null;
             }
 
             final RubyRootNode rootNode = getContext()
                     .getCodeLoader()
-                    .parse(source, ParserContext.TOP_LEVEL, null, wrapClass, true, this);
+                    .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
 
+            final DynamicObject mainObject = getContext().getCoreLibrary().getMainObject();
             final DeclarationContext declarationContext;
-            final DynamicObject mainObject;
+            final Object self;
 
-            if (wrapClass == null) {
+            if (wrapModule == null) {
                 declarationContext = DeclarationContext.topLevel(getContext());
-                mainObject = getContext().getCoreLibrary().getMainObject();
+                self = mainObject;
             } else {
-                declarationContext = DeclarationContext.topLevel(wrapClass);
-                mainObject = Layouts.CLASS.getInstanceFactory(wrapClass).newInstance();
+                declarationContext = DeclarationContext.topLevel(wrapModule);
+                self = CallDispatchHeadNode.getUncached().call(mainObject, "clone");
+                CallDispatchHeadNode.getUncached().call(self, "extend", wrapModule);
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
@@ -113,7 +111,7 @@ public abstract class TruffleKernelNodes {
                     declarationContext,
                     rootNode,
                     null,
-                    mainObject);
+                    self);
 
             deferredCall.call(callNode);
 
