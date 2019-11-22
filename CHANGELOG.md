@@ -27,6 +27,7 @@ Bug fixes:
 * Keep the Truffle working directory in sync with the native working directory.
 * Rename `to_native` to `polyglot_to_native` to match `polyglot_pointer?` and `polyglot_address` methods. 
 * Fixed missing partial evaluation boundary in `Array#{sort,sort!}` (#1727).
+* Fixed missing polyglot type declaration for `RSTRING_PTR` to help with native/managed interop.
 
 Compatibility:
 

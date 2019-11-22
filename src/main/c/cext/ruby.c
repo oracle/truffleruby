@@ -804,7 +804,7 @@ double rb_float_value(VALUE value) {
 // String
 
 char *RSTRING_PTR_IMPL(VALUE string) {
-  return RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string);
+  return (char *)polyglot_as_i8_array(RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string));
 }
 
 char *RSTRING_END(VALUE string) {
