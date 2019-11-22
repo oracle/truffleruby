@@ -208,7 +208,7 @@ local part_definitions = {
         JAVA_HOME: {
           name: "oraclejdk",
           # Update the openjdk8 version too below when updating this one
-          version: "8u231-jvmci-19.3-b04",
+          version: "8u231-jvmci-19.3-b05",
           platformspecific: true,
         },
       },
@@ -219,7 +219,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "openjdk",
-          version: "8u232-jvmci-19.3-b04",
+          version: "8u232-jvmci-19.3-b05",
           platformspecific: true,
         },
       },
@@ -229,7 +229,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "labsjdk",
-          version: "ce-11.0.5+10-jvmci-19.3-b04",
+          version: "ce-11.0.5+10-jvmci-19.3-b05",
           platformspecific: true,
         },
       },
