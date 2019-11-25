@@ -27,6 +27,8 @@ workingsets.xml
 conftest
 conftest.c
 Info.plist
+*.log
+*.tmp
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile
 
