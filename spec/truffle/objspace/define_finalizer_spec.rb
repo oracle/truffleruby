@@ -32,7 +32,7 @@ describe "ObjectSpace.define_finalizer" do
     end
     GC.start
     Truffle::Debug.drain_finalization_queue   # Not needed for correctness
-    channel.receive_timeout(3).should == :finalized
+    channel.receive_timeout(TIME_TOLERANCE).should == :finalized
   end
 
 end
