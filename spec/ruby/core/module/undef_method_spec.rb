@@ -57,7 +57,7 @@ describe "Module#undef_method" do
   end
 
   it "raises a NameError when passed a missing name" do
-    -> { @module.send :undef_method, :not_exist }.should raise_error(NameError) { |e|
+    -> { @module.send :undef_method, :not_exist }.should raise_error(NameError, /undefined method `not_exist' for module/) { |e|
       # a NameError and not a NoMethodError
       e.class.should == NameError
     }
