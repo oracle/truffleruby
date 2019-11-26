@@ -446,9 +446,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void undefMethod(RubyContext context, Node currentNode, String methodName) {
         final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName, null);
         if (method == null || method.isUndefined()) {
+            final DynamicObject moduleForError;
+            if (RubyGuards.isMetaClass(rubyModuleObject)) {
+                moduleForError = Layouts.CLASS.getAttached(rubyModuleObject);
+            } else {
+                moduleForError = rubyModuleObject;
+            }
+
             throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
                     methodName,
-                    rubyModuleObject,
+                    moduleForError,
                     currentNode));
         } else {
             addMethod(context, currentNode, method.undefined());

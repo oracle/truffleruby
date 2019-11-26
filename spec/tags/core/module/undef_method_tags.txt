@@ -1,1 +1,0 @@
-fails:Module#undef_method is a public method

@@ -29,6 +29,7 @@ Bug fixes:
 * Fixed missing partial evaluation boundary in `Array#{sort,sort!}` (#1727).
 * Fixed the class of `self` and the wrapping `Module` for `Kernel#load(path, wrap=true)` (#1739).
 * Fixed missing polyglot type declaration for `RSTRING_PTR` to help with native/managed interop.
+* Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
 
 Compatibility:
 

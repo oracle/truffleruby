@@ -1854,19 +1854,19 @@ public abstract class ModuleNodes {
             final ModuleFields fields = Layouts.MODULE.getFields(module);
             if (RubyGuards.isSingletonClass(module)) {
                 final DynamicObject attached = Layouts.CLASS.getAttached(module);
-                final String name;
-                if (Layouts.CLASS.isClass(attached) || Layouts.MODULE.isModule(attached)) {
+                final String attachedName;
+                if (Layouts.MODULE.isModule(attached)) {
+                    attachedName = Layouts.MODULE.getFields(attached).getName();
+                } else {
                     if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         callRbInspect = insert(CallDispatchHeadNode.createPrivate());
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
-                    name = StringOperations.getString((DynamicObject) inspectResult);
-                } else {
-                    name = fields.getName();
+                    attachedName = StringOperations.getString((DynamicObject) inspectResult);
                 }
-                moduleName = "#<Class:" + name + ">";
+                moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {
                 final String refinedClass = Layouts.MODULE.getFields(fields.getRefinedClass()).getName();
                 final String refinementNamespace = Layouts.MODULE.getFields(fields.getRefinementNamespace()).getName();
