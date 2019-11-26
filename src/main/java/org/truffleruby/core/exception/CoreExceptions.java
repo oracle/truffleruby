@@ -642,7 +642,8 @@ public class CoreExceptions {
     public DynamicObject nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(
-                StringUtils.format("undefined method `%s' for %s `%s'",
+                StringUtils.format(
+                        "undefined method `%s' for %s `%s'",
                         name,
                         Layouts.CLASS.isClass(module) ? "class" : "module",
                         Layouts.MODULE.getFields(module).getName()),
