@@ -22,9 +22,7 @@ alias truffleruby="jt ruby -S"
 
 set -xe
 
-if [ "$2" != "--no-gem-test-pack" ]; then
-  gem_test_pack_path="$(jt gem-test-pack)"
-fi
+gem_test_pack_path="$2"
 
 cd "test/truffle/ecosystem/$1"
 

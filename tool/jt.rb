@@ -579,7 +579,6 @@ module Commands
       jt test bundle [--jdebug]                      tests using bundler
       jt test gems [TESTS]                           tests using gems
       jt test ecosystem [TESTS] [options]            tests using the wider ecosystem such as bundler, Rails, etc
-          --no-gem-test-pack                         run without gem test pack
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
       jt test unit                                   run Java unittests
@@ -1210,8 +1209,7 @@ EOS
   end
 
   private def test_ecosystem(*args)
-    use_gem_test_pack = !args.delete('--no-gem-test-pack')
-    gem_test_pack if use_gem_test_pack
+    gem_test_pack if gem_test_pack?
 
     tests_path = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
     single_test = !args.empty?
@@ -1233,7 +1231,7 @@ EOS
 
     success = candidates.all? do |test_script|
       next true if test_script.end_with? 'shared.sh'
-      sh test_script, *('--no-gem-test-pack' unless use_gem_test_pack), continue_on_failure: true
+      sh test_script, *(gem_test_pack if gem_test_pack?), continue_on_failure: true
     end
     exit success
   end
@@ -1354,6 +1352,11 @@ EOS
     run_mspec env_vars, command, *options, *prefixed_ruby_args, *args
   end
 
+  def gem_test_pack?
+    return true if ci?
+    Dir.exist?(File.expand_path('truffleruby-gem-test-pack', TRUFFLERUBY_DIR))
+  end
+
   def gem_test_pack
     name = 'truffleruby-gem-test-pack'
     gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
@@ -1361,7 +1364,7 @@ EOS
     unless Dir.exist?(gem_test_pack)
       $stderr.puts 'Cloning the truffleruby-gem-test-pack repository'
       unless Remotes.bitbucket
-        abort 'Need a git remote in truffleruby with the internal repository URL or use --no-gem-test-pack option'
+        abort 'Need a git remote in truffleruby with the internal repository URL'
       end
       url = Remotes.url(Remotes.bitbucket).sub('truffleruby', name)
       sh 'git', 'clone', url
@@ -1951,11 +1954,11 @@ EOS
   alias :'native-launcher' :native_launcher
 
   def rubocop(*args)
-    testpack = args.delete('--testpack')
     if args.empty? or args.all? { |arg| arg.start_with?('-') }
       args += RUBOCOP_INCLUDE_LIST
     end
-    if testpack
+
+    if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
       env = {
         'GEM_HOME' => gem_home,
@@ -2087,15 +2090,9 @@ EOS
     changed
   end
 
-  def lint(*args)
-    testpack = args.delete('--testpack')
-
+  def lint
     check_filename_length
-
-    rubocop_args = []
-    rubocop_args << '--testpack' if testpack
-    rubocop(*rubocop_args)
-
+    rubocop
     sh 'tool/lint.sh'
     mx 'gate', '--tags', 'style'
 
