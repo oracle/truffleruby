@@ -25,6 +25,7 @@ Bug fixes:
 * Process#exec: set close-on-exec to false for fd redirection (#1805, @XrXr, @rafaelfranca).
 * Building C extensions should now work with frozen string literals (#1786).
 * Keep the Truffle working directory in sync with the native working directory.
+* Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
 
 Compatibility:
 
