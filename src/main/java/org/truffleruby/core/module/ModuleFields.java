@@ -448,8 +448,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName, null);
         if (method == null || method.isUndefined()) {
             final DynamicObject moduleForError;
-
-            if (Layouts.CLASS.isClass(rubyModuleObject) && Layouts.CLASS.getIsSingleton(rubyModuleObject)) {
+            if (RubyGuards.isMetaClass(rubyModuleObject)) {
                 moduleForError = Layouts.CLASS.getAttached(rubyModuleObject);
             } else {
                 moduleForError = rubyModuleObject;
