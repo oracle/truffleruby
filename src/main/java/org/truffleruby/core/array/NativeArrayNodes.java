@@ -88,7 +88,7 @@ public class NativeArrayNodes {
 
         @Specialization
         protected NativeArrayStorage newStore(int size) {
-            Pointer pointer = Pointer.malloc(size);
+            Pointer pointer = Pointer.malloc(size * 8);
             pointer.enableAutorelease(getContext().getFinalizationService());
             return new NativeArrayStorage(pointer, size);
         }
