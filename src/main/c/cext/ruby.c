@@ -3283,7 +3283,8 @@ ID rb_check_id_cstr(const char *ptr, long len, rb_encoding *enc) {
 }
 
 VALUE rb_check_symbol_cstr(const char *ptr, long len, rb_encoding *enc) {
-  rb_tr_error("rb_check_symbol_cstr not implemented");
+  VALUE str = rb_enc_str_new(ptr, len, enc);
+  return RUBY_CEXT_INVOKE("rb_check_symbol_cstr", str);
 }
 
 int rb_econv_has_convpath_p(const char* from_encoding, const char* to_encoding) {

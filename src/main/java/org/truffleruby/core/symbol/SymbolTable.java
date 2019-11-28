@@ -105,6 +105,27 @@ public class SymbolTable implements ReHashable {
 
     @TruffleBoundary
     public DynamicObject getSymbol(Rope rope) {
+        final RopeKey ropeKey = createRopeKey(rope);
+        final DynamicObject symbol = symbolMap.get(ropeKey);
+        if (symbol != null) {
+            return symbol;
+        }
+
+        final Rope cachedRope = ropeCache.getRope(ropeKey.getRope());
+        final DynamicObject newSymbol = createSymbol(cachedRope);
+        // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
+        // do not keep rope alive unnecessarily.
+        final RopeKey cachedRopeKey = new RopeKey(cachedRope, hashing);
+        return symbolMap.addInCacheIfAbsent(cachedRopeKey, newSymbol);
+    }
+
+    @TruffleBoundary
+    public DynamicObject getSymbolIfExists(Rope rope) {
+        final RopeKey ropeKey = createRopeKey(rope);
+        return symbolMap.get(ropeKey);
+    }
+
+    private RopeKey createRopeKey(Rope rope) {
         if (rope instanceof NativeRope) {
             rope = ((NativeRope) rope).toLeafRope();
         }
@@ -113,19 +134,7 @@ public class SymbolTable implements ReHashable {
             rope = rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
-        final RopeKey ropeKey = new RopeKey(rope, hashing);
-
-        final DynamicObject symbol = symbolMap.get(ropeKey);
-        if (symbol != null) {
-            return symbol;
-        }
-
-        final Rope cachedRope = ropeCache.getRope(rope);
-        final DynamicObject newSymbol = createSymbol(cachedRope);
-        // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
-        // do not keep rope alive unnecessarily.
-        final RopeKey cachedRopeKey = new RopeKey(cachedRope, hashing);
-        return symbolMap.addInCacheIfAbsent(cachedRopeKey, newSymbol);
+        return new RopeKey(rope, hashing);
     }
 
     private DynamicObject createSymbol(Rope cachedRope) {
