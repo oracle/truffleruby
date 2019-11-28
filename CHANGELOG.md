@@ -30,6 +30,7 @@ Bug fixes:
 * Fixed the class of `self` and the wrapping `Module` for `Kernel#load(path, wrap=true)` (#1739).
 * Fixed missing polyglot type declaration for `RSTRING_PTR` to help with native/managed interop.
 * Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
+* Arrays backed by native storage now allocate the correct amount of memory (#1828).
 
 Compatibility:
 
