@@ -48,6 +48,7 @@ module Truffle
         # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else
+        # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
         keys = []
         object.methods.each do |method|
           keys << method.to_s if Truffle::Type.object_respond_to? object, method, true
