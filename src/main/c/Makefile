@@ -26,9 +26,8 @@ SPAWN_HELPER := spawn-helper/spawn-helper
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
-PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
-BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
+BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(MKMF)
 # These libraries are needed for try_link() in extconf.rb
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) cext/libtruffleruby.$(DLEXT)
 
