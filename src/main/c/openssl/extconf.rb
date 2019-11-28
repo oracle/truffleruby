@@ -106,6 +106,13 @@ unless result
   end
 end
 
+# TruffleRuby: do not perform all checks again if extconf.h already exists
+extconf_h = "#{__dir__}/extconf.h"
+if File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__ )
+  $extconf_h = extconf_h
+else
+### START of checks
+
 unless checking_for("OpenSSL version is 1.0.1 or later") {
     try_static_assert("OPENSSL_VERSION_NUMBER >= 0x10001000L", "openssl/opensslv.h") }
   raise "OpenSSL >= 1.0.1 or LibreSSL is required"
@@ -175,5 +182,9 @@ have_func("EVP_PBE_scrypt")
 Logging::message "=== Checking done. ===\n"
 
 create_header
+
+### END of checks
+end
+
 create_makefile("openssl")
 Logging::message "Done.\n"
