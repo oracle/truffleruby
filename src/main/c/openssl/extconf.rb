@@ -25,8 +25,10 @@ dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
 
-# Add -Werror=deprecated-declarations to $warnflags if available
-OpenSSL.deprecated_warning_flag
+unless defined?(::TruffleRuby) # Let it be lazily computed only if needed
+  # Add -Werror=deprecated-declarations to $warnflags if available
+  OpenSSL.deprecated_warning_flag
+end
 
 ##
 # Adds -DOSSL_DEBUG for compilation and some more targets when GCC is used
@@ -37,8 +39,10 @@ if with_config("debug") or enable_config("debug")
 end
 
 Logging::message "=== Checking for system dependent stuff... ===\n"
-have_library("nsl", "t_open")
-have_library("socket", "socket")
+unless defined?(::TruffleRuby) # These do not exist on any of our supported platforms
+  have_library("nsl", "t_open")
+  have_library("socket", "socket")
+end
 if $mswin || $mingw
   have_library("ws2_32")
 end
