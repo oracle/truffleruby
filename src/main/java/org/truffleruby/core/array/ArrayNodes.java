@@ -271,8 +271,8 @@ public abstract class ArrayNodes {
 
     @Primitive(
             name = "array_aset",
+            raiseIfFrozen = 0,
             lowerFixnum = { 1, 2 },
-            raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
     public abstract static class IndexSetPrimitiveNode extends ArrayIndexSetNode {
 
@@ -1646,7 +1646,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_rotate", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "array_rotate", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
@@ -1677,7 +1677,7 @@ public abstract class ArrayNodes {
         copyToNode.execute(original, rotated, 0, size - rotation, rotation);
     }
 
-    @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "array_rotate_inplace", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {

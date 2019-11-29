@@ -43,22 +43,16 @@ public class PrimitiveNodeConstructor {
         }
 
         for (int n = 0; n < arguments.length; n++) {
-            int nthArg = annotation.needsSelf() ? n : n + 1;
-            arguments[n] = transformArgument(arguments[n], nthArg);
+            if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
+                arguments[n] = FixnumLowerNodeGen.create(arguments[n]);
+            }
+            if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
+                arguments[n] = BasicObjectNodes.CheckFrozenNode.create(arguments[n]);
+            }
         }
 
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
         return Translator.withSourceSection(sourceSection, primitiveNode);
-    }
-
-    private RubyNode transformArgument(RubyNode argument, int n) {
-        if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
-            return FixnumLowerNodeGen.create(argument);
-        } else if (n == 0 && annotation.raiseIfFrozenSelf()) {
-            return BasicObjectNodes.CheckFrozenNode.create(argument);
-        } else {
-            return argument;
-        }
     }
 
 }

@@ -198,7 +198,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
-                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, primitive.needsSelf());
+                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, true);
                         }
                     }
                 }

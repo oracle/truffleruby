@@ -104,7 +104,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     // The hard #exit!
-    @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "vm_exit", lowerFixnum = 0)
     public static abstract class VMExitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -431,7 +431,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_dev_urandom_bytes", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "vm_dev_urandom_bytes", lowerFixnum = 0)
     public abstract static class VMDevUrandomBytes extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count >= 0")

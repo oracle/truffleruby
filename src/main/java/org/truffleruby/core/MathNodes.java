@@ -379,7 +379,7 @@ public abstract class MathNodes {
 
     }
 
-    @Primitive(name = "math_ldexp", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "math_ldexp", lowerFixnum = 1)
     public abstract static class LdexpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

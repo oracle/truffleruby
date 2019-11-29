@@ -551,7 +551,7 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_eval", needsSelf = false, lowerFixnum = 5)
+    @Primitive(name = "kernel_eval", lowerFixnum = 4)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {

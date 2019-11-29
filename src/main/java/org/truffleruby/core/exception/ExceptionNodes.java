@@ -251,7 +251,7 @@ public abstract class ExceptionNodes {
 
     }
 
-    @Primitive(name = "exception_errno_error", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "exception_errno_error", lowerFixnum = 1)
     public static abstract class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
