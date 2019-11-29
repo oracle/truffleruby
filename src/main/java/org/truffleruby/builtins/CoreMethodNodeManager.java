@@ -16,8 +16,8 @@ import java.util.function.Function;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -347,7 +347,7 @@ public class CoreMethodNodeManager {
         }
 
         if (n == 0 && method.raiseIfFrozenSelf()) {
-            argument = RaiseIfFrozenNodeGen.create(argument);
+            argument = BasicObjectNodes.CheckFrozenNode.create(argument);
         }
 
         return argument;

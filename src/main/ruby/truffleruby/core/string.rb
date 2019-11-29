@@ -119,7 +119,7 @@ class String
   end
 
   def delete_prefix!(prefix)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
     if !prefix.empty? && start_with?(prefix)
       Truffle::Type.infect self, prefix
@@ -136,7 +136,7 @@ class String
   end
 
   def delete_suffix!(suffix)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
     if !suffix.empty? && end_with?(suffix)
       Truffle::Type.infect self, suffix
@@ -426,7 +426,7 @@ class String
   end
 
   def encode!(to=undefined, from=undefined, options=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if undefined.equal?(to)
       to_enc = Encoding.default_internal
@@ -732,11 +732,11 @@ class String
       unless block_given?
         raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
       use_yield = true
       tainted = false
     else
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
       tainted = replacement.tainted?
       untrusted = replacement.untrusted?
 
@@ -793,7 +793,7 @@ class String
   Truffle::Graal.always_split instance_method(:sub!)
 
   def slice!(one, two=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
@@ -834,7 +834,7 @@ class String
   end
 
   def chop!
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     bytes = TrufflePrimitive.string_previous_byte_index(self, bytesize)
     return unless bytes
@@ -854,7 +854,7 @@ class String
   end
 
   def chomp!(sep=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if undefined.equal?(sep)
       sep = $/
@@ -916,7 +916,7 @@ class String
   end
 
   def concat_internal(other)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     unless other.kind_of? String
       if other.kind_of? Integer
@@ -1044,7 +1044,7 @@ class String
     if undefined.equal?(replacement) && !block_given?
       return to_enum(:gsub!, pattern, replacement)
     end
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     if undefined.equal?(replacement)
       ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(self, pattern, &block)
     else
@@ -1126,7 +1126,7 @@ class String
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if undefined.equal?(replacement)
       replacement = count_or_replacement
@@ -1427,7 +1427,7 @@ class String
 
   def initialize(other = undefined, capacity: nil, encoding: nil)
     unless undefined.equal?(other)
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
       TrufflePrimitive.string_initialize(self, other, encoding)
       taint if other.tainted?
     end
@@ -1521,7 +1521,7 @@ class String
       raise IndexError, "index #{index} out of string"
     end
 
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if index == 0
       replace(other + self)

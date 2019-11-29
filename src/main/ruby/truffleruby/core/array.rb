@@ -423,7 +423,7 @@ class Array
   end
 
   private def fill_internal(a=undefined, b=undefined, c=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if block_given?
       unless undefined.equal?(c)
@@ -516,7 +516,7 @@ class Array
   end
 
   def flatten!(level=-1)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     level = Truffle::Type.coerce_to_collection_index level
     return nil if level == 0
@@ -592,7 +592,7 @@ class Array
   alias_method :index, :find_index
 
   def insert(idx, *items)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     return self if items.length == 0
 
@@ -675,7 +675,7 @@ class Array
   def keep_if(&block)
     return to_enum(:keep_if) { size } unless block_given?
 
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     TrufflePrimitive.steal_array_storage(self, select(&block))
   end
@@ -975,7 +975,7 @@ class Array
 
   def rotate!(n=1)
     n = Truffle::Type.coerce_to_collection_index n
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     len = self.length
     return self if len <= 1
@@ -1115,7 +1115,7 @@ class Array
   def select!(&block)
     return to_enum(:select!) { size } unless block_given?
 
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     ary = select(&block)
     TrufflePrimitive.steal_array_storage(self, ary) unless size == ary.size
@@ -1129,7 +1129,7 @@ class Array
   end
 
   def shuffle!(options = undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     random_generator = Kernel
 
@@ -1157,7 +1157,7 @@ class Array
   end
 
   def sort_by!(&block)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     return to_enum(:sort_by!) { size } unless block_given?
 
@@ -1223,7 +1223,7 @@ class Array
   end
 
   def unshift(*values)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     self[0, 0] = values
 
@@ -1550,7 +1550,7 @@ class Array
   private :isort_block!
 
   def reverse!
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     return self unless size > 1
 
     i = 0
@@ -1563,7 +1563,7 @@ class Array
   end
 
   def slice!(start, length=undefined)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     if undefined.equal? length
       if start.kind_of? Range
@@ -1653,7 +1653,7 @@ class Array
   end
 
   def uniq!(&block)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     result = uniq(&block)
 
     if self.size == result.size
@@ -1665,7 +1665,7 @@ class Array
   end
 
   def sort!(&block)
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
 
     TrufflePrimitive.steal_array_storage(self, sort(&block))
   end

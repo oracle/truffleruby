@@ -616,7 +616,7 @@ module Truffle::CExt
   end
 
   def rb_copy_generic_ivar(clone, original)
-    Truffle.check_frozen(clone)
+    TrufflePrimitive.check_frozen clone
     original_ivars = original.instance_variables
     rb_free_generic_ivar(clone)
     original_ivars.each do |var|
@@ -625,7 +625,7 @@ module Truffle::CExt
   end
 
   def rb_free_generic_ivar(original)
-    Truffle.check_frozen(original)
+    TrufflePrimitive.check_frozen original
     original_ivars = original.instance_variables
     original_ivars.each do |var|
       original.__send__ :remove_instance_variable, var

@@ -30,9 +30,9 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
@@ -1929,7 +1929,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode;
+        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode;
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
         @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
@@ -1967,7 +1967,7 @@ public abstract class KernelNodes {
         protected void checkFrozen(Object object) {
             if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(RaiseIfFrozenNode.create());
+                raiseIfFrozenNode = insert(BasicObjectNodes.CheckFrozenNode.create());
             }
             raiseIfFrozenNode.execute(object);
         }

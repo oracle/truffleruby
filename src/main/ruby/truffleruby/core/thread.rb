@@ -352,7 +352,7 @@ class Thread
   def []=(name, value)
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
       locals = TrufflePrimitive.thread_get_fiber_locals self
       TrufflePrimitive.object_ivar_set locals, var, value
     end

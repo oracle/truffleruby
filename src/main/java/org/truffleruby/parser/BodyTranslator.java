@@ -28,7 +28,6 @@ import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.IsUndefinedNode;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
@@ -36,6 +35,7 @@ import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -254,8 +254,8 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.AssertConstantNodeGen;
-import org.truffleruby.platform.BailoutNode;
 import org.truffleruby.platform.AssertNotCompiledNodeGen;
+import org.truffleruby.platform.BailoutNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -313,7 +313,7 @@ public class BodyTranslator extends Translator {
         final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
 
         final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
-                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
+                BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 newNameNode,
                 oldNameNode);
 
@@ -528,12 +528,9 @@ public class BodyTranslator extends Translator {
                     final RubyNode ret = translatePrivately(node);
                     return addNewlineIfNeeded(node, ret);
                 }
+                // TODO (pitr-ch 28-Nov-2019): change to primitive
                 case "single_block_arg": {
                     final RubyNode ret = translateSingleBlockArg(sourceSection, node);
-                    return addNewlineIfNeeded(node, ret);
-                }
-                case "check_frozen": {
-                    final RubyNode ret = translateCheckFrozen(sourceSection);
                     return addNewlineIfNeeded(node, ret);
                 }
             }
@@ -651,12 +648,6 @@ public class BodyTranslator extends Translator {
         final RubyNode ret = new SingleBlockArgNode();
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
-    }
-
-    private RubyNode translateCheckFrozen(SourceIndexLength sourceSection) {
-        return Translator.withSourceSection(
-                sourceSection,
-                RaiseIfFrozenNodeGen.create(new SelfNode(environment.getFrameDescriptor())));
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
@@ -1315,7 +1306,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode moduleNode = RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode());
+        final RubyNode moduleNode = BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode());
         final RubyNode ret = translateMethodDefinition(
                 sourceSection,
                 moduleNode,
@@ -1804,7 +1795,7 @@ public class BodyTranslator extends Translator {
         }
 
         RubyNode self = new SelfNode(environment.getFrameDescriptor());
-        self = RaiseIfFrozenNodeGen.create(self);
+        self = BasicObjectNodes.CheckFrozenNode.create(self);
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3174,7 +3165,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
-                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
+                BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 translateNameNodeToSymbol(node.getName())
         });
 

@@ -262,7 +262,7 @@ class Enumerator
 
     def initialize(receiver, size=nil)
       raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
 
       super(size) do |yielder, *each_args|
         begin

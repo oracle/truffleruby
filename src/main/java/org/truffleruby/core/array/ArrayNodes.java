@@ -25,9 +25,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
@@ -433,7 +433,7 @@ public abstract class ArrayNodes {
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode;
+        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode;
 
         @Specialization(
                 guards = { "strategy.isStorageMutable()", "strategy.matches(array)" },
@@ -524,7 +524,7 @@ public abstract class ArrayNodes {
         public void checkFrozen(Object object) {
             if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(RaiseIfFrozenNode.create());
+                raiseIfFrozenNode = insert(BasicObjectNodes.CheckFrozenNode.create());
             }
             raiseIfFrozenNode.execute(object);
         }

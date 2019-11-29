@@ -30,8 +30,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.RaiseIfFrozenNode;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
@@ -1810,7 +1809,7 @@ public abstract class ModuleNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode = RaiseIfFrozenNode.create();
+        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode = BasicObjectNodes.CheckFrozenNode.create();
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
@@ -1884,8 +1883,8 @@ public abstract class ModuleNodes {
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode = RaiseIfFrozenNodeGen.create(
-                ProfileArgumentNodeGen.create(new ReadSelfNode()));
+        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode = BasicObjectNodes.CheckFrozenNode
+                .create(ProfileArgumentNodeGen.create(new ReadSelfNode()));
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization

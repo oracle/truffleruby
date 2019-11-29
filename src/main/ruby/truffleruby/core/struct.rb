@@ -228,7 +228,7 @@ class Struct
       var = check_index_var(var)
     end
 
-    Truffle.check_frozen
+    TrufflePrimitive.check_frozen self
     TrufflePrimitive.object_hidden_var_set(self, var, obj)
   end
 

@@ -33,11 +33,11 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -641,7 +641,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean rb_check_frozen(Object object,
-                @Cached RaiseIfFrozenNode raiseIfFrozenNode) {
+                @Cached BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode) {
             raiseIfFrozenNode.execute(object);
             return true;
         }
