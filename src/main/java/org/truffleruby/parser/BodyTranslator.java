@@ -504,13 +504,9 @@ public class BodyTranslator extends Translator {
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
-            return addNewlineIfNeeded(
-                    node,
-                    withSourceSection(
-                            sourceSection,
-                            new DefinedWrapperNode(
-                                    context.getCoreStrings().METHOD,
-                                    new ObjectLiteralNode(frozenString))));
+            return addNewlineIfNeeded(node, withSourceSection(
+                    sourceSection,
+                    new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
         }
 
         if (receiver instanceof ConstParseNode &&
@@ -523,12 +519,7 @@ public class BodyTranslator extends Translator {
                 && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode &&
                 ((ConstParseNode) ((Colon2ConstParseNode) receiver).getLeftNode()).getName().equals("Truffle") &&
                 ((Colon2ConstParseNode) receiver).getName().equals("Graal")) {
-            if (methodName.equals("assert_constant")) {
-                final RubyNode ret = AssertConstantNodeGen
-                        .create(((ArrayParseNode) node.getArgsNode()).get(0).accept(this));
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("assert_not_compiled")) {
+            if (methodName.equals("assert_not_compiled")) {
                 final RubyNode ret = AssertNotCompiledNodeGen.create();
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);

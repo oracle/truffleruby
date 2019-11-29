@@ -19,7 +19,7 @@
 # do:
 #
 #   loop do
-#     Truffle::Graal.assert_constant expression
+#     TrufflePrimitive.assert_compilation_constant expression
 #   end
 #
 # Run with:
@@ -89,11 +89,11 @@ else
   require_relative 'interop/interop_pe'
   require_relative 'truffle/engine_pe.rb'
   require_relative 'macro/pushing_pixels_pe.rb'
-  
+
   if Truffle::Interop.mime_type_supported?('application/javascript')
     require_relative 'interop/js.rb'
   end
-  
+
   if Truffle::Interop.mime_type_supported?('application/x-r')
     require_relative 'interop/r.rb'
   end
@@ -114,13 +114,13 @@ EXAMPLES.each do |example|
   next if example.tagged
 
   finished = false
-  
+
   runner = proc do
     begin
       tested += 1
       eval "
       def test_pe_code
-        value = Truffle::Graal.assert_constant(begin; #{example.code}; end)
+        value = TrufflePrimitive.assert_compilation_constant(begin; #{example.code}; end)
         Truffle::Graal.assert_not_compiled
         value
       end"
@@ -130,7 +130,7 @@ EXAMPLES.each do |example|
     rescue Truffle::GraalError => e
       if e.message.include? 'Truffle::Graal.assert_not_compiled'
         constant = true
-      elsif e.message.include? 'Truffle::Graal.assert_constant'
+      elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
         constant = false
       else
         constant = nil

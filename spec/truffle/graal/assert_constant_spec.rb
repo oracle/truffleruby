@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Graal.assert_constant" do
+describe "TrufflePrimitive.assert_compilation_constant" do
 
   it "raises a RuntimeError when called dynamically" do
     -> { Truffle::Graal.send(:assert_constant, 14 + 2) }.should raise_error(RuntimeError)
@@ -16,7 +16,7 @@ describe "Truffle::Graal.assert_constant" do
 
   guard -> { !TruffleRuby.jit? } do
     it "returns the value of the argument" do
-      Truffle::Graal.assert_constant(14 + 2).should == 16
+      TrufflePrimitive.assert_compilation_constant(14 + 2).should == 16
     end
   end
 

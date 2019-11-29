@@ -243,10 +243,6 @@ public class CoreExceptions {
 
     // RuntimeError
 
-    public DynamicObject runtimeErrorNotConstant(Node currentNode) {
-        return runtimeError("Truffle::Graal.assert_constant can only be called lexically", currentNode);
-    }
-
     public DynamicObject runtimeErrorCompiled(Node currentNode) {
         return runtimeError("Truffle::Graal.assert_not_compiled can only be called lexically", currentNode);
     }
@@ -964,7 +960,7 @@ public class CoreExceptions {
     // Truffle::GraalError
 
     public DynamicObject graalErrorAssertConstantNotConstant(Node currentNode) {
-        return graalError("value in Truffle::Graal.assert_constant was not constant", currentNode);
+        return graalError("value in TrufflePrimitive.assert_compilation_constant was not constant", currentNode);
     }
 
     public DynamicObject graalErrorAssertNotCompiledCompiled(Node currentNode) {
