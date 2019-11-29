@@ -366,7 +366,7 @@ class Range
   def to_a_from_enumerable(*arg)
     ary = []
     each(*arg) do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       ary << o
       nil
     end

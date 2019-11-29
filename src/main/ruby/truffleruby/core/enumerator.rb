@@ -120,7 +120,7 @@ class Enumerator
     idx = 0
 
     each do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       val = yield(o, idx)
       idx += 1
       val
@@ -131,7 +131,7 @@ class Enumerator
     return to_enum(:each_with_object, memo) { size } unless block_given?
 
     each do
-      obj = Truffle.single_block_arg
+      obj = TrufflePrimitive.single_block_arg
       yield obj, memo
     end
     memo
@@ -204,7 +204,7 @@ class Enumerator
     return to_enum(:with_index, offset) { size } unless block_given?
 
     each do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       val = yield(o, offset)
       offset += 1
       val

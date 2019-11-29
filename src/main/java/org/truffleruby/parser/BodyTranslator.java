@@ -68,7 +68,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
-import org.truffleruby.language.arguments.SingleBlockArgNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -522,18 +521,12 @@ public class BodyTranslator extends Translator {
 
         if (receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
             // Truffle.<method>
-
-            switch (methodName) {
-                case "privately": {
-                    final RubyNode ret = translatePrivately(node);
-                    return addNewlineIfNeeded(node, ret);
-                }
-                // TODO (pitr-ch 28-Nov-2019): change to primitive
-                case "single_block_arg": {
-                    final RubyNode ret = translateSingleBlockArg(sourceSection, node);
-                    return addNewlineIfNeeded(node, ret);
-                }
+            // TODO (pitr-ch 29-Nov-2019): move under TrufflePrimitive ?
+            if ("privately".equals(methodName)) {
+                final RubyNode ret = translatePrivately(node);
+                return addNewlineIfNeeded(node, ret);
             }
+
         } else if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
                 && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode &&
                 ((ConstParseNode) ((Colon2ConstParseNode) receiver).getLeftNode()).getName().equals("Truffle") &&
@@ -642,12 +635,6 @@ public class BodyTranslator extends Translator {
 
             privately = previousPrivately;
         }
-    }
-
-    public RubyNode translateSingleBlockArg(SourceIndexLength sourceSection, CallParseNode node) {
-        final RubyNode ret = new SingleBlockArgNode();
-        ret.unsafeSetSourceSection(sourceSection);
-        return ret;
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
