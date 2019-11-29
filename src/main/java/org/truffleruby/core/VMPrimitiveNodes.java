@@ -81,7 +81,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "VMPrimitives", isClass = true)
 public abstract class VMPrimitiveNodes {
 
-    @Primitive(name = "vm_catch", needsSelf = false)
+    @Primitive(name = "vm_catch")
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -114,7 +114,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_extended_modules", needsSelf = false)
+    @Primitive(name = "vm_extended_modules")
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -135,7 +135,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_method_is_basic", needsSelf = false)
+    @Primitive(name = "vm_method_is_basic")
     public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -145,7 +145,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_method_lookup", needsSelf = false)
+    @Primitive(name = "vm_method_lookup")
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -163,7 +163,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_respond_to", needsSelf = false)
+    @Primitive(name = "vm_object_respond_to")
     public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
@@ -177,7 +177,7 @@ public abstract class VMPrimitiveNodes {
     }
 
 
-    @Primitive(name = "vm_object_singleton_class", needsSelf = false)
+    @Primitive(name = "vm_object_singleton_class")
     public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
@@ -190,7 +190,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_raise_exception", needsSelf = false)
+    @Primitive(name = "vm_raise_exception")
     public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
@@ -220,7 +220,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_set_module_name", needsSelf = false)
+    @Primitive(name = "vm_set_module_name")
     public static abstract class VMSetModuleNameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -230,7 +230,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_throw", needsSelf = false)
+    @Primitive(name = "vm_throw")
     public abstract static class ThrowNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -240,7 +240,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_watch_signal", needsSelf = false)
+    @Primitive(name = "vm_watch_signal")
     public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -378,7 +378,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_get_config_item", needsSelf = false)
+    @Primitive(name = "vm_get_config_item")
     public abstract static class VMGetConfigItemNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -395,7 +395,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_get_config_section", needsSelf = false)
+    @Primitive(name = "vm_get_config_section")
     public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -416,7 +416,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_set_class", needsSelf = false)
+    @Primitive(name = "vm_set_class")
     public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyClass(newClass)")
@@ -453,7 +453,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_hash_start", needsSelf = false)
+    @Primitive(name = "vm_hash_start")
     public abstract static class VMHashStartNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -486,7 +486,7 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "vm_hash_update", needsSelf = false)
+    @Primitive(name = "vm_hash_update")
     public abstract static class VMHashUpdateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -519,7 +519,7 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "vm_hash_end", needsSelf = false)
+    @Primitive(name = "vm_hash_end")
     public abstract static class VMHashEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

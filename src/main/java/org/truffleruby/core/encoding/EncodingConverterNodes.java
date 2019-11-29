@@ -160,7 +160,7 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @Primitive(name = "encoding_transcoders_from_encoding", needsSelf = false)
+    @Primitive(name = "encoding_transcoders_from_encoding")
     public static abstract class TranscodersFromEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

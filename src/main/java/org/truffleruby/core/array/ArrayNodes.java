@@ -2001,7 +2001,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "steal_array_storage", needsSelf = false)
+    @Primitive(name = "steal_array_storage")
     @ImportStatic(ArrayGuards.class)
     public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
 

@@ -1322,7 +1322,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_get_coderange", needsSelf = false)
+    @Primitive(name = "string_get_coderange")
     public abstract static class GetCodeRangeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(str)")
@@ -1333,7 +1333,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_get_rope", needsSelf = false)
+    @Primitive(name = "string_get_rope")
     public abstract static class GetRopeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(str)")
@@ -3440,7 +3440,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_escape", needsSelf = false)
+    @Primitive(name = "string_escape")
     public abstract static class StringEscapePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -3719,7 +3719,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_to_f", needsSelf = false)
+    @Primitive(name = "string_to_f")
     public static abstract class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -4994,7 +4994,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_to_null_terminated_byte_array", needsSelf = false)
+    @Primitive(name = "string_to_null_terminated_byte_array")
     public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -5015,7 +5015,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_intern", needsSelf = false)
+    @Primitive(name = "string_intern")
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

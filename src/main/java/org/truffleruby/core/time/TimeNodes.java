@@ -442,7 +442,6 @@ public abstract class TimeNodes {
 
     @Primitive(
             name = "time_s_from_array",
-            needsSelf = true,
             lowerFixnum = {
                     1 /* sec */,
                     2 /* min */,

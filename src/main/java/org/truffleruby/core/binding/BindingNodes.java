@@ -319,7 +319,7 @@ public abstract class BindingNodes {
         }
     }
 
-    @Primitive(name = "local_variable_names", needsSelf = true)
+    @Primitive(name = "local_variable_names")
     @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariablesNode extends PrimitiveArrayArgumentsNode {
 
@@ -402,7 +402,7 @@ public abstract class BindingNodes {
 
     }
 
-    @Primitive(name = "caller_binding", needsSelf = false)
+    @Primitive(name = "caller_binding")
     public abstract static class CallerBindingNode extends PrimitiveArrayArgumentsNode {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();

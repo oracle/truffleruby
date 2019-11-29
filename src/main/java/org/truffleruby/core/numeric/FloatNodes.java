@@ -576,7 +576,7 @@ public abstract class FloatNodes {
     }
 
     @ImportStatic(FloatRoundGuards.class)
-    @Primitive(name = "float_round_up", needsSelf = false)
+    @Primitive(name = "float_round_up")
     public abstract static class FloatRoundUpPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
@@ -639,7 +639,7 @@ public abstract class FloatNodes {
 
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     @ImportStatic(FloatRoundGuards.class)
-    @Primitive(name = "float_round_even", needsSelf = false)
+    @Primitive(name = "float_round_even")
     public abstract static class FloatRoundEvenPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })
@@ -701,7 +701,7 @@ public abstract class FloatNodes {
     }
 
     @ImportStatic(FloatRoundGuards.class)
-    @Primitive(name = "float_round_down", needsSelf = false)
+    @Primitive(name = "float_round_down")
     public abstract static class FloatRoundDownPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "fitsInInteger(n)", "isPositive(n)" })

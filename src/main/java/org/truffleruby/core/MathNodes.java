@@ -287,7 +287,7 @@ public abstract class MathNodes {
 
     }
 
-    @Primitive(name = "math_frexp", needsSelf = false)
+    @Primitive(name = "math_frexp")
     public abstract static class FrExpNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

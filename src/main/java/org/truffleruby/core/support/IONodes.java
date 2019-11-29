@@ -480,7 +480,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_get_thread_buffer", needsSelf = false)
+    @Primitive(name = "io_get_thread_buffer")
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

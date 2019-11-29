@@ -78,7 +78,7 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_find_type_size", needsSelf = false)
+    @Primitive(name = "pointer_find_type_size")
     public static abstract class PointerFindTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

@@ -218,7 +218,7 @@ public abstract class FiberNodes {
 
     }
 
-    @Primitive(name = "fiber_get_catch_tags", needsSelf = false)
+    @Primitive(name = "fiber_get_catch_tags")
     public static abstract class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

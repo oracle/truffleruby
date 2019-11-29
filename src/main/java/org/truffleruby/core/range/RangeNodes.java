@@ -47,7 +47,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Range", isClass = true)
 public abstract class RangeNodes {
 
-    @Primitive(name = "range_integer_map", needsSelf = false)
+    @Primitive(name = "range_integer_map")
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")

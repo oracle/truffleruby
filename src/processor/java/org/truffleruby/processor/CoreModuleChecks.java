@@ -109,11 +109,7 @@ public class CoreModuleChecks {
 
         if (lowerArgs == null) {
             if (end < skip) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "should have needsSelf = false",
-                        specializationMethod);
-                return lowerArgs;
+                return new byte[0];
             }
             lowerArgs = new byte[end - skip];
         } else {

@@ -528,7 +528,7 @@ public abstract class BasicObjectNodes {
     }
 
     @NodeChild(value = "value", type = RubyNode.class)
-    @Primitive(name = "check_frozen", needsSelf = false)
+    @Primitive(name = "check_frozen")
     public static abstract class CheckFrozenNode extends PrimitiveNode {
 
         public static CheckFrozenNode create() {

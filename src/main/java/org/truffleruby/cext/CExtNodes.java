@@ -1373,7 +1373,7 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "cext_wrap", needsSelf = false)
+    @Primitive(name = "cext_wrap")
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -1384,7 +1384,7 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "cext_unwrap", needsSelf = false)
+    @Primitive(name = "cext_unwrap")
     public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
