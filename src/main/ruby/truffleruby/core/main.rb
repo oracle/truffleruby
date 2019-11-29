@@ -37,7 +37,7 @@
 # Methods on `main`, the top-level `self`
 class << self
   def include(*mods)
-    Truffle.privately do
+    TrufflePrimitive.privately do
       Object.include(*mods)
     end
   end

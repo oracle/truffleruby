@@ -196,7 +196,7 @@ class Thread
       raise ArgumentError, 'unknown mask signature'
     end
     exception, timing = config.first
-    Truffle.privately do
+    TrufflePrimitive.privately do
       current.handle_interrupt(exception, timing, &block)
     end
   end

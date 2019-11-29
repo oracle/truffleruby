@@ -82,7 +82,7 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      Truffle.privately do
+      TrufflePrimitive.privately do
         mod.append_features self
         mod.included self
       end
@@ -96,7 +96,7 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      Truffle.privately do
+      TrufflePrimitive.privately do
         mod.prepend_features self
         mod.prepended self
       end

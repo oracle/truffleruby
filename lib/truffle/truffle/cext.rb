@@ -1257,7 +1257,7 @@ module Truffle::CExt
   end
 
   def rb_obj_call_init(obj, args)
-    Truffle.privately do
+    TrufflePrimitive.privately do
       obj.initialize(*args)
     end
   end
@@ -1363,13 +1363,13 @@ module Truffle::CExt
   end
 
   def rb_complex_set_real(complex, real)
-    Truffle.privately do
+    TrufflePrimitive.privately do
       complex.real = real
     end
   end
 
   def rb_complex_set_imag(complex, imag)
-    Truffle.privately do
+    TrufflePrimitive.privately do
       complex.imag = imag
     end
   end

@@ -137,7 +137,7 @@ class Exception
         # Exception#initialize (via __initialize__) is exactly what MRI
         # does.
         e = clone
-        Truffle.privately do
+        TrufflePrimitive.privately do
           e.__initialize__(message)
         end
         return e

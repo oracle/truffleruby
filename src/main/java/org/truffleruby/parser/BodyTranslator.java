@@ -519,15 +519,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        if (receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
-            // Truffle.<method>
-            // TODO (pitr-ch 29-Nov-2019): move under TrufflePrimitive ?
-            if ("privately".equals(methodName)) {
-                final RubyNode ret = translatePrivately(node);
-                return addNewlineIfNeeded(node, ret);
-            }
-
-        } else if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
+        if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
                 && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode &&
                 ((ConstParseNode) ((Colon2ConstParseNode) receiver).getLeftNode()).getName().equals("Truffle") &&
                 ((Colon2ConstParseNode) receiver).getName().equals("Graal")) {
@@ -578,23 +570,29 @@ public class BodyTranslator extends Translator {
          */
 
         final String primitiveName = node.getName();
-        final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
-        final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
-        final int size = args != null ? args.size() : 0;
-        final RubyNode[] arguments = new RubyNode[size];
-        for (int n = 0; n < size; n++) {
-            arguments[n] = args.get(n).accept(this);
+        if ("privately".equals(primitiveName)) {
+            final RubyNode ret = translatePrivately(node);
+            return addNewlineIfNeeded(node, ret);
+        } else {
+            final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
+
+            final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
+            final int size = args != null ? args.size() : 0;
+            final RubyNode[] arguments = new RubyNode[size];
+            for (int n = 0; n < size; n++) {
+                arguments[n] = args.get(n).accept(this);
+            }
+
+            return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
         }
-
-        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
     }
 
     private RubyNode translatePrivately(CallParseNode node) {
         /*
          * Translates something that looks like
          *
-         *   Truffle.privately { foo }
+         *   TrufflePrimitive.privately { foo }
          *
          * into just
          *
@@ -604,12 +602,12 @@ public class BodyTranslator extends Translator {
          */
 
         if (!(node.getIterNode() instanceof IterParseNode)) {
-            throw new UnsupportedOperationException("Truffle.privately needs a literal block");
+            throw new UnsupportedOperationException("TrufflePrimitive.privately needs a literal block");
         }
 
         final ArrayParseNode argsNode = (ArrayParseNode) node.getArgsNode();
         if (argsNode != null && argsNode.size() > 0) {
-            throw new UnsupportedOperationException("Truffle.privately should not have any arguments");
+            throw new UnsupportedOperationException("TrufflePrimitive.privately should not have any arguments");
         }
 
         /*
@@ -2828,7 +2826,7 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateRationalComplex(SourceIndexLength sourceSection, String name, RubyNode a, RubyNode b) {
-        // Translate as Truffle.privately { Rational.convert(a, b) }
+        // Translate as TrufflePrimitive.privately { Rational.convert(a, b) }
 
         final RubyNode moduleNode = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
         ReadConstantNode receiver = new ReadConstantNode(moduleNode, name);

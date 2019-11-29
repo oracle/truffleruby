@@ -725,7 +725,7 @@ class Array
       if block
         # offensive (both definitions) copy.
         offensive = dup
-        Truffle.privately do
+        TrufflePrimitive.privately do
           offensive.__permute__(num, perm, 0, used, &block)
         end
       else
@@ -844,7 +844,7 @@ class Array
     if combination_size < 0
       # yield nothing
     else
-      Truffle.privately do
+      TrufflePrimitive.privately do
         dup.compile_repeated_combinations(combination_size, [], 0, combination_size, &block)
       end
     end
@@ -878,7 +878,7 @@ class Array
     elsif combination_size == 0
       yield []
     else
-      Truffle.privately do
+      TrufflePrimitive.privately do
         dup.compile_repeated_permutations(combination_size, [], 0, &block)
       end
     end
@@ -1346,7 +1346,7 @@ class Array
     # Use this instead of #dup as we want an instance of Array
     sorted = Array.new(self)
 
-    Truffle.privately do
+    TrufflePrimitive.privately do
       if block
         sorted.mergesort_block!(block)
       else

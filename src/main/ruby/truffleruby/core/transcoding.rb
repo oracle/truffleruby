@@ -282,7 +282,7 @@ class Encoding
         exc = UndefinedConversionError.new msg
       end
 
-      Truffle.privately do
+      TrufflePrimitive.privately do
         exc.source_encoding_name = source_encoding_name
         src = Encoding.try_convert(source_encoding_name)
         exc.source_encoding = src unless false == src

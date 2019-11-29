@@ -433,7 +433,7 @@ class IO
     end
 
     def run
-      Truffle.privately do
+      TrufflePrimitive.privately do
         @from.ensure_open_and_readable if @from.kind_of? IO
         @to.ensure_open_and_writable if @to.kind_of? IO
       end
@@ -537,7 +537,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = Truffle.privately { io.create_each_reader(separator, limit) }
+    each_reader = TrufflePrimitive.privately { io.create_each_reader(separator, limit) }
 
     begin
       each_reader&.each(&block)
@@ -2090,7 +2090,7 @@ class IO
       end
 
       if @descriptor != io.fileno
-        Truffle.privately do
+        TrufflePrimitive.privately do
           io.ensure_open
         end
 

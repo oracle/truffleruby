@@ -179,7 +179,7 @@ module Marshal
 
     def serialize_encoding(obj)
       enc = TrufflePrimitive.encoding_get_object_encoding obj
-      Truffle.privately do
+      TrufflePrimitive.privately do
         case enc
         when Encoding::US_ASCII
           :E.__marshal__(self) + false.__marshal__(self)
@@ -902,7 +902,7 @@ module Marshal
         @has_ivar[ivar_index] = false
       end
 
-      obj = Truffle.privately do
+      obj = TrufflePrimitive.privately do
         klass._load data
       end
 
@@ -927,7 +927,7 @@ module Marshal
       store_unique_object obj
 
       data = construct
-      Truffle.privately do
+      TrufflePrimitive.privately do
         obj.marshal_load data
       end
 
@@ -937,7 +937,7 @@ module Marshal
     def extend_object(obj)
       until @modules.empty?
         mod = @modules.pop
-        Truffle.privately do
+        TrufflePrimitive.privately do
           mod.extend_object obj
           mod.extended obj
         end
@@ -999,7 +999,7 @@ module Marshal
         elsif Truffle::Type.object_respond_to__dump? obj
           str = serialize_user_defined obj
         else
-          Truffle.privately do
+          TrufflePrimitive.privately do
             str = obj.__marshal__ self
           end
         end
@@ -1138,7 +1138,7 @@ module Marshal
         return obj.__custom_marshal__(self)
       end
 
-      str = Truffle.privately do
+      str = TrufflePrimitive.privately do
         obj._dump @depth
       end
 
@@ -1155,7 +1155,7 @@ module Marshal
     end
 
     def serialize_user_marshal(obj)
-      val = Truffle.privately do
+      val = TrufflePrimitive.privately do
         obj.marshal_dump
       end
 
@@ -1164,7 +1164,7 @@ module Marshal
       cls = Truffle::Type.object_class obj
       name = Truffle::Type.module_name cls
       name = serialize(name.to_sym)
-      marshaled = Truffle.privately do
+      marshaled = TrufflePrimitive.privately do
         val.__marshal__(self)
       end
       Truffle::Type.binary_string("U#{name}#{marshaled}")
