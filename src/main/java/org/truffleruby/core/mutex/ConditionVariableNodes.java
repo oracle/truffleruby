@@ -128,9 +128,14 @@ public abstract class ConditionVariableNodes {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
                 try {
                     try {
-                        if (consumeSignal(self)) {
-                            return;
-                        }
+                        /*
+                         * We must not consumeSignal() here, as we should only consume a signal after being awaken by
+                         * condition.signal() or condition.signalAll(). Otherwise, ConditionVariable#signal might
+                         * condition.signal() a waiting thread, and then if the current thread calls ConditionVariable#wait
+                         * before the waiting thread awakes, we might steal that waiting thread's signal with consumeSignal().
+                         * So, we must await() first. spec/ruby/library/conditionvariable/signal_spec.rb is a good spec
+                         * for this (run with repeats = 10000).
+                         */
                         if (durationInNanos >= 0) {
                             final long currentTime = System.nanoTime();
                             if (currentTime >= endNanoTime) {

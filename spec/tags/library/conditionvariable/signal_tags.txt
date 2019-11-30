@@ -1,1 +1,0 @@
-fails(hangs):ConditionVariable#signal allows control to be passed between a pair of threads
