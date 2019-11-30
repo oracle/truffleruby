@@ -447,8 +447,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject wakeup(DynamicObject rubyThread,
-                @Cached YieldNode yieldNode) {
+        protected DynamicObject wakeup(DynamicObject rubyThread) {
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiberRacy();
             final Thread thread = Layouts.FIBER.getThread(currentFiber);
             if (!Layouts.FIBER.getAlive(currentFiber) || thread == null) {
