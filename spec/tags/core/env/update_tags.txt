@@ -2,3 +2,4 @@ fails:ENV.update returns ENV when no block given
 fails:ENV.update returns ENV when block given
 fails:ENV.update raises TypeError when a name is not coercible to String
 fails:ENV.update raises TypeError when a value is not coercible to String
+fails:ENV.update adds the parameter hash to ENV, returning ENV

@@ -6,3 +6,4 @@ fails:File.open accepts extra flags as a keyword argument and combine with an in
 fails:File.open 'x' flag does nothing if the file doesn't exist
 fails:File.open 'x' flag throws a Errno::EEXIST error if the file exists
 fails:File.open 'x' flag can't be used with 'r' and 'a' flags
+fails:File.open raises ArgumentError if mixing :newline and binary mode

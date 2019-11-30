@@ -1,0 +1,1 @@
+fails:ENV.values_at raises TypeError when a key is not coercible to String

@@ -3,3 +3,4 @@ slow:SignalException can be rescued
 slow:SignalException runs after at_exit
 slow:SignalException cannot be trapped with Signal.trap
 slow:SignalException self-signals for USR1
+fails:SignalException.new raises an exception with an invalid first argument type
