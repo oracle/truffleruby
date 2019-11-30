@@ -6,20 +6,22 @@ describe "MatchData#pre_match" do
     $`.should == 'T'
   end
 
-  it "keeps taint status from the source string" do
-    str = "THX1138: The Movie"
-    str.taint
-    res = /(.)(.)(\d+)(\d)/.match(str).pre_match
-    res.tainted?.should be_true
-    $`.tainted?.should be_true
-  end
+  ruby_version_is ''...'2.7' do
+    it "keeps taint status from the source string" do
+      str = "THX1138: The Movie"
+      str.taint
+      res = /(.)(.)(\d+)(\d)/.match(str).pre_match
+      res.tainted?.should be_true
+      $`.tainted?.should be_true
+    end
 
-  it "keeps untrusted status from the source string" do
-    str = "THX1138: The Movie"
-    str.untrust
-    res = /(.)(.)(\d+)(\d)/.match(str).pre_match
-    res.untrusted?.should be_true
-    $`.untrusted?.should be_true
+    it "keeps untrusted status from the source string" do
+      str = "THX1138: The Movie"
+      str.untrust
+      res = /(.)(.)(\d+)(\d)/.match(str).pre_match
+      res.untrusted?.should be_true
+      $`.untrusted?.should be_true
+    end
   end
 
   it "sets the encoding to the encoding of the source String" do
@@ -30,10 +32,5 @@ describe "MatchData#pre_match" do
   it "sets an empty result to the encoding of the source String" do
     str = "abc".force_encoding Encoding::ISO_8859_1
     str.match(/a/).pre_match.encoding.should equal(Encoding::ISO_8859_1)
-  end
-
-  it "raises TypeError when uninitialized" do
-    match_data = MatchData.allocate
-    -> { match_data.pre_match }.should raise_error(TypeError)
   end
 end

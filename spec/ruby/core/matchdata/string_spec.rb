@@ -22,9 +22,4 @@ describe "MatchData#string" do
     $~.string.should == 'he[[o'
     $~.string.frozen?.should == true
   end
-
-  it "raises TypeError when uninitialized" do
-    match_data = MatchData.allocate
-    -> { match_data.string }.should raise_error(TypeError)
-  end
 end
