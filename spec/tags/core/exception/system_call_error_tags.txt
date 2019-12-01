@@ -1,0 +1,5 @@
+fails:SystemCallError.new converts to Integer if errno is a Float
+fails:SystemCallError.new converts to Integer if errno is a Complex convertible to Integer
+fails:SystemCallError.new raises TypeError if message is not a String
+fails:SystemCallError.new raises TypeError if errno is not an Integer
+fails:SystemCallError.new raises RangeError if errno is a Complex not convertible to Integer

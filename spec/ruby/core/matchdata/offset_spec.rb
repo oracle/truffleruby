@@ -27,9 +27,4 @@ describe "MatchData#offset" do
       match_data.offset(4).should == [6, 7]
     end
   end
-
-  it "raises TypeError when uninitialized" do
-    match_data = MatchData.allocate
-    -> { match_data.offset(0) }.should raise_error(TypeError)
-  end
 end

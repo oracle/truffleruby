@@ -1,1 +1,2 @@
 fails:Exception#backtrace returns the same array after duping
+fails:Exception#backtrace captures the backtrace for an exception into $@

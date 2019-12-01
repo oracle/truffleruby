@@ -91,6 +91,10 @@ public abstract class ConditionVariableNodes {
                 endNanoTime = 0;
             }
 
+            // Clear the wakeUp flag, following Ruby semantics:
+            // it should only be considered if we are inside Mutex#sleep when Thread#{run,wakeup} is called.
+            Layouts.THREAD.getWakeUp(thread).set(false);
+
             // condLock must be locked before unlocking mutexLock, to avoid losing potential signals
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
@@ -128,9 +132,14 @@ public abstract class ConditionVariableNodes {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
                 try {
                     try {
-                        if (consumeSignal(self)) {
-                            return;
-                        }
+                        /*
+                         * We must not consumeSignal() here, as we should only consume a signal after being awaken by
+                         * condition.signal() or condition.signalAll(). Otherwise, ConditionVariable#signal might
+                         * condition.signal() a waiting thread, and then if the current thread calls ConditionVariable#wait
+                         * before the waiting thread awakes, we might steal that waiting thread's signal with consumeSignal().
+                         * So, we must await() first. spec/ruby/library/conditionvariable/signal_spec.rb is a good spec
+                         * for this (run with repeats = 10000).
+                         */
                         if (durationInNanos >= 0) {
                             final long currentTime = System.nanoTime();
                             if (currentTime >= endNanoTime) {
@@ -161,6 +170,17 @@ public abstract class ConditionVariableNodes {
                         getContext().getSafepointManager().pollFromBlockingCall(this);
                     } finally {
                         condLock.lock();
+                    }
+
+                    // Thread#{wakeup,run} might have woken us. In that a case, no signal is consumed.
+                    if (Layouts.THREAD.getWakeUp(thread).getAndSet(false)) {
+                        return;
+                    }
+
+                    // Check if a signal are available now, since another thread might have used
+                    // ConditionVariable#signal while we released condLock to check for safepoints.
+                    if (consumeSignal(self)) {
+                        return;
                     }
                 }
             }

@@ -18,9 +18,4 @@ describe "MatchData#values_at" do
   it 'takes names and indices' do
     /\A(?<a>.)(?<b>.)\z/.match('01').values_at(0, 1, 2, :a, :b).should == ['01', '0', '1', '0', '1']
   end
-
-  it "raises TypeError when uninitialized" do
-    match_data = MatchData.allocate
-    -> { match_data.values_at(0) }.should raise_error(TypeError)
-  end
 end

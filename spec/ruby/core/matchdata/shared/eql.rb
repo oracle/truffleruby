@@ -23,15 +23,4 @@ describe :matchdata_eql, shared: true do
     a = 'haystack'.match(/hay/)
     a.send(@method, Object.new).should be_false
   end
-
-  it "returns false if arguments are different and both are uninitialized" do
-    a = MatchData.allocate
-    b = MatchData.allocate
-    a.send(@method, b).should be_false
-  end
-
-  it "returns true if arguments are the identical and uninitialized" do
-    match_data = MatchData.allocate
-    match_data.send(@method, match_data).should be_true
-  end
 end

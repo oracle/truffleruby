@@ -11,13 +11,14 @@ describe "MatchData#regexp" do
     m.regexp.should == /hay/
   end
 
+  it "returns the same Regexp used to match" do
+    r = /hay/
+    m = 'haystack'.match(r)
+    m.regexp.object_id.should == r.object_id
+  end
+
   it "returns a Regexp for the result of gsub(String)" do
     'he[[o'.gsub('[', ']')
     $~.regexp.should == /\[/
-  end
-
-  it "raises TypeError when uninitialized" do
-    match_data = MatchData.allocate
-    -> { match_data.regexp }.should raise_error(TypeError)
   end
 end
