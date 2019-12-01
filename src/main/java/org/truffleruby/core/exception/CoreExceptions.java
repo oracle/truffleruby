@@ -243,10 +243,6 @@ public class CoreExceptions {
 
     // RuntimeError
 
-    public DynamicObject runtimeErrorBailout(Node currentNode) {
-        return runtimeError("Truffle::Graal.bailout can only be called lexically", currentNode);
-    }
-
     public DynamicObject runtimeErrorCoverageNotEnabled(Node currentNode) {
         return runtimeError("coverage measurement is not enabled", currentNode);
     }

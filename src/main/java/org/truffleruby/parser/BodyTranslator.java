@@ -252,7 +252,6 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.platform.BailoutNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -513,16 +512,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
-                && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode &&
-                ((ConstParseNode) ((Colon2ConstParseNode) receiver).getLeftNode()).getName().equals("Truffle") &&
-                ((Colon2ConstParseNode) receiver).getName().equals("Graal")) {
-            if (methodName.equals("bailout")) {
-                final RubyNode ret = BailoutNode.create(((ArrayParseNode) node.getArgsNode()).get(0).accept(this));
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            }
-        } else if (receiver instanceof VCallParseNode // undefined.equal?(obj)
+        if (receiver instanceof VCallParseNode // undefined.equal?(obj)
                 && ((VCallParseNode) receiver).getName().equals("undefined") && inCore() &&
                 methodName.equals("equal?")) {
             RubyNode argument = translateArgumentsAndBlock(sourceSection, null, node.getArgsNode(), methodName)
