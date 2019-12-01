@@ -24,3 +24,4 @@ TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.
 
 # Run all specs
 tool/jt.rb -u "$release_home/bin/truffleruby" test :all
+tool/jt.rb -u "$release_home/bin/truffleruby" test :next
