@@ -93,7 +93,7 @@ You can build a native build of TruffleRuby using the Native Image Tool from a
 source distribution using:
 
 ```bash
-$ jt build native
+$ jt build --env native
 ```
 
 The disadvantages of the Native Image version of TruffleRuby are:
