@@ -319,6 +319,10 @@ class Regexp
 end
 
 class MatchData
+  class << self
+    # Prevent allocating MatchData, like MRI 2.7, so we don't need to check if it's initialized
+    undef_method :allocate
+  end
 
   def offset(idx)
     out = []
