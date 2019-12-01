@@ -27,7 +27,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
-import org.truffleruby.core.IsUndefinedNode;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
@@ -509,16 +508,6 @@ public class BodyTranslator extends Translator {
         if (receiver instanceof ConstParseNode &&
                 ((ConstParseNode) receiver).getName().equals("TrufflePrimitive")) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
-            return addNewlineIfNeeded(node, ret);
-        }
-
-        if (receiver instanceof VCallParseNode // undefined.equal?(obj)
-                && ((VCallParseNode) receiver).getName().equals("undefined") && inCore() &&
-                methodName.equals("equal?")) {
-            RubyNode argument = translateArgumentsAndBlock(sourceSection, null, node.getArgsNode(), methodName)
-                    .getArguments()[0];
-            final RubyNode ret = new IsUndefinedNode(argument);
-            ret.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, ret);
         }
 

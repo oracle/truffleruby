@@ -138,7 +138,7 @@ class << ENV
   alias_method :member?, :include?
 
   def fetch(key, absent=undefined)
-    if block_given? and !undefined.equal?(absent)
+    if block_given? and !TrufflePrimitive.undefined?(absent)
       warn 'block supersedes default value argument', uplevel: 1
     end
 
@@ -148,7 +148,7 @@ class << ENV
 
     if block_given?
       return yield(key)
-    elsif undefined.equal?(absent)
+    elsif TrufflePrimitive.undefined?(absent)
       raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
     end
 

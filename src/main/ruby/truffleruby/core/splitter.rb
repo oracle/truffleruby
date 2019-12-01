@@ -59,7 +59,7 @@ module Truffle
 
       tail_empty = false
 
-      if undefined.equal?(limit)
+      if TrufflePrimitive.undefined?(limit)
         limited = false
       else
         limit = Truffle::Type.coerce_to_int limit
@@ -150,7 +150,7 @@ module Truffle
       end
 
       # Trim from end
-      if undefined.equal?(limit) || limit == 0
+      if TrufflePrimitive.undefined?(limit) || limit == 0
         while s = ret.at(-1) and s.empty?
           ret.pop
         end

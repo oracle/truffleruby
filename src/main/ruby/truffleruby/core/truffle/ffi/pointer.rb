@@ -56,7 +56,7 @@ module Truffle::FFI
     end
 
     def initialize(type, address = undefined)
-      if undefined.equal? address
+      if TrufflePrimitive.undefined? address
         address = type
         type = nil
       end

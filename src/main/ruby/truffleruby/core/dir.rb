@@ -43,7 +43,7 @@ class Dir
   def initialize(path, options=undefined)
     @path = Truffle::Type.coerce_to_path path
 
-    if undefined.equal? options
+    if TrufflePrimitive.undefined? options
       enc = nil
     else
       options = Truffle::Type.coerce_to options, Hash, :to_hash

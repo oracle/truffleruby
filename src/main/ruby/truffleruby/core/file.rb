@@ -152,7 +152,7 @@ class File < IO
 
     slash = '/'
 
-    ext_not_present = undefined.equal?(ext)
+    ext_not_present = TrufflePrimitive.undefined?(ext)
 
     if pos = TrufflePrimitive.find_string_reverse(path, slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.
@@ -1241,7 +1241,7 @@ class File < IO
         mode = nil
       end
 
-      if undefined.equal?(options) and !undefined.equal?(perm)
+      if TrufflePrimitive.undefined?(options) and !TrufflePrimitive.undefined?(perm)
         options = Truffle::Type.try_convert(perm, Hash, :to_hash)
         perm = undefined if options
       end
@@ -1249,7 +1249,7 @@ class File < IO
       nmode, _binary, _external, _internal = IO.normalize_options(mode, options)
       nmode ||= 'r'
 
-      perm = 0666 if undefined.equal? perm
+      perm = 0666 if TrufflePrimitive.undefined? perm
 
       fd = IO.sysopen(path, nmode, perm)
 

@@ -228,7 +228,7 @@ class Rational < Numeric
   end
 
   def rationalize(eps = undefined)
-    return self if undefined.equal?(eps)
+    return self if TrufflePrimitive.undefined?(eps)
 
     e = eps.abs
     a = self - e

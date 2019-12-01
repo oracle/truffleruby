@@ -527,8 +527,8 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @NodeChild(value = "value", type = RubyNode.class)
     @Primitive(name = "check_frozen")
+    @NodeChild(value = "value", type = RubyNode.class)
     public static abstract class CheckFrozenNode extends PrimitiveNode {
 
         public static CheckFrozenNode create() {
@@ -554,5 +554,16 @@ public abstract class BasicObjectNodes {
             return value;
         }
     }
+
+    @Primitive(name = "undefined?")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class IsUndefinedNode extends PrimitiveNode {
+
+        @Specialization
+        protected boolean isUndefined(Object value) {
+            return value == NotProvided.INSTANCE;
+        }
+    }
+
 
 }

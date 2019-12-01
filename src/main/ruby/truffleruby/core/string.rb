@@ -45,7 +45,7 @@ class String
 
   def byteslice(index_or_range, length=undefined)
     str = TrufflePrimitive.string_byte_substring self, index_or_range, length
-    return str unless undefined.equal?(str)
+    return str unless TrufflePrimitive.undefined?(str)
 
     if index_or_range.kind_of? Range
       index = Truffle::Type.rb_num2int(index_or_range.begin)
@@ -63,7 +63,7 @@ class String
       index = Truffle::Type.rb_num2int(index_or_range)
       index += bytesize if index < 0
 
-      if undefined.equal?(length)
+      if TrufflePrimitive.undefined?(length)
         return if index == bytesize
         length = 1
       else
@@ -428,7 +428,7 @@ class String
   def encode!(to=undefined, from=undefined, options=undefined)
     TrufflePrimitive.check_frozen self
 
-    if undefined.equal?(to)
+    if TrufflePrimitive.undefined?(to)
       to_enc = Encoding.default_internal
       return self unless to_enc
     else
@@ -450,7 +450,7 @@ class String
       end
     end
 
-    from = encoding if undefined.equal?(from)
+    from = encoding if TrufflePrimitive.undefined?(from)
     case from
     when Encoding
       from_enc = from
@@ -472,7 +472,7 @@ class String
       raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
     end
 
-    if undefined.equal?(options)
+    if TrufflePrimitive.undefined?(options)
       options = 0
     else
       case options
@@ -728,7 +728,7 @@ class String
       raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
-    if undefined.equal? replacement
+    if TrufflePrimitive.undefined? replacement
       unless block_given?
         raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
@@ -797,7 +797,7 @@ class String
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
-    if undefined.equal?(two)
+    if TrufflePrimitive.undefined?(two)
       result = slice(one)
 
       if one.kind_of? Regexp
@@ -856,7 +856,7 @@ class String
   def chomp!(sep=undefined)
     TrufflePrimitive.check_frozen self
 
-    if undefined.equal?(sep)
+    if TrufflePrimitive.undefined?(sep)
       sep = $/
     elsif sep
       sep = StringValue(sep)
@@ -1027,10 +1027,10 @@ class String
 
   def gsub(pattern, replacement=undefined, &block)
     s = dup
-    if undefined.equal?(replacement) && !block_given?
+    if TrufflePrimitive.undefined?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
     end
-    if undefined.equal?(replacement)
+    if TrufflePrimitive.undefined?(replacement)
       ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(s, pattern, &block)
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(s, pattern, replacement)
@@ -1041,11 +1041,11 @@ class String
   end
 
   def gsub!(pattern, replacement=undefined, &block)
-    if undefined.equal?(replacement) && !block_given?
+    if TrufflePrimitive.undefined?(replacement) && !block_given?
       return to_enum(:gsub!, pattern, replacement)
     end
     TrufflePrimitive.check_frozen self
-    if undefined.equal?(replacement)
+    if TrufflePrimitive.undefined?(replacement)
       ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(self, pattern, &block)
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(self, pattern, replacement)
@@ -1128,7 +1128,7 @@ class String
   def []=(index, count_or_replacement, replacement=undefined)
     TrufflePrimitive.check_frozen self
 
-    if undefined.equal?(replacement)
+    if TrufflePrimitive.undefined?(replacement)
       replacement = count_or_replacement
       count = nil
     else
@@ -1390,7 +1390,7 @@ class String
   end
 
   def index(str, start=undefined)
-    if undefined.equal?(start)
+    if TrufflePrimitive.undefined?(start)
       start = 0
     else
       start = Truffle::Type.coerce_to_int start
@@ -1426,7 +1426,7 @@ class String
   end
 
   def initialize(other = undefined, capacity: nil, encoding: nil)
-    unless undefined.equal?(other)
+    unless TrufflePrimitive.undefined?(other)
       TrufflePrimitive.check_frozen self
       TrufflePrimitive.string_initialize(self, other, encoding)
       taint if other.tainted?
@@ -1436,7 +1436,7 @@ class String
   end
 
   def rindex(sub, finish=undefined)
-    if undefined.equal?(finish)
+    if TrufflePrimitive.undefined?(finish)
       finish = size
     else
       finish = Truffle::Type.coerce_to(finish, Integer, :to_int)

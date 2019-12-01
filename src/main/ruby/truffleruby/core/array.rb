@@ -109,7 +109,7 @@ class Array
 
   def *(count)
     result = TrufflePrimitive.array_mul(self, count)
-    if !undefined.equal?(result)
+    if !TrufflePrimitive.undefined?(result)
       result
     elsif str = Truffle::Type.rb_check_convert_type(count, String, :to_str)
       join(str)
@@ -120,7 +120,7 @@ class Array
 
   def ==(other)
     result = TrufflePrimitive.array_equal self, other
-    unless undefined.equal?(result)
+    unless TrufflePrimitive.undefined?(result)
       return result
     end
 
@@ -146,7 +146,7 @@ class Array
   end
 
   private def element_reference_fallback(start, length)
-    if undefined.equal?(length)
+    if TrufflePrimitive.undefined?(length)
       arg = start
       case arg
       when Range
@@ -181,7 +181,7 @@ class Array
   end
 
   private def element_set_fallback(index, length, value)
-    if undefined.equal?(value)
+    if TrufflePrimitive.undefined?(value)
       value = length
       if Range === index
         index = TrufflePrimitive.range_to_int_range(index)
@@ -308,7 +308,7 @@ class Array
 
   def count(item = undefined)
     seq = 0
-    if !undefined.equal?(item)
+    if !TrufflePrimitive.undefined?(item)
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
@@ -378,7 +378,7 @@ class Array
 
   def eql?(other)
     result = TrufflePrimitive.array_eql self, other
-    unless undefined.equal?(result)
+    unless TrufflePrimitive.undefined?(result)
       return result
     end
 
@@ -409,12 +409,12 @@ class Array
 
     if idx < 0 or idx >= size
       if block_given?
-        warn 'block supersedes default value argument', uplevel: 1 unless undefined.equal?(default)
+        warn 'block supersedes default value argument', uplevel: 1 unless TrufflePrimitive.undefined?(default)
 
         return yield(orig)
       end
 
-      return default unless undefined.equal?(default)
+      return default unless TrufflePrimitive.undefined?(default)
 
       raise IndexError, "index #{idx} out of bounds"
     end
@@ -426,13 +426,13 @@ class Array
     TrufflePrimitive.check_frozen self
 
     if block_given?
-      unless undefined.equal?(c)
+      unless TrufflePrimitive.undefined?(c)
         raise ArgumentError, 'wrong number of arguments'
       end
       one = a
       two = b
     else
-      if undefined.equal?(a)
+      if TrufflePrimitive.undefined?(a)
         raise ArgumentError, 'wrong number of arguments'
       end
       obj = a
@@ -440,11 +440,11 @@ class Array
       two = c
     end
 
-    if undefined.equal?(one) || !one
+    if TrufflePrimitive.undefined?(one) || !one
       left = 0
       right = size
     elsif one.kind_of? Range
-      raise TypeError, 'length invalid with range' unless undefined.equal?(two)
+      raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(two)
 
       left = Truffle::Type.coerce_to_collection_length one.begin
       left += size if left < 0
@@ -460,7 +460,7 @@ class Array
       left += size if left < 0
       left = 0 if left < 0
 
-      if !undefined.equal?(two) and two
+      if !TrufflePrimitive.undefined?(two) and two
         begin
           right = Truffle::Type.coerce_to_collection_length two
         rescue ArgumentError
@@ -497,7 +497,7 @@ class Array
   end
 
   def first(n = undefined)
-    return at(0) if undefined.equal?(n)
+    return at(0) if TrufflePrimitive.undefined?(n)
 
     n = Truffle::Type.coerce_to_collection_index(n)
     raise ArgumentError, 'Size must be positive' if n < 0
@@ -681,7 +681,7 @@ class Array
   end
 
   def last(n=undefined)
-    if undefined.equal?(n)
+    if TrufflePrimitive.undefined?(n)
       return at(-1)
     elsif size < 1
       return []
@@ -703,7 +703,7 @@ class Array
       end
     end
 
-    if undefined.equal? num
+    if TrufflePrimitive.undefined? num
       num = size
     else
       num = Truffle::Type.coerce_to_collection_index num
@@ -738,7 +738,7 @@ class Array
 
   def permutation_size(num)
     n = self.size
-    if undefined.equal? num
+    if TrufflePrimitive.undefined? num
       k = self.size
     else
       k = Truffle::Type.coerce_to_collection_index num
@@ -938,7 +938,7 @@ class Array
   end
 
   def rindex(obj=undefined)
-    if undefined.equal?(obj)
+    if TrufflePrimitive.undefined?(obj)
       return to_enum(:rindex, obj) unless block_given?
 
       i = size - 1
@@ -1000,9 +1000,9 @@ class Array
   end
 
   def sample(count=undefined, options=undefined)
-    return at Kernel.rand(size) if undefined.equal? count
+    return at Kernel.rand(size) if TrufflePrimitive.undefined? count
 
-    if undefined.equal? options
+    if TrufflePrimitive.undefined? options
       if o = Truffle::Type.rb_check_convert_type(count, Hash, :to_hash)
         options = o
         count = nil
@@ -1133,7 +1133,7 @@ class Array
 
     random_generator = Kernel
 
-    unless undefined.equal? options
+    unless TrufflePrimitive.undefined? options
       options = Truffle::Type.coerce_to options, Hash, :to_hash
       random_generator = options[:random] if options[:random].respond_to?(:rand)
     end
@@ -1565,7 +1565,7 @@ class Array
   def slice!(start, length=undefined)
     TrufflePrimitive.check_frozen self
 
-    if undefined.equal? length
+    if TrufflePrimitive.undefined? length
       if start.kind_of? Range
         range = start
         out = self[range]

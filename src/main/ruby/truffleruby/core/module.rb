@@ -106,7 +106,7 @@ class Module
 
   def const_get(name, inherit = true)
     value = TrufflePrimitive.module_const_get self, name, inherit
-    unless undefined.equal?(value)
+    unless TrufflePrimitive.undefined?(value)
       return value
     end
 
@@ -131,7 +131,7 @@ class Module
   end
 
   def self.constants(inherited = undefined)
-    if undefined.equal?(inherited)
+    if TrufflePrimitive.undefined?(inherited)
       Object.constants
     else
       super(inherited)

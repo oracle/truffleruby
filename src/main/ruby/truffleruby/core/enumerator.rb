@@ -52,13 +52,13 @@ class Enumerator
     size = nil
 
     if block_given?
-      unless undefined.equal? receiver_or_size
+      unless TrufflePrimitive.undefined? receiver_or_size
         size = receiver_or_size
       end
 
       receiver = Generator.new(&block)
     else
-      if undefined.equal? receiver_or_size
+      if TrufflePrimitive.undefined? receiver_or_size
         raise ArgumentError, 'Enumerator#initialize requires a block when called without arguments'
       end
 

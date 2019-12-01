@@ -443,7 +443,7 @@ module Kernel
   module_function :select
 
   def srand(seed=undefined)
-    if undefined.equal? seed
+    if TrufflePrimitive.undefined? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -548,7 +548,7 @@ module Kernel
 
   def warn(*messages, uplevel: undefined)
     if !$VERBOSE.nil? && !messages.empty?
-      prefix = if undefined.equal?(uplevel)
+      prefix = if TrufflePrimitive.undefined?(uplevel)
                  +''
                else
                  uplevel = Truffle::Type.coerce_to_int(uplevel)

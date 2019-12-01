@@ -295,7 +295,7 @@ class Thread
   def raise(exc=undefined, msg=nil, ctx=nil)
     return nil unless alive?
 
-    if undefined.equal? exc
+    if TrufflePrimitive.undefined? exc
       no_argument = true
       exc         = nil
     end

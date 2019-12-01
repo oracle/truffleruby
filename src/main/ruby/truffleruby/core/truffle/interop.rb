@@ -232,7 +232,7 @@ module Truffle
 
     def self.to_java_array(array)
       java_array = TrufflePrimitive.interop_to_java_array(array)
-      if !undefined.equal?(java_array)
+      if !TrufflePrimitive.undefined?(java_array)
         java_array
       else
         to_java_array(Truffle::Type.coerce_to(array, Array, :to_a))
@@ -241,7 +241,7 @@ module Truffle
 
     def self.to_java_list(array)
       list = TrufflePrimitive.interop_to_java_list(array)
-      if !undefined.equal?(list)
+      if !TrufflePrimitive.undefined?(list)
         list
       else
         to_java_list(Truffle::Type.coerce_to(array, Array, :to_a))

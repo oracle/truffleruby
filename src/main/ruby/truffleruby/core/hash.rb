@@ -137,7 +137,7 @@ class Hash
         other_value = other._get_or_undefined(key)
 
         # Other doesn't even have this key
-        return false if undefined.equal?(other_value)
+        return false if TrufflePrimitive.undefined?(other_value)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
@@ -176,7 +176,7 @@ class Hash
   end
 
   def default(key=undefined)
-    if default_proc and !undefined.equal?(key)
+    if default_proc and !TrufflePrimitive.undefined?(key)
       default_proc.call(self, key)
     else
       TrufflePrimitive.hash_default_value self
@@ -208,17 +208,17 @@ class Hash
 
   def fetch(key, default=undefined)
     value = _get_or_undefined(key)
-    unless undefined.equal?(value)
+    unless TrufflePrimitive.undefined?(value)
       return value
     end
 
     if block_given?
-      warn 'block supersedes default value argument', uplevel: 1 unless undefined.equal?(default)
+      warn 'block supersedes default value argument', uplevel: 1 unless TrufflePrimitive.undefined?(default)
 
       return yield(key)
     end
 
-    return default unless undefined.equal?(default)
+    return default unless TrufflePrimitive.undefined?(default)
     raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
   end
 
@@ -330,7 +330,7 @@ class Hash
     res = {}
     keys.each do |k|
       v = _get_or_undefined(k)
-      res[k] = v unless undefined.equal?(v)
+      res[k] = v unless TrufflePrimitive.undefined?(v)
     end
     res
   end
@@ -417,7 +417,7 @@ class Hash
   alias_method :to_s, :inspect
 
   def key?(key)
-    !undefined.equal?(_get_or_undefined(key))
+    !TrufflePrimitive.undefined?(_get_or_undefined(key))
   end
   alias_method :has_key?, :key?
   alias_method :include?, :key?
