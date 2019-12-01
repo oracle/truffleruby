@@ -243,10 +243,6 @@ public class CoreExceptions {
 
     // RuntimeError
 
-    public DynamicObject runtimeErrorCompiled(Node currentNode) {
-        return runtimeError("Truffle::Graal.assert_not_compiled can only be called lexically", currentNode);
-    }
-
     public DynamicObject runtimeErrorBailout(Node currentNode) {
         return runtimeError("Truffle::Graal.bailout can only be called lexically", currentNode);
     }
@@ -964,7 +960,7 @@ public class CoreExceptions {
     }
 
     public DynamicObject graalErrorAssertNotCompiledCompiled(Node currentNode) {
-        return graalError("call to Truffle::Graal.assert_not_compiled was compiled", currentNode);
+        return graalError("call to TrufflePrimitive.assert_not_compiled was compiled", currentNode);
     }
 
     @TruffleBoundary

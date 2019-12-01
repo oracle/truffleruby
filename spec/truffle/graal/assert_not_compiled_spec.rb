@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Graal.assert_not_compiled" do
+describe "TrufflePrimitive.assert_not_compiled" do
 
   it "raises a RuntimeError when called dynamically" do
     -> { Truffle::Graal.send(:assert_not_compiled) }.should raise_error(RuntimeError)
@@ -16,7 +16,7 @@ describe "Truffle::Graal.assert_not_compiled" do
 
   guard -> { !TruffleRuby.jit? } do
     it "returns nil" do
-      Truffle::Graal.assert_not_compiled.should be_nil
+      TrufflePrimitive.assert_not_compiled.should be_nil
     end
   end
 

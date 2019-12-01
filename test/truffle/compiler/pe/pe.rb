@@ -121,14 +121,14 @@ EXAMPLES.each do |example|
       eval "
       def test_pe_code
         value = TrufflePrimitive.assert_compilation_constant(begin; #{example.code}; end)
-        Truffle::Graal.assert_not_compiled
+        TrufflePrimitive.assert_not_compiled
         value
       end"
       while true
         value = test_pe_code
       end
     rescue Truffle::GraalError => e
-      if e.message.include? 'Truffle::Graal.assert_not_compiled'
+      if e.message.include? 'TrufflePrimitive.assert_not_compiled'
         constant = true
       elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
         constant = false

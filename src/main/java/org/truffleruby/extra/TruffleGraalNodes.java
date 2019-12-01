@@ -38,17 +38,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
 
-    @CoreMethod(names = "assert_not_compiled", onSingleton = true)
-    public abstract static class AssertNotCompiledNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject assertNotCompiled() {
-            throw new RaiseException(getContext(), coreExceptions().runtimeErrorCompiled(this));
-        }
-
-    }
-
     @CoreMethod(names = "bailout", onSingleton = true, required = 1)
     public abstract static class BailoutNode extends CoreMethodArrayArgumentsNode {
 
@@ -165,7 +154,7 @@ public abstract class TruffleGraalNodes {
 
     @NodeChild(value = "value", type = RubyNode.class)
     @Primitive(name = "assert_compilation_constant")
-    public abstract static class AssertConstantNode extends PrimitiveNode {
+    public abstract static class AssertCompilationConstantNode extends PrimitiveNode {
 
         @Specialization
         protected Object assertCompilationConstant(Object value) {
@@ -179,6 +168,24 @@ public abstract class TruffleGraalNodes {
         @TruffleBoundary
         private void notConstantBoundary() {
             throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this), true);
+        }
+    }
+
+    @Primitive(name = "assert_not_compiled")
+    public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
+
+        @Specialization
+        protected DynamicObject assertNotCompiled() {
+            if (CompilerDirectives.inCompiledCode()) {
+                compiledBoundary();
+            }
+
+            return nil();
+        }
+
+        @TruffleBoundary
+        private void compiledBoundary() {
+            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this), true);
         }
     }
 
