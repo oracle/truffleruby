@@ -565,7 +565,7 @@ module Truffle::CExt
     value
   end
 
-  def context_hash_seed
+  def rb_hash_start
     TrufflePrimitive.vm_hash_start(0)
   end
 

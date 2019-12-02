@@ -4349,7 +4349,7 @@ VALUE rb_str_cat_cstr(VALUE str, const char *ptr) {
 }
 
 st_index_t rb_hash_start(st_index_t h) {
-  st_index_t seed = (st_index_t) polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("context_hash_seed"));
+  st_index_t seed = (st_index_t) polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_hash_start"));
   return seed + h;
 }
 
