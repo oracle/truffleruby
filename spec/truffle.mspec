@@ -94,6 +94,7 @@ class MSpecScript
   ]
 
   set :next, [
+    "spec/ruby/core/matchdata/allocate_spec.rb",
   ]
 
   set :backtrace_filter, /mspec\//

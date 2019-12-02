@@ -373,8 +373,8 @@ public class CoreMethodNodeManager {
         return node;
     }
 
-    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method,
-            final Visibility visibility) {
+    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, CoreMethod method,
+            Visibility visibility) {
         if (method.isModuleFunction()) {
             if (visibility != Visibility.PUBLIC) {
                 RubyLanguage.LOGGER

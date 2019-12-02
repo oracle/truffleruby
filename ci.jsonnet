@@ -239,7 +239,6 @@ local part_definitions = {
   platform: {
     linux: {
       platform_name:: "Linux",
-      "$.run.specs":: { test_spec_options: ["--excl-tag", "ci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
@@ -253,7 +252,6 @@ local part_definitions = {
     },
     darwin: {
       platform_name:: "Darwin",
-      "$.run.specs":: { test_spec_options: ["--excl-tag", "darwinCi"] },
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
       },
@@ -280,9 +278,10 @@ local part_definitions = {
 
   run: {
     test_unit_tck_specs: {
-      run+: jt(["test", "unit"]) + jt(["test", "tck"]) +
-            jt(["test", "specs"] + self["$.run.specs"].test_spec_options),
-      # + jt(["test", "specs", ":next"]) disabled as it's currently empty and MSpec doesn't support empty sets of files
+      run+: jt(["test", "unit"]) +
+            jt(["test", "tck"]) +
+            jt(["test", "specs"]) +
+            jt(["test", "specs", ":next"]),
     },
 
     test_fast: {

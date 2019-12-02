@@ -49,7 +49,6 @@ import org.truffleruby.language.objects.IsTaintedNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -58,8 +57,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
-
-    static final String UNINITIALIZED_MESSAGE = "uninitialized Match";
 
     @TruffleBoundary
     public static Object begin(RubyContext context, DynamicObject matchData, int index) {
@@ -221,7 +218,6 @@ public abstract class MatchDataNodes {
             lowerFixnum = { 1, 2 },
             taintFrom = 0,
             argumentNames = { "index_start_range_or_name", "length" })
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
@@ -236,7 +232,7 @@ public abstract class MatchDataNodes {
 
         public abstract Object executeGetIndex(Object matchData, Object index, Object length);
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected Object getIndex(DynamicObject matchData, int index, NotProvided length,
                 @Cached("createBinaryProfile()") ConditionProfile normalizedIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
@@ -263,7 +259,7 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected Object getIndex(DynamicObject matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
             final Object[] values = getValuesNode.execute(matchData);
@@ -274,7 +270,6 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = {
-                        "isInitialized(matchData)",
                         "isRubySymbol(cachedIndex)",
                         "name != null",
                         "getRegexp(matchData) == regexp",
@@ -294,23 +289,18 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = { "isInitialized(matchData)", "isRubySymbol(index)" })
+        @Specialization(guards = "isRubySymbol(index)")
         protected Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached BranchProfile errorProfile) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = { "isInitialized(matchData)", "isRubyString(index)" })
+        @Specialization(guards = "isRubyString(index)")
         protected Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length) {
             return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization(
-                guards = {
-                        "isInitialized(matchData)",
-                        "!isRubySymbol(index)",
-                        "!isRubyString(index)",
-                        "!isIntRange(index)" })
+        @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
         protected Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -321,7 +311,7 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "isInitialized(matchData)", "isIntRange(range)" })
+        @Specialization(guards = "isIntRange(range)")
         protected Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations
@@ -333,13 +323,6 @@ public abstract class MatchDataNodes {
 
             final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
             return createArray(store, length);
-        }
-
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData, Object index, NotProvided length) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
         }
 
         @TruffleBoundary
@@ -488,22 +471,14 @@ public abstract class MatchDataNodes {
     }
 
     @CoreMethod(names = "captures")
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
             Object[] objects = getCaptures(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
-        }
-
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
         }
 
         private static Object[] getCaptures(Object[] values) {
@@ -534,10 +509,9 @@ public abstract class MatchDataNodes {
 
     @NonStandard
     @CoreMethod(names = "byte_begin", required = 1, lowerFixnum = 1)
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class ByteBeginNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isInitialized(matchData)", "inBounds(matchData, index)" })
+        @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteBegin(DynamicObject matchData, int index) {
             int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
             if (b < 0) {
@@ -547,13 +521,6 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData, int index) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
-
         protected boolean inBounds(DynamicObject matchData, int index) {
             return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
         }
@@ -561,10 +528,9 @@ public abstract class MatchDataNodes {
 
     @NonStandard
     @CoreMethod(names = "byte_end", required = 1, lowerFixnum = 1)
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class ByteEndNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isInitialized(matchData)", "inBounds(matchData, index)" })
+        @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteEnd(DynamicObject matchData, int index) {
             int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
             if (e < 0) {
@@ -574,39 +540,24 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData, int index) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
-
         protected boolean inBounds(DynamicObject matchData, int index) {
             return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
         }
     }
 
     @CoreMethod(names = { "length", "size" })
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class LengthNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ValuesNode getValues = ValuesNode.create();
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected int length(DynamicObject matchData) {
             return getValues.execute(matchData).length;
         }
 
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
     }
 
     @CoreMethod(names = "pre_match", taintFrom = 0)
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -614,7 +565,7 @@ public abstract class MatchDataNodes {
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected Object preMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -626,17 +577,9 @@ public abstract class MatchDataNodes {
                     .allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
-
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
     }
 
     @CoreMethod(names = "post_match", taintFrom = 0)
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -644,7 +587,7 @@ public abstract class MatchDataNodes {
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected Object postMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -656,37 +599,21 @@ public abstract class MatchDataNodes {
                     .allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
-
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
     }
 
     @CoreMethod(names = "to_a")
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
         @Child ValuesNode valuesNode = ValuesNode.create();
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected DynamicObject toA(DynamicObject matchData) {
             Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
         }
-
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
     }
 
     @CoreMethod(names = "regexp")
-    @ImportStatic(MatchDataGuards.class)
     public abstract static class RegexpNode extends CoreMethodArrayArgumentsNode {
 
         public static RegexpNode create() {
@@ -695,7 +622,7 @@ public abstract class MatchDataNodes {
 
         public abstract DynamicObject executeGetRegexp(DynamicObject matchData);
 
-        @Specialization(guards = "isInitialized(matchData)")
+        @Specialization
         protected DynamicObject regexp(DynamicObject matchData,
                 @Cached("createBinaryProfile()") ConditionProfile profile,
                 @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
@@ -713,19 +640,13 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = "!isInitialized(matchData)")
-        protected DynamicObject uninitialized(DynamicObject matchData) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeError(MatchDataNodes.UNINITIALIZED_MESSAGE, this));
-        }
-
     }
 
+    // Defined only so that #initialize_copy works for #dup and #clone.
+    // MatchData.allocate is undefined, see regexp.rb.
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
 
-        @TruffleBoundary
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass,
                 @Cached AllocateObjectNode allocateNode) {
@@ -743,7 +664,7 @@ public abstract class MatchDataNodes {
                 return self;
             }
 
-            if (Layouts.BASIC_OBJECT.getLogicalClass(self) != Layouts.BASIC_OBJECT.getLogicalClass(from)) {
+            if (!Layouts.MATCH_DATA.isMatchData(from)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("initialize_copy should take same class object", this));
@@ -764,15 +685,6 @@ public abstract class MatchDataNodes {
         @Specialization
         protected DynamicObject getSource(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getSource(matchData);
-        }
-    }
-
-    @Primitive(name = "match_data_initialized?")
-    public abstract static class InitializedNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected boolean isInitialized(DynamicObject matchData) {
-            return MatchDataGuards.isInitialized(matchData);
         }
     }
 
