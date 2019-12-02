@@ -9,13 +9,10 @@
  */
 package org.truffleruby.cext;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 
@@ -72,7 +69,7 @@ public class ValueWrapper implements TruffleObject {
 
     @Override
     public int hashCode() {
-        return this.object.hashCode();
+        return object.hashCode();
     }
 
     @ExportMessage
@@ -87,21 +84,22 @@ public class ValueWrapper implements TruffleObject {
     @ExportMessage
     public static long asPointer(
             ValueWrapper wrapper,
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached KeepAliveNode keepAliveNode,
             @Cached AllocateHandleNode createNativeHandleNode,
             @Cached BranchProfile createHandleProfile,
             @Cached BranchProfile taggedObjBranchProfile) {
-
         long handle = wrapper.getHandle();
+
         if (handle == ValueWrapperManager.UNSET_HANDLE) {
             createHandleProfile.enter();
             handle = createNativeHandleNode.execute(wrapper);
         }
+
         if (ValueWrapperManager.isTaggedObject(handle)) {
             taggedObjBranchProfile.enter();
             keepAliveNode.execute(wrapper);
         }
+
         return handle;
     }
 }
