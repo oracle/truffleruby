@@ -28,6 +28,7 @@ public @interface Primitive {
 
     /**
      * Raise an error if any of the arguments with a given index is frozen.
+     * Indexation is same as for {@link #lowerFixnum()}.
      */
     int[] raiseIfFrozen() default {};
 

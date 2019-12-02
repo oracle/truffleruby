@@ -11,7 +11,8 @@
 module TrufflePrimitive
 
   def self.method_missing(name, *args, &block)
-    raise "TrufflePrimitive.#{name} has to be called syntactically."
+    raise NoMethodError.new(
+        "TrufflePrimitive.#{name} has to be called syntactically.", name)
   end
 
 end
