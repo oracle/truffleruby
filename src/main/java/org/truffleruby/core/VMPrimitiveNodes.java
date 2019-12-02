@@ -106,7 +106,7 @@ public abstract class VMPrimitiveNodes {
 
     // The hard #exit!
     @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1)
-    public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMExitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmExit(int status) {
@@ -171,7 +171,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_object_respond_to", needsSelf = false)
-    public static abstract class VMObjectRespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
                 .create(null, null, null);
@@ -185,7 +185,7 @@ public abstract class VMPrimitiveNodes {
 
 
     @Primitive(name = "vm_object_singleton_class", needsSelf = false)
-    public static abstract class VMObjectSingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
                 .create(null);
@@ -228,7 +228,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_set_module_name", needsSelf = false)
-    public static abstract class VMSetModuleNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMSetModuleNameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmSetModuleName(Object object) {
@@ -248,7 +248,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_watch_signal", needsSelf = false)
-    public static abstract class VMWatchSignalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
@@ -386,7 +386,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_get_config_item", needsSelf = false)
-    public abstract static class VMGetConfigItemPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMGetConfigItemNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
@@ -403,7 +403,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_get_config_section", needsSelf = false)
-    public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private YieldNode yieldNode = YieldNode.create();
@@ -425,7 +425,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_set_class", needsSelf = false)
-    public abstract static class VMSetClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyClass(newClass)")
         protected DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
@@ -462,7 +462,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_start", needsSelf = false)
-    public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashStartNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long startHash(long salt) {
@@ -495,7 +495,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_update", needsSelf = false)
-    public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashUpdateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long updateHash(long hash, long value) {
@@ -529,7 +529,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_end", needsSelf = false)
-    public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long endHash(long hash) {
