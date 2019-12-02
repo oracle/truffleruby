@@ -32,6 +32,7 @@ Bug fixes:
 * Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
 * Arrays backed by native storage now allocate the correct amount of memory (#1828).
 * Fixed issue in `ConditionVariable#wait` that could lose a `ConditionVariable#signal`.
+* Do not leak TruffleRuby specific method Array#swap (#1816)
 
 Compatibility:
 

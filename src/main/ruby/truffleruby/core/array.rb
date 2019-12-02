@@ -1105,7 +1105,7 @@ class Array
     result = Array.new(self)
 
     count.times do |c|
-      result.swap c, rng.rand(size)
+      Truffle.privately { result.swap c, rng.rand(size) }
     end
 
     count == size ? result : result[0, count]
@@ -1670,10 +1670,11 @@ class Array
     TrufflePrimitive.steal_array_storage(self, sort(&block))
   end
 
+  private
+
   def swap(a, b)
     temp = at(a)
     self[a] = at(b)
     self[b] = temp
   end
-  protected :swap
 end
