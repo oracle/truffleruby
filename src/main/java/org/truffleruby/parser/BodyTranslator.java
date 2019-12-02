@@ -274,8 +274,6 @@ public class BodyTranslator extends Translator {
     private boolean translatingWhile = false;
     protected String currentCallMethodName = null;
 
-    private boolean privately = false;
-
     public BodyTranslator(
             Node currentNode,
             RubyContext context,
@@ -535,68 +533,16 @@ public class BodyTranslator extends Translator {
 
         final String primitiveName = node.getName();
 
-        if ("privately".equals(primitiveName)) {
-            final RubyNode ret = translatePrivately(node);
-            return addNewlineIfNeeded(node, ret);
-        } else {
-            final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
+        final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
-            final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
-            final int size = args != null ? args.size() : 0;
-            final RubyNode[] arguments = new RubyNode[size];
-            for (int n = 0; n < size; n++) {
-                arguments[n] = args.get(n).accept(this);
-            }
-
-            return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
-        }
-    }
-
-    private RubyNode translatePrivately(CallParseNode node) {
-        /*
-         * Translates something that looks like
-         *
-         *   TrufflePrimitive.privately { foo }
-         *
-         * into just
-         *
-         *   foo
-         *
-         * While we translate foo we'll mark all call sites as ignoring visibility.
-         */
-
-        if (!(node.getIterNode() instanceof IterParseNode)) {
-            throw new UnsupportedOperationException("TrufflePrimitive.privately needs a literal block");
+        final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
+        final int size = args != null ? args.size() : 0;
+        final RubyNode[] arguments = new RubyNode[size];
+        for (int n = 0; n < size; n++) {
+            arguments[n] = args.get(n).accept(this);
         }
 
-        final ArrayParseNode argsNode = (ArrayParseNode) node.getArgsNode();
-        if (argsNode != null && argsNode.size() > 0) {
-            throw new UnsupportedOperationException("TrufflePrimitive.privately should not have any arguments");
-        }
-
-        /*
-         * Normally when you visit an 'iter' (block) node it will set the method name for you, so that we can name the
-         * block something like 'times-block'. Here we bypass the iter node and translate its child. So we set the
-         * name here.
-         */
-
-        currentCallMethodName = "privately";
-
-        /*
-         * While we translate the body of the iter we want to create all call nodes with the ignore-visibility flag.
-         * This flag is checked in visitCallNode.
-         */
-
-        final boolean previousPrivately = privately;
-        privately = true;
-
-        try {
-            return (((IterParseNode) node.getIterNode()).getBodyNode()).accept(this);
-        } finally {
-            // Restore the previous value of the privately flag - allowing for nesting
-
-            privately = previousPrivately;
-        }
+        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
@@ -638,7 +584,7 @@ public class BodyTranslator extends Translator {
                 argumentsAndBlock.getBlock(),
                 argumentsAndBlock.getArguments(),
                 argumentsAndBlock.isSplatted(),
-                privately || ignoreVisibility,
+                ignoreVisibility,
                 isVCall,
                 node.isLazy(),
                 isAttrAssign);
@@ -2790,7 +2736,7 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateRationalComplex(SourceIndexLength sourceSection, String name, RubyNode a, RubyNode b) {
-        // Translate as TrufflePrimitive.privately { Rational.convert(a, b) }
+        // Translate as Rational.convert(a, b) # ignoring visibility
 
         final RubyNode moduleNode = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
         ReadConstantNode receiver = new ReadConstantNode(moduleNode, name);
@@ -2891,9 +2837,7 @@ public class BodyTranslator extends Translator {
         boolean canOmitBacktrace = false;
 
         if (context.getOptions().BACKTRACES_OMIT_UNUSED && rescueBody != null &&
-                rescueBody.getBodyNode() instanceof SideEffectFree
-                // allow `expression rescue $!` pattern
-                &&
+                rescueBody.getBodyNode() instanceof SideEffectFree /* allow `expression rescue $!` pattern */ &&
                 (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) ||
                         !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!")) &&
                 rescueBody.getOptRescueNode() == null) {
@@ -3137,6 +3081,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitVCallNode(VCallParseNode node) {
+        // TODO (pitr-ch 02-Dec-2019): replace with a primitive
         if (node.getName().equals("undefined") && inCore()) { // translate undefined
             final RubyNode ret = new ObjectLiteralNode(NotProvided.INSTANCE);
             ret.unsafeSetSourceSection(node.getPosition());

@@ -282,33 +282,31 @@ class Encoding
         exc = UndefinedConversionError.new msg
       end
 
-      TrufflePrimitive.privately do
-        exc.source_encoding_name = source_encoding_name
-        src = Encoding.try_convert(source_encoding_name)
-        exc.source_encoding = src unless false == src
+      exc.__send__ :source_encoding_name=, source_encoding_name
+      src = Encoding.try_convert(source_encoding_name)
+      exc.__send__ :source_encoding=, src unless false == src
 
-        exc.destination_encoding_name = destination_encoding_name
-        dst = Encoding.try_convert(destination_encoding_name)
-        exc.destination_encoding = dst unless false == dst
+      exc.__send__ :destination_encoding_name=, destination_encoding_name
+      dst = Encoding.try_convert(destination_encoding_name)
+      exc.__send__ :destination_encoding=, dst unless false == dst
 
-        if error_char
-          error_char.force_encoding src unless false == src
-          exc.error_char = error_char
+      if error_char
+        error_char.force_encoding src unless false == src
+        exc.__send__ :error_char=, error_char
+      end
+
+      if result == :invalid_byte_sequence or result == :incomplete_input
+        exc.__send__ :error_bytes=, error_bytes.force_encoding(Encoding::ASCII_8BIT)
+
+        if bytes = read_again_bytes
+          exc.__send__ :readagain_bytes=, bytes.force_encoding(Encoding::ASCII_8BIT)
         end
+      end
 
-        if result == :invalid_byte_sequence or result == :incomplete_input
-          exc.error_bytes = error_bytes.force_encoding Encoding::ASCII_8BIT
-
-          if bytes = read_again_bytes
-            exc.readagain_bytes = bytes.force_encoding Encoding::ASCII_8BIT
-          end
-        end
-
-        if result == :invalid_byte_sequence
-          exc.incomplete_input = false
-        elsif result == :incomplete_input
-          exc.incomplete_input = true
-        end
+      if result == :invalid_byte_sequence
+        exc.__send__ :incomplete_input=, false
+      elsif result == :incomplete_input
+        exc.__send__ :incomplete_input=, true
       end
 
       exc

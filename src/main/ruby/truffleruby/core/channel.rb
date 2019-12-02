@@ -50,9 +50,7 @@ module Truffle
     end
 
     def receive_timeout(duration)
-      TrufflePrimitive.privately do
-        @queue.receive_timeout(duration)
-      end
+      @queue.__send__ :receive_timeout, duration
     end
 
     def try_receive

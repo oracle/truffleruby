@@ -233,7 +233,7 @@ class Struct
   end
 
   def initialize_copy(other)
-    TrufflePrimitive.privately { other._attrs }.each do |a|
+    other.__send__(:_attrs).each do |a|
       TrufflePrimitive.object_hidden_var_set self, a, TrufflePrimitive.object_hidden_var_get(other, a)
     end
     self

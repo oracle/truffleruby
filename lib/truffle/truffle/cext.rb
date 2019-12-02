@@ -1257,9 +1257,7 @@ module Truffle::CExt
   end
 
   def rb_obj_call_init(obj, args)
-    TrufflePrimitive.privately do
-      obj.initialize(*args)
-    end
+    obj.__send__ :initialize, *args
   end
 
   def rb_obj_instance_eval(obj, args, block)
@@ -1363,15 +1361,11 @@ module Truffle::CExt
   end
 
   def rb_complex_set_real(complex, real)
-    TrufflePrimitive.privately do
-      complex.real = real
-    end
+    complex.__send__ :real=, real
   end
 
   def rb_complex_set_imag(complex, imag)
-    TrufflePrimitive.privately do
-      complex.imag = imag
-    end
+    complex.__send__ :imag=, imag
   end
 
   def rb_mutex_new

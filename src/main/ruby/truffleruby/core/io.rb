@@ -433,10 +433,8 @@ class IO
     end
 
     def run
-      TrufflePrimitive.privately do
-        @from.ensure_open_and_readable if @from.kind_of? IO
-        @to.ensure_open_and_writable if @to.kind_of? IO
-      end
+      @from.__send__ :ensure_open_and_readable if @from.kind_of? IO
+      @to.__send__ :ensure_open_and_writable if @to.kind_of? IO
 
       if @offset
         if @from_io && !@from.instance_variable_get(:@pipe)
@@ -537,7 +535,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = TrufflePrimitive.privately { io.create_each_reader(separator, limit) }
+    each_reader = io.__send__ :create_each_reader, separator, limit
 
     begin
       each_reader&.each(&block)
@@ -2090,11 +2088,8 @@ class IO
       end
 
       if @descriptor != io.fileno
-        TrufflePrimitive.privately do
-          io.ensure_open
-        end
-
-        io.__send__(:reset_buffering)
+        io.__send__ :ensure_open
+        io.__send__ :reset_buffering
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 

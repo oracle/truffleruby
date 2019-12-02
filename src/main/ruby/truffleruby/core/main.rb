@@ -37,9 +37,7 @@
 # Methods on `main`, the top-level `self`
 class << self
   def include(*mods)
-    TrufflePrimitive.privately do
-      Object.include(*mods)
-    end
+    Object.__send__ :include, *mods
   end
 
   def define_method(*args, &block)

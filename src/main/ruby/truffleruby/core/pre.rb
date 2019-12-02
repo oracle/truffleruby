@@ -39,10 +39,8 @@ class Module
   # Basic version of #include used in core
   # Redefined in core/module.rb
   def include(mod)
-    TrufflePrimitive.privately do
-      mod.append_features self
-      mod.included self
-    end
+    mod.__send__ :append_features, self
+    mod.__send__ :included, self
     self
   end
 end

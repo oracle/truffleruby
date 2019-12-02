@@ -315,9 +315,7 @@ class Numeric
   end
 
   def quo(other)
-    TrufflePrimitive.privately do
-      Rational.convert(self, 1) / other
-    end
+    Rational.__send__(:convert, self, 1) / other
   end
 
   def modulo(other)

@@ -49,9 +49,7 @@ module Kernel
   module_function :Array
 
   def Complex(*args)
-    TrufflePrimitive.privately do
-      Complex.convert(*args)
-    end
+    Complex.__send__ :convert, *args
   end
   module_function :Complex
 
@@ -133,9 +131,7 @@ module Kernel
   module_function :Integer
 
   def Rational(a, b = 1)
-    TrufflePrimitive.privately do
-      Rational.convert a, b
-    end
+    Rational.__send__ :convert, a, b
   end
   module_function :Rational
 
@@ -270,13 +266,8 @@ module Kernel
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      TrufflePrimitive.privately do
-        mod.extend_object self
-      end
-
-      TrufflePrimitive.privately do
-        mod.extended self
-      end
+      mod.__send__ :extend_object, self
+      mod.__send__ :extended, self
     end
     self
   end
@@ -499,7 +490,7 @@ module Kernel
 
   def to_enum(method=:each, *args, &block)
     Enumerator.new(self, method, *args).tap do |enum|
-      TrufflePrimitive.privately { enum.size = block } if block_given?
+      enum.__send__ :size=, block if block_given?
     end
   end
   alias_method :enum_for, :to_enum

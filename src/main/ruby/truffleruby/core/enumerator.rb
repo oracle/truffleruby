@@ -87,16 +87,10 @@ class Enumerator
       new_args = @args.empty? ? args : (@args + args)
     end
 
-    TrufflePrimitive.privately do
-      enumerator.args = new_args
-    end
+    enumerator.__send__ :args=, new_args
 
     if block_given?
-      TrufflePrimitive.privately do
-        enumerator.each_with_block do |*yield_args|
-          yield(*yield_args)
-        end
-      end
+      enumerator.__send__(:each_with_block) { |*yield_args| yield(*yield_args) }
     else
       enumerator
     end
@@ -160,9 +154,7 @@ class Enumerator
     end
 
     exception = StopIteration.new 'iteration reached end'
-    TrufflePrimitive.privately do
-      exception.result = @generator.result
-    end
+    exception.__send__ :result=, @generator.result
 
     raise exception
   end
@@ -282,9 +274,7 @@ class Enumerator
       size = block_given? ? block : nil
       ret = Lazy.allocate
 
-      TrufflePrimitive.privately do
-        ret.initialize_enumerator self, size, method_name, *method_args
-      end
+      ret.__send__ :initialize_enumerator, self, size, method_name, *method_args
 
       ret
     end

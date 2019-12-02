@@ -725,9 +725,7 @@ class Array
       if block
         # offensive (both definitions) copy.
         offensive = dup
-        TrufflePrimitive.privately do
-          offensive.__permute__(num, perm, 0, used, &block)
-        end
+        offensive.__send__ :__permute__, num, perm, 0, used, &block
       else
         __permute__(num, perm, 0, used, &block)
       end
@@ -844,9 +842,7 @@ class Array
     if combination_size < 0
       # yield nothing
     else
-      TrufflePrimitive.privately do
-        dup.compile_repeated_combinations(combination_size, [], 0, combination_size, &block)
-      end
+      dup.__send__ :compile_repeated_combinations, combination_size, [], 0, combination_size, &block
     end
 
     self
@@ -878,9 +874,7 @@ class Array
     elsif combination_size == 0
       yield []
     else
-      TrufflePrimitive.privately do
-        dup.compile_repeated_permutations(combination_size, [], 0, &block)
-      end
+      dup.__send__ :compile_repeated_permutations, combination_size, [], 0, &block
     end
 
     self
@@ -1105,7 +1099,7 @@ class Array
     result = Array.new(self)
 
     count.times do |c|
-      Truffle.privately { result.swap c, rng.rand(size) }
+      result.__send__ :swap, c, rng.rand(size)
     end
 
     count == size ? result : result[0, count]
@@ -1345,13 +1339,10 @@ class Array
   private def sort_fallback(&block)
     # Use this instead of #dup as we want an instance of Array
     sorted = Array.new(self)
-
-    TrufflePrimitive.privately do
-      if block
-        sorted.mergesort_block!(block)
-      else
-        sorted.mergesort!
-      end
+    if block
+      sorted.__send__ :mergesort_block!, block
+    else
+      sorted.__send__ :mergesort!
     end
     sorted
   end

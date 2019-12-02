@@ -179,15 +179,13 @@ module Marshal
 
     def serialize_encoding(obj)
       enc = TrufflePrimitive.encoding_get_object_encoding obj
-      TrufflePrimitive.privately do
-        case enc
-        when Encoding::US_ASCII
-          :E.__marshal__(self) + false.__marshal__(self)
-        when Encoding::UTF_8
-          :E.__marshal__(self) + true.__marshal__(self)
-        else
-          :encoding.__marshal__(self) + serialize_string(enc.name)
-        end
+      case enc
+      when Encoding::US_ASCII
+        :E.__send__(:__marshal__, self) + false.__send__(:__marshal__, self)
+      when Encoding::UTF_8
+        :E.__send__(:__marshal__, self) + true.__send__(:__marshal__, self)
+      else
+        :encoding.__send__(:__marshal__, self) + serialize_string(enc.name)
       end
     end
 
@@ -902,9 +900,7 @@ module Marshal
         @has_ivar[ivar_index] = false
       end
 
-      obj = TrufflePrimitive.privately do
-        klass._load data
-      end
+      obj = klass.__send__ :_load, data
 
       add_object obj
 
@@ -925,22 +921,15 @@ module Marshal
       end
 
       store_unique_object obj
-
-      data = construct
-      TrufflePrimitive.privately do
-        obj.marshal_load data
-      end
-
+      obj.__send__ :marshal_load, construct
       obj
     end
 
     def extend_object(obj)
       until @modules.empty?
         mod = @modules.pop
-        TrufflePrimitive.privately do
-          mod.extend_object obj
-          mod.extended obj
-        end
+        mod.__send__ :extend_object, obj
+        mod.__send__ :extended, obj
       end
     end
 
@@ -999,9 +988,7 @@ module Marshal
         elsif Truffle::Type.object_respond_to__dump? obj
           str = serialize_user_defined obj
         else
-          TrufflePrimitive.privately do
-            str = obj.__marshal__ self
-          end
+          str = obj.__send__ :__marshal__, self
         end
       end
 
@@ -1138,9 +1125,7 @@ module Marshal
         return obj.__custom_marshal__(self)
       end
 
-      str = TrufflePrimitive.privately do
-        obj._dump @depth
-      end
+      str = obj.__send__ :_dump, @depth
 
       unless Truffle::Type.object_kind_of? str, String
         raise TypeError, '_dump() must return string'
@@ -1155,18 +1140,14 @@ module Marshal
     end
 
     def serialize_user_marshal(obj)
-      val = TrufflePrimitive.privately do
-        obj.marshal_dump
-      end
+      val = obj.__send__ :marshal_dump
 
       add_non_immediate_object val
 
       cls = Truffle::Type.object_class obj
       name = Truffle::Type.module_name cls
       name = serialize(name.to_sym)
-      marshaled = TrufflePrimitive.privately do
-        val.__marshal__(self)
-      end
+      marshaled = val.__send__ :__marshal__, self
       Truffle::Type.binary_string("U#{name}#{marshaled}")
     end
 
