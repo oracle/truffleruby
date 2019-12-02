@@ -55,7 +55,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
@@ -84,13 +84,12 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_catch", needsSelf = false)
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode dispatchNode = YieldNode.create();
-
         @Specialization
         protected Object doCatch(Object tag, DynamicObject block,
                 @Cached BranchProfile catchProfile,
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
-                @Cached ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode,
+                @Cached YieldNode dispatchNode) {
             try {
                 return dispatchNode.executeDispatch(block, tag);
             } catch (ThrowException e) {
@@ -149,16 +148,10 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_method_lookup", needsSelf = false)
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode;
-        @Child private LookupMethodNode lookupMethodNode;
-
-        public VMMethodLookupNode() {
-            nameToJavaStringNode = NameToJavaStringNode.create();
-            lookupMethodNode = LookupMethodNode.create();
-        }
-
         @Specialization
-        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name) {
+        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
+                                               @Cached NameToJavaStringNode nameToJavaStringNode,
+                                               @Cached LookupMethodNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
@@ -405,12 +398,11 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_get_config_section", needsSelf = false)
     public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private YieldNode yieldNode = YieldNode.create();
-
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        protected DynamicObject getSection(DynamicObject section, DynamicObject block) {
+        protected DynamicObject getSection(DynamicObject section, DynamicObject block,
+                                           @Cached MakeStringNode makeStringNode,
+                                           @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(StringOperations.getString(section))) {
@@ -444,7 +436,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count >= 0")
         protected DynamicObject readRandomBytes(int count,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
