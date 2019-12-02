@@ -13,8 +13,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
@@ -24,7 +22,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -39,7 +36,6 @@ import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfD
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -52,7 +48,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -62,7 +57,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BasicObject", isClass = true)
@@ -526,44 +520,5 @@ public abstract class BasicObjectNodes {
         }
 
     }
-
-    @Primitive(name = "check_frozen")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class CheckFrozenNode extends PrimitiveNode {
-
-        public static CheckFrozenNode create() {
-            return create(null);
-        }
-
-        public static CheckFrozenNode create(RubyNode node) {
-            return BasicObjectNodesFactory.CheckFrozenNodeFactory.create(node);
-        }
-
-        public abstract void execute(Object object);
-
-        @Specialization
-        protected Object check(Object value,
-                @Cached IsFrozenNode isFrozenNode,
-                @Cached BranchProfile errorProfile) {
-
-            if (isFrozenNode.execute(value)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
-            }
-
-            return value;
-        }
-    }
-
-    @Primitive(name = "undefined?")
-    @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class IsUndefinedNode extends PrimitiveNode {
-
-        @Specialization
-        protected boolean isUndefined(Object value) {
-            return value == NotProvided.INSTANCE;
-        }
-    }
-
 
 }

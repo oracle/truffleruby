@@ -11,8 +11,8 @@ package org.truffleruby.builtins;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.Translator;
@@ -47,7 +47,7 @@ public class PrimitiveNodeConstructor {
                 arguments[n] = FixnumLowerNodeGen.create(arguments[n]);
             }
             if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
-                arguments[n] = BasicObjectNodes.CheckFrozenNode.create(arguments[n]);
+                arguments[n] = TypeNodes.CheckFrozenNode.create(arguments[n]);
             }
         }
 

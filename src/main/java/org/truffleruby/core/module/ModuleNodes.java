@@ -30,7 +30,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
@@ -53,6 +52,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -1809,7 +1809,7 @@ public abstract class ModuleNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode = BasicObjectNodes.CheckFrozenNode.create();
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
@@ -1883,7 +1883,7 @@ public abstract class ModuleNodes {
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode = BasicObjectNodes.CheckFrozenNode
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode
                 .create(ProfileArgumentNodeGen.create(new ReadSelfNode()));
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 

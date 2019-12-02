@@ -27,7 +27,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
@@ -48,6 +47,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -433,7 +433,7 @@ public abstract class ArrayNodes {
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-        @Child private BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode;
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
 
         @Specialization(
                 guards = { "strategy.isStorageMutable()", "strategy.matches(array)" },
@@ -524,7 +524,7 @@ public abstract class ArrayNodes {
         public void checkFrozen(Object object) {
             if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(BasicObjectNodes.CheckFrozenNode.create());
+                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
             }
             raiseIfFrozenNode.execute(object);
         }

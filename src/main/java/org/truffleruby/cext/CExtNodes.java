@@ -37,7 +37,6 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -56,6 +55,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -641,7 +641,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean rb_check_frozen(Object object,
-                @Cached BasicObjectNodes.CheckFrozenNode raiseIfFrozenNode) {
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             raiseIfFrozenNode.execute(object);
             return true;
         }

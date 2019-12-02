@@ -34,7 +34,6 @@ import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -61,6 +60,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -308,7 +308,7 @@ public class BodyTranslator extends Translator {
         final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
 
         final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
-                BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
+                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 newNameNode,
                 oldNameNode);
 
@@ -1255,7 +1255,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode moduleNode = BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode());
+        final RubyNode moduleNode = TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode());
         final RubyNode ret = translateMethodDefinition(
                 sourceSection,
                 moduleNode,
@@ -1744,7 +1744,7 @@ public class BodyTranslator extends Translator {
         }
 
         RubyNode self = new SelfNode(environment.getFrameDescriptor());
-        self = BasicObjectNodes.CheckFrozenNode.create(self);
+        self = TypeNodes.CheckFrozenNode.create(self);
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3114,7 +3114,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
-                BasicObjectNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
+                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 translateNameNodeToSymbol(node.getName())
         });
 
