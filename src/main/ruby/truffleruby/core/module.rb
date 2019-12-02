@@ -106,24 +106,20 @@ class Module
       return value
     end
 
-    if name.kind_of?(String)
-      names = name.split('::')
-      unless names.empty?
-        names.shift if '' == names.first
-      end
-      raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
-      res = self
-      names.each do |s|
-        if res.kind_of?(Module)
-          res = res.const_get(s, inherit)
-        else
-          raise TypeError, "#{name} does not refer to a class/module"
-        end
-      end
-      res
-    else
-      raise PrimitiveFailure
+    names = name.split('::') # name is always String
+    unless names.empty?
+      names.shift if '' == names.first
     end
+    raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
+    res = self
+    names.each do |s|
+      if res.kind_of?(Module)
+        res = res.const_get(s, inherit)
+      else
+        raise TypeError, "#{name} does not refer to a class/module"
+      end
+    end
+    res
   end
 
   def self.constants(inherited = undefined)

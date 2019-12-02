@@ -150,9 +150,6 @@ class Exception
   end
 end
 
-class PrimitiveFailure < Exception
-end
-
 class ScriptError < Exception
 end
 

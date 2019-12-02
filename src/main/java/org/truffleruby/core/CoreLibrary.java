@@ -1495,7 +1495,6 @@ public class CoreLibrary {
             "/core/gc.rb",
             "/core/nil.rb",
             "/core/truffle/platform.rb",
-            "/core/support.rb",
             "/core/string.rb",
             "/core/random.rb",
             "/core/truffle/kernel_operations.rb",
