@@ -87,7 +87,7 @@ public abstract class VMPrimitiveNodes {
         @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
-        protected Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
+        protected Object doCatch(Object tag, DynamicObject block,
                 @Cached BranchProfile catchProfile,
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode) {
@@ -507,7 +507,6 @@ public abstract class VMPrimitiveNodes {
             return Hashing.update(hash, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
-
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
@@ -535,5 +534,7 @@ public abstract class VMPrimitiveNodes {
         protected long endHash(long hash) {
             return Hashing.end(hash);
         }
+
     }
+
 }
