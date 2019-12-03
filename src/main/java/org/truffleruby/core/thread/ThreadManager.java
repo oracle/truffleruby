@@ -33,8 +33,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
@@ -286,7 +286,7 @@ public class ThreadManager {
             setThreadValue(context, thread, nil());
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
-        } catch (ReturnException e) {
+        } catch (DynamicReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } finally {
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
