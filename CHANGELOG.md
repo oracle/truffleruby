@@ -2,6 +2,7 @@
 
 New features:
 
+* Enable and document `--coverage` option (#1840, @chrisseaton).
 
 Bug fixes:
 
