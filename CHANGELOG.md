@@ -33,6 +33,7 @@ Bug fixes:
 * Arrays backed by native storage now allocate the correct amount of memory (#1828).
 * Fixed issue in `ConditionVariable#wait` that could lose a `ConditionVariable#signal`.
 * Do not leak TruffleRuby specific method Array#swap (#1816)
+* Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
 
 Compatibility:
 
