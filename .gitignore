@@ -17,6 +17,7 @@ nbproject
 .settings
 .factorypath
 .metadata
+workingsets.xml
 
 # C extensions
 *.o
@@ -26,6 +27,8 @@ nbproject
 conftest
 conftest.c
 Info.plist
+*.log
+*.tmp
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile
 
