@@ -1589,4 +1589,15 @@ public class CExtNodes {
             return new ValueWrapperManager.WrapperFunction();
         }
     }
+
+    @CoreMethod(names = "rb_check_symbol_cstr", onSingleton = true, required = 1)
+    public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject checkSymbolCStr(DynamicObject str) {
+            final DynamicObject sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
+            return sym == null ? nil() : sym;
+        }
+
+    }
 }

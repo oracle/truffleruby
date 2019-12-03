@@ -43,6 +43,7 @@ Compatibility:
 * Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
 * Implemented `MatchData#dup` (#1792, @XrXr).
 * Implemented a native storage strategy for arrays to allow better C extension compatibility.
+* Implemented `rb_check_symbol_cstr` (#1814).
 
 Performance:
 
