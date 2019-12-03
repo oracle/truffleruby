@@ -150,8 +150,8 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization
         protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
-                                               @Cached NameToJavaStringNode nameToJavaStringNode,
-                                               @Cached LookupMethodNode lookupMethodNode) {
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached LookupMethodNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
@@ -401,8 +401,8 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
         protected DynamicObject getSection(DynamicObject section, DynamicObject block,
-                                           @Cached MakeStringNode makeStringNode,
-                                           @Cached YieldNode yieldNode) {
+                @Cached MakeStringNode makeStringNode,
+                @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(StringOperations.getString(section))) {
