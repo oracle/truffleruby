@@ -52,7 +52,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
-        frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_7BIT.toInt());
+        frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_UNKNOWN.toInt());
         frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, false);
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 

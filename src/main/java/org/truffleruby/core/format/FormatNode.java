@@ -12,11 +12,9 @@ package org.truffleruby.core.format;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -162,7 +160,6 @@ public abstract class FormatNode extends RubyBaseNode {
         final int outputPosition = getOutputPosition(frame);
         output[outputPosition] = value;
         setOutputPosition(frame, outputPosition + 1);
-        setStringCodeRange(frame, value >= 0 ? CodeRange.CR_7BIT : CodeRange.CR_VALID);
         increaseStringLength(frame, 1);
     }
 
@@ -175,9 +172,6 @@ public abstract class FormatNode extends RubyBaseNode {
         final int outputPosition = getOutputPosition(frame);
         System.arraycopy(values, 0, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
-        setStringCodeRange(
-                frame,
-                RopeOperations.isAsciiOnly(values, USASCIIEncoding.INSTANCE) ? CodeRange.CR_7BIT : CodeRange.CR_VALID);
         increaseStringLength(frame, valuesLength);
     }
 
