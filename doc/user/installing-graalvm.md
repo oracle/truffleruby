@@ -67,6 +67,13 @@ and you should have about 10 GB of RAM available.
 $ gu rebuild-images polyglot libpolyglot
 ```
 
+To be able to do so, you may need to install the `native-image` component if you
+haven't done so already:
+
+```bash
+gu install native-image
+```
+
 ## Using a Ruby package manager
 
 Inside the GraalVM is a `jre/languages/ruby` or `languages/ruby` directory which
