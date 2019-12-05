@@ -12,10 +12,10 @@ for TruffleRuby to run correctly.
 GraalVM is available in a Community Edition, which is open-source, and an
 Enterprise Edition which has better performance and scalability.
 
-The Community Edition is available only for Linux, but is free for production
-use. The Enterprise Edition is available for both macOS and Linux, and is free
+The Community Edition is free for production use. The Enterprise Edition is free
 for evaluation but not production use. Commercial support is available for the
-Enterprise Edition.
+Enterprise Edition. Both editions are available for Linux, macOS and Windows on
+x86 64-bit systems (note that TruffleRuby does not support Windows yet).
 
 To get the best performance you want to use the Enterprise Edition.
 
