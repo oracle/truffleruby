@@ -34,12 +34,6 @@ import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 
 public abstract class CachedDispatchNode extends DispatchNode {
 
-    protected enum SendsFrame {
-        NO_FRAME,
-        MY_FRAME,
-        CALLER_FRAME;
-    }
-
     private final Object cachedName;
     private final DynamicObject cachedNameAsSymbol;
 
@@ -47,11 +41,6 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child private RopeNodes.BytesEqualNode ropeEqualsNode;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
-
-    @CompilationFinal private SendsFrame sendsFrame = SendsFrame.NO_FRAME;
-    @CompilationFinal private Assumption needsCallerAssumption;
-
-    @Child private ReadCallerFrameNode readCaller;
 
     public CachedDispatchNode(
             RubyContext context,
@@ -76,45 +65,6 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
 
         this.next = next;
-    }
-
-    private boolean sendingFrames() {
-        return sendsFrame != SendsFrame.NO_FRAME;
-    }
-
-    public void startSendingOwnFrame() {
-        if (getContext().getCallStack().callerIsSend()) {
-            startSendingFrame(SendsFrame.CALLER_FRAME);
-        } else {
-            startSendingFrame(SendsFrame.MY_FRAME);
-        }
-    }
-
-    private synchronized void startSendingFrame(SendsFrame frameToSend) {
-        if (sendingFrames()) {
-            assert sendsFrame == frameToSend;
-            return;
-        }
-        assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
-        this.sendsFrame = frameToSend;
-        if (frameToSend == SendsFrame.CALLER_FRAME) {
-            this.readCaller = insert(new ReadCallerFrameNode());
-        }
-        Node root = getRootNode();
-        if (root instanceof RubyRootNode) {
-            ((RubyRootNode) root).invalidateNeedsCallerAssumption();
-        } else {
-            throw new Error();
-        }
-    }
-
-    private synchronized void resetNeedsCallerAssumption() {
-        Node root = getRootNode();
-        if (root instanceof RubyRootNode && !sendingFrames()) {
-            needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
-        } else {
-            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
-        }
     }
 
     @Override
@@ -191,16 +141,5 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         final MaterializedFrame callerFrame = getFrameIfRequired(frame);
         return callNode.call(RubyArguments.pack(null, callerFrame, method, null, receiver, block, arguments));
-    }
-
-    private MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
-        switch (sendsFrame) {
-            case MY_FRAME:
-                return frame.materialize();
-            case CALLER_FRAME:
-                return readCaller.execute(frame);
-            default:
-                return null;
-        }
     }
 }

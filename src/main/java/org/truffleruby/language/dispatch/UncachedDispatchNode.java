@@ -9,8 +9,18 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
+
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 
 public class UncachedDispatchNode extends DispatchNode {
 
@@ -44,10 +54,24 @@ public class UncachedDispatchNode extends DispatchNode {
             DynamicObject block,
             Object[] arguments) {
 
+        if (needsCallerAssumption == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            resetNeedsCallerAssumption();
+        }
+        try {
+            needsCallerAssumption.check();
+        } catch (InvalidAssumptionException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            resetNeedsCallerAssumption();
+        }
+
+        final MaterializedFrame callerFrame = getFrameIfRequired(frame);
+
         return dslUncachedDispatchNode.dispatch(
                 frame,
                 receiver,
                 name,
+                callerFrame,
                 block,
                 arguments,
                 getDispatchAction(),

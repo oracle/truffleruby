@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class DispatchNode extends RubyBaseNode {
+public abstract class DispatchNode extends FrameSendingNode {
 
     private final DispatchAction dispatchAction;
 

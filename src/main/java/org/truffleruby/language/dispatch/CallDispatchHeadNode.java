@@ -65,6 +65,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
                     null,
                     receiver,
                     methodName,
+                    null,
                     block,
                     arguments,
                     DispatchAction.CALL_METHOD,

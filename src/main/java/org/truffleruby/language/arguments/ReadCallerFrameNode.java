@@ -9,16 +9,22 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
+import org.truffleruby.language.dispatch.UncachedDispatchNode;
+import org.truffleruby.language.supercall.CallSuperMethodNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -31,7 +37,7 @@ public class ReadCallerFrameNode extends RubyBaseNode {
         return new ReadCallerFrameNode();
     }
 
-    public MaterializedFrame execute(VirtualFrame frame) {
+    public MaterializedFrame execute(Frame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -59,11 +65,18 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     private boolean notifyCallerToSendFrame() {
         final Node callerNode = getContext().getCallStack().getCallerNode(1, false);
-        if (callerNode instanceof DirectCallNode) {
-            final Node parent = callerNode.getParent();
-            if (parent instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) parent).startSendingOwnFrame();
-                return true;
+        if (callerNode instanceof DirectCallNode || callerNode instanceof IndirectCallNode) {
+            Node parent = callerNode.getParent();
+            while (parent != null) {
+                if (parent instanceof FrameSendingNode) {
+                    ((FrameSendingNode) parent).startSendingOwnFrame();
+                    return true;
+                }
+                if (parent instanceof RubyBaseNode) {
+                    new Error().printStackTrace();
+                    return false;
+                }
+                parent = parent.getParent();
             }
         }
 

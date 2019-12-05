@@ -25,6 +25,7 @@ import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -73,11 +74,9 @@ public abstract class ProcNodes {
 
         @Specialization
         protected DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
-            final MaterializedFrame parentFrame = getContext()
-                    .getCallStack()
-                    .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
-                    .materialize();
+                                     @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
+                                     @Cached ReadCallerFrameNode readCaller) {
+            final MaterializedFrame parentFrame = readCaller.execute(frame);
 
             DynamicObject parentBlock = (DynamicObject) readNode
                     .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);

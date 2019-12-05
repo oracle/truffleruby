@@ -70,6 +70,7 @@ Performance:
 * Change to using thread local buffers for socket calls to reduce allocations.
 * Refactor `IO.select` to reduce copying and optimisation boundaries.
 * Refactor various `String` and `Rope` nodes to avoid Truffle performance warnings.
+* Reading caller frames should now work in more cases without deoptimisation.
 
 # 19.3.0
 
