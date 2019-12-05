@@ -55,7 +55,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
@@ -84,13 +84,12 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_catch", needsSelf = false)
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode dispatchNode = YieldNode.create();
-
         @Specialization
-        protected Object doCatch(VirtualFrame frame, Object tag, DynamicObject block,
+        protected Object doCatch(Object tag, DynamicObject block,
                 @Cached BranchProfile catchProfile,
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
-                @Cached ReferenceEqualNode referenceEqualNode) {
+                @Cached ReferenceEqualNode referenceEqualNode,
+                @Cached YieldNode dispatchNode) {
             try {
                 return dispatchNode.executeDispatch(block, tag);
             } catch (ThrowException e) {
@@ -106,7 +105,7 @@ public abstract class VMPrimitiveNodes {
 
     // The hard #exit!
     @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1)
-    public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMExitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmExit(int status) {
@@ -149,16 +148,10 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_method_lookup", needsSelf = false)
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode;
-        @Child private LookupMethodNode lookupMethodNode;
-
-        public VMMethodLookupNode() {
-            nameToJavaStringNode = NameToJavaStringNode.create();
-            lookupMethodNode = LookupMethodNode.create();
-        }
-
         @Specialization
-        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name) {
+        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached LookupMethodNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
@@ -171,7 +164,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_object_respond_to", needsSelf = false)
-    public static abstract class VMObjectRespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
                 .create(null, null, null);
@@ -185,7 +178,7 @@ public abstract class VMPrimitiveNodes {
 
 
     @Primitive(name = "vm_object_singleton_class", needsSelf = false)
-    public static abstract class VMObjectSingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
                 .create(null);
@@ -228,7 +221,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_set_module_name", needsSelf = false)
-    public static abstract class VMSetModuleNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMSetModuleNameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmSetModuleName(Object object) {
@@ -248,7 +241,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_watch_signal", needsSelf = false)
-    public static abstract class VMWatchSignalPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
@@ -386,7 +379,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_get_config_item", needsSelf = false)
-    public abstract static class VMGetConfigItemPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMGetConfigItemNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
@@ -403,14 +396,13 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_get_config_section", needsSelf = false)
-    public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private YieldNode yieldNode = YieldNode.create();
+    public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        protected DynamicObject getSection(DynamicObject section, DynamicObject block) {
+        protected DynamicObject getSection(DynamicObject section, DynamicObject block,
+                @Cached MakeStringNode makeStringNode,
+                @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(StringOperations.getString(section))) {
@@ -425,7 +417,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_set_class", needsSelf = false)
-    public abstract static class VMSetClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyClass(newClass)")
         protected DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
@@ -444,7 +436,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "count >= 0")
         protected DynamicObject readRandomBytes(int count,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -462,7 +454,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_start", needsSelf = false)
-    public abstract static class VMHashStart extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashStartNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long startHash(long salt) {
@@ -495,7 +487,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_update", needsSelf = false)
-    public abstract static class VMHashUpdate extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashUpdateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long updateHash(long hash, long value) {
@@ -506,7 +498,6 @@ public abstract class VMPrimitiveNodes {
         protected long updateHash(long hash, DynamicObject value) {
             return Hashing.update(hash, Layouts.BIGNUM.getValue(value).hashCode());
         }
-
 
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
@@ -529,11 +520,13 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_hash_end", needsSelf = false)
-    public abstract static class VMHashEnd extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMHashEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long endHash(long hash) {
             return Hashing.end(hash);
         }
+
     }
+
 }

@@ -4350,7 +4350,7 @@ VALUE rb_str_cat_cstr(VALUE str, const char *ptr) {
 }
 
 st_index_t rb_hash_start(st_index_t h) {
-  rb_tr_error("rb_hash_start not implemented");
+  return (st_index_t) polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_hash_start", h));
 }
 
 int rb_str_hash_cmp(VALUE str1, VALUE str2) {
