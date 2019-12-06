@@ -80,7 +80,7 @@ GEM
     nokogiri (1.10.5)
       mini_portile2 (~> 2.4.0)
     pg (1.1.4)
-    puma (3.12.1)
+    puma (3.12.2)
     rack (2.0.7)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -154,7 +154,7 @@ DEPENDENCIES
   jbuilder (~> 2.5)
   mysql2 (>= 0.4.4, < 0.6.0)
   pg (>= 0.18, < 2.0)
-  puma (~> 3.11)
+  puma (~> 3.12)
   rails (~> 5.2.1)
   sass-rails (~> 5.0)
   sqlite3
