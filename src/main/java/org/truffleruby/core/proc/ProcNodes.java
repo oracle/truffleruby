@@ -11,11 +11,12 @@ package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.rope.CodeRange;
@@ -24,6 +25,7 @@ import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
@@ -41,6 +43,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Proc", isClass = true)
@@ -312,5 +315,38 @@ public abstract class ProcNodes {
         }
 
     }
+
+    @Primitive(name = "single_block_arg")
+    public static abstract class SingleBlockArgNode extends PrimitiveNode {
+
+        @Specialization
+        protected Object singleBlockArg(
+                VirtualFrame frame,
+                @Cached("createBinaryProfile()") ConditionProfile emptyArgsProfile,
+                @Cached("createBinaryProfile()") ConditionProfile singleArgProfile) {
+
+            /*
+             * In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
+             * captures the values, and returns the first value in the list of values yielded to the block.
+             *
+             * NB: In our case the arguments have already been destructured by the time this node is encountered.
+             * Thus, we don't need to do the destructuring work that Rubinius would do and in the case that we receive
+             * multiple arguments we need to reverse the destructuring by collecting the values into an array.
+             */
+            int userArgumentCount = RubyArguments.getArgumentsCount(frame);
+
+            if (emptyArgsProfile.profile(userArgumentCount == 0)) {
+                return nil();
+            } else {
+                if (singleArgProfile.profile(userArgumentCount == 1)) {
+                    return RubyArguments.getArgument(frame, 0);
+                } else {
+                    Object[] extractedArguments = RubyArguments.getArguments(frame);
+                    return createArray(extractedArguments, userArgumentCount);
+                }
+            }
+        }
+    }
+
 
 }

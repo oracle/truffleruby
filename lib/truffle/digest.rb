@@ -83,13 +83,11 @@ module Digest
 
     def digest(message = NO_MESSAGE)
       if NO_MESSAGE == message
-        Truffle.privately do
-          clone.finish
-        end
+        clone.__send__ :finish
       else
         reset
         update message
-        digested = Truffle.privately { finish }
+        digested = finish
         reset
         digested
       end

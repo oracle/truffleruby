@@ -33,7 +33,6 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
@@ -56,6 +55,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -641,7 +641,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean rb_check_frozen(Object object,
-                @Cached RaiseIfFrozenNode raiseIfFrozenNode) {
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             raiseIfFrozenNode.execute(object);
             return true;
         }
@@ -1373,7 +1373,7 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "cext_wrap", needsSelf = false)
+    @Primitive(name = "cext_wrap")
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -1384,7 +1384,7 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "cext_unwrap", needsSelf = false)
+    @Primitive(name = "cext_unwrap")
     public abstract static class UnwrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

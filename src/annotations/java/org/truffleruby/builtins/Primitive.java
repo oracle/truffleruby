@@ -20,19 +20,17 @@ public @interface Primitive {
 
     String name();
 
-    // TODO (eregon, 28 Sept 2019): is this still needed?
-    boolean needsSelf() default true;
-
     /**
-     * Try to lower argument <code>i</code> (starting at 1) to an int if its value is a long.
-     * Use 0 for <code>self</code>.
+     * Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long.
+     * The argument at 0 is usually the <code>receiver</code>.
      */
     int[] lowerFixnum() default {};
 
     /**
-     * Raise an error if self is frozen.
+     * Raise an error if any of the arguments with a given index is frozen.
+     * Indexation is same as for {@link #lowerFixnum()}.
      */
-    boolean raiseIfFrozenSelf() default false;
+    int[] raiseIfFrozen() default {};
 
     /**
      * Use these names in Ruby core methods stubs, ignore argument names in Java specializations.

@@ -616,7 +616,7 @@ module Truffle::CExt
   end
 
   def rb_copy_generic_ivar(clone, original)
-    Truffle.check_frozen(clone)
+    TrufflePrimitive.check_frozen clone
     original_ivars = original.instance_variables
     rb_free_generic_ivar(clone)
     original_ivars.each do |var|
@@ -625,7 +625,7 @@ module Truffle::CExt
   end
 
   def rb_free_generic_ivar(original)
-    Truffle.check_frozen(original)
+    TrufflePrimitive.check_frozen original
     original_ivars = original.instance_variables
     original_ivars.each do |var|
       original.__send__ :remove_instance_variable, var
@@ -1257,9 +1257,7 @@ module Truffle::CExt
   end
 
   def rb_obj_call_init(obj, args)
-    Truffle.privately do
-      obj.initialize(*args)
-    end
+    obj.__send__ :initialize, *args
   end
 
   def rb_obj_instance_eval(obj, args, block)
@@ -1363,15 +1361,11 @@ module Truffle::CExt
   end
 
   def rb_complex_set_real(complex, real)
-    Truffle.privately do
-      complex.real = real
-    end
+    complex.__send__ :real=, real
   end
 
   def rb_complex_set_imag(complex, imag)
-    Truffle.privately do
-      complex.imag = imag
-    end
+    complex.__send__ :imag=, imag
   end
 
   def rb_mutex_new

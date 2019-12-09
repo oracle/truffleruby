@@ -30,7 +30,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -68,6 +67,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -551,7 +551,7 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_eval", needsSelf = false, lowerFixnum = 5)
+    @Primitive(name = "kernel_eval", lowerFixnum = 4)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
@@ -1929,7 +1929,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode;
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
         @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
 
@@ -1967,7 +1967,7 @@ public abstract class KernelNodes {
         protected void checkFrozen(Object object) {
             if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(RaiseIfFrozenNode.create());
+                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
             }
             raiseIfFrozenNode.execute(object);
         }

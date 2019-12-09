@@ -433,10 +433,8 @@ class IO
     end
 
     def run
-      Truffle.privately do
-        @from.ensure_open_and_readable if @from.kind_of? IO
-        @to.ensure_open_and_writable if @to.kind_of? IO
-      end
+      @from.__send__ :ensure_open_and_readable if @from.kind_of? IO
+      @to.__send__ :ensure_open_and_writable if @to.kind_of? IO
 
       if @offset
         if @from_io && !@from.instance_variable_get(:@pipe)
@@ -484,7 +482,7 @@ class IO
 
     name = Truffle::Type.coerce_to_path name
 
-    separator = $/ if undefined.equal?(separator)
+    separator = $/ if TrufflePrimitive.undefined?(separator)
     case separator
     when Integer
       options = limit
@@ -499,12 +497,12 @@ class IO
       separator = StringValue(separator)
     end
 
-    limit = nil if undefined.equal?(limit)
+    limit = nil if TrufflePrimitive.undefined?(limit)
     case limit
     when Integer, nil
       # do nothing
     when Hash
-      if undefined.equal? options
+      if TrufflePrimitive.undefined? options
         options = limit
         limit = nil
       else
@@ -519,7 +517,7 @@ class IO
       end
     end
 
-    options = {} if undefined.equal?(options)
+    options = {} if TrufflePrimitive.undefined?(options)
     case options
     when Hash
       # do nothing
@@ -537,7 +535,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = Truffle.privately { io.create_each_reader(separator, limit) }
+    each_reader = io.__send__ :create_each_reader, separator, limit
 
     begin
       each_reader&.each(&block)
@@ -602,7 +600,7 @@ class IO
     name = Truffle::Type.coerce_to_path name
     mode = 'r'
 
-    if undefined.equal? length_or_options
+    if TrufflePrimitive.undefined? length_or_options
       length = undefined
     elsif Truffle::Type.object_kind_of? length_or_options, Hash
       length = undefined
@@ -639,7 +637,7 @@ class IO
     begin
       io.seek(offset) unless offset == 0
 
-      if undefined.equal?(length)
+      if TrufflePrimitive.undefined?(length)
         str = io.read
       else
         str = io.read length
@@ -658,7 +656,7 @@ class IO
   def self.normalize_options(mode, options)
     autoclose = true
 
-    if undefined.equal?(options)
+    if TrufflePrimitive.undefined?(options)
       options = Truffle::Type.try_convert(mode, Hash, :to_hash)
       mode = nil if options
     elsif !options.nil?
@@ -2090,11 +2088,8 @@ class IO
       end
 
       if @descriptor != io.fileno
-        Truffle.privately do
-          io.ensure_open
-        end
-
-        io.__send__(:reset_buffering)
+        io.__send__ :ensure_open
+        io.__send__ :reset_buffering
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
@@ -2108,7 +2103,7 @@ class IO
       flush unless closed?
 
       # If a mode isn't passed in, use the mode that the IO is already in.
-      if undefined.equal? mode
+      if TrufflePrimitive.undefined? mode
         mode = @mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
@@ -2220,7 +2215,7 @@ class IO
       @external = Encoding.find external
     end
 
-    unless undefined.equal? options
+    unless TrufflePrimitive.undefined? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
         _options = Truffle::Type.coerce_to options, Hash, :to_hash
@@ -2364,7 +2359,7 @@ class IO
 
     raise EOFError if str.nil?
 
-    unless undefined.equal? buffer
+    unless TrufflePrimitive.undefined? buffer
       StringValue(buffer).replace str
     end
     str

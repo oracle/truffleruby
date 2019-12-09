@@ -15,18 +15,23 @@ import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
@@ -39,11 +44,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
@@ -296,4 +303,41 @@ public abstract class TypeNodes {
 
     }
 
+    @Primitive(name = "check_frozen")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class CheckFrozenNode extends PrimitiveNode {
+
+        public static CheckFrozenNode create() {
+            return create(null);
+        }
+
+        public static CheckFrozenNode create(RubyNode node) {
+            return TypeNodesFactory.CheckFrozenNodeFactory.create(node);
+        }
+
+        public abstract void execute(Object object);
+
+        @Specialization
+        protected Object check(Object value,
+                @Cached IsFrozenNode isFrozenNode,
+                @Cached BranchProfile errorProfile) {
+
+            if (isFrozenNode.execute(value)) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
+            }
+
+            return value;
+        }
+    }
+
+    @Primitive(name = "undefined?")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class IsUndefinedNode extends PrimitiveNode {
+
+        @Specialization
+        protected boolean isUndefined(Object value) {
+            return value == NotProvided.INSTANCE;
+        }
+    }
 }

@@ -115,7 +115,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "file_fnmatch", needsSelf = false, lowerFixnum = 3)
+    @Primitive(name = "file_fnmatch", lowerFixnum = 2)
     public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -410,7 +410,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_read_polyglot", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "io_read_polyglot", lowerFixnum = 0)
     public static abstract class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -443,7 +443,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_write_polyglot", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "io_write_polyglot", lowerFixnum = 0)
     public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -480,7 +480,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_get_thread_buffer", needsSelf = false)
+    @Primitive(name = "io_get_thread_buffer")
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

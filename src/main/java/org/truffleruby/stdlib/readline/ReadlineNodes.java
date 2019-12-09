@@ -286,7 +286,7 @@ public abstract class ReadlineNodes {
 
     }
 
-    @Primitive(name = "readline_set_input", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "readline_set_input", lowerFixnum = 0)
     public abstract static class SetInputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -303,7 +303,7 @@ public abstract class ReadlineNodes {
 
     }
 
-    @Primitive(name = "readline_set_output", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "readline_set_output", lowerFixnum = 0)
     public abstract static class SetOutputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

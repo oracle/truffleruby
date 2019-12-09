@@ -49,9 +49,7 @@ module Kernel
   module_function :Array
 
   def Complex(*args)
-    Truffle.privately do
-      Complex.convert(*args)
-    end
+    Complex.__send__ :convert, *args
   end
   module_function :Complex
 
@@ -133,9 +131,7 @@ module Kernel
   module_function :Integer
 
   def Rational(a, b = 1)
-    Truffle.privately do
-      Rational.convert a, b
-    end
+    Rational.__send__ :convert, a, b
   end
   module_function :Rational
 
@@ -270,13 +266,8 @@ module Kernel
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      Truffle.privately do
-        mod.extend_object self
-      end
-
-      Truffle.privately do
-        mod.extended self
-      end
+      mod.__send__ :extend_object, self
+      mod.__send__ :extended, self
     end
     self
   end
@@ -443,7 +434,7 @@ module Kernel
   module_function :select
 
   def srand(seed=undefined)
-    if undefined.equal? seed
+    if TrufflePrimitive.undefined? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -499,7 +490,7 @@ module Kernel
 
   def to_enum(method=:each, *args, &block)
     Enumerator.new(self, method, *args).tap do |enum|
-      Truffle.privately { enum.size = block } if block_given?
+      enum.__send__ :size=, block if block_given?
     end
   end
   alias_method :enum_for, :to_enum
@@ -548,7 +539,7 @@ module Kernel
 
   def warn(*messages, uplevel: undefined)
     if !$VERBOSE.nil? && !messages.empty?
-      prefix = if undefined.equal?(uplevel)
+      prefix = if TrufflePrimitive.undefined?(uplevel)
                  +''
                else
                  uplevel = Truffle::Type.coerce_to_int(uplevel)

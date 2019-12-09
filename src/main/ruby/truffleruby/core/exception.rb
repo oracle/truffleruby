@@ -77,7 +77,7 @@ class Exception
 
   def backtrace?
     result = TrufflePrimitive.exception_backtrace? self
-    if !undefined.equal?(result)
+    if !TrufflePrimitive.undefined?(result)
       result
     else
       backtrace ? true : false
@@ -137,9 +137,7 @@ class Exception
         # Exception#initialize (via __initialize__) is exactly what MRI
         # does.
         e = clone
-        Truffle.privately do
-          e.__initialize__(message)
-        end
+        e.__send__ :__initialize__, message
         return e
       end
     end
@@ -150,9 +148,6 @@ class Exception
   def location
     [context.file.to_s, context.line]
   end
-end
-
-class PrimitiveFailure < Exception
 end
 
 class ScriptError < Exception
@@ -436,7 +431,7 @@ class SignalException < Exception
   def initialize(sig, message = undefined)
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if signo.nil?
-      raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless undefined.equal?(message)
+      raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless TrufflePrimitive.undefined?(message)
       if sig.is_a?(Symbol)
         sig = sig.to_s
       else
@@ -455,7 +450,7 @@ class SignalException < Exception
       if signo < 0 || signo > Signal::NSIG
         raise ArgumentError, "invalid signal number (#{signo})"
       end
-      name_with_prefix = if undefined.equal?(message)
+      name_with_prefix = if TrufflePrimitive.undefined?(message)
                            name = Signal::Numbers[signo]
                            if name.nil?
                              'SIG%d' % signo

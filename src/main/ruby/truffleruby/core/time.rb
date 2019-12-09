@@ -274,7 +274,7 @@ class Time
 
   class << self
     def at(sec, usec=undefined, unit=undefined)
-      if undefined.equal?(usec)
+      if TrufflePrimitive.undefined?(usec)
         if sec.kind_of?(Time)
           copy = allocate
           copy.send(:initialize_copy, sec)
@@ -289,7 +289,7 @@ class Time
       end
 
       second_arg_scale =
-        if undefined.equal?(unit) || :microsecond == unit || :usec == unit
+        if TrufflePrimitive.undefined?(unit) || :microsecond == unit || :usec == unit
           1_000
         elsif :millisecond == unit
           1_000_000
@@ -299,7 +299,7 @@ class Time
           raise ArgumentError, "unexpected unit: #{unit}"
         end
 
-      usec = 0 if undefined.equal?(usec)
+      usec = 0 if TrufflePrimitive.undefined?(usec)
 
       s = Truffle::Type.coerce_to_exact_num(sec)
       u = Truffle::Type.coerce_to_exact_num(usec)
@@ -318,7 +318,7 @@ class Time
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
       time = TrufflePrimitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      return time unless undefined.equal?(time)
+      return time unless TrufflePrimitive.undefined?(time)
 
       if sec.kind_of?(String)
         sec = sec.to_i
@@ -347,8 +347,8 @@ class Time
 
     def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
                 yday=undefined, is_dst=undefined, tz=undefined)
-      if undefined.equal?(tz)
-        unless undefined.equal?(is_dst)
+      if TrufflePrimitive.undefined?(tz)
+        unless TrufflePrimitive.undefined?(is_dst)
           raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
         end
 
@@ -410,7 +410,7 @@ class Time
     private :compose
 
     def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
-      if undefined.equal?(year)
+      if TrufflePrimitive.undefined?(year)
         self.now
       elsif utc_offset == nil
         compose(:local, year, month, day, hour, minute, second)

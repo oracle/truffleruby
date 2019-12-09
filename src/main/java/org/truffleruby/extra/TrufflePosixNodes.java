@@ -29,7 +29,7 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @Primitive(name = "posix_invalidate_env", needsSelf = false)
+    @Primitive(name = "posix_invalidate_env")
     public abstract static class InvalidateEnvNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

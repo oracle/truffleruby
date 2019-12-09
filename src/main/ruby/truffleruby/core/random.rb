@@ -45,7 +45,7 @@ class Truffle::Randomizer
   end
 
   def random(limit)
-    if undefined.equal?(limit)
+    if TrufflePrimitive.undefined?(limit)
       random_float
     else
       if limit.kind_of?(Range)
@@ -132,7 +132,7 @@ class Random
   end
 
   def self.srand(seed=undefined)
-    if undefined.equal? seed
+    if TrufflePrimitive.undefined? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -146,7 +146,7 @@ class Random
 
   def initialize(seed=undefined)
     @randomizer = Truffle::Randomizer.new
-    if !undefined.equal?(seed)
+    if !TrufflePrimitive.undefined?(seed)
       @randomizer.swap_seed seed.to_int
     end
   end

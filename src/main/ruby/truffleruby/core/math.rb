@@ -28,7 +28,7 @@ module Math
 
   def frexp(x)
     result = TrufflePrimitive.math_frexp(x)
-    if !undefined.equal?(result)
+    if !TrufflePrimitive.undefined?(result)
       result
     else
       frexp Truffle::Type.coerce_to_float(x)
@@ -37,7 +37,7 @@ module Math
 
   def ldexp(fraction, exponent)
     result = TrufflePrimitive.math_ldexp(fraction, exponent)
-    if !undefined.equal?(result)
+    if !TrufflePrimitive.undefined?(result)
       result
     elsif Float === exponent and exponent.nan?
       raise RangeError, 'float NaN out of range of integer'

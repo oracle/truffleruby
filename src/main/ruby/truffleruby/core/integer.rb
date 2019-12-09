@@ -44,7 +44,7 @@ class Integer < Numeric
 
   def **(o)
     pow = TrufflePrimitive.integer_pow self, o
-    unless undefined.equal?(pow)
+    unless TrufflePrimitive.undefined?(pow)
       return pow
     end
 
@@ -90,7 +90,7 @@ class Integer < Numeric
 
   def divmod(b)
     divmod = TrufflePrimitive.integer_divmod self, b
-    unless undefined.equal?(divmod)
+    unless TrufflePrimitive.undefined?(divmod)
       return divmod
     end
 
@@ -121,7 +121,7 @@ class Integer < Numeric
   end
 
   def pow(e, m=undefined)
-    return self ** e if undefined.equal?(m)
+    return self ** e if TrufflePrimitive.undefined?(m)
     raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Truffle::Type.object_kind_of?(m, Integer)
     (self ** e) % m
   end
@@ -150,7 +150,7 @@ class Integer < Numeric
       raise RangeError, "#{self} is outside of the valid character range"
     end
 
-    if undefined.equal? enc
+    if TrufflePrimitive.undefined? enc
       if 0xff < self
         enc = Encoding.default_internal
         if enc.nil?
@@ -169,7 +169,7 @@ class Integer < Numeric
   end
 
   def round(ndigits=undefined, half: :up)
-    return self if undefined.equal? ndigits
+    return self if TrufflePrimitive.undefined? ndigits
 
     if Float === ndigits && ndigits.infinite?
       raise RangeError, "float #{ndigits} out of range of integer"

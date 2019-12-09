@@ -52,13 +52,13 @@ class Enumerator
     size = nil
 
     if block_given?
-      unless undefined.equal? receiver_or_size
+      unless TrufflePrimitive.undefined? receiver_or_size
         size = receiver_or_size
       end
 
       receiver = Generator.new(&block)
     else
-      if undefined.equal? receiver_or_size
+      if TrufflePrimitive.undefined? receiver_or_size
         raise ArgumentError, 'Enumerator#initialize requires a block when called without arguments'
       end
 
@@ -87,16 +87,10 @@ class Enumerator
       new_args = @args.empty? ? args : (@args + args)
     end
 
-    Truffle.privately do
-      enumerator.args = new_args
-    end
+    enumerator.__send__ :args=, new_args
 
     if block_given?
-      Truffle.privately do
-        enumerator.each_with_block do |*yield_args|
-          yield(*yield_args)
-        end
-      end
+      enumerator.__send__(:each_with_block) { |*yield_args| yield(*yield_args) }
     else
       enumerator
     end
@@ -120,7 +114,7 @@ class Enumerator
     idx = 0
 
     each do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       val = yield(o, idx)
       idx += 1
       val
@@ -131,7 +125,7 @@ class Enumerator
     return to_enum(:each_with_object, memo) { size } unless block_given?
 
     each do
-      obj = Truffle.single_block_arg
+      obj = TrufflePrimitive.single_block_arg
       yield obj, memo
     end
     memo
@@ -160,9 +154,7 @@ class Enumerator
     end
 
     exception = StopIteration.new 'iteration reached end'
-    Truffle.privately do
-      exception.result = @generator.result
-    end
+    exception.__send__ :result=, @generator.result
 
     raise exception
   end
@@ -204,7 +196,7 @@ class Enumerator
     return to_enum(:with_index, offset) { size } unless block_given?
 
     each do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       val = yield(o, offset)
       offset += 1
       val
@@ -262,7 +254,7 @@ class Enumerator
 
     def initialize(receiver, size=nil)
       raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
 
       super(size) do |yielder, *each_args|
         begin
@@ -282,9 +274,7 @@ class Enumerator
       size = block_given? ? block : nil
       ret = Lazy.allocate
 
-      Truffle.privately do
-        ret.initialize_enumerator self, size, method_name, *method_args
-      end
+      ret.__send__ :initialize_enumerator, self, size, method_name, *method_args
 
       ret
     end

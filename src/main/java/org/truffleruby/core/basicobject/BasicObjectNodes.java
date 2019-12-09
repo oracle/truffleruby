@@ -10,9 +10,9 @@
 package org.truffleruby.core.basicobject;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;

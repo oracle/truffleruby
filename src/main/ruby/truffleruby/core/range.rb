@@ -177,7 +177,7 @@ class Range
   end
 
   def first(n=undefined)
-    return self.begin if undefined.equal? n
+    return self.begin if TrufflePrimitive.undefined? n
 
     super
   end
@@ -221,7 +221,7 @@ class Range
   end
 
   def last(n=undefined)
-    return self.end if undefined.equal? n
+    return self.end if TrufflePrimitive.undefined? n
 
     to_a.last(n)
   end
@@ -335,7 +335,7 @@ class Range
 
   def collect(&block)
     ary = TrufflePrimitive.range_integer_map(self, block)
-    if !undefined.equal?(ary)
+    if !TrufflePrimitive.undefined?(ary)
       ary
     else
       super(&block)
@@ -366,7 +366,7 @@ class Range
   def to_a_from_enumerable(*arg)
     ary = []
     each(*arg) do
-      o = Truffle.single_block_arg
+      o = TrufflePrimitive.single_block_arg
       ary << o
       nil
     end

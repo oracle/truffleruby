@@ -9,11 +9,17 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -33,39 +39,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
-
-    @CoreMethod(names = "assert_constant", onSingleton = true, required = 1)
-    public abstract static class AssertConstantNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject assertConstant(Object value) {
-            throw new RaiseException(getContext(), coreExceptions().runtimeErrorNotConstant(this));
-        }
-
-    }
-
-    @CoreMethod(names = "assert_not_compiled", onSingleton = true)
-    public abstract static class AssertNotCompiledNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject assertNotCompiled() {
-            throw new RaiseException(getContext(), coreExceptions().runtimeErrorCompiled(this));
-        }
-
-    }
-
-    @CoreMethod(names = "bailout", onSingleton = true, required = 1)
-    public abstract static class BailoutNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject bailout(DynamicObject message) {
-            throw new RaiseException(getContext(), coreExceptions().runtimeErrorBailout(this));
-        }
-
-    }
 
     @CoreMethod(names = "always_split", onSingleton = true, required = 1, argumentNames = "method_or_proc")
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
@@ -169,5 +142,55 @@ public abstract class TruffleGraalNodes {
         }
 
     }
+
+    @NodeChild(value = "value", type = RubyNode.class)
+    @Primitive(name = "assert_compilation_constant")
+    public abstract static class AssertCompilationConstantNode extends PrimitiveNode {
+
+        @Specialization
+        protected Object assertCompilationConstant(Object value) {
+            if (!CompilerDirectives.isCompilationConstant(value)) {
+                notConstantBoundary();
+            }
+
+            return value;
+        }
+
+        @TruffleBoundary
+        private void notConstantBoundary() {
+            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this), true);
+        }
+    }
+
+    @Primitive(name = "assert_not_compiled")
+    public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
+
+        @Specialization
+        protected DynamicObject assertNotCompiled() {
+            if (CompilerDirectives.inCompiledCode()) {
+                compiledBoundary();
+            }
+
+            return nil();
+        }
+
+        @TruffleBoundary
+        private void compiledBoundary() {
+            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this), true);
+        }
+    }
+
+    @Primitive(name = "compiler_bailout")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class BailoutNode extends PrimitiveNode {
+
+        @Specialization(guards = "isRubyString(message)")
+        protected DynamicObject bailout(DynamicObject message,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
+            return nil();
+        }
+    }
+
 
 }

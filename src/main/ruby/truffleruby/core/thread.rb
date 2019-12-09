@@ -196,9 +196,7 @@ class Thread
       raise ArgumentError, 'unknown mask signature'
     end
     exception, timing = config.first
-    Truffle.privately do
-      current.handle_interrupt(exception, timing, &block)
-    end
+    current.__send__ :handle_interrupt, exception, timing, &block
   end
 
   @abort_on_exception = false
@@ -295,7 +293,7 @@ class Thread
   def raise(exc=undefined, msg=nil, ctx=nil)
     return nil unless alive?
 
-    if undefined.equal? exc
+    if TrufflePrimitive.undefined? exc
       no_argument = true
       exc         = nil
     end
@@ -352,7 +350,7 @@ class Thread
   def []=(name, value)
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
-      Truffle.check_frozen
+      TrufflePrimitive.check_frozen self
       locals = TrufflePrimitive.thread_get_fiber_locals self
       TrufflePrimitive.object_ivar_set locals, var, value
     end

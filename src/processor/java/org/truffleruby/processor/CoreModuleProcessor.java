@@ -198,7 +198,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
-                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, primitive.needsSelf());
+                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, true);
                         }
                     }
                 }
@@ -317,24 +317,32 @@ public class CoreModuleProcessor extends AbstractProcessor {
         int index = 0;
 
         final StringJoiner args = new StringJoiner(", ");
-        for (int i = 0; i < coreMethod.required(); i++) {
-            args.add(argumentNames.get(index));
-            index++;
-        }
-        for (int i = 0; i < coreMethod.optional(); i++) {
-            args.add(argumentNames.get(index) + " = nil");
-            index++;
-        }
-        if (coreMethod.rest()) {
-            args.add("*" + argumentNames.get(index));
-            index++;
-        }
-        if (!coreMethod.keywordAsOptional().isEmpty()) {
-            // TODO (pitr-ch 03-Oct-2019): check interaction with names, or remove it
-            args.add(coreMethod.keywordAsOptional() + ": :unknown_default_value");
-        }
-        if (coreMethod.needsBlock()) {
-            args.add("&" + argumentNames.get(index));
+
+        try {
+            for (int i = 0; i < coreMethod.required(); i++) {
+                args.add(argumentNames.get(index));
+                index++;
+            }
+            for (int i = 0; i < coreMethod.optional(); i++) {
+                args.add(argumentNames.get(index) + " = nil");
+                index++;
+            }
+            if (coreMethod.rest()) {
+                args.add("*" + argumentNames.get(index));
+                index++;
+            }
+            if (!coreMethod.keywordAsOptional().isEmpty()) {
+                // TODO (pitr-ch 03-Oct-2019): check interaction with names, or remove it
+                args.add(coreMethod.keywordAsOptional() + ": :unknown_default_value");
+            }
+            if (coreMethod.needsBlock()) {
+                args.add("&" + argumentNames.get(index));
+            }
+        } catch (IndexOutOfBoundsException e) {
+            processingEnv.getMessager().printMessage(
+                    Kind.ERROR,
+                    "Not enough arguments found compared to declared numbers, check required, optional etc. declarations",
+                    klass);
         }
 
         rubyStream.println("  def " + (onSingleton ? "self." : "") + coreMethod.names()[0] + "(" + args + ")");

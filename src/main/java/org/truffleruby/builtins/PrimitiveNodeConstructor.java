@@ -10,9 +10,9 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.Translator;
@@ -43,22 +43,16 @@ public class PrimitiveNodeConstructor {
         }
 
         for (int n = 0; n < arguments.length; n++) {
-            int nthArg = annotation.needsSelf() ? n : n + 1;
-            arguments[n] = transformArgument(arguments[n], nthArg);
+            if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
+                arguments[n] = FixnumLowerNodeGen.create(arguments[n]);
+            }
+            if (ArrayUtils.contains(annotation.raiseIfFrozen(), n)) {
+                arguments[n] = TypeNodes.CheckFrozenNode.create(arguments[n]);
+            }
         }
 
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
         return Translator.withSourceSection(sourceSection, primitiveNode);
-    }
-
-    private RubyNode transformArgument(RubyNode argument, int n) {
-        if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
-            return FixnumLowerNodeGen.create(argument);
-        } else if (n == 0 && annotation.raiseIfFrozenSelf()) {
-            return RaiseIfFrozenNodeGen.create(argument);
-        } else {
-            return argument;
-        }
     }
 
 }

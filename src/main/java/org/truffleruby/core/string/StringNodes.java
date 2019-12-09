@@ -1038,7 +1038,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "downcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @Primitive(name = "downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -1322,7 +1322,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_get_coderange", needsSelf = false)
+    @Primitive(name = "string_get_coderange")
     public abstract static class GetCodeRangeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(str)")
@@ -1333,7 +1333,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_get_rope", needsSelf = false)
+    @Primitive(name = "string_get_rope")
     public abstract static class GetRopeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(str)")
@@ -1746,7 +1746,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "swapcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @Primitive(name = "swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -2794,7 +2794,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "upcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @Primitive(name = "upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -2890,7 +2890,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "capitalize!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @Primitive(name = "capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -3440,7 +3440,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_escape", needsSelf = false)
+    @Primitive(name = "string_escape")
     public abstract static class StringEscapePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -3719,7 +3719,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_to_f", needsSelf = false)
+    @Primitive(name = "string_to_f")
     public static abstract class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -3764,7 +3764,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "find_string", needsSelf = false, lowerFixnum = 3)
+    @Primitive(name = "find_string", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -3979,7 +3979,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_byte_character_index", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "string_byte_character_index", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
@@ -4046,7 +4046,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_character_index", needsSelf = false, lowerFixnum = 3)
+    @Primitive(name = "string_character_index", lowerFixnum = 2)
     public static abstract class StringCharacterIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -4109,7 +4109,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_byte_index", needsSelf = false, lowerFixnum = 3)
+    @Primitive(name = "string_byte_index", lowerFixnum = 2)
     public static abstract class StringByteIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -4244,7 +4244,7 @@ public abstract class StringNodes {
     }
 
     // Named 'string_byte_index' in Rubinius.
-    @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, StringOperations.class })
     public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
 
@@ -4325,7 +4325,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "find_string_reverse", needsSelf = false, lowerFixnum = 3)
+    @Primitive(name = "find_string_reverse", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
@@ -4568,7 +4568,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_splice", needsSelf = false, lowerFixnum = { 3, 4 })
+    @Primitive(name = "string_splice", lowerFixnum = { 2, 3 })
     @ImportStatic(StringGuards.class)
     public static abstract class StringSplicePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -4994,7 +4994,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_to_null_terminated_byte_array", needsSelf = false)
+    @Primitive(name = "string_to_null_terminated_byte_array")
     public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -5015,7 +5015,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_intern", needsSelf = false)
+    @Primitive(name = "string_intern")
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

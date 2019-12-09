@@ -117,7 +117,7 @@ The compiler tests include a sort of test suite for compilation, called the
 partial evaluation (*PE*) tests, as well as tests for more subtle things like
 on-stack-replacement.
 
-Special methods such as `Truffle::Graal.assert_constant` are used to implement
+Special methods such as `TrufflePrimitive.assert_compilation_constant` are used to implement
 this.
 
 Compiler tests are in `test/truffle/compiler`.

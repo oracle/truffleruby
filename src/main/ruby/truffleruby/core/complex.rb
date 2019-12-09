@@ -43,7 +43,7 @@ class Complex < Numeric
     if nil.equal?(real) || nil.equal?(imag)
       raise TypeError, 'cannot convert nil into Complex'
     end
-    imag = nil if undefined.equal?(imag)
+    imag = nil if TrufflePrimitive.undefined?(imag)
 
     if check_real?(real) && check_real?(imag)
       return new(real, imag)

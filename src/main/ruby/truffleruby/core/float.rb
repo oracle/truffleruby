@@ -129,7 +129,7 @@ class Float < Numeric
   alias_method :phase, :arg
 
   def rationalize(eps=undefined)
-    if undefined.equal?(eps)
+    if TrufflePrimitive.undefined?(eps)
       f, n = Math.frexp self
       f = Math.ldexp(f, Float::MANT_DIG).to_i
       n -= Float::MANT_DIG
@@ -141,7 +141,7 @@ class Float < Numeric
   end
 
   def round(ndigits=undefined, half: nil)
-    if undefined.equal?(ndigits)
+    if TrufflePrimitive.undefined?(ndigits)
       if infinite?
         raise FloatDomainError, 'Infinite'
       elsif nan?

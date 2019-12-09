@@ -450,7 +450,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_each_alias", needsSelf = false)
+    @Primitive(name = "encoding_each_alias")
     public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
 
         @Child private YieldNode yieldNode = YieldNode.create();
@@ -471,7 +471,7 @@ public abstract class EncodingNodes {
         }
     }
 
-    @Primitive(name = "encoding_is_unicode", needsSelf = false)
+    @Primitive(name = "encoding_is_unicode")
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
@@ -481,7 +481,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "get_actual_encoding", needsSelf = false)
+    @Primitive(name = "get_actual_encoding")
     public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -551,7 +551,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_get_default_encoding", needsSelf = false)
+    @Primitive(name = "encoding_get_default_encoding")
     public abstract static class GetDefaultEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -581,7 +581,7 @@ public abstract class EncodingNodes {
         }
     }
 
-    @Primitive(name = "encoding_set_default_external", needsSelf = false)
+    @Primitive(name = "encoding_set_default_external")
     public abstract static class SetDefaultExternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
@@ -599,7 +599,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_set_default_internal", needsSelf = false)
+    @Primitive(name = "encoding_set_default_internal")
     public abstract static class SetDefaultInternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
@@ -616,7 +616,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_enc_find_index", needsSelf = false)
+    @Primitive(name = "encoding_enc_find_index")
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
@@ -628,7 +628,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_get_object_encoding", needsSelf = false)
+    @Primitive(name = "encoding_get_object_encoding")
     public static abstract class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
@@ -707,7 +707,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_create_dummy", needsSelf = false)
+    @Primitive(name = "encoding_create_dummy")
     public static abstract class DummyEncodingeNode extends EncodingCreationNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
@@ -725,7 +725,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_get_encoding_by_index", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "encoding_get_encoding_by_index", lowerFixnum = 0)
     public static abstract class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -735,7 +735,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_get_encoding_index", needsSelf = false)
+    @Primitive(name = "encoding_get_encoding_index")
     public static abstract class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

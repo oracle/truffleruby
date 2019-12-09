@@ -16,13 +16,13 @@ import java.util.function.Function;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -347,7 +347,7 @@ public class CoreMethodNodeManager {
         }
 
         if (n == 0 && method.raiseIfFrozenSelf()) {
-            argument = RaiseIfFrozenNodeGen.create(argument);
+            argument = TypeNodes.CheckFrozenNode.create(argument);
         }
 
         return argument;

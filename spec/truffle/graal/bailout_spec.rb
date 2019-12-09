@@ -8,15 +8,11 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Graal.bailout" do
-
-  it "raises a RuntimeError when called dynamically" do
-    -> { Truffle::Graal.send(:bailout, "message") }.should raise_error(RuntimeError)
-  end
+describe "TrufflePrimitive.compiler_bailout" do
 
   guard -> { !TruffleRuby.jit? } do
     it "returns nil" do
-      Truffle::Graal.bailout("message").should be_nil
+      TrufflePrimitive.compiler_bailout("message").should be_nil
     end
   end
 

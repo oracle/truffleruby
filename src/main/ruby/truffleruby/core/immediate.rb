@@ -35,9 +35,7 @@ module ImmediateValue
       raise TypeError, "allocator undefined for #{self}"
     end
 
-    Truffle.privately do
-      klass.singleton_class.undef_method(:new)
-    end
+    klass.singleton_class.__send__ :undef_method, :new
   end
 
   def singleton_methods(all=true)

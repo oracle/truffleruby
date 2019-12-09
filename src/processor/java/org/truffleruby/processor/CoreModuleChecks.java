@@ -22,7 +22,7 @@ public class CoreModuleChecks {
             int[] lowerFixnum,
             CoreMethod coreMethod,
             TypeElement klass,
-            boolean needsSelf) {
+            boolean hasZeroArgument) {
 
         byte[] lowerArgs = null;
 
@@ -40,7 +40,7 @@ public class CoreModuleChecks {
                     continue; // we are interested only in Specialization methods
                 }
 
-                lowerArgs = checkLowerFixnumArguments(coreModuleProcessor, specializationMethod, needsSelf, lowerArgs);
+                lowerArgs = checkLowerFixnumArguments(coreModuleProcessor, specializationMethod, lowerArgs);
                 if (coreMethod != null) {
                     checkAmbiguousOptionalArguments(
                             coreModuleProcessor,
@@ -73,10 +73,10 @@ public class CoreModuleChecks {
         // Verify against the lowerFixnum annotation
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
-            if (shouldLower && !contains(lowerFixnum, i + 1)) {
+            if (shouldLower && !contains(lowerFixnum, hasZeroArgument ? i : i + 1)) {
                 coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        "should use lowerFixnum for argument " + (i + 1),
+                        "should use lowerFixnum for argument " + (hasZeroArgument ? i : i + 1),
                         klass);
             }
         }
@@ -85,20 +85,19 @@ public class CoreModuleChecks {
     private static byte[] checkLowerFixnumArguments(
             CoreModuleProcessor coreModuleProcessor,
             ExecutableElement specializationMethod,
-            boolean needsSelf,
             byte[] lowerArgs) {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
-        int skip = needsSelf ? 1 : 0;
+        int start = 0;
 
         if (parameters.size() > 0 &&
                 coreModuleProcessor.getProcessingEnvironment().getTypeUtils().isSameType(
                         parameters.get(0).asType(),
                         coreModuleProcessor.virtualFrameType)) {
-            skip++;
+            start++;
         }
 
         int end = parameters.size();
-        for (int i = end - 1; i >= skip; i--) {
+        for (int i = end - 1; i >= start; i--) {
             boolean cached = parameters.get(i).getAnnotation(Cached.class) != null;
             if (cached) {
                 end--;
@@ -108,24 +107,17 @@ public class CoreModuleChecks {
         }
 
         if (lowerArgs == null) {
-            if (end < skip) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "should have needsSelf = false",
-                        specializationMethod);
-                return lowerArgs;
-            }
-            lowerArgs = new byte[end - skip];
+            lowerArgs = new byte[end - start];
         } else {
-            assert lowerArgs.length == end - skip;
+            assert lowerArgs.length == end - start;
         }
 
-        for (int i = skip; i < end; i++) {
+        for (int i = start; i < end; i++) {
             TypeKind argumentType = parameters.get(i).asType().getKind();
             if (argumentType == TypeKind.INT) {
-                lowerArgs[i - skip] |= 0b01;
+                lowerArgs[i - start] |= 0b01;
             } else if (argumentType == TypeKind.LONG) {
-                lowerArgs[i - skip] |= 0b10;
+                lowerArgs[i - start] |= 0b10;
             }
         }
         return lowerArgs;

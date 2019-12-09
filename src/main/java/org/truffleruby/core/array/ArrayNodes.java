@@ -25,7 +25,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.CmpIntNode;
@@ -48,6 +47,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -271,8 +271,8 @@ public abstract class ArrayNodes {
 
     @Primitive(
             name = "array_aset",
+            raiseIfFrozen = 0,
             lowerFixnum = { 1, 2 },
-            raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
     public abstract static class IndexSetPrimitiveNode extends ArrayIndexSetNode {
 
@@ -433,7 +433,7 @@ public abstract class ArrayNodes {
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode;
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
 
         @Specialization(
                 guards = { "strategy.isStorageMutable()", "strategy.matches(array)" },
@@ -524,7 +524,7 @@ public abstract class ArrayNodes {
         public void checkFrozen(Object object) {
             if (raiseIfFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(RaiseIfFrozenNode.create());
+                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
             }
             raiseIfFrozenNode.execute(object);
         }
@@ -1646,7 +1646,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_rotate", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "array_rotate", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
@@ -1677,7 +1677,7 @@ public abstract class ArrayNodes {
         copyToNode.execute(original, rotated, 0, size - rotation, rotation);
     }
 
-    @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
+    @Primitive(name = "array_rotate_inplace", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
@@ -2001,7 +2001,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "steal_array_storage", needsSelf = false)
+    @Primitive(name = "steal_array_storage")
     @ImportStatic(ArrayGuards.class)
     public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
 

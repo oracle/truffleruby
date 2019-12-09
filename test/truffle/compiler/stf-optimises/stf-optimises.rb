@@ -23,14 +23,14 @@ begin
   loop do
     x = foo
     raise 'value not correct' unless x == 200
-    Truffle::Graal.assert_constant x
-    Truffle::Graal.assert_not_compiled
+    TrufflePrimitive.assert_compilation_constant x
+    TrufflePrimitive.assert_not_compiled
   end
 rescue Truffle::GraalError => e
-  if e.message.include? 'Truffle::Graal.assert_not_compiled'
+  if e.message.include? 'TrufflePrimitive.assert_not_compiled'
     puts 'STF optimising'
     exit 0
-  elsif e.message.include? 'Truffle::Graal.assert_constant'
+  elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
     puts 'STF not optimising'
     exit 1
   else

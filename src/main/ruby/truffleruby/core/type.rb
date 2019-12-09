@@ -287,7 +287,7 @@ module Truffle
 
     def self.convert_type(obj, cls, meth, raise_on_error)
       r = check_funcall(obj, meth)
-      if undefined.equal?(r)
+      if TrufflePrimitive.undefined?(r)
         if raise_on_error
           raise TypeError, "can't convert #{object_class(obj)} into #{cls} with #{meth}"
         end
@@ -328,7 +328,7 @@ module Truffle
 
     def self.check_funcall_missing(recv, meth, args, respond, default, priv = false)
       ret = basic_obj_respond_to_missing(recv, meth, priv)
-      respond_to_missing = !undefined.equal?(ret)
+      respond_to_missing = !TrufflePrimitive.undefined?(ret)
       return default if respond_to_missing and !ret
       ret = default
       if object_respond_to_no_built_in?(recv, :method_missing, true)

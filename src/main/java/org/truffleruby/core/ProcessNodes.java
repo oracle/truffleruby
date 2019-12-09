@@ -23,7 +23,7 @@ import sun.misc.Signal;
 @CoreModule(value = "Process", isClass = true)
 public abstract class ProcessNodes {
 
-    @Primitive(name = "process_time_nanotime", needsSelf = false)
+    @Primitive(name = "process_time_nanotime")
     public abstract static class ProcessTimeNanoTimeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -33,7 +33,7 @@ public abstract class ProcessNodes {
 
     }
 
-    @Primitive(name = "process_time_currenttimemillis", needsSelf = false)
+    @Primitive(name = "process_time_currenttimemillis")
     public abstract static class ProcessTimeCurrentTimeMillisNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -44,7 +44,7 @@ public abstract class ProcessNodes {
 
     }
 
-    @Primitive(name = "process_kill_raise", needsSelf = false)
+    @Primitive(name = "process_kill_raise")
     public abstract static class ProcessKillRaiseNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)

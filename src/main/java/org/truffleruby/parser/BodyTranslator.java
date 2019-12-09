@@ -27,8 +27,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
-import org.truffleruby.core.IsUndefinedNode;
-import org.truffleruby.core.RaiseIfFrozenNodeGen;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
@@ -62,13 +60,13 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
-import org.truffleruby.language.arguments.SingleBlockArgNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -253,9 +251,6 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.platform.AssertConstantNodeGen;
-import org.truffleruby.platform.BailoutNode;
-import org.truffleruby.platform.AssertNotCompiledNodeGen;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -278,8 +273,6 @@ public class BodyTranslator extends Translator {
     private boolean translatingNextExpression = false;
     private boolean translatingWhile = false;
     protected String currentCallMethodName = null;
-
-    private boolean privately = false;
 
     public BodyTranslator(
             Node currentNode,
@@ -313,7 +306,7 @@ public class BodyTranslator extends Translator {
         final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
 
         final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
-                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
+                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 newNameNode,
                 oldNameNode);
 
@@ -505,63 +498,14 @@ public class BodyTranslator extends Translator {
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
-            return addNewlineIfNeeded(
-                    node,
-                    withSourceSection(
-                            sourceSection,
-                            new DefinedWrapperNode(
-                                    context.getCoreStrings().METHOD,
-                                    new ObjectLiteralNode(frozenString))));
+            return addNewlineIfNeeded(node, withSourceSection(
+                    sourceSection,
+                    new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
         }
 
         if (receiver instanceof ConstParseNode &&
                 ((ConstParseNode) receiver).getName().equals("TrufflePrimitive")) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
-            return addNewlineIfNeeded(node, ret);
-        }
-
-        if (receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
-            // Truffle.<method>
-
-            switch (methodName) {
-                case "privately": {
-                    final RubyNode ret = translatePrivately(node);
-                    return addNewlineIfNeeded(node, ret);
-                }
-                case "single_block_arg": {
-                    final RubyNode ret = translateSingleBlockArg(sourceSection, node);
-                    return addNewlineIfNeeded(node, ret);
-                }
-                case "check_frozen": {
-                    final RubyNode ret = translateCheckFrozen(sourceSection);
-                    return addNewlineIfNeeded(node, ret);
-                }
-            }
-        } else if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
-                && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode &&
-                ((ConstParseNode) ((Colon2ConstParseNode) receiver).getLeftNode()).getName().equals("Truffle") &&
-                ((Colon2ConstParseNode) receiver).getName().equals("Graal")) {
-            if (methodName.equals("assert_constant")) {
-                final RubyNode ret = AssertConstantNodeGen
-                        .create(((ArrayParseNode) node.getArgsNode()).get(0).accept(this));
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("assert_not_compiled")) {
-                final RubyNode ret = AssertNotCompiledNodeGen.create();
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("bailout")) {
-                final RubyNode ret = BailoutNode.create(((ArrayParseNode) node.getArgsNode()).get(0).accept(this));
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            }
-        } else if (receiver instanceof VCallParseNode // undefined.equal?(obj)
-                && ((VCallParseNode) receiver).getName().equals("undefined") && inCore() &&
-                methodName.equals("equal?")) {
-            RubyNode argument = translateArgumentsAndBlock(sourceSection, null, node.getArgsNode(), methodName)
-                    .getArguments()[0];
-            final RubyNode ret = new IsUndefinedNode(argument);
-            ret.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, ret);
         }
 
@@ -588,6 +532,7 @@ public class BodyTranslator extends Translator {
          */
 
         final String primitiveName = node.getName();
+
         final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
 
         final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
@@ -598,65 +543,6 @@ public class BodyTranslator extends Translator {
         }
 
         return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
-    }
-
-    private RubyNode translatePrivately(CallParseNode node) {
-        /*
-         * Translates something that looks like
-         *
-         *   Truffle.privately { foo }
-         *
-         * into just
-         *
-         *   foo
-         *
-         * While we translate foo we'll mark all call sites as ignoring visibility.
-         */
-
-        if (!(node.getIterNode() instanceof IterParseNode)) {
-            throw new UnsupportedOperationException("Truffle.privately needs a literal block");
-        }
-
-        final ArrayParseNode argsNode = (ArrayParseNode) node.getArgsNode();
-        if (argsNode != null && argsNode.size() > 0) {
-            throw new UnsupportedOperationException("Truffle.privately should not have any arguments");
-        }
-
-        /*
-         * Normally when you visit an 'iter' (block) node it will set the method name for you, so that we can name the
-         * block something like 'times-block'. Here we bypass the iter node and translate its child. So we set the
-         * name here.
-         */
-
-        currentCallMethodName = "privately";
-
-        /*
-         * While we translate the body of the iter we want to create all call nodes with the ignore-visibility flag.
-         * This flag is checked in visitCallNode.
-         */
-
-        final boolean previousPrivately = privately;
-        privately = true;
-
-        try {
-            return (((IterParseNode) node.getIterNode()).getBodyNode()).accept(this);
-        } finally {
-            // Restore the previous value of the privately flag - allowing for nesting
-
-            privately = previousPrivately;
-        }
-    }
-
-    public RubyNode translateSingleBlockArg(SourceIndexLength sourceSection, CallParseNode node) {
-        final RubyNode ret = new SingleBlockArgNode();
-        ret.unsafeSetSourceSection(sourceSection);
-        return ret;
-    }
-
-    private RubyNode translateCheckFrozen(SourceIndexLength sourceSection) {
-        return Translator.withSourceSection(
-                sourceSection,
-                RaiseIfFrozenNodeGen.create(new SelfNode(environment.getFrameDescriptor())));
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
@@ -698,7 +584,7 @@ public class BodyTranslator extends Translator {
                 argumentsAndBlock.getBlock(),
                 argumentsAndBlock.getArguments(),
                 argumentsAndBlock.isSplatted(),
-                privately || ignoreVisibility,
+                ignoreVisibility,
                 isVCall,
                 node.isLazy(),
                 isAttrAssign);
@@ -1315,7 +1201,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode moduleNode = RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode());
+        final RubyNode moduleNode = TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode());
         final RubyNode ret = translateMethodDefinition(
                 sourceSection,
                 moduleNode,
@@ -1804,7 +1690,7 @@ public class BodyTranslator extends Translator {
         }
 
         RubyNode self = new SelfNode(environment.getFrameDescriptor());
-        self = RaiseIfFrozenNodeGen.create(self);
+        self = TypeNodes.CheckFrozenNode.create(self);
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -2850,7 +2736,7 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateRationalComplex(SourceIndexLength sourceSection, String name, RubyNode a, RubyNode b) {
-        // Translate as Truffle.privately { Rational.convert(a, b) }
+        // Translate as Rational.convert(a, b) # ignoring visibility
 
         final RubyNode moduleNode = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
         ReadConstantNode receiver = new ReadConstantNode(moduleNode, name);
@@ -2951,9 +2837,7 @@ public class BodyTranslator extends Translator {
         boolean canOmitBacktrace = false;
 
         if (context.getOptions().BACKTRACES_OMIT_UNUSED && rescueBody != null &&
-                rescueBody.getBodyNode() instanceof SideEffectFree
-                // allow `expression rescue $!` pattern
-                &&
+                rescueBody.getBodyNode() instanceof SideEffectFree /* allow `expression rescue $!` pattern */ &&
                 (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) ||
                         !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!")) &&
                 rescueBody.getOptRescueNode() == null) {
@@ -3174,7 +3058,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
-                RaiseIfFrozenNodeGen.create(new GetDefaultDefineeNode()),
+                TypeNodes.CheckFrozenNode.create(new GetDefaultDefineeNode()),
                 translateNameNodeToSymbol(node.getName())
         });
 
@@ -3197,6 +3081,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitVCallNode(VCallParseNode node) {
+        // TODO (pitr-ch 02-Dec-2019): replace with a primitive
         if (node.getName().equals("undefined") && inCore()) { // translate undefined
             final RubyNode ret = new ObjectLiteralNode(NotProvided.INSTANCE);
             ret.unsafeSetSourceSection(node.getPosition());

@@ -12,13 +12,13 @@ timeout = Time.now + 30
 
 begin
   while Time.now < timeout
-    Truffle::Graal.assert_not_compiled
+    TrufflePrimitive.assert_not_compiled
   end
-  
+
   puts 'while loop optimisation timed out'
   exit 1
 rescue Truffle::GraalError => e
-  if e.message.include? 'Truffle::Graal.assert_not_compiled'
+  if e.message.include? 'TrufflePrimitive.assert_not_compiled'
     puts 'while loop optimising'
     exit 0
   else

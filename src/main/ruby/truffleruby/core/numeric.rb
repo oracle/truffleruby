@@ -60,28 +60,28 @@ class Numeric
   end
 
   def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
-    limit = if !undefined.equal?(orig_limit) && !undefined.equal?(to)
+    limit = if !TrufflePrimitive.undefined?(orig_limit) && !TrufflePrimitive.undefined?(to)
               raise ArgumentError, 'to is given twice'
-            elsif !undefined.equal?(orig_limit)
+            elsif !TrufflePrimitive.undefined?(orig_limit)
               orig_limit
-            elsif !undefined.equal?(to)
+            elsif !TrufflePrimitive.undefined?(to)
               to
             else
               nil
             end
-    step = if !undefined.equal?(orig_step) && !undefined.equal?(by)
+    step = if !TrufflePrimitive.undefined?(orig_step) && !TrufflePrimitive.undefined?(by)
              raise ArgumentError, 'step is given twice'
-           elsif !undefined.equal?(orig_step)
+           elsif !TrufflePrimitive.undefined?(orig_step)
              orig_step
-           elsif !undefined.equal?(by)
+           elsif !TrufflePrimitive.undefined?(by)
              by
            else
              1
            end
 
     kwargs = {}
-    kwargs[:by] = by unless undefined.equal?(by)
-    kwargs[:to] = to unless undefined.equal?(to)
+    kwargs[:by] = by unless TrufflePrimitive.undefined?(by)
+    kwargs[:to] = to unless TrufflePrimitive.undefined?(to)
 
     unless block_given?
       return to_enum(:step, orig_limit, orig_step, kwargs) do
@@ -315,9 +315,7 @@ class Numeric
   end
 
   def quo(other)
-    Truffle.privately do
-      Rational.convert(self, 1) / other
-    end
+    Rational.__send__(:convert, self, 1) / other
   end
 
   def modulo(other)

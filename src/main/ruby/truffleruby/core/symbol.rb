@@ -140,7 +140,7 @@ class Symbol
 
   def [](index, other = undefined)
     if index.kind_of?(Regexp)
-      unless undefined.equal?(other)
+      unless TrufflePrimitive.undefined?(other)
         match, str = to_s.send(:subpattern, index, other)
         Truffle::RegexpOperations.set_last_match(match, TrufflePrimitive.caller_binding)
         return str

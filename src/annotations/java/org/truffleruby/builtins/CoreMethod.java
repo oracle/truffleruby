@@ -59,8 +59,10 @@ public @interface CoreMethod {
     boolean needsBlock() default false;
 
     /**
-     * Try to lower argument <code>i</code> (starting at 1) to an int if its value is a long.
-     * Use 0 for <code>self</code>.
+     * Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long.
+     * The 0 is reserved for <code>self</code>.
+     * If {@link #needsSelf() needsSelf} is false then there is no 0 argument explicitly passed.
+     * Therefore the remaining arguments start at 1.
      */
     int[] lowerFixnum() default {};
 

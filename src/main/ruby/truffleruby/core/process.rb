@@ -280,7 +280,7 @@ module Process
     resource =  coerce_rlimit_resource(resource)
     cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
-    if undefined.equal? max_limit
+    if TrufflePrimitive.undefined? max_limit
       max_limit = cur_limit
     else
       max_limit = Truffle::Type.coerce_to max_limit, Integer, :to_int

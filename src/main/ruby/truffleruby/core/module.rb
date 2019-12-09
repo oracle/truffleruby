@@ -82,10 +82,8 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      Truffle.privately do
-        mod.append_features self
-        mod.included self
-      end
+      mod.__send__ :append_features, self
+      mod.__send__ :included, self
     end
     self
   end
@@ -96,42 +94,36 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      Truffle.privately do
-        mod.prepend_features self
-        mod.prepended self
-      end
+      mod.__send__ :prepend_features, self
+      mod.__send__ :prepended, self
     end
     self
   end
 
   def const_get(name, inherit = true)
     value = TrufflePrimitive.module_const_get self, name, inherit
-    unless undefined.equal?(value)
+    unless TrufflePrimitive.undefined?(value)
       return value
     end
 
-    if name.kind_of?(String)
-      names = name.split('::')
-      unless names.empty?
-        names.shift if '' == names.first
-      end
-      raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
-      res = self
-      names.each do |s|
-        if res.kind_of?(Module)
-          res = res.const_get(s, inherit)
-        else
-          raise TypeError, "#{name} does not refer to a class/module"
-        end
-      end
-      res
-    else
-      raise PrimitiveFailure
+    names = name.split('::') # name is always String
+    unless names.empty?
+      names.shift if '' == names.first
     end
+    raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
+    res = self
+    names.each do |s|
+      if res.kind_of?(Module)
+        res = res.const_get(s, inherit)
+      else
+        raise TypeError, "#{name} does not refer to a class/module"
+      end
+    end
+    res
   end
 
   def self.constants(inherited = undefined)
-    if undefined.equal?(inherited)
+    if TrufflePrimitive.undefined?(inherited)
       Object.constants
     else
       super(inherited)

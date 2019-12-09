@@ -118,7 +118,7 @@ module Truffle
 
     def self.internal_raise(exc, msg, ctx, internal)
       skip = false
-      if undefined.equal? exc
+      if TrufflePrimitive.undefined? exc
         exc = $!
         if exc
           skip = true
@@ -126,7 +126,7 @@ module Truffle
           exc = RuntimeError.new ''
         end
       elsif exc.respond_to? :exception
-        if undefined.equal? msg
+        if TrufflePrimitive.undefined? msg
           exc = exc.exception
         else
           exc = exc.exception msg
