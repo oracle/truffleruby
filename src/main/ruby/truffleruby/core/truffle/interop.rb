@@ -44,7 +44,7 @@ module Truffle
       # TODO (pitr-ch 23-May-2019): add assert that called methods are in members list
       if object.is_a?(Hash)
         keys = object.keys # FIXME (pitr-ch 11-May-2019): no return methods
-      elsif object.respond_to?(:[]) && !object.is_a?(Array)
+      elsif object.respond_to?(:[]) && !object.is_a?(Array) && !object.is_a?(String) && !object.is_a?(Symbol)
         # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else

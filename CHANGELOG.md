@@ -35,6 +35,7 @@ Bug fixes:
 * Fixed issue in `ConditionVariable#wait` that could lose a `ConditionVariable#signal`.
 * Do not leak TruffleRuby specific method Array#swap (#1816)
 * Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
+* `Truffle::Interop.keys` should report methods of String and Symbol (#1817)
 
 Compatibility:
 
