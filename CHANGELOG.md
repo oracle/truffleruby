@@ -36,6 +36,7 @@ Bug fixes:
 * Do not leak TruffleRuby specific method Array#swap (#1816)
 * Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
 * `Truffle::Interop.keys` should report methods of String and Symbol (#1817)
+* `Kernel#sprintf` encoding validity has been fixed (#1852, @XrXr).
 
 Compatibility:
 
