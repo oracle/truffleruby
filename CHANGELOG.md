@@ -50,6 +50,7 @@ Compatibility:
 * Implemented a native storage strategy for arrays to allow better C extension compatibility.
 * Implemented `rb_check_symbol_cstr` (#1814).
 * Implemented `rb_hash_start` (#1841, @XrXr).
+* Implemented `Method#<<` and `Method#>>` (#1821).
 
 Performance:
 

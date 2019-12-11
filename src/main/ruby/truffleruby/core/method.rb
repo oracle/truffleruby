@@ -30,6 +30,14 @@ class Method
     self.to_proc.curry(curried_arity)
   end
 
+  def >>(other)
+    self.to_proc >> other
+  end
+
+  def <<(other)
+    self.to_proc << other
+  end
+
   alias_method :to_s, :inspect
 
 end
