@@ -94,7 +94,42 @@ class MSpecScript
   ]
 
   set :next, [
+    "spec/ruby/language/hash_spec.rb",
+    "spec/ruby/language/return_spec.rb",
+    "spec/ruby/language/block_spec.rb",
+    "spec/ruby/language/method_spec.rb",
+    "spec/ruby/language/send_spec.rb",
+    "spec/ruby/language/lambda_spec.rb",
+    "spec/ruby/core/proc/shared/compose.rb",
+    "spec/ruby/core/proc/new_spec.rb",
+    "spec/ruby/core/regexp/match_spec.rb",
+    "spec/ruby/core/file/absolute_path_spec.rb",
+    "spec/ruby/core/file/extname_spec.rb",
+    "spec/ruby/core/hash/constructor_spec.rb",
     "spec/ruby/core/matchdata/allocate_spec.rb",
+    "spec/ruby/core/nil/to_s_spec.rb",
+    "spec/ruby/core/module/refine_spec.rb",
+    "spec/ruby/core/module/autoload_spec.rb",
+    "spec/ruby/core/module/name_spec.rb",
+    "spec/ruby/core/enumerable/tally_spec.rb",
+    "spec/ruby/core/time/ceil_spec.rb",
+    "spec/ruby/core/time/floor_spec.rb",
+    "spec/ruby/core/env/shared/update.rb",
+    "spec/ruby/core/env/merge_spec.rb",
+    "spec/ruby/core/dir/shared/glob.rb",
+    "spec/ruby/core/comparable/clamp_spec.rb",
+    "spec/ruby/core/true/to_s_spec.rb",
+    "spec/ruby/core/range/new_spec.rb",
+    "spec/ruby/core/builtin_constants/builtin_constants_spec.rb",
+    "spec/ruby/core/exception/frozen_error_spec.rb",
+    "spec/ruby/core/false/to_s_spec.rb",
+    "spec/ruby/core/kernel/proc_spec.rb",
+    "spec/ruby/library/logger/device/close_spec.rb",
+    "spec/ruby/library/logger/device/write_spec.rb",
+    "spec/ruby/library/openstruct/method_missing_spec.rb",
+    "spec/ruby/library/stringscanner/scan_spec.rb",
+    "spec/ruby/library/yaml/to_yaml_spec.rb",
+    "spec/ruby/library/rbconfig/unicode_emoji_version_spec.rb"
   ]
 
   set :backtrace_filter, /mspec\//
