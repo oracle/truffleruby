@@ -234,7 +234,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            System.err.println("truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
+            System.err.println(
+                    "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
             e.printStackTrace();
             return 1;
         }
