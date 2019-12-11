@@ -66,6 +66,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
+import static org.truffleruby.core.string.StringOperations.createString;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
@@ -449,25 +450,69 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "<<", "concat" }, required = 1, taintFrom = 1, raiseIfFrozenSelf = true)
+    @CoreMethod(names = { "<<", "concat" }, optional = 1, rest = true, taintFrom = 1, raiseIfFrozenSelf = true)
     @ImportStatic(StringGuards.class)
     public abstract static class ConcatNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(other)")
-        protected DynamicObject concat(DynamicObject string, DynamicObject other,
+        public static ConcatNode create() {
+            return StringNodesFactory.ConcatNodeFactory.create(null);
+        }
+
+        public abstract Object executeConcat(DynamicObject string, Object first, Object[] rest);
+
+        @Specialization(guards = "rest.length == 0")
+        protected DynamicObject concatZero(DynamicObject string, NotProvided first, Object[] rest) {
+            return string;
+        }
+
+        @Specialization(guards = { "rest.length == 0", "isRubyString(first)" })
+        protected DynamicObject concat(DynamicObject string, DynamicObject first, Object[] rest,
                 @Cached StringAppendPrimitiveNode stringAppendNode) {
-            return stringAppendNode.executeStringAppend(string, other);
+            return stringAppendNode.executeStringAppend(string, first);
         }
 
-        @Specialization(guards = "!isRubyString(other)")
-        protected Object concatGeneric(
-                VirtualFrame frame,
-                DynamicObject string,
-                Object other,
+        @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
+        protected Object concatGeneric(DynamicObject string, Object first, Object[] rest,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode) {
-            return callNode.call(string, "concat_internal", other);
+            return callNode.call(string, "concat_internal", first);
         }
 
+        @ExplodeLoop
+        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == cachedLength" })
+        protected Object concatMany(DynamicObject string, Object first, Object[] rest,
+                @Cached("rest.length") int cachedLength,
+                @Cached ConcatNode argConcatNode,
+                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+            Rope rope = StringOperations.rope(string);
+            Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
+            for (int i = 0; i < cachedLength; ++i) {
+                if (selfArgProfile.profile(rest[i] == string)) {
+                    Object copy = createString(getContext(), rope);
+                    result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
+                } else {
+                    result = argConcatNode.executeConcat(string, rest[i], EMPTY_ARGUMENTS);
+                }
+            }
+            return result;
+        }
+
+        /** Same implementation as {@link #concatMany}, safe for the use of {@code cachedLength} */
+        @Specialization(guards = { "wasProvided(first)", "rest.length > 0" }, replaces = "concatMany")
+        protected Object concatManyGeneral(DynamicObject string, Object first, Object[] rest,
+                @Cached ConcatNode argConcatNode,
+                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+            Rope rope = StringOperations.rope(string);
+            Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
+            for (Object arg : rest) {
+                if (selfArgProfile.profile(arg == string)) {
+                    Object copy = createString(getContext(), rope);
+                    result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
+                } else {
+                    result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);
+                }
+            }
+            return result;
+        }
     }
 
     @CoreMethod(
