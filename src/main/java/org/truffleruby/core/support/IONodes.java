@@ -304,7 +304,7 @@ public abstract class IONodes {
                         }
                     }
                     /* failed : try next recursion */
-                    if (ptmp != -1 && stmp != -1 && !(period && string[stmp] == '.')) {
+                    if (ptmp != -1 && stmp != -1 && !(period && stmp < string.length && string[stmp] == '.')) {
                         stmp = nextSlashIndex(string, stmp, send);
                         if (stmp < send) {
                             pat_pos = ptmp;

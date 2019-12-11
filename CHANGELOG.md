@@ -37,6 +37,7 @@ Bug fixes:
 * Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
 * `Truffle::Interop.keys` should report methods of String and Symbol (#1817)
 * `Kernel#sprintf` encoding validity has been fixed (#1852, @XrXr).
+* Fixed File.fnmatch causes ArrayIndexOutOfBoundsException (#1845).
 
 Compatibility:
 
