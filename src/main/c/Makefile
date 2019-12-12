@@ -26,15 +26,16 @@ SPAWN_HELPER := spawn-helper/spawn-helper
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
-PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
-BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
-# These libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) cext/libtruffleruby.$(DLEXT)
+LIBTRUFFLERUBY = cext/libtruffleruby.$(DLEXT)
+BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(MKMF)
+# C extensions link against libtruffleruby (and might do have_func() checks against it), so it needs to be there before.
+# However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
-all: cext/libtruffleruby.$(DLEXT) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
+all: $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
 			etc/etc.$(DLEXT) rbconfig-sizeof/sizeof.$(DLEXT)
 
@@ -44,7 +45,7 @@ clean_truffleposix:
 	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
 
 clean_cexts:
-	$(Q) rm -f cext/Makefile cext/*.o cext/libtruffleruby.$(DLEXT)
+	$(Q) rm -f cext/Makefile cext/*.o $(LIBTRUFFLERUBY)
 	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT)
 	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.$(DLEXT)
 	$(Q) rm -f psych/Makefile psych/*.o psych/yaml/*.o psych/psych.$(DLEXT)
@@ -65,7 +66,7 @@ $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-cext/libtruffleruby.$(DLEXT): cext/Makefile cext/*.c
+$(LIBTRUFFLERUBY): cext/Makefile cext/*.c
 	$(Q) cd cext && $(MAKE)
 
 # openssl
