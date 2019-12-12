@@ -52,6 +52,17 @@ cc `@hsbt` in the PR description.
 `rbenv` users which installed `ruby-build` using Homebrew need a new release of
 `ruby-build` to try the new TruffleRuby release.
 
+### Create a Release
+
+Once pushed/merged to master, it's a good idea to create a `ruby-build` release,
+so `ruby-build` Homebrew users can get the new TruffleRuby release too:
+
+```bash
+$ script/release
+```
+
+See [this comment](https://github.com/rbenv/ruby-build/pull/1318#issuecomment-548399571) for details.
+
 ## RVM
 
 There is a script in the repo that does everything needed:
