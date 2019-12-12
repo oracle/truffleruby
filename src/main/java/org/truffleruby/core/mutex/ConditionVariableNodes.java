@@ -103,24 +103,27 @@ public abstract class ConditionVariableNodes {
             // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
-            mutexLock.unlock();
-
-            Layouts.CONDITION_VARIABLE
-                    .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
             try {
-                awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
-            } catch (Error | RuntimeException e) {
-                /*
-                 * Consume a signal if one was waiting. We do this because the error may have
-                 * occurred while we were waiting, or at some point after exiting a safepoint that
-                 * throws an exception and another thread has attempted to signal us. It is valid
-                 * for us to consume this signal because we are still marked as waiting for it.
-                 */
-                consumeSignal(conditionVariable);
-                throw e;
-            } finally {
+                mutexLock.unlock();
+
                 Layouts.CONDITION_VARIABLE
-                        .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
+                        .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
+                try {
+                    awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
+                } catch (Error | RuntimeException e) {
+                    /*
+                     * Consume a signal if one was waiting. We do this because the error may have
+                     * occurred while we were waiting, or at some point after exiting a safepoint that
+                     * throws an exception and another thread has attempted to signal us. It is valid
+                     * for us to consume this signal because we are still marked as waiting for it.
+                     */
+                    consumeSignal(conditionVariable);
+                    throw e;
+                } finally {
+                    Layouts.CONDITION_VARIABLE
+                            .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
+                }
+            } finally {
                 condLock.unlock();
                 MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
             }
