@@ -291,15 +291,15 @@ extensions to Ruby.
 
 ## Features not yet supported in native configuration
 
-* Java interop
-
 Running TruffleRuby in the native configuration is mostly the same as running
 on the JVM. There are differences in resource management, as both VMs use
 different garbage collectors. But, functionality-wise, they are essentially on
-par with one another. The big difference is support for Java interop, which
-currently relies on reflection. TruffleRuby's implementation of Java interop
-does not work with the GraalVM Native Image Generator's limited support for
-runtime reflection.
+par with one another.
+
+Java interoperability works in the native configuration but requires more setup.
+First, only for classes loaded in the image can be accessed.
+You can add more classes by compiling a native image including TruffleRuby.
+See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
 
 ## Spec Completeness
 
