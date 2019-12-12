@@ -78,7 +78,7 @@ public class TryNode extends RubyNode {
         }
     }
 
-    @ExplodeLoop(kind = LoopExplosionKind.FULL_EXPLODE_UNTIL_RETURN)
+    @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     private Object handleException(VirtualFrame frame, RaiseException exception) {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -66,6 +67,7 @@ public abstract class HashLiteralNode extends RubyNode {
         @Child private CallDispatchHeadNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
+        private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
@@ -78,26 +80,31 @@ public abstract class HashLiteralNode extends RubyNode {
 
             int size = 0;
 
-            initializers: for (int n = 0; n < keyValues.length / 2; n++) {
+            for (int n = 0; n < keyValues.length / 2; n++) {
                 Object key = keyValues[n * 2].execute(frame);
                 key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(key, false);
 
                 final int hashed = hash(key);
 
                 final Object value = keyValues[n * 2 + 1].execute(frame);
+                boolean duplicateKey = false;
 
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == PackedArrayStrategy.getHashed(store, i) &&
                             callEqual(key, PackedArrayStrategy.getKey(store, i))) {
+                        duplicateKeyProfile.enter();
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
-                        continue initializers;
+                        duplicateKey = true;
+                        break;
                     }
                 }
 
-                PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
-                size++;
+                if (!duplicateKey) {
+                    PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
+                    size++;
+                }
             }
 
             return coreLibrary()

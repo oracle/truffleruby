@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -59,7 +60,7 @@ public abstract class SetNode extends RubyBaseNode {
         return value;
     }
 
-    @ExplodeLoop
+    @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(guards = "isPackedHash(hash)")
     protected Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
             @Cached("createBinaryProfile()") ConditionProfile strategyProfile) {
