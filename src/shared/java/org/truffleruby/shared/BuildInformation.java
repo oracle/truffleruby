@@ -24,4 +24,6 @@ public interface BuildInformation {
 
     String getCompileDate();
 
+    String kernelVersion();
+
 }
