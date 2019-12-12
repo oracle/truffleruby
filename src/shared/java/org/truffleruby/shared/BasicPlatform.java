@@ -36,6 +36,7 @@
 package org.truffleruby.shared;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public abstract class BasicPlatform {
 
@@ -94,5 +95,9 @@ public abstract class BasicPlatform {
         }
 
         return architecture;
+    }
+
+    public static String getKernelMajorVersion() {
+        return BuildInformationImpl.INSTANCE.kernelVersion().split(Pattern.quote("."))[0];
     }
 }
