@@ -38,6 +38,14 @@ ruby_version_is "2.6" do
         (f << g).lambda?.should == false
       end
 
+      it "is a Proc when other is lambda" do
+        f = proc { |x| x * x }
+        g = ->(x) { x + x }
+
+        (f << g).is_a?(Proc).should == true
+        (f << g).lambda?.should == false
+      end
+
       it "may accept multiple arguments" do
         inc = proc { |n| n + 1 }
         mul = proc { |n, m| n * m }
@@ -86,6 +94,14 @@ ruby_version_is "2.6" do
       it "is a Proc" do
         f = proc { |x| x * x }
         g = proc { |x| x + x }
+
+        (f >> g).is_a?(Proc).should == true
+        (f >> g).lambda?.should == false
+      end
+
+      it "is a Proc when other is lambda" do
+        f = proc { |x| x * x }
+        g = ->(x) { x + x }
 
         (f >> g).is_a?(Proc).should == true
         (f >> g).lambda?.should == false
