@@ -31,8 +31,9 @@ installed as a plugin for [`rbenv`](https://github.com/rbenv/rbenv).
 First, you need to upgrade `ruby-build` to get the latest TruffleRuby
 definition. See [`ruby-build`'s instructions for upgrading](https://github.com/rbenv/ruby-build#upgrading).
 
-On macOS, if `ruby-build` is installed via Homebrew, you should install
-the HEAD version of `ruby-build` to get the latest TruffleRuby release with:
+On macOS, if `ruby-build` is installed via Homebrew and you do not see the
+[latest TruffleRuby release](https://github.com/oracle/truffleruby/releases),
+you might need to install the HEAD version of `ruby-build` with:
 
 ```bash
 $ brew reinstall --HEAD ruby-build
