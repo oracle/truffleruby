@@ -100,6 +100,8 @@ module RbConfig
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
+    'UNICODE_VERSION'   => '12.0.0',
+    'UNICODE_EMOJI_VERSION' => '12.0',
   }
 
   MAKEFILE_CONFIG = CONFIG.dup
