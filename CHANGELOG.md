@@ -52,6 +52,7 @@ Compatibility:
 * Implemented `rb_hash_start` (#1841, @XrXr).
 * JCodings has been updated from 1.0.42 to 1.0.45.
 * Joni has been updated from 2.1.25 to 2.1.30.
+* Implemented `Method#<<` and `Method#>>` (#1821).
 
 Performance:
 

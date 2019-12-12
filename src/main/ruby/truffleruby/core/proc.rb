@@ -105,7 +105,7 @@ class Proc
   end
 
   def >>(other)
-    if other.respond_to?(:lambda?) && other.lambda?
+    if lambda?
       -> (*args, &block) do
         other.call(call(*args, &block))
       end
@@ -117,7 +117,7 @@ class Proc
   end
 
   def <<(other)
-    if other.respond_to?(:lambda?) && other.lambda?
+    if lambda?
       -> (*args, &block) do
         call(other.call(*args, &block))
       end
