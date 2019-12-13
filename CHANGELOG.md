@@ -38,6 +38,7 @@ Bug fixes:
 * `Truffle::Interop.keys` should report methods of String and Symbol (#1817)
 * `Kernel#sprintf` encoding validity has been fixed (#1852, @XrXr).
 * Fixed File.fnmatch causes ArrayIndexOutOfBoundsException (#1845).
+* Make `String#concat` work with no or multiple arguments (#1519).
 
 Compatibility:
 
