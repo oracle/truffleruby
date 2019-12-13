@@ -3,5 +3,3 @@ fails:Kernel#clone returns true for TrueClass
 fails:Kernel#clone returns false for FalseClass
 fails:Kernel#clone returns the same Integer for Integer
 fails:Kernel#clone returns the same Symbol for Symbol
-fails:Kernel#clone returns self for Complex
-fails:Kernel#clone returns self for Rational

@@ -29,9 +29,11 @@
 class Numeric
   include Comparable
 
-  # Always raises TypeError, as dup'ing Numerics is not allowed.
-  def initialize_copy(other)
-    raise TypeError, "copy of #{self.class} is not allowed"
+  def clone(freeze: true)
+    unless freeze
+      raise ArgumentError, "can't unfreeze #{self.class.name}"
+    end
+    self
   end
 
   def +@
