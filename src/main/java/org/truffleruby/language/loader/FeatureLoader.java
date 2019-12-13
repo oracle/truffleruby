@@ -16,8 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -32,12 +30,14 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.NativeConfiguration;
+import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -45,6 +45,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class FeatureLoader {
@@ -275,28 +276,25 @@ public class FeatureLoader {
 
         if (path.endsWith(".so")) {
             final String base = path.substring(0, path.length() - 3);
+            final String pathWithNativeExt = base + RubyLanguage.CEXT_EXTENSION;
 
-            final String asSO = findFeatureWithExactPath(base + RubyLanguage.CEXT_EXTENSION);
-
-            if (asSO != null) {
-                return asSO;
+            final String asCExt = findFeatureWithExactPath(pathWithNativeExt);
+            if (asCExt != null) {
+                return asCExt;
             }
         }
 
-        final String withExtension = findFeatureWithExactPath(path + TruffleRuby.EXTENSION);
-
-        if (withExtension != null) {
-            return withExtension;
+        final String asRuby = findFeatureWithExactPath(path + TruffleRuby.EXTENSION);
+        if (asRuby != null) {
+            return asRuby;
         }
 
         final String asCExt = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
-
         if (asCExt != null) {
             return asCExt;
         }
 
         final String withoutExtension = findFeatureWithExactPath(path);
-
         if (withoutExtension != null) {
             return withoutExtension;
         }
@@ -353,8 +351,7 @@ public class FeatureLoader {
                 final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
-                final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" +
-                        RubyLanguage.CEXT_EXTENSION;
+                final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final TruffleObject library = loadCExtLibRuby(rubyLibPath, feature);
 
                 final TruffleObject initFunction = requireNode

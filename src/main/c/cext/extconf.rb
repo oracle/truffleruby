@@ -6,6 +6,18 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+# Compile libtruffleruby as a .dylib shared library and not a .bundle on macOS to allow -ltruffleruby
+if Truffle::Platform.darwin?
+  module Truffle::Platform
+    remove_const :DLEXT
+    DLEXT = SOEXT
+  end
+
+  require 'rbconfig'
+  RbConfig::CONFIG['LDSHARED'] = "#{RbConfig::CONFIG['CC']} -shared"
+  RbConfig::MAKEFILE_CONFIG['LDSHARED'] = '$(CC) -shared'
+end
+
 require 'mkmf'
 
 $srcs = %w[ruby.c internal.c st.c]

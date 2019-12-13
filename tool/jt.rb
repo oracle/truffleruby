@@ -49,8 +49,9 @@ RUBOCOP_INCLUDE_LIST = %w[
 ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
 ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
+# See core/truffle/platform.rb
 SOEXT = ON_MAC ? 'dylib' : 'so'
-DLEXT = SOEXT # See core/truffle/platform.rb
+DLEXT = ON_MAC ? 'bundle' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
