@@ -34,6 +34,13 @@ describe "RUBY_PLATFORM" do
   it "is a String" do
     RUBY_PLATFORM.should be_kind_of(String)
   end
+
+  platform_is_not :windows do
+    it 'contains the current kernel major version' do
+      kernel_version = `uname -r`
+      RUBY_PLATFORM.should =~ /#{kernel_version.split('.').first}/
+    end
+  end
 end
 
 describe "RUBY_RELEASE_DATE" do
