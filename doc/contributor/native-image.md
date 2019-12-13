@@ -100,8 +100,11 @@ The disadvantages of the Native Image version of TruffleRuby are:
 
 * It has lower peak performance, as the GC is simpler and some optimisations
   such as compressed ordinary object pointers (OOPS) are not yet available.
-* You can't use Java interoperability.
 * You can't use standard Java tools like VisualVM.
+* Java interoperability works in the native configuration but requires more setup.
+  First, only for classes loaded in the image can be accessed.
+  You can add more classes by compiling a native image including TruffleRuby.
+  See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
 
 So the native version may not be appropriate for all uses.
 

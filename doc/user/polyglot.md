@@ -147,8 +147,11 @@ converted to boolean if possible or considered to be true.
 ## Accessing Java objects
 
 TruffleRuby's Java interop interface is similar to the interface from the
-Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
-available in JVM mode (`--jvm`).
+Nashorn JavaScript implementation, as also implemented by Graal.js.
+
+It is easier to use Java interop in JVM mode (`--jvm`).
+Java interop is also supported in native mode but requires more setup.
+See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
 
 `Java.type('name')` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`. With the class object, `.new` will create an
