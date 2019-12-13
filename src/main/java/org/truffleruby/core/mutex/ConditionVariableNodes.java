@@ -106,8 +106,9 @@ public abstract class ConditionVariableNodes {
             try {
                 mutexLock.unlock();
 
-                Layouts.CONDITION_VARIABLE
-                        .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
+                Layouts.CONDITION_VARIABLE.setWaiters(
+                        conditionVariable,
+                        Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
                 try {
                     awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
                 } catch (Error | RuntimeException e) {
@@ -120,8 +121,9 @@ public abstract class ConditionVariableNodes {
                     consumeSignal(conditionVariable);
                     throw e;
                 } finally {
-                    Layouts.CONDITION_VARIABLE
-                            .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
+                    Layouts.CONDITION_VARIABLE.setWaiters(
+                            conditionVariable,
+                            Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
                 }
             } finally {
                 condLock.unlock();
