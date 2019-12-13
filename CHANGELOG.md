@@ -54,6 +54,7 @@ Compatibility:
 * JCodings has been updated from 1.0.42 to 1.0.45.
 * Joni has been updated from 2.1.25 to 2.1.30.
 * Implemented `Method#<<` and `Method#>>` (#1821).
+* Implemented `Comparable#clamp` (#1517).
 
 Performance:
 

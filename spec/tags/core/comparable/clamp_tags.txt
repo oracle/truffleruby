@@ -1,5 +1,0 @@
-fails:Comparable#clamp raises an Argument error unless given 2 parameters
-fails:Comparable#clamp raises an Argument error unless the 2 parameters are correctly ordered
-fails:Comparable#clamp returns self if within the given parameters
-fails:Comparable#clamp returns the min parameter if smaller than it
-fails:Comparable#clamp returns the max parameter if greater than it

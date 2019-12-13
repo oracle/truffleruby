@@ -79,6 +79,14 @@ module Comparable
     true
   end
 
+  def clamp(min, max)
+    comp = min <=> max
+    raise ArgumentError, 'min argument must be smaller than max argument' if comp == nil or comp > 0
+    return min if self < min
+    return max if self > max
+    self
+  end
+
   # A version of MRI's rb_cmpint (sort of)
   def self.compare_int(int)
     return int if int.kind_of? Integer
