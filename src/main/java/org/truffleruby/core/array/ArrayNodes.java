@@ -27,7 +27,9 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
+import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.cast.CmpIntNode;
+import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -328,7 +330,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject compactPrimitive(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
             final int size = strategy.getSize(array);
             Object compactMirror = extractRangeCopyOnWriteNode.execute(array, 0, size);
             return createArray(compactMirror, size);
@@ -406,25 +408,70 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "concat", required = 1, raiseIfFrozenSelf = true)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyNode.class)
+    @CoreMethod(names = "concat", optional = 1, rest = true, raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "first", type = RubyNode.class)
+    @NodeChild(value = "rest", type = RubyNode.class)
     public abstract static class ConcatNode extends CoreMethodNode {
 
-        @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create();
-
-        @CreateCast("other")
-        protected RubyNode coerceOtherToAry(RubyNode other) {
-            return ToAryNodeGen.create(other);
-        }
-
-        @Specialization
-        protected DynamicObject concat(DynamicObject array, DynamicObject other) {
-            appendManyNode.executeAppendMany(array, other);
+        @Specialization(guards = "rest.length == 0")
+        protected DynamicObject concatZero(DynamicObject array, NotProvided first, Object[] rest) {
             return array;
         }
 
+        @Specialization(guards = "rest.length == 0")
+        protected DynamicObject concatOne(DynamicObject array, DynamicObject first, Object[] rest,
+                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ArrayAppendManyNode appendManyNode) {
+            appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            return array;
+        }
+
+        @ExplodeLoop
+        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == cachedLength" })
+        protected Object concatMany(DynamicObject array, DynamicObject first, Object[] rest,
+                @Cached("rest.length") int cachedLength,
+                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ArrayAppendManyNode appendManyNode,
+                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeNode) {
+            int size = Layouts.ARRAY.getSize(array);
+            Object store = extractRangeNode.execute(array, 0, size);
+            DynamicObject copy = createArray(store, size);
+            DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            for (int i = 0; i < cachedLength; ++i) {
+                if (selfArgProfile.profile(rest[i] == array)) {
+                    result = appendManyNode.executeAppendMany(array, copy);
+                } else {
+                    result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(rest[i]));
+                }
+            }
+            return result;
+        }
+
+        /** Same implementation as {@link #concatMany}, safe for the use of {@code cachedLength} */
+        @Specialization(guards = { "wasProvided(first)", "rest.length > 0" }, replaces = "concatMany")
+        protected Object concatManyGeneral(DynamicObject array, DynamicObject first, Object[] rest,
+                @Cached("createInternal()") ToAryNode toAryNode,
+                @Cached ArrayAppendManyNode appendManyNode,
+                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeNode) {
+            int size = Layouts.ARRAY.getSize(array);
+            Object store = extractRangeNode.execute(array, 0, size);
+
+            DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            for (Object arg : rest) {
+                if (selfArgProfile.profile(arg == array)) {
+                    result = appendManyNode.executeAppendMany(array, createArray(store, size));
+                } else {
+                    result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
+                }
+            }
+            return result;
+        }
     }
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true)
@@ -1635,7 +1682,7 @@ public abstract class ArrayNodes {
         protected DynamicObject replace(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
+                @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
             propagateSharingNode.propagate(array, other);
 
             final int size = getSize(other);
@@ -1830,7 +1877,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         protected Object shiftOther(DynamicObject array, NotProvided n,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final int size = strategy.getSize(array);
             final Object value = getNode.execute(Layouts.ARRAY.getStore(array), 0);
@@ -1862,8 +1909,8 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected Object shiftMany(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode1,
-                @Cached("strategy.sharedStorageStrategy().extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode2,
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode1,
+                @Cached("strategy.sharedStorageStrategy().extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode2,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
