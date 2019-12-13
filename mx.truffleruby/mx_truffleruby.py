@@ -11,12 +11,24 @@ from os.path import join
 
 import mx
 import mx_sdk
+import mx_subst
 
 if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark  # pylint: disable=unused-import
 
 _suite = mx.suite('truffleruby')
 root = _suite.dir
+
+def add_ext_suffix(name):
+    """
+    Adds the platform specific C extension suffix to a name
+    """
+    if mx.is_darwin():
+        return name + '.bundle'
+    else:
+        return name + '.so'
+
+mx_subst.results_substitutions.register_with_arg('extsuffix', add_ext_suffix)
 
 # Utilities
 

@@ -4,8 +4,10 @@ MKMF_MAKEFILE_SUBPROCESS_FLAGS = $(MX_VERBOSE:y=V=1)
 
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
-DLEXT := dylib
+SOEXT := dylib
+DLEXT := bundle
 else
+SOEXT := so
 DLEXT := so
 endif
 
@@ -20,14 +22,14 @@ CC := clang
 CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
 LDFLAGS := -m64
 
-TRUFFLE_POSIX := truffleposix/libtruffleposix.$(DLEXT)
+TRUFFLE_POSIX := truffleposix/libtruffleposix.$(SOEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
-LIBTRUFFLERUBY = cext/libtruffleruby.$(DLEXT)
+LIBTRUFFLERUBY = cext/libtruffleruby.$(SOEXT)
 BASIC_EXTCONF_DEPS := $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(MKMF)
 # C extensions link against libtruffleruby (and might do have_func() checks against it), so it needs to be there before.
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.

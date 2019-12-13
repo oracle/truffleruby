@@ -2,9 +2,9 @@ Q$(MX_VERBOSE) = @
 
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
-DLEXT := dylib
+SOEXT := dylib
 else
-DLEXT := so
+SOEXT := so
 endif
 
 ifeq ($(OS),SunOS)
@@ -32,7 +32,7 @@ ifeq ($(OS),SunOS)
 LDFLAGS += -lrt
 endif
 
-libtruffleposix.$(DLEXT): truffleposix.o Makefile
+libtruffleposix.$(SOEXT): truffleposix.o Makefile
 	$(Q) $(CC) -shared $(LDFLAGS) -o $@ $<
 
 truffleposix.o: truffleposix.c Makefile

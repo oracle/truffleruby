@@ -22,6 +22,7 @@ workingsets.xml
 # C extensions
 *.o
 *.so
+*.bundle
 *.dylib
 /.ext
 conftest
