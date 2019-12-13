@@ -454,9 +454,9 @@ public abstract class ThreadNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorKilledThread(this));
             }
 
+            // This only interrupts Kernel#sleep, Mutex#sleep and ConditionVariable#wait by having those check for the
+            // wakeup flag. Other operations just retry when interrupted.
             Layouts.THREAD.getWakeUp(rubyThread).set(true);
-
-            // TODO: should only interrupt sleep
             getContext().getThreadManager().interrupt(thread);
 
             return rubyThread;

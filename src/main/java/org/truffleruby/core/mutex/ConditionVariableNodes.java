@@ -22,7 +22,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager;
-import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -44,8 +43,12 @@ public abstract class ConditionVariableNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            ReentrantLock lock = new ReentrantLock();
-            return allocateNode.allocate(rubyClass, lock, lock.newCondition(), 0, 0);
+            // condLock is only held for a short number of non-blocking instructions,
+            // so there is no need to poll for safepoints while locking it.
+            // It is an internal lock and so locking should be done with condLock.lock()
+            // to avoid changing the Ruby Thread status and consume Java thread interrupts.
+            final ReentrantLock condLock = new ReentrantLock();
+            return allocateNode.allocate(rubyClass, condLock, condLock.newCondition(), 0, 0);
         }
 
     }
@@ -95,29 +98,34 @@ public abstract class ConditionVariableNodes {
             // it should only be considered if we are inside Mutex#sleep when Thread#{run,wakeup} is called.
             Layouts.THREAD.getWakeUp(thread).set(false);
 
-            // condLock must be locked before unlocking mutexLock, to avoid losing potential signals
-            getContext().getThreadManager().runUntilResult(this, () -> {
-                condLock.lockInterruptibly();
-                return BlockingAction.SUCCESS;
-            });
-            mutexLock.unlock();
-
-            Layouts.CONDITION_VARIABLE
-                    .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
+            // condLock must be locked before unlocking mutexLock, to avoid losing potential signals.
+            // We must not change the Ruby Thread status and not consume a Java thread interrupt while locking condLock.
+            // If there is an interrupt, it should be consumed by condition.await() and the Ruby Thread sleep status
+            // must imply being ready to be interrupted by Thread#{run,wakeup}.
+            condLock.lock();
             try {
-                awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
-            } catch (Error | RuntimeException e) {
-                /*
-                 * Consume a signal if one was waiting. We do this because the error may have
-                 * occurred while we were waiting, or at some point after exiting a safepoint that
-                 * throws an exception and another thread has attempted to signal us. It is valid
-                 * for us to consume this signal because we are still marked as waiting for it.
-                 */
-                consumeSignal(conditionVariable);
-                throw e;
+                mutexLock.unlock();
+
+                Layouts.CONDITION_VARIABLE.setWaiters(
+                        conditionVariable,
+                        Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
+                try {
+                    awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
+                } catch (Error | RuntimeException e) {
+                    /*
+                     * Consume a signal if one was waiting. We do this because the error may have
+                     * occurred while we were waiting, or at some point after exiting a safepoint that
+                     * throws an exception and another thread has attempted to signal us. It is valid
+                     * for us to consume this signal because we are still marked as waiting for it.
+                     */
+                    consumeSignal(conditionVariable);
+                    throw e;
+                } finally {
+                    Layouts.CONDITION_VARIABLE.setWaiters(
+                            conditionVariable,
+                            Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
+                }
             } finally {
-                Layouts.CONDITION_VARIABLE
-                        .setWaiters(conditionVariable, Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
                 condLock.unlock();
                 MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
             }
@@ -205,13 +213,7 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
-            if (!condLock.tryLock()) {
-                getContext().getThreadManager().runUntilResult(this, () -> {
-                    condLock.lockInterruptibly();
-                    return BlockingAction.SUCCESS;
-                });
-            }
-
+            condLock.lock();
             try {
                 if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
                     Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) + 1);
@@ -234,13 +236,7 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
-            if (!condLock.tryLock()) {
-                getContext().getThreadManager().runUntilResult(this, () -> {
-                    condLock.lockInterruptibly();
-                    return BlockingAction.SUCCESS;
-                });
-            }
-
+            condLock.lock();
             try {
                 if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
                     Layouts.CONDITION_VARIABLE.setSignals(
