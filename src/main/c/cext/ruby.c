@@ -4711,7 +4711,7 @@ void rb_define_virtual_variable(const char *name, VALUE (*getter)(ANYARGS), void
 }
 
 void rb_gc_register_mark_object(VALUE obj) {
-  RUBY_CEXT_INVOKE("rb_gc_register_mark_object", obj);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
 }
 
 ID rb_check_id(volatile VALUE *namep) {

@@ -485,7 +485,7 @@ describe "C-API Encoding function" do
       @s.rb_enc_str_asciionly_p("hello").should be_true
     end
 
-    it "returns true for a non-ASCII string" do
+    it "returns false for a non-ASCII string" do
       @s.rb_enc_str_asciionly_p("hüllo").should be_false
     end
   end
