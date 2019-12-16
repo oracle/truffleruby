@@ -40,8 +40,8 @@
 # http://benchmarksgame.alioth.debian.org/u64q/program.php?test=mandelbrot&lang=yarv&id=3
 
 def mandelbrot(size)
-  Truffle::Graal.assert_not_compiled
-  
+  TrufflePrimitive.assert_not_compiled
+
   sum = 0
 
   byte_acc = 0
