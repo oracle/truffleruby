@@ -41,6 +41,7 @@ Bug fixes:
 * Make `String#concat` work with no or multiple arguments (#1519).
 * Make `Array#concat` work with no or multiple arguments (#1519).
 * Fixed BigDecimal coerce initial argument using `to_str` (#1826).
+* Fixed `NameError`, `NoMethodError`, and `SystemCallError` dup with internal field data.
 
 Compatibility:
 

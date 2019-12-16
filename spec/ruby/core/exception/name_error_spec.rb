@@ -22,3 +22,15 @@ describe "NameError.new" do
     end
   end
 end
+
+describe "NameError#dup" do
+  it "copies the name and receiver" do
+    begin
+      foo
+    rescue NameError => ne
+      name_error_dup = ne.dup
+      name_error_dup.name.should == :foo
+      name_error_dup.receiver.should == self
+    end
+  end
+end

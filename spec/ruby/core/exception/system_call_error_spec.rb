@@ -128,3 +128,10 @@ describe "SystemCallError#message" do
     SystemCallError.new("XXX").message.should =~ /XXX/
   end
 end
+
+describe "SystemCallError#dup" do
+  it "copies the errno" do
+    dup_sce = SystemCallError.new("message", 42).dup
+    dup_sce.errno.should == 42
+  end
+end

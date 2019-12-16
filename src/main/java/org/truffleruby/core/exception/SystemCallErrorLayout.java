@@ -30,6 +30,8 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             DynamicObject cause,
             Object errno);
 
+    boolean isSystemCallError(DynamicObject object);
+
     Object getErrno(DynamicObject object);
 
     void setErrno(DynamicObject object, Object value);
