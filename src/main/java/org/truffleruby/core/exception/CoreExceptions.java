@@ -225,6 +225,11 @@ public class CoreExceptions {
         return argumentError(StringUtils.format("invalid value for BigDecimal(): \"%s\"", string), currentNode);
     }
 
+    public DynamicObject argumentErrorCantUnfreeze(Object self, Node currentNode) {
+        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(self)).getName();
+        return argumentError(StringUtils.format("can't unfreeze %s", className), currentNode);
+    }
+
     // FrozenError
 
     @TruffleBoundary

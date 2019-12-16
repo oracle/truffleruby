@@ -48,6 +48,7 @@ Bug fixes:
 * Run `END` keyword block only once at exit.
 * Implement Numeric#clone method to return self.
 * Fixed `Symbol#to_proc` to create proc with nil `source_location` (#1663).
+* Fixed `Kernel#clone` for `nil`, `true`, `false`, `Integer`, and `Symbol`.
 
 Compatibility:
 

@@ -459,7 +459,7 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization
+        @Specialization(guards = { "!isNil(self)", "!isRubyBignum(self)", "!isRubySymbol(self)" })
         protected DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
@@ -492,6 +492,73 @@ public abstract class KernelNodes {
             }
 
             return newObject;
+        }
+
+        @Specialization
+        protected Object cloneBoolean(boolean self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneInteger(int self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneLong(long self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneFloat(double self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        protected Object cloneNil(Object nil, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(nil);
+            }
+            return nil;
+        }
+
+        @Specialization(guards = "isRubyBignum(object)")
+        protected Object cloneBignum(DynamicObject object, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(object);
+            }
+            return object;
+        }
+
+        @Specialization(guards = "isRubySymbol(symbol)")
+        protected Object cloneSymbol(DynamicObject symbol, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(symbol);
+            }
+            return symbol;
+        }
+
+        private void raiseCantUnfreezeError(Object self) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
         }
 
         private DynamicObject executeSingletonClass(DynamicObject newObject) {

@@ -1,5 +1,0 @@
-fails:Kernel#clone returns nil for NilClass
-fails:Kernel#clone returns true for TrueClass
-fails:Kernel#clone returns false for FalseClass
-fails:Kernel#clone returns the same Integer for Integer
-fails:Kernel#clone returns the same Symbol for Symbol
