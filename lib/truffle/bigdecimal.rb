@@ -326,8 +326,50 @@ class BigDecimal < Numeric
 end
 
 module Kernel
-  def BigDecimal(value, precision = Truffle::UNDEFINED)
-    TrufflePrimitive.bigdecimal_new value, precision, true
+  def BigDecimal(value, precision = Truffle::UNDEFINED, exception: true)
+    if !TrufflePrimitive.undefined?(precision)
+      precision = Truffle::Type.rb_num2int(precision)
+      if precision < 0
+        if exception
+          raise ArgumentError, 'negative precision'
+        else
+          return nil
+        end
+      end
+    end
+
+    case value
+    when nil
+      if exception
+        raise TypeError, "can't convert nil into BigDecimal"
+      else
+        return nil
+      end
+    when true
+      if exception
+        raise TypeError, "can't convert true into BigDecimal"
+      else
+        return nil
+      end
+    when false
+      if exception
+        raise TypeError, "can't convert false into BigDecimal"
+      else
+        return nil
+      end
+    when BigDecimal, Integer, Float, Rational, String
+        # conversion handled in primitive
+    else
+      if exception
+        value = StringValue(value)
+      else
+        value = Truffle::Type.rb_check_convert_type(count, String, :to_str)
+        if value.nil?
+          return nil
+        end
+      end
+    end
+    TrufflePrimitive.bigdecimal_new value, precision, exception
   end
 end
 
