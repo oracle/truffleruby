@@ -55,6 +55,7 @@ Compatibility:
 * Joni has been updated from 2.1.25 to 2.1.30.
 * Implemented `Method#<<` and `Method#>>` (#1821).
 * The `.bundle` file extension is now used for C extensions on macOS (#1819, #1837).
+* Implemented `Comparable#clamp` (#1517).
 
 Performance:
 
