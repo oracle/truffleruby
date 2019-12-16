@@ -10,7 +10,6 @@
 package org.truffleruby;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -273,7 +272,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected Iterable<Scope> findTopScopes(RubyContext context) {
-        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()));
+        return Arrays.asList(
+                GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()),
+                Scope.newBuilder("main", context.getCoreLibrary().getMainObject()).build());
     }
 
     public String getTruffleLanguageHome() {
