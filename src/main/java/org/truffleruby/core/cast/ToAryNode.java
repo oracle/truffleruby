@@ -19,7 +19,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -29,13 +28,19 @@ public abstract class ToAryNode extends RubyNode {
 
     @Child private CallDispatchHeadNode toAryNode;
 
+    public static ToAryNode createInternal() {
+        return ToAryNodeGen.create(null);
+    }
+
+    public abstract DynamicObject executeToAry(Object object);
+
     @Specialization(guards = "isRubyArray(array)")
     protected DynamicObject coerceRubyArray(DynamicObject array) {
         return array;
     }
 
     @Specialization(guards = "!isRubyArray(object)")
-    protected DynamicObject coerceObject(VirtualFrame frame, Object object,
+    protected DynamicObject coerceObject(Object object,
             @Cached BranchProfile errorProfile) {
         if (toAryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
