@@ -40,6 +40,7 @@ Bug fixes:
 * Fixed File.fnmatch causes ArrayIndexOutOfBoundsException (#1845).
 * Make `String#concat` work with no or multiple arguments (#1519).
 * Make `Array#concat` work with no or multiple arguments (#1519).
+* Make `Enumerable#chunk` work without a block (#1518).
 
 Compatibility:
 
