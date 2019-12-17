@@ -34,7 +34,7 @@ public abstract class NoMethodErrorNodes {
             return allocateObjectNode
                     .allocate(
                             rubyClass,
-                            Layouts.NO_METHOD_ERROR.build(nil(), null, null, nil(), null, nil(), nil(), null));
+                            Layouts.NO_METHOD_ERROR.build(nil(), null, null, nil(), null, null, null, nil(), nil()));
         }
 
     }

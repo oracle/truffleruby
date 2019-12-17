@@ -37,7 +37,6 @@ public class Backtrace {
     private Activation[] activations;
     private final int omitted;
     private final Throwable javaThrowable;
-    private DynamicObject backtraceStringArray;
 
     public Backtrace(Node location, SourceSection sourceLocation, int omitted, Throwable javaThrowable) {
         this.location = location;
@@ -164,13 +163,4 @@ public class Backtrace {
     public Throwable getJavaThrowable() {
         return javaThrowable;
     }
-
-    public DynamicObject getBacktraceStringArray() {
-        return backtraceStringArray;
-    }
-
-    public void setBacktraceStringArray(DynamicObject backtraceStringArray) {
-        this.backtraceStringArray = backtraceStringArray;
-    }
-
 }
