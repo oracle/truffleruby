@@ -242,7 +242,7 @@ module Utilities
     # Use realpath to always use the executable in languages/ruby/bin/
     graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", File.realpath(ruby_launcher))
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
-      line.include?('"compiler":')
+      line.include?('"compiler":') || line.include?("'compiler':")
     end
   end
 
