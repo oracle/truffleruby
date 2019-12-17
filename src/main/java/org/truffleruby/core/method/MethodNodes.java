@@ -181,7 +181,7 @@ public abstract class MethodNodes {
         protected Object sourceLocation(DynamicObject method) {
             SourceSection sourceSection = Layouts.METHOD.getMethod(method).getSharedMethodInfo().getSourceSection();
 
-            if (sourceSection.getSource() == null) {
+            if (!sourceSection.isAvailable()) {
                 return nil();
             } else {
                 DynamicObject file = makeStringNode.executeMake(
