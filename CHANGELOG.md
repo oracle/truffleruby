@@ -42,6 +42,7 @@ Bug fixes:
 * Make `Array#concat` work with no or multiple arguments (#1519).
 * Fixed BigDecimal coerce initial argument using `to_str` (#1826).
 * Make `Enumerable#chunk` work without a block (#1518).
+* Fixed `BigDecimal#to_s` formatting issue (#1711).
 
 Compatibility:
 

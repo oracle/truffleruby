@@ -242,7 +242,7 @@ class BigDecimal < Numeric
 
         format '%s%s.%s',
                prefix,
-               add_spaces_to_s(before_dot, true, space_frequency),
+               add_spaces_to_s(before_dot, false, space_frequency),
                add_spaces_to_s(after_dot, false, space_frequency)
       else
         format '%s0.%se%d',
