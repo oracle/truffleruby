@@ -128,3 +128,9 @@ describe "SystemCallError#message" do
     SystemCallError.new("XXX").message.should =~ /XXX/
   end
 end
+
+describe "SystemCallError#backtrace" do
+  it "is nil if not raised" do
+    SystemCallError.new("message", 42).backtrace.should == nil
+  end
+end

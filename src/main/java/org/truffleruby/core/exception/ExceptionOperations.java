@@ -69,12 +69,6 @@ public abstract class ExceptionOperations {
         return createRubyException(context, rubyClass, message, backtrace);
     }
 
-    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message,
-            Node node, int errno) {
-        final Backtrace backtrace = context.getCallStack().getBacktrace(node);
-        return createSystemCallError(context, rubyClass, message, errno, backtrace);
-    }
-
     // because the factory is not constant
     @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
@@ -88,7 +82,8 @@ public abstract class ExceptionOperations {
 
     // because the factory is not constant
     @TruffleBoundary
-    private static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message,
+    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass,
+            Object message,
             int errno, Backtrace backtrace) {
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
