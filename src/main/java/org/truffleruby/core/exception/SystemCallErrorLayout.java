@@ -28,6 +28,7 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             @Nullable DynamicObject formatter,
             @Nullable Backtrace backtrace,
             DynamicObject cause,
+            @Nullable DynamicObject backtraceLocations,
             Object errno);
 
     Object getErrno(DynamicObject object);

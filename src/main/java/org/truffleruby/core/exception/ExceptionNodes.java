@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
@@ -44,7 +45,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil()));
+            return allocateObjectNode.allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil(), null));
         }
 
     }
@@ -130,6 +131,35 @@ public abstract class ExceptionNodes {
             return readCustomBacktraceNode;
         }
 
+    }
+
+    @CoreMethod(names = "backtrace_locations")
+    public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object backtrace_locations(DynamicObject exception,
+                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
+            if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
+                DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
+                if (backtraceLocations == null) {
+                    Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+                    int locationsCount = backtrace.getActivations().length;
+                    Object[] locations = new Object[locationsCount];
+                    DynamicObjectFactory factory = coreLibrary().getThreadBacktraceLocationFactory();
+                    for (int i = 0; i < locationsCount; i++) {
+                        locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
+                                factory,
+                                backtrace,
+                                i);
+                    }
+                    backtraceLocations = createArray(locations, locations.length);
+                    Layouts.EXCEPTION.setBacktraceLocations(exception, backtraceLocations);
+                }
+                return backtraceLocations;
+            } else {
+                return nil();
+            }
+        }
     }
 
     @Primitive(name = "exception_backtrace?")

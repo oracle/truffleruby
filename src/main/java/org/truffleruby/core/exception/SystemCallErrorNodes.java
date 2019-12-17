@@ -32,7 +32,7 @@ public abstract class SystemCallErrorNodes {
         @Specialization
         protected DynamicObject allocateNameError(DynamicObject rubyClass) {
             return allocateObjectNode
-                    .allocate(rubyClass, Layouts.SYSTEM_CALL_ERROR.build(nil(), null, null, nil(), nil()));
+                    .allocate(rubyClass, Layouts.SYSTEM_CALL_ERROR.build(nil(), null, null, nil(), null, nil()));
         }
 
     }

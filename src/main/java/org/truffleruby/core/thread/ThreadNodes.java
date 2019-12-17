@@ -124,7 +124,7 @@ public abstract class ThreadNodes {
                 result.set(getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(null, backtrace));
             });
 
-            // If the thread id dead or aborting the SafepointAction will not run
+            // If the thread is dead or aborting the SafepointAction will not run
 
             if (result.get() != null) {
                 return result.get();

@@ -28,6 +28,7 @@ public interface NoMethodErrorLayout extends NameErrorLayout {
             @Nullable DynamicObject formatter,
             @Nullable Backtrace backtrace,
             DynamicObject cause,
+            @Nullable DynamicObject backtraceLocations,
             @Nullable Object receiver,
             Object name,
             Object args);
