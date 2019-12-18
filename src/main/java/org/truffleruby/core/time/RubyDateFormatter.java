@@ -63,6 +63,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -522,12 +523,13 @@ public abstract class RubyDateFormatter {
             try {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
+                final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().errnoError(
                                 context.getCoreLibrary().getErrnoValue("ERANGE"),
                                 "strftime",
-                                currentNode));
+                                backtrace));
             }
 
             // reset formatter

@@ -352,19 +352,21 @@ public class CoreExceptions {
                 StringUtils.format("Numerical argument is out of domain - \"%s\"", method),
                 UTF8Encoding.INSTANCE);
         DynamicObject errorMessage = StringOperations.createString(context, rope);
-        return ExceptionOperations.createSystemCallError(
-                context,
-                exceptionClass,
-                errorMessage,
-                currentNode,
-                context.getCoreLibrary().getErrnoValue("EDOM"));
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        return ExceptionOperations
+                .createSystemCallError(
+                        context,
+                        exceptionClass,
+                        errorMessage,
+                        context.getCoreLibrary().getErrnoValue("EDOM"),
+                        backtrace);
     }
 
     @TruffleBoundary
-    public DynamicObject errnoError(int errno, String extraMessage, Node currentNode) {
+    public DynamicObject errnoError(int errno, String extraMessage, Backtrace backtrace) {
         final String errnoName = context.getCoreLibrary().getErrnoName(errno);
         if (errnoName == null) {
-            return systemCallError(StringUtils.format("Unknown Error (%s)%s", errno, extraMessage), errno, currentNode);
+            return systemCallError(StringUtils.format("Unknown Error (%s)%s", errno, extraMessage), errno, backtrace);
         }
 
         final DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoName);
@@ -372,7 +374,8 @@ public class CoreExceptions {
         final DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
 
-        return ExceptionOperations.createSystemCallError(context, errnoClass, errorMessage, currentNode, errno);
+        return ExceptionOperations
+                .createSystemCallError(context, errnoClass, errorMessage, errno, backtrace);
     }
 
     // IndexError
@@ -1081,7 +1084,7 @@ public class CoreExceptions {
     // SystemCallError
 
     @TruffleBoundary
-    public DynamicObject systemCallError(String message, int errno, Node currentNode) {
+    public DynamicObject systemCallError(String message, int errno, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().getSystemCallErrorClass();
         DynamicObject errorMessage;
         if (message == null) {
@@ -1090,7 +1093,8 @@ public class CoreExceptions {
             errorMessage = StringOperations
                     .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         }
-        return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, errno);
+        return ExceptionOperations
+                .createSystemCallError(context, exceptionClass, errorMessage, errno, backtrace);
     }
 
     // FFI::NullPointerError
