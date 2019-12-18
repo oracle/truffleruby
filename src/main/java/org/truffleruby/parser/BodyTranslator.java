@@ -2842,7 +2842,8 @@ public class BodyTranslator extends Translator {
         if (context.getOptions().BACKTRACES_OMIT_UNUSED && rescueBody != null &&
                 rescueBody.getBodyNode() instanceof SideEffectFree /* allow `expression rescue $!` pattern */ &&
                 (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) ||
-                        !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!")) &&
+                        (!((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!") &&
+                                !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$ERROR_INFO"))) &&
                 rescueBody.getOptRescueNode() == null) {
             canOmitBacktrace = true;
         }
