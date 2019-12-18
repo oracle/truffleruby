@@ -4049,6 +4049,16 @@ int rb_cloexec_dup2(int oldfd, int newfd) {
   rb_tr_error("rb_cloexec_dup2 not implemented");
 }
 
+static int rb_fd_set_nonblock(int fd) {
+  int oflags = fcntl(fd, F_GETFL);
+  if (oflags == -1)
+    return -1;
+  if (oflags & O_NONBLOCK)
+    return 0;
+  oflags |= O_NONBLOCK;
+  return fcntl(fd, F_SETFL, oflags);
+}
+
 int rb_cloexec_pipe(int fildes[2]) {
   rb_tr_error("rb_cloexec_pipe not implemented");
 }
@@ -4586,7 +4596,9 @@ VALUE rb_io_set_write_io(VALUE io, VALUE w) {
 }
 
 void rb_io_set_nonblock(rb_io_t *fptr) {
-  rb_tr_error("rb_io_set_nonblock not implemented");
+  if (rb_fd_set_nonblock(fptr->fd) != 0) {
+    rb_sys_fail("rb_io_set_nonblock failed");
+  }
 }
 
 ssize_t rb_io_bufwrite(VALUE io, const void *buf, size_t size) {
