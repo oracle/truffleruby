@@ -43,6 +43,7 @@ Bug fixes:
 * Fixed BigDecimal coerce initial argument using `to_str` (#1826).
 * Make `Enumerable#chunk` work without a block (#1518).
 * Fixed issue with `SystemCallError.new` setting a backtrace.
+* Fixed `BigDecimal#to_s` formatting issue (#1711).
 
 Compatibility:
 
