@@ -11,10 +11,6 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.backtrace.Activation;
-import org.truffleruby.language.dispatch.CachedDispatchNode;
-import org.truffleruby.language.dispatch.UncachedDispatchNode;
-import org.truffleruby.language.supercall.CallSuperMethodNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -22,7 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;

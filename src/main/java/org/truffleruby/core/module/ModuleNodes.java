@@ -391,8 +391,8 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected DynamicObject generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject,
-                                                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                                                 @Cached ReadCallerFrameNode readCallerFrame) {
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached ReadCallerFrameNode readCallerFrame) {
             final String name = nameToJavaStringNode.executeToJavaString(nameObject);
             createAccessor(module, name, readCallerFrame.execute(frame));
             return nil();
@@ -624,21 +624,24 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyString(code)")
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file, NotProvided line,
+        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file,
+                NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line,
+        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file,
+                NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, StringOperations.getString(file), callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, int line,
+        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file,
+                int line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(
@@ -670,7 +673,8 @@ public abstract class ModuleNodes {
             return deferredCall.call(callNode);
         }
 
-        private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject rubySource, String file,
+        private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, DynamicObject module,
+                DynamicObject rubySource, String file,
                 int line) {
             assert RubyGuards.isRubyString(rubySource);
 
@@ -680,7 +684,8 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall classEvalSourceInternal(DynamicObject module, DynamicObject rubySource, String file, int line,
+        private CodeLoader.DeferredCall classEvalSourceInternal(DynamicObject module, DynamicObject rubySource,
+                String file, int line,
                 final MaterializedFrame callerFrame) {
             final RubySource source = createEvalSourceNode
                     .createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
@@ -1090,13 +1095,15 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject defineMethodBlock(VirtualFrame frame, DynamicObject module, String name, NotProvided proc,
+        protected DynamicObject defineMethodBlock(VirtualFrame frame, DynamicObject module, String name,
+                NotProvided proc,
                 DynamicObject block) {
             return defineMethodProc(frame, module, name, block, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject defineMethodProc(VirtualFrame frame, DynamicObject module, String name, DynamicObject proc,
+        protected DynamicObject defineMethodProc(VirtualFrame frame, DynamicObject module, String name,
+                DynamicObject proc,
                 NotProvided block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
         }
@@ -1126,7 +1133,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected DynamicObject defineMethod(VirtualFrame frame, DynamicObject module, String name, DynamicObject method,
+        protected DynamicObject defineMethod(VirtualFrame frame, DynamicObject module, String name,
+                DynamicObject method,
                 NotProvided block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
             return defineMethodInternal(module, name, method, callerFrame);
@@ -1156,7 +1164,8 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc, MaterializedFrame callerFrame) {
+        private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc,
+                MaterializedFrame callerFrame) {
             final RootCallTarget callTarget = Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
             final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).forDefineMethod(module, name);
@@ -1205,7 +1214,8 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject addMethod(DynamicObject module, String name, InternalMethod method, MaterializedFrame callerFrame) {
+        private DynamicObject addMethod(DynamicObject module, String name, InternalMethod method,
+                MaterializedFrame callerFrame) {
             method = method.withName(name);
 
             final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, callerFrame);

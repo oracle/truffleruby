@@ -39,7 +39,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -74,8 +73,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
-                                     @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
-                                     @Cached ReadCallerFrameNode readCaller) {
+                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
+                @Cached ReadCallerFrameNode readCaller) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
 
             DynamicObject parentBlock = (DynamicObject) readNode
