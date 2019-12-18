@@ -32,6 +32,8 @@ public interface NoMethodErrorLayout extends NameErrorLayout {
             Object name,
             Object args);
 
+    boolean isNoMethodError(DynamicObject object);
+
     Object getArgs(DynamicObject object);
 
     void setArgs(DynamicObject object, Object value);
