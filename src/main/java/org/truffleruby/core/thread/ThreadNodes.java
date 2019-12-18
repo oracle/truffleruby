@@ -40,9 +40,12 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -60,6 +63,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -68,6 +72,7 @@ import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
@@ -125,7 +130,6 @@ public abstract class ThreadNodes {
             });
 
             // If the thread is dead or aborting the SafepointAction will not run
-
             if (result.get() != null) {
                 return result.get();
             } else {
@@ -133,6 +137,82 @@ public abstract class ThreadNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "thread_backtrace_locations", lowerFixnum = { 1, 2 })
+    public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject backtraceLocations(
+                DynamicObject rubyThread, int first, NotProvided second) {
+            return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
+        }
+
+        @Specialization
+        protected DynamicObject backtraceLocations(
+                DynamicObject rubyThread, int first, int second) {
+            return backtraceLocationsInternal(rubyThread, first, second);
+        }
+
+        @TruffleBoundary
+        private DynamicObject backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
+            final Memo<DynamicObject> result = new Memo<>(null);
+
+            final SafepointAction safepointAction = (thread1, currentNode) -> {
+                final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
+
+                // NOTE (norswap, 18 Dec 2019)
+                //   This is not entirely accurate, as a negative length does entail a limit.
+                //   However this limit can only determined by looking at the length of full
+                //   stack trace, which necessitates passing an exception with the limit set.
+                //   However, that field is only used to fill in the stack trace in the first place.
+                final int stackTraceElementsLimit = length < 0
+                        ? GetBacktraceException.UNLIMITED
+                        : omit + length;
+
+                final GetBacktraceException exception = new GetBacktraceException(this, stackTraceElementsLimit);
+
+                // NOTE(norswap, 20 Dec 2019)
+                //   This will also cause the stack trace to be filled.
+                //   We must call this rather than TruffleStackTrace#getStackTrace because
+                //   it does some additional filtering.
+                // TODO(norswap, 20 Dec 2019)
+                //   Currently, only the filtering at the end is taken into account (as length reduction).
+                //   Filtering in the middle will be ignored because of how we build backtrace locations.
+                final int stackTraceLength = backtrace.getActivations(exception).length;
+
+                if (omit > stackTraceLength) {
+                    result.set(nil());
+                    return;
+                }
+
+                // NOTE (norswap, 18 Dec 2019)
+                //  TruffleStackTrace#getStackTrace (hence Backtrace#getActivations too) does not
+                //  always respect the limit, so we need to use Math#min. Haven't yet investigated why.
+                final int locationsLimit = length < 0
+                        ? stackTraceLength - 1 + length
+                        : Math.min(stackTraceLength, length);
+
+                final Object[] locations = new Object[locationsLimit];
+                final DynamicObjectFactory factory = coreLibrary().getThreadBacktraceLocationFactory();
+                for (int i = 0; i < locationsLimit; i++) {
+                    locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
+                            factory,
+                            backtrace,
+                            i);
+                }
+                result.set(createArray(locations, locations.length));
+            };
+
+            getContext()
+                    .getSafepointManager()
+                    .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
+
+            // If the thread is dead or aborting the SafepointAction will not run.
+            return result.get() != null
+                    ? result.get()
+                    : nil();
+        }
     }
 
     @CoreMethod(names = "current", onSingleton = true)
