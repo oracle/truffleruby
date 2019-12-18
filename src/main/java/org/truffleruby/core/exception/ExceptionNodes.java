@@ -300,7 +300,7 @@ public abstract class ExceptionNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
-            return coreExceptions().errnoError(errno, StringOperations.getString(message), this);
+            return coreExceptions().errnoError(errno, StringOperations.getString(message), null);
         }
 
     }

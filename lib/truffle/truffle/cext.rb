@@ -1410,6 +1410,12 @@ module Truffle::CExt
     GC.start
   end
 
+  GC_ROOTS = []
+
+  def rb_gc_register_mark_object(obj)
+    GC_ROOTS.push obj
+  end
+
   def rb_nativethread_self
     Thread.current
   end

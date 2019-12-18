@@ -42,6 +42,8 @@ Bug fixes:
 * Make `Array#concat` work with no or multiple arguments (#1519).
 * Fixed BigDecimal coerce initial argument using `to_str` (#1826).
 * Fixed `NameError`, `NoMethodError`, and `SystemCallError` dup with internal field data.
+* Make `Enumerable#chunk` work without a block (#1518).
+* Fixed issue with `SystemCallError.new` setting a backtrace.
 
 Compatibility:
 
@@ -59,6 +61,7 @@ Compatibility:
 * Implemented `Method#<<` and `Method#>>` (#1821).
 * The `.bundle` file extension is now used for C extensions on macOS (#1819, #1837).
 * Implemented `Comparable#clamp` (#1517).
+* Implemented `rb_gc_register_mark_object` and `rb_enc_str_asciionly_p` (#1856, @chrisseaton).
 
 Performance:
 

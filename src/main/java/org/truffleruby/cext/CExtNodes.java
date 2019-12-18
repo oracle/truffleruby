@@ -65,6 +65,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
@@ -926,14 +927,16 @@ public class CExtNodes {
 
         @Specialization(guards = "isNil(message)")
         protected Object rbSysErrFailNoMessage(int errno, DynamicObject message) {
-            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", this));
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
+            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", backtrace));
         }
 
         @Specialization(guards = "isRubyString(message)")
         protected Object rbSysErrFail(int errno, DynamicObject message) {
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().errnoError(errno, StringOperations.getString(message), this));
+                    coreExceptions().errnoError(errno, StringOperations.getString(message), backtrace));
         }
 
     }

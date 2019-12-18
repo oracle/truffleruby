@@ -33,8 +33,9 @@
 
 module Enumerable
   def chunk(&original_block)
+    return to_enum(:chunk) { enumerator_size } unless block_given?
+
     initial_state = nil
-    raise ArgumentError, 'no block given' unless block_given?
     Enumerator.new do |yielder|
       previous = nil
       accumulate = []

@@ -10,10 +10,11 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.LocalReturnException;
+import org.truffleruby.language.control.DynamicReturnException;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
-import org.truffleruby.language.control.ReturnException;
-import org.truffleruby.language.control.ReturnID;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -25,6 +26,7 @@ public class CatchForMethodNode extends RubyNode {
 
     @Child private RubyNode body;
 
+    private final BranchProfile localReturnProfile = BranchProfile.create();
     private final ConditionProfile matchingReturnProfile = ConditionProfile.createBinaryProfile();
     private final BranchProfile retryProfile = BranchProfile.create();
 
@@ -37,7 +39,10 @@ public class CatchForMethodNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         try {
             return body.execute(frame);
-        } catch (ReturnException e) {
+        } catch (LocalReturnException e) {
+            localReturnProfile.enter();
+            return e.getValue();
+        } catch (DynamicReturnException e) {
             if (matchingReturnProfile.profile(e.getReturnID() == returnID)) {
                 return e.getValue();
             } else {
