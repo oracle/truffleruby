@@ -20,6 +20,7 @@ Compatibility:
 * Add support for `Integer#[Range]` and `Integer#[start, length]` (#2182, @gogainda).
 * Allow private calls with `self` as an explicit receiver (#2196, @wildmaples).
 * Fixed `:perm` parameter for `File.write`.
+* Implemented the Debug Inspector C API.
 
 Performance:
 

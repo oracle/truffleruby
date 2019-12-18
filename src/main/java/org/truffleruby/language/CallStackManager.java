@@ -143,6 +143,20 @@ public class CallStackManager {
         return iterateFrames(1, filter, f -> f.getFrame(frameAccess));
     }
 
+    @TruffleBoundary
+    public void iterateFrameBindings(int skip, Function<FrameInstance, Object> action) {
+        iterateFrames(skip, frameInstance -> {
+            if (ignoreFrame(frameInstance.getCallNode(), (RootCallTarget) frameInstance.getCallTarget())) {
+                return false;
+            }
+            final RootNode rootNode = ((RootCallTarget) frameInstance.getCallTarget()).getRootNode();
+            if (rootNode instanceof RubyRootNode || frameInstance.getCallNode() != null) {
+                return true;
+            }
+            return false;
+        }, action);
+    }
+
     /** Returns action() for the first frame matching the filter, and null if none matches.
      * <p>
      * skip=0 starts at the current frame and skip=1 starts at the caller frame. */
