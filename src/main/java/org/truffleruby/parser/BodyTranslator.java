@@ -2694,18 +2694,20 @@ public class BodyTranslator extends Translator {
 
         final SourceIndexLength position = node.getPosition();
 
-        return translateCallNode(
-                new CallParseNode(
-                        position,
-                        new TruffleFragmentParseNode(
+        return new OnceNode(
+                translateCallNode(
+                        new CallParseNode(
                                 position,
-                                new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
-                        "at_exit",
-                        new ArrayParseNode(position, new TrueParseNode(position)),
-                        new IterParseNode(position, node.getArgsNode(), scope, node.getBodyNode())),
-                false,
-                false,
-                false);
+                                new TruffleFragmentParseNode(
+                                        position,
+                                        new ObjectLiteralNode(
+                                                context.getCoreLibrary().getTruffleKernelOperationsModule())),
+                                "at_exit",
+                                new ArrayParseNode(position, new TrueParseNode(position)),
+                                new IterParseNode(position, node.getArgsNode(), scope, node.getBodyNode())),
+                        false,
+                        false,
+                        false));
     }
 
     @Override
