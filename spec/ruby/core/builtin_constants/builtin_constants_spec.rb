@@ -35,7 +35,7 @@ describe "RUBY_PLATFORM" do
     RUBY_PLATFORM.should be_kind_of(String)
   end
 
-  platform_is_not :windows do
+  platform_is :darwin do
     it 'contains the current kernel major version' do
       kernel_version = `uname -r`
       RUBY_PLATFORM.should =~ /#{kernel_version.split('.').first}/
