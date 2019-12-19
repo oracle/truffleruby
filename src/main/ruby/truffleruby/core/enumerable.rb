@@ -986,6 +986,10 @@ module Enumerable
     end
   end
 
+  def chain(*enums)
+    Enumerator::Chain.new(self, *enums)
+  end
+
 end
 
 class Array

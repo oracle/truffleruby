@@ -1,2 +1,0 @@
-fails:Enumerable#chain returns a chain of self and provided enumerables
-fails:Enumerable#chain returns an Enumerator::Chain if given a block

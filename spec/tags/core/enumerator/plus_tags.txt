@@ -1,2 +1,0 @@
-fails:Enumerator#+ returns a chain of self and provided enumerators
-fails:Enumerator#+ calls #each on each argument

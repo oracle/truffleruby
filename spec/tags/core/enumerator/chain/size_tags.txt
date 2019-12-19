@@ -1,2 +1,0 @@
-fails:Enumerator::Chain#size returns the sum of the sizes of the elements
-fails:Enumerator::Chain#size returns nil or Infinity for the first element of such a size
