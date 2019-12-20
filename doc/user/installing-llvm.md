@@ -9,13 +9,13 @@ The `make` utility as well as the dependencies of the toolchain still need to be
 ## RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
-$ sudo dnf install make gcc libxml2
+$ sudo dnf install make gcc
 ```
 
 ## Debian-based: Ubuntu, etc
 
 ```bash
-$ sudo apt-get install make gcc libxml2
+$ sudo apt-get install make gcc
 ```
 
 ## macOS
