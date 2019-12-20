@@ -23,19 +23,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule("GC")
 public abstract class GCNodes {
 
-    @CoreMethod(names = "start", onSingleton = true)
-    public static abstract class GCStartNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject vmGCStart() {
-            getContext().getMarkingService().queueMarking();
-            System.gc();
-            return nil();
-        }
-
-    }
-
     @CoreMethod(names = "count", onSingleton = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 

@@ -39,6 +39,10 @@ module GC
     start
   end
 
+  def self.start(full_mark: true, immediate_sweep: true)
+    TrufflePrimitive.vm_gc_start()
+  end
+
   # Totally fake.
   def self.stress
     @stress_level ||= false
