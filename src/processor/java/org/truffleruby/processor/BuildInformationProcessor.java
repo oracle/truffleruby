@@ -68,15 +68,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
         }
     }
 
-    private String findKernelMajorVersion() {
-        String kernelVersion = "";
-        try {
-            kernelVersion = runCommand("uname -r");
-        } catch (IOException e) {
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+    private String findKernelMajorVersion() throws IOException, InterruptedException {
+        final String kernelVersion = runCommand("uname -r");
         return kernelVersion.split(Pattern.quote("."))[0];
     }
 
