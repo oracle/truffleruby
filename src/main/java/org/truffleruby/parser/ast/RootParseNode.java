@@ -42,18 +42,24 @@ import com.oracle.truffle.api.source.Source;
  * of the code.
  *
  */
-// TODO: Store BEGIN and END information into this node
 public class RootParseNode extends ParseNode {
 
+    private final ParseNode beginNode;
     private final Source source;
     private final ParseNode bodyNode;
     private final String file;
     private final int endPosition;
 
-    public RootParseNode(Source source, SourceIndexLength position, ParseNode bodyNode, String file, int endPosition) {
+    public RootParseNode(
+            Source source,
+            SourceIndexLength position,
+            ParseNode beginNode,
+            ParseNode bodyNode,
+            String file,
+            int endPosition) {
         super(position);
-
         this.source = source;
+        this.beginNode = beginNode;
         this.bodyNode = bodyNode;
         this.file = file;
         this.endPosition = endPosition;
@@ -70,6 +76,10 @@ public class RootParseNode extends ParseNode {
 
     public String getFile() {
         return file;
+    }
+
+    public ParseNode getBeginNode() {
+        return beginNode;
     }
 
     /**
