@@ -45,6 +45,7 @@ Bug fixes:
 * Make `Enumerable#chunk` work without a block (#1518).
 * Fixed issue with `SystemCallError.new` setting a backtrace.
 * Fixed `BigDecimal#to_s` formatting issue (#1711).
+* Run `END` keyword block only once at exit.
 
 Compatibility:
 
