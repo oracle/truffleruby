@@ -46,6 +46,7 @@ Bug fixes:
 * Fixed issue with `SystemCallError.new` setting a backtrace.
 * Fixed `BigDecimal#to_s` formatting issue (#1711).
 * Run `END` keyword block only once at exit.
+* Implement Numeric#clone method to return self.
 
 Compatibility:
 
