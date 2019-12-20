@@ -98,10 +98,10 @@ public abstract class BasicPlatform {
     }
 
     public static String getKernelMajorVersion() {
-      if (OS == OS_TYPE.DARWIN) {
-        return BuildInformationImpl.INSTANCE.kernelVersion().split(Pattern.quote("."))[0];
-      } else {
-        return "";
-      }
+        if (OS == OS_TYPE.DARWIN) {
+            return BuildInformationImpl.INSTANCE.kernelVersion().split(Pattern.quote("."))[0];
+        } else {
+            return "";
+        }
     }
 }

@@ -72,7 +72,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
         String kernelVersion = "";
         try {
             kernelVersion = runCommand("uname -r");
-        } catch(IOException | InterruptedException e) {  }
+        } catch (IOException | InterruptedException e) {
+        }
 
         return kernelVersion;
     }

@@ -64,7 +64,11 @@ import com.oracle.truffle.api.source.SourceSection;
 })
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
-    public static final String PLATFORM = String.format("%s-%s%s", Platform.getArchitecture(), Platform.getOSName(), Platform.getKernelMajorVersion());
+    public static final String PLATFORM = String.format(
+            "%s-%s%s",
+            Platform.getArchitecture(),
+            Platform.getOSName(),
+            Platform.getKernelMajorVersion());
 
     public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
