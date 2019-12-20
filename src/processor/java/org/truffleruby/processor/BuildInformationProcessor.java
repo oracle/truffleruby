@@ -50,7 +50,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
     private int rubyRevision;
     private String revision;
     private String compileDate;
-    private String kernelVersion;
+    private String kernelMajorVersion;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -62,20 +62,22 @@ public class BuildInformationProcessor extends AbstractProcessor {
             rubyRevision = Integer.parseInt(runCommand("tool/query-versions-json.rb ruby.revision"));
             revision = runCommand("git rev-parse --short=8 HEAD");
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
-            kernelVersion = findKernelVersion();
+            kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
             throw new Error(e);
         }
     }
 
-    private String findKernelVersion() {
+    private String findKernelMajorVersion() {
         String kernelVersion = "";
         try {
             kernelVersion = runCommand("uname -r");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
-        return kernelVersion;
+        return kernelVersion.split(Pattern.quote("."))[0];
     }
 
     private File findHome() throws URISyntaxException {
@@ -211,8 +213,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
                             case "getCompileDate":
                                 value = compileDate;
                                 break;
-                            case "kernelVersion":
-                                value = kernelVersion;
+                            case "getKernelMajorVersion":
+                                value = kernelMajorVersion;
                                 break;
                             default:
                                 throw new UnsupportedOperationException(name + " method not understood");

@@ -36,7 +36,6 @@
 package org.truffleruby.shared;
 
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 public abstract class BasicPlatform {
 
@@ -99,7 +98,7 @@ public abstract class BasicPlatform {
 
     public static String getKernelMajorVersion() {
         if (OS == OS_TYPE.DARWIN) {
-            return BuildInformationImpl.INSTANCE.kernelVersion().split(Pattern.quote("."))[0];
+            return BuildInformationImpl.INSTANCE.getKernelMajorVersion();
         } else {
             return "";
         }

@@ -1953,8 +1953,8 @@ EOS
 
   def remove_shared_compile_artifacts
     if build_information_path.file?
+      warn "Deleting shared build artifacts to trigger rebuild: #{shared_path}"
       shared_path.rmtree
-      puts "Deleted shared build artifacts to trigger rebuild: #{shared_path}"
     end
   end
 
@@ -1963,21 +1963,21 @@ EOS
   end
 
   def host_kernel_ver
-    `uname -r`[/\d+(\.\d+)*/]
+    `uname -r`[/^\d+/]
   end
 
   def build_kernel_ver
     return '' unless build_information_path.file?
 
     build_information = build_information_path.readlines
-    build_os_ver_loc  = build_information.index { |l| /kernelVersion/.match(l) }
+    build_os_ver_loc  = build_information.index { |l| l.include?('getKernelMajorVersion') }
     return '' unless build_os_ver_loc
 
-    build_information[build_os_ver_loc + 1][/\d+(\.\d+)*/]
+    build_information[build_os_ver_loc + 1][/^\d+/]
   end
 
   def shared_path
-    Pathname.new('../mxbuild/org.truffleruby.shared').expand_path(__dir__)
+    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/org.truffleruby.shared")
   end
 
   def build_information_path
