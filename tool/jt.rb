@@ -1876,7 +1876,7 @@ EOS
     raise 'use --env native instead' if options.delete('--native')
 
     if os_version_changed?
-      puts "Kernel version changed since last build: #{build_kernel_ver} -> #{host_kernel_ver}"
+      warn "Kernel version changed since last build: #{build_kernel_ver.inspect} -> #{host_kernel_ver.inspect}"
       remove_shared_compile_artifacts
     end
 
@@ -1970,11 +1970,10 @@ EOS
     return '' unless build_information_path.file?
 
     build_information = build_information_path.readlines
-    build_os_ver_loc  = build_information
-      .index { |l| /kernelVersion/.match(l) }
-      .succ
+    build_os_ver_loc  = build_information.index { |l| /kernelVersion/.match(l) }
+    return '' unless build_os_ver_loc
 
-    build_information[build_os_ver_loc][/(\d+\.*)+/].chomp
+    build_information[build_os_ver_loc + 1][/(\d+\.*)+/].chomp
   end
 
   def shared_path
