@@ -79,6 +79,11 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class CoreLibrary {
 
+    public static final SourceSection UNAVAILABLE_SOURCE_SECTION = Source
+            .newBuilder(TruffleRuby.LANGUAGE_ID, "", "(unavailable)")
+            .build()
+            .createUnavailableSection();
+
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private static final Property ALWAYS_FROZEN_PROPERTY = Property

@@ -47,6 +47,7 @@ Bug fixes:
 * Fixed `BigDecimal#to_s` formatting issue (#1711).
 * Run `END` keyword block only once at exit.
 * Implement Numeric#clone method to return self.
+* Fixed `Symbol#to_proc` to create proc with nil `source_location` (#1663).
 
 Compatibility:
 

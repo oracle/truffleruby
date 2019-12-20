@@ -286,7 +286,7 @@ public abstract class ProcNodes {
         protected Object sourceLocation(DynamicObject proc) {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
-            if (sourceSection.getSource() == null ||
+            if (!sourceSection.isAvailable() ||
                     sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil();
             } else {

@@ -178,7 +178,7 @@ public abstract class UnboundMethodNodes {
                     .getSharedMethodInfo()
                     .getSourceSection();
 
-            if (sourceSection.getSource() == null) {
+            if (!sourceSection.isAvailable()) {
                 return nil();
             } else {
                 DynamicObject file = makeStringNode.executeMake(
