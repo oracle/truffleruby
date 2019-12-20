@@ -1963,7 +1963,7 @@ EOS
   end
 
   def host_kernel_ver
-    `uname -r`.chomp
+    `uname -r`[/\d+(\.\d+)*/]
   end
 
   def build_kernel_ver
@@ -1973,7 +1973,7 @@ EOS
     build_os_ver_loc  = build_information.index { |l| /kernelVersion/.match(l) }
     return '' unless build_os_ver_loc
 
-    build_information[build_os_ver_loc + 1][/(\d+\.*)+/].chomp
+    build_information[build_os_ver_loc + 1][/\d+(\.\d+)*/]
   end
 
   def shared_path
