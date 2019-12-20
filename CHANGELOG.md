@@ -3,6 +3,7 @@
 New features:
 
 * Enable and document `--coverage` option (#1840, @chrisseaton).
+* Update the internal LLVM toolchain to LLVM 9 and reduce its download size.
 
 Bug fixes:
 
