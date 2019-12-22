@@ -103,6 +103,19 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
+    @Primitive(name = "vm_gc_start")
+    public static abstract class VMGCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected DynamicObject vmGCStart() {
+            getContext().getMarkingService().queueMarking();
+            System.gc();
+            return nil();
+        }
+
+    }
+
     // The hard #exit!
     @Primitive(name = "vm_exit", lowerFixnum = 0)
     public static abstract class VMExitNode extends PrimitiveArrayArgumentsNode {
