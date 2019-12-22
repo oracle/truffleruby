@@ -731,9 +731,9 @@ module Commands
         add_experimental_options.call
         vm_args += %w[--backtraces-hide-core-files=false]
       when '--stress'
-        vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
-        vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
-        vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
+        vm_args << '--engine.CompileImmediately=true'
+        vm_args << '--engine.BackgroundCompilation=false'
+        vm_args << '--engine.CompilationExceptionsAreFatal=true'
       when '--asm'
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
@@ -743,12 +743,12 @@ module Commands
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
         vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
-        vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
+        vm_args << '--engine.EnableInfopoints=true'
       when '--fg'
-        vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
+        vm_args << '--engine.BackgroundCompilation=false'
       when '--trace'
         truffleruby_compiler!
-        vm_args << '--vm.Dgraal.TraceTruffleCompilation=true'
+        vm_args << '--engine.TraceCompilation=true'
       when '--igv', '--igv-full'
         truffleruby_compiler!
         vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=Truffle:2' : '--vm.Dgraal.Dump=Truffle:1')
@@ -1747,7 +1747,7 @@ EOS
 
     vm_args = []
     if truffleruby?
-      vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      vm_args << '--engine.CompilationExceptionsAreFatal=true'
     end
     run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end

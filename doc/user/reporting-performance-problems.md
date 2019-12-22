@@ -39,7 +39,7 @@ native mode so that startup and warmup time is shorter.
 ## How to check for basic performance problems
 
 If you are examining the performance of TruffleRuby, we would recommend that you
-always run with the `--vm.Dgraal.TraceTruffleCompilation=true` flag. If you see
+always run with the `--engine.TraceCompilation=true` flag. If you see
 compilation failures or repeated compilation of the same methods, this is an
 indicator that something is not working as intended and you may need to examine
 why, or ask us to help you do so. If you don't run with this flag Truffle will

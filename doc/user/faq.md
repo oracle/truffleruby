@@ -113,11 +113,11 @@ loop do
 end
 ```
 
-We'll use the `--vm.Dgraal.TraceTruffleCompilation=true` to ask the Truffle
+We'll use the `--engine.TraceCompilation=true` to ask the Truffle
 Framework to tell us when it compiles something using the GraalVM Compiler.
 
 ```
-$ ruby --vm.Dgraal.TraceTruffleCompilation=true test.rb
+$ ruby --engine.TraceCompilation=true test.rb
 [truffle] opt done         block in <main> test.rb:1 <opt> <split-3a9ffa1b>         |ASTSize       8/    8 |Time   103(  99+4   )ms |DirectCallNodes I    0/D    0 |GraalNodes    24/    3 |CodeSize           69 |CodeAddress 0x11245cf50 |Source   ../test.rb:1
 ```
 
