@@ -301,7 +301,7 @@ describe "The launcher" do
   guard -> { TruffleRuby.jit? } do
     it "applies Truffle options" do
       options = [
-        "--engine.TraceCompilation=true",
+        "--engine.TraceCompilation",
         "--engine.BackgroundCompilation=false",
       ].join(" ")
       out = ruby_exe("2000.times {}", options: options, args: "2>&1")

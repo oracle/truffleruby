@@ -2,4 +2,4 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby --engine.CompilationExceptionsAreFatal=true test/truffle/compiler/stf-optimises/stf-optimises.rb
+jt ruby --engine.CompilationExceptionsAreFatal test/truffle/compiler/stf-optimises/stf-optimises.rb

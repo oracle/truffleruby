@@ -161,7 +161,7 @@ $ jt --use jvm-ce ruby ...
 ```
 
 We have flags in `jt` to set some options, such as `--trace` for
-`--engine.TraceCompilation=true`.
+`--engine.TraceCompilation`.
 
 ## Testing with Graal
 

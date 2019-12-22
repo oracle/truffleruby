@@ -576,7 +576,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
     def runBenchmark(self, benchmark, bmSuiteArgs):
         arguments = ['ruby']
         if not bmSuiteArgs:
-            arguments.extend(['--engine.CompilationExceptionsAreFatal=true'])
+            arguments.extend(['--engine.CompilationExceptionsAreFatal'])
         arguments.extend(['bench/servers/' + benchmark + '.rb'])
 
         server = BackgroundJT(arguments + bmSuiteArgs)
