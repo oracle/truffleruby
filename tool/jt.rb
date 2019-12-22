@@ -743,7 +743,7 @@ module Commands
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
         vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
-        vm_args << '--engine.EnableInfopoints'
+        vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
       when '--fg'
         vm_args << '--engine.BackgroundCompilation=false'
       when '--trace'
