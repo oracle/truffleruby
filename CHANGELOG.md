@@ -50,6 +50,7 @@ Bug fixes:
 * Implement Numeric#clone method to return self.
 * Fixed `Symbol#to_proc` to create proc with nil `source_location` (#1663).
 * Make `GC.start` work with keyword arguments.
+* Fixed `Kernel#clone` for `nil`, `true`, `false`, `Integer`, and `Symbol`.
 
 Compatibility:
 
