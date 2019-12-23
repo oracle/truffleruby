@@ -1875,6 +1875,11 @@ EOS
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
 
+    if os_version_changed?
+      warn "Kernel version changed since last build: #{build_kernel_ver.inspect} -> #{host_kernel_ver.inspect}"
+      remove_shared_compile_artifacts
+    end
+
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
             options.delete_at i
@@ -1905,6 +1910,7 @@ EOS
     mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
 
     env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
+
     mx(env, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
@@ -1943,6 +1949,40 @@ EOS
       File.delete link_path if File.exist? link_path
       File.symlink dest_ruby, link_path
     end
+  end
+
+  def remove_shared_compile_artifacts
+    if build_information_path.file?
+      warn "Deleting shared build artifacts to trigger rebuild: #{shared_path}"
+      shared_path.rmtree
+    end
+  end
+
+  def os_version_changed?
+    build_kernel_ver != host_kernel_ver
+  end
+
+  def host_kernel_ver
+    `uname -r`[/^\d+/]
+  end
+
+  def build_kernel_ver
+    return '' unless build_information_path.file?
+
+    build_information = build_information_path.readlines
+    build_os_ver_loc  = build_information.index { |l| l.include?('getKernelMajorVersion') }
+    return '' unless build_os_ver_loc
+
+    build_information[build_os_ver_loc + 1][/^\d+/]
+  end
+
+  def shared_path
+    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/org.truffleruby.shared")
+  end
+
+  def build_information_path
+    shared_path
+      .join('src_gen/org/truffleruby/shared/BuildInformationImpl.java')
   end
 
   def next(*args)

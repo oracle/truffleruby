@@ -70,6 +70,7 @@ Compatibility:
 * Implemented `Comparable#clamp` (#1517).
 * Implemented `rb_gc_register_mark_object` and `rb_enc_str_asciionly_p` (#1856, @chrisseaton).
 * Implemented `rb_io_set_nonblock` (#1741).
+* Include the major kernel version in `RUBY_PLATFORM` on macOS like MRI (#1860, @eightbitraptor).
 
 Performance:
 
