@@ -240,6 +240,10 @@ public class TranslatorDriver {
                 topLevel);
 
         printParseTranslateExecuteMetric("before-translate", context, source);
+        RubyNode beginNode = null;
+        if (node.getBeginNode() != null) {
+            beginNode = translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode());
+        }
         RubyNode truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
         printParseTranslateExecuteMetric("after-translate", context, source);
 
@@ -269,6 +273,12 @@ public class TranslatorDriver {
             truffleNode = Translator.sequence(
                     sourceIndexLength,
                     Arrays.asList(translator.initFlipFlopStates(sourceIndexLength), truffleNode));
+        }
+
+        if (beginNode != null) {
+            truffleNode = Translator.sequence(
+                    sourceIndexLength,
+                    Arrays.asList(beginNode, truffleNode));
         }
 
         // Catch next

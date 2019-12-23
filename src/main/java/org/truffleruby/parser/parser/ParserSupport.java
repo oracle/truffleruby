@@ -288,28 +288,24 @@ public class ParserSupport {
         final int endPosition = lexer.getEndPosition();
 
         SourceIndexLength position;
-        if (result.getBeginNodes().isEmpty()) {
-            if (topOfAST == null) {
-                topOfAST = NilImplicitParseNode.NIL;
-                position = lexer.getPosition();
-            } else {
-                position = topOfAST.getPosition();
-            }
-        } else {
-            position = topOfAST != null ? topOfAST.getPosition() : result.getBeginNodes().get(0).getPosition();
-            BlockParseNode newTopOfAST = new BlockParseNode(position);
-            for (ParseNode beginNode : result.getBeginNodes()) {
-                appendToBlock(newTopOfAST, beginNode);
-            }
 
-            // Add real top to new top (unless this top is empty [only begin/end nodes or truly empty])
-            if (topOfAST != null) {
-                newTopOfAST.add(topOfAST);
-            }
-            topOfAST = newTopOfAST;
+        if (topOfAST == null) {
+            topOfAST = NilImplicitParseNode.NIL;
+            position = lexer.getPosition();
+        } else {
+            position = topOfAST.getPosition();
         }
 
-        return new RootParseNode(lexer.getSource(), position, topOfAST, lexer.getFile(), endPosition);
+        BlockParseNode beginAST = null;
+        if (!result.getBeginNodes().isEmpty()) {
+            position = topOfAST != null ? topOfAST.getPosition() : result.getBeginNodes().get(0).getPosition();
+            beginAST = new BlockParseNode(position);
+            for (ParseNode beginNode : result.getBeginNodes()) {
+                appendToBlock(beginAST, beginNode);
+            }
+        }
+
+        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, lexer.getFile(), endPosition);
     }
 
     /* MRI: block_append */
