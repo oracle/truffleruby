@@ -132,6 +132,8 @@ public class Options {
     public final boolean CEXTS_LOG_WARNINGS;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
+    /** --gets-loop=false */
+    public final boolean GETS_LOOP;
     /** --ignore-lines-before-ruby-shebang=false */
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     /** --syntax-check=false */
@@ -321,6 +323,7 @@ public class Options {
         CEXTS_LOG_LOAD = options.get(OptionsCatalog.CEXTS_LOG_LOAD_KEY);
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
+        GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = options.get(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY);
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
@@ -501,6 +504,8 @@ public class Options {
                 return CEXTS_LOG_WARNINGS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
+            case "ruby.gets-loop":
+                return GETS_LOOP;
             case "ruby.ignore-lines-before-ruby-shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax-check":

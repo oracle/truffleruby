@@ -305,7 +305,8 @@ public class CommandLineParser {
                     throw notImplemented("-l");
                 case 'n':
                     disallowedInRubyOpts(argument);
-                    throw notImplemented("-n");
+                    config.setOption(OptionsCatalog.GETS_LOOP, true);
+                    break;
                 case 'p':
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-p");
