@@ -1,6 +1,0 @@
-fails:Enumerator::Chain#rewind returns self
-fails:Enumerator::Chain#rewind does nothing if receiver has not been iterated
-fails:Enumerator::Chain#rewind does nothing on objects that don't respond_to rewind
-fails:Enumerator::Chain#rewind calls_rewind its objects
-fails:Enumerator::Chain#rewind calls_rewind in reverse order
-fails:Enumerator::Chain#rewind calls rewind only for objects that have actually been iterated on
