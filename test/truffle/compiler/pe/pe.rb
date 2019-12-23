@@ -24,7 +24,7 @@
 #
 # Run with:
 #
-#   jt ruby --graal --vm.Dgraal.TraceTruffleCompilation=true --vm.Dgraal.TruffleCompilationExceptionsAreFatal=true --vm.Dgraal.TruffleIterativePartialEscape=true test.rb
+#   jt ruby --graal --engine.TraceCompilation --engine.CompilationExceptionsAreFatal --engine.IterativePartialEscape test.rb
 
 abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
 
