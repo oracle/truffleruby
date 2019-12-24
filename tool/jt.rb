@@ -1973,7 +1973,7 @@ EOS
     build_os_ver_loc  = build_information.index { |l| l.include?('getKernelMajorVersion') }
     return '' unless build_os_ver_loc
 
-    build_information[build_os_ver_loc + 1][/^\d+/]
+    build_information[build_os_ver_loc + 1][/"(\d+)/, 1]
   end
 
   def shared_path
