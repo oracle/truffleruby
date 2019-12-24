@@ -336,7 +336,7 @@ public abstract class KernelNodes {
 
             for (int n = 0; n < locationsCount; n++) {
                 locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                        coreLibrary().getThreadBacktraceLocationFactory(),
+                        coreLibrary().threadBacktraceLocationFactory,
                         backtrace,
                         n);
             }
@@ -1208,7 +1208,7 @@ public abstract class KernelNodes {
                 }
             }
 
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+            return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
         }
 
         @TruffleBoundary
@@ -1355,7 +1355,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected DynamicObject proc(VirtualFrame frame, Object maybeBlock) {
-            return procNewNode.executeProcNew(frame, coreLibrary().getProcClass(), ArrayUtils.EMPTY_ARRAY, maybeBlock);
+            return procNewNode.executeProcNew(frame, coreLibrary().procClass, ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
 
     }
@@ -1682,7 +1682,7 @@ public abstract class KernelNodes {
             if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 final InternalMethod method = Layouts.MODULE.getFields(metaClass).getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
-                    return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+                    return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
                 }
             }
 

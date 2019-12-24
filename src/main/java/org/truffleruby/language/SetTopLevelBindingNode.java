@@ -29,7 +29,7 @@ public class SetTopLevelBindingNode extends RubyNode {
 
     @TruffleBoundary
     private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
-        final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().getObjectClass());
+        final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().objectClass);
         final DynamicObject toplevelBinding = (DynamicObject) fields.getConstant("TOPLEVEL_BINDING").getValue();
         BindingNodes.insertAncestorFrame(getContext(), toplevelBinding, mainScriptFrame);
     }

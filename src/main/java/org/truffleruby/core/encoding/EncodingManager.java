@@ -69,7 +69,7 @@ public class EncodingManager {
     }
 
     public void defineEncodings() {
-        final DynamicObject encodingClass = context.getCoreLibrary().getEncodingClass();
+        final DynamicObject encodingClass = context.getCoreLibrary().encodingClass;
         initializeEncodings(encodingClass);
         initializeEncodingAliases(encodingClass);
     }
@@ -186,7 +186,7 @@ public class EncodingManager {
                 .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
 
-        return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string);
+        return Layouts.ENCODING.createEncoding(context.getCoreLibrary().encodingFactory, encoding, string);
     }
 
     public static Encoding getEncoding(String name) {

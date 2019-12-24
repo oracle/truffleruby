@@ -84,7 +84,7 @@ public abstract class TruffleKernelNodes {
             final DynamicObject wrapModule;
             if (wrap) {
                 wrapModule = ModuleNodes
-                        .createModule(getContext(), null, coreLibrary().getModuleClass(), null, null, this);
+                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
             } else {
                 wrapModule = null;
             }
@@ -93,7 +93,7 @@ public abstract class TruffleKernelNodes {
                     .getCodeLoader()
                     .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
 
-            final DynamicObject mainObject = getContext().getCoreLibrary().getMainObject();
+            final DynamicObject mainObject = getContext().getCoreLibrary().mainObject;
             final DeclarationContext declarationContext;
             final Object self;
 

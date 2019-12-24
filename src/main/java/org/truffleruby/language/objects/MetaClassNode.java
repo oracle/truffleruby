@@ -38,31 +38,31 @@ public abstract class MetaClassNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "value")
     protected DynamicObject metaClassTrue(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getTrueClass();
+        return context.getCoreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
     protected DynamicObject metaClassFalse(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getFalseClass();
+        return context.getCoreLibrary().falseClass;
     }
 
     @Specialization
     protected DynamicObject metaClassInt(int value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getIntegerClass();
+        return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
     protected DynamicObject metaClassLong(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getIntegerClass();
+        return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
     protected DynamicObject metaClassDouble(double value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getFloatClass();
+        return context.getCoreLibrary().floatClass;
     }
 
     // Cover all DynamicObject cases with cached and uncached
@@ -92,7 +92,7 @@ public abstract class MetaClassNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = "!isRubyBasicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassForeign(DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getTruffleInteropForeignClass();
+        return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
     // Cover remaining non objects which are not primitives nor DynamicObject
@@ -100,7 +100,7 @@ public abstract class MetaClassNode extends RubyBaseWithoutContextNode {
     @Specialization(guards = { "!isPrimitive(object)", "!isDynamicObject(object)" })
     protected DynamicObject metaClassFallback(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getTruffleInteropForeignClass();
+        return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
     protected DynamicObject getMetaClass(RubyContext context, Shape shape) {
@@ -108,7 +108,7 @@ public abstract class MetaClassNode extends RubyBaseWithoutContextNode {
         if (Layouts.BASIC_OBJECT.isBasicObject(objectType)) {
             return Layouts.BASIC_OBJECT.getMetaClass(objectType);
         } else {
-            return context.getCoreLibrary().getTruffleInteropForeignClass();
+            return context.getCoreLibrary().truffleInteropForeignClass;
         }
     }
 

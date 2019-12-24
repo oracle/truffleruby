@@ -132,7 +132,7 @@ public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
 
         context.send(
-                context.getCoreLibrary().getObjectSpaceModule(),
+                context.getCoreLibrary().objectSpaceModule,
                 "trace_allocation",
                 object,
                 string(

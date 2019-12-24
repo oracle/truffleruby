@@ -171,7 +171,7 @@ public abstract class VMPrimitiveNodes {
             if (method == null) {
                 return nil();
             }
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, method);
+            return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, method);
         }
 
     }
@@ -485,7 +485,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
-            Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", salt);
+            Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
@@ -518,7 +518,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
-            Object result = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", value);
+            Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {

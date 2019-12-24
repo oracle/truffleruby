@@ -209,7 +209,7 @@ public abstract class MethodNodes {
             if (!superMethod.isDefined()) {
                 return nil();
             } else {
-                return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, superMethod.getMethod());
+                return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, superMethod.getMethod());
             }
         }
 
@@ -224,7 +224,7 @@ public abstract class MethodNodes {
         protected DynamicObject unbind(VirtualFrame frame, DynamicObject method) {
             final DynamicObject receiverClass = classNode.executeLogicalClass(Layouts.METHOD.getReceiver(method));
             return Layouts.UNBOUND_METHOD.createUnboundMethod(
-                    coreLibrary().getUnboundMethodFactory(),
+                    coreLibrary().unboundMethodFactory,
                     receiverClass,
                     Layouts.METHOD.getMethod(method));
         }
@@ -265,7 +265,7 @@ public abstract class MethodNodes {
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
             return ProcOperations.createRubyProc(
-                    coreLibrary().getProcFactory(),
+                    coreLibrary().procFactory,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,

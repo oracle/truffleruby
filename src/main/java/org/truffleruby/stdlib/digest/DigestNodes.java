@@ -45,7 +45,7 @@ public abstract class DigestNodes {
 
     private static DynamicObject createDigest(RubyContext context, DigestAlgorithm algorithm) {
         return Layouts.DIGEST.createDigest(
-                context.getCoreLibrary().getDigestFactory(),
+                context.getCoreLibrary().digestFactory,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
     }

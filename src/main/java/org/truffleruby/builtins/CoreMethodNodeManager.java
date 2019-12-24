@@ -107,9 +107,9 @@ public class CoreMethodNodeManager {
         DynamicObject module;
 
         if (fullName.equals("main")) {
-            module = getSingletonClass(context.getCoreLibrary().getMainObject());
+            module = getSingletonClass(context.getCoreLibrary().mainObject);
         } else {
-            module = context.getCoreLibrary().getObjectClass();
+            module = context.getCoreLibrary().objectClass;
 
             for (String moduleName : fullName.split("::")) {
                 final ConstantLookupResult constant = ModuleOperations.lookupConstant(context, module, moduleName);

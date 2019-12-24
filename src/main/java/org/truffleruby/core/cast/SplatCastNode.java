@@ -98,10 +98,10 @@ public abstract class SplatCastNode extends RubyNode {
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
         final Object array = toArrayNode.call(
-                coreLibrary().getTruffleTypeModule(),
+                coreLibrary().truffleTypeModule,
                 "rb_check_convert_type",
                 object,
-                coreLibrary().getArrayClass(),
+                coreLibrary().arrayClass,
                 conversionMethod);
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;

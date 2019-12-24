@@ -63,7 +63,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             return dispatch.call(receiver, FETCH_METHOD_NAME, index);
         } catch (RaiseException ex) {
             DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
-            if (errorProfile.profile(logicalClass == context.getCoreLibrary().getIndexErrorClass())) {
+            if (errorProfile.profile(logicalClass == context.getCoreLibrary().indexErrorClass)) {
                 throw InvalidArrayIndexException.create((Long) index);
             } else {
                 throw ex;
@@ -87,14 +87,14 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
             return dispatch.call(receiver, FETCH_METHOD_NAME, key);
         } catch (RaiseException ex) {
             DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
-            if (errorProfile.profile(logicalClass == context.getCoreLibrary().getKeyErrorClass())) {
+            if (errorProfile.profile(logicalClass == context.getCoreLibrary().keyErrorClass)) {
                 // try again with the key as a symbol
                 // keeping this dirty since the whole hash-keys to members mapping has to be removed
                 try {
                     return dispatch.call(receiver, FETCH_METHOD_NAME, toSymbolNode.executeToSymbol(name));
                 } catch (RaiseException ex2) {
                     DynamicObject logicalClass2 = Layouts.BASIC_OBJECT.getLogicalClass(ex2.getException());
-                    if (logicalClass2 == context.getCoreLibrary().getKeyErrorClass()) {
+                    if (logicalClass2 == context.getCoreLibrary().keyErrorClass) {
                         throw UnknownIdentifierException.create((String) stringName);
                     } else {
                         throw ex2;
@@ -144,7 +144,7 @@ public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutC
         } catch (RaiseException ex) {
             // translate NameError to UnknownIdentifierException
             DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
-            if (errorProfile.profile(logicalClass == context.getCoreLibrary().getNameErrorClass())) {
+            if (errorProfile.profile(logicalClass == context.getCoreLibrary().nameErrorClass)) {
                 throw UnknownIdentifierException.create((String) stringName);
             } else {
                 throw ex;

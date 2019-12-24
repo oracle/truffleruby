@@ -75,7 +75,7 @@ public abstract class ModuleOperations {
     }
 
     public static String constantName(RubyContext context, DynamicObject module, String name) {
-        if (module == context.getCoreLibrary().getObjectClass()) {
+        if (module == context.getCoreLibrary().objectClass) {
             return "::" + name;
         } else {
             return Layouts.MODULE.getFields(module).getName() + "::" + name;
@@ -83,7 +83,7 @@ public abstract class ModuleOperations {
     }
 
     public static String constantNameNoLeadingColon(RubyContext context, DynamicObject module, String name) {
-        if (module == context.getCoreLibrary().getObjectClass()) {
+        if (module == context.getCoreLibrary().objectClass) {
             return name;
         } else {
             return Layouts.MODULE.getFields(module).getName() + "::" + name;
@@ -163,7 +163,7 @@ public abstract class ModuleOperations {
     @TruffleBoundary
     public static ConstantLookupResult lookupConstantInObject(RubyContext context, String name,
             ArrayList<Assumption> assumptions) {
-        final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
+        final DynamicObject objectClass = context.getCoreLibrary().objectClass;
 
         ModuleFields fields = Layouts.MODULE.getFields(objectClass);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
@@ -226,7 +226,7 @@ public abstract class ModuleOperations {
             boolean inherit, Node currentNode) {
         int start = 0, next;
         if (fullName.startsWith("::")) {
-            module = context.getCoreLibrary().getObjectClass();
+            module = context.getCoreLibrary().objectClass;
             start += 2;
         }
 

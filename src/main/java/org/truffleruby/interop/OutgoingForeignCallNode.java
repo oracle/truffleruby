@@ -242,7 +242,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
         if (errorProfile.profile(args.length == cachedArity)) {
             final Object[] arguments = ArrayUtils.unshift(args, receiver);
             return callDispatchHeadNode.call(
-                    context.getCoreLibrary().getTruffleInteropModule(),
+                    context.getCoreLibrary().truffleInteropModule,
                     interopMethodName,
                     arguments);
         } else {

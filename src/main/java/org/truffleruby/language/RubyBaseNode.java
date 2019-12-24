@@ -38,7 +38,7 @@ public abstract class RubyBaseNode extends RubyBaseWithoutContextNode {
     // Helpers methods for terseness
 
     protected DynamicObject nil() {
-        return coreLibrary().getNil();
+        return coreLibrary().nil;
     }
 
     protected DynamicObject getSymbol(String name) {

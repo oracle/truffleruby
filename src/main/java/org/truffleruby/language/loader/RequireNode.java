@@ -232,7 +232,7 @@ public abstract class RequireNode extends RubyBaseNode {
                     DeclarationContext.topLevel(getContext()),
                     rootNode,
                     null,
-                    coreLibrary().getMainObject());
+                    coreLibrary().mainObject);
 
             requireMetric("before-execute-" + feature);
             try {

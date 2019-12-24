@@ -147,7 +147,7 @@ public class LoadArgumentsTranslator extends Translator {
                 methodBodyTranslator.getEnvironment().declareVar(name);
                 keyRestNameOrNil = context.getSymbolTable().getSymbol(name);
             } else {
-                keyRestNameOrNil = context.getCoreLibrary().getNil();
+                keyRestNameOrNil = context.getCoreLibrary().nil;
             }
 
             sequence.add(new IfNode(
@@ -355,7 +355,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     public RubyNode saveMethodBlockArg() {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().getNil());
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().nil);
         final FrameSlot slot = methodBodyTranslator
                 .getEnvironment()
                 .getFrameDescriptor()
@@ -365,7 +365,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().getNil());
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().nil);
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }

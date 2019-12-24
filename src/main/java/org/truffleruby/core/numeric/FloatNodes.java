@@ -165,7 +165,7 @@ public abstract class FloatNodes {
                     complexPowNode = insert(CallDispatchHeadNode.createPrivate());
                 }
 
-                final Object aComplex = complexConvertNode.call(coreLibrary().getComplexClass(), "convert", base, 0);
+                final Object aComplex = complexConvertNode.call(coreLibrary().complexClass, "convert", base, 0);
 
                 return complexPowNode.call(aComplex, "**", exponent);
             } else {

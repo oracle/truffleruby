@@ -22,7 +22,7 @@ public class RescueAnyNode extends RescueNode {
 
     @Override
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        return matches(frame, exception, coreLibrary().getStandardErrorClass());
+        return matches(frame, exception, coreLibrary().standardErrorClass);
     }
 
 }

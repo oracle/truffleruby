@@ -166,8 +166,7 @@ public class ThreadManager {
 
     public DynamicObject createBootThread(String info) {
         final DynamicObject thread = context
-                .getCoreLibrary()
-                .getThreadFactory()
+                .getCoreLibrary().threadFactory
                 .newInstance(packThreadFields(nil(), info));
         setFiberManager(thread);
         return thread;
@@ -186,7 +185,7 @@ public class ThreadManager {
     public DynamicObject createForeignThread() {
         final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
         assert currentGroup != null;
-        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(
+        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(
                 packThreadFields(currentGroup, "<foreign thread>"));
         setFiberManager(thread);
         return thread;
@@ -218,7 +217,7 @@ public class ThreadManager {
     }
 
     private boolean getGlobalAbortOnException() {
-        final DynamicObject threadClass = context.getCoreLibrary().getThreadClass();
+        final DynamicObject threadClass = context.getCoreLibrary().threadClass;
         return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@abort_on_exception", null);
     }
 
@@ -326,13 +325,12 @@ public class ThreadManager {
 
         if (thread != mainThread) {
             final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
-                    .getCoreLibrary()
-                    .getSystemExitClass();
+                    .getCoreLibrary().systemExitClass;
 
             if (!isSystemExit &&
                     (boolean) ReadObjectFieldNodeGen.getUncached().execute(thread, "@report_on_exception", true)) {
                 context.send(
-                        context.getCoreLibrary().getTruffleThreadOperationsModule(),
+                        context.getCoreLibrary().truffleThreadOperationsModule,
                         "report_exception",
                         thread,
                         exception);
@@ -718,7 +716,7 @@ public class ThreadManager {
     }
 
     private DynamicObject nil() {
-        return context.getCoreLibrary().getNil();
+        return context.getCoreLibrary().nil;
     }
 
 }

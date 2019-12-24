@@ -31,7 +31,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     protected Object coerce(int value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
-                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
                 value);
     }
@@ -40,7 +40,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     protected Object coerce(long value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
-                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
                 value);
     }
@@ -49,7 +49,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     protected Object coerceBignum(DynamicObject value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
-                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
                 value);
     }
@@ -58,7 +58,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     protected Object coerce(double value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
-                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_float_to_bigdecimal",
                 value);
     }
@@ -67,7 +67,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
     protected Object coerceRational(DynamicObject value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
-                getContext().getCoreLibrary().getBigDecimalOperationsModule(),
+                getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_rational_to_bigdecimal",
                 value);
     }
@@ -85,7 +85,7 @@ public abstract class BigDecimalCoerceNode extends RubyNode {
             isANode = insert(IsANode.create());
         }
 
-        return isANode.executeIsA(object, getContext().getCoreLibrary().getRationalClass());
+        return isANode.executeIsA(object, getContext().getCoreLibrary().rationalClass);
     }
 
 }

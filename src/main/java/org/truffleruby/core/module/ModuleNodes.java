@@ -1276,7 +1276,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "isRubyClass(self)", "isRubyClass(from)" })
         protected Object initializeCopyClass(DynamicObject self, DynamicObject from,
                 @Cached BranchProfile errorProfile) {
-            if (from == coreLibrary().getBasicObjectClass()) {
+            if (from == coreLibrary().basicObjectClass) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeError("can't copy the root class", this));
             } else if (Layouts.CLASS.getIsSingleton(from)) {
@@ -1416,7 +1416,7 @@ public abstract class ModuleNodes {
 
             InternalMethod method = getContext().getCallStack().getCallingMethodIgnoringSend();
             LexicalScope lexicalScope = method == null ? null : method.getSharedMethodInfo().getLexicalScope();
-            DynamicObject object = coreLibrary().getObjectClass();
+            DynamicObject object = coreLibrary().objectClass;
 
             while (lexicalScope != null) {
                 final DynamicObject enclosing = lexicalScope.getLiveModule();
@@ -1542,7 +1542,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().unboundMethodFactory, module, method);
         }
 
     }
@@ -1694,7 +1694,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().unboundMethodFactory, module, method);
         }
 
     }
@@ -1862,7 +1862,7 @@ public abstract class ModuleNodes {
                         callRbInspect = insert(CallDispatchHeadNode.createPrivate());
                     }
                     final Object inspectResult = callRbInspect
-                            .call(coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
+                            .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
                     attachedName = StringOperations.getString((DynamicObject) inspectResult);
                 }
                 moduleName = "#<Class:" + attachedName + ">";
@@ -2091,7 +2091,7 @@ public abstract class ModuleNodes {
             final DynamicObject refinement = createModule(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().getModuleClass(),
+                    coreLibrary().moduleClass,
                     null,
                     null,
                     this);

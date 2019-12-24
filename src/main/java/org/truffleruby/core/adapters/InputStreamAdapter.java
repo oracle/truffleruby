@@ -29,7 +29,7 @@ public class InputStreamAdapter extends InputStream {
     public int read() {
         final Object result = context.send(object, "getbyte");
 
-        if (result == context.getCoreLibrary().getNil()) {
+        if (result == context.getCoreLibrary().nil) {
             return -1;
         }
 

@@ -91,7 +91,7 @@ public class RaiseException extends RuntimeException implements TruffleException
     @Override
     public boolean isSyntaxError() {
         final RubyContext context = RubyLanguage.getCurrentContext();
-        return isA(context, context.getCoreLibrary().getSyntaxErrorClass());
+        return isA(context, context.getCoreLibrary().syntaxErrorClass);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class RaiseException extends RuntimeException implements TruffleException
     @Override
     public boolean isExit() {
         final RubyContext context = RubyLanguage.getCurrentContext();
-        return isA(context, context.getCoreLibrary().getSystemExitClass());
+        return isA(context, context.getCoreLibrary().systemExitClass);
     }
 
     @Override

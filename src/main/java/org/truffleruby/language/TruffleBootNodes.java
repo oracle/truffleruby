@@ -121,7 +121,7 @@ public abstract class TruffleBootNodes {
             if (getContext().getOptions().SYNTAX_CHECK) {
                 try {
                     return (int) checkSyntax.call(
-                            getContext().getCoreLibrary().getTruffleBootModule(),
+                            getContext().getCoreLibrary().truffleBootModule,
                             "check_syntax",
                             source);
                 } catch (RaiseException e) {
@@ -149,7 +149,7 @@ public abstract class TruffleBootNodes {
                         DeclarationContext.topLevel(getContext()),
                         rootNode,
                         null,
-                        coreLibrary().getMainObject());
+                        coreLibrary().mainObject);
 
                 // The TopLevelRaiseHandler returns an int
                 return (int) deferredCall.call(callNode);

@@ -129,7 +129,7 @@ public abstract class TruffleGraalNodes {
                     .getRuntime()
                     .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
 
-            return coreLibrary().getProcFactory().newInstance(Layouts.PROC.build(
+            return coreLibrary().procFactory.newInstance(Layouts.PROC.build(
                     Layouts.PROC.getType(proc),
                     Layouts.PROC.getSharedMethodInfo(proc),
                     newCallTarget,

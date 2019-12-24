@@ -62,7 +62,7 @@ public class TopLevelRaiseHandler extends RubyNode {
     }
 
     private int statusFromException(DynamicObject exception) {
-        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSystemExitClass()) {
+        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().systemExitClass) {
             return castToInt(ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", null));
         } else {
             return 1;
@@ -88,7 +88,7 @@ public class TopLevelRaiseHandler extends RubyNode {
     }
 
     private void handleSignalException(DynamicObject exception) {
-        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().getSignalExceptionClass()) {
+        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().signalExceptionClass) {
             // Calls raise(3) or no-op
             CallDispatchHeadNode.getUncached().call(exception, "reached_top_level");
         }

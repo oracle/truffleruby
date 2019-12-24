@@ -112,7 +112,7 @@ public abstract class TruffleDebugNodes {
 
                     });
 
-            return Layouts.HANDLE.createHandle(coreLibrary().getHandleFactory(), breakpoint);
+            return Layouts.HANDLE.createHandle(coreLibrary().handleFactory, breakpoint);
         }
 
     }
@@ -791,7 +791,7 @@ public abstract class TruffleDebugNodes {
             }
 
             return Layouts.ARRAY
-                    .createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
+                    .createArray(getContext().getCoreLibrary().arrayFactory, associatedValues, associated.length);
         }
     }
 

@@ -52,7 +52,7 @@ public abstract class ToAryNode extends RubyNode {
             coerced = toAryNode.call(object, "to_ary");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorNoImplicitConversion(object, "Array", this));

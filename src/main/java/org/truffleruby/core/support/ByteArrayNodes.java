@@ -106,7 +106,7 @@ public abstract class ByteArrayNodes {
                     prependLength,
                     originalLength);
             return ByteArrayNodes.createByteArray(
-                    coreLibrary().getByteArrayFactory(),
+                    coreLibrary().byteArrayFactory,
                     ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
         }
 

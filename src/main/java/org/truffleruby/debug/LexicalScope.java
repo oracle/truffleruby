@@ -40,7 +40,7 @@ public class LexicalScope {
         final Object receiver;
 
         if (frame == null) {
-            receiver = context.getCoreLibrary().getNil();
+            receiver = context.getCoreLibrary().nil;
         } else {
             receiver = RubyArguments.getSelf(frame);
         }
@@ -116,7 +116,7 @@ public class LexicalScope {
         @TruffleBoundary
         protected Object readMember(String member) throws UnknownIdentifierException {
             if (frame == null) {
-                return context.getCoreLibrary().getNil();
+                return context.getCoreLibrary().nil;
             } else {
                 final FrameSlot slot = slots.get(member);
                 if (slot == null) {

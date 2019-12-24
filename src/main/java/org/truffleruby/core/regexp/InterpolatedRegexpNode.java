@@ -105,7 +105,7 @@ public class InterpolatedRegexpNode extends RubyNode {
             final DynamicObject regexp = RegexpNodes.createRubyRegexp(
                     getContext(),
                     this,
-                    coreLibrary().getRegexpFactory(),
+                    coreLibrary().regexpFactory,
                     RopeOperations.ropeFromRopeBuilder(preprocessed),
                     options);
 

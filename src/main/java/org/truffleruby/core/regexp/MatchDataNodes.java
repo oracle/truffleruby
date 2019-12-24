@@ -64,7 +64,7 @@ public abstract class MatchDataNodes {
         int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
 
         if (b < 0) {
-            return context.getCoreLibrary().getNil();
+            return context.getCoreLibrary().nil;
         }
 
         final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
@@ -81,7 +81,7 @@ public abstract class MatchDataNodes {
         int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
 
         if (e < 0) {
-            return context.getCoreLibrary().getNil();
+            return context.getCoreLibrary().nil;
         }
 
         final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
@@ -184,7 +184,7 @@ public abstract class MatchDataNodes {
                 @Cached AllocateObjectNode allocateNode) {
             final Region region = new Region(start, end);
             return allocateNode.allocate(
-                    coreLibrary().getMatchDataClass(),
+                    coreLibrary().matchDataClass,
                     Layouts.MATCH_DATA.build(string, regexp, region, null));
         }
 
@@ -205,7 +205,7 @@ public abstract class MatchDataNodes {
             }
 
             return allocateNode.allocate(
-                    coreLibrary().getMatchDataClass(),
+                    coreLibrary().matchDataClass,
                     Layouts.MATCH_DATA.build(string, regexp, region, null));
         }
 
@@ -631,7 +631,7 @@ public abstract class MatchDataNodes {
                 return value;
             } else {
                 final DynamicObject regexp = (DynamicObject) stringToRegexp.call(
-                        coreLibrary().getTruffleTypeModule(),
+                        coreLibrary().truffleTypeModule,
                         "coerce_to_regexp",
                         value,
                         true);

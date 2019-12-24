@@ -49,7 +49,7 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
             coerced = callToStr(object);
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorNoImplicitConversion(object, "String", this));

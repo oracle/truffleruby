@@ -39,7 +39,7 @@ public abstract class MainNodes {
 
         @Specialization
         protected DynamicObject doPublic(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().getObjectClass();
+            final DynamicObject object = coreLibrary().objectClass;
             return publicNode.executePublic(frame, object, args);
         }
     }
@@ -51,7 +51,7 @@ public abstract class MainNodes {
 
         @Specialization
         protected DynamicObject doPrivate(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().getObjectClass();
+            final DynamicObject object = coreLibrary().objectClass;
             return privateNode.executePrivate(frame, object, args);
         }
     }

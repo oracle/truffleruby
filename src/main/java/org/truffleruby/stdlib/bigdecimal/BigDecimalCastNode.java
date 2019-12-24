@@ -95,7 +95,7 @@ public abstract class BigDecimalCastNode extends RubyBaseNode {
             @Cached IsANode isRationalNode,
             @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
             @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {
-        if (isRationalNode.executeIsA(value, coreLibrary().getRationalClass())) {
+        if (isRationalNode.executeIsA(value, coreLibrary().rationalClass)) {
             final Object numerator = numeratorCallNode.call(value, "numerator");
             final Object denominator = denominatorCallNode.call(value, "denominator");
 

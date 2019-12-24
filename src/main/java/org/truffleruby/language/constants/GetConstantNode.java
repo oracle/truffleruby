@@ -99,7 +99,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
                     autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
 
-        final Runnable require = () -> callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
+        final Runnable require = () -> callRequireNode.call(coreLibrary().mainObject, "require", feature);
         return autoloadConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode, require);
     }
 
@@ -124,7 +124,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             // check if the constant was set in the ancestors of autoloadConstantModule
             if (resolvedConstant != null &&
                     (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
-                            resolvedConstant.getDeclaringModule() == coreLibrary().getObjectClass())) {
+                            resolvedConstant.getDeclaringModule() == coreLibrary().objectClass)) {
                 // all is good, just return that constant
             } else {
                 // If the autoload constant was not set in the ancestors, undefine the constant

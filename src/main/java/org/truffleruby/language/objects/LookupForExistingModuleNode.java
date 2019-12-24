@@ -71,7 +71,7 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
             return constant;
         }
 
-        final DynamicObject objectClass = getContext().getCoreLibrary().getObjectClass();
+        final DynamicObject objectClass = getContext().getCoreLibrary().objectClass;
         if (lexicalParent == objectClass) {
             final ConstantLookupResult result = ModuleOperations
                     .lookupConstantInObject(getContext(), name, new ArrayList<>());
