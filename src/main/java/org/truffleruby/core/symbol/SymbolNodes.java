@@ -141,7 +141,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,

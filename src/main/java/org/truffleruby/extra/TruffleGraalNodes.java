@@ -127,7 +127,7 @@ public abstract class TruffleGraalNodes {
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
 
             return coreLibrary().procFactory.newInstance(Layouts.PROC.build(
                     Layouts.PROC.getType(proc),

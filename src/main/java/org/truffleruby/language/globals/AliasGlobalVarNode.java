@@ -25,7 +25,7 @@ public class AliasGlobalVarNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        getContext().getCoreLibrary().getGlobalVariables().alias(oldName, newName);
+        getContext().getCoreLibrary().globalVariables.alias(oldName, newName);
         return nil();
     }
 

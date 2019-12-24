@@ -263,7 +263,7 @@ public abstract class MethodNodes {
             final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
+                    .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
             return ProcOperations.createRubyProc(
                     coreLibrary().procFactory,
                     ProcType.LAMBDA,

@@ -277,7 +277,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected Iterable<Scope> findTopScopes(RubyContext context) {
-        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()));
+        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().globalVariables));
     }
 
     public String getTruffleLanguageHome() {

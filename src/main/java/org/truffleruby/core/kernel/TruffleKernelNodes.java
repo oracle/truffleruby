@@ -153,7 +153,7 @@ public abstract class TruffleKernelNodes {
         @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
         protected DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter,
                 DynamicObject setter, DynamicObject isDefined) {
-            getContext().getCoreLibrary().getGlobalVariables().define(
+            getContext().getCoreLibrary().globalVariables.define(
                     Layouts.SYMBOL.getString(name),
                     getter,
                     setter,

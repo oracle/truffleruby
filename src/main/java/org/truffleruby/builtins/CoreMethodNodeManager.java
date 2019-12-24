@@ -232,7 +232,7 @@ public class CoreMethodNodeManager {
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope,
             DynamicObject module, String name, Arity arity) {
         return new SharedMethodInfo(
-                context.getCoreLibrary().getSourceSection(),
+                context.getCoreLibrary().sourceSection,
                 lexicalScope,
                 arity,
                 module,

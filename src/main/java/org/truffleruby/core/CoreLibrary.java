@@ -91,7 +91,7 @@ public class CoreLibrary {
 
     private final RubyContext context;
 
-    private final SourceSection sourceSection;
+    public final SourceSection sourceSection;
 
     public final DynamicObject argumentErrorClass;
     public final DynamicObject arrayClass;
@@ -199,9 +199,9 @@ public class CoreLibrary {
     public final DynamicObject mainObject;
     public final DynamicObject nil;
 
-    private final GlobalVariables globalVariables;
+    public final GlobalVariables globalVariables;
 
-    private final FrameDescriptor emptyDescriptor;
+    public final FrameDescriptor emptyDescriptor;
 
     @CompilationFinal private DynamicObject eagainWaitReadable;
     @CompilationFinal private DynamicObject eagainWaitWritable;
@@ -222,7 +222,7 @@ public class CoreLibrary {
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
-    private final String coreLoadPath;
+    public final String coreLoadPath;
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
@@ -838,7 +838,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final RubySource source = loadCoreFile(getCoreLoadPath() + file);
+                final RubySource source = loadCoreFile(coreLoadPath + file);
                 final RubyRootNode rootNode = context
                         .getCodeLoader()
                         .parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
@@ -897,7 +897,7 @@ public class CoreLibrary {
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
         DynamicObject dollarZeroValue = StringOperations
                 .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
+        globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
     }
 
     @TruffleBoundary
@@ -972,26 +972,6 @@ public class CoreLibrary {
 
     public static boolean fitsIntoUnsignedInteger(long value) {
         return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
-    }
-
-    public RubyContext getContext() {
-        return context;
-    }
-
-    public SourceSection getSourceSection() {
-        return sourceSection;
-    }
-
-    public String getCoreLoadPath() {
-        return coreLoadPath;
-    }
-
-    public FrameDescriptor getEmptyDescriptor() {
-        return emptyDescriptor;
-    }
-
-    public GlobalVariables getGlobalVariables() {
-        return globalVariables;
     }
 
     public DynamicObject getLoadPath() {
