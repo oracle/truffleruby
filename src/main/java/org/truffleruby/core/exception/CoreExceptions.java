@@ -738,9 +738,8 @@ public class CoreExceptions {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
-        final DynamicObject exception = context
-                .getCoreLibrary().nameErrorFactory
-                .newInstance(Layouts.NAME_ERROR.build(
+        final DynamicObject exception = context.getCoreLibrary().nameErrorFactory.newInstance(
+                Layouts.NAME_ERROR.build(
                         null,
                         formatter,
                         backtrace,
@@ -761,14 +760,15 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
-        return context.getCoreLibrary().noMethodErrorFactory.newInstance(Layouts.NO_METHOD_ERROR.build(
-                messageString,
-                null,
-                backtrace,
-                cause,
-                receiver,
-                context.getSymbolTable().getSymbol(name),
-                argsArray));
+        return context.getCoreLibrary().noMethodErrorFactory.newInstance(
+                Layouts.NO_METHOD_ERROR.build(
+                        messageString,
+                        null,
+                        backtrace,
+                        cause,
+                        receiver,
+                        context.getSymbolTable().getSymbol(name),
+                        argsArray));
     }
 
     public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
@@ -778,9 +778,8 @@ public class CoreExceptions {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
-        final DynamicObject exception = context
-                .getCoreLibrary().noMethodErrorFactory
-                .newInstance(Layouts.NO_METHOD_ERROR.build(
+        final DynamicObject exception = context.getCoreLibrary().noMethodErrorFactory.newInstance(
+                Layouts.NO_METHOD_ERROR.build(
                         null,
                         formatter,
                         backtrace,

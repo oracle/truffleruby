@@ -165,9 +165,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createBootThread(String info) {
-        final DynamicObject thread = context
-                .getCoreLibrary().threadFactory
-                .newInstance(packThreadFields(nil(), info));
+        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(packThreadFields(nil(), info));
         setFiberManager(thread);
         return thread;
     }
