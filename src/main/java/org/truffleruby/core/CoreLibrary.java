@@ -98,7 +98,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory arrayFactory;
     private final DynamicObject basicObjectClass;
     private final DynamicObjectFactory bignumFactory;
-    private final DynamicObject bindingClass;
     private final DynamicObjectFactory bindingFactory;
     private final DynamicObject classClass;
     private final DynamicObject complexClass;
@@ -109,7 +108,6 @@ public class CoreLibrary {
     private final DynamicObject encodingErrorClass;
     private final DynamicObject exceptionClass;
     private final DynamicObject falseClass;
-    private final DynamicObject fiberClass;
     private final DynamicObjectFactory fiberFactory;
     private final DynamicObject floatClass;
     private final DynamicObject floatDomainErrorClass;
@@ -123,7 +121,6 @@ public class CoreLibrary {
     private final DynamicObject loadErrorClass;
     private final DynamicObject localJumpErrorClass;
     private final DynamicObject matchDataClass;
-    private final DynamicObjectFactory matchDataFactory;
     private final DynamicObject moduleClass;
     private final DynamicObject nameErrorClass;
     private final DynamicObjectFactory nameErrorFactory;
@@ -143,7 +140,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
     private final DynamicObject rationalClass;
-    private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
     private final DynamicObject graalErrorClass;
@@ -161,11 +157,7 @@ public class CoreLibrary {
     private final DynamicObject systemExitClass;
     private final DynamicObject threadClass;
     private final DynamicObjectFactory threadFactory;
-    private final DynamicObject threadBacktraceClass;
-    private final DynamicObject threadBacktraceLocationClass;
     private final DynamicObjectFactory threadBacktraceLocationFactory;
-    private final DynamicObject timeClass;
-    private final DynamicObjectFactory timeFactory;
     private final DynamicObject trueClass;
     private final DynamicObject typeErrorClass;
     private final DynamicObject zeroDivisionErrorClass;
@@ -189,22 +181,15 @@ public class CoreLibrary {
     private final DynamicObject bigDecimalOperationsModule;
     private final DynamicObject encodingCompatibilityErrorClass;
     private final DynamicObject encodingUndefinedConversionErrorClass;
-    private final DynamicObject methodClass;
     private final DynamicObjectFactory methodFactory;
-    private final DynamicObject unboundMethodClass;
     private final DynamicObjectFactory unboundMethodFactory;
-    private final DynamicObject byteArrayClass;
     private final DynamicObjectFactory byteArrayFactory;
     private final DynamicObject fiberErrorClass;
     private final DynamicObject threadErrorClass;
     private final DynamicObject objectSpaceModule;
-    private final DynamicObject randomizerClass;
     private final DynamicObjectFactory randomizerFactory;
-    private final DynamicObject atomicReferenceClass;
-    private final DynamicObject handleClass;
     private final DynamicObjectFactory handleFactory;
     private final DynamicObject ioClass;
-    private final DynamicObject stopIterationClass;
     private final DynamicObject closedQueueErrorClass;
     private final DynamicObject warningModule;
 
@@ -212,8 +197,6 @@ public class CoreLibrary {
     private final GlobalVariables globalVariables;
     private final DynamicObject mainObject;
     private final DynamicObject nil;
-    private final Object supportUndefined;
-    private final DynamicObject digestClass;
     private final DynamicObjectFactory digestFactory;
     private final DynamicObject structClass;
 
@@ -377,7 +360,7 @@ public class CoreLibrary {
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
         keyErrorClass = defineClass(indexErrorClass, "KeyError");
-        stopIterationClass = defineClass(indexErrorClass, "StopIteration");
+        DynamicObject stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
         // StandardError > IOError
@@ -432,7 +415,7 @@ public class CoreLibrary {
         arrayClass = defineClass("Array");
         arrayFactory = Layouts.ARRAY.createArrayShape(arrayClass, arrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, arrayFactory);
-        bindingClass = defineClass("Binding");
+        DynamicObject bindingClass = defineClass("Binding");
         bindingFactory = Layouts.BINDING.createBindingShape(bindingClass, bindingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, bindingFactory);
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
@@ -441,7 +424,7 @@ public class CoreLibrary {
         encodingFactory = Layouts.ENCODING.createEncodingShape(encodingClass, encodingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, encodingFactory);
         falseClass = defineClass("FalseClass");
-        fiberClass = defineClass("Fiber");
+        DynamicObject fiberClass = defineClass("Fiber");
         fiberFactory = Layouts.FIBER.createFiberShape(fiberClass, fiberClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, fiberFactory);
         defineModule("FileTest");
@@ -454,9 +437,9 @@ public class CoreLibrary {
         }
         Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
         matchDataClass = defineClass("MatchData");
-        matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
+        DynamicObjectFactory matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, matchDataFactory);
-        methodClass = defineClass("Method");
+        DynamicObject methodClass = defineClass("Method");
         methodFactory = Layouts.METHOD.createMethodShape(methodClass, methodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, methodFactory);
         final DynamicObject mutexClass = defineClass("Mutex");
@@ -480,7 +463,7 @@ public class CoreLibrary {
                 Layouts.OBJECT_RANGE.createObjectRangeShape(rangeClass, rangeClass));
         intRangeFactory = Layouts.INT_RANGE.createIntRangeShape(rangeClass, rangeClass);
         longRangeFactory = Layouts.LONG_RANGE.createLongRangeShape(rangeClass, rangeClass);
-        regexpClass = defineClass("Regexp");
+        DynamicObject regexpClass = defineClass("Regexp");
         regexpFactory = Layouts.REGEXP.createRegexpShape(regexpClass, regexpClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, regexpFactory);
         stringClass = defineClass("String");
@@ -495,16 +478,16 @@ public class CoreLibrary {
         threadFactory = Layouts.THREAD.createThreadShape(threadClass, threadClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, threadFactory);
 
-        threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
-        threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
+        DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
+        DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
         threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE
                 .createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadBacktraceLocationClass, threadBacktraceLocationFactory);
-        timeClass = defineClass("Time");
-        timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
+        DynamicObject timeClass = defineClass("Time");
+        DynamicObjectFactory timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, timeFactory);
         trueClass = defineClass("TrueClass");
-        unboundMethodClass = defineClass("UnboundMethod");
+        DynamicObject unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, unboundMethodFactory);
         ioClass = defineClass("IO");
@@ -546,7 +529,7 @@ public class CoreLibrary {
                         .createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
-        atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
+        DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(
                 atomicReferenceClass,
                 Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
@@ -574,7 +557,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
-        handleClass = defineClass(truffleModule, objectClass, "Handle");
+        DynamicObject handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
         defineModule("Polyglot");
@@ -596,18 +579,18 @@ public class CoreLibrary {
 
         truffleTypeModule = defineModule(truffleModule, "Type");
 
-        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
+        DynamicObject byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
+        DynamicObject randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
         randomizerFactory = Layouts.RANDOMIZER.createRandomizerShape(randomizerClass, randomizerClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, randomizerFactory);
 
         // Standard library
 
-        digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
+        DynamicObject digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
         digestFactory = Layouts.DIGEST.createDigestShape(digestClass, digestClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, digestFactory);
 
@@ -621,7 +604,6 @@ public class CoreLibrary {
         nil = nilFactory.newInstance();
         emptyDescriptor = new FrameDescriptor(nil);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
-        supportUndefined = NotProvided.INSTANCE;
 
         globalVariables = new GlobalVariables(nil);
 
@@ -772,7 +754,7 @@ public class CoreLibrary {
 
         setConstant(objectClass, "ARGV", argv);
 
-        setConstant(truffleModule, "UNDEFINED", supportUndefined);
+        setConstant(truffleModule, "UNDEFINED", NotProvided.INSTANCE);
 
         setConstant(encodingConverterClass, "INVALID_MASK", EConvFlags.INVALID_MASK);
         setConstant(encodingConverterClass, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
