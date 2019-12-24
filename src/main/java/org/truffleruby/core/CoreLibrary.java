@@ -192,13 +192,14 @@ public class CoreLibrary {
     private final DynamicObject ioClass;
     private final DynamicObject closedQueueErrorClass;
     private final DynamicObject warningModule;
-
-    private final DynamicObject argv;
-    private final GlobalVariables globalVariables;
-    private final DynamicObject mainObject;
-    private final DynamicObject nil;
     private final DynamicObjectFactory digestFactory;
     private final DynamicObject structClass;
+
+    private final DynamicObject argv;
+    private final DynamicObject mainObject;
+    private final DynamicObject nil;
+
+    private final GlobalVariables globalVariables;
 
     private final FrameDescriptor emptyDescriptor;
 
