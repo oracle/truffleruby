@@ -80,8 +80,8 @@ public class AtExitManager {
     public static DynamicObject handleAtExitException(RubyContext context, RaiseException raiseException) {
         final DynamicObject rubyException = raiseException.getException();
         DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
-        if (logicalClass == context.getCoreLibrary().getSystemExitClass() ||
-                logicalClass == context.getCoreLibrary().getSignalExceptionClass()) {
+        if (logicalClass == context.getCoreLibrary().systemExitClass ||
+                logicalClass == context.getCoreLibrary().signalExceptionClass) {
             // Do not show the backtrace for these
         } else {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);

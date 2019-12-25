@@ -491,7 +491,7 @@ public abstract class IONodes {
             DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
                     .allocate(
-                            getContext().getCoreLibrary().getTruffleFFIPointerClass(),
+                            getContext().getCoreLibrary().truffleFFIPointerClass,
                             getBuffer(thread, size, sizeProfile));
         }
 

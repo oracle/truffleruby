@@ -67,7 +67,7 @@ public class DeclarationContext {
     }
 
     public static DeclarationContext topLevel(RubyContext context) {
-        return topLevel(context.getCoreLibrary().getObjectClass());
+        return topLevel(context.getCoreLibrary().objectClass);
     }
 
     public static DeclarationContext topLevel(DynamicObject defaultDefinee) {

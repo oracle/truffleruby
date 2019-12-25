@@ -58,7 +58,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
         for (int i = 0; i < cachedSize; i++) {
             setNode.execute(copy, i, getNode.execute(original, i));
         }
-        return allocateArray(coreLibrary().getArrayClass(), copy, cachedSize);
+        return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
@@ -67,7 +67,7 @@ public abstract class ArrayDupNode extends RubyBaseNode {
             @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
         final int size = strategy.getSize(from);
         final Object copy = extractRangeCopyOnWriteNode.execute(from, 0, size);
-        return allocateArray(coreLibrary().getArrayClass(), copy, size);
+        return allocateArray(coreLibrary().arrayClass, copy, size);
     }
 
     private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {

@@ -96,7 +96,7 @@ public class FiberManager {
     }
 
     private DynamicObject createRootFiber(RubyContext context, DynamicObject thread) {
-        return createFiber(context, thread, context.getCoreLibrary().getFiberFactory(), "root Fiber for Thread");
+        return createFiber(context, thread, context.getCoreLibrary().fiberFactory, "root Fiber for Thread");
     }
 
     public DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory,
@@ -104,7 +104,7 @@ public class FiberManager {
         assert RubyGuards.isRubyThread(thread);
         CompilerAsserts.partialEvaluationConstant(context);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT
-                .createBasicObject(context.getCoreLibrary().getObjectFactory());
+                .createBasicObject(context.getCoreLibrary().objectFactory);
         final DynamicObject catchTags = ArrayHelpers.createEmptyArray(context);
 
         return Layouts.FIBER.createFiber(

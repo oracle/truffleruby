@@ -84,9 +84,7 @@ public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context
-                    .getCoreLibrary()
-                    .getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context.getCoreLibrary().noMethodErrorClass) {
                 throw new RaiseException(context, context.getCoreExceptions().typeError(
                         StringUtils.toString(object) + " is not a symbol nor a string",
                         this));

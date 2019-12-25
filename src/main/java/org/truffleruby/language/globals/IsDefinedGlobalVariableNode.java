@@ -64,7 +64,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
     }
 
     protected GlobalVariableStorage getStorage() {
-        return getContext().getCoreLibrary().getGlobalVariables().getStorage(name);
+        return getContext().getCoreLibrary().globalVariables.getStorage(name);
     }
 
 }

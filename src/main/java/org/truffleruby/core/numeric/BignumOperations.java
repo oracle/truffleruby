@@ -24,7 +24,7 @@ public class BignumOperations {
     public static DynamicObject createBignum(RubyContext context, BigInteger value) {
         assert value.compareTo(LONG_MIN_BIGINT) < 0 ||
                 value.compareTo(LONG_MAX_BIGINT) > 0 : "Bignum in long range : " + value;
-        return Layouts.BIGNUM.createBignum(context.getCoreLibrary().getBignumFactory(), value);
+        return Layouts.BIGNUM.createBignum(context.getCoreLibrary().bignumFactory, value);
     }
 
 }

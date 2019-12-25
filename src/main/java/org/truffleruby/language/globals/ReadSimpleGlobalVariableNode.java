@@ -42,7 +42,7 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     protected GlobalVariableStorage getStorage() {
-        return coreLibrary().getGlobalVariables().getStorage(name);
+        return coreLibrary().globalVariables.getStorage(name);
     }
 
 }

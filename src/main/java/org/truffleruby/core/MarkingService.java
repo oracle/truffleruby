@@ -125,7 +125,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final ExtensionCallStack extensionCallStack;
 
         public MarkerThreadLocalData(MarkingService service) {
-            this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().getNil());
+            this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().nil);
         }
 
         public ExtensionCallStack getExtensionCallStack() {

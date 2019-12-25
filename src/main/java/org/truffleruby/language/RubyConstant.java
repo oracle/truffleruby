@@ -167,7 +167,7 @@ public class RubyConstant implements ObjectGraphNode {
         }
 
         // Allow Object constants if looking with lexical scope.
-        if (lexicalScope != null && context.getCoreLibrary().getObjectClass() == declaringModule) {
+        if (lexicalScope != null && context.getCoreLibrary().objectClass == declaringModule) {
             return true;
         }
 

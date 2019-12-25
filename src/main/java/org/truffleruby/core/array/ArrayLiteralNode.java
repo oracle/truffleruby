@@ -56,7 +56,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             allocateObjectNode = insert(AllocateObjectNode.create());
         }
-        return allocateObjectNode.allocate(coreLibrary().getArrayClass(), store, size);
+        return allocateObjectNode.allocate(coreLibrary().arrayClass, store, size);
     }
 
     @Override

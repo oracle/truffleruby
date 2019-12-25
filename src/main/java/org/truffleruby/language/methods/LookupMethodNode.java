@@ -124,7 +124,7 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
 
         final DynamicObject metaClass = metaClass(metaClassNode, self);
 
-        if (metaClass == context.getCoreLibrary().getTruffleInteropForeignClass()) {
+        if (metaClass == context.getCoreLibrary().truffleInteropForeignClass) {
             foreignProfile.enter();
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
@@ -168,7 +168,7 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
             final InternalMethod callerMethod = RubyArguments.tryGetMethod(frame);
 
             if (noCallerMethodProfile.profile(callerMethod == null)) {
-                callerClass = context.getCoreLibrary().getObjectClass();
+                callerClass = context.getCoreLibrary().objectClass;
             } else if (!isSendProfile.profile(context.getCoreLibrary().isSend(callerMethod))) {
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
             } else {
@@ -237,7 +237,7 @@ public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
     protected static DynamicObject getCallerClass(RubyContext context, Frame callingFrame) {
         final InternalMethod callerMethod = RubyArguments.tryGetMethod(callingFrame);
         if (callerMethod == null) {
-            return context.getCoreLibrary().getObjectClass();
+            return context.getCoreLibrary().objectClass;
         } else if (!context.getCoreLibrary().isSend(callerMethod)) {
             return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
         } else {

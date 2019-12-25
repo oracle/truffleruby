@@ -72,7 +72,7 @@ public class ThreadAndFrameLocalStorage {
     }
 
     protected Object initialValue() {
-        return context.getCoreLibrary().getNil();
+        return context.getCoreLibrary().nil;
     }
 
 }

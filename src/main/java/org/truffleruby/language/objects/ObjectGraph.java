@@ -98,7 +98,7 @@ public abstract class ObjectGraph {
 
     public static void visitContextRoots(RubyContext context, Collection<DynamicObject> roots) {
         // We do not want to expose the global object
-        roots.addAll(context.getCoreLibrary().getGlobalVariables().dynamicObjectValues());
+        roots.addAll(context.getCoreLibrary().globalVariables.dynamicObjectValues());
         roots.addAll(context.getAtExitManager().getHandlers());
         context.getFinalizationService().collectRoots(roots);
     }

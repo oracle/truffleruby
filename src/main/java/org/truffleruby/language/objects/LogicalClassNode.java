@@ -30,27 +30,27 @@ public abstract class LogicalClassNode extends RubyBaseNode {
 
     @Specialization(guards = "value")
     protected DynamicObject logicalClassTrue(boolean value) {
-        return coreLibrary().getTrueClass();
+        return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
     protected DynamicObject logicalClassFalse(boolean value) {
-        return coreLibrary().getFalseClass();
+        return coreLibrary().falseClass;
     }
 
     @Specialization
     protected DynamicObject logicalClassInt(int value) {
-        return coreLibrary().getIntegerClass();
+        return coreLibrary().integerClass;
     }
 
     @Specialization
     protected DynamicObject logicalClassLong(long value) {
-        return coreLibrary().getIntegerClass();
+        return coreLibrary().integerClass;
     }
 
     @Specialization
     protected DynamicObject logicalClassDouble(double value) {
-        return coreLibrary().getFloatClass();
+        return coreLibrary().floatClass;
     }
 
     @Specialization(

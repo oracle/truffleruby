@@ -281,7 +281,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isNil(RubyContext context, Object object) {
-        return object == context.getCoreLibrary().getNil();
+        return object == context.getCoreLibrary().nil;
     }
 
     // Internal types

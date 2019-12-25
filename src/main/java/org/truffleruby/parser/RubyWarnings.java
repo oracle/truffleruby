@@ -108,7 +108,7 @@ public class RubyWarnings implements WarnCallback {
 
     private void printWarning(String message) {
         if (context.getCoreLibrary().isLoaded()) {
-            final Object warning = context.getCoreLibrary().getWarningModule();
+            final Object warning = context.getCoreLibrary().warningModule;
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
             final DynamicObject messageString = StringOperations.createString(context, messageRope);
             context.send(warning, "warn", messageString);

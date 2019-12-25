@@ -59,7 +59,7 @@ public final class PreInitializationManager {
 
     private void restoreOriginalHashFactory() {
         Layouts.CLASS.setInstanceFactoryUnsafe(
-                context.getCoreLibrary().getHashClass(),
+                context.getCoreLibrary().hashClass,
                 trackingHashFactory.originalHashFactory);
     }
 

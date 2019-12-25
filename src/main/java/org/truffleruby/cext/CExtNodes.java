@@ -1033,7 +1033,7 @@ public class CExtNodes {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return allocateObjectNode
-                    .allocate(coreLibrary().getTruffleFFIPointerClass(), nativeRope.getNativePointer());
+                    .allocate(coreLibrary().truffleFFIPointerClass, nativeRope.getNativePointer());
         }
 
     }
@@ -1102,7 +1102,7 @@ public class CExtNodes {
             }
 
             DynamicObject klass = (DynamicObject) allocateNode
-                    .call(getContext().getCoreLibrary().getClassClass(), "__allocate__");
+                    .call(getContext().getCoreLibrary().classClass, "__allocate__");
             return initializeClassNode.executeInitialize(klass, superclass, NotProvided.INSTANCE);
         }
 

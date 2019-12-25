@@ -63,7 +63,7 @@ public class CodeLoader {
         } else if (parserContext == ParserContext.MODULE) {
             declaringModule = (DynamicObject) self;
         } else {
-            declaringModule = context.getCoreLibrary().getObjectClass();
+            declaringModule = context.getCoreLibrary().objectClass;
         }
 
         final LexicalScope lexicalScope;

@@ -34,7 +34,7 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
         Object message = Layouts.EXCEPTION.getMessage(exception);
-        if (message == null || message == context.getCoreLibrary().getNil()) {
+        if (message == null || message == context.getCoreLibrary().nil) {
             final ModuleFields exceptionClass = Layouts.MODULE
                     .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
             return exceptionClass.getName(); // What Exception#message would return if no message is set
@@ -93,7 +93,7 @@ public abstract class ExceptionOperations {
 
     public static DynamicObject getFormatter(String name, RubyContext context) {
         return (DynamicObject) Layouts.MODULE
-                .getFields(context.getCoreLibrary().getTruffleExceptionOperationsModule())
+                .getFields(context.getCoreLibrary().truffleExceptionOperationsModule)
                 .getConstant(name)
                 .getValue();
     }

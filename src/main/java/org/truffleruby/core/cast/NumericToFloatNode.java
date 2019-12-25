@@ -61,7 +61,7 @@ public abstract class NumericToFloatNode extends RubyBaseNode {
     }
 
     protected boolean isNumeric(VirtualFrame frame, Object value) {
-        return isANode.executeIsA(value, coreLibrary().getNumericClass());
+        return isANode.executeIsA(value, coreLibrary().numericClass);
     }
 
 }

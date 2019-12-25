@@ -36,7 +36,7 @@ public abstract class ForeignExecuteHelperNode extends RubyBaseWithoutContextNod
     protected Object callMethod(DynamicObject method, Object[] arguments,
             @Cached CallBoundMethodNode callBoundMethodNode,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return callBoundMethodNode.executeCallBoundMethod(method, arguments, context.getCoreLibrary().getNil());
+        return callBoundMethodNode.executeCallBoundMethod(method, arguments, context.getCoreLibrary().nil);
     }
 
 }

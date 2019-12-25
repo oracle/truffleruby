@@ -89,7 +89,7 @@ public abstract class ProcOperations {
 
     public static DynamicObject createLambdaFromBlock(RubyContext context, DynamicObject block) {
         return ProcOperations.createRubyProc(
-                context.getCoreLibrary().getProcFactory(),
+                context.getCoreLibrary().procFactory,
                 ProcType.LAMBDA,
                 Layouts.PROC.getSharedMethodInfo(block),
                 Layouts.PROC.getCallTargetForLambdas(block),

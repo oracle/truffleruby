@@ -64,7 +64,7 @@ public class DefineClassNode extends RubyNode {
         if (needToDefineProfile.profile(existing == null)) {
             final DynamicObject superClass;
             if (noSuperClassSupplied.profile(suppliedSuperClass == null)) {
-                superClass = getContext().getCoreLibrary().getObjectClass();
+                superClass = getContext().getCoreLibrary().objectClass;
             } else {
                 superClass = suppliedSuperClass;
             }

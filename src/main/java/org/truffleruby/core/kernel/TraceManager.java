@@ -153,12 +153,12 @@ public class TraceManager {
                         event,
                         getFile(),
                         getLine(),
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         BindingNodes.createBinding(
                                 context,
                                 frame.materialize(),
                                 eventContext.getInstrumentedSourceSection()),
-                        context.getCoreLibrary().getNil());
+                        context.getCoreLibrary().nil);
             } finally {
                 isInTraceFunc = false;
             }

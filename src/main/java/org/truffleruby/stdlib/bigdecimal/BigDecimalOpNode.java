@@ -33,7 +33,7 @@ public abstract class BigDecimalOpNode extends BigDecimalCoreMethodNode {
             isANode = insert(IsANode.create());
         }
 
-        return isANode.executeIsA(object, getContext().getCoreLibrary().getRationalClass());
+        return isANode.executeIsA(object, getContext().getCoreLibrary().rationalClass);
     }
 
 }

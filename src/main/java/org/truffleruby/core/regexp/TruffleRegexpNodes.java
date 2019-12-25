@@ -127,7 +127,7 @@ public class TruffleRegexpNodes {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
             final Regex regex = compile(this, getContext(), pattern, regexpOptions);
 
-            final DynamicObjectFactory factory = getContext().getCoreLibrary().getRegexpFactory();
+            final DynamicObjectFactory factory = getContext().getCoreLibrary().regexpFactory;
             return Layouts.REGEXP
                     .createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
         }
@@ -251,7 +251,7 @@ public class TruffleRegexpNodes {
         }
 
         protected DynamicObject matchDataClass() {
-            return getContext().getCoreLibrary().getMatchDataClass();
+            return getContext().getCoreLibrary().matchDataClass;
         }
     }
 

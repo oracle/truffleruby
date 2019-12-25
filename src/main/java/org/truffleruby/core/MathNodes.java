@@ -431,7 +431,7 @@ public abstract class MathNodes {
 
         @Fallback
         protected DynamicObject lgamma(Object a) {
-            if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
+            if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
@@ -467,7 +467,7 @@ public abstract class MathNodes {
         @Specialization
         protected double function(Object a, NotProvided b,
                 @Cached ToFNode toFNode) {
-            if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
+            if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
@@ -612,7 +612,7 @@ public abstract class MathNodes {
 
         @Fallback
         protected double function(Object a) {
-            if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
+            if (!isANode.executeIsA(a, coreLibrary().numericClass)) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
@@ -718,8 +718,8 @@ public abstract class MathNodes {
 
         @Fallback
         protected double function(Object a, Object b) {
-            if (!(isANode.executeIsA(a, coreLibrary().getNumericClass()) &&
-                    isANode.executeIsA(b, coreLibrary().getNumericClass()))) {
+            if (!(isANode.executeIsA(a, coreLibrary().numericClass) &&
+                    isANode.executeIsA(b, coreLibrary().numericClass))) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }

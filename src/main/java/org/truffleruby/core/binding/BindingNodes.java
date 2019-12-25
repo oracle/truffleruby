@@ -64,17 +64,17 @@ public abstract class BindingNodes {
 
     public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame,
             SourceSection sourceSection) {
-        return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame, sourceSection);
+        return Layouts.BINDING.createBinding(context.getCoreLibrary().bindingFactory, frame, sourceSection);
     }
 
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().getNil());
+        return new FrameDescriptor(context.getCoreLibrary().nil);
     }
 
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context, String name) {
-        final FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
+        final FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().nil);
         assert name != null && !name.isEmpty();
         frameDescriptor.addFrameSlot(name);
         return frameDescriptor;

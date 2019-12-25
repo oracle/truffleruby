@@ -46,7 +46,7 @@ public abstract class DefineModuleNode extends RubyNode {
             definingModule = ModuleNodes.createModule(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().getModuleClass(),
+                    coreLibrary().moduleClass,
                     lexicalParentModule,
                     name,
                     this);

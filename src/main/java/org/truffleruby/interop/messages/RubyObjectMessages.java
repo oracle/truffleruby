@@ -51,7 +51,7 @@ public class RubyObjectMessages {
     public static boolean isNull(
             DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return object == context.getCoreLibrary().getNil();
+        return object == context.getCoreLibrary().nil;
     }
 
     @ExportMessage
@@ -74,7 +74,7 @@ public class RubyObjectMessages {
     }
 
     private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, IsANode isANode) {
-        return isANode.executeIsA(receiver, context.getCoreLibrary().getStructClass());
+        return isANode.executeIsA(receiver, context.getCoreLibrary().structClass);
     }
 
     @ExportMessage()
@@ -179,7 +179,7 @@ public class RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_readable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_readable?",
                 receiver,
                 index);
@@ -190,7 +190,7 @@ public class RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_modifiable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_modifiable?",
                 receiver,
                 index);
@@ -201,7 +201,7 @@ public class RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_insertable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_insertable?",
                 receiver,
                 index);
@@ -212,7 +212,7 @@ public class RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_removable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_removable?",
                 receiver,
                 index);
@@ -321,7 +321,7 @@ public class RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_keys",
                 receiver,
                 internal);
@@ -337,7 +337,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_readable?",
                 receiver,
                 convertedName);
@@ -353,7 +353,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_modifiable?",
                 receiver,
                 convertedName);
@@ -369,7 +369,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_insertable?",
                 receiver,
                 convertedName);
@@ -385,7 +385,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_removable?",
                 receiver,
                 convertedName);
@@ -401,7 +401,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_invocable?",
                 receiver,
                 convertedName);
@@ -417,7 +417,7 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
         return (boolean) dispatchNode.call(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "object_key_internal?",
                 receiver,
                 convertedName);

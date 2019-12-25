@@ -84,7 +84,7 @@ public class ReadConstantNode extends RubyNode {
         try {
             constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
                 // private constant
                 return nil();
             }

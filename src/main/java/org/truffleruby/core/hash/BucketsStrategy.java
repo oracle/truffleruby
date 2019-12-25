@@ -127,8 +127,8 @@ public abstract class BucketsStrategy {
             }
         }
 
-        final DynamicObject nil = context.getCoreLibrary().getNil();
-        return context.getCoreLibrary().getHashFactory().newInstance(
+        final DynamicObject nil = context.getCoreLibrary().nil;
+        return context.getCoreLibrary().hashFactory.newInstance(
                 Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, nil, nil, false));
     }
 
