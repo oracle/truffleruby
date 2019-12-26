@@ -193,4 +193,20 @@ public class PolyglotInteropTest {
         }
     }
 
+    @Test
+    public void testTopScopes() {
+        try (Context context = Context.create()) {
+            Value bindings = context.getBindings("ruby");
+            assertTrue(bindings.getMember("$DEBUG").isBoolean());
+
+            context.eval("ruby", "def my_test_method(); 42; end");
+            Value myMethod = bindings.getMember("my_test_method");
+            assertTrue(myMethod.canExecute());
+            assertEquals(myMethod.execute().asInt(), 42);
+
+            Value formatMethod = bindings.getMember("format");
+            assertTrue(formatMethod.canExecute());
+            assertEquals(formatMethod.execute("hello").asString(), "hello");
+        }
+    }
 }
