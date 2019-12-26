@@ -545,7 +545,7 @@ module Kernel
                  uplevel = Truffle::Type.coerce_to_int(uplevel)
                  raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
 
-                 caller = caller_locations(uplevel + 1, 1)[0]
+                 caller, = caller_locations(uplevel + 1, 1)
                  if caller
                    "#{caller.path}:#{caller.lineno}: warning: "
                  else
