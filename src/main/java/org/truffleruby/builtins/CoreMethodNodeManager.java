@@ -107,9 +107,9 @@ public class CoreMethodNodeManager {
         DynamicObject module;
 
         if (fullName.equals("main")) {
-            module = getSingletonClass(context.getCoreLibrary().getMainObject());
+            module = getSingletonClass(context.getCoreLibrary().mainObject);
         } else {
-            module = context.getCoreLibrary().getObjectClass();
+            module = context.getCoreLibrary().objectClass;
 
             for (String moduleName : fullName.split("::")) {
                 final ConstantLookupResult constant = ModuleOperations.lookupConstant(context, module, moduleName);
@@ -232,7 +232,7 @@ public class CoreMethodNodeManager {
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope,
             DynamicObject module, String name, Arity arity) {
         return new SharedMethodInfo(
-                context.getCoreLibrary().getSourceSection(),
+                context.getCoreLibrary().sourceSection,
                 lexicalScope,
                 arity,
                 module,

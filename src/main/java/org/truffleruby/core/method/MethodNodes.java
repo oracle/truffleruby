@@ -181,7 +181,7 @@ public abstract class MethodNodes {
         protected Object sourceLocation(DynamicObject method) {
             SourceSection sourceSection = Layouts.METHOD.getMethod(method).getSharedMethodInfo().getSourceSection();
 
-            if (sourceSection.getSource() == null) {
+            if (!sourceSection.isAvailable()) {
                 return nil();
             } else {
                 DynamicObject file = makeStringNode.executeMake(
@@ -209,7 +209,7 @@ public abstract class MethodNodes {
             if (!superMethod.isDefined()) {
                 return nil();
             } else {
-                return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, superMethod.getMethod());
+                return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, superMethod.getMethod());
             }
         }
 
@@ -224,7 +224,7 @@ public abstract class MethodNodes {
         protected DynamicObject unbind(VirtualFrame frame, DynamicObject method) {
             final DynamicObject receiverClass = classNode.executeLogicalClass(Layouts.METHOD.getReceiver(method));
             return Layouts.UNBOUND_METHOD.createUnboundMethod(
-                    coreLibrary().getUnboundMethodFactory(),
+                    coreLibrary().unboundMethodFactory,
                     receiverClass,
                     Layouts.METHOD.getMethod(method));
         }
@@ -263,9 +263,9 @@ public abstract class MethodNodes {
             final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
+                    .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
             return ProcOperations.createRubyProc(
-                    coreLibrary().getProcFactory(),
+                    coreLibrary().procFactory,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,

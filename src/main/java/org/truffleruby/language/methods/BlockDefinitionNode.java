@@ -85,7 +85,7 @@ public class BlockDefinitionNode extends RubyNode {
         }
 
         return ProcOperations.createRubyProc(
-                coreLibrary().getProcFactory(),
+                coreLibrary().procFactory,
                 type,
                 sharedMethodInfo,
                 callTargetForProcs,

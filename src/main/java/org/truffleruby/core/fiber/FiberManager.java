@@ -27,8 +27,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.TerminationException;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
@@ -96,7 +96,7 @@ public class FiberManager {
     }
 
     private DynamicObject createRootFiber(RubyContext context, DynamicObject thread) {
-        return createFiber(context, thread, context.getCoreLibrary().getFiberFactory(), "root Fiber for Thread");
+        return createFiber(context, thread, context.getCoreLibrary().fiberFactory, "root Fiber for Thread");
     }
 
     public DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory,
@@ -104,7 +104,7 @@ public class FiberManager {
         assert RubyGuards.isRubyThread(thread);
         CompilerAsserts.partialEvaluationConstant(context);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT
-                .createBasicObject(context.getCoreLibrary().getObjectFactory());
+                .createBasicObject(context.getCoreLibrary().objectFactory);
         final DynamicObject catchTags = ArrayHelpers.createEmptyArray(context);
 
         return Layouts.FIBER.createFiber(
@@ -186,7 +186,7 @@ public class FiberManager {
                     fiber,
                     new RaiseException(context, context.getCoreExceptions().breakFromProcClosure(currentNode)),
                     currentNode);
-        } catch (ReturnException e) {
+        } catch (DynamicReturnException e) {
             sendExceptionToParentFiber(
                     fiber,
                     new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)),

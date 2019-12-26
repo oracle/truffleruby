@@ -202,8 +202,8 @@ public class RubyContext {
         valueWrapperManager = new ValueWrapperManager(this);
         Metrics.printTime("after-create-core-library");
 
-        symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), this);
-        rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
+        symbolTable = new SymbolTable(ropeCache, coreLibrary.symbolFactory, this);
+        rootLexicalScope = new LexicalScope(null, coreLibrary.objectClass);
 
         // Create objects that need core classes
 
@@ -304,7 +304,7 @@ public class RubyContext {
 
         Metrics.printTime("before-run-delayed-initialization");
         final Object toRunAtInit = Layouts.MODULE
-                .getFields(coreLibrary.getTruffleBootModule())
+                .getFields(coreLibrary.truffleBootModule)
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
         for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {

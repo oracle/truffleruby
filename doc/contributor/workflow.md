@@ -79,14 +79,14 @@ scratch.
 
 ### Building C Extensions Faster
 
-To speed up compilation of bundled C extensions, it is recommended to use
-*native* toolchain launchers, which save around 1 minute of build time.
+To speed up compilation of bundled C extensions, it is possible to use
+*native* toolchain launchers, which might save some build time.
 See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
 in Sulong to build and use them.
 
-Or set `export JT_CACHE_TOOLCHAIN=true` environment variable to have the
-toolchain built and used by `jt` automatically. `jt` will keep the 4 newest
-built toolchains to avoid rebuilding when branches are switched.
+You can also use `export JT_CACHE_TOOLCHAIN=true` to have the native toolchain
+launchers built and used by `jt` automatically. `jt` will keep the 4 newest
+built toolchain launchers to avoid rebuilding when branches are switched.
 
 ## Running
 
@@ -161,7 +161,7 @@ $ jt --use jvm-ce ruby ...
 ```
 
 We have flags in `jt` to set some options, such as `--trace` for
-`--vm.Dgraal.TraceTruffleCompilation=true`.
+`--engine.TraceCompilation`.
 
 ## Testing with Graal
 

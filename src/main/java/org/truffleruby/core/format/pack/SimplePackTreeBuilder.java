@@ -156,7 +156,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         false,
                         "to_str",
                         false,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
     }
 
@@ -182,7 +182,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_s",
                         true,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
     }
 
@@ -199,7 +199,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         false,
                         "to_str",
                         false,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
     }
 
@@ -383,7 +383,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
 
     }
@@ -399,7 +399,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
     }
 
@@ -421,7 +421,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().getNil(),
+                        context.getCoreLibrary().nil,
                         new SourceNode())));
 
     }

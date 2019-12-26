@@ -32,6 +32,8 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             @Nullable DynamicObject backtraceLocations,
             Object errno);
 
+    boolean isSystemCallError(DynamicObject object);
+
     Object getErrno(DynamicObject object);
 
     void setErrno(DynamicObject object, Object value);

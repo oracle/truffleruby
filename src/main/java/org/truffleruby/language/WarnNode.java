@@ -38,7 +38,7 @@ public class WarnNode extends RubyBaseNode {
         final String warningMessage = buildWarningMessage(getContext(), sourceSection, message);
         final DynamicObject warningString = makeStringNode
                 .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        warnMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
+        warnMethod.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
     }
 
     @TruffleBoundary

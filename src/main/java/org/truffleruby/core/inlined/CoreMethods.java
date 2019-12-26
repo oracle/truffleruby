@@ -76,13 +76,13 @@ public class CoreMethods {
 
     public CoreMethods(RubyContext context) {
         this.context = context;
-        final DynamicObject basicObjectClass = context.getCoreLibrary().getBasicObjectClass();
-        final DynamicObject exceptionClass = context.getCoreLibrary().getExceptionClass();
-        final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
-        final DynamicObject integerClass = context.getCoreLibrary().getIntegerClass();
-        final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
-        final DynamicObject nilClass = context.getCoreLibrary().getNilClass();
-        final DynamicObject stringClass = context.getCoreLibrary().getStringClass();
+        final DynamicObject basicObjectClass = context.getCoreLibrary().basicObjectClass;
+        final DynamicObject exceptionClass = context.getCoreLibrary().exceptionClass;
+        final DynamicObject kernelModule = context.getCoreLibrary().kernelModule;
+        final DynamicObject integerClass = context.getCoreLibrary().integerClass;
+        final DynamicObject floatClass = context.getCoreLibrary().floatClass;
+        final DynamicObject nilClass = context.getCoreLibrary().nilClass;
+        final DynamicObject stringClass = context.getCoreLibrary().stringClass;
 
         integerNegAssumption = registerAssumption(integerClass, "-@");
         floatNegAssumption = registerAssumption(floatClass, "-@");

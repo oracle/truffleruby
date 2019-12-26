@@ -29,7 +29,7 @@ public abstract class ToDoubleWithCoercionNode extends FormatNode {
             floatNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
-        return floatNode.call(getContext().getCoreLibrary().getKernelModule(), "Float", value);
+        return floatNode.call(getContext().getCoreLibrary().kernelModule, "Float", value);
     }
 
 }

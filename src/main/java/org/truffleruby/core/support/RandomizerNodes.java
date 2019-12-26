@@ -63,7 +63,7 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected DynamicObject randomizerAllocate(DynamicObject randomizerClass) {
-            return Layouts.RANDOMIZER.createRandomizer(coreLibrary().getRandomizerFactory(), new Randomizer());
+            return Layouts.RANDOMIZER.createRandomizer(coreLibrary().randomizerFactory, new Randomizer());
         }
 
     }

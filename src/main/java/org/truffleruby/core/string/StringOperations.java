@@ -52,11 +52,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class StringOperations {
 
     public static DynamicObject createString(RubyContext context, Rope rope) {
-        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(false, false, rope));
+        return context.getCoreLibrary().stringFactory.newInstance(Layouts.STRING.build(false, false, rope));
     }
 
     public static DynamicObject createFrozenString(RubyContext context, Rope rope) {
-        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(true, false, rope));
+        return context.getCoreLibrary().stringFactory.newInstance(Layouts.STRING.build(true, false, rope));
     }
 
     public static String getString(DynamicObject string) {

@@ -121,7 +121,7 @@ public abstract class ToIntNode extends RubyNode {
             coerced = toIntNode.call(object, "to_int");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
@@ -130,7 +130,7 @@ public abstract class ToIntNode extends RubyNode {
             }
         }
 
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().getIntegerClass()) {
+        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().integerClass) {
             return coerced;
         } else {
             errorProfile.enter();

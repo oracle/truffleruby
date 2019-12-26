@@ -48,7 +48,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
         try {
             constant = lookupConstantNode.executeLookupConstant(lexicalScope);
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
                 // private constant
                 return nil();
             }

@@ -98,7 +98,7 @@ public class BacktraceFormatter {
     public void printRubyExceptionMessageOnEnvStderr(DynamicObject rubyException) {
         final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
         final Object message = context.send(
-                context.getCoreLibrary().getTruffleExceptionOperationsModule(),
+                context.getCoreLibrary().truffleExceptionOperationsModule,
                 "message_and_class",
                 rubyException);
         final Object messageString;

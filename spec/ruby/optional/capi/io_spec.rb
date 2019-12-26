@@ -151,6 +151,12 @@ describe "C-API IO function" do
     end
   end
 
+  describe "rb_io_set_nonblock" do
+    it "returns true when nonblock flag is set" do
+      @o.rb_io_set_nonblock(@io).should be_true
+    end
+  end
+
   # NOTE: unlike the name might suggest in MRI this function checks if an
   # object is frozen, *not* if it's tainted.
   describe "rb_io_taint_check" do

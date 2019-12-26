@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringNodes;
@@ -122,11 +123,7 @@ public abstract class SymbolNodes {
         @TruffleBoundary
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method,
                 DynamicObject symbol) {
-            final SourceSection sourceSection = getContext()
-                    .getCallStack()
-                    .getCallerNodeIgnoringSend()
-                    .getEncapsulatingSourceSection();
-
+            final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
@@ -144,7 +141,7 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,
@@ -156,7 +153,7 @@ public abstract class SymbolNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
-                    coreLibrary().getProcFactory(),
+                    coreLibrary().procFactory,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,

@@ -68,7 +68,7 @@ public abstract class ToFNode extends RubyBaseNode {
         try {
             coerced = toFNode.call(object, "to_f");
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
+            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -78,7 +78,7 @@ public abstract class ToFNode extends RubyBaseNode {
             }
         }
 
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().getFloatClass()) {
+        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().floatClass) {
             return (double) coerced;
         } else {
             errorProfile.enter();

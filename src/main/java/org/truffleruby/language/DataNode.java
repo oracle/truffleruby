@@ -47,9 +47,9 @@ public class DataNode extends RubyNode {
         final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
         final DynamicObject pathString = makeStringNode.executeMake(path, localeEncoding, CodeRange.CR_UNKNOWN);
         final Object data = callHelperNode
-                .call(coreLibrary().getTruffleInternalModule(), "get_data", pathString, endPosition);
+                .call(coreLibrary().truffleInternalModule, "get_data", pathString, endPosition);
 
-        Layouts.MODULE.getFields(coreLibrary().getObjectClass()).setConstant(getContext(), null, "DATA", data);
+        Layouts.MODULE.getFields(coreLibrary().objectClass).setConstant(getContext(), null, "DATA", data);
 
         return nil();
     }

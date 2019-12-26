@@ -209,6 +209,10 @@ class Enumerator
     nil
   end
 
+  def +(other)
+    Enumerator::Chain.new(self, other)
+  end
+
   class Yielder
     def initialize(&block)
       raise LocalJumpError, 'Expected a block to be given' unless block_given?
@@ -561,4 +565,49 @@ class Enumerator::ArithmeticSequence < Enumerator
 end
 
 class Enumerator::Chain < Enumerator
+  def initialize(*args, &block)
+    TrufflePrimitive.check_frozen self
+    @enums = args.freeze
+    @pos = -1
+    self
+  end
+
+  def each
+    return to_enum :each unless block_given?
+    @enums.each_with_index do |enum, idx|
+      @pos = idx
+      enum.each do |*args|
+        yield(*args)
+      end
+    end
+  end
+
+  def size
+    total = 0
+    @enums.each do |e|
+      size = e.size
+      if size.nil? || (size.is_a?(Float) && size.infinite?)
+        return size
+      end
+      unless size.is_a?(Integer)
+        return nil
+      end
+      total += size
+    end
+    total
+  end
+
+  def rewind
+    while @pos >= 0
+      Truffle::Type.check_funcall(@enums[@pos], :rewind)
+      @pos -= 1
+    end
+    self
+  end
+
+  def inspect
+    return "#<#{self.class.name}: ...>" if Thread.detect_recursion(self) do
+      return "#<#{self.class.name}: #{@enums}>"
+    end
+  end
 end

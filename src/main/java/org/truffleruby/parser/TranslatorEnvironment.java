@@ -82,7 +82,7 @@ public class TranslatorEnvironment {
     }
 
     public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().getNil());
+        return new FrameDescriptor(context.getCoreLibrary().nil);
     }
 
     public boolean isDynamicConstantLookup() {

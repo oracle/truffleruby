@@ -96,7 +96,7 @@ public abstract class UnboundMethodNodes {
             }
 
             return Layouts.METHOD.createMethod(
-                    coreLibrary().getMethodFactory(),
+                    coreLibrary().methodFactory,
                     object,
                     Layouts.UNBOUND_METHOD.getMethod(unboundMethod));
         }
@@ -178,7 +178,7 @@ public abstract class UnboundMethodNodes {
                     .getSharedMethodInfo()
                     .getSourceSection();
 
-            if (sourceSection.getSource() == null) {
+            if (!sourceSection.isAvailable()) {
                 return nil();
             } else {
                 DynamicObject file = makeStringNode.executeMake(
@@ -204,7 +204,7 @@ public abstract class UnboundMethodNodes {
                 return nil();
             } else {
                 return Layouts.UNBOUND_METHOD.createUnboundMethod(
-                        coreLibrary().getUnboundMethodFactory(),
+                        coreLibrary().unboundMethodFactory,
                         superMethod.getMethod().getDeclaringModule(),
                         superMethod.getMethod());
             }

@@ -228,7 +228,7 @@ public abstract class RangeNodes {
         @Specialization(guards = "isIntRange(range)")
         protected DynamicObject dupIntRange(DynamicObject range) {
             return Layouts.INT_RANGE.createIntRange(
-                    coreLibrary().getIntRangeFactory(),
+                    coreLibrary().intRangeFactory,
                     Layouts.INT_RANGE.getExcludedEnd(range),
                     Layouts.INT_RANGE.getBegin(range),
                     Layouts.INT_RANGE.getEnd(range));
@@ -237,7 +237,7 @@ public abstract class RangeNodes {
         @Specialization(guards = "isLongRange(range)")
         protected DynamicObject dupLongRange(DynamicObject range) {
             return Layouts.LONG_RANGE.createLongRange(
-                    coreLibrary().getIntRangeFactory(),
+                    coreLibrary().intRangeFactory,
                     Layouts.LONG_RANGE.getExcludedEnd(range),
                     Layouts.LONG_RANGE.getBegin(range),
                     Layouts.LONG_RANGE.getEnd(range));
@@ -413,7 +413,7 @@ public abstract class RangeNodes {
             int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
             int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
         @Specialization(guards = "isObjectRange(range)")
@@ -421,7 +421,7 @@ public abstract class RangeNodes {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
         private int toInt(Object indexObject) {
@@ -454,7 +454,7 @@ public abstract class RangeNodes {
     @NodeChild(value = "excludeEnd", type = RubyNode.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        protected final DynamicObject rangeClass = getContext().getCoreLibrary().getRangeClass();
+        protected final DynamicObject rangeClass = getContext().getCoreLibrary().rangeClass;
 
         @Child private CallDispatchHeadNode cmpNode;
         @Child private AllocateObjectNode allocateNode;
@@ -466,29 +466,17 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "rubyClass == rangeClass")
         protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
-            return Layouts.INT_RANGE.createIntRange(
-                    coreLibrary().getIntRangeFactory(),
-                    excludeEnd,
-                    begin,
-                    end);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
         protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
-            return Layouts.INT_RANGE.createIntRange(
-                    coreLibrary().getIntRangeFactory(),
-                    excludeEnd,
-                    (int) begin,
-                    (int) end);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, (int) begin, (int) end);
         }
 
         @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
         protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
-            return Layouts.LONG_RANGE.createLongRange(
-                    coreLibrary().getLongRangeFactory(),
-                    excludeEnd,
-                    begin,
-                    end);
+            return Layouts.LONG_RANGE.createLongRange(coreLibrary().longRangeFactory, excludeEnd, begin, end);
         }
 
         @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })

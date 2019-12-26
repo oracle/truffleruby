@@ -44,7 +44,7 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createArray(RubyContext context, Object store, int size) {
-        return Layouts.ARRAY.createArray(context.getCoreLibrary().getArrayFactory(), store, size);
+        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, store, size);
     }
 
     public static DynamicObject createArray(RubyContext context, Object[] store) {
@@ -52,7 +52,7 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createEmptyArray(RubyContext context) {
-        return Layouts.ARRAY.createArray(context.getCoreLibrary().getArrayFactory(), ArrayStrategy.NULL_ARRAY_STORE, 0);
+        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
     }
 
 }

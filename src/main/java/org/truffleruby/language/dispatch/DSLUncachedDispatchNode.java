@@ -119,7 +119,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
         final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
         if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
-            if (metaClassNode.executeMetaClass(receiver) == context.getCoreLibrary().getTruffleInteropForeignClass()) {
+            if (metaClassNode.executeMetaClass(receiver) == context.getCoreLibrary().truffleInteropForeignClass) {
                 foreignProfile.enter();
                 try {
                     return OutgoingForeignCallNodeGen.getUncached().executeCall(receiver, methodName, arguments);

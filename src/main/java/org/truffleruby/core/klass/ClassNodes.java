@@ -372,13 +372,13 @@ public abstract class ClassNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject classClass) {
-            assert classClass == coreLibrary().getClassClass() : "Subclasses of class Class are forbidden in Ruby";
+            assert classClass == coreLibrary().classClass : "Subclasses of class Class are forbidden in Ruby";
             return createRubyClass(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().getClassClass(),
+                    coreLibrary().classClass,
                     null,
-                    coreLibrary().getObjectClass(),
+                    coreLibrary().objectClass,
                     null,
                     false,
                     null,

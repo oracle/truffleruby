@@ -336,7 +336,7 @@ public abstract class KernelNodes {
 
             for (int n = 0; n < locationsCount; n++) {
                 locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                        coreLibrary().getThreadBacktraceLocationFactory(),
+                        coreLibrary().threadBacktraceLocationFactory,
                         backtrace,
                         n);
             }
@@ -459,7 +459,7 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization
+        @Specialization(guards = { "!isNil(self)", "!isRubyBignum(self)", "!isRubySymbol(self)" })
         protected DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
@@ -492,6 +492,73 @@ public abstract class KernelNodes {
             }
 
             return newObject;
+        }
+
+        @Specialization
+        protected Object cloneBoolean(boolean self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneInteger(int self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneLong(long self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization
+        protected Object cloneFloat(double self, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(self);
+            }
+            return self;
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        protected Object cloneNil(Object nil, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(nil);
+            }
+            return nil;
+        }
+
+        @Specialization(guards = "isRubyBignum(object)")
+        protected Object cloneBignum(DynamicObject object, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(object);
+            }
+            return object;
+        }
+
+        @Specialization(guards = "isRubySymbol(symbol)")
+        protected Object cloneSymbol(DynamicObject symbol, boolean freeze,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+            if (freezeProfile.profile(!freeze)) {
+                raiseCantUnfreezeError(symbol);
+            }
+            return symbol;
+        }
+
+        private void raiseCantUnfreezeError(Object self) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
         }
 
         private DynamicObject executeSingletonClass(DynamicObject newObject) {
@@ -1141,7 +1208,7 @@ public abstract class KernelNodes {
                 }
             }
 
-            return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+            return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
         }
 
         @TruffleBoundary
@@ -1288,7 +1355,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected DynamicObject proc(VirtualFrame frame, Object maybeBlock) {
-            return procNewNode.executeProcNew(frame, coreLibrary().getProcClass(), ArrayUtils.EMPTY_ARRAY, maybeBlock);
+            return procNewNode.executeProcNew(frame, coreLibrary().procClass, ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
 
     }
@@ -1615,7 +1682,7 @@ public abstract class KernelNodes {
             if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 final InternalMethod method = Layouts.MODULE.getFields(metaClass).getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
-                    return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+                    return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
                 }
             }
 
@@ -1834,7 +1901,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject globalVariables() {
-            final String[] keys = coreLibrary().getGlobalVariables().keys();
+            final String[] keys = coreLibrary().globalVariables.keys();
             final Object[] store = new Object[keys.length];
             for (int i = 0; i < keys.length; i++) {
                 store[i] = getSymbol(keys[i]);

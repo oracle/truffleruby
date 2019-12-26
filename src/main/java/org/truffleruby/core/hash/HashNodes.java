@@ -623,10 +623,10 @@ public abstract class HashNodes {
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
-                    coreLibrary().getTruffleTypeModule(),
+                    coreLibrary().truffleTypeModule,
                     "coerce_to",
                     from,
-                    coreLibrary().getHashClass(),
+                    coreLibrary().hashClass,
                     coreStrings().TO_HASH.getSymbol());
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
         }

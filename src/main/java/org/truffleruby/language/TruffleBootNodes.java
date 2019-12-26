@@ -121,7 +121,7 @@ public abstract class TruffleBootNodes {
             if (getContext().getOptions().SYNTAX_CHECK) {
                 try {
                     return (int) checkSyntax.call(
-                            getContext().getCoreLibrary().getTruffleBootModule(),
+                            getContext().getCoreLibrary().truffleBootModule,
                             "check_syntax",
                             source);
                 } catch (RaiseException e) {
@@ -149,7 +149,7 @@ public abstract class TruffleBootNodes {
                         DeclarationContext.topLevel(getContext()),
                         rootNode,
                         null,
-                        coreLibrary().getMainObject());
+                        coreLibrary().mainObject);
 
                 // The TopLevelRaiseHandler returns an int
                 return (int) deferredCall.call(callNode);
@@ -164,14 +164,14 @@ public abstract class TruffleBootNodes {
                     String key = global_values[i];
                     String value = global_values[i + 1];
 
-                    getContext().getCoreLibrary().getGlobalVariables().define(
+                    getContext().getCoreLibrary().globalVariables.define(
                             "$" + key,
                             makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
                 for (String flag : global_flags) {
-                    getContext().getCoreLibrary().getGlobalVariables().define("$" + flag, true);
+                    getContext().getCoreLibrary().globalVariables.define("$" + flag, true);
                 }
             }
         }
@@ -211,7 +211,7 @@ public abstract class TruffleBootNodes {
                 throw new JavaException(e);
             }
 
-            getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
+            getContext().getCoreLibrary().globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
             return source;
         }
 

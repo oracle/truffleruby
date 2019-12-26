@@ -64,7 +64,11 @@ import com.oracle.truffle.api.source.SourceSection;
 })
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
-    public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
+    public static final String PLATFORM = String.format(
+            "%s-%s%s",
+            Platform.getArchitecture(),
+            Platform.getOSName(),
+            Platform.getKernelMajorVersion());
 
     public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
@@ -172,7 +176,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         Object implicit = context.send(
-                context.getCoreLibrary().getTruffleInteropModule(),
+                context.getCoreLibrary().truffleInteropModule,
                 "lookup_symbol",
                 context.getSymbolTable().getSymbol(symbolName));
         if (implicit == NotProvided.INSTANCE) {
@@ -273,7 +277,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected Iterable<Scope> findTopScopes(RubyContext context) {
-        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().getGlobalVariables()));
+        return Collections.singletonList(GlobalScope.getGlobalScope(context.getCoreLibrary().globalVariables));
     }
 
     public String getTruffleLanguageHome() {

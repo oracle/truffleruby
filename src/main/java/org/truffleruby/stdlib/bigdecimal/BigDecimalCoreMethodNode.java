@@ -70,7 +70,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     }
 
     protected DynamicObject getBigDecimalClass() {
-        return coreLibrary().getBigDecimalClass();
+        return coreLibrary().bigDecimalClass;
     }
 
     protected static RoundingMode toRoundingMode(int constValue) {

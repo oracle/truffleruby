@@ -71,7 +71,7 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
     }
 
     protected GlobalVariableStorage getStorage() {
-        return coreLibrary().getGlobalVariables().getStorage(name);
+        return coreLibrary().globalVariables.getStorage(name);
     }
 
 }

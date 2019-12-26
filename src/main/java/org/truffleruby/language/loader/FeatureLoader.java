@@ -161,7 +161,7 @@ public class FeatureLoader {
         final Pointer buffer = GetThreadBufferNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
         if (address == 0) {
-            context.send(context.getCoreLibrary().getErrnoModule(), "handle");
+            context.send(context.getCoreLibrary().errnoModule, "handle");
         }
         final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
         final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
@@ -348,7 +348,7 @@ public class FeatureLoader {
             Metrics.printTime("before-load-cext-support");
             try {
                 requireNode.executeRequire("truffle/cext");
-                final DynamicObject truffleModule = context.getCoreLibrary().getTruffleModule();
+                final DynamicObject truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
                 final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;

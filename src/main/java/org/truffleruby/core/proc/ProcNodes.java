@@ -115,11 +115,11 @@ public abstract class ProcNodes {
         }
 
         protected DynamicObject getProcClass() {
-            return coreLibrary().getProcClass();
+            return coreLibrary().procClass;
         }
 
         protected Shape getProcShape() {
-            return coreLibrary().getProcFactory().getShape();
+            return coreLibrary().procFactory.getShape();
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
@@ -286,7 +286,7 @@ public abstract class ProcNodes {
         protected Object sourceLocation(DynamicObject proc) {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
-            if (sourceSection.getSource() == null ||
+            if (!sourceSection.isAvailable() ||
                     sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil();
             } else {

@@ -52,7 +52,7 @@ public class SharedObjects {
         final Deque<DynamicObject> stack = new ArrayDeque<>();
 
         // Share global variables (including new ones)
-        for (DynamicObject object : context.getCoreLibrary().getGlobalVariables().dynamicObjectValues()) {
+        for (DynamicObject object : context.getCoreLibrary().globalVariables.dynamicObjectValues()) {
             stack.push(object);
         }
 
@@ -62,7 +62,7 @@ public class SharedObjects {
         }
 
         // Share all named modules and constants
-        stack.push(context.getCoreLibrary().getObjectClass());
+        stack.push(context.getCoreLibrary().objectClass);
 
         // Share all threads since they are accessible via Thread.list
         for (DynamicObject thread : context.getThreadManager().iterateThreads()) {

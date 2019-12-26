@@ -76,9 +76,54 @@ public abstract class ExceptionNodes {
             return self;
         }
 
-
-        @Specialization(guards = { "self != from", "isRubyException(from)" })
+        @Specialization(
+                guards = { "self != from", "isRubyException(from)", "!isNameError(from)", "!isSystemCallError(from)" })
         protected Object initializeCopy(DynamicObject self, DynamicObject from) {
+            initializeExceptionCopy(self, from);
+            return self;
+        }
+
+        @Specialization(guards = { "self != from", "isSystemCallError(from)" })
+        protected Object initializeSystemCallErrorCopy(DynamicObject self, DynamicObject from) {
+            initializeExceptionCopy(self, from);
+            Layouts.SYSTEM_CALL_ERROR.setErrno(self, Layouts.SYSTEM_CALL_ERROR.getErrno(from));
+            return self;
+        }
+
+        @Specialization(guards = { "self != from", "isNoMethodError(from)" })
+        protected Object initializeCopyNoMethodError(DynamicObject self, DynamicObject from) {
+            initializeExceptionCopy(self, from);
+            initializeNameErrorCopy(self, from);
+            Layouts.NO_METHOD_ERROR.setArgs(self, Layouts.NO_METHOD_ERROR.getArgs(from));
+            return self;
+        }
+
+        @Specialization(
+                guards = { "self != from", "isNameError(from)", "!isNoMethodError(from)" })
+        protected Object initializeCopyNameError(DynamicObject self, DynamicObject from) {
+            initializeExceptionCopy(self, from);
+            initializeNameErrorCopy(self, from);
+            return self;
+        }
+
+        protected boolean isNameError(DynamicObject object) {
+            return Layouts.NAME_ERROR.isNameError(object);
+        }
+
+        protected boolean isNoMethodError(DynamicObject object) {
+            return Layouts.NO_METHOD_ERROR.isNoMethodError(object);
+        }
+
+        protected boolean isSystemCallError(DynamicObject object) {
+            return Layouts.SYSTEM_CALL_ERROR.isSystemCallError(object);
+        }
+
+        private void initializeNameErrorCopy(DynamicObject self, DynamicObject from) {
+            Layouts.NAME_ERROR.setName(self, Layouts.NAME_ERROR.getName(from));
+            Layouts.NAME_ERROR.setReceiver(self, Layouts.NAME_ERROR.getReceiver(from));
+        }
+
+        private void initializeExceptionCopy(DynamicObject self, DynamicObject from) {
             Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(from);
             if (backtrace != null) {
                 Layouts.EXCEPTION.setBacktrace(self, backtrace.copy(getContext(), self));
@@ -88,8 +133,6 @@ public abstract class ExceptionNodes {
             Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
             Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
             Layouts.EXCEPTION.setCause(self, Layouts.EXCEPTION.getCause(from));
-
-            return self;
         }
 
     }
@@ -148,7 +191,7 @@ public abstract class ExceptionNodes {
                     Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
                     int locationsCount = backtrace.getActivations().length;
                     Object[] locations = new Object[locationsCount];
-                    DynamicObjectFactory factory = coreLibrary().getThreadBacktraceLocationFactory();
+                    DynamicObjectFactory factory = coreLibrary().threadBacktraceLocationFactory;
                     for (int i = 0; i < locationsCount; i++) {
                         locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
                                 factory,
@@ -290,7 +333,7 @@ public abstract class ExceptionNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
-            return coreExceptions().errnoError(errno, StringOperations.getString(message), this);
+            return coreExceptions().errnoError(errno, StringOperations.getString(message), null);
         }
 
     }

@@ -57,7 +57,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     }
 
     protected GlobalVariableStorage getStorage() {
-        return getContext().getCoreLibrary().getGlobalVariables().getStorage(name);
+        return getContext().getCoreLibrary().globalVariables.getStorage(name);
     }
 
     @Override

@@ -7,22 +7,26 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.exceptions;
+package org.truffleruby.language.control;
 
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
-public class RescueAnyNode extends RescueNode {
+public class DynamicReturnNode extends RubyNode {
 
-    public RescueAnyNode(RubyNode rescueBody) {
-        super(rescueBody);
+    private final ReturnID returnID;
+
+    @Child private RubyNode value;
+
+    public DynamicReturnNode(ReturnID returnID, RubyNode value) {
+        this.returnID = returnID;
+        this.value = value;
     }
 
     @Override
-    public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        return matches(frame, exception, coreLibrary().standardErrorClass);
+    public Object execute(VirtualFrame frame) {
+        throw new DynamicReturnException(returnID, value.execute(frame));
     }
 
 }

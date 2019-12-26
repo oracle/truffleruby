@@ -201,6 +201,14 @@ VALUE io_spec_rb_io_close(VALUE self, VALUE io) {
   return rb_io_close(io);
 }
 
+VALUE io_spec_rb_io_set_nonblock(VALUE self, VALUE io) {
+  rb_io_t* fp;
+  GetOpenFile(io, fp);
+  rb_io_set_nonblock(fp);
+  int flags = fcntl(fp->fd, F_GETFL, 0);
+  return flags & O_NONBLOCK ? Qtrue : Qfalse;
+}
+
 /*
  * this is needed to ensure rb_io_wait_*able functions behave
  * predictably because errno may be set to unexpected values
@@ -225,6 +233,7 @@ void Init_io_spec(void) {
   rb_define_method(cls, "rb_io_check_readable", io_spec_rb_io_check_readable, 1);
   rb_define_method(cls, "rb_io_check_writable", io_spec_rb_io_check_writable, 1);
   rb_define_method(cls, "rb_io_check_closed", io_spec_rb_io_check_closed, 1);
+  rb_define_method(cls, "rb_io_set_nonblock", io_spec_rb_io_set_nonblock, 1);
   rb_define_method(cls, "rb_io_taint_check", io_spec_rb_io_taint_check, 1);
   rb_define_method(cls, "rb_io_wait_readable", io_spec_rb_io_wait_readable, 2);
   rb_define_method(cls, "rb_io_wait_writable", io_spec_rb_io_wait_writable, 1);

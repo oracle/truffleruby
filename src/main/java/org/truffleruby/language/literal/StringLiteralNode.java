@@ -39,7 +39,7 @@ public class StringLiteralNode extends RubyNode {
 
     @Override
     public DynamicObject execute(VirtualFrame frame) {
-        return allocateNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        return allocateNode.allocate(coreLibrary().stringClass, Layouts.STRING.build(false, false, rope));
     }
 
 }

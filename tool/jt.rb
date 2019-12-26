@@ -30,7 +30,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'fa8e5817c1496e136caa1f994864712b2faf6bc7'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '74d5e0101bb143a4f9a2a60664328ad936b05594'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -242,7 +242,7 @@ module Utilities
     # Use realpath to always use the executable in languages/ruby/bin/
     graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", File.realpath(ruby_launcher))
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
-      line.include?('"compiler":')
+      line.include?('"compiler":') || line.include?("'compiler':")
     end
   end
 
@@ -731,9 +731,9 @@ module Commands
         add_experimental_options.call
         vm_args += %w[--backtraces-hide-core-files=false]
       when '--stress'
-        vm_args << '--vm.Dgraal.TruffleCompileImmediately=true'
-        vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
-        vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
+        vm_args << '--engine.CompileImmediately'
+        vm_args << '--engine.BackgroundCompilation=false'
+        vm_args << '--engine.CompilationExceptionsAreFatal'
       when '--asm'
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
@@ -745,10 +745,10 @@ module Commands
         vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
         vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
       when '--fg'
-        vm_args << '--vm.Dgraal.TruffleBackgroundCompilation=false'
+        vm_args << '--engine.BackgroundCompilation=false'
       when '--trace'
         truffleruby_compiler!
-        vm_args << '--vm.Dgraal.TraceTruffleCompilation=true'
+        vm_args << '--engine.TraceCompilation'
       when '--igv', '--igv-full'
         truffleruby_compiler!
         vm_args << (arg == '--igv-full' ? '--vm.Dgraal.Dump=Truffle:2' : '--vm.Dgraal.Dump=Truffle:1')
@@ -1747,7 +1747,7 @@ EOS
 
     vm_args = []
     if truffleruby?
-      vm_args << '--vm.Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      vm_args << '--engine.CompilationExceptionsAreFatal=true'
     end
     run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
@@ -1875,6 +1875,11 @@ EOS
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
 
+    if os_version_changed?
+      warn "Kernel version changed since last build: #{build_kernel_ver.inspect} -> #{host_kernel_ver.inspect}"
+      remove_shared_compile_artifacts
+    end
+
     env = if (i = options.index('--env') || options.index('-e'))
             options.delete_at i
             options.delete_at i
@@ -1905,6 +1910,7 @@ EOS
     mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
 
     env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
+
     mx(env, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
@@ -1943,6 +1949,40 @@ EOS
       File.delete link_path if File.exist? link_path
       File.symlink dest_ruby, link_path
     end
+  end
+
+  def remove_shared_compile_artifacts
+    if build_information_path.file?
+      warn "Deleting shared build artifacts to trigger rebuild: #{shared_path}"
+      shared_path.rmtree
+    end
+  end
+
+  def os_version_changed?
+    build_kernel_ver != host_kernel_ver
+  end
+
+  def host_kernel_ver
+    `uname -r`[/^\d+/]
+  end
+
+  def build_kernel_ver
+    return '' unless build_information_path.file?
+
+    build_information = build_information_path.readlines
+    build_os_ver_loc  = build_information.index { |l| l.include?('getKernelMajorVersion') }
+    return '' unless build_os_ver_loc
+
+    build_information[build_os_ver_loc + 1][/"(\d+)/, 1]
+  end
+
+  def shared_path
+    Pathname.new("#{TRUFFLERUBY_DIR}/mxbuild/org.truffleruby.shared")
+  end
+
+  def build_information_path
+    shared_path
+      .join('src_gen/org/truffleruby/shared/BuildInformationImpl.java')
   end
 
   def next(*args)

@@ -232,7 +232,7 @@ public abstract class StringNodes {
                 @Cached @Shared("allocate") AllocateObjectNode allocateObjectNode,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return allocateObjectNode
-                    .allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+                    .allocate(context.getCoreLibrary().stringClass, Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization
@@ -243,7 +243,7 @@ public abstract class StringNodes {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
             return allocateObjectNode
-                    .allocate(context.getCoreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+                    .allocate(context.getCoreLibrary().stringClass, Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
@@ -323,7 +323,7 @@ public abstract class StringNodes {
             final boolean eitherPartTainted = Layouts.STRING.getTainted(string) || Layouts.STRING.getTainted(other);
 
             final DynamicObject ret = allocateObjectNode.allocate(
-                    coreLibrary().getStringClass(),
+                    coreLibrary().stringClass,
                     Layouts.STRING.build(false, eitherPartTainted, concatRope));
 
             return ret;
@@ -670,14 +670,14 @@ public abstract class StringNodes {
             final DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame));
             if (matchStrPair == nil()) {
                 setLastMatchNode
-                        .call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
+                        .call(coreLibrary().truffleRegexpOperationsModule, "set_last_match", nil(), binding);
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
             setLastMatchNode
-                    .call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
+                    .call(coreLibrary().truffleRegexpOperationsModule, "set_last_match", array[0], binding);
 
             return array[1];
         }
@@ -712,7 +712,7 @@ public abstract class StringNodes {
                 toIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return (int) toIntNode.call(coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
+            return (int) toIntNode.call(coreLibrary().truffleTypeModule, "rb_num2int", value);
         }
     }
 
@@ -2405,14 +2405,14 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isStringSubclass(string)")
         protected Object toSOnSubclass(DynamicObject string) {
-            return coreLibrary().getStringFactory().newInstance(Layouts.STRING.build(
+            return coreLibrary().stringFactory.newInstance(Layouts.STRING.build(
                     false,
                     Layouts.STRING.getTainted(string),
                     rope(string)));
         }
 
         public boolean isStringSubclass(DynamicObject string) {
-            return Layouts.BASIC_OBJECT.getLogicalClass(string) != coreLibrary().getStringClass();
+            return Layouts.BASIC_OBJECT.getLogicalClass(string) != coreLibrary().stringClass;
         }
 
     }
@@ -3119,7 +3119,7 @@ public abstract class StringNodes {
             final Rope ret = StringSupport.trTransHelper(rope(self), rope(fromStr), rope(toStr), e1, enc, sFlag);
 
             if (ret == null) {
-                return context.getCoreLibrary().getNil();
+                return context.getCoreLibrary().nil;
             }
 
             StringOperations.setRope(self, ret);

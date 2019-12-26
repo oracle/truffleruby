@@ -38,12 +38,12 @@ public abstract class InitializeClassNode extends RubyBaseNode {
 
     @Specialization
     protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
-        return initializeGeneralWithoutBlock(rubyClass, coreLibrary().getObjectClass(), false);
+        return initializeGeneralWithoutBlock(rubyClass, coreLibrary().objectClass, false);
     }
 
     @Specialization
     protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
-        return initializeGeneralWithBlock(rubyClass, coreLibrary().getObjectClass(), block, false);
+        return initializeGeneralWithBlock(rubyClass, coreLibrary().objectClass, block, false);
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
@@ -127,7 +127,7 @@ public abstract class InitializeClassNode extends RubyBaseNode {
         if (Layouts.CLASS.getIsSingleton(superClass)) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
         }
-        if (superClass == coreLibrary().getClassClass()) {
+        if (superClass == coreLibrary().classClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassClass(this));
         }
     }

@@ -107,8 +107,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 }
             }
 
-            return coreLibrary()
-                    .getHashFactory()
+            return coreLibrary().hashFactory
                     .newInstance(Layouts.HASH.build(store, size, null, null, nil(), nil(), false));
         }
 
@@ -156,8 +155,7 @@ public abstract class HashLiteralNode extends RubyNode {
                     BucketsStrategy.OVERALLOCATE_FACTOR;
             final Entry[] newEntries = new Entry[bucketsCount];
 
-            final DynamicObject hash = coreLibrary()
-                    .getHashFactory()
+            final DynamicObject hash = coreLibrary().hashFactory
                     .newInstance(Layouts.HASH.build(newEntries, 0, null, null, nil(), nil(), false));
 
             for (int n = 0; n < keyValues.length; n += 2) {

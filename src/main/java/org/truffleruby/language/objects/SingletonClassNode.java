@@ -38,17 +38,17 @@ public abstract class SingletonClassNode extends RubyNode {
 
     @Specialization(guards = "value")
     protected DynamicObject singletonClassTrue(boolean value) {
-        return coreLibrary().getTrueClass();
+        return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
     protected DynamicObject singletonClassFalse(boolean value) {
-        return coreLibrary().getFalseClass();
+        return coreLibrary().falseClass;
     }
 
     @Specialization(guards = "isNil(value)")
     protected DynamicObject singletonClassNil(DynamicObject value) {
-        return coreLibrary().getNilClass();
+        return coreLibrary().nilClass;
     }
 
     @Specialization

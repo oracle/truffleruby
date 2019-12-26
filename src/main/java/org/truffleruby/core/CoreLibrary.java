@@ -79,6 +79,11 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class CoreLibrary {
 
+    public static final SourceSection UNAVAILABLE_SOURCE_SECTION = Source
+            .newBuilder(TruffleRuby.LANGUAGE_ID, "", "(unavailable)")
+            .build()
+            .createUnavailableSection();
+
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private static final Property ALWAYS_FROZEN_PROPERTY = Property
@@ -86,133 +91,117 @@ public class CoreLibrary {
 
     private final RubyContext context;
 
-    private final SourceSection sourceSection;
+    public final SourceSection sourceSection;
 
-    private final DynamicObject argumentErrorClass;
-    private final DynamicObject arrayClass;
-    private final DynamicObjectFactory arrayFactory;
-    private final DynamicObject basicObjectClass;
-    private final DynamicObjectFactory bignumFactory;
-    private final DynamicObject bindingClass;
-    private final DynamicObjectFactory bindingFactory;
-    private final DynamicObject classClass;
-    private final DynamicObject complexClass;
-    private final DynamicObject dirClass;
-    private final DynamicObject encodingClass;
-    private final DynamicObjectFactory encodingFactory;
-    private final DynamicObject encodingConverterClass;
-    private final DynamicObject encodingErrorClass;
-    private final DynamicObject exceptionClass;
-    private final DynamicObject falseClass;
-    private final DynamicObject fiberClass;
-    private final DynamicObjectFactory fiberFactory;
-    private final DynamicObject floatClass;
-    private final DynamicObject floatDomainErrorClass;
-    private final DynamicObject frozenErrorClass;
-    private final DynamicObject hashClass;
-    private final DynamicObjectFactory hashFactory;
-    private final DynamicObject integerClass;
-    private final DynamicObject indexErrorClass;
-    private final DynamicObject keyErrorClass;
-    private final DynamicObject ioErrorClass;
-    private final DynamicObject loadErrorClass;
-    private final DynamicObject localJumpErrorClass;
-    private final DynamicObject matchDataClass;
-    private final DynamicObjectFactory matchDataFactory;
-    private final DynamicObject moduleClass;
-    private final DynamicObject nameErrorClass;
-    private final DynamicObjectFactory nameErrorFactory;
-    private final DynamicObject nilClass;
-    private final DynamicObject noMemoryErrorClass;
-    private final DynamicObject noMethodErrorClass;
-    private final DynamicObjectFactory noMethodErrorFactory;
-    private final DynamicObject notImplementedErrorClass;
-    private final DynamicObject numericClass;
-    private final DynamicObject objectClass;
-    private final DynamicObjectFactory objectFactory;
-    private final DynamicObject procClass;
-    private final DynamicObjectFactory procFactory;
-    private final DynamicObject processModule;
-    private final DynamicObject rangeClass;
-    private final DynamicObjectFactory intRangeFactory;
-    private final DynamicObjectFactory longRangeFactory;
-    private final DynamicObject rangeErrorClass;
-    private final DynamicObject rationalClass;
-    private final DynamicObject regexpClass;
-    private final DynamicObjectFactory regexpFactory;
-    private final DynamicObject regexpErrorClass;
-    private final DynamicObject graalErrorClass;
-    private final DynamicObject runtimeErrorClass;
-    private final DynamicObject signalExceptionClass;
-    private final DynamicObject systemStackErrorClass;
-    private final DynamicObject securityErrorClass;
-    private final DynamicObject standardErrorClass;
-    private final DynamicObject stringClass;
-    private final DynamicObjectFactory stringFactory;
-    private final DynamicObject symbolClass;
-    private final DynamicObjectFactory symbolFactory;
-    private final DynamicObject syntaxErrorClass;
-    private final DynamicObject systemCallErrorClass;
-    private final DynamicObject systemExitClass;
-    private final DynamicObject threadClass;
-    private final DynamicObjectFactory threadFactory;
-    private final DynamicObject threadBacktraceClass;
-    private final DynamicObject threadBacktraceLocationClass;
-    private final DynamicObjectFactory threadBacktraceLocationFactory;
-    private final DynamicObject timeClass;
-    private final DynamicObjectFactory timeFactory;
-    private final DynamicObject trueClass;
-    private final DynamicObject typeErrorClass;
-    private final DynamicObject zeroDivisionErrorClass;
-    private final DynamicObject enumerableModule;
-    private final DynamicObject errnoModule;
-    private final DynamicObject kernelModule;
-    private final DynamicObject truffleFFIModule;
-    private final DynamicObject truffleFFIPointerClass;
-    private final DynamicObject truffleFFINullPointerErrorClass;
-    private final DynamicObject truffleTypeModule;
-    private final DynamicObject truffleModule;
-    private final DynamicObject truffleInternalModule;
-    private final DynamicObject truffleBootModule;
-    private final DynamicObject truffleExceptionOperationsModule;
-    private final DynamicObject truffleInteropModule;
-    private final DynamicObject truffleInteropForeignClass;
-    private final DynamicObject truffleKernelOperationsModule;
-    private final DynamicObject truffleRegexpOperationsModule;
-    private final DynamicObject truffleThreadOperationsModule;
-    private final DynamicObject bigDecimalClass;
-    private final DynamicObject bigDecimalOperationsModule;
-    private final DynamicObject encodingCompatibilityErrorClass;
-    private final DynamicObject encodingUndefinedConversionErrorClass;
-    private final DynamicObject methodClass;
-    private final DynamicObjectFactory methodFactory;
-    private final DynamicObject unboundMethodClass;
-    private final DynamicObjectFactory unboundMethodFactory;
-    private final DynamicObject byteArrayClass;
-    private final DynamicObjectFactory byteArrayFactory;
-    private final DynamicObject fiberErrorClass;
-    private final DynamicObject threadErrorClass;
-    private final DynamicObject objectSpaceModule;
-    private final DynamicObject randomizerClass;
-    private final DynamicObjectFactory randomizerFactory;
-    private final DynamicObject atomicReferenceClass;
-    private final DynamicObject handleClass;
-    private final DynamicObjectFactory handleFactory;
-    private final DynamicObject ioClass;
-    private final DynamicObject stopIterationClass;
-    private final DynamicObject closedQueueErrorClass;
-    private final DynamicObject warningModule;
+    public final DynamicObject argumentErrorClass;
+    public final DynamicObject arrayClass;
+    public final DynamicObjectFactory arrayFactory;
+    public final DynamicObject basicObjectClass;
+    public final DynamicObjectFactory bignumFactory;
+    public final DynamicObjectFactory bindingFactory;
+    public final DynamicObject classClass;
+    public final DynamicObject complexClass;
+    public final DynamicObject dirClass;
+    public final DynamicObject encodingClass;
+    public final DynamicObjectFactory encodingFactory;
+    public final DynamicObject encodingConverterClass;
+    public final DynamicObject encodingErrorClass;
+    public final DynamicObject exceptionClass;
+    public final DynamicObject falseClass;
+    public final DynamicObjectFactory fiberFactory;
+    public final DynamicObject floatClass;
+    public final DynamicObject floatDomainErrorClass;
+    public final DynamicObject frozenErrorClass;
+    public final DynamicObject hashClass;
+    public final DynamicObjectFactory hashFactory;
+    public final DynamicObject integerClass;
+    public final DynamicObject indexErrorClass;
+    public final DynamicObject keyErrorClass;
+    public final DynamicObject ioErrorClass;
+    public final DynamicObject loadErrorClass;
+    public final DynamicObject localJumpErrorClass;
+    public final DynamicObject matchDataClass;
+    public final DynamicObject moduleClass;
+    public final DynamicObject nameErrorClass;
+    public final DynamicObjectFactory nameErrorFactory;
+    public final DynamicObject nilClass;
+    public final DynamicObject noMemoryErrorClass;
+    public final DynamicObject noMethodErrorClass;
+    public final DynamicObjectFactory noMethodErrorFactory;
+    public final DynamicObject notImplementedErrorClass;
+    public final DynamicObject numericClass;
+    public final DynamicObject objectClass;
+    public final DynamicObjectFactory objectFactory;
+    public final DynamicObject procClass;
+    public final DynamicObjectFactory procFactory;
+    public final DynamicObject processModule;
+    public final DynamicObject rangeClass;
+    public final DynamicObjectFactory intRangeFactory;
+    public final DynamicObjectFactory longRangeFactory;
+    public final DynamicObject rangeErrorClass;
+    public final DynamicObject rationalClass;
+    public final DynamicObjectFactory regexpFactory;
+    public final DynamicObject regexpErrorClass;
+    public final DynamicObject graalErrorClass;
+    public final DynamicObject runtimeErrorClass;
+    public final DynamicObject signalExceptionClass;
+    public final DynamicObject systemStackErrorClass;
+    public final DynamicObject securityErrorClass;
+    public final DynamicObject standardErrorClass;
+    public final DynamicObject stringClass;
+    public final DynamicObjectFactory stringFactory;
+    public final DynamicObject symbolClass;
+    public final DynamicObjectFactory symbolFactory;
+    public final DynamicObject syntaxErrorClass;
+    public final DynamicObject systemCallErrorClass;
+    public final DynamicObject systemExitClass;
+    public final DynamicObject threadClass;
+    public final DynamicObjectFactory threadFactory;
+    public final DynamicObjectFactory threadBacktraceLocationFactory;
+    public final DynamicObject trueClass;
+    public final DynamicObject typeErrorClass;
+    public final DynamicObject zeroDivisionErrorClass;
+    public final DynamicObject enumerableModule;
+    public final DynamicObject errnoModule;
+    public final DynamicObject kernelModule;
+    public final DynamicObject truffleFFIModule;
+    public final DynamicObject truffleFFIPointerClass;
+    public final DynamicObject truffleFFINullPointerErrorClass;
+    public final DynamicObject truffleTypeModule;
+    public final DynamicObject truffleModule;
+    public final DynamicObject truffleInternalModule;
+    public final DynamicObject truffleBootModule;
+    public final DynamicObject truffleExceptionOperationsModule;
+    public final DynamicObject truffleInteropModule;
+    public final DynamicObject truffleInteropForeignClass;
+    public final DynamicObject truffleKernelOperationsModule;
+    public final DynamicObject truffleRegexpOperationsModule;
+    public final DynamicObject truffleThreadOperationsModule;
+    public final DynamicObject bigDecimalClass;
+    public final DynamicObject bigDecimalOperationsModule;
+    public final DynamicObject encodingCompatibilityErrorClass;
+    public final DynamicObject encodingUndefinedConversionErrorClass;
+    public final DynamicObjectFactory methodFactory;
+    public final DynamicObjectFactory unboundMethodFactory;
+    public final DynamicObjectFactory byteArrayFactory;
+    public final DynamicObject fiberErrorClass;
+    public final DynamicObject threadErrorClass;
+    public final DynamicObject objectSpaceModule;
+    public final DynamicObjectFactory randomizerFactory;
+    public final DynamicObjectFactory handleFactory;
+    public final DynamicObject ioClass;
+    public final DynamicObject closedQueueErrorClass;
+    public final DynamicObject warningModule;
+    public final DynamicObjectFactory digestFactory;
+    public final DynamicObject structClass;
 
-    private final DynamicObject argv;
-    private final GlobalVariables globalVariables;
-    private final DynamicObject mainObject;
-    private final DynamicObject nil;
-    private final Object supportUndefined;
-    private final DynamicObject digestClass;
-    private final DynamicObjectFactory digestFactory;
-    private final DynamicObject structClass;
+    public final DynamicObject argv;
+    public final DynamicObject mainObject;
+    public final DynamicObject nil;
 
-    private final FrameDescriptor emptyDescriptor;
+    public final GlobalVariables globalVariables;
+
+    public final FrameDescriptor emptyDescriptor;
 
     @CompilationFinal private DynamicObject eagainWaitReadable;
     @CompilationFinal private DynamicObject eagainWaitWritable;
@@ -233,7 +222,7 @@ public class CoreLibrary {
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
-    private final String coreLoadPath;
+    public final String coreLoadPath;
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
@@ -372,7 +361,7 @@ public class CoreLibrary {
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
         keyErrorClass = defineClass(indexErrorClass, "KeyError");
-        stopIterationClass = defineClass(indexErrorClass, "StopIteration");
+        DynamicObject stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
         // StandardError > IOError
@@ -427,7 +416,7 @@ public class CoreLibrary {
         arrayClass = defineClass("Array");
         arrayFactory = Layouts.ARRAY.createArrayShape(arrayClass, arrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, arrayFactory);
-        bindingClass = defineClass("Binding");
+        DynamicObject bindingClass = defineClass("Binding");
         bindingFactory = Layouts.BINDING.createBindingShape(bindingClass, bindingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, bindingFactory);
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
@@ -436,7 +425,7 @@ public class CoreLibrary {
         encodingFactory = Layouts.ENCODING.createEncodingShape(encodingClass, encodingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, encodingFactory);
         falseClass = defineClass("FalseClass");
-        fiberClass = defineClass("Fiber");
+        DynamicObject fiberClass = defineClass("Fiber");
         fiberFactory = Layouts.FIBER.createFiberShape(fiberClass, fiberClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, fiberFactory);
         defineModule("FileTest");
@@ -449,9 +438,9 @@ public class CoreLibrary {
         }
         Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
         matchDataClass = defineClass("MatchData");
-        matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
+        DynamicObjectFactory matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, matchDataFactory);
-        methodClass = defineClass("Method");
+        DynamicObject methodClass = defineClass("Method");
         methodFactory = Layouts.METHOD.createMethodShape(methodClass, methodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, methodFactory);
         final DynamicObject mutexClass = defineClass("Mutex");
@@ -475,7 +464,7 @@ public class CoreLibrary {
                 Layouts.OBJECT_RANGE.createObjectRangeShape(rangeClass, rangeClass));
         intRangeFactory = Layouts.INT_RANGE.createIntRangeShape(rangeClass, rangeClass);
         longRangeFactory = Layouts.LONG_RANGE.createLongRangeShape(rangeClass, rangeClass);
-        regexpClass = defineClass("Regexp");
+        DynamicObject regexpClass = defineClass("Regexp");
         regexpFactory = Layouts.REGEXP.createRegexpShape(regexpClass, regexpClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, regexpFactory);
         stringClass = defineClass("String");
@@ -490,16 +479,16 @@ public class CoreLibrary {
         threadFactory = Layouts.THREAD.createThreadShape(threadClass, threadClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, threadFactory);
 
-        threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
-        threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
+        DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
+        DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
         threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE
                 .createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadBacktraceLocationClass, threadBacktraceLocationFactory);
-        timeClass = defineClass("Time");
-        timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
+        DynamicObject timeClass = defineClass("Time");
+        DynamicObjectFactory timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, timeFactory);
         trueClass = defineClass("TrueClass");
-        unboundMethodClass = defineClass("UnboundMethod");
+        DynamicObject unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, unboundMethodFactory);
         ioClass = defineClass("IO");
@@ -541,7 +530,7 @@ public class CoreLibrary {
                         .createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
-        atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
+        DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(
                 atomicReferenceClass,
                 Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
@@ -569,7 +558,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
-        handleClass = defineClass(truffleModule, objectClass, "Handle");
+        DynamicObject handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
         defineModule("Polyglot");
@@ -591,18 +580,18 @@ public class CoreLibrary {
 
         truffleTypeModule = defineModule(truffleModule, "Type");
 
-        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
+        DynamicObject byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
+        DynamicObject randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
         randomizerFactory = Layouts.RANDOMIZER.createRandomizerShape(randomizerClass, randomizerClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, randomizerFactory);
 
         // Standard library
 
-        digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
+        DynamicObject digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
         digestFactory = Layouts.DIGEST.createDigestShape(digestClass, digestClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, digestFactory);
 
@@ -616,7 +605,6 @@ public class CoreLibrary {
         nil = nilFactory.newInstance();
         emptyDescriptor = new FrameDescriptor(nil);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
-        supportUndefined = NotProvided.INSTANCE;
 
         globalVariables = new GlobalVariables(nil);
 
@@ -767,7 +755,7 @@ public class CoreLibrary {
 
         setConstant(objectClass, "ARGV", argv);
 
-        setConstant(truffleModule, "UNDEFINED", supportUndefined);
+        setConstant(truffleModule, "UNDEFINED", NotProvided.INSTANCE);
 
         setConstant(encodingConverterClass, "INVALID_MASK", EConvFlags.INVALID_MASK);
         setConstant(encodingConverterClass, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
@@ -850,7 +838,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final RubySource source = loadCoreFile(getCoreLoadPath() + file);
+                final RubySource source = loadCoreFile(coreLoadPath + file);
                 final RubyRootNode rootNode = context
                         .getCodeLoader()
                         .parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
@@ -860,7 +848,7 @@ public class CoreLibrary {
                         DeclarationContext.topLevel(context),
                         rootNode,
                         null,
-                        context.getCoreLibrary().getMainObject());
+                        context.getCoreLibrary().mainObject);
 
                 TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source.getSource());
                 deferredCall.callWithoutCallNode();
@@ -909,7 +897,7 @@ public class CoreLibrary {
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
         DynamicObject dollarZeroValue = StringOperations
                 .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
+        globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
     }
 
     @TruffleBoundary
@@ -986,182 +974,6 @@ public class CoreLibrary {
         return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
     }
 
-    public RubyContext getContext() {
-        return context;
-    }
-
-    public SourceSection getSourceSection() {
-        return sourceSection;
-    }
-
-    public String getCoreLoadPath() {
-        return coreLoadPath;
-    }
-
-    public DynamicObject getArrayClass() {
-        return arrayClass;
-    }
-
-    public DynamicObject getBasicObjectClass() {
-        return basicObjectClass;
-    }
-
-    public DynamicObject getBigDecimalClass() {
-        return bigDecimalClass;
-    }
-
-    public DynamicObject getBigDecimalOperationsModule() {
-        return bigDecimalOperationsModule;
-    }
-
-    public DynamicObjectFactory getBindingFactory() {
-        return bindingFactory;
-    }
-
-    public DynamicObject getClassClass() {
-        return classClass;
-    }
-
-    public DynamicObject getFalseClass() {
-        return falseClass;
-    }
-
-    public DynamicObjectFactory getFiberFactory() {
-        return fiberFactory;
-    }
-
-    public DynamicObject getIntegerClass() {
-        return integerClass;
-    }
-
-    public DynamicObject getFloatClass() {
-        return floatClass;
-    }
-
-    public DynamicObject getStandardErrorClass() {
-        return standardErrorClass;
-    }
-
-    public DynamicObject getLoadErrorClass() {
-        return loadErrorClass;
-    }
-
-    public DynamicObject getMatchDataClass() {
-        return matchDataClass;
-    }
-
-    public DynamicObject getModuleClass() {
-        return moduleClass;
-    }
-
-    public DynamicObject getNameErrorClass() {
-        return nameErrorClass;
-    }
-
-    public DynamicObjectFactory getNameErrorFactory() {
-        return nameErrorFactory;
-    }
-
-    public DynamicObject getNilClass() {
-        return nilClass;
-    }
-
-    public FrameDescriptor getEmptyDescriptor() {
-        return emptyDescriptor;
-    }
-
-    public DynamicObject getNoMemoryErrorClass() {
-        return noMemoryErrorClass;
-    }
-
-    public DynamicObject getNoMethodErrorClass() {
-        return noMethodErrorClass;
-    }
-
-    public DynamicObjectFactory getNoMethodErrorFactory() {
-        return noMethodErrorFactory;
-    }
-
-    public DynamicObject getObjectClass() {
-        return objectClass;
-    }
-
-    public DynamicObjectFactory getObjectFactory() {
-        return objectFactory;
-    }
-
-    public DynamicObject getProcClass() {
-        return procClass;
-    }
-
-    public DynamicObject getProcessModule() {
-        return processModule;
-    }
-
-    public DynamicObject getRangeClass() {
-        return rangeClass;
-    }
-
-    public DynamicObject getRationalClass() {
-        return rationalClass;
-    }
-
-    public DynamicObjectFactory getRegexpFactory() {
-        return regexpFactory;
-    }
-
-    public DynamicObject getTruffleFFIPointerClass() {
-        return truffleFFIPointerClass;
-    }
-
-    public DynamicObject getTruffleFFINullPointerErrorClass() {
-        return truffleFFINullPointerErrorClass;
-    }
-
-    public DynamicObject getTruffleTypeModule() {
-        return truffleTypeModule;
-    }
-
-    public DynamicObject getGraalErrorClass() {
-        return graalErrorClass;
-    }
-
-    public DynamicObject getStringClass() {
-        return stringClass;
-    }
-
-    public DynamicObject getThreadClass() {
-        return threadClass;
-    }
-
-    public DynamicObjectFactory getThreadFactory() {
-        return threadFactory;
-    }
-
-    public DynamicObject getTypeErrorClass() {
-        return typeErrorClass;
-    }
-
-    public DynamicObject getTrueClass() {
-        return trueClass;
-    }
-
-    public DynamicObject getZeroDivisionErrorClass() {
-        return zeroDivisionErrorClass;
-    }
-
-    public DynamicObject getKernelModule() {
-        return kernelModule;
-    }
-
-    public DynamicObject getErrnoModule() {
-        return errnoModule;
-    }
-
-    public GlobalVariables getGlobalVariables() {
-        return globalVariables;
-    }
-
     public DynamicObject getLoadPath() {
         return (DynamicObject) loadPathReader.getValue(globalVariables);
     }
@@ -1204,36 +1016,8 @@ public class CoreLibrary {
         return stderrReader.getValue(globalVariables);
     }
 
-    public DynamicObject getMainObject() {
-        return mainObject;
-    }
-
-    public DynamicObject getNil() {
-        return nil;
-    }
-
     public DynamicObject getENV() {
         return (DynamicObject) Layouts.MODULE.getFields(objectClass).getConstant("ENV").getValue();
-    }
-
-    public DynamicObject getNumericClass() {
-        return numericClass;
-    }
-
-    public DynamicObjectFactory getUnboundMethodFactory() {
-        return unboundMethodFactory;
-    }
-
-    public DynamicObjectFactory getMethodFactory() {
-        return methodFactory;
-    }
-
-    public DynamicObject getComplexClass() {
-        return complexClass;
-    }
-
-    public DynamicObjectFactory getByteArrayFactory() {
-        return byteArrayFactory;
     }
 
     @TruffleBoundary
@@ -1249,14 +1033,6 @@ public class CoreLibrary {
     @TruffleBoundary
     public DynamicObject getErrnoClass(String name) {
         return errnoClasses.get(name);
-    }
-
-    public DynamicObjectFactory getSymbolFactory() {
-        return symbolFactory;
-    }
-
-    public DynamicObjectFactory getThreadBacktraceLocationFactory() {
-        return threadBacktraceLocationFactory;
     }
 
     public ConcurrentMap<String, Boolean> getPatchFiles() {
@@ -1285,202 +1061,6 @@ public class CoreLibrary {
 
     public boolean isTruffleBootMainMethod(SharedMethodInfo info) {
         return info == truffleBootMainInfo;
-    }
-
-    public DynamicObjectFactory getIntRangeFactory() {
-        return intRangeFactory;
-    }
-
-    public DynamicObjectFactory getLongRangeFactory() {
-        return longRangeFactory;
-    }
-
-    public DynamicObjectFactory getDigestFactory() {
-        return digestFactory;
-    }
-
-    public DynamicObjectFactory getArrayFactory() {
-        return arrayFactory;
-    }
-
-    public DynamicObjectFactory getBignumFactory() {
-        return bignumFactory;
-    }
-
-    public DynamicObjectFactory getProcFactory() {
-        return procFactory;
-    }
-
-    public DynamicObjectFactory getStringFactory() {
-        return stringFactory;
-    }
-
-    public DynamicObject getHashClass() {
-        return hashClass;
-    }
-
-    public DynamicObjectFactory getHashFactory() {
-        return hashFactory;
-    }
-
-    public Object getObjectSpaceModule() {
-        return objectSpaceModule;
-    }
-
-    public DynamicObjectFactory getRandomizerFactory() {
-        return randomizerFactory;
-    }
-
-    public DynamicObject getSignalExceptionClass() {
-        return signalExceptionClass;
-    }
-
-    public DynamicObject getSystemExitClass() {
-        return systemExitClass;
-    }
-
-    public DynamicObjectFactory getHandleFactory() {
-        return handleFactory;
-    }
-
-    public DynamicObject getRuntimeErrorClass() {
-        return runtimeErrorClass;
-    }
-
-    public DynamicObject getSystemStackErrorClass() {
-        return systemStackErrorClass;
-    }
-
-    public DynamicObject getArgumentErrorClass() {
-        return argumentErrorClass;
-    }
-
-    public DynamicObject getIndexErrorClass() {
-        return indexErrorClass;
-    }
-
-    public DynamicObject getKeyErrorClass() {
-        return keyErrorClass;
-    }
-
-    public DynamicObject getLocalJumpErrorClass() {
-        return localJumpErrorClass;
-    }
-
-    public DynamicObject getNotImplementedErrorClass() {
-        return notImplementedErrorClass;
-    }
-
-    public DynamicObject getSyntaxErrorClass() {
-        return syntaxErrorClass;
-    }
-
-    public DynamicObject getFrozenErrorClass() {
-        return frozenErrorClass;
-    }
-
-    public DynamicObject getFloatDomainErrorClass() {
-        return floatDomainErrorClass;
-    }
-
-    public DynamicObject getIOErrorClass() {
-        return ioErrorClass;
-    }
-
-    public DynamicObject getRangeErrorClass() {
-        return rangeErrorClass;
-    }
-
-    public DynamicObject getRegexpErrorClass() {
-        return regexpErrorClass;
-    }
-
-    public DynamicObject getEncodingClass() {
-        return encodingClass;
-    }
-
-    public DynamicObjectFactory getEncodingFactory() {
-        return encodingFactory;
-    }
-
-    public DynamicObject getEncodingErrorClass() {
-        return encodingErrorClass;
-    }
-
-    public DynamicObject getEncodingCompatibilityErrorClass() {
-        return encodingCompatibilityErrorClass;
-    }
-
-    public DynamicObject getEncodingUndefinedConversionErrorClass() {
-        return encodingUndefinedConversionErrorClass;
-    }
-
-    public DynamicObject getFiberErrorClass() {
-        return fiberErrorClass;
-    }
-
-    public DynamicObject getThreadErrorClass() {
-        return threadErrorClass;
-    }
-
-    public DynamicObject getSecurityErrorClass() {
-        return securityErrorClass;
-    }
-
-    public DynamicObject getSystemCallErrorClass() {
-        return systemCallErrorClass;
-    }
-
-    public DynamicObject getTruffleModule() {
-        return truffleModule;
-    }
-
-    public DynamicObject getTruffleInternalModule() {
-        return truffleInternalModule;
-    }
-
-    public DynamicObject getTruffleBootModule() {
-        return truffleBootModule;
-    }
-
-    public DynamicObject getTruffleExceptionOperationsModule() {
-        return truffleExceptionOperationsModule;
-    }
-
-    public DynamicObject getTruffleInteropModule() {
-        return truffleInteropModule;
-    }
-
-    public DynamicObject getTruffleInteropForeignClass() {
-        return truffleInteropForeignClass;
-    }
-
-    public DynamicObject getTruffleKernelOperationsModule() {
-        return truffleKernelOperationsModule;
-    }
-
-    public DynamicObject getTruffleThreadOperationsModule() {
-        return truffleThreadOperationsModule;
-    }
-
-    public DynamicObject getTruffleRegexpOperationsModule() {
-        return truffleRegexpOperationsModule;
-    }
-
-    public DynamicObject getExceptionClass() {
-        return exceptionClass;
-    }
-
-    public DynamicObject getClosedQueueError() {
-        return closedQueueErrorClass;
-    }
-
-    public DynamicObject getWarningModule() {
-        return warningModule;
-    }
-
-    public DynamicObject getStructClass() {
-        return structClass;
     }
 
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";

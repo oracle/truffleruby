@@ -232,7 +232,7 @@ public abstract class PointerNodes {
         @Specialization(guards = "limit == 0")
         protected DynamicObject readNullPointer(long address, long limit) {
             return allocate(
-                    coreLibrary().getStringClass(),
+                    coreLibrary().stringClass,
                     Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
@@ -244,7 +244,7 @@ public abstract class PointerNodes {
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+            return allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
         }
 
         @Specialization(guards = "isNil(limit)")
@@ -255,7 +255,7 @@ public abstract class PointerNodes {
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+            return allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
         }
 
         private DynamicObject allocate(DynamicObject object, Object[] values) {
@@ -280,7 +280,7 @@ public abstract class PointerNodes {
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 return allocateObjectNode.allocate(
-                        coreLibrary().getStringClass(),
+                        coreLibrary().stringClass,
                         Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             } else {
                 checkNull(ptr);
@@ -289,7 +289,7 @@ public abstract class PointerNodes {
                 final Rope rope = makeLeafRopeNode
                         .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
                 return allocateObjectNode
-                        .allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, true, rope));
+                        .allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
             }
         }
 
@@ -456,7 +456,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(0);
-            return allocateObjectNode.allocate(coreLibrary().getTruffleFFIPointerClass(), readPointer);
+            return allocateObjectNode.allocate(coreLibrary().truffleFFIPointerClass, readPointer);
         }
 
     }

@@ -1323,7 +1323,7 @@ public abstract class BigDecimalNodes {
             final Object denominatorAsRubyValue = denominatorConversionNode.fixnumOrBignum(denominator);
 
             return createRationalNode.call(
-                    getContext().getCoreLibrary().getRationalClass(),
+                    getContext().getCoreLibrary().rationalClass,
                     "convert",
                     numeratorAsRubyValue,
                     denominatorAsRubyValue);
@@ -1349,7 +1349,7 @@ public abstract class BigDecimalNodes {
                     throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
-                    return createRationalNode.call(getContext().getCoreLibrary().getRationalClass(), "convert", 0, 1);
+                    return createRationalNode.call(getContext().getCoreLibrary().rationalClass, "convert", 0, 1);
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     throw new UnsupportedOperationException(

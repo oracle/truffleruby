@@ -95,4 +95,12 @@ public abstract class BasicPlatform {
 
         return architecture;
     }
+
+    public static String getKernelMajorVersion() {
+        if (OS == OS_TYPE.DARWIN) {
+            return BuildInformationImpl.INSTANCE.getKernelMajorVersion();
+        } else {
+            return "";
+        }
+    }
 }
