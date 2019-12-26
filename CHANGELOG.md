@@ -51,6 +51,7 @@ Bug fixes:
 * Fixed `Symbol#to_proc` to create proc with nil `source_location` (#1663).
 * Make `GC.start` work with keyword arguments.
 * Fixed `Kernel#clone` for `nil`, `true`, `false`, `Integer`, and `Symbol`.
+* Made `Kernel#caller_locations` accept a range argument, and return `nil` when appropriate.
 
 Compatibility:
 
@@ -72,6 +73,7 @@ Compatibility:
 * Implemented `rb_io_set_nonblock` (#1741).
 * Include the major kernel version in `RUBY_PLATFORM` on macOS like MRI (#1860, @eightbitraptor).
 * Implemented `Enumerator::Chain`, `Enumerator#+`, and `Enumerable#chain` (#1859, #1858).
+* Implemented `Thread#backtrace_locations` and `Exception#backtrace_locations` (#1556).
 
 Performance:
 
