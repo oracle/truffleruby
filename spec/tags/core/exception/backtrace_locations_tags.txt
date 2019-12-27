@@ -1,5 +1,0 @@
-fails:Exception#backtrace_locations returns nil if no backtrace was set
-fails:Exception#backtrace_locations returns an Array
-fails:Exception#backtrace_locations sets each element to a Thread::Backtrace::Location
-fails:Exception#backtrace_locations produces a backtrace for an exception captured using $!
-fails:Exception#backtrace_locations returns an Array that can be updated

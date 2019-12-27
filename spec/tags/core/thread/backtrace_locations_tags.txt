@@ -1,6 +1,1 @@
-fails:Thread#backtrace_locations returns an Array
-fails:Thread#backtrace_locations sets each element to a Thread::Backtrace::Location
-fails:Thread#backtrace_locations can be called on any Thread
-fails:Thread#backtrace_locations without argument is the same as showing all locations with 0..-1
 fails:Thread#backtrace_locations the first location reports the call to #backtrace_locations
-fails:Thread#backtrace_locations [1..-1] is the same as #caller_locations(0..-1) for Thread.current

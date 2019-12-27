@@ -44,7 +44,8 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil()));
+            return allocateObjectNode
+                    .allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil(), null, null));
         }
 
     }
@@ -151,14 +152,14 @@ public abstract class ExceptionNodes {
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
             } else if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
-                final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-                if (backtrace.getBacktraceStringArray() == null) {
-                    backtrace.setBacktraceStringArray(
-                            getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
-                                    exception,
-                                    Layouts.EXCEPTION.getBacktrace(exception)));
+                DynamicObject backtraceStringArray = Layouts.EXCEPTION.getBacktraceStringArray(exception);
+                if (backtraceStringArray == null) {
+                    backtraceStringArray = getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
+                            exception,
+                            Layouts.EXCEPTION.getBacktrace(exception));
+                    Layouts.EXCEPTION.setBacktraceStringArray(exception, backtraceStringArray);
                 }
-                return backtrace.getBacktraceStringArray();
+                return backtraceStringArray;
             } else {
                 return nil();
             }
@@ -173,6 +174,27 @@ public abstract class ExceptionNodes {
             return readCustomBacktraceNode;
         }
 
+    }
+
+    @CoreMethod(names = "backtrace_locations")
+    public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object backtraceLocations(DynamicObject exception,
+                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
+            if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
+                DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
+                if (hasLocationsProfile.profile(backtraceLocations == null)) {
+                    Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+                    backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED);
+                    Layouts.EXCEPTION.setBacktraceLocations(exception, backtraceLocations);
+                }
+                return backtraceLocations;
+            } else {
+                return nil();
+            }
+        }
     }
 
     @Primitive(name = "exception_backtrace?")

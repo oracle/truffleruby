@@ -60,6 +60,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -68,6 +69,7 @@ import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
@@ -124,8 +126,7 @@ public abstract class ThreadNodes {
                 result.set(getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(null, backtrace));
             });
 
-            // If the thread id dead or aborting the SafepointAction will not run
-
+            // If the thread is dead or aborting the SafepointAction will not run
             if (result.get() != null) {
                 return result.get();
             } else {
@@ -133,6 +134,50 @@ public abstract class ThreadNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "thread_backtrace_locations", lowerFixnum = { 1, 2 })
+    public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject backtraceLocations(
+                DynamicObject rubyThread, int first, NotProvided second) {
+            return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
+        }
+
+        @Specialization
+        protected DynamicObject backtraceLocations(
+                DynamicObject rubyThread, int first, int second) {
+            return backtraceLocationsInternal(rubyThread, first, second);
+        }
+
+        @TruffleBoundary
+        private DynamicObject backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
+            final Memo<Backtrace> backtraceMemo = new Memo<>(null);
+
+            // We can't set an effective limit when dealing with negative range endings.
+            final int stackTraceElementsLimit = length < 0
+                    ? GetBacktraceException.UNLIMITED
+                    : omit + length;
+
+            final SafepointAction safepointAction = (thread1, currentNode) -> {
+                final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
+                backtraceMemo.set(backtrace);
+                // Fill in the stack trace.
+                backtrace.getActivations(new GetBacktraceException(this, stackTraceElementsLimit));
+            };
+
+            getContext()
+                    .getSafepointManager()
+                    .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
+
+            // If the thread is dead or aborting the SafepointAction will not run.
+            if (backtraceMemo.get() == null) {
+                return nil();
+            }
+
+            return backtraceMemo.get().getBacktraceLocations(length);
+        }
     }
 
     @CoreMethod(names = "current", onSingleton = true)

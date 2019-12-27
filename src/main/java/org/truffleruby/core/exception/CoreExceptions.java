@@ -729,6 +729,8 @@ public class CoreExceptions {
                 null,
                 backtrace,
                 cause,
+                null,
+                null,
                 receiver,
                 context.getSymbolTable().getSymbol(name)));
     }
@@ -744,6 +746,8 @@ public class CoreExceptions {
                         formatter,
                         backtrace,
                         cause,
+                        null,
+                        null,
                         receiver,
                         context.getSymbolTable().getSymbol(name)));
         showExceptionIfDebug(exception, backtrace);
@@ -766,6 +770,8 @@ public class CoreExceptions {
                         null,
                         backtrace,
                         cause,
+                        null,
+                        null,
                         receiver,
                         context.getSymbolTable().getSymbol(name),
                         argsArray));
@@ -784,6 +790,8 @@ public class CoreExceptions {
                         formatter,
                         backtrace,
                         cause,
+                        null,
+                        null,
                         receiver,
                         context.getSymbolTable().getSymbol(name),
                         argsArray));
@@ -806,6 +814,8 @@ public class CoreExceptions {
                 null,
                 backtrace,
                 cause,
+                null,
+                null,
                 null,
                 // FIXME: the name of the method is not known in this case currently
                 context.getSymbolTable().getSymbol("<unknown>")));
