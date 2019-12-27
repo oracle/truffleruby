@@ -10,7 +10,6 @@
 package org.truffleruby.language.loader;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -97,7 +96,7 @@ public class MainLoader {
         final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
         final Source source = fileLoader.buildSource(file, path, sourceRope, false);
-        context.setMainSource(source, new File(path).getAbsolutePath());
+        context.setMainSource(source, file.getAbsoluteFile().getPath());
 
         return new RubySource(source, sourceRope);
     }
