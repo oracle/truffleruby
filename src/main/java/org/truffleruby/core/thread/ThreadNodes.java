@@ -157,8 +157,8 @@ public abstract class ThreadNodes {
 
             // We can't set an effective limit when dealing with negative range endings.
             final int stackTraceElementsLimit = length < 0
-                ? GetBacktraceException.UNLIMITED
-                : omit + length;
+                    ? GetBacktraceException.UNLIMITED
+                    : omit + length;
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
@@ -167,8 +167,9 @@ public abstract class ThreadNodes {
                 backtrace.getActivations(new GetBacktraceException(this, stackTraceElementsLimit));
             };
 
-            getContext().getSafepointManager()
-                .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
+            getContext()
+                    .getSafepointManager()
+                    .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
 
             // If the thread is dead or aborting the SafepointAction will not run.
             if (backtraceMemo.get() == null) {

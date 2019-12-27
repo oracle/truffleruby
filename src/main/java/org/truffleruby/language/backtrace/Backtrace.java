@@ -185,7 +185,7 @@ public class Backtrace {
         final int activationsLength = getActivations().length;
 
         // TODO(norswap, 24 Dec 2019)
-        //   This is an ugly stopgap solution — this doesn't seem solvable without refactoring #getActivations.
+        //   This is an ugly stopgap solution - this doesn't seem solvable without refactoring #getActivations.
         //   The issue is that omitting more locations than are available should return nil, while
         //   omitting exactly the number of available locations should return an empty array.
         //   This isn't even entirely correct: if we should ignore some frames from the stack trace,
@@ -203,14 +203,16 @@ public class Backtrace {
         //  always respect TruffleException#getStackTraceElementLimit(), so we need to use Math#min.
         //  Haven't yet investigated why.
         final int locationsLength = length < 0
-            ? activationsLength + 1 + length
-            : Math.min(activationsLength, length);
+                ? activationsLength + 1 + length
+                : Math.min(activationsLength, length);
 
         final Object[] locations = new Object[locationsLength];
         final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
         for (int i = 0; i < locationsLength; i++) {
             locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                factory, this, i);
+                    factory,
+                    this,
+                    i);
         }
         return ArrayHelpers.createArray(context, locations, locations.length);
     }

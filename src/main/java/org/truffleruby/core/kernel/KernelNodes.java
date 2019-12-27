@@ -321,8 +321,8 @@ public abstract class KernelNodes {
 
             // We can't set an effective limit when dealing with negative range endings.
             final int limit = length < 0
-                ? GetBacktraceException.UNLIMITED
-                : omitted + length;
+                    ? GetBacktraceException.UNLIMITED
+                    : omitted + length;
 
             // Fill in the stack trace.
             backtrace.getActivations(new GetBacktraceException(this, limit));

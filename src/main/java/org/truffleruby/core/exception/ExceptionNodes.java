@@ -152,7 +152,6 @@ public abstract class ExceptionNodes {
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
             } else if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
-                Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
                 DynamicObject backtraceStringArray = Layouts.EXCEPTION.getBacktraceStringArray(exception);
                 if (backtraceStringArray == null) {
                     backtraceStringArray = getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
@@ -182,7 +181,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object backtraceLocations(DynamicObject exception,
-                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
             if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
                 DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
