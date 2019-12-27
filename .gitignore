@@ -64,6 +64,7 @@ test/mri/tests/cext-c/**/mkmf.log
 /TRUFFLERUBY*.dist
 /eclipseformat.backup.zip
 /mx.truffleruby/__pycache__
+.checkstyle
 
 # ruby/spec
 /rubyspec_temp
