@@ -10,14 +10,15 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.FrameSendingNode;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -27,12 +28,13 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
     @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
+    @Child private NotOptimizedWarningNode notOptimizedNode = null;
 
     public static ReadCallerFrameNode create() {
         return new ReadCallerFrameNode();
     }
 
-    public MaterializedFrame execute(Frame frame) {
+    public MaterializedFrame execute(VirtualFrame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -53,6 +55,7 @@ public class ReadCallerFrameNode extends RubyBaseNode {
         if (!notifyCallerToSendFrame()) {
             // If we fail to notify the call node (e.g., because it is a UncachedDispatchNode which is not handled yet),
             // we don't want to deoptimize this CallTarget on every call.
+            getNotOptimizedNode().warn("Unoptimized reading of caller frame.");
             deoptWhenNotPassedCallerFrame = false;
         }
         return getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
@@ -68,7 +71,6 @@ public class ReadCallerFrameNode extends RubyBaseNode {
                     return true;
                 }
                 if (parent instanceof RubyBaseNode) {
-                    new Error().printStackTrace();
                     return false;
                 }
                 parent = parent.getParent();
@@ -78,4 +80,11 @@ public class ReadCallerFrameNode extends RubyBaseNode {
         return false;
     }
 
+    public NotOptimizedWarningNode getNotOptimizedNode() {
+        if (notOptimizedNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            notOptimizedNode = insert(NotOptimizedWarningNode.create());
+        }
+        return notOptimizedNode;
+    }
 }
