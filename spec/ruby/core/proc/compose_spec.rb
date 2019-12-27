@@ -40,14 +40,14 @@ ruby_version_is "2.6" do
 
       it "is a Proc when other is lambda" do
         f = proc { |x| x * x }
-        g = ->(x) { x + x }
+        g = -> x { x + x }
 
         (f << g).is_a?(Proc).should == true
         (f << g).lambda?.should == false
       end
 
       it "is a lambda when self is lambda" do
-        f = lambda { |x| x * x }
+        f = -> x { x * x }
         g = proc { |x| x + x }
 
         (f << g).is_a?(Proc).should == true
@@ -109,14 +109,14 @@ ruby_version_is "2.6" do
 
       it "is a Proc when other is lambda" do
         f = proc { |x| x * x }
-        g = ->(x) { x + x }
+        g = -> x { x + x }
 
         (f >> g).is_a?(Proc).should == true
         (f >> g).lambda?.should == false
       end
 
       it "is a lambda when self is lambda" do
-        f = lambda { |x| x * x }
+        f = -> x { x * x }
         g = proc { |x| x + x }
 
         (f >> g).is_a?(Proc).should == true
