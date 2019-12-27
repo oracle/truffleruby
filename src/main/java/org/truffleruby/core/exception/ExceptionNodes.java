@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
@@ -182,23 +181,14 @@ public abstract class ExceptionNodes {
     public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object backtrace_locations(DynamicObject exception,
-                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
-                 @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
+        protected Object backtraceLocations(DynamicObject exception,
+                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
+                @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
             if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
                 DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-                    int locationsCount = backtrace.getActivations().length;
-                    Object[] locations = new Object[locationsCount];
-                    DynamicObjectFactory factory = coreLibrary().threadBacktraceLocationFactory;
-                    for (int i = 0; i < locationsCount; i++) {
-                        locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                                factory,
-                                backtrace,
-                                i);
-                    }
-                    backtraceLocations = createArray(locations, locations.length);
+                    backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED);
                     Layouts.EXCEPTION.setBacktraceLocations(exception, backtraceLocations);
                 }
                 return backtraceLocations;
