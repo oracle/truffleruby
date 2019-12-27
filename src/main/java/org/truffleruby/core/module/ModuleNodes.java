@@ -674,8 +674,7 @@ public abstract class ModuleNodes {
         }
 
         private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, DynamicObject module,
-                DynamicObject rubySource, String file,
-                int line) {
+                DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
             final MaterializedFrame callerFrame = readCallerFrameNode.execute(frame);
@@ -685,8 +684,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         private CodeLoader.DeferredCall classEvalSourceInternal(DynamicObject module, DynamicObject rubySource,
-                String file, int line,
-                final MaterializedFrame callerFrame) {
+                String file, int line, MaterializedFrame callerFrame) {
             final RubySource source = createEvalSourceNode
                     .createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
 
