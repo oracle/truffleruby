@@ -12,8 +12,11 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.RubyRootNode;
@@ -118,6 +121,9 @@ public class Backtrace {
 
             int i = 0;
             for (TruffleStackTraceElement stackTraceElement : stackTrace) {
+                // TODO(norswap, 24 Dec. 2019)
+                //   Seems wrong to me, this causes frames that would otherwise be ignored to
+                //   count towards the omitted frames.
                 if (i >= omitted) {
                     assert i != 0 || stackTraceElement.getLocation() == location;
                     final Node callNode = stackTraceElement.getLocation();
@@ -153,7 +159,60 @@ public class Backtrace {
         }
 
         return this.activations;
+    }
 
+    /**
+     * Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code
+     * length}, and omitting locations as requested ({@link #getOmitted()}). If more locations
+     * are omitted than are available, return a Ruby {@code nil}.
+     *
+     * <p>The length can be negative, in which case it is treated as a range ending. Use -1 to
+     * get the maximum length.
+     *
+     * <p>If the stack trace hasn't been filled yet, this method will fill it.
+     */
+    public DynamicObject getBacktraceLocations(int length) {
+
+        final RubyContext context = RubyLanguage.getCurrentContext();
+
+        // NOTE(norswap, 24 Dec 2019)
+        //   Causes the stack trace to be filled if not done already.
+        //   We must call this rather than TruffleStackTrace#getStackTrace because
+        //   it does some additional filtering.
+        // TODO(norswap, 20 Dec 2019)
+        //   Currently, only the filtering at the end is taken into account (as length reduction).
+        //   Filtering in the middle will be ignored because of how we build backtrace locations.
+        final int activationsLength = getActivations().length;
+
+        // TODO(norswap, 24 Dec 2019)
+        //   This is an ugly stopgap solution — this doesn't seem solvable without refactoring #getActivations.
+        //   The issue is that omitting more locations than are available should return nil, while
+        //   omitting exactly the number of available locations should return an empty array.
+        //   This isn't even entirely correct: if we should ignore some frames from the stack trace,
+        //   then it's possible the method will return an empty array instead of nil.
+        if (activationsLength == 0 && omitted > 0) {
+            final int fullStackTraceLength = TruffleStackTrace.getStackTrace(
+                    new GetBacktraceException(location, GetBacktraceException.UNLIMITED)).size();
+            if (omitted > fullStackTraceLength) {
+                return context.getCoreLibrary().nil;
+            }
+        }
+
+        // NOTE (norswap, 18 Dec 2019)
+        //  TruffleStackTrace#getStackTrace (hence Backtrace#getActivations too) does not
+        //  always respect TruffleException#getStackTraceElementLimit(), so we need to use Math#min.
+        //  Haven't yet investigated why.
+        final int locationsLength = length < 0
+            ? activationsLength + 1 + length
+            : Math.min(activationsLength, length);
+
+        final Object[] locations = new Object[locationsLength];
+        final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
+        for (int i = 0; i < locationsLength; i++) {
+            locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
+                factory, this, i);
+        }
+        return ArrayHelpers.createArray(context, locations, locations.length);
     }
 
     public int getOmitted() {

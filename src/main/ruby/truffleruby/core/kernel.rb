@@ -601,6 +601,27 @@ module Kernel
   end
   module_function :caller
 
+  def caller_locations(omit = 1, length = undefined)
+    # This could be implemented as a call to Thread#backtrace_locations, but we don't do this
+    # to avoid the SafepointAction overhead in the primitive call.
+    if Integer === length && length < 0
+      raise ArgumentError, "negative size (#{length})"
+    end
+    if Range === omit
+      range = omit
+      omit = Truffle::Type.coerce_to_int(range.begin)
+      end_index = Truffle::Type.coerce_to_int(range.end)
+      if end_index < 0
+        length = end_index
+      else
+        end_index += (range.exclude_end? ? 0 : 1)
+        length = omit > end_index ? 0 : end_index - omit
+      end
+    end
+    TrufflePrimitive.kernel_caller_locations(omit, length)
+  end
+  module_function :caller_locations
+
   def at_exit(&block)
     Truffle::KernelOperations.at_exit false, &block
   end

@@ -30,6 +30,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -301,47 +302,33 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "caller_locations", isModuleFunction = true, optional = 2, lowerFixnum = { 1, 2 })
+    @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected DynamicObject callerLocations(NotProvided omit, NotProvided length) {
-            return innerCallerLocations(1, GetBacktraceException.UNLIMITED);
-        }
 
         @Specialization
         protected DynamicObject callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
-        @Specialization(guards = "length >= 0")
+        @Specialization
         protected DynamicObject callerLocations(int omit, int length) {
             return innerCallerLocations(omit, length);
         }
 
         private DynamicObject innerCallerLocations(int omit, int length) {
-            final int omitted = 1 /* always skip #caller_locations */ + omit;
+            // Always skip #caller_locations.
+            final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            final int limit = (length == GetBacktraceException.UNLIMITED)
-                    ? GetBacktraceException.UNLIMITED
-                    : omitted + length;
 
-            int locationsCount = backtrace.getActivations(new GetBacktraceException(this, limit)).length;
+            // We can't set an effective limit when dealing with negative range endings.
+            final int limit = length < 0
+                ? GetBacktraceException.UNLIMITED
+                : omitted + length;
 
-            if (length != GetBacktraceException.UNLIMITED && length < locationsCount) {
-                locationsCount = length;
-            }
+            // Fill in the stack trace.
+            backtrace.getActivations(new GetBacktraceException(this, limit));
 
-            final Object[] locations = new Object[locationsCount];
-
-            for (int n = 0; n < locationsCount; n++) {
-                locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                        coreLibrary().threadBacktraceLocationFactory,
-                        backtrace,
-                        n);
-            }
-
-            return createArray(locations, locations.length);
+            return backtrace.getBacktraceLocations(length);
         }
     }
 
